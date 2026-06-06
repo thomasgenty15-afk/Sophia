@@ -14,12 +14,6 @@ import {
   structuredAttackCardDraftGenerator,
   structuredAttackCardSlotFiller,
 } from "./prepare_attack_card/test_helpers.ts";
-import { executeActivateStatePotion } from "./select_state_potion/executor.ts";
-import { runSelectStatePotionIntake } from "./select_state_potion/intake.ts";
-import {
-  structuredStatePotionDraftGenerator,
-  structuredStatePotionSlotFiller,
-} from "./select_state_potion/test_helpers.ts";
 
 const SECRET = "s5-test-secret";
 
@@ -41,78 +35,30 @@ Deno.test("S5 operations latency smoke measures intake to generator to ack under
       message: "faire une pause",
     }),
   });
-  if (recurring.status !== "pending_confirmation") {
+  const recurringRuntime = recurring as any;
+  if (recurringRuntime.status !== "pending_confirmation") {
     throw new Error("recurring_not_ready");
   }
   const recurringToken = await createConfirmationToken({
     user_id: "u1",
-    operation_id: String(recurring.pending_confirmation?.operation_id),
+    operation_id: String(recurringRuntime.pending_confirmation?.operation_id),
     operation_type: "create_recurring_reminder",
-    draft: recurring.draft,
+    draft: recurringRuntime.draft,
     source_message_id: "yes-recurring",
     pending_confirmation_id: "pending-recurring",
     secret: SECRET,
   });
   assertEquals(
     (await executeCreateRecurringReminder({
-      operation_id: String(recurring.pending_confirmation?.operation_id),
+      operation_id: String(recurringRuntime.pending_confirmation?.operation_id),
       user_id: "u1",
-      draft: recurring.draft!,
+      draft: recurringRuntime.draft!,
       token: recurringToken,
       safety_pregate_risk_band: "none",
       pending_confirmation_lookup: async () => ({ consumed: false }),
       token_consumption_check: async (tokenId) =>
         hasConsumedConfirmationTokenForTest(tokenId),
       write_recurring_reminder: async () => ({ recurring_reminder_id: "rr" }),
-      secret: SECRET,
-    })).status,
-    "executed",
-  );
-  completed++;
-
-  resetConsumedConfirmationTokensForTest();
-  const potion = await runSelectStatePotionIntake({
-    user_id: "u1",
-    channel: "whatsapp",
-    timezone: "Europe/Paris",
-    message: "je suis stresse, fais-moi une potion",
-    trigger_message_id: "latency-potion",
-    safety_pregate_risk_band: "none",
-    slot_filler: structuredStatePotionSlotFiller({
-      state_kind: "stress_pressure",
-      selected_potion: "apaisement",
-    }),
-    draft_generator: structuredStatePotionDraftGenerator(),
-  });
-  if (potion.status !== "pending_confirmation") {
-    throw new Error("potion_not_ready");
-  }
-  const potionToken = await createConfirmationToken({
-    user_id: "u1",
-    operation_id: String(potion.pending_confirmation?.operation_id),
-    operation_type: "select_state_potion",
-    draft: potion.draft,
-    source_message_id: "yes-potion",
-    pending_confirmation_id: "pending-potion",
-    secret: SECRET,
-  });
-  assertEquals(
-    (await executeActivateStatePotion({
-      operation_id: String(potion.pending_confirmation?.operation_id),
-      user_id: "u1",
-      draft: potion.draft!,
-      token: potionToken,
-      safety_pregate_risk_band: "none",
-      pending_confirmation_lookup: async () => ({ consumed: false }),
-      token_consumption_check: async (tokenId) =>
-        hasConsumedConfirmationTokenForTest(tokenId),
-      write_potion_activation: async ({ scheduled_followups }) => ({
-        potion_session_id: "p",
-        recurring_reminder_id: "rr-potion",
-        scheduled_checkin_ids: scheduled_followups.map((_, index) =>
-          `sc-${index}`
-        ),
-      }),
       secret: SECRET,
     })).status,
     "executed",

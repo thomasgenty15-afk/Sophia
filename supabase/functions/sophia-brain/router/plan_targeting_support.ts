@@ -254,6 +254,42 @@ function formatCurrentWeekSummaryItem(item: V2PlanItemSnapshotItem): string {
   return weekly ? `${item.title} [${weekly}]` : item.title;
 }
 
+function isAlwaysVisiblePlanItem(item: V2PlanItemSnapshotItem): boolean {
+  return item.available_this_week === true ||
+    item.status === "active" ||
+    item.status === "in_maintenance" ||
+    item.status === "stalled";
+}
+
+function rankAlwaysVisiblePlanItem(item: V2PlanItemSnapshotItem): number {
+  if (item.available_this_week === true && item.status === "active") return 5;
+  if (item.available_this_week === true) return 4;
+  if (item.status === "active") return 3;
+  if (item.status === "in_maintenance") return 2;
+  if (item.status === "stalled") return 1;
+  return 0;
+}
+
+function buildShortActivePlanSnapshotAddon(
+  items: V2PlanItemSnapshotItem[],
+): string | null {
+  const visibleItems = items
+    .filter(isAlwaysVisiblePlanItem)
+    .sort((left, right) =>
+      rankAlwaysVisiblePlanItem(right) - rankAlwaysVisiblePlanItem(left)
+    )
+    .slice(0, 8);
+  if (visibleItems.length === 0) return null;
+  return [
+    "=== SNAPSHOT COURT PLAN / ACTIONS ACTIVES (TOUJOURS DISPONIBLE) ===",
+    "Le backend te donne un court snapshot du plan actif. Ne dis pas que tu ne peux pas voir le plan si une action pertinente est listee ici.",
+    "Utilise ce snapshot seulement si le user parle de son plan, de ses actions, de ce qu'il doit faire, ou si une action listee est directement pertinente. Ne force pas le sujet plan dans les autres reponses.",
+    "Si le user demande le detail complet de la semaine, appuie-toi sur le contexte operationnel detaille quand il est present; sinon reste prudent et cite uniquement les items listes ici.",
+    "Actions actives/disponibles:",
+    ...visibleItems.map(formatPlanSnapshotLine),
+  ].join("\n");
+}
+
 export function buildActivePlanSnapshotAddon(args: {
   planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
   routeDecision?: RouteDecision | null;
@@ -265,9 +301,19 @@ export function buildActivePlanSnapshotAddon(args: {
   if (items.length === 0) return null;
   const normalized = normalizeRouteText(args.userMessage);
   const likelyPlanContentQuestion =
-    /\b(cette semaine|quoi faire|faire quoi|censee|cense|supposee|suppose|tous les jours|chaque jour|quotidien|ponctuel|ponctuelle|combien de fois|frequence|frequence|nettoyer|environnement|mission|habitude|action)\b/
+    /\b(plans?|actions?|cette semaine|quoi faire|faire quoi|censee|cense|supposee|suppose|tous les jours|chaque jour|quotidien|ponctuel|ponctuelle|combien de fois|frequence|frequence|nettoyer|environnement|missions?|habitudes?)\b/
       .test(normalized);
-  if (!likelyPlanContentQuestion) return null;
+  const routeSuggestsPlanContext = [
+    args.routeDecision?.response_owner,
+    args.routeDecision?.selected_handler,
+    args.routeDecision?.reason_code,
+  ].some((value) =>
+    /\b(plan|action|mission|habit)\b/.test(normalizePlanTargetText(value))
+  );
+  const shortSnapshot = buildShortActivePlanSnapshotAddon(items);
+  if (!likelyPlanContentQuestion && !routeSuggestsPlanContext) {
+    return shortSnapshot;
+  }
 
   const currentWeek = items.filter((item) => item.available_this_week === true);
   const pastWeek = items.filter((item) =>
@@ -327,7 +373,7 @@ export function buildActivePlanSnapshotAddon(args: {
   lines.push(
     "Quand le user demande si une mission est quotidienne, verifie item_nature/cadence avant de repondre. Ne transforme pas une mission ponctuelle en habitude quotidienne.",
   );
-  return lines.join("\n");
+  return [shortSnapshot, lines.join("\n")].filter(Boolean).join("\n\n");
 }
 
 export function buildResolvedPlanTargetAddon(tempMemory: any): string | null {

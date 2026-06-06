@@ -180,6 +180,15 @@ function routeableToolIntent(
   );
 }
 
+function hasCompetingAttackAndDefenseCardIntents(
+  input: TurnIntentArbitrationInput,
+): boolean {
+  return Boolean(
+    routeableToolIntent(input, "prepare_attack_card") &&
+      routeableToolIntent(input, "prepare_defense_card"),
+  );
+}
+
 function hasStructuredMutationSignal(input: TurnIntentArbitrationInput): boolean {
   return hasRunnableDirectEffect(input) ||
     input.turnFrame.tool_skill_intents.some((intent) =>
@@ -466,6 +475,16 @@ export function arbitrateTurnIntent(
       input,
       "create_recurring_reminder",
       "central_arbitrator_recurring_reminder_structured_intent",
+    );
+  }
+
+  if (
+    !input.safetyBlocksTools &&
+    hasCompetingAttackAndDefenseCardIntents(input)
+  ) {
+    return rewriteForClarification(
+      input,
+      "central_arbitrator_attack_defense_card_ambiguity",
     );
   }
 

@@ -1,5 +1,6 @@
 import type { AttackTechniqueKey } from "./generator.ts";
 import type {
+  AttackCardPlatformFieldState,
   PrepareAttackCardConstraint,
   PrepareAttackCardUserIntent,
 } from "./contract.ts";
@@ -8,6 +9,7 @@ export type AttackCardStep =
   | "target_intake"
   | "technique_selection"
   | "keyword_intake"
+  | "platform_field_intake"
   | "draft_generation"
   | "draft_validation"
   | "confirmation";
@@ -83,6 +85,7 @@ export type AttackCardIntakeState = {
   technique: AttackCardTechniqueSlot;
   activation_keyword: AttackCardKeywordSlot;
   blocker: AttackCardBlockerSlot;
+  platform_fields?: AttackCardPlatformFieldState | null;
   constraints: PrepareAttackCardConstraint[];
   user_intent?: PrepareAttackCardUserIntent;
   missing_slots: string[];
@@ -112,6 +115,7 @@ export const ATTACK_CARD_STAGE_ORDER: AttackCardStep[] = [
   "target_intake",
   "technique_selection",
   "keyword_intake",
+  "platform_field_intake",
   "draft_generation",
   "draft_validation",
   "confirmation",

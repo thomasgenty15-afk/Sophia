@@ -1,5 +1,18 @@
 import type { DefenseCardDraftV1 } from "./generator.ts";
+import type {
+  DefenseCardPlatformFieldId,
+  DefenseCardPlatformFieldProgress,
+  DefenseCardPlatformFieldState,
+  DefenseCardPlatformFieldStatus,
+} from "./platform_fields.ts";
 import type { DefenseCardToolSkillState } from "./workflow.ts";
+
+export type {
+  DefenseCardPlatformFieldId,
+  DefenseCardPlatformFieldProgress,
+  DefenseCardPlatformFieldState,
+  DefenseCardPlatformFieldStatus,
+};
 
 export type PrepareDefenseCardUserIntent =
   | "draft_only"
@@ -60,28 +73,27 @@ export type DefenseCardHandoffDraft = {
   platform_flow: {
     route_kind: "free_card" | "plan_item_card";
     route_label: string;
-    entry_need: string;
-    questionnaire_answers: Array<{
-      field: "moment" | "signal" | "response";
+    entry_need?: {
       question_label: string;
-      answer: string;
+      value: string;
+      status: "locked" | "proposed";
+    } | null;
+    questionnaire_answers: Array<{
+      field_id: DefenseCardPlatformFieldId;
+      question_label: string;
+      value: string;
+      status: "locked" | "proposed";
     }>;
   };
-  platform_fields: {
-    label: string;
-    situation: string;
-    signal: string;
-    defense_response: string;
-    plan_b: string;
-  };
+  platform_fields?: DefenseCardPlatformFieldState | null;
   recommendation: {
-    defense_strategy_label: string;
-    why_this_strategy: string;
-    card_draft_summary: string;
-    preserve: string[];
-    avoid: string[];
     platform_destination: string;
     platform_steps: string[];
+    defense_strategy_label?: string;
+    why_this_strategy?: string;
+    card_draft_summary?: string;
+    preserve?: string[];
+    avoid?: string[];
   };
   missing_decisions: string[];
 };

@@ -38,6 +38,55 @@ l'enlever).
 
 ---
 
+## J78 — BF-SAFETY-01 contextual safety renderer
+
+Runs declencheurs. `safety_crisis` R2 du 2026-06-02, tour T2 : apres avoir dit
+que les medicaments avaient ete donnes a une voisine et que la soeur etait au
+telephone, la reponse visible relancait une checklist generique d'eloignement.
+
+Couche. L5 conversation skill `safety_crisis` : garde-fous safety, renderer,
+tests et contrat runtime.
+
+Decision. Les regex safety restent limitees a des garde-fous non metier :
+elles peuvent reconnaitre une preuve stabilisante comme des moyens donnes ou
+confies a quelqu'un, mais ne choisissent pas de skill, d'intention, de phase
+directe ou de resolution. Le renderer safety ne doit plus fonctionner comme une
+table de phrases completes par phase ; il compose une reponse depuis les
+signaux structures et le working state, reconnait les gestes deja faits, puis
+pose seulement le prochain point safety utile.
+
+Fichiers modifies.
+
+- `docs/agent-playbook/New/runtime-contracts/conversation-skills/safety-crisis.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+- `docs/agent-playbook/New/test-material/run-bug-sheets/2026-06-02-safety-crisis-r2-bugs.md`
+- `supabase/functions/sophia-brain/skills/safety_crisis/renderer.ts`
+- `supabase/functions/sophia-brain/skills/safety_crisis/signals.ts`
+- `supabase/functions/sophia-brain/skills/skills_s3.test.ts`
+
+Tests ajoutes. Regression `BF-SAFETY-01` dans `skills_s3.test.ts` :
+medicaments donnes a la voisine + soeur au telephone conserve le flow safety,
+marque les moyens hors de portee et l'appui humain, et interdit les formulations
+`Eloigne d'abord`, `Pose ou eloigne`, `reponds seulement` et `mode securite`.
+
+Tests lances.
+
+- `deno test --allow-env --allow-net --allow-read --filter "safety_crisis" supabase/functions/sophia-brain/skills/skills_s3.test.ts`
+  : 5 verts.
+- `deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/final_response_pipeline_test.ts`
+  : 10 verts.
+- `deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/run_product_help_guard.test.ts`
+  : 83 verts.
+- `deno check supabase/functions/sophia-brain/skills/safety_crisis/skill.ts supabase/functions/sophia-brain/skills/safety_crisis/contract.ts supabase/functions/sophia-brain/skills/safety_crisis/signals.ts supabase/functions/sophia-brain/skills/safety_crisis/intake.ts supabase/functions/sophia-brain/skills/safety_crisis/reducer.ts supabase/functions/sophia-brain/skills/safety_crisis/renderer.ts supabase/functions/sophia-brain/router/safety_crisis_runtime.ts`
+  : vert.
+
+Limites restantes. Le rerun QA reel via `/functions/v1/test-send-message` avec
+`force_full_ai=true` reste requis pour valider l'intake IA en bout en bout. Les
+ressources d'urgence restent deterministes ; le chantier ne transforme pas le
+renderer en appel IA.
+
+---
+
 ## J77 — Active handoff arbitration and product surface registry
 
 Runs declencheurs. Chantier produit du 2026-06-01 : stabiliser les suites de
@@ -7181,3 +7230,282 @@ Limites :
   certains tests historiques couvrent encore l'ancien materiel de generation;
 - la suppression complete du legacy devra se faire apres migration des tests
   anciens qui validaient explicitement l'application de patchs.
+
+---
+
+### J75 — `prepare_defense_card` handoff robuste sur signaux TurnFrame
+
+Couche. Runtime Sophia Brain / tool skill prepare_defense_card / QA famille
+`BF-EFFECT-04`.
+
+Symptome :
+
+- le run QA `defense-ui-fields-r1c` routait correctement vers
+  `prepare_defense_card`, mais le skill tombait en `technical_blocked` avec
+  `reason_code=invalid_ai_output`;
+- le `TurnFrame` contenait deja `target_hint` et `operation_input`
+  (`trigger`, `risk_behavior`), mais le router ne les passait pas comme graine
+  au skill;
+- quand le slot filler signalait un slot manquant sans
+  `generated_user_message`, l'intake produisait un fallback technique au lieu
+  d'une clarification ciblee.
+
+Fix :
+
+- le router convertit les signaux structures `TurnFrame.tool_skill_intents`
+  en `operation_input` de depart sans analyser le texte brut du user;
+- l'intake peut amorcer une attache libre et une situation de risque depuis
+  cette entree structuree;
+- un slot manquant sans phrase IA produit une clarification locale basee sur le
+  slot manquant, sans remplir de slot metier par regex;
+- le runtime reste `platform_handoff` no-mutation : pas de writer DB, pas de
+  confirmation token, pas de `committed_effects`.
+
+Tests / verifications :
+
+- tests unitaires ajoutes pour l'amorcage depuis `TurnFrame` et la
+  clarification deterministe quand la phrase IA manque;
+- attentes existantes ajustees : une attache plan invalide en demande directe
+  clarifie au lieu de bloquer techniquement;
+- QA reelle a relancer pour passer le bug sheet `defense-ui-fields-r1c` de
+  `fixed` a `verified`.
+
+Limites :
+
+- `slot_filler.ts` reste le proprietaire de la comprehension metier; le router
+  ne doit pas extraire de nouveaux slots depuis le texte user;
+- une indisponibilite reelle du slot filler reste un blocage technique.
+
+---
+
+### J76 — `prepare_defense_card` devient un handoff field-aware des inputs plateforme
+
+Couche. Runtime Sophia Brain / tool skill prepare_defense_card / handoff
+plateforme.
+
+Symptome :
+
+- le handoff defense construisait encore des champs visibles depuis un
+  `DefenseCardDraftV1`;
+- le renderer affichait une "version a reprendre", des "champs finaux", un
+  brouillon implicite et des conseils "a preserver / a eviter";
+- le chemin nominal dependait encore du `draft_generator`, alors que le produit
+  attendu est d'aider le user a remplir les vrais champs de la plateforme.
+
+Fix :
+
+- ajout de `platform_fields.ts` comme catalogue canonique des champs UI
+  defense. Version initiale trop large, corrigée ensuite en J78;
+- ajout de `platform_field_filler.ts`, sous-skill IA dedie aux champs UI avec
+  statuts `missing`, `proposed`, `locked`;
+- `ai_intake.ts` garde l'intake global defense, puis appelle le field filler au
+  lieu du draft generator dans le chemin nominal;
+- le router construit le handoff depuis les champs verrouilles, avec compat
+  legacy pour les anciens drafts pending;
+- le renderer affiche uniquement cible, risque, destination plateforme, champs a
+  remplir et phrase no-mutation.
+
+Tests / verifications :
+
+- tests unitaires ajoutes pour extraction field-aware, champ manquant non
+  infere, valeur vague proposee, correction de champ, route plan item et draft
+  generator non appele en nominal;
+- tests handoff existants realignes sur le wording field-aware;
+- checks Deno du domaine a lancer apres chaque modification.
+
+Limites :
+
+- le legacy `DefenseCardDraftV1` reste supporte pour les pending anciens et
+  l'executor hors chemin nominal;
+- le field filler reste IA-owned : pas d'extraction regex des champs UI dans le
+  router ou `run.ts`.
+
+---
+
+### J77 — Renderer défense compact et run rouge sur utilisateur incertain
+
+Couche. Runtime Sophia Brain / prepare_defense_card / renderer et QA routing.
+
+Symptome :
+
+- le run `defense-field-aware-r1` etait initialement classe vert alors que le
+  handoff visible repetait cible, risque, destination, et champs;
+- `apply_attempt` reaffichait tout le handoff au lieu de rappeler seulement que
+  la creation chat est impossible et ou reprendre les champs;
+- le run reel `defense-uncertain-fields-r1` montre un bug plus amont : apres
+  une hesitation attaque/defense, Sophia reste en `orientation_clarification`
+  puis `normal_reply`, sans jamais selectionner `prepare_defense_card`.
+
+Fix :
+
+- le rapport `defense-field-aware-r1` est reclasse `yellow` avec bug sheet;
+- le renderer `prepare_defense_card` affiche maintenant destination + champ UI
+  compact, sans resume cible/risque redondant;
+- `apply_attempt` a un rendu dedie court, non-mutant, qui rappelle seulement la
+  destination plateforme;
+- le contrat runtime precise que `apply_attempt` ne doit pas reafficher tout le
+  handoff.
+
+Tests / verifications :
+
+- `git diff --check` cible : vert;
+- scan renderer des libelles interdits : aucun match;
+- `/usr/local/Cellar/deno/2.6.0/bin/deno check` cible : vert;
+- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-read --allow-env`
+  sur les tests `prepare_defense_card` : 41 passed;
+- run QA reel `defense-uncertain-fields-r1` : `red`, bug sheets ouvertes pour
+  la sortie de clarification vers le mauvais owner.
+
+Limites :
+
+- le renderer compact est fixe mais pas encore verifie dans un run reel vert,
+  car le nouveau scenario incertain ne route jamais vers le skill;
+- prochaine correction : owner `orientation_clarification` / arbitration, pas
+  renderer.
+
+---
+
+### J78 — `prepare_defense_card` aligne le handoff sur l'unique champ UI réel
+
+Couche. Runtime Sophia Brain / prepare_defense_card / platform fields.
+
+Symptome :
+
+- le handoff field-aware préparait encore plusieurs pseudo-champs plateforme :
+  besoin, moment, signal, geste et plan B;
+- l'UI réelle de création d'une carte de défense ne demande qu'une question :
+  "Avec quelle situation / contexte / environnement / pulsion as-tu besoin
+  d'aide ?";
+- afficher moment/signal/geste revenait à produire un brouillon ou un modèle de
+  carte, ce qui n'est pas le rôle du chat.
+
+Fix :
+
+- `platform_fields.ts` ne déclare plus qu'un champ nominal `support_need`;
+- `platform_field_filler.ts` utilise les slots internes seulement pour formuler
+  la réponse à ce champ unique;
+- le router construit le handoff depuis `support_need`, y compris pour les
+  anciens drafts legacy;
+- le renderer affiche `Champ à remplir` au singulier et ignore les anciens
+  `questionnaire_answers` multi-champs;
+- les tests protègent l'absence de champs visibles `Moment / contexte`,
+  `Premier signal`, `Geste de défense`, `Plan B` et `promesse`.
+
+Tests / verifications :
+
+- `/usr/local/Cellar/deno/2.6.0/bin/deno check` cible : vert;
+- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-read --allow-env`
+  sur les tests `prepare_defense_card` : 41 passed.
+
+Limites :
+
+- le bug de routing observe dans `defense-uncertain-fields-r1` reste ouvert :
+  après clarification attaque/defense, le systeme peut encore partir en
+  `normal_reply` au lieu de `prepare_defense_card`;
+- prochaine correction attendue : transfert `orientation_clarification` vers le
+  skill défense quand le user choisit explicitement défense.
+
+---
+
+### J79 — Les potions sortent des opportunities implicites et passent par bridge consenti
+
+Couche. Dispatcher / conversation skills / select_state_potion.
+
+Decision :
+
+- `state_potion` ne doit plus être proposé comme `tool_skill_opportunity`
+  implicite depuis honte, pression, perte de sens, fatigue émotionnelle ou flou
+  d'exécution;
+- une potion entre dans le runtime seulement via demande explicite utilisateur,
+  suite d'un handoff actif, ou `operation_suggestions` consentie depuis un skill
+  conversationnel;
+- `demotivation_repair` peut suggérer `clarte`, `courage` ou `rappel` après
+  diagnostic local;
+- `emotional_repair` peut suggérer `guerison`, `amour` ou `apaisement` après
+  stabilisation;
+- chaque bridge potion doit transmettre
+  `operation_input_hint.context.handoff_summary` pour que le sous-skill potion
+  conserve le contexte déjà clarifié.
+
+Raison :
+
+- éviter le croisement entre support conversationnel immédiat et support
+  plateforme durable;
+- garder le diagnostic émotionnel ou motivationnel dans son owner;
+- empêcher le dispatcher de recommander une potion sur un état implicite qui
+  relève d'abord d'un repair.
+
+Tests attendus :
+
+- dispatcher : suppression d'une opportunity `state_potion` non explicite et
+  maintien d'une demande explicite de potion;
+- skills : suggestions potion consenties avec résumé contextuel;
+- resolver : conservation du payload `handoff_summary` jusqu'à la
+  recommandation runtime.
+
+---
+
+### J80 — `prepare_defense_card` clarifie attaque vs defense avant handoff
+
+Couche. Router / orientation clarification / prepare_defense_card.
+
+Symptome :
+
+- dans le run `defense-single-field-runs-r1`, un user disait explicitement ne
+  pas savoir s'il fallait une carte d'attaque ou une carte de defense;
+- le `TurnFrame` portait les deux intents structures, mais l'arbitrage partait
+  directement vers `prepare_defense_card`;
+- Sophia livrait donc un handoff defense premature au lieu de demander le choix
+  metier.
+
+Fix :
+
+- ajout d'une detection structuree des intents concurrents
+  `prepare_attack_card` + `prepare_defense_card` dans
+  `turn_intent_arbitrator`;
+- le bypass de clarification explicite refuse maintenant ce cas concurrent;
+- le renderer defense a ete ajuste pour afficher le champ UI reel sous forme de
+  proposition a reprendre, sans format `Question : valeur`;
+- la bug sheet du run precedent passe en `verified` apres QA reel.
+
+Tests / verifications :
+
+- `/usr/local/Cellar/deno/2.6.0/bin/deno check` cible : vert;
+- tests defense + arbitrator : 46 passed;
+- test `competing attack` dans `run_test.ts` : 1 passed;
+- QA reel local `defense-ambiguous-clarification-r2` : green sur 3 tours,
+  avec tour 1 en `orientation_clarification`, tour 2 en handoff defense
+  mono-champ, tour 3 `active_handoff_apply_attempt`, `executed_tools=[]` et
+  `user_defense_cards=0`.
+
+---
+
+### J81 — `select_state_potion` migre vers flow handoff local non-mutant
+
+Couche. Tool skill / active handoff / prompting architecture.
+
+Symptome :
+
+- le flow potion actif restait trop expose a l'arbitrage global et aux anciens
+  chemins confirmation/execution;
+- le visible pouvait encore rendre des labels legacy comme rappel, reparation
+  ou apaisement court;
+- les follow-ups apres handoff repetaient trop souvent la ligne no-mutation.
+
+Fix :
+
+- ajout de `subskills/local_flow_dispatcher.ts` comme dispatcher local du flow
+  actif;
+- neutralisation du `router.ts` executable legacy et suppression du
+  `draft_validation.ts` potion;
+- `runSelectStatePotionIntake` retourne maintenant `handoff_ready` au lieu de
+  `pending_confirmation`;
+- labels visibles centralises dans `labels.ts`;
+- renderer ajuste pour handoff final, destination plateforme courte,
+  `apply_attempt` non-mutant et labels canoniques.
+
+Tests / verifications :
+
+- `/usr/local/bin/deno check` cible select_state_potion : vert;
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/select_state_potion/handoff_test.ts`
+  : 32 passed.

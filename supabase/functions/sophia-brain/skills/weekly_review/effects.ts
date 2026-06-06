@@ -67,21 +67,10 @@ export type WeeklyRuntimeEffectMarker =
 export function weeklyRuntimeEffectFromOperation(
   operationRuntime: WeeklyOperationRuntimeResult,
 ): WeeklyRuntimeEffectMarker {
-  if (
-    operationRuntime.toolExecution === "success" &&
-    operationRuntime.executedTools.includes("adjust_plan_item")
-  ) {
-    return {
-      status: "committed",
-      effect: "adjust_plan_item",
-      operation_id: operationRuntime.toolSkillRun?.operation_id,
-      plan_patch_id: operationRuntime.toolSkillRun?.plan_patch_id,
-    };
-  }
   return {
     status: "not_committed",
-    reason: operationRuntime.toolExecution === "success"
-      ? "adjust_plan_item_not_executed"
+    reason: operationRuntime.toolExecution === "platform_handoff"
+      ? "adjust_plan_item_platform_input_only"
       : `tool_execution_${operationRuntime.toolExecution}`,
   };
 }

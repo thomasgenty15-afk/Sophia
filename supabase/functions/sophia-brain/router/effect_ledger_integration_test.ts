@@ -65,10 +65,10 @@ Deno.test("failed_effect_does_not_authorize_success_reply", () => {
     ledger,
   });
   assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, "Je ne l'ai pas enregistré.");
+  assertEquals(rewritten.reply, "C'est fait, préférence enregistrée.");
 });
 
-Deno.test("final_guard_rewrites_uncommitted_plan_claim", () => {
+Deno.test("final_guard_traces_uncommitted_plan_claim_without_rewrite", () => {
   const ledger = createEffectLedger("turn-plan");
   recordRequestedEffect(ledger, {
     effect_id: "requested-plan",
@@ -81,7 +81,7 @@ Deno.test("final_guard_rewrites_uncommitted_plan_claim", () => {
     ledger,
   });
   assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, "Je ne l'ai pas modifié.");
+  assertEquals(rewritten.reply, "Plan modifié pour la semaine.");
 });
 
 Deno.test("final_guard_keeps_committed_plan_claim", () => {
@@ -147,7 +147,7 @@ Deno.test("recommendation_suggestion_records_platform_handoff_not_commit", () =>
       operation_type: "prepare_attack_card",
       executor_tool_id: "prepare_attack_card",
       requires_consent: true,
-      reason: "execution_repair",
+      reason: "action_repair",
     },
   });
   assertEquals(ledger.entries.map((entry) => entry.kind), [

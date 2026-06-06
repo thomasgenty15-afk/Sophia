@@ -4,7 +4,6 @@ import type { ActiveConversationSkillWorkingState } from "./active_skill_state.t
 export type SkillId =
   | "safety_crisis"
   | "emotional_repair"
-  | "execution_breakdown"
   | "demotivation_repair"
   | "product_help";
 

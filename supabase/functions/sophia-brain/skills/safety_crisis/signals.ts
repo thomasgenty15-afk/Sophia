@@ -58,7 +58,7 @@ function detectsNonImmediateClarification(text: string): boolean {
 }
 
 function detectsMeansMovedAway(text: string): boolean {
-  return /j['’]?ai pose|j ai pose|j['’]?ai mis|j ai mis|eloigne|loin de moi|plus a portee|hors de portee|range|dans une autre piece|dans la salle de bain|aucun (cachet|medicament) pres de moi|pas de (cachets?|medicaments?) pres de moi|pas de couteau pres de moi|aucune lame pres de moi|rien pour me blesser pres de moi/
+  return /j['’]?ai pose|j ai pose|j['’]?ai mis|j ai mis|j['’]?ai donne|j ai donne|j['’]?ai confie|j ai confie|j['’]?ai remis|j ai remis|donne (les?|la|le|mes?|mon|ma) (cachets?|medicaments?|couteau|lame|arme)|confie (les?|la|le|mes?|mon|ma) (cachets?|medicaments?|couteau|lame|arme)|(cachets?|medicaments?|couteau|lame|arme) (sont|est) chez|eloigne|loin de moi|plus a portee|hors de portee|range|dans une autre piece|dans la salle de bain|aucun (cachet|medicament) pres de moi|pas de (cachets?|medicaments?) pres de moi|pas de couteau pres de moi|aucune lame pres de moi|rien pour me blesser pres de moi/
     .test(text);
 }
 

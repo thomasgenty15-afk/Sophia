@@ -34,5 +34,7 @@ export async function runEmotionalRepairSkill(
     run_input: input,
     intake_decision: intake.decision,
     intake_errors: intake.errors,
+    intake_trace: intake.trace,
+    explicit_constraints: input.explicit_constraints,
   });
 }

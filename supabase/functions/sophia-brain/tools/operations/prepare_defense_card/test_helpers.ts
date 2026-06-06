@@ -2,6 +2,7 @@ import type {
   DefenseCardDraftGenerator,
   DefenseCardDraftGeneratorInput,
 } from "./ai_intake.ts";
+import type { DefenseCardPlatformFieldFiller } from "./platform_field_filler.ts";
 import type { DefenseCardSlotFiller } from "./slot_filler.ts";
 
 export function structuredDefenseCardSlotFiller(
@@ -129,3 +130,88 @@ export const structuredDefenseCardDraftGenerator: DefenseCardDraftGenerator =
       confirmation_actions: ["yes", "no"],
     };
   };
+
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function text(value: unknown): string {
+  return String(value ?? "").trim();
+}
+
+export function structuredDefenseCardPlatformFieldFiller(options?: {
+  supportNeed?: string;
+  entryNeed?: string;
+  riskMoment?: string;
+  firstSignal?: string;
+  defenseResponse?: string;
+  fallbackPlan?: string | null;
+  missingFieldIds?: string[];
+  generatedUserMessage?: string | null;
+}): DefenseCardPlatformFieldFiller {
+  return async (input) => {
+    const operationInput = objectValue(input.operation_input);
+    const attachment = objectValue(operationInput?.attachment);
+    const risk = objectValue(operationInput?.risk_situation);
+    const response = objectValue(operationInput?.defense_response_hint);
+    const missing = new Set(options?.missingFieldIds ?? []);
+    const inferredSupportNeed = [
+        options?.entryNeed ?? text(attachment?.title),
+        options?.riskMoment ?? text(risk?.label),
+        options?.firstSignal ? `signal : ${options.firstSignal}` : "",
+      ].filter(Boolean).join(" - ") ||
+      "j'ai besoin d'aide pour le moment où je rentre fatigue et je pars scroller";
+    const supportNeed = options?.supportNeed ?? inferredSupportNeed;
+    const values: Record<string, string> = {
+      support_need: supportNeed,
+      entry_need: options?.entryNeed ?? (text(attachment?.title) || "marche"),
+      risk_moment: options?.riskMoment ??
+        (text(risk?.label) || "je rentre fatigue et je pars scroller"),
+      first_signal: options?.firstSignal ??
+        (text(risk?.description) || "moment de risque identifié"),
+      defense_response: options?.defenseResponse ??
+        (text(response?.value) ||
+          "Je pose le telephone loin de moi et j'attends 10 minutes avant de decider."),
+      fallback_plan: options?.fallbackPlan ?? "",
+    };
+    const fields = input.field_definitions.map((definition) => {
+      const value = values[definition.field_id] ?? "";
+      const shouldLock = Boolean(value) && !missing.has(definition.field_id);
+      return {
+        field_id: definition.field_id,
+        question_label: definition.question_label,
+        required: definition.required,
+        status: shouldLock ? "locked" as const : "missing" as const,
+        locked_value: shouldLock ? value : null,
+        proposed_value: null,
+        user_evidence: shouldLock ? [value] : [],
+        needs_user_confirmation: !shouldLock && definition.required,
+        evidence: ["structured platform field test filler"],
+      };
+    });
+    const missingFieldIds = fields
+      .filter((field) => field.required && field.status !== "locked")
+      .map((field) => field.field_id);
+    return {
+      current_step: missingFieldIds.length > 0
+        ? "platform_field_intake"
+        : "handoff_ready",
+      state_patch: {
+        platform_fields: {
+          route_kind: input.route_kind,
+          status: missingFieldIds.length > 0 ? "partial" : "complete",
+          fields,
+          missing_field_ids: missingFieldIds,
+        },
+        generated_user_message: options?.generatedUserMessage ??
+          (missingFieldIds.length > 0
+            ? "Quel geste simple tu veux prévoir ?"
+            : null),
+      },
+      confidence: "high",
+      evidence: ["structured platform field test filler"],
+    };
+  };
+}

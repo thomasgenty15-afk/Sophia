@@ -36,7 +36,7 @@ export type DemotivationRepairPhase =
   | "reduce_friction"
   | "restore_meaning"
   | "stabilize_energy"
-  | "handoff_to_execution"
+  | "action_card_ready"
   | "exit";
 
 export type DemotivationRepairMotivationState =
@@ -67,6 +67,7 @@ export type DemotivationRepairOperationSuggestion = {
   operation_type:
     | "select_state_potion"
     | "prepare_attack_card"
+    | "prepare_defense_card"
     | "adjust_plan_item"
     | "create_recurring_reminder";
   reason: string;
@@ -90,11 +91,6 @@ export type DemotivationRepairDecision = {
   action_readiness: DemotivationRepairActionReadiness;
   constraints: DemotivationRepairConstraint[];
   response_contract: DemotivationRepairResponseContract;
-  handoff_request?: {
-    target_skill_id: "execution_breakdown";
-    reason: string;
-    confidence_band: "low" | "medium" | "high";
-  };
   operation_suggestions?: DemotivationRepairOperationSuggestion[];
   memory_write_candidates?: DemotivationRepairMemoryCandidate[];
   reply: string;
@@ -124,7 +120,7 @@ const PHASES: readonly DemotivationRepairPhase[] = [
   "reduce_friction",
   "restore_meaning",
   "stabilize_energy",
-  "handoff_to_execution",
+  "action_card_ready",
   "exit",
 ];
 
@@ -321,22 +317,6 @@ function normalizeMemoryCandidates(
   return candidates;
 }
 
-function normalizeHandoff(
-  value: unknown,
-): DemotivationRepairDecision["handoff_request"] | undefined {
-  if (!isRecord(value)) return undefined;
-  if (value.target_skill_id !== "execution_breakdown") return undefined;
-  return {
-    target_skill_id: "execution_breakdown",
-    reason: String(value.reason ?? "concrete_action_ready"),
-    confidence_band: oneOf(
-      value.confidence_band,
-      ["low", "medium", "high"],
-      "medium",
-    ),
-  };
-}
-
 function applyDemotivationInvariants(
   decision: DemotivationRepairDecision,
 ): DemotivationRepairDecision {
@@ -375,11 +355,6 @@ function applyDemotivationInvariants(
     });
   }
 
-  const handoff = decision.action_readiness === "ready" ||
-      decision.action_readiness === "already_chosen"
-    ? normalizeHandoff(decision.handoff_request)
-    : undefined;
-
   const reply = normalizeReply(
     decision.reply,
     "Je reste avec le décrochage lui-même: on garde ça petit, sans verdict sur toi, et on cherche juste le prochain point d'appui.",
@@ -387,10 +362,8 @@ function applyDemotivationInvariants(
 
   return {
     ...decision,
-    phase: handoff ? "handoff_to_execution" : decision.phase,
     constraints,
     response_contract: responseContract,
-    handoff_request: handoff,
     operation_suggestions: suggestions,
     memory_write_candidates: normalizeMemoryCandidates(
       decision.memory_write_candidates,
@@ -455,7 +428,6 @@ export function normalizeDemotivationRepairDecision(
     action_readiness: oneOf(value.action_readiness, ACTION_READINESS, "none"),
     constraints: uniqConstraints(value.constraints),
     response_contract: normalizeResponseContract(value.response_contract),
-    handoff_request: normalizeHandoff(value.handoff_request),
     operation_suggestions: normalizeOperationSuggestions(
       value.operation_suggestions,
     ),

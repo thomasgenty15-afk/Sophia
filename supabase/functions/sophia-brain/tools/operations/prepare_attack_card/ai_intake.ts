@@ -19,6 +19,15 @@ import {
   type AttackCardSlotFiller,
   fillAttackCardSlotsWithAi,
 } from "./slot_filler.ts";
+import {
+  type AttackCardPlatformFieldFiller,
+  fillAttackCardPlatformFieldsWithAi,
+} from "./platform_field_filler.ts";
+import {
+  finalizeAttackCardPlatformFieldState,
+  mergeAttackCardPlatformFieldPatch,
+  normalizeAttackCardPlatformFieldState,
+} from "./platform_fields.ts";
 import type {
   AttackCardConfidence,
   AttackCardIntakeState,
@@ -45,6 +54,7 @@ export type PrepareAttackCardOperationOutput = {
   phase:
     | "target_resolution"
     | "technique_selection"
+    | "platform_field_intake"
     | "generation"
     | "confirmation"
     | "exit";
@@ -56,7 +66,7 @@ export type PrepareAttackCardOperationOutput = {
   };
   next_question?: {
     needed: boolean;
-    slot: "target" | "technique" | "activation_keyword";
+    slot: "target" | "technique" | "activation_keyword" | "platform_field";
     status: "missing" | "ambiguous" | "candidate_needs_confirmation";
     reason: string;
     question?: string;
@@ -342,10 +352,15 @@ function stateFromOperationInput(
   const input = operationInput ?? {};
   const existing = objectValue(input.intake_state);
   const base = defaultState();
-  return mergeState(base, {
+  let state = mergeState(base, {
     ...(existing ?? {}),
     ...structuredOperationInputPatch(input),
   });
+  const platformFields = objectValue(input.platform_fields);
+  if (platformFields) {
+    state = mergeState(state, { platform_fields: platformFields });
+  }
+  return state;
 }
 
 function mergeState(
@@ -360,6 +375,9 @@ function mergeState(
     technique: { ...base.technique },
     activation_keyword: { ...base.activation_keyword },
     blocker: { ...base.blocker },
+    platform_fields: base.platform_fields
+      ? finalizeAttackCardPlatformFieldState(base.platform_fields)
+      : null,
     constraints: [...base.constraints],
     user_intent: base.user_intent ?? "unknown",
     missing_slots: [...base.missing_slots],
@@ -511,6 +529,19 @@ function mergeState(
       evidence: stringArray(blocker.evidence),
     };
   }
+  const platformFields = objectValue(root.platform_fields);
+  if (platformFields) {
+    const fieldTechnique = normalizeTechnique(
+      platformFields.technique_key ?? next.technique.value,
+    );
+    if (fieldTechnique) {
+      next.platform_fields = mergeAttackCardPlatformFieldPatch(
+        next.platform_fields,
+        platformFields,
+        fieldTechnique,
+      );
+    }
+  }
   if (Array.isArray(root.constraints)) {
     next.constraints = normalizePrepareAttackCardConstraints(root.constraints);
   }
@@ -527,6 +558,7 @@ function mergeState(
         "target_intake",
         "technique_selection",
         "keyword_intake",
+        "platform_field_intake",
         "draft_generation",
         "draft_validation",
         "confirmation",
@@ -623,12 +655,26 @@ function requiredMissingSlots(
   return missing;
 }
 
+function missingPlatformFieldSlots(state: AttackCardIntakeState): string[] {
+  if (state.target.status !== "identified" || !state.technique.value) return [];
+  const platformFields = state.platform_fields?.technique_key ===
+      state.technique.value
+    ? finalizeAttackCardPlatformFieldState(state.platform_fields)
+    : normalizeAttackCardPlatformFieldState(null, state.technique.value);
+  return platformFields.missing_field_ids.map((fieldId) =>
+    `platform_field:${fieldId}`
+  );
+}
+
 function nextStepForMissing(
   missing: string[],
 ): AttackCardIntakeState["current_step"] {
   if (missing.includes("target")) return "target_intake";
   if (missing.includes("technique")) return "technique_selection";
   if (missing.includes("activation_keyword")) return "keyword_intake";
+  if (missing.some((slot) => slot.startsWith("platform_field:"))) {
+    return "platform_field_intake";
+  }
   return "draft_generation";
 }
 
@@ -654,6 +700,9 @@ function operationInputFromState(
     ...(state.activation_keyword.status === "identified" &&
         state.activation_keyword.value
       ? { activation_keyword: state.activation_keyword.value }
+      : {}),
+    ...(state.platform_fields
+      ? { platform_fields: state.platform_fields }
       : {}),
     user_intent: state.user_intent ?? "unknown",
     constraints: state.constraints,
@@ -829,7 +878,7 @@ function normalizeDraft(
   const instruction = String(draft.instruction ?? "").trim() ||
     definition.mode_emploi;
   const confirmationMessage =
-    `Voici le brouillon à reprendre dans Cartes / Attaque : « ${title} » (${definition.title}) : ${generatedAsset}. Je ne crée pas la carte depuis le chat.`;
+    `Voici les éléments à renseigner dans Cartes / Attaque pour « ${title} » (${definition.title}). Je ne crée pas la carte depuis le chat.`;
   return {
     operation_type: "prepare_attack_card",
     output_schema: "attack_card_draft_v1",
@@ -905,7 +954,41 @@ function deterministicAttackCardDraft(
       why_it_helps: definition.pour_quoi,
     },
     confirmation_message:
-      `Voici le brouillon a reprendre dans Cartes / Attaque : "${title}" (${definition.title}) : ${generatedAsset}. Je ne cree pas la carte depuis le chat.`,
+      `Voici les elements a renseigner dans Cartes / Attaque pour "${title}" (${definition.title}). Je ne cree pas la carte depuis le chat.`,
+    confirmation_actions: ["yes", "no"],
+  };
+}
+
+function platformInputHandoffDraft(
+  state: AttackCardIntakeState,
+): AttackCardDraftV1 {
+  if (state.target.status !== "identified" || !state.technique.value) {
+    throw new Error("attack_card_platform_handoff_state_incomplete");
+  }
+  const technique = state.technique.value;
+  const definition = ATTACK_TECHNIQUES[technique];
+  const target = state.target.title;
+  return {
+    operation_type: "prepare_attack_card",
+    output_schema: "attack_card_draft_v1",
+    draft: {
+      title: target,
+      target_label: target,
+      technique,
+      technique_title: definition.title,
+      instruction:
+        "Renseigne les champs de la plateforme avec les réponses préparées.",
+      generated_asset: "",
+      activation_keyword: technique === "pre_engagement"
+        ? state.activation_keyword.value ?? "BASCULE"
+        : null,
+      supporting_points: [],
+      mode_emploi:
+        "Dans la plateforme, sélectionne la technique puis complète les champs préparés.",
+      why_it_helps: definition.pour_quoi,
+    },
+    confirmation_message:
+      "Je ne crée pas la carte depuis le chat. Je te prépare seulement les champs à renseigner dans la plateforme.",
     confirmation_actions: ["yes", "no"],
   };
 }
@@ -926,14 +1009,13 @@ export async function generateAttackCardDraftWithAi(
   const systemPrompt = [
     "Tu es le generator interne du Tool Skill prepare_attack_card de Sophia.",
     "Tu retournes uniquement un JSON attack_card_draft_v1, jamais de texte libre hors JSON.",
-    "Le brouillon doit être court, utilisable sur WhatsApp, et cohérent avec la technique choisie.",
+    "Le contenu interne doit être court, utilisable sur WhatsApp, et cohérent avec la technique choisie.",
     "Ne change jamais la technique ni la cible données par l'état structuré.",
     "Le message de handoff doit être user-ready et rediriger vers Cartes / Attaque sans demander de validation exécutable.",
     'Tu tutoies toujours l\'utilisateur dans handoff_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
     'Quand handoff_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
-    "Le message de handoff doit montrer le contenu utile de la carte, pas seulement dire qu'un brouillon existe.",
-    "Il doit inclure le titre, la technique, generated_asset EXACTEMENT tel qu'il est dans draft.generated_asset, le mode d'emploi en une phrase, puis la destination Cartes / Attaque.",
-    "Ne paraphrase jamais generated_asset dans handoff_message: copie-colle strictement la même chaîne.",
+    "Le message de handoff doit préparer les champs à remplir dans la plateforme, sans présenter un modèle final de carte.",
+    "Il doit inclure le titre, la technique, le mode d'emploi en une phrase, puis la destination Cartes / Attaque.",
     "Ne demande jamais 'je la crée ?' ou une confirmation d'exécution.",
     "Pour WhatsApp, reste compact: 4 à 7 lignes maximum, pas de longue explication.",
   ].join("\n");
@@ -996,6 +1078,7 @@ export async function runPrepareAttackCardAiIntake(input: {
   operation_input?: Record<string, unknown> | null;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   slot_filler?: AttackCardSlotFiller;
+  platform_field_filler?: AttackCardPlatformFieldFiller;
   draft_generator?: AttackCardDraftGenerator;
 }): Promise<PrepareAttackCardOperationOutput> {
   const source = input.source ?? "direct_user_request";
@@ -1082,13 +1165,13 @@ export async function runPrepareAttackCardAiIntake(input: {
   }
   state = fillRecommendedTechniqueWhenReady(state, input.message);
   state = validatePlanTarget(state, input.plan_snapshot ?? {});
-  const missing = requiredMissingSlots(state, input.operation_input);
+  let missing = requiredMissingSlots(state, input.operation_input);
   state = {
     ...state,
     current_step: nextStepForMissing(missing),
     missing_slots: missing,
   };
-  const operationInput = operationInputFromState(
+  let operationInput = operationInputFromState(
     state,
     input.operation_input ?? null,
   );
@@ -1273,38 +1356,153 @@ export async function runPrepareAttackCardAiIntake(input: {
       { state, operation_input: operationInput },
     );
   }
-  let draft: AttackCardDraftV1;
-  const generatorArgs = {
-    user_id: input.user_id,
-    request_id: input.request_id,
-    message: input.message,
-    channel: input.channel,
-    timezone: input.timezone,
-    source,
-    trigger_message_id: input.trigger_message_id,
-    state,
-  };
-  const runDraftGenerator = input.draft_generator ??
-    generateAttackCardDraftWithAi;
-  try {
-    draft = await runDraftGenerator(generatorArgs);
-  } catch {
-    // CHANTIER C8 (2026-05-28) — Un échec de génération est un raté TECHNIQUE
-    // transitoire (timeout/parse), pas une raison de "deviner". On retente
-    // UNE fois avant de tomber en erreur technique propre. Voir A3-r8 T11.
-    try {
-      draft = await runDraftGenerator(generatorArgs);
-    } catch {
-      if (canUseNoMutationDraftFallback(state)) {
-        draft = deterministicAttackCardDraft(state);
-      } else {
-        return technicalFailure("ai_draft_generator_error", source, {
-          state,
-          operation_input: operationInput,
-        });
-      }
-    }
+  const identifiedTarget = state.target;
+  const techniqueKey = state.technique.value;
+  if (
+    !state.platform_fields ||
+    state.platform_fields.technique_key !== techniqueKey
+  ) {
+    state = {
+      ...state,
+      platform_fields: normalizeAttackCardPlatformFieldState(
+        null,
+        techniqueKey,
+      ),
+      current_step: "platform_field_intake",
+    };
   }
+  state = {
+    ...state,
+    platform_fields: finalizeAttackCardPlatformFieldState(
+      state.platform_fields!,
+    ),
+  };
+  let platformMissing = missingPlatformFieldSlots(state);
+  if (platformMissing.length > 0) {
+    const platformFieldFiller = input.platform_field_filler ??
+      fillAttackCardPlatformFieldsWithAi;
+    let fieldOutput;
+    try {
+      fieldOutput = await platformFieldFiller({
+        user_id: input.user_id,
+        request_id: input.request_id,
+        message: input.message,
+        recent_messages: input.recent_messages,
+        current_state: state,
+        operation_input: operationInput,
+        technique_key: techniqueKey,
+        timezone: input.timezone,
+        channel: input.channel,
+      });
+    } catch {
+      return technicalFailure("ai_slot_filler_error", source, {
+        state,
+        operation_input: operationInput,
+      });
+    }
+    if (!fieldOutput) {
+      return technicalFailure("ai_slot_filler_unavailable", source, {
+        state,
+        operation_input: operationInput,
+      });
+    }
+    state = mergeState(state, {
+      platform_fields: fieldOutput.state_patch.platform_fields,
+      generated_user_message: fieldOutput.generated_user_message ??
+        fieldOutput.state_patch.generated_user_message,
+      current_step: fieldOutput.current_step === "handoff_ready"
+        ? "draft_generation"
+        : "platform_field_intake",
+      missing_slots: fieldOutput.missing_slots,
+      confidence: fieldOutput.confidence,
+    });
+    state = {
+      ...state,
+      platform_fields: finalizeAttackCardPlatformFieldState(
+        state.platform_fields!,
+      ),
+    };
+    platformMissing = missingPlatformFieldSlots(state);
+    operationInput = operationInputFromState(
+      state,
+      input.operation_input ?? null,
+    );
+  }
+  if (platformMissing.length > 0) {
+    if (!state.generated_user_message) {
+      return technicalFailure("ai_slot_question_missing", source, {
+        state,
+        operation_input: operationInput,
+      });
+    }
+    state = {
+      ...state,
+      current_step: "platform_field_intake",
+      missing_slots: platformMissing,
+    };
+    operationInput = operationInputFromState(
+      state,
+      input.operation_input ?? null,
+    );
+    return {
+      operation_type: "prepare_attack_card",
+      user_intent: state.user_intent ?? "unknown",
+      constraints: state.constraints,
+      status: "ask_question",
+      source,
+      phase: "platform_field_intake",
+      next_question: {
+        needed: true,
+        slot: "platform_field",
+        status: "missing",
+        reason: `structured_ai_missing_${platformMissing[0]}`,
+        question: state.generated_user_message ?? undefined,
+        known_slots: {
+          target: {
+            kind: identifiedTarget.kind,
+            plan_item_id: identifiedTarget.plan_item_id ?? null,
+            title: identifiedTarget.title,
+          },
+          technique: techniqueKey,
+          platform_fields: state.platform_fields,
+          intake_state: state,
+        } as any,
+      },
+      readiness: {
+        ready_to_generate: false,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: platformMissing,
+        reason: `structured_ai_missing_${platformMissing[0]}`,
+      },
+      state_patch: {
+        summary: "Attack card platform field intake needs user clarification.",
+        phase: "platform_field_intake",
+        missing_slots: platformMissing,
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        user_intent: state.user_intent ?? "unknown",
+        constraints: state.constraints,
+        tool_skill_state: toolSkillState({
+          status: "collecting",
+          state,
+          missing: platformMissing,
+          summary: "Platform field intake is collecting attack card fields.",
+        }),
+      },
+    };
+  }
+  state = {
+    ...state,
+    current_step: "draft_generation",
+    missing_slots: [],
+  };
+  operationInput = operationInputFromState(
+    state,
+    input.operation_input ?? null,
+  );
+  const draft = platformInputHandoffDraft(state);
   const operationId = crypto.randomUUID();
   return {
     operation_type: "prepare_attack_card",
@@ -1324,11 +1522,11 @@ export async function runPrepareAttackCardAiIntake(input: {
       operation_type: "prepare_attack_card",
       source,
       target: {
-        kind: state.target.kind,
-        title: state.target.title,
-        plan_item_id: state.target.plan_item_id ?? null,
+        kind: identifiedTarget.kind,
+        title: identifiedTarget.title,
+        plan_item_id: identifiedTarget.plan_item_id ?? null,
       },
-      summary: draft.draft.title,
+      summary: identifiedTarget.title,
       draft,
       intake_state: state,
       expires_after_turns: 2,
@@ -1341,7 +1539,8 @@ export async function runPrepareAttackCardAiIntake(input: {
       reason: "ready",
     },
     state_patch: {
-      summary: "Attack card draft generated by structured AI flow.",
+      summary:
+        "Attack card platform input handoff prepared from structured intake.",
       phase: "confirmation",
       missing_slots: [],
       turn_count_increment: 1,
@@ -1353,7 +1552,7 @@ export async function runPrepareAttackCardAiIntake(input: {
         status: "awaiting_user_confirmation",
         state,
         missing: [],
-        summary: "Structured AI draft is awaiting user confirmation.",
+        summary: "Platform input handoff is ready.",
       }),
     },
   };

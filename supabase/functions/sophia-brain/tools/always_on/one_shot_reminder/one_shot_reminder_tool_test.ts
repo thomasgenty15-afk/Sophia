@@ -3,34 +3,31 @@ import {
   assertExists,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  buildOneShotReminderAddon,
   detectsReminderAnaphora,
   extractQuotedReminderInstruction,
   extractReminderInstruction,
   isDegenerateReminderInstruction,
-  isExistingOneShotReminderReferenceOnly,
-  isLikelyOneShotReminderRequest,
   loadLastReminderInstructionForUser,
-  looksLikeReminderExecutionConfirmation,
-  looksLikeReminderSlotConfirmation,
+} from "./instruction_parser.ts";
+import {
   maybeCancelOneShotReminder,
   maybeCreateOneShotReminder,
+  runCreateOneShotReminderV2,
+} from "./executor.ts";
+import {
   parseOneShotReminderRequest,
   parseReminderFromMessageDeterministic,
-  runCreateOneShotReminderV2,
+} from "./time_parser.ts";
+import {
+  buildOneShotReminderAddon,
   summarizeOneShotReminderOutcome,
-} from "./one_shot_reminder_tool.ts";
+} from "./renderer.ts";
 import {
   classifyOneShotReminderDirectIntent,
-  detectsExplicitOneShotReminderCancel,
-  isExplicitOneShotReminderModificationRequest,
-  isOneShotReminderExactStatusRequest,
-  isOneShotReminderOperationCommand,
   localTextAddonForOneShotReminder,
   maybeRunOneShotReminderDirectEffect,
   oneShotReminderDirectEffectBlockForNonMutationContext,
   oneShotReminderStatusBlocksToolFlow,
-  shouldPreferOneShotReminderOverRecurring,
 } from "./router.ts";
 import { buildOneShotReminderIntake } from "./intake.ts";
 import type {
@@ -121,25 +118,6 @@ Deno.test("parseOneShotReminderRequest parses explicit new reminder with bare lo
 
   assertExists(parsed);
   assertEquals(parsed.scheduledFor, "2026-05-28T09:25:00.000Z");
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Oui, crée un nouveau rappel à 11h25 avec le même texte.",
-    ),
-    false,
-  );
-});
-
-Deno.test("legacy one-shot text detection stays disabled", () => {
-  const message =
-    "Je parle du rappel ponctuel que tu viens de programmer pour demain à 9h10.";
-  assertEquals(isExistingOneShotReminderReferenceOnly(message), false);
-  assertEquals(isLikelyOneShotReminderRequest(message), false);
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Programme-moi clairement ce rappel aujourd'hui à 11h20 : envoyer le mini récap.",
-    ),
-    false,
-  );
 });
 
 Deno.test("parseOneShotReminderRequest parses tomorrow local hour", () => {
@@ -226,6 +204,60 @@ Deno.test("parseOneShotReminderRequest parses natural one-hour phrasing", () => 
     "one_shot_reminder:fermer_la_fenetre_du_salon",
   );
   assertEquals(parsed.scheduledFor, "2026-05-19T13:00:00.000Z");
+});
+
+Deno.test("parseOneShotReminderRequest isolates reminder instruction before explicit next intent", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "J'aimerais que tu me rappelles dans 10 minutes de prendre mes médicaments, et là tout de suite j'aimerais qu'on crée une carte d'attaque",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-03T13:18:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(parsed.reminderInstruction, "prendre mes médicaments");
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:prendre_mes_medicaments",
+  );
+  assertEquals(parsed.scheduledFor, "2026-06-03T13:28:00.000Z");
+});
+
+Deno.test("parseOneShotReminderRequest isolates reminder before puis juste apres continuation", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Mets-moi un rappel dans 10 minutes pour boire mon traitement, puis juste après je veux préparer une carte d'attaque pour mon action.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-03T13:18:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(parsed.reminderInstruction, "boire mon traitement");
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:boire_mon_traitement",
+  );
+  assertEquals(parsed.scheduledFor, "2026-06-03T13:28:00.000Z");
+});
+
+Deno.test("parseOneShotReminderRequest keeps attack verb when it belongs to reminder payload", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Rappelle-moi dans 10 minutes d'attaquer la pile de papiers administratifs.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-03T13:18:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "attaquer la pile de papiers administratifs",
+  );
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:attaquer_la_pile_de_papiers_administratifs",
+  );
+  assertEquals(parsed.scheduledFor, "2026-06-03T13:28:00.000Z");
 });
 
 Deno.test("parseOneShotReminderRequest parses dis-moi tomorrow reminder", () => {
@@ -393,36 +425,6 @@ Deno.test("parseOneShotReminderRequest parses bundle phrasing with me faire un r
   assertEquals(parsed.scheduledFor, "2026-03-19T11:38:40.000Z");
 });
 
-Deno.test("isLikelyOneShotReminderRequest stays false for recurring requests", () => {
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Est-ce que tu peux me faire un rappel tous les lundis à 8h pour appeler Paul ?",
-    ),
-    false,
-  );
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Rappelle-moi les jours de semaine à 12h30 de respirer deux minutes.",
-    ),
-    false,
-  );
-});
-
-Deno.test("isLikelyOneShotReminderRequest does not route natural reminder phrasing", () => {
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Okok si tu veux ! Est ce que tu peux me faire un rappel dans 10 minutes de manière à ce que je fasse mes pompes ? :)",
-    ),
-    false,
-  );
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Programme-moi un rappel demain à 8h30: relire une fois le brouillon.",
-    ),
-    false,
-  );
-});
-
 Deno.test("one-shot reminder addon forbids timezone confirmation after success", () => {
   const addon = buildOneShotReminderAddon({
     detected: true,
@@ -438,21 +440,6 @@ Deno.test("one-shot reminder addon forbids timezone confirmation after success",
   );
 });
 
-Deno.test("isLikelyOneShotReminderRequest ignores memory recall phrasing", () => {
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Pour mon action Faire 12 pompes, rappelle-moi ce qui m'aide concretement.",
-    ),
-    false,
-  );
-  assertEquals(
-    isLikelyOneShotReminderRequest(
-      "Rappelle-moi ce que tu sais sur mes etirements.",
-    ),
-    false,
-  );
-});
-
 Deno.test("parseOneShotReminderRequest survives burst-merged recurring context", () => {
   const mergedMessage = [
     "Je veux créer une action récurrente : marcher 10 minutes tous les jours à 18h.",
@@ -460,7 +447,6 @@ Deno.test("parseOneShotReminderRequest survives burst-merged recurring context",
     "Tu peux me faire un rappel demain à 9h pour relire mon plan ?",
   ].join("\n");
 
-  assertEquals(isLikelyOneShotReminderRequest(mergedMessage), false);
   const parsed = parseOneShotReminderRequest({
     message: mergedMessage,
     timezone: "Europe/Paris",
@@ -865,23 +851,6 @@ Deno.test("loadLastReminderInstructionForUser strips Rappel-ponctuel-prefix from
 // le user confirme "rappel unique" sans redonner l'heure. Voir A11 T2/T3.
 // ===========================================================================
 
-Deno.test("E5: 'Oui, rappel unique, une seule fois' est une confirmation de rappel", () => {
-  assertEquals(
-    looksLikeReminderSlotConfirmation(
-      "Oui, rappel unique, une seule fois aujourd'hui.",
-    ),
-    true,
-  );
-  assertEquals(looksLikeReminderSlotConfirmation("récurrent stp"), true);
-});
-
-Deno.test("E5 anti-FP: une demande sans marqueur de confirmation n'en est pas une", () => {
-  assertEquals(
-    looksLikeReminderSlotConfirmation("change plutôt le texte"),
-    false,
-  );
-});
-
 Deno.test("E5: le créneau '16h40' donné au tour précédent est récupérable (A11 T2)", () => {
   // Message du tour précédent (T2) qui portait l'heure + le texte.
   const recovered = parseReminderFromMessageDeterministic({
@@ -917,44 +886,6 @@ Deno.test("E5: la confirmation seule ('oui, unique') ne porte pas de créneau", 
 // récupérant le créneau du contexte, au lieu de reboucler. Voir
 // edgecases-r2 T9.
 // ===========================================================================
-
-Deno.test("F3: 'programme-le maintenant' est un ordre d'exécution explicite (edgecases-r2 T9)", () => {
-  assertEquals(
-    looksLikeReminderExecutionConfirmation(
-      "B, le texte tel quel. Programme-le maintenant.",
-    ),
-    true,
-  );
-  assertEquals(
-    looksLikeReminderExecutionConfirmation(
-      "vas-y, lance le rappel maintenant",
-    ),
-    true,
-  );
-  assertEquals(
-    looksLikeReminderExecutionConfirmation("cale-le tout de suite"),
-    true,
-  );
-});
-
-Deno.test("F3 anti-FP: une question produit n'est pas un ordre d'exécution", () => {
-  assertEquals(
-    looksLikeReminderExecutionConfirmation(
-      "comment je programme un rappel dans l'app ?",
-    ),
-    false,
-  );
-  assertEquals(
-    looksLikeReminderExecutionConfirmation(
-      "où je peux programmer un rappel ?",
-    ),
-    false,
-  );
-  assertEquals(
-    looksLikeReminderExecutionConfirmation("je réfléchis encore"),
-    false,
-  );
-});
 
 Deno.test("F3: le créneau (15h30 + texte) donné au tour précédent reste récupérable (edgecases-r2 T8)", () => {
   const recovered = parseReminderFromMessageDeterministic({
@@ -1466,54 +1397,8 @@ Deno.test("router: raw text alone never creates one-shot business intent", () =>
   assertEquals(classified.intent, "off_topic");
 });
 
-Deno.test("router helpers: legacy one-shot business detectors stay disabled", () => {
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Décale ce rappel demain à 10h.",
-    ),
-    false,
-  );
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Où est-ce que je modifie ce rappel dans l'app ?",
-    ),
-    false,
-  );
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "récap : le rappel a été annulé ou pas ?",
-    ),
-    false,
-  );
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "coupe le rappel de 16h10 maintenant",
-    ),
-    false,
-  );
-  assertEquals(
-    isOneShotReminderExactStatusRequest(
-      "confirme l'heure vraiment programmée du rappel",
-    ),
-    false,
-  );
-  assertEquals(
-    isOneShotReminderOperationCommand(
-      "Mets-moi plutôt un rappel à 14h20 ou 16h10",
-    ),
-    false,
-  );
-  assertEquals(
-    shouldPreferOneShotReminderOverRecurring(
-      "rappel ponctuel aujourd'hui à 14h20, texte exact : relire X",
-    ),
-    false,
-  );
-});
-
 Deno.test("router helpers: route guards centralize one-shot non-mutation decisions", () => {
   const statusGuard = oneShotReminderStatusBlocksToolFlow({
-    message: "Sans modifier, confirme l'heure du rappel",
     routeIsProductHelp: false,
     explicitProductHelp: false,
     activeCardDrafting: false,
@@ -1526,13 +1411,11 @@ Deno.test("router helpers: route guards centralize one-shot non-mutation decisio
     "status_only_request_blocks_tool_start",
   );
 
-  const directBlock =
-    oneShotReminderDirectEffectBlockForNonMutationContext({
-      message: "où est-ce que j'annule ce rappel dans l'app ?",
-      routeIsProductHelp: true,
-      statusOnlyNoMutation: false,
-      recapOnly: false,
-    });
+  const directBlock = oneShotReminderDirectEffectBlockForNonMutationContext({
+    routeIsProductHelp: true,
+    statusOnlyNoMutation: false,
+    recapOnly: false,
+  });
   assertEquals(directBlock.blocked, true);
   assertEquals(
     directBlock.reason_code,

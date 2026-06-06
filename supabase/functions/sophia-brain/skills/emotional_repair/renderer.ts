@@ -7,6 +7,7 @@ import type {
 
 export type EmotionalRepairSafeRenderInput = {
   decision?: EmotionalRepairSkillDecision | null;
+  constraints?: EmotionalRepairConstraint[];
   reason: "intake_failure" | "validation_failure" | "technical_fallback";
 };
 
@@ -25,8 +26,8 @@ function phaseFromIntent(intent: EmotionalRepairIntent): EmotionalRepairPhase {
     case "asks_concrete_phrase":
       return "repair_relationship";
     case "emotion_lowered_action_blocked":
-    case "handoff_ready":
-      return "handoff_to_execution";
+    case "action_card_ready":
+      return "action_card_ready";
     case "acute_self_attack":
       return "separate_fact_from_identity";
     case "shame_or_guilt":
@@ -35,11 +36,42 @@ function phaseFromIntent(intent: EmotionalRepairIntent): EmotionalRepairPhase {
   }
 }
 
+function requiresSoftPresenceOnly(
+  input: EmotionalRepairSafeRenderInput,
+): boolean {
+  const decision = input.decision ?? null;
+  const constraints = input.constraints ?? [];
+  return Boolean(
+    decision?.constraints.includes("soft_support_only") ||
+      decision?.constraints.includes("no_technique") ||
+      decision?.constraints.includes("no_protocol") ||
+      constraints.includes("soft_support_only") ||
+      constraints.includes("no_technique") ||
+      constraints.includes("no_protocol") ||
+      decision?.response_contract.allow_concrete_action === false,
+  );
+}
+
 export function renderSafeEmotionalRepairReply(
   input: EmotionalRepairSafeRenderInput,
 ): string {
   const decision = input.decision ?? null;
   const intent = intentFromDecision(decision);
+  if (requiresSoftPresenceOnly(input)) {
+    switch (intent) {
+      case "acute_self_attack":
+        return "Je reste doucement avec toi: ce moment est douloureux, mais il ne dit pas qui tu es.";
+      case "anxiety_or_panic":
+      case "asks_regulation_without_potion":
+        return "Je reste là doucement avec toi; tu n'as rien à réussir maintenant.";
+      case "relational_repair":
+      case "asks_concrete_phrase":
+        return "Je reste avec la part tendre du lien, sans te pousser à réparer tout de suite.";
+      case "shame_or_guilt":
+      default:
+        return "Je reste avec toi doucement: le raté est réel, mais il ne mérite pas de devenir un verdict contre toi.";
+    }
+  }
   if (decision?.constraints.includes("no_potion")) {
     return "D'accord, sans outil de régulation. Pose les pieds au sol et reviens à une seule expiration lente.";
   }
@@ -56,7 +88,7 @@ export function renderSafeEmotionalRepairReply(
     case "asks_regulation_without_potion":
       return "D'accord, sans outil. Pose les pieds au sol et reviens à une seule expiration lente.";
     case "emotion_lowered_action_blocked":
-    case "handoff_ready":
+    case "action_card_ready":
       return "L'émotion a l'air assez redescendue pour regarder le blocage concret, sans revenir au verdict contre toi.";
     case "status_or_meta_question":
       return "Je reste dans la réponse courte et non mutante: aucun effet durable n'est lancé, on garde seulement un repère de conversation.";
@@ -75,7 +107,7 @@ export function buildFallbackEmotionalRepairDecision(
   const intent = intentFromDecision(source);
   const phase = source?.phase ?? phaseFromIntent(intent);
   const constraints = new Set<EmotionalRepairConstraint>(
-    source?.constraints ?? [
+    source?.constraints ?? input.constraints ?? [
       "no_tool",
       "no_plan",
       "no_questions",
@@ -85,6 +117,18 @@ export function buildFallbackEmotionalRepairDecision(
   constraints.add("no_tool");
   constraints.add("no_plan");
   constraints.add("no_questions");
+  if (source?.constraints.includes("no_protocol")) {
+    constraints.add("no_protocol");
+  }
+  if (source?.constraints.includes("no_technique")) {
+    constraints.add("no_technique");
+  }
+  if (source?.constraints.includes("soft_support_only")) {
+    constraints.add("soft_support_only");
+  }
+  const softPresenceOnly = constraints.has("no_protocol") ||
+    constraints.has("no_technique") ||
+    constraints.has("soft_support_only");
   return {
     skill_id: "emotional_repair",
     intent,
@@ -97,8 +141,9 @@ export function buildFallbackEmotionalRepairDecision(
       allow_plan: false,
       allow_tool_suggestion: false,
       allow_potion_suggestion: false,
-      allow_concrete_action: source?.response_contract.allow_concrete_action ??
-        false,
+      allow_concrete_action: softPresenceOnly
+        ? false
+        : source?.response_contract.allow_concrete_action ?? true,
       tone: source?.response_contract.tone ?? "grounded",
     },
     reply: renderSafeEmotionalRepairReply(input),

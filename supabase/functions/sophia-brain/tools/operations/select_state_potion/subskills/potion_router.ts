@@ -7,7 +7,6 @@ import type {
   SelectStatePotionSlotFillerInput,
   SelectStatePotionSlotFillerOutput,
 } from "../intake.ts";
-import { buildPotionDetailSubskillPrompt } from "./potion_detail_intake.ts";
 
 export async function fillPotionRouterSlotsWithAi(
   input: SelectStatePotionSlotFillerInput,
@@ -15,17 +14,21 @@ export async function fillPotionRouterSlotsWithAi(
 ): Promise<SelectStatePotionSlotFillerOutput | null> {
   const systemPrompt = [
     "Tu es le sous-skill router interne du Tool Skill select_state_potion de Sophia.",
-    "Tu ne generes jamais de draft. Tu choisis uniquement l'etat, la potion, ou une shortlist de deux potions.",
+    "Tu ne generes jamais de draft. Tu choisis uniquement l'etat, la potion, ou une clarification entre potions.",
+    "Tu ne remplis jamais les champs UI detailles de la potion choisie.",
     "Tu ne reponds jamais librement au user. Tu retournes uniquement un JSON de progression.",
     "Principe strict: la comprehension du message user est ici, dans ce JSON. Le code ne fera pas de regex ni de fallback metier.",
     buildStatePotionCatalogPrompt(),
-    buildPotionDetailSubskillPrompt(),
+    "Si current_state.context.handoff_summary existe, utilise-le comme contexte deja clarifie: il peut contenir le cap, la peur, l'episode, le besoin durable et les mots exacts du user. Ne le recopie pas; appuie-toi dessus pour choisir la potion et eviter de reposer une question deja couverte.",
     "Si le user nomme explicitement une potion valide, renseigne explicit_potion_request et selected_potion: il ne faut pas proposer deux options.",
+    "Compatibilite technique: pour la Potion anti-decrochage, l'ID interne actuel est rappel. Ne rends jamais le mot rappel visible comme nom de potion.",
     "Si le user demande une potion sans nommer explicitement le type, identifie l'etat emotionnel dominant puis propose les deux meilleures potions dans shortlist.options; laisse selected_potion manquante et generated_user_message doit demander de choisir entre les deux.",
     "Si current_state contient une shortlist et que le user choisit une option, renseigne selected_potion depuis son choix structure.",
     "Si l'etat dominant reste ambigu, ne propose pas de shortlist: pose une seule question courte dans generated_user_message.",
-    "Quand selected_potion et state sont prets, current_sub_skill='detail_intake' et generated_user_message doit demander les deux champs requis du sous-skill detail correspondant, dans un seul message court.",
+    "Quand selected_potion et state sont prets, current_sub_skill='detail_intake'. Ne pose pas le premier champ detail ici: laisse generated_user_message null sauf courte transition indispensable.",
+    "Tu peux transmettre des indices de detail dans context, mais jamais dans details.answers ni details.fields.",
     "Les messages user doivent etre courts et naturels pour WhatsApp. Pas de vocabulaire technique.",
+    "Interdits visibles: potion rappel, rappel comme nom de potion, potion de reparation, reparation comme nom de potion, apaisement court.",
     "Tu tutoies toujours l'utilisateur.",
   ].join("\n");
   const userPrompt = JSON.stringify({
@@ -67,6 +70,11 @@ export async function fillPotionRouterSlotsWithAi(
           target_hint: "string|null",
           related_plan_item_id: "string|null",
           topic_hint: "string|null",
+          opportunistic_detail_candidates: [{
+            field_id: "string",
+            candidate_value: "string",
+            confidence: "low|medium|high",
+          }],
         },
         missing_slots: ["state|potion_type"],
         generated_user_message: "string|null",

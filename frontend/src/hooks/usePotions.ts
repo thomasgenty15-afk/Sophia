@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabase";
 import { POTION_LIST } from "../lib/potions";
 import type {
   PotionDefinition,
+  PotionScopeSelection,
   PotionType,
   UserPotionSessionRow,
 } from "../types/v2";
@@ -21,6 +22,7 @@ export type UsePotionsResult = {
     potionType: PotionType,
     answers: Record<string, string>,
     freeText: string,
+    options?: { potionScope?: PotionScopeSelection | null },
   ) => Promise<void>;
   schedulePotionFollowUp: (
     sessionId: string,
@@ -36,8 +38,12 @@ export type UsePotionsResult = {
 
 export function usePotions(scope: LabScopeInput): UsePotionsResult {
   const [loading, setLoading] = useState(true);
-  const [activatingPotionType, setActivatingPotionType] = useState<PotionType | null>(null);
-  const [schedulingSessionId, setSchedulingSessionId] = useState<string | null>(null);
+  const [activatingPotionType, setActivatingPotionType] = useState<
+    PotionType | null
+  >(null);
+  const [schedulingSessionId, setSchedulingSessionId] = useState<string | null>(
+    null,
+  );
   const [sessions, setSessions] = useState<UserPotionSessionRow[]>([]);
 
   const refresh = useCallback(async () => {
@@ -80,6 +86,7 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
     potionType: PotionType,
     answers: Record<string, string>,
     freeText: string,
+    options: { potionScope?: PotionScopeSelection | null } = {},
   ) => {
     if (!scope || activatingPotionType) return;
     setActivatingPotionType(potionType);
@@ -87,10 +94,16 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
       const { error } = await supabase.functions.invoke("activate-potion-v1", {
         body: {
           scope_kind: scope.kind,
-          transformation_id: scope.kind === "transformation" ? scope.transformationId : null,
+          transformation_id: scope.kind === "transformation"
+            ? scope.transformationId
+            : null,
           potion_type: potionType,
           answers,
           free_text: freeText.trim() || null,
+          potion_scope: options.potionScope ?? null,
+          rappel_scope: potionType === "rappel"
+            ? options.potionScope ?? null
+            : null,
         },
       });
       if (error) throw error;
@@ -102,7 +115,8 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
     }
   }, [activatingPotionType, refresh, scope]);
 
-  const latestSessionByType: Partial<Record<PotionType, UserPotionSessionRow>> = {};
+  const latestSessionByType: Partial<Record<PotionType, UserPotionSessionRow>> =
+    {};
   const usageCountByType: Partial<Record<PotionType, number>> = {};
 
   const schedulePotionFollowUp = useCallback(async (
@@ -113,13 +127,16 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
     if (!sessionId || schedulingSessionId) return;
     setSchedulingSessionId(sessionId);
     try {
-      const { error } = await supabase.functions.invoke("schedule-potion-follow-up-v1", {
-        body: {
-          session_id: sessionId,
-          local_time_hhmm: localTimeHHMM,
-          duration_days: durationDays,
+      const { error } = await supabase.functions.invoke(
+        "schedule-potion-follow-up-v1",
+        {
+          body: {
+            session_id: sessionId,
+            local_time_hhmm: localTimeHHMM,
+            duration_days: durationDays,
+          },
         },
-      });
+      );
       if (error) throw error;
       await refresh();
     } catch (error) {
@@ -133,7 +150,8 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
     _definition: PotionDefinition,
     session: UserPotionSessionRow,
   ) => {
-    const localTimeHHMM = session.follow_up_strategy?.scheduled_local_time_hhmm ?? "09:00";
+    const localTimeHHMM =
+      session.follow_up_strategy?.scheduled_local_time_hhmm ?? "09:00";
     const durationDays = 7;
 
     await schedulePotionFollowUp(session.id, localTimeHHMM, durationDays);
@@ -143,7 +161,8 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
     usageCountByType[definition.type] = 0;
   }
   for (const session of sessions) {
-    usageCountByType[session.potion_type] = (usageCountByType[session.potion_type] ?? 0) + 1;
+    usageCountByType[session.potion_type] =
+      (usageCountByType[session.potion_type] ?? 0) + 1;
     if (!latestSessionByType[session.potion_type]) {
       latestSessionByType[session.potion_type] = session;
     }

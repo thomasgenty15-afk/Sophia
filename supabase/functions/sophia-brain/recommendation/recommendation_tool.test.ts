@@ -49,13 +49,13 @@ function skillOutput(
   patch: Partial<ConversationSkillOutput>,
 ): ConversationSkillOutput {
   return {
-    skill_id: "execution_breakdown",
+    skill_id: "demotivation_repair",
     status: "continue",
     response_intent: "diagnose_blocker",
     diagnosis: {},
     recommendation_need: {
       needed: true,
-      type: "execution_repair",
+      type: "action_repair",
       urgency: "medium",
       constraints: [],
     },
@@ -76,7 +76,7 @@ async function input(
   return {
     user_id: "user-rec",
     channel: "whatsapp",
-    current_skill_id: "execution_breakdown",
+    current_skill_id: "demotivation_repair",
     skill_output: skillOutput({ diagnosis: { plan_item_id: "item-1" } }),
     turn_frame: frame(),
     memory_payload: {},
@@ -131,7 +131,7 @@ Deno.test("recommendation_tool covers recommend, operations, clarification, defe
         skill_output: skillOutput({
           recommendation_need: {
             needed: true,
-            type: "execution_repair",
+            type: "action_repair",
             urgency: "high",
             constraints: ["high_emotion"],
           },
@@ -142,7 +142,7 @@ Deno.test("recommendation_tool covers recommend, operations, clarification, defe
       operation: "select_state_potion",
     },
     {
-      name: "execution-repair-attack-card",
+      name: "action-repair-attack-card",
       patch: {},
       expected: "recommend_operation",
       operation: "prepare_attack_card",
@@ -274,7 +274,7 @@ Deno.test("recommendation_orchestrator applies timing and presentation gates", a
       current_skill_output: skillOutput({
         recommendation_need: {
           needed: true,
-          type: "execution_repair",
+          type: "action_repair",
           urgency: "high",
           constraints: [],
         },

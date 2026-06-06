@@ -152,6 +152,25 @@ immédiatement. Il transmet une intention clarifiée à la suite normale du rout
 ou au skill propriétaire selon le domaine, sans mutation dans le tour de
 clarification.
 
+### Composite Direct-Effect Follow-Up
+
+Si le dispatcher produit un effet direct atomique exécutable mais que le
+`payload_hint.raw_text` de cet effet ne couvre manifestement qu'une partie du
+message utilisateur, le rendu post-opération peut ajouter une reprise
+conversationnelle non-mutante du segment non couvert.
+
+Ce fallback :
+
+- ne choisit aucun skill ou tool par regex ;
+- ne crée aucun `tool_skill_intent` ;
+- ne lance aucun tool skill complexe ;
+- ne remplace pas `clarification_tool` quand des candidats structurés existent ;
+- sert seulement à ne pas perdre une deuxième demande explicite dans le
+  transcript.
+
+Si le second intent est structuré dans le `TurnFrame`, l'agenda/handoff dédié
+reste prioritaire sur cette reprise générique.
+
 ## Conversation Skills Integration
 
 Les conversation skills peuvent appeler le même outil via
@@ -162,12 +181,10 @@ Priorités de branchement :
 
 - `product_help` : explication produit vs demande d'action ou préparation
   d'objet.
-- `execution_breakdown` : découper une action vs ajuster le plan vs soutien
-  émotionnel.
-- `emotional_repair` : besoin émotionnel immédiat vs potion vs problème
-  d'exécution concret.
+- `emotional_repair` : besoin émotionnel immédiat vs potion vs carte d'action
+  consentie vs problème de plan.
 - `demotivation_repair` : perte de sens vs fatigue vs action trop grosse vs
-  plan mal calibré.
+  plan mal calibré vs carte d'action consentie.
 - `weekly_adaptive_review_v1` : récapitulatif vs recommandation vs handoff
   adjust plan vs micro-action.
 

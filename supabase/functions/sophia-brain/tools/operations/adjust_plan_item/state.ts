@@ -2,7 +2,6 @@ import type { PlanAdjustmentDraftV1 } from "./generator.ts";
 import type {
   AdjustPlanHandoffDraft,
   AdjustPlanHandoffStatus,
-  AdjustPlanScopeKind,
 } from "./contract.ts";
 
 export type PendingAdjustPlanDraftReview = {
@@ -38,9 +37,8 @@ export type AdjustPlanToolSkillFrame = {
 
 export type AdjustPlanHandoffState = {
   skill_id: "adjust_plan_item";
-  mode: "platform_handoff";
+  mode: "platform_input_coaching";
   status: AdjustPlanHandoffStatus;
-  scope?: AdjustPlanScopeKind;
   draft?: AdjustPlanHandoffDraft | null;
   operation_input?: Record<string, unknown> | null;
   turn_count: number;
@@ -116,7 +114,8 @@ export function isAdjustPlanHandoffState(
     record &&
       typeof record === "object" &&
       record.skill_id === "adjust_plan_item" &&
-      record.mode === "platform_handoff" &&
+      (record.mode === "platform_input_coaching" ||
+        record.mode === "platform_handoff") &&
       record.no_chat_mutation === true,
   );
 }
@@ -125,32 +124,15 @@ export function loadAdjustPlanFrameFromTempMemory(
   tempMemory: any,
 ): AdjustPlanToolSkillFrame {
   const temp = tempMemory ?? {};
-  const pendingDraftReview = temp.__pending_adjust_plan_draft_review;
-  const pendingConfirmation = temp.__pending_tool_skill_confirmation ??
-    temp.pending_tool_skill_confirmation ?? null;
-  const activeIntake = temp.__active_tool_skill_intake ??
-    temp.active_tool_skill_intake ?? null;
   return {
-    pending_draft_review: isPendingAdjustPlanDraftReview(pendingDraftReview)
-      ? pendingDraftReview
-      : null,
-    pending_confirmation: isPendingAdjustPlanItemOperation(pendingConfirmation)
-      ? pendingConfirmation
-      : null,
-    active_intake: activeIntake && typeof activeIntake === "object"
-      ? activeIntake as Record<string, unknown>
-      : null,
-    pending_recommendation: temp.__pending_recommendation_operation &&
-        typeof temp.__pending_recommendation_operation === "object"
-      ? temp.__pending_recommendation_operation as Record<string, unknown>
-      : null,
+    pending_draft_review: null,
+    pending_confirmation: null,
+    active_intake: null,
+    pending_recommendation: null,
     handoff_state: isAdjustPlanHandoffState(temp.__adjust_plan_handoff_state)
       ? temp.__adjust_plan_handoff_state
       : null,
-    last_execution: temp.__last_adjust_plan_execution &&
-        typeof temp.__last_adjust_plan_execution === "object"
-      ? temp.__last_adjust_plan_execution as Record<string, unknown>
-      : null,
+    last_execution: null,
   };
 }
 

@@ -28,6 +28,7 @@ const INCOMPLETE_CYCLE_STATUSES = [
   "profile_pending",
   "ready_for_plan",
 ] as const;
+const DASHBOARD_LOAD_TIMEOUT_MS = 30_000;
 
 export type DashboardV2PlanItemRuntime = UserPlanItemRow & {
   last_entry_at: string | null;
@@ -360,6 +361,19 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
     }
     void refetch();
   }, [authLoading, navigate, refetch, user]);
+
+  useEffect(() => {
+    if (!loading || authLoading || !user) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setError(
+        "Le chargement du dashboard prend trop de temps. Réessaie, ou recharge la page si le réseau mobile a interrompu la reprise.",
+      );
+      setLoading(false);
+    }, DASHBOARD_LOAD_TIMEOUT_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [authLoading, loading, user]);
 
   return {
     user,

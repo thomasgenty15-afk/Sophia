@@ -44,6 +44,7 @@ une exception legacy temporaire dans `../test-material/15-chantiers-log.md`.
 - `tools/update-coach-preferences.md`
 - `tools/track-progress-plan-item.md`
 - `tools/clarification-tool.md`
+- `tools/select-state-potion-clarte-subflow.md`
 
 ### Conversation Skills
 

@@ -33,7 +33,7 @@ export const WEEKLY_REVIEW_MIGRATION_STATUS = {
   current_shape:
     "contract/projection -> reducer -> bridge/effects -> renderer, with legacy runtime guards",
   documented_exception:
-    "weekly_review keeps existing runtime names and remains hybrid while adjust_plan_item owns durable confirmation and execution.",
+    "weekly_review may route to adjust_plan_item only to help formulate a Plan input; adjust_plan_item never owns durable confirmation or execution.",
   durable_effect_policy:
-    "plan patches and bridges require confirmation; weekly conversation does not apply durable changes directly",
+    "weekly conversation does not apply durable plan changes directly; plan adjustments are completed in the platform",
 } as const;

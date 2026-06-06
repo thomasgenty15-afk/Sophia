@@ -47,8 +47,10 @@ Dans le code cible :
   d'activation potion. S'il reçoit un signal `select_state_potion`, il doit
   router vers le handoff ou retourner un résultat `platform_handoff`
   non-mutant.
-- `tools/operations/select_state_potion/router.ts` possède le runtime handoff :
+- `tools/operations/select_state_potion/handoff.ts` possède le runtime handoff :
   start/continue/clarify/produce/revise/repeat/apply_attempt/cancel/topic_change.
+- `tools/operations/select_state_potion/subskills/local_flow_dispatcher.ts`
+  possède l'interprétation locale d'un message quand le flow potion est actif.
 - `tools/operations/select_state_potion/intake.ts` et `subskills/*` conservent
   la compréhension structurée utile. Ils ne produisent plus un draft activable
   ni un pending confirmation exécutable.
@@ -56,9 +58,9 @@ Dans le code cible :
   distinct des anciens pending exécutables.
 - `tools/operations/select_state_potion/renderer.ts` est la seule source du
   message visible handoff. Le ledger ne rend jamais le contenu.
-- `tools/operations/select_state_potion/executor.ts` et `persistence.ts` sont
-  legacy hors chemin nominal. Le runtime V1 handoff ne doit pas les importer ni
-  les appeler.
+- `tools/operations/select_state_potion/router.ts`, `draft_validation.ts`,
+  `executor.ts` et `persistence.ts` ne possèdent plus le chemin nominal. Le
+  runtime V1 handoff ne doit pas les importer ni les appeler.
 
 ## Runtime Shape
 
@@ -105,13 +107,19 @@ draft -> confirmation token -> executeActivateStatePotion -> writeStatePotionAct
   - sélection IA de l'état, shortlist et détails de potion ;
   - restent propriétaires de la compréhension fine du domaine.
 
-- `tools/operations/select_state_potion/router.ts`
+- `tools/operations/select_state_potion/handoff.ts`
   - runtime handoff local ;
-  - décide `start_handoff`, `continue_collecting`, `clarify_state`,
-    `produce_handoff`, `revise_handoff`, `repeat_handoff`, `apply_attempt`,
-    `cancel`, `topic_change` ;
+  - orchestre le dispatcher local, l'intake, le reducer d'état, le renderer et
+    les follow-ups non-mutants ;
   - ne possède aucun writer DB ;
   - ne crée aucun pending confirmation exécutable.
+
+- `tools/operations/select_state_potion/subskills/local_flow_dispatcher.ts`
+  - décide localement `field_answer`, `field_confirmation`,
+    `revise_collected_field`, `platform_destination_followup`,
+    `apply_attempt`, `repeat_handoff`, `cancel_flow`,
+    `exit_to_global_dispatcher`, `safety_preempt` ou `unclear` ;
+  - ne produit jamais la valeur plateforme finale d'un champ.
 
 - `tools/operations/select_state_potion/state.ts`
   - lit/écrit/clear l'état `StatePotionHandoffState` ;
@@ -132,8 +140,9 @@ draft -> confirmation token -> executeActivateStatePotion -> writeStatePotionAct
     non-mutation ;
   - interdit tout langage d'activation.
 
-- `tools/operations/select_state_potion/executor.ts` et `persistence.ts`
-  - legacy hors chemin nominal ;
+- `tools/operations/select_state_potion/router.ts`, `draft_validation.ts`,
+  `executor.ts` et `persistence.ts`
+  - legacy désactivé ou hors chemin nominal ;
   - ne doivent pas être importés par le runtime handoff.
 
 ## Inputs
@@ -146,11 +155,25 @@ Le skill consomme :
 - l'état handoff actif dans `tempMemory` ;
 - les contraintes globales : safety, no-tool, no-potion, no-followup ;
 - le contexte prompt-only nécessaire à la recommandation ;
+- `operation_input.context.handoff_summary` quand l'entrée vient d'une
+  suggestion structurée émise par un skill conversationnel. Ce résumé est un
+  contexte déjà clarifié, pas une instruction de routage vers un autre skill ;
 - les sorties structurées des sous-skills ;
 - la destination canonique du Product Surface Registry.
 
 Le contexte DB ne doit jamais devenir un second cerveau déterministe pour
 choisir la potion.
+
+Entrées autorisées :
+
+- demande explicite utilisateur de potion ou d'aide d'état maintenant ;
+- suite d'un handoff actif `select_state_potion` ;
+- suggestion structurée consentie via `operation_suggestions`, avec payload
+  `operation_input_hint` et consentement utilisateur avant handoff plateforme.
+
+Les états implicites seuls (`honte`, pression, perte de sens, décrochage,
+panique légère, flou d'exécution) ne doivent pas être transformés en opportunity
+`select_state_potion` par le dispatcher.
 
 ## Outputs
 
@@ -193,6 +216,9 @@ Statuts handoff canoniques :
 - `no_potion` annule ou bloque proprement le handoff.
 - `no_followup` doit apparaître dans la recommandation comme contrainte, jamais
   comme follow-up caché.
+- Si `context.handoff_summary` est fourni, les sous-skills l'utilisent pour
+  choisir/proposer le champ courant et éviter de repartir de zéro; ils ne
+  doivent pas en déduire un remplissage massif de tous les champs.
 - Une demande one-shot explicite peut interrompre le handoff et sortir vers le
   direct effect `create_one_shot_reminder`.
 - Safety préempte toujours.
@@ -232,7 +258,10 @@ Mappage attendu :
 
 - précision ou variation -> `revise_handoff` ;
 - "redis-moi", "où je la lance ?" -> `repeat_handoff` ;
-- "ok vas-y", "active-la" -> `apply_attempt` ;
+- `active_handoff_action.type="handoff_apply_attempt"` produit par le
+  dispatcher ou le contrat active handoff -> statut local `apply_attempt` ;
+- "ok vas-y", "active-la" doivent arriver par ce signal structure, pas par une
+  regex locale ;
 - "pas de potion" -> `cancelled` ou `blocked`.
 
 Sorties autorisées du handoff :
@@ -300,6 +329,9 @@ Tests propriétaires :
 - aucune création `user_potion_sessions`, `user_recurring_reminders` ou
   `scheduled_checkins` ;
 - `apply_attempt` ne mute pas et répète la destination plateforme ;
+- `apply_attempt` rend une réponse courte : refus de créer/lancer depuis le
+  chat, chemin `État / Potions`, potion recommandée et champs utiles à
+  renseigner, sans régénérer toute l'analyse ;
 - `repeat_handoff` répète la recommandation ;
 - `revise_handoff` régénère la recommandation ;
 - `no_potion` annule ou bloque proprement ;

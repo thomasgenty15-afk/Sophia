@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-03-defense-ambiguous-clarification-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je ne sais pas si je dois faire une carte d'attaque ou de défense, ni quels champs remplir. Demain j'ai mes mails du soir à faire et je veux éviter de finir sur YouTube après. Tu me guides ?",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

@@ -23,9 +23,12 @@ type CandidatePatch = ClarificationCandidate & {
     | "tool_skill_intent"
     | "skill_signal"
     | "opportunity"
-    | "message_hint";
+    | "message_hint"
+    | "active_skill_internal";
   confidence_band?: ConfidenceBand | null;
 };
+
+const DEPRECATED_EXECUTION_SKILL_ID = "execution" + "_breakdown";
 
 const OPERATION_LABELS: Record<string, string> = {
   create_one_shot_reminder: "un rappel ponctuel",
@@ -40,7 +43,6 @@ const OPERATION_LABELS: Record<string, string> = {
 const SKILL_LABELS: Record<string, string> = {
   product_help: "une explication sur Sophia",
   emotional_repair: "un soutien émotionnel",
-  execution_breakdown: "découper une action",
   demotivation_repair: "faire le point sur la motivation",
   weekly_adaptive_review_v1: "continuer le point weekly",
 };
@@ -55,33 +57,101 @@ const ACTIVE_SKILL_ALLOWED_CANDIDATES: Record<string, Set<string>> = {
     "create_one_shot_reminder",
     "create_recurring_reminder",
   ]),
-  execution_breakdown: new Set([
-    "execution_breakdown",
-    "adjust_plan_item",
-    "emotional_repair",
-    "demotivation_repair",
-    "select_state_potion",
-  ]),
   emotional_repair: new Set([
     "emotional_repair",
+    "prepare_attack_card",
+    "prepare_defense_card",
     "select_state_potion",
-    "execution_breakdown",
     "adjust_plan_item",
     "demotivation_repair",
   ]),
   demotivation_repair: new Set([
     "demotivation_repair",
     "emotional_repair",
-    "execution_breakdown",
+    "prepare_attack_card",
+    "prepare_defense_card",
     "adjust_plan_item",
     "select_state_potion",
   ]),
   weekly_adaptive_review_v1: new Set([
     "weekly_adaptive_review_v1",
     "adjust_plan_item",
-    "execution_breakdown",
     "product_help",
   ]),
+};
+
+const ACTIVE_SKILL_INTERNAL_CLARIFICATION_PHASES: Record<string, Set<string>> =
+  {
+    demotivation_repair: new Set([
+      "awaiting_clarification",
+      "diagnose",
+      "sorting_demotivation_source",
+    ]),
+    weekly_adaptive_review_v1: new Set([
+      "awaiting_clarification",
+      "weekly_review_discussion",
+    ]),
+  };
+
+const ACTIVE_SKILL_INTERNAL_CANDIDATES: Record<string, CandidatePatch[]> = {
+  demotivation_repair: [
+    {
+      id: "demotivation_loss_of_meaning",
+      label: "une perte de sens",
+      description:
+        "Le blocage vient surtout d'un doute sur le sens ou l'utilité.",
+      evidence: ["active_skill_state.phase"],
+      source: "active_skill_internal",
+      confidence_band: "medium",
+    },
+    {
+      id: "demotivation_fatigue",
+      label: "de la fatigue",
+      description: "Le blocage vient surtout d'une baisse d'énergie.",
+      evidence: ["active_skill_state.phase"],
+      source: "active_skill_internal",
+      confidence_band: "medium",
+    },
+    {
+      id: "prepare_attack_card",
+      label: operationLabel("prepare_attack_card"),
+      description:
+        "Le prochain pas utile est de préparer une carte d'attaque.",
+      operation_type: "prepare_attack_card",
+      evidence: ["active_skill_state.phase"],
+      source: "active_skill_internal",
+      confidence_band: "medium",
+    },
+    {
+      id: "adjust_plan_item",
+      label: "un plan mal calibré",
+      description:
+        "Le prochain pas utile est de préparer un ajustement du plan.",
+      operation_type: "adjust_plan_item",
+      evidence: ["active_skill_state.phase"],
+      source: "active_skill_internal",
+      confidence_band: "medium",
+    },
+  ],
+  weekly_adaptive_review_v1: [
+    {
+      id: "weekly_recap",
+      label: "faire un récap clair de la semaine",
+      description: "Rester dans le point weekly sans préparer d'ajustement.",
+      evidence: ["active_skill_state.phase"],
+      source: "active_skill_internal",
+      confidence_band: "medium",
+    },
+    {
+      id: "adjust_plan_item",
+      label: "ajuster le plan",
+      description: "Préparer un handoff d'ajustement sans appliquer de patch.",
+      operation_type: "adjust_plan_item",
+      evidence: ["active_skill_state.phase"],
+      source: "active_skill_internal",
+      confidence_band: "medium",
+    },
+  ],
 };
 
 function operationLabel(operationType: string): string {
@@ -198,13 +268,14 @@ function inferAmbiguityKind(candidates: ClarificationCandidate[]) {
   }
   if (
     ids.has("emotional_repair") &&
-    (ids.has("select_state_potion") || ids.has("execution_breakdown") ||
+    (ids.has("select_state_potion") || ids.has("prepare_attack_card") ||
+      ids.has("prepare_defense_card") ||
       ids.has("adjust_plan_item"))
   ) {
     return "target" as const;
   }
   if (
-    ids.has("execution_breakdown") && ids.has("adjust_plan_item")
+    ids.has("weekly_recap") && ids.has("adjust_plan_item")
   ) {
     return "handoff_readiness" as const;
   }
@@ -230,6 +301,48 @@ function activeSkillId(activeSkillState: unknown): string | null {
   return value || null;
 }
 
+function activeSkillWorkingState(activeSkillState: unknown):
+  | Record<
+    string,
+    unknown
+  >
+  | null {
+  const record = activeSkillState as { working_state?: unknown } | null;
+  const workingState = record?.working_state;
+  return workingState && typeof workingState === "object" &&
+      !Array.isArray(workingState)
+    ? workingState as Record<string, unknown>
+    : null;
+}
+
+function activeSkillPhase(activeSkillState: unknown): string | null {
+  const workingState = activeSkillWorkingState(activeSkillState);
+  const value = String(workingState?.phase ?? "").trim();
+  return value || null;
+}
+
+function addActiveSkillInternalCandidates(args: {
+  byId: Map<string, CandidatePatch>;
+  owner: string;
+  activeSkillState: unknown;
+}): boolean {
+  const phase = activeSkillPhase(args.activeSkillState);
+  if (!phase) return false;
+  const allowedPhases = ACTIVE_SKILL_INTERNAL_CLARIFICATION_PHASES[args.owner];
+  if (!allowedPhases?.has(phase)) return false;
+  const candidates = ACTIVE_SKILL_INTERNAL_CANDIDATES[args.owner] ?? [];
+  for (const candidate of candidates) {
+    addCandidate(args.byId, {
+      ...candidate,
+      evidence: [
+        ...(candidate.evidence ?? []),
+        `active_skill_state.phase:${phase}`,
+      ],
+    });
+  }
+  return candidates.length > 0;
+}
+
 function shouldClarifyCandidates(
   candidates: ClarificationCandidate[],
 ): boolean {
@@ -237,21 +350,23 @@ function shouldClarifyCandidates(
   const hasProductHelp = hasCandidate(candidates, "product_help");
   const hasOneShot = hasCandidate(candidates, "create_one_shot_reminder");
   const hasRecurring = hasCandidate(candidates, "create_recurring_reminder");
-  const hasExecutionBreakdown = hasCandidate(candidates, "execution_breakdown");
   const hasEmotionalRepair = hasCandidate(candidates, "emotional_repair");
   const hasDemotivationRepair = hasCandidate(candidates, "demotivation_repair");
   const hasAdjustPlan = hasCandidate(candidates, "adjust_plan_item");
   const hasStatePotion = hasCandidate(candidates, "select_state_potion");
+  const hasAttackCard = hasCandidate(candidates, "prepare_attack_card");
+  const hasDefenseCard = hasCandidate(candidates, "prepare_defense_card");
 
   if (hasProductHelp && hasOperation) return true;
   if (hasOneShot && hasRecurring) return true;
   if (operationCount(candidates) > 1) return true;
 
-  if (hasExecutionBreakdown && hasAdjustPlan) return true;
-  if (hasExecutionBreakdown && hasStatePotion) return true;
   if (hasEmotionalRepair && (hasStatePotion || hasAdjustPlan)) return true;
-  if (hasEmotionalRepair && hasExecutionBreakdown) return true;
-  if (hasDemotivationRepair && (hasAdjustPlan || hasExecutionBreakdown)) {
+  if (hasEmotionalRepair && (hasAttackCard || hasDefenseCard)) return true;
+  if (
+    hasDemotivationRepair &&
+    (hasAdjustPlan || hasAttackCard || hasDefenseCard)
+  ) {
     return true;
   }
 
@@ -300,6 +415,7 @@ function collectCandidatesFromTurnFrame(
 
   const entries = turnFrame.skill_signals?.entry ?? {};
   for (const [skillId, signal] of Object.entries(entries)) {
+    if (skillId === DEPRECATED_EXECUTION_SKILL_ID) continue;
     const confidence = signalConfidence(signal);
     if (!signalDetected(signal) || !isCandidateConfidenceUsable(confidence)) {
       continue;
@@ -378,8 +494,15 @@ export function buildActiveSkillClarificationCandidatesFromTurnFrame(args: {
   if (!collected) return null;
 
   const byId = new Map<string, CandidatePatch>();
+  const hasInternalCandidates = addActiveSkillInternalCandidates({
+    byId,
+    owner,
+    activeSkillState: args.activeSkillState,
+  });
   const activeCandidate = candidateForActiveSkill(owner);
-  if (activeCandidate) addCandidate(byId, activeCandidate);
+  if (!hasInternalCandidates && activeCandidate) {
+    addCandidate(byId, activeCandidate);
+  }
   addActiveSkillMessageHintCandidates({
     byId,
     allowed,
@@ -393,7 +516,7 @@ export function buildActiveSkillClarificationCandidatesFromTurnFrame(args: {
 
   const candidates = [...byId.values()];
   if (candidates.length < 2) return null;
-  if (!hasCandidate(candidates, owner)) return null;
+  if (!hasInternalCandidates && !hasCandidate(candidates, owner)) return null;
 
   return {
     owner,

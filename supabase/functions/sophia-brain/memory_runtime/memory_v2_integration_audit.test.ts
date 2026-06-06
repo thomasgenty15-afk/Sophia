@@ -6,7 +6,7 @@ import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { MemoryWriteCandidate } from "../contracts/memory_write_candidate.v1.ts";
 import type { EmotionalRepairSkillDecision } from "../skills/emotional_repair/contract.ts";
 import { runEmotionalRepairSkill } from "../skills/emotional_repair/skill.ts";
-import { loadExecutionBreakdownContext } from "../skills/execution_breakdown/context_loader.ts";
+import { loadDemotivationRepairContext } from "../skills/demotivation_repair/context_loader.ts";
 import { loadBaseSkillContext } from "../skills/_shared/context.ts";
 import {
   dispatchMemoryCandidates,
@@ -23,6 +23,20 @@ function turnFrame(patch: Partial<TurnFrame> = {}): TurnFrame {
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
     direct_effects: [],
     tool_skill_intents: [],
+    tool_skill_opportunity: {
+      type: "none",
+      operation_type: null,
+      surface_id: null,
+      confidence_band: "low",
+      should_offer: false,
+      prop_reason: null,
+      source_span: null,
+      target_hint: null,
+      target_status: "none",
+      suggested_question_intent: null,
+      offer_timing: "never",
+      must_not_execute: true,
+    },
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -119,8 +133,8 @@ Deno.test("S7 audit 1b: immediate correction covers five relation cases", async 
   }
 });
 
-Deno.test("S7 audit 2: sensitive cannabis memory is excluded from neutral execution breakdown", async () => {
-  const context = await loadExecutionBreakdownContext({
+Deno.test("S7 audit 2: sensitive cannabis memory is excluded from neutral demotivation repair", async () => {
+  const context = await loadDemotivationRepairContext({
     user_id: "user-1",
     active_skill_working_state: null,
     turn_frame: turnFrame({ source_message_id: "message-walk" }),
@@ -262,7 +276,7 @@ Deno.test("S7 audit 4: active topic can stay sticky while response owner is not 
     },
     skill_signals: {
       entry: {
-        execution_breakdown: {
+        demotivation_repair: {
           detected: true,
           confidence_band: "high",
           reason: "neutral progress update",
@@ -270,11 +284,11 @@ Deno.test("S7 audit 4: active topic can stay sticky while response owner is not 
       },
     },
   });
-  const context = await loadExecutionBreakdownContext({
+  const context = await loadDemotivationRepairContext({
     user_id: "user-1",
     active_skill_working_state: {
       version: 1,
-      skill_id: "execution_breakdown",
+      skill_id: "demotivation_repair",
       status: "active",
       turn_count: 2,
       started_at: "2026-05-04T09:55:00.000Z",

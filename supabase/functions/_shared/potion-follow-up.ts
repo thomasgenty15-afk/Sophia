@@ -1,7 +1,14 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
+import { loadPotionBaseContext } from "./potion-base-context.ts";
+import {
+  buildPotionFollowUpFallbackSeries,
+  generatePotionFollowUpSeries,
+  type PotionFollowUpSeriesInput,
+  type PotionFollowUpSeriesItem,
+} from "./potion-follow-up-series.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
-import type { UserPotionSessionRow } from "./v2-types.ts";
+import type { PotionScopeSelection, UserPotionSessionRow } from "./v2-types.ts";
 
 export class PotionFollowUpSchedulingError extends Error {
   status: number;
@@ -35,6 +42,101 @@ function addDays(iso: string, days: number): string {
   return base.toISOString();
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function text(value: unknown): string | null {
+  const trimmed = String(value ?? "").trim();
+  return trimmed || null;
+}
+
+function readPotionScope(
+  session: UserPotionSessionRow,
+): {
+  potionScope: PotionScopeSelection | null;
+  targetBinding: Record<string, unknown> | null;
+} {
+  const metadata = isRecord(session.metadata) ? session.metadata : {};
+  const rawScope = isRecord(metadata.potion_scope)
+    ? metadata.potion_scope
+    : isRecord(metadata.rappel_scope)
+    ? metadata.rappel_scope
+    : null;
+  const rawBinding = isRecord(metadata.target_binding)
+    ? metadata.target_binding
+    : null;
+  const scopeKind = text(rawScope?.scope_kind);
+  const targetScope = text(rawScope?.target_scope);
+  const supportsScope = session.potion_type === "rappel" ||
+    session.potion_type === "courage" ||
+    session.potion_type === "guerison" ||
+    session.potion_type === "amour" ||
+    session.potion_type === "apaisement";
+  const potionScope = supportsScope &&
+      (scopeKind === "plan_linked" || scopeKind === "out_of_plan")
+    ? {
+      scope_kind: scopeKind,
+      target_scope:
+        targetScope === "plan_item" || targetScope === "whole_plan" ||
+          targetScope === "unknown"
+          ? targetScope
+          : null,
+      target_plan_item_id: text(rawScope?.target_plan_item_id),
+      target_label: text(rawScope?.target_label),
+    } as PotionScopeSelection
+    : null;
+  return {
+    potionScope,
+    targetBinding: rawBinding,
+  };
+}
+
+function targetColumnsForPotionScope(
+  session: UserPotionSessionRow,
+): {
+  target_kind: "none" | "transformation" | "plan_item";
+  target_plan_item_id: string | null;
+  target_binding_policy: "none" | "snapshot" | "live_action";
+  target_lifecycle_policy: "independent" | "while_target_active";
+} {
+  const { potionScope, targetBinding } = readPotionScope(session);
+  if (!potionScope) {
+    return {
+      target_kind: "none",
+      target_plan_item_id: null,
+      target_binding_policy: "none",
+      target_lifecycle_policy: "independent",
+    };
+  }
+  if (potionScope.scope_kind === "out_of_plan") {
+    return {
+      target_kind: "none",
+      target_plan_item_id: null,
+      target_binding_policy: "none",
+      target_lifecycle_policy: "independent",
+    };
+  }
+  if (
+    potionScope.target_scope === "plan_item" && potionScope.target_plan_item_id
+  ) {
+    return {
+      target_kind: "plan_item",
+      target_plan_item_id: potionScope.target_plan_item_id,
+      target_binding_policy: "live_action",
+      target_lifecycle_policy: "while_target_active",
+    };
+  }
+  return {
+    target_kind: "transformation",
+    target_plan_item_id: null,
+    target_binding_policy: text(targetBinding?.binding_policy) === "snapshot"
+      ? "snapshot"
+      : "none",
+    target_lifecycle_policy: "independent",
+  };
+}
+
 export async function schedulePotionFollowUpForSession(args: {
   admin: SupabaseClient;
   userId: string;
@@ -42,6 +144,9 @@ export async function schedulePotionFollowUpForSession(args: {
   localTimeHHMM: string;
   durationDays: number;
   now?: Date;
+  seriesGenerator?: (
+    input: PotionFollowUpSeriesInput,
+  ) => Promise<PotionFollowUpSeriesItem[]>;
 }): Promise<{ session: UserPotionSessionRow; scheduledCount: number }> {
   const { data: sessionData, error: sessionError } = await args.admin
     .from("user_potion_sessions")
@@ -86,6 +191,83 @@ export async function schedulePotionFollowUpForSession(args: {
   const nowIso = now.toISOString();
   const nowLocalHHMM = localTimeHHMMInTimezone(timezone, now);
   const startOffset = compareHHMM(args.localTimeHHMM, nowLocalHHMM) > 0 ? 0 : 1;
+  const rationale = proposal?.description ??
+    session.follow_up_strategy?.rationale ?? null;
+  const { potionScope, targetBinding } = readPotionScope(session);
+  const baseSeriesInput: PotionFollowUpSeriesInput = {
+    userId: args.userId,
+    potionType: session.potion_type,
+    durationDays: args.durationDays,
+    reminderInstruction: messageText,
+    rationale,
+    timezone,
+    sessionContent: session.content as unknown as Record<string, unknown>,
+    followUpStrategy: session.follow_up_strategy as unknown as Record<
+      string,
+      unknown
+    >,
+    questionnaireAnswers: session.questionnaire_answers,
+    potionScope,
+    rappelScope: potionScope,
+    targetBinding,
+  };
+
+  const series = await (async () => {
+    if (args.seriesGenerator) {
+      try {
+        return await args.seriesGenerator(baseSeriesInput);
+      } catch {
+        return buildPotionFollowUpFallbackSeries(baseSeriesInput);
+      }
+    }
+    try {
+      const baseContext = await loadPotionBaseContext({
+        admin: args.admin,
+        userId: args.userId,
+        potionType: session.potion_type,
+        scopeKind: potionScope?.scope_kind === "out_of_plan"
+          ? "out_of_plan"
+          : session.scope_kind,
+        transformationId: session.transformation_id,
+        relatedPlanItemId: potionScope?.scope_kind === "plan_linked" &&
+            potionScope.target_scope === "plan_item"
+          ? potionScope.target_plan_item_id ?? null
+          : null,
+      });
+      return await generatePotionFollowUpSeries({
+        ...baseSeriesInput,
+        baseContext,
+      }, {
+        userId: args.userId,
+      });
+    } catch {
+      return buildPotionFollowUpFallbackSeries(baseSeriesInput);
+    }
+  })();
+
+  const fallbackSeries = buildPotionFollowUpFallbackSeries(baseSeriesInput);
+  const seenDrafts = new Set<string>();
+  const normalizedSeries = Array.from({ length: args.durationDays }).map((
+    _,
+    index,
+  ) => {
+    const item = series[index];
+    let draft = String(item?.draft_message ?? "").trim() ||
+      fallbackSeries[index]?.draft_message ||
+      messageText;
+    if (seenDrafts.has(draft.toLowerCase())) {
+      draft = fallbackSeries.find((candidate) =>
+        !seenDrafts.has(candidate.draft_message.toLowerCase())
+      )?.draft_message ?? `Jour ${index + 1}: ${messageText}`;
+    }
+    seenDrafts.add(draft.toLowerCase());
+    return {
+      day_index: index + 1,
+      theme: String(item?.theme ?? `jour ${index + 1}`).trim() ||
+        `jour ${index + 1}`,
+      draft_message: draft,
+    };
+  });
 
   let recurringReminderId = String(
     session.follow_up_strategy?.linked_recurring_reminder_id ?? "",
@@ -103,6 +285,7 @@ export async function schedulePotionFollowUpForSession(args: {
     ).trim();
   }
 
+  const targetColumns = targetColumnsForPotionScope(session);
   const initiativePayload = {
     user_id: args.userId,
     cycle_id: session.cycle_id,
@@ -112,8 +295,7 @@ export async function schedulePotionFollowUpForSession(args: {
     source_kind: "potion_generated",
     source_potion_session_id: session.id,
     message_instruction: messageText,
-    rationale: proposal?.description ?? session.follow_up_strategy?.rationale ??
-      null,
+    rationale,
     local_time_hhmm: args.localTimeHHMM,
     scheduled_days: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     status: "active",
@@ -127,7 +309,14 @@ export async function schedulePotionFollowUpForSession(args: {
       source_session_generated_at: session.generated_at,
       scheduled_duration_days: args.durationDays,
       scope_kind: session.scope_kind,
+      potion_scope: potionScope,
+      rappel_scope: session.potion_type === "rappel" ? potionScope : null,
+      target_binding: targetBinding,
     },
+    target_kind: targetColumns.target_kind,
+    target_plan_item_id: targetColumns.target_plan_item_id,
+    target_binding_policy: targetColumns.target_binding_policy,
+    target_lifecycle_policy: targetColumns.target_lifecycle_policy,
     updated_at: nowIso,
   };
 
@@ -188,7 +377,21 @@ export async function schedulePotionFollowUpForSession(args: {
     recurring_reminder_id: recurringReminderId,
     origin: "rendez_vous",
     event_context: eventContext,
-    draft_message: messageText,
+    draft_message: normalizedSeries[index]?.draft_message ?? messageText,
+    message_payload: {
+      source: "potion_follow_up_series",
+      source_potion_session_id: session.id,
+      potion_type: session.potion_type,
+      reminder_instruction: messageText,
+      rationale,
+      day_index: normalizedSeries[index]?.day_index ?? index + 1,
+      theme: normalizedSeries[index]?.theme ?? `jour ${index + 1}`,
+      potion_follow_up_series_item: normalizedSeries[index],
+      generated_at: nowIso,
+      potion_scope: potionScope,
+      rappel_scope: session.potion_type === "rappel" ? potionScope : null,
+      target_binding: targetBinding,
+    },
     scheduled_for: computeScheduledForFromLocal({
       timezone,
       dayOffset: startOffset + index,
@@ -216,10 +419,13 @@ export async function schedulePotionFollowUpForSession(args: {
     scheduled_local_time_hhmm: args.localTimeHHMM,
     scheduled_duration_days: args.durationDays,
     scheduled_message_count: args.durationDays,
+    scheduled_message_series: normalizedSeries,
+    generated_series: normalizedSeries,
+    series_generated_at: nowIso,
+    series_generator_version: "potion_follow_up_series_v1",
     scheduled_at: nowIso,
     linked_recurring_reminder_id: recurringReminderId,
-    rationale: proposal?.description ?? session.follow_up_strategy?.rationale ??
-      null,
+    rationale,
   };
 
   const lastScheduledFor = rows[rows.length - 1]?.scheduled_for ?? nowIso;
@@ -251,7 +457,7 @@ export async function schedulePotionFollowUpForSession(args: {
     .update({
       ends_at: endsAt,
       last_drafted_at: nowIso,
-      last_draft_message: messageText,
+      last_draft_message: normalizedSeries[0]?.draft_message ?? messageText,
       updated_at: nowIso,
     })
     .eq("id", recurringReminderId)

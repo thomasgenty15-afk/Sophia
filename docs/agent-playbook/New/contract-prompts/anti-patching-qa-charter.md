@@ -92,6 +92,8 @@ EffectLedger. Ils ne doivent pas inventer une intention.
 
 12. Tu dois te comporter comme un architecte raisonnable. 
 
+13. Tu dois éviter à tout pris les modèles de réponses avec des trous à remplir. 
+
 ## Test Mental
 
 Avant de coder, l'agent doit pouvoir répondre :

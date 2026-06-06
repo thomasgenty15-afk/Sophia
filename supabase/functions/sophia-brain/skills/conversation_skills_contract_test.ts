@@ -2,8 +2,6 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { reduceEmotionalRepairTurn } from "./emotional_repair/reducer.ts";
 import { conservativeDemotivationRepairDecision } from "./demotivation_repair/contract.ts";
 import { reduceDemotivationRepairTurn } from "./demotivation_repair/reducer.ts";
-import { conservativeExecutionDecision } from "./execution_breakdown/contract.ts";
-import { reduceExecutionBreakdownTurn } from "./execution_breakdown/reducer.ts";
 import { baseProductHelpDecision } from "./product_help/contract.ts";
 import { reduceProductHelpTurn } from "./product_help/reducer.ts";
 import { getProductHelpFeature } from "./product_help/retrieval.ts";
@@ -34,7 +32,7 @@ function mockRunInput() {
   return {
     user_message: "test",
     context: {
-      skill_id: "execution_breakdown",
+      skill_id: "demotivation_repair",
       user_id: "user_test",
       recent_messages: [],
       active_skill_working_state: null,
@@ -61,7 +59,6 @@ Deno.test("conversation skills expose standard files or documented exception", a
   const migrated = [
     "emotional_repair",
     "demotivation_repair",
-    "execution_breakdown",
     "safety_crisis",
     "product_help",
   ];
@@ -95,6 +92,7 @@ Deno.test("intake failure is conservative and produces no durable effects", () =
     run_input: runInput,
     intake_decision: null,
     intake_errors: ["model_down"],
+    explicit_constraints: ["soft_support_only", "no_technique"],
   });
   const demotivation = reduceDemotivationRepairTurn({
     run_input: runInput,
@@ -102,14 +100,6 @@ Deno.test("intake failure is conservative and produces no durable effects", () =
       ok: false,
       reason: "model_down",
       decision: conservativeDemotivationRepairDecision("model_down"),
-    },
-  });
-  const execution = reduceExecutionBreakdownTurn({
-    run_input: runInput,
-    intake: {
-      ok: false,
-      reason: "model_down",
-      decision: conservativeExecutionDecision("model_down"),
     },
   });
   const product = reduceProductHelpTurn({
@@ -120,7 +110,29 @@ Deno.test("intake failure is conservative and produces no durable effects", () =
     intake_errors: ["model_down"],
   });
 
-  for (const output of [emotional, demotivation, execution, product]) {
+  assert(emotional.reply);
+  assertEquals(emotional.operation_suggestions ?? [], []);
+  assertEquals(emotional.memory_write_candidates ?? [], []);
+  assertEquals(emotional.effects?.committed ?? [], []);
+  assert(
+    (emotional.effects?.blocked ?? []).some((effect: any) =>
+      effect.reason_code === "structured_intake_failed"
+    ),
+  );
+  assertEquals(
+    /respir|expiration|pieds au sol|protocole|technique|micro[- ]?action|\?/i
+      .test(emotional.reply ?? ""),
+    false,
+  );
+  assert(
+    (emotional.diagnosis as any)?.constraints?.includes("soft_support_only"),
+  );
+  assertEquals(
+    (emotional.diagnosis as any)?.response_contract?.allow_concrete_action,
+    false,
+  );
+
+  for (const output of [demotivation, product]) {
     assertEquals(output.reply, undefined);
     assertEquals(output.operation_suggestions ?? [], []);
     assertEquals(output.memory_write_candidates ?? [], []);
@@ -133,7 +145,7 @@ Deno.test("intake failure is conservative and produces no durable effects", () =
   }
 });
 
-Deno.test("emotional_repair enforces explicit no-plan and no-question constraints from user text", () => {
+Deno.test("emotional_repair enforces explicit no-plan and no-question constraints from structured input", () => {
   const runInput = {
     ...mockRunInput(),
     user_message:
@@ -163,6 +175,7 @@ Deno.test("emotional_repair enforces explicit no-plan and no-question constraint
       state_patch: {},
     },
     intake_errors: [],
+    explicit_constraints: ["no_questions", "short_reply", "no_plan"],
   });
   const reply = output.reply ?? "";
   assert(reply.length > 0);
@@ -176,36 +189,139 @@ Deno.test("emotional_repair enforces explicit no-plan and no-question constraint
   );
 });
 
-Deno.test("operation suggestions remain suggestions and do not execute tools", () => {
-  const runInput = mockRunInput();
-  const decision = conservativeExecutionDecision("test");
-  decision.target = {
-    kind: "task",
-    title: "ouvrir le document",
-    confidence_band: "high",
-  };
-  decision.phase = "suggest_tool";
-  decision.reply = "Je peux te proposer une carte, sans la creer ici.";
-  decision.response_contract = {
-    ...decision.response_contract,
-    allow_tool_suggestion: true,
-    allow_card_suggestion: true,
-  };
-  decision.operation_suggestions = [{
-    operation_type: "prepare_attack_card",
-    reason: "blocage ponctuel",
-    requires_user_consent: true,
-    operation_input_hint: { title: "ouvrir le document" },
-  }];
-  const output = reduceExecutionBreakdownTurn({
-    run_input: runInput,
-    intake: { ok: true, decision },
+Deno.test("emotional_repair soft support only forbids protocol, technique and final question", () => {
+  const output = reduceEmotionalRepairTurn({
+    run_input: {
+      ...mockRunInput(),
+      user_message: "Je suis en honte. Juste doucement, pas de plan.",
+    },
+    intake_decision: {
+      skill_id: "emotional_repair",
+      intent: "shame_or_guilt",
+      phase: "de_shame",
+      emotional_dominance: "high",
+      context_domain: "work",
+      constraints: [],
+      response_contract: {
+        max_questions: 1,
+        allow_plan: true,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: true,
+        allow_concrete_action: true,
+        tone: "soft",
+      },
+      operation_suggestions: [],
+      memory_write_candidates: [],
+      reply:
+        "Mini-protocole: pose les pieds au sol, prends une expiration lente. Tu veux une micro-action ?",
+      state_patch: {},
+    },
+    intake_errors: [],
+    explicit_constraints: ["soft_support_only"],
   });
-  assertEquals(output.operation_suggestions?.length, 1);
-  assertEquals(output.effects?.committed, []);
+
+  const reply = output.reply ?? "";
+  assertEquals(reply.includes("?"), false);
   assertEquals(
-    output.effects?.allowed[0] &&
-      (output.effects.allowed[0] as any).type,
+    /respir|expiration|protocole|micro[- ]?action/i.test(reply),
+    false,
+  );
+  assert((output.diagnosis as any)?.constraints?.includes("soft_support_only"));
+  assertEquals(
+    (output.diagnosis as any)?.response_contract?.allow_concrete_action,
+    false,
+  );
+});
+
+Deno.test("emotional_repair no-technique paraphrase forbids breathing fallback", () => {
+  const output = reduceEmotionalRepairTurn({
+    run_input: {
+      ...mockRunInput(),
+      user_message: "Reste avec moi sans technique.",
+    },
+    intake_decision: {
+      skill_id: "emotional_repair",
+      intent: "anxiety_or_panic",
+      phase: "stabilize",
+      emotional_dominance: "medium",
+      context_domain: "body",
+      constraints: ["no_technique"],
+      response_contract: {
+        max_questions: 0,
+        allow_plan: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_concrete_action: false,
+        tone: "soft",
+      },
+      operation_suggestions: [],
+      memory_write_candidates: [],
+      reply: "Pose les pieds au sol et reviens à une seule expiration lente.",
+      state_patch: {},
+    },
+    intake_errors: [],
+  });
+  assertEquals(
+    /respir|expiration|pieds au sol/i.test(output.reply ?? ""),
+    false,
+  );
+  assert((output.diagnosis as any)?.constraints?.includes("no_protocol"));
+});
+
+Deno.test("emotional_repair anti-FP: explicit micro-action remains allowed when structured contract allows it", () => {
+  const output = reduceEmotionalRepairTurn({
+    run_input: {
+      ...mockRunInput(),
+      user_message: "Donne-moi une micro-action.",
+    },
+    intake_decision: {
+      skill_id: "emotional_repair",
+      intent: "emotion_lowered_action_blocked",
+      phase: "action_card_ready",
+      emotional_dominance: "low",
+      context_domain: "work",
+      constraints: ["short_reply"],
+      response_contract: {
+        max_questions: 0,
+        allow_plan: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_concrete_action: true,
+        tone: "grounded",
+      },
+      operation_suggestions: [],
+      memory_write_candidates: [],
+      reply: "Micro-action: ouvre seulement le mail, sans répondre encore.",
+      state_patch: {},
+    },
+    intake_errors: [],
+  });
+  assertEquals(
+    output.reply,
+    "Micro-action: ouvre seulement le mail, sans répondre encore.",
+  );
+  assertEquals(
+    (output.diagnosis as any)?.response_contract?.allow_concrete_action,
+    true,
+  );
+});
+
+Deno.test("operation suggestions remain suggestions and do not execute tools", () => {
+  const effects = conversationEffectsFromCandidates({
+    operation_suggestions: [{
+      operation_type: "prepare_attack_card",
+      reason: "blocage ponctuel",
+      confidence_band: "medium",
+      urgency: "medium",
+      source_skill_id: "demotivation_repair",
+      requires_user_consent: true,
+      operation_input_hint: { title: "ouvrir le document" },
+    }],
+  });
+  assertEquals(effects.committed, []);
+  assertEquals(
+    effects.allowed[0] &&
+      (effects.allowed[0] as any).type,
     "operation_suggestion_candidate",
   );
 });
@@ -217,7 +333,7 @@ Deno.test("operation suggestions without explicit consent are blocked", () => {
       reason: "bad legacy suggestion",
       confidence_band: "medium",
       urgency: "low",
-      source_skill_id: "execution_breakdown",
+      source_skill_id: "demotivation_repair",
       requires_user_consent: false,
     }],
   });
@@ -233,39 +349,26 @@ Deno.test("operation suggestions without explicit consent are blocked", () => {
 });
 
 Deno.test("memory candidates are candidates, not committed memory", () => {
-  const runInput = mockRunInput();
-  const decision = conservativeExecutionDecision("test");
-  decision.target = {
-    kind: "task",
-    title: "envoyer le mail",
-    confidence_band: "high",
-  };
-  decision.phase = "give_micro_action";
-  decision.reply = "Premier geste: ouvre le brouillon.";
-  decision.memory_write_candidates = [{
-    source_text: "Blocage ponctuel sur le mail.",
-    should_persist_default: false,
-    anti_identity_freeze_checked: true,
-    sensitivity_level: 1,
-    reason: "session_context",
-  }];
-  const output = reduceExecutionBreakdownTurn({
-    run_input: runInput,
-    intake: { ok: true, decision },
+  const effects = conversationEffectsFromCandidates({
+    memory_write_candidates: [{
+      kind: "statement",
+      content_text: "Blocage ponctuel sur le mail.",
+      evidence_source_ids: ["message-1"],
+      confidence_band: "medium",
+      should_persist_default: false,
+      anti_identity_freeze_checked: true,
+      sensitivity_level: 1,
+      persistence_rationale: "Session-only context emitted by a skill.",
+    }],
   });
-  assertEquals(output.memory_write_candidates?.length, 1);
-  assertEquals(output.effects?.committed, []);
-  assertEquals(
-    output.memory_write_candidates?.[0].should_persist_default,
-    false,
-  );
+  assertEquals(effects.committed, []);
+  assertEquals(effects.allowed.length, 1);
 });
 
 Deno.test("conversation skills do not commit durable effects directly", async () => {
   const skills = [
     "emotional_repair",
     "demotivation_repair",
-    "execution_breakdown",
     "safety_crisis",
     "product_help",
     "status_recap",

@@ -15,32 +15,14 @@ import {
   maybeCreateOneShotReminder,
 } from "./executor.ts";
 export {
-  detectsExplicitOneShotReminderCancel,
   hasExplicitOneShotReminderDirectEffectOverride,
-  isExplicitOneShotReminderModificationRequest,
-  isLikelyOneShotReminderRequest,
-  isOneShotReminderExactStatusRequest,
-  isOneShotReminderOperationCommand,
-  looksLikeReminderCreationCommand,
   oneShotReminderDirectEffectBlockForNonMutationContext,
-  oneShotReminderModificationRouteGuard,
   oneShotReminderStatusBlocksToolFlow,
-  shouldOneShotReminderSupersedeToolFlow,
-  shouldPreferOneShotReminderOverRecurring,
 } from "./route_guards.ts";
 import {
-  detectsExplicitOneShotReminderCancel,
   hasExplicitOneShotReminderDirectEffectOverride,
-  isExplicitOneShotReminderModificationRequest,
-  isLikelyOneShotReminderRequest,
-  isOneShotReminderExactStatusRequest,
-  isOneShotReminderOperationCommand,
-  looksLikeReminderCreationCommand,
   oneShotReminderDirectEffectBlockForNonMutationContext,
-  oneShotReminderModificationRouteGuard,
   oneShotReminderStatusBlocksToolFlow,
-  shouldOneShotReminderSupersedeToolFlow,
-  shouldPreferOneShotReminderOverRecurring,
 } from "./route_guards.ts";
 import { oneShotReminderManagementReply } from "./renderer.ts";
 export {
@@ -52,20 +34,10 @@ export {
 
 export const hasExplicitOneShotReminderDirectEffectOverrideForTest =
   hasExplicitOneShotReminderDirectEffectOverride;
-export const isOneShotReminderExactStatusRequestForTest =
-  isOneShotReminderExactStatusRequest;
-export const isOneShotReminderOperationCommandForTest =
-  isOneShotReminderOperationCommand;
 export const oneShotReminderDirectEffectBlockForNonMutationContextForTest =
   oneShotReminderDirectEffectBlockForNonMutationContext;
-export const oneShotReminderModificationRouteGuardForTest =
-  oneShotReminderModificationRouteGuard;
 export const oneShotReminderStatusBlocksToolFlowForTest =
   oneShotReminderStatusBlocksToolFlow;
-export const shouldOneShotReminderSupersedeToolFlowForTest =
-  shouldOneShotReminderSupersedeToolFlow;
-export const shouldPreferOneShotReminderOverRecurringForTest =
-  shouldPreferOneShotReminderOverRecurring;
 
 export function classifyOneShotReminderDirectIntent(
   message: string,
@@ -79,7 +51,6 @@ export function classifyOneShotReminderDirectIntent(
   const intake = buildOneShotReminderIntake({
     message,
     directEffectsToRun,
-    fallbackLegacyGuards: false,
   });
   return {
     detected: intake.detected,

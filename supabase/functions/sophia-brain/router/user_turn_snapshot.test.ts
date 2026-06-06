@@ -80,7 +80,14 @@ Deno.test("buildUserTurnSnapshot captures active flows and explicit constraints"
       __pending_tool_skill_confirmation: {
         operation_type: "update_coach_preferences",
       },
-      __turn_constraints: { no_potion: true },
+      __turn_constraints: {
+        no_potion: true,
+        no_plan: true,
+        no_protocol: true,
+        no_technique: true,
+        no_questions: true,
+        soft_support_only: true,
+      },
       active_reminders: [{ id: "r1" }],
     },
   });
@@ -96,6 +103,11 @@ Deno.test("buildUserTurnSnapshot captures active flows and explicit constraints"
   assertEquals(snapshot.explicit_constraints.status_only, true);
   assertEquals(snapshot.explicit_constraints.no_tool, true);
   assertEquals(snapshot.explicit_constraints.no_potion, true);
+  assertEquals(snapshot.explicit_constraints.no_plan, true);
+  assertEquals(snapshot.explicit_constraints.no_protocol, true);
+  assertEquals(snapshot.explicit_constraints.no_technique, true);
+  assertEquals(snapshot.explicit_constraints.no_questions, true);
+  assertEquals(snapshot.explicit_constraints.soft_support_only, true);
   assertEquals(snapshot.explicit_constraints.draft_only, true);
   assertEquals(snapshot.durable_state.active_reminders?.length, 1);
 });

@@ -60,36 +60,34 @@ export type AdjustPlanDecisionStatus =
 export type AdjustPlanHandoffStatus =
   | "collecting"
   | "clarifying"
-  | "handoff_ready"
-  | "handoff_delivered"
-  | "revise_handoff"
-  | "repeat_handoff"
+  | "draft_ready"
+  | "draft_delivered"
+  | "revise_draft"
+  | "repeat_draft"
   | "apply_attempt"
   | "cancelled"
   | "topic_change"
   | "blocked";
 
-export type AdjustPlanHandoffDraft = {
+export type AdjustPlanInputCoachStatus = AdjustPlanHandoffStatus;
+
+export type AdjustPlanPlatformInputDraft = {
   operation_type: "adjust_plan_item";
-  mode: "platform_handoff";
+  mode: "platform_input_coaching";
   no_chat_mutation: true;
   executable_from_chat: false;
-  scope: {
-    kind: AdjustPlanScopeKind;
-    target_summary?: string | null;
+  user_blocker_summary: string;
+  suggested_platform_input: string;
+  preserve: string[];
+  avoid: string[];
+  destination: {
+    product_area: "Plan";
+    instruction: string;
   };
-  user_goal_summary: string;
-  coaching_read: string;
-  recommendation: {
-    summary: string;
-    recommended_change: string;
-    preserve: string[];
-    avoid: string[];
-    platform_destination: string;
-    platform_steps: string[];
-  };
-  missing_decisions: string[];
+  missing_clarity: string[];
 };
+
+export type AdjustPlanHandoffDraft = AdjustPlanPlatformInputDraft;
 
 export type AdjustPlanDecision = {
   skill_id: "adjust_plan_item";

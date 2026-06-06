@@ -127,8 +127,12 @@ function potionType(
 
 function timeString(value: unknown): string | null {
   const raw = text(value);
-  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(raw);
-  return match ? raw : null;
+  if (raw.length !== 5 || raw[2] !== ":") return null;
+  const hour = Number(raw.slice(0, 2));
+  const minute = Number(raw.slice(3, 5));
+  if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return raw;
 }
 
 function enumValue<T extends string>(
@@ -160,11 +164,62 @@ function weekdayList(value: unknown): string[] {
 }
 
 function localDateList(value: unknown): string[] {
-  return stringList(value).filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date));
+  return stringList(value).filter(isIsoDateLike);
 }
 
 function normalizeVoiceText(value: string): string {
-  return value.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  return value
+    .replaceAll("’", "'")
+    .replaceAll("É", "E")
+    .replaceAll("é", "e")
+    .replaceAll("È", "E")
+    .replaceAll("è", "e")
+    .replaceAll("Ê", "E")
+    .replaceAll("ê", "e")
+    .replaceAll("À", "A")
+    .replaceAll("à", "a")
+    .replaceAll("Ç", "C")
+    .replaceAll("ç", "c")
+    .toLowerCase();
+}
+
+function isDigitChar(char: string): boolean {
+  return char >= "0" && char <= "9";
+}
+
+function isIsoDateLike(value: string): boolean {
+  if (value.length !== 10 || value[4] !== "-" || value[7] !== "-") {
+    return false;
+  }
+  return [...value.slice(0, 4), ...value.slice(5, 7), ...value.slice(8, 10)]
+    .every(isDigitChar);
+}
+
+function collapseSpaces(value: string): string {
+  let output = "";
+  let previousWasSpace = false;
+  for (const char of value) {
+    const isSpace = char === " " || char === "\n" || char === "\t" ||
+      char === "\r";
+    if (isSpace) {
+      if (!previousWasSpace) output += " ";
+      previousWasSpace = true;
+    } else {
+      output += char;
+      previousWasSpace = false;
+    }
+  }
+  return output.trim();
+}
+
+function normalizeVisibleGuardText(value: string): string {
+  return collapseSpaces(
+    normalizeVoiceText(value)
+      .replaceAll("_", " ")
+      .replaceAll(":", " ")
+      .replaceAll("-", " ")
+      .replaceAll("?", " "),
+  );
 }
 
 function durationDays(value: unknown, fallback: number): number {
@@ -259,23 +314,60 @@ function assertSchedulePlanIsUsable(plan: StatePotionSchedulePlan) {
 }
 
 function assertConfirmationVoiceIsNatural(message: string) {
-  const text = normalizeVoiceText(message);
-  const forbiddenPatterns = [
-    /\bje te propose d activer\b/,
-    /\bje peux t envoyer\b/,
-    /\bon part sur cette potion\b/,
-    /\bon (essaie|tente|lance|commence|part|garde|valide|se cale)[^?]{0,90}\?/,
-    /\bpetit (signe|mot|soutien|coucou|rituel)\b/,
-    /\bca te va\s*\?/,
-    /\bsi ca te va\b/,
-    /\bca te convient\s*\?/,
-    /\best ce que ca te convient\s*\?/,
-    /\bpour qu on avance\b/,
-    /\bdis[-\s]moi si\b/,
-    /\bsi tu confirmes,\s*je\b/,
+  const text = normalizeVisibleGuardText(message);
+  const forbiddenFragments = [
+    "je te propose d activer",
+    "je peux t envoyer",
+    "on part sur cette potion",
+    "on essaie",
+    "on tente",
+    "on lance",
+    "on commence",
+    "on garde",
+    "on valide",
+    "on se cale",
+    "petit signe",
+    "petit mot",
+    "petit soutien",
+    "petit coucou",
+    "petit rituel",
+    "ca te va",
+    "si ca te va",
+    "ca te convient",
+    "est ce que ca te convient",
+    "pour qu on avance",
+    "dis moi si",
+    "si tu confirmes je",
   ];
-  if (forbiddenPatterns.some((pattern) => pattern.test(text))) {
+  if (forbiddenFragments.some((fragment) => text.includes(fragment))) {
     throw new Error("potion_confirmation_template_voice");
+  }
+}
+
+function assertVisibleDraftTextIsUserFacing(field: string, value: string) {
+  const text = normalizeVisibleGuardText(value);
+  const forbiddenFragments = [
+    "current user message",
+    "source message",
+    "operation input",
+    "payload hint",
+    "question id",
+    "confidence band",
+    "reason code",
+    "tool skill",
+    "user explicitly",
+    "user described",
+    "user mentioned",
+    "user message describes",
+    "user message implies",
+    "l utilisateur",
+    "la personne",
+    "le user",
+    "du user",
+    "evidence",
+  ];
+  if (forbiddenFragments.some((fragment) => text.includes(fragment))) {
+    throw new Error(`potion_visible_text_internal_${field}`);
   }
 }
 
@@ -355,6 +447,18 @@ export function normalizePotionSessionDraft(
   ) {
     throw new Error("potion_draft_invalid");
   }
+  for (
+    const [field, value] of [
+      ["title", title],
+      ["opening_prompt", openingPrompt],
+      ["instant_support_message", instantSupportMessage],
+      ["potion_info_message", potionInfoMessage],
+      ["why_this_potion", whyThisPotion],
+      ["confirmation_message", confirmationMessage],
+    ]
+  ) {
+    assertVisibleDraftTextIsUserFacing(field, value);
+  }
   return {
     operation_type: "select_state_potion",
     output_schema: "potion_session_draft_v1",
@@ -388,6 +492,8 @@ export async function generatePotionSessionDraftWithAi(
     "Tu es le generator interne du Tool Skill select_state_potion de Sophia.",
     "Tu retournes uniquement un JSON conforme au schema demande.",
     "Tu rediges les messages visibles pour l'utilisateur; le code ne les templatisera pas.",
+    "Tous les champs visibles doivent parler directement a l'utilisateur en tu. Interdits visibles: 'l'utilisateur', 'la personne', 'le user', ou une analyse a la troisieme personne.",
+    "Ne recopie jamais les noms de champs internes ni les preuves internes dans un champ visible: interdits visibles 'current_user_message', 'user_message_*', 'User explicitly', 'User described', 'operation_input', 'question_id', 'evidence', 'reason_code'. Transforme toujours ces indices en phrase naturelle pour le user.",
     "La potion est courte, rassurante, non medicale, sans moralisation et ne remplace jamais la securite.",
     buildStatePotionCatalogPrompt(),
     buildPotionFollowUpSchedulePlannerPrompt(input.potion_type),
@@ -464,7 +570,12 @@ export async function generatePotionSessionDraftWithAi(
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const retryInstruction = attempt === 0
       ? ""
-      : `\nRappel critique: ton precedent JSON a ete rejete (${String((lastError as Error | null)?.message ?? lastError ?? "erreur inconnue")}). Corrige uniquement le JSON. Respecte le dernier timing explicite du user avant le contexte DB. Si confirmation_message sonnait comme un template, recris-le avec une syntaxe differente, sans 'Je peux t'envoyer', sans 'petit signe/mot', sans question finale en 'On ... ?', sans 'On se cale ?', sans 'Dis-moi si', sans 'ce moment te semble bien choisi', sans 'Valide avec oui', sans 'Si tu confirmes, je...', sans 'ca te va/convient', sans 'pour qu'on avance', et sans nom de potion en titre.`;
+      : `\nRappel critique: ton precedent JSON a ete rejete (${
+        String(
+          (lastError as Error | null)?.message ?? lastError ??
+            "erreur inconnue",
+        )
+      }). Corrige uniquement le JSON. Respecte le dernier timing explicite du user avant le contexte DB. Tous les champs visibles doivent etre des phrases naturelles adressees au user; ne mets aucun placeholder, nom de champ, evidence interne, 'current_user_message', 'user_message_*', 'User explicitly', 'operation_input', 'question_id' ou 'reason_code'. Si confirmation_message sonnait comme un template, recris-le avec une syntaxe differente, sans 'Je peux t'envoyer', sans 'petit signe/mot', sans question finale en 'On ... ?', sans 'On se cale ?', sans 'Dis-moi si', sans 'ce moment te semble bien choisi', sans 'Valide avec oui', sans 'Si tu confirmes, je...', sans 'ca te va/convient', sans 'pour qu'on avance', et sans nom de potion en titre.`;
     try {
       const raw = await generateWithGemini(
         `${systemPrompt}${retryInstruction}`,

@@ -7,25 +7,94 @@ import type { AdjustPlanEffectMaterializationResult } from "./effects.ts";
 import { renderNonCommittedReply } from "../_shared/committed_effect_renderer_guard.ts";
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 
-function hasCommittedEffect(
-  effectResult?: AdjustPlanEffectMaterializationResult | null,
-): boolean {
-  void effectResult;
-  return false;
+export type AdjustPlanReplyRenderIntent =
+  | "start"
+  | "revise"
+  | "repeat"
+  | "apply_attempt"
+  | "destination_only";
+
+function cleanLine(value: unknown, fallback = ""): string {
+  const cleaned = String(value ?? fallback)
+    .replace(/\s+/g, " ")
+    .replace(/\b[Cc]['’]est fait\b/g, "")
+    .replace(/\bj['’]ai (?:modifi[eé]|ajust[eé]|appliqu[eé])\b/gi, "")
+    .replace(/\bje peux l['’]?appliquer\b/gi, "")
+    .replace(/\bdis[- ]moi oui et je le fais\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || fallback;
 }
 
-function missingSlotReply(state: AdjustPlanDecision): string {
-  const missing = [
-    ...state.scope.missing_slots,
-    ...state.change.missing_slots,
-  ];
-  if (missing.includes("scope")) {
-    return "Je peux le préparer, mais il me manque la cible exacte du plan à ajuster.";
+function destinationInstruction(draft: AdjustPlanHandoffDraft): string {
+  const target = getHandoffTargetForOperation("adjust_plan_item");
+  return cleanLine(
+    draft.destination?.instruction,
+    target?.platform_steps?.length
+      ? target.platform_steps.join(" ")
+      : "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement.",
+  );
+}
+
+function containsPlanDestination(value: string): boolean {
+  return /\bPlan\b/i.test(value);
+}
+
+function fallbackReply(
+  draft: AdjustPlanHandoffDraft,
+  intent: AdjustPlanReplyRenderIntent,
+): string {
+  const suggested = cleanLine(
+    draft.suggested_platform_input,
+    "Je veux ajuster mon plan pour le rendre plus simple et plus tenable, sans perdre le cap important.",
+  );
+  const destination = destinationInstruction(draft);
+  if (intent === "destination_only") {
+    return `${destination} Tu as deja une bonne base a reprendre la-bas.`;
   }
-  if (missing.includes("requested_change")) {
-    return "Je peux le préparer, mais il me manque le changement concret que tu veux proposer.";
+  if (intent === "repeat") {
+    return `La phrase a reprendre est : "${suggested}"\n\n${destination}`;
   }
-  return "Je peux le préparer, mais il me manque une précision avant de faire un brouillon fiable.";
+  if (intent === "apply_attempt") {
+    return `La formulation est prete, mais l'ajustement se fait dans Plan : "${suggested}"\n\n${destination}`;
+  }
+  return `Tu peux demander un ajustement dans ce sens : "${suggested}"\n\n${destination}`;
+}
+
+export function finalizeAdjustPlanPlatformInputReply(args: {
+  draft: AdjustPlanHandoffDraft;
+  reply: string | null | undefined;
+  intent?: AdjustPlanReplyRenderIntent;
+}): string {
+  const intent = args.intent ?? "start";
+  const destination = destinationInstruction(args.draft);
+  let content = cleanLine(args.reply, fallbackReply(args.draft, intent));
+  if (!containsPlanDestination(content)) {
+    content = `${content}\n\n${destination}`;
+  }
+  if (
+    intent === "apply_attempt" &&
+    /\b(?:fait|appliqu[eé]|modifi[eé])\b/i.test(content)
+  ) {
+    content = fallbackReply(args.draft, "apply_attempt");
+  }
+  return content.trim();
+}
+
+export function renderAdjustPlanHandoffDraft(
+  draft: AdjustPlanHandoffDraft,
+  options: { compact?: boolean; destinationOnly?: boolean } = {},
+): string {
+  const intent = options.destinationOnly
+    ? "destination_only"
+    : options.compact
+    ? "repeat"
+    : "start";
+  return finalizeAdjustPlanPlatformInputReply({
+    draft,
+    reply: null,
+    intent,
+  });
 }
 
 export function renderAdjustPlanDecision(args: {
@@ -33,163 +102,13 @@ export function renderAdjustPlanDecision(args: {
   effect_result?: AdjustPlanEffectMaterializationResult | null;
   constraints?: AdjustPlanConstraint[];
 }): string {
-  const { state, effect_result } = args;
-  const noCommitFallback =
-    "Tu peux reprendre cet ajustement dans la section Plan; le changement se fait là-bas.";
-  if (effect_result?.failed_effects.length) {
-    return "Le plan reste inchangé ici. Tu peux reprendre l'ajustement dans la section Plan.";
-  }
-  if (hasCommittedEffect(effect_result)) {
-    return noCommitFallback;
-  }
-  if (state.intent === "reject_draft" || state.status === "rejected") {
-    return "Ok, je laisse cet ajustement de côté. Le plan reste inchangé.";
-  }
-  if (state.intent === "off_topic" || state.status === "off_topic") {
-    return renderNonCommittedReply(state.reply, "");
-  }
-  if (state.intent === "explain_draft") {
-    return renderNonCommittedReply(
-      state.reply,
-      state.draft.summary ||
-        "Je peux expliquer la recommandation et te dire où la reprendre dans Plan.",
-    );
-  }
-  if (
-    state.effect_plan.blocked_reason === "missing_slots" ||
-    state.scope.missing_slots.length > 0 ||
-    state.change.missing_slots.length > 0
-  ) {
-    return renderNonCommittedReply(state.reply, missingSlotReply(state));
-  }
-  if (state.draft.available) {
-    return renderNonCommittedReply(
-      state.reply,
-      [
-        state.draft.summary ?? "J'ai un brouillon d'ajustement.",
-        "Il ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas.",
-      ].join("\n\n"),
-    );
-  }
+  void args;
   return renderNonCommittedReply(
-    state.reply,
-    noCommitFallback,
+    null,
+    "Je peux t'aider à formuler une demande d'ajustement à reprendre dans Plan. L'ajustement se fait ensuite dans la plateforme.",
   );
 }
 
 export function renderAdjustPlanDraftGenerationConfirmationQuestion(): string {
-  return "Je peux préparer une recommandation concrète d'ajustement, puis te dire où la reprendre dans la plateforme. Tu veux que je la formule ?";
-}
-
-function cleanLine(value: unknown): string {
-  return String(value ?? "")
-    .replace(/\s+/g, " ")
-    .replace(/\b[Cc]['’]est fait\b/g, "La recommandation est prête")
-    .replace(
-      /\bj['’]ai (?:modifi[eé]|ajust[eé]|appliqu[eé])\b/gi,
-      "je recommande d'ajuster",
-    )
-    .replace(
-      /\bje (?:peux|vais) l['’]?appliquer\b/gi,
-      "tu peux le reprendre dans la plateforme",
-    )
-    .replace(
-      /\bdis[- ]moi oui et je le fais\b/gi,
-      "reprends cette version dans la plateforme",
-    )
-    .replace(
-      /\bapplique l['’]ajustement recommandé\b/gi,
-      "reprends l'ajustement recommandé dans Plan",
-    )
-    .replace(
-      /\bapplique cette version\b/gi,
-      "reprends cette version dans Plan",
-    )
-    .trim();
-}
-
-function cleanList(
-  values: unknown[] | undefined,
-  fallback: string[],
-): string[] {
-  const cleaned = (values ?? []).map(cleanLine).filter(Boolean);
-  return cleaned.length ? cleaned : fallback;
-}
-
-function renderList(values: string[]): string {
-  return values.map((value) => `- ${value.replace(/[.。]+$/u, "")}`).join("\n");
-}
-
-function handoffClosing(destination: string): string {
-  const place = destination.toLowerCase().includes("plan")
-    ? "Plan"
-    : destination;
-  return `Il ne te reste plus qu'à ouvrir ${place} et reprendre cette version là-bas.`;
-}
-
-export function renderAdjustPlanHandoffDraft(
-  draft: AdjustPlanHandoffDraft,
-  options: { compact?: boolean; destinationOnly?: boolean } = {},
-): string {
-  const target = getHandoffTargetForOperation("adjust_plan_item");
-  const destination = cleanLine(
-    target?.user_facing_destination ??
-      draft.recommendation.platform_destination ??
-      "Plan",
-  );
-  const steps = cleanList(draft.recommendation.platform_steps, [
-    ...(target?.platform_steps ?? []),
-  ]);
-  const preserve = cleanList(draft.recommendation.preserve, [
-    "l'objectif de fond",
-  ]);
-  const avoid = cleanList(draft.recommendation.avoid, [
-    "changer tout le plan si le blocage vient seulement de la charge actuelle",
-  ]);
-  const missing = cleanList(draft.missing_decisions, []);
-  if (options.destinationOnly) {
-    const destinationBlocks = [
-      `Dans Plan : ${destination}.`,
-      steps.length ? renderList(steps.slice(0, 2)) : "",
-      handoffClosing(destination),
-    ];
-    return destinationBlocks.filter(Boolean).join("\n\n");
-  }
-  if (options.compact) {
-    const compactBlocks = [
-      `À reprendre dans Plan : ${
-        cleanLine(draft.recommendation.recommended_change)
-      }`,
-      `Où : ${destination}.`,
-      steps.length ? renderList(steps.slice(0, 2)) : "",
-      handoffClosing(destination),
-    ];
-    if (missing.length) {
-      compactBlocks.splice(
-        1,
-        0,
-        `À trancher dans Plan : ${missing.join("; ")}.`,
-      );
-    }
-    return compactBlocks.filter(Boolean).join("\n\n");
-  }
-  const blocks = [
-    `Ce que je comprends : ${cleanLine(draft.user_goal_summary)}`,
-    `Ma recommandation : ${cleanLine(draft.recommendation.recommended_change)}`,
-    `Pourquoi : ${cleanLine(draft.coaching_read)}`,
-    `À préserver :\n${renderList(preserve)}`,
-    `À éviter :\n${renderList(avoid)}`,
-    `À reprendre dans Plan : ${destination}.\n${renderList(steps)}`,
-    handoffClosing(destination),
-  ];
-  if (missing.length) {
-    blocks.splice(
-      2,
-      0,
-      `Point à clarifier avant de le reprendre dans Plan : ${
-        missing.join("; ")
-      }.`,
-    );
-  }
-  return blocks.filter(Boolean).join("\n\n");
+  return "Je peux t'aider à formuler une demande claire à reprendre dans Plan. Tu veux une version courte à coller là-bas ?";
 }

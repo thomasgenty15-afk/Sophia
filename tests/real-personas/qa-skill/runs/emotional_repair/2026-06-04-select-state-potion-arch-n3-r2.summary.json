@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n3-r2-t01",
+    "status": 502,
+    "ok": null,
+    "user": "Je veux préparer une potion de clarté. Je continue mes blocs de travail, mais je ne sens plus le lien avec la raison pour laquelle j'avais construit ce plan.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": null,
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": null,
+    "trace_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n3-r2-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  }
+]

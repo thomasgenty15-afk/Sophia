@@ -3,9 +3,7 @@ import {
   extractReminderInstruction,
   isDegenerateReminderInstruction,
 } from "./instruction_parser.ts";
-import {
-  normalizeOneShotReminderText,
-} from "./route_guards.ts";
+import { normalizeOneShotReminderText } from "./route_guards.ts";
 import {
   extractTargetHHMMFromMessage,
   hasRecurringCadenceHint,
@@ -99,7 +97,6 @@ export function buildOneShotReminderIntake(args: {
   targetReminderIds?: string[];
   targetLocalLabels?: string[];
   directEffectsToRun?: string[];
-  fallbackLegacyGuards?: boolean;
 }): OneShotReminderStructuredIntake {
   const message = String(args.message ?? "");
   const text = normalizeOneShotReminderText(message);

@@ -84,6 +84,60 @@ Deno.test("clarification_arbitrator: output ask route vers orientation_clarifica
   );
 });
 
+Deno.test("clarification_arbitrator: attack + defense card intents demandent clarification sans tool skill", async () => {
+  const turnFrame = frame();
+  turnFrame.direct_effects = [];
+  turnFrame.tool_skill_intents = [{
+    operation_type: "prepare_defense_card",
+    explicitness: "explicit",
+    confidence_band: "high",
+    ambiguity: "target_ambiguous",
+    user_intent: "create",
+    operation_input: { target_hint: "moment de risque à clarifier" },
+  }, {
+    operation_type: "prepare_attack_card",
+    explicitness: "explicit",
+    confidence_band: "high",
+    ambiguity: "target_ambiguous",
+    user_intent: "create",
+    operation_input: { target_hint: "action à clarifier" },
+  }];
+
+  const result = await maybeStartDispatcherClarification({
+    turnFrame,
+    userMessage:
+      "J'aimerais créer une carte de défense et une carte d'attaque.",
+    recentMessages: [],
+    tempMemory: {},
+    llmRunner: async (input) => {
+      const request = JSON.parse(input.user_prompt);
+      assertEquals(
+        request.candidates.map((candidate: { id: string }) => candidate.id),
+        ["prepare_defense_card", "prepare_attack_card"],
+      );
+      return {
+        status: "ask",
+        confidence: "medium",
+        question:
+          "Tu veux commencer par la carte de défense ou la carte d'attaque ?",
+      };
+    },
+  });
+
+  assertEquals(result.status, "ask");
+  if (result.status !== "ask") throw new Error("expected ask");
+  assertEquals(
+    result.routeDecision.response_owner,
+    "orientation_clarification",
+  );
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
+  assertEquals(result.turnFrame.tool_skill_intents, []);
+  assertEquals(
+    result.visibleQuestion,
+    "Tu veux commencer par la carte de défense ou la carte d'attaque ?",
+  );
+});
+
 Deno.test("clarification_arbitrator: clarification supprime les exécutables mais conserve les skills conversationnels", async () => {
   const turnFrame = frame();
   turnFrame.skill_signals = {
@@ -164,7 +218,7 @@ Deno.test("clarification_arbitrator: skill actif possède la clarification inter
   const result = await maybeStartActiveSkillClarification({
     turnFrame,
     activeSkillState: {
-      skill_id: "execution_breakdown",
+      skill_id: "emotional_repair",
       working_state: { phase: "awaiting_clarification" },
     },
     userMessage: "message ambigu dans le flow actif",
@@ -173,7 +227,7 @@ Deno.test("clarification_arbitrator: skill actif possède la clarification inter
     llmRunner: async () => ({
       status: "ask",
       confidence: "medium",
-      question: "Tu veux plutôt découper l'action ou ajuster le plan ?",
+      question: "Tu veux plutôt rester sur le soutien ou ajuster le plan ?",
     }),
   });
 
@@ -185,14 +239,132 @@ Deno.test("clarification_arbitrator: skill actif possède la clarification inter
   );
   assertEquals(
     readClarificationState(result.tempMemory)?.owner,
-    "execution_breakdown",
+    "emotional_repair",
   );
   assertEquals(
     readClarificationState(result.tempMemory)?.candidates.map((candidate) =>
       candidate.id
     ),
-    ["execution_breakdown", "adjust_plan_item"],
+    ["emotional_repair", "adjust_plan_item"],
   );
+});
+
+Deno.test("clarification_arbitrator: demotivation actif peut demander une clarification interne", async () => {
+  const turnFrame = frame();
+  turnFrame.direct_effects = [];
+  turnFrame.tool_skill_intents = [];
+
+  const result = await maybeStartActiveSkillClarification({
+    turnFrame,
+    activeSkillState: {
+      skill_id: "demotivation_repair",
+      working_state: { phase: "sorting_demotivation_source" },
+    },
+    userMessage: "j'hésite sur ce qui me bloque",
+    recentMessages: [],
+    tempMemory: {},
+    llmRunner: async (input) => {
+      const request = JSON.parse(input.user_prompt);
+      assertEquals(
+        request.candidates.map((candidate: { id: string }) => candidate.id),
+        [
+          "demotivation_loss_of_meaning",
+          "demotivation_fatigue",
+          "prepare_attack_card",
+          "adjust_plan_item",
+        ],
+      );
+      return {
+        status: "ask",
+        confidence: "medium",
+        question:
+          "Qu'est-ce qui pèse le plus : le sens, la fatigue, l'action trop grosse ou le plan ?",
+      };
+    },
+  });
+
+  assertEquals(result.status, "ask");
+  if (result.status !== "ask") throw new Error("expected ask");
+  assertEquals(
+    result.routeDecision.response_owner,
+    "orientation_clarification",
+  );
+  assertEquals(
+    readClarificationState(result.tempMemory)?.owner,
+    "demotivation_repair",
+  );
+  assertEquals(
+    readClarificationState(result.tempMemory)?.no_chat_mutation,
+    true,
+  );
+});
+
+Deno.test("clarification_arbitrator: résolution interne demotivation revient au skill owner", async () => {
+  const turnFrame = frame();
+  turnFrame.direct_effects = [];
+  turnFrame.tool_skill_intents = [];
+
+  const result = await maybeStartActiveSkillClarification({
+    turnFrame,
+    activeSkillState: {
+      skill_id: "demotivation_repair",
+      working_state: { phase: "diagnose" },
+    },
+    userMessage: "c'est surtout la fatigue",
+    recentMessages: [],
+    tempMemory: {},
+    llmRunner: async () => ({
+      status: "resolved",
+      selected_candidate_id: "demotivation_fatigue",
+      confidence: "high",
+    }),
+  });
+
+  assertEquals(result.status, "resolved");
+  if (result.status !== "resolved") throw new Error("expected resolved");
+  assertEquals(result.output.selected_candidate_id, "demotivation_repair");
+  assertEquals(
+    result.output.handoff_notes?.known_slots
+      ?.clarified_internal_candidate_id,
+    "demotivation_fatigue",
+  );
+  assertEquals(readClarificationState(result.tempMemory), null);
+  assertEquals(result.turnFrame.direct_effects, []);
+  assertEquals(result.turnFrame.tool_skill_intents, []);
+});
+
+Deno.test("clarification_arbitrator: weekly actif peut clarifier recap ou ajustement", async () => {
+  const turnFrame = frame();
+  turnFrame.direct_effects = [];
+  turnFrame.tool_skill_intents = [];
+
+  const result = await maybeStartActiveSkillClarification({
+    turnFrame,
+    activeSkillState: {
+      skill_id: "weekly_adaptive_review_v1",
+      working_state: { phase: "weekly_review_discussion" },
+    },
+    userMessage: "j'hésite entre récap et ajuster",
+    recentMessages: [],
+    tempMemory: {},
+    llmRunner: async () => ({
+      status: "ask",
+      confidence: "medium",
+      question: "Tu veux un récap clair ou préparer un ajustement du plan ?",
+    }),
+  });
+
+  assertEquals(result.status, "ask");
+  if (result.status !== "ask") throw new Error("expected ask");
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "orientation_clarification",
+  );
+  assertEquals(
+    readClarificationState(result.tempMemory)?.owner,
+    "weekly_adaptive_review_v1",
+  );
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
 });
 
 Deno.test("clarification_arbitrator: invalid model output fallback reste une question neutre", async () => {

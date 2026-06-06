@@ -1,0 +1,253 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "3910591d-a2b6-4aea-a8d0-27dcdac7a62a",
+        "role": "user",
+        "content": "Je ne sais pas si je dois faire une carte d'attaque ou de défense, ni quels champs remplir. Demain j'ai mes mails du soir à faire et je veux éviter de finir sur YouTube après. Tu me guides ?",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T16:23:00.16352+00:00"
+      },
+      {
+        "id": "045b9f19-a320-4897-aa2c-af9b310d5d48",
+        "role": "assistant",
+        "content": "Où aller : dans Ressources / Défense / Cartes de défense libres / Ajouter une carte\nChamp à remplir :\n- Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? : Éviter de finir sur YouTube après avoir fait mes mails du soir.\nJe ne crée pas la carte depuis le chat. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": null,
+              "reason": "platform_handoff_delivered",
+              "status": "handoff_delivered",
+              "reason_code": "platform_handoff_delivered",
+              "user_intent": "create",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_fields": {
+                "fields": [
+                  {
+                    "status": "locked",
+                    "evidence": [
+                      "finir sur YouTube après les mails",
+                      "après les mails du soir"
+                    ],
+                    "field_id": "support_need",
+                    "required": true,
+                    "locked_value": "Éviter de finir sur YouTube après avoir fait mes mails du soir.",
+                    "user_evidence": [
+                      "je veux éviter de finir sur YouTube après",
+                      "Demain j'ai mes mails du soir à faire"
+                    ],
+                    "proposed_value": null,
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "complete",
+                "route_kind": "free_card",
+                "missing_field_ids": []
+              },
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "finir sur YouTube après les mails",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "Éviter de finir sur YouTube après avoir fait mes mails du soir.",
+                      "status": "locked",
+                      "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": []
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "finir sur YouTube après les mails",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "finir sur YouTube après les mails",
+                          "après les mails du soir"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Éviter de finir sur YouTube après avoir fait mes mails du soir.",
+                        "user_evidence": [
+                          "je veux éviter de finir sur YouTube après",
+                          "Demain j'ai mes mails du soir à faire"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T16:23:18.359727+00:00"
+      },
+      {
+        "id": "4a05ed02-ace2-4443-b8ff-49338dd3bcf1",
+        "role": "user",
+        "content": "Ok crée-la.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T16:23:30.433343+00:00"
+      },
+      {
+        "id": "01960dd1-eb7a-4031-9a55-ceaeafcde2cb",
+        "role": "assistant",
+        "content": "Je ne crée pas la carte depuis le chat.\nVa dans Ressources / Défense / Cartes de défense libres / Ajouter une carte; reprends les réponses préparées juste au-dessus dans la plateforme. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-single-field-rerun-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "reason": "chat_apply_attempt_redirected_to_platform",
+              "status": "apply_attempt",
+              "reason_code": "chat_apply_attempt_redirected_to_platform",
+              "user_intent": "create",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "finir sur YouTube après les mails",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "Éviter de finir sur YouTube après avoir fait mes mails du soir.",
+                      "status": "locked",
+                      "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": []
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "finir sur YouTube après les mails",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "finir sur YouTube après les mails",
+                          "après les mails du soir"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Éviter de finir sur YouTube après avoir fait mes mails du soir.",
+                        "user_evidence": [
+                          "je veux éviter de finir sur YouTube après",
+                          "Demain j'ai mes mails du soir à faire"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "apply_attempt",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T16:23:33.758793+00:00"
+      }
+    ]
+  }
+}

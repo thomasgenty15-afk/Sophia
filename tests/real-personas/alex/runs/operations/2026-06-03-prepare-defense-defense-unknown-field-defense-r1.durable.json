@@ -1,0 +1,247 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "b4965880-499b-4e9f-a71d-14a994e511e4",
+        "role": "user",
+        "content": "Je veux faire une carte de défense, mais je ne sais pas quoi écrire dans la plateforme. C'est pour ne pas partir sur YouTube après mes mails du soir.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:41:14.700767+00:00"
+      },
+      {
+        "id": "c3a06211-a5ea-4f26-b383-7c3392a0dec4",
+        "role": "assistant",
+        "content": "Où aller : dans Ressources / Défense / Cartes de défense libres / Ajouter une carte\nDans la plateforme, le champ à préparer est :\n« Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? »\nJe te proposerais d'écrire :\n« Ne pas partir sur YouTube après mes mails du soir. »\nJe ne crée pas la carte depuis le chat. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": null,
+              "reason": "platform_handoff_delivered",
+              "status": "handoff_delivered",
+              "reason_code": "platform_handoff_delivered",
+              "user_intent": "create",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_fields": {
+                "fields": [
+                  {
+                    "status": "locked",
+                    "evidence": [
+                      "ne pas partir sur YouTube après mes mails du soir"
+                    ],
+                    "field_id": "support_need",
+                    "required": true,
+                    "locked_value": "Ne pas partir sur YouTube après mes mails du soir.",
+                    "user_evidence": [
+                      "ne pas partir sur YouTube après mes mails du soir"
+                    ],
+                    "proposed_value": null,
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "complete",
+                "route_kind": "free_card",
+                "missing_field_ids": []
+              },
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "YouTube après les mails du soir",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "Ne pas partir sur YouTube après mes mails du soir.",
+                      "status": "locked",
+                      "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": []
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "YouTube après les mails du soir",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "ne pas partir sur YouTube après mes mails du soir"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Ne pas partir sur YouTube après mes mails du soir.",
+                        "user_evidence": [
+                          "ne pas partir sur YouTube après mes mails du soir"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:41:39.002569+00:00"
+      },
+      {
+        "id": "f898ae83-0e1e-4ee8-83f1-8db4bcf45fc8",
+        "role": "user",
+        "content": "Redis-moi quoi mettre.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:41:50.434115+00:00"
+      },
+      {
+        "id": "abaf1d55-8f5c-4dc7-8fe7-4965844f7932",
+        "role": "assistant",
+        "content": "Où aller : dans Ressources / Défense / Cartes de défense libres / Ajouter une carte\nDans la plateforme, le champ à préparer est :\n« Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? »\nJe te proposerais d'écrire :\n« Ne pas partir sur YouTube après mes mails du soir. »\nJe ne crée pas la carte depuis le chat. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-unknown-field-defense-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "reason": "repeat_platform_handoff",
+              "status": "repeat_handoff",
+              "reason_code": "repeat_platform_handoff",
+              "user_intent": "explain",
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "risk_summary": "YouTube après les mails du soir",
+                  "platform_flow": {
+                    "entry_need": {
+                      "value": "Ne pas partir sur YouTube après mes mails du soir.",
+                      "status": "locked",
+                      "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?"
+                    },
+                    "route_kind": "free_card",
+                    "route_label": "Carte de défense libre",
+                    "questionnaire_answers": []
+                  },
+                  "operation_type": "prepare_defense_card",
+                  "recommendation": {
+                    "platform_steps": [
+                      "Ouvre Ressources / Défense.",
+                      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+                      "Renseigne les réponses ci-dessous dans les champs de la plateforme."
+                    ],
+                    "platform_destination": "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte"
+                  },
+                  "target_summary": "YouTube après les mails du soir",
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [
+                          "ne pas partir sur YouTube après mes mails du soir"
+                        ],
+                        "field_id": "support_need",
+                        "required": true,
+                        "locked_value": "Ne pas partir sur YouTube après mes mails du soir.",
+                        "user_evidence": [
+                          "ne pas partir sur YouTube après mes mails du soir"
+                        ],
+                        "proposed_value": null,
+                        "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "complete",
+                    "route_kind": "free_card",
+                    "missing_field_ids": []
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "repeat_handoff",
+                "surface_id": "defense_cards",
+                "operation_type": "prepare_defense_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:41:53.461425+00:00"
+      }
+    ]
+  }
+}

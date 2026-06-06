@@ -14,13 +14,12 @@ Deno.test("adjust_plan handoff draft contract is no-mutation and not executable 
   });
 
   assertEquals(handoff.operation_type, "adjust_plan_item");
-  assertEquals(handoff.mode, "platform_handoff");
+  assertEquals(handoff.mode, "platform_input_coaching");
   assertEquals(handoff.no_chat_mutation, true);
   assertEquals(handoff.executable_from_chat, false);
-  assertStringIncludes(
-    handoff.recommendation.platform_destination,
-    "section Plan",
-  );
+  assertEquals((handoff as any).scope, undefined);
+  assertEquals((handoff as any).patch, undefined);
+  assertStringIncludes(handoff.destination.instruction, "Plan");
 });
 
 Deno.test("adjust_plan handoff renderer redirects to Plan without done language", () => {
@@ -29,8 +28,18 @@ Deno.test("adjust_plan handoff renderer redirects to Plan without done language"
   });
   const content = renderAdjustPlanHandoffDraft(handoff);
 
-  assertStringIncludes(content, "section Plan");
-  assertStringIncludes(content, "Il ne te reste plus qu'à ouvrir Plan");
+  assertStringIncludes(content, "Va dans Plan");
+  assertEquals(content.includes("Je vois l'idée :"), false);
+  assertEquals(
+    content.includes("Tu peux reprendre cette phrase dans Plan :"),
+    false,
+  );
+  assertEquals(content.includes("À préserver :"), false);
+  assertEquals(content.includes("À éviter :"), false);
+  assertEquals(
+    content.includes("Il ne te reste plus qu'à reprendre ça"),
+    false,
+  );
   assertEquals(content.includes("Je ne modifie pas"), false);
   assertEquals(/\bc['’]?est fait\b/i.test(content), false);
   assertEquals(/\bdis[- ]moi oui\b/i.test(content), false);

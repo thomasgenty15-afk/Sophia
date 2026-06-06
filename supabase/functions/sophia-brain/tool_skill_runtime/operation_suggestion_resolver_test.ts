@@ -47,7 +47,7 @@ function skillOutput(
   patch: Partial<ConversationSkillOutput>,
 ): ConversationSkillOutput {
   return {
-    skill_id: "execution_breakdown",
+    skill_id: "demotivation_repair",
     status: "continue",
     response_intent: "test",
     memory_trace: {
@@ -60,16 +60,16 @@ function skillOutput(
   };
 }
 
-Deno.test("operation suggestion access allows execution_breakdown attack card", () => {
+Deno.test("operation suggestion access allows demotivation attack card", () => {
   const decision = evaluateOperationSuggestionAccess({
-    skill_id: "execution_breakdown",
+    skill_id: "demotivation_repair",
     safety_risk_band: "low",
     suggestion: {
       operation_type: "prepare_attack_card",
       reason: "clear_execution_block",
       confidence_band: "medium",
       urgency: "medium",
-      source_skill_id: "execution_breakdown",
+      source_skill_id: "demotivation_repair",
       requires_user_consent: true,
     },
   });
@@ -85,6 +85,7 @@ Deno.test("operation suggestion access allows demotivation owned operations", ()
   for (
     const operationType of [
       "prepare_attack_card",
+      "prepare_defense_card",
       "adjust_plan_item",
       "select_state_potion",
       "create_recurring_reminder",
@@ -115,14 +116,14 @@ Deno.test("operation suggestion access allows demotivation owned operations", ()
 
 Deno.test("operation suggestion access blocks disallowed skill operation", () => {
   const decision = evaluateOperationSuggestionAccess({
-    skill_id: "emotional_repair",
+    skill_id: "safety_crisis",
     safety_risk_band: "low",
     suggestion: {
       operation_type: "adjust_plan_item",
       reason: "bad_route",
       confidence_band: "medium",
       urgency: "medium",
-      source_skill_id: "emotional_repair",
+      source_skill_id: "safety_crisis",
       requires_user_consent: true,
     },
   });
@@ -135,14 +136,14 @@ Deno.test("operation suggestion access blocks disallowed skill operation", () =>
 
 Deno.test("operation suggestion access blocks safety medium", () => {
   const decision = evaluateOperationSuggestionAccess({
-    skill_id: "execution_breakdown",
+    skill_id: "demotivation_repair",
     safety_risk_band: "medium",
     suggestion: {
       operation_type: "prepare_attack_card",
       reason: "clear_execution_block",
       confidence_band: "medium",
       urgency: "medium",
-      source_skill_id: "execution_breakdown",
+      source_skill_id: "demotivation_repair",
       requires_user_consent: true,
     },
   });
@@ -164,7 +165,7 @@ Deno.test("resolver converts supported skill suggestion to consented recommendat
         reason: "clear_execution_block",
         confidence_band: "medium",
         urgency: "medium",
-        source_skill_id: "execution_breakdown",
+        source_skill_id: "demotivation_repair",
         operation_input_hint: {
           target: {
             kind: "plan_item",
@@ -199,7 +200,19 @@ Deno.test("resolver exposes consented potion suggestion", () => {
         confidence_band: "medium",
         urgency: "medium",
         source_skill_id: "emotional_repair",
-        operation_input_hint: { state: "shame_guilt" },
+        operation_input_hint: {
+          potion_type: "guerison",
+          state: {
+            kind: "shame_guilt",
+            intensity: "medium",
+            evidence: ["honte redescendue"],
+          },
+          context: {
+            handoff_summary:
+              "Le user a clarifie que la honte vient d'un episode recent et cherche un soutien doux pour reparer sans s'enfoncer.",
+            topic_hint: "episode recent",
+          },
+        },
         requires_user_consent: true,
       }],
     }),
@@ -212,5 +225,10 @@ Deno.test("resolver exposes consented potion suggestion", () => {
   );
   assertEquals(resolution.recommendation?.executor_tool_id, null);
   assertEquals(resolution.recommendation?.requires_consent, true);
+  assertEquals(
+    (resolution.recommendation?.operation_input as any)?.context
+      ?.handoff_summary,
+    "Le user a clarifie que la honte vient d'un episode recent et cherche un soutien doux pour reparer sans s'enfoncer.",
+  );
   assertEquals(resolution.blocked_suggestions, []);
 });

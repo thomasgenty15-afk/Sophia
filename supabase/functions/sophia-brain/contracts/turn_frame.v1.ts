@@ -190,6 +190,21 @@ export type TurnFrame = {
     confidence_band: ConfidenceBand;
   };
 
+  active_handoff_action?: {
+    type:
+      | "handoff_apply_attempt"
+      | "repeat_handoff"
+      | "platform_destination_followup"
+      | "revise_handoff"
+      | "field_confirmation"
+      | "cancel_handoff"
+      | "clarify_handoff"
+      | "topic_change";
+    confidence: "low" | "medium" | "high";
+    evidence: string[];
+    target_skill_id?: string | null;
+  } | null;
+
   direct_effects: Array<{
     effect_type: DirectEffectType;
     explicitness: Explicitness;

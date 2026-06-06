@@ -40,21 +40,49 @@ function formatPotionDefinition(definition: PotionDefinition): string {
     `Questions exemples: ${
       definition.questionnaire.map(formatQuestion).join(" || ")
     }`,
-    `Champ libre: ${definition.free_text_label} Exemple: ${definition.free_text_placeholder}`,
+    definition.free_text_label
+      ? `Champ libre: ${definition.free_text_label} Exemple: ${
+        definition.free_text_placeholder ?? ""
+      }`
+      : "Champ libre: absent",
     `Follow-up: ${
       followUp.rationale ?? "suivi court"
     } Cadence: ${cadence}. Duree indicative: ${durationDays} jours.`,
   ].join("\n");
 }
 
+const STATE_POTION_BOUNDARIES = [
+  "Frontiere temporelle: une potion est utile quand l'etat a deja ete assez formule pour en faire un support durable/plateforme, ou quand le user demande explicitement une potion.",
+  "Si le user dit que son plan n'a plus de sens, qu'il ne voit plus le lien entre ses actions et son pourquoi profond, ou qu'il agit mecaniquement, clarte est pertinente quand le besoin est de reconnecter le plan a ce pourquoi.",
+  "Ne choisis pas clarte pour seulement prioriser, trouver la prochaine action, decouper une action trop grosse, ou savoir par ou commencer dans l'execution.",
+  "Ne choisis pas guerison/amour comme reponse primaire quand la honte, la culpabilite forte, l'auto-attaque ou la detresse occupent encore tout l'espace; ces potions demandent un episode ou un besoin de douceur deja suffisamment pose.",
+  "Ne propose jamais de potion si le user refuse une potion, un outil, un protocole ou un reset.",
+];
+
+const STATE_POTION_USE_CASES = [
+  "Potion anti-decrochage (ID technique actuel: rappel): le user sait deja le geste/cap a proteger mais sent qu'il laisse filer. Sous-cas: oubli, report, glissement progressif, baisse d'elan. Pas pour une perte de sens profonde. Ne jamais rendre rappel comme nom visible.",
+  "Potion de courage: peur, apprehension ou evitement face a une action/intention intimidante. Sous-cas: peur du resultat, du regard, de l'inconfort ou du conflit. Pas pour une simple priorisation.",
+  "Potion de guérison: apres un episode qui a fait mal, un craquage, une blessure, un echec ou une culpabilite deja nommee. Sous-cas: honte, culpabilite, decouragement, fatigue apres l'episode. Si l'emotion occupe encore tout l'espace, attendre qu'elle soit assez posee pour en faire un support durable. Ne jamais rendre reparation comme nom visible.",
+  "Potion de clarté: perte de sens du plan, lien brouille entre actions et pourquoi profond, plan qui ne ressemble plus au user, actions devenues mecaniques. Pas pour generer un plan, un breakdown, une priorite ou une prochaine action.",
+  "Potion d'amour: durete envers soi, manque de chaleur, dialogue interieur froid ou besoin de douceur durable. Sous-cas: douceur, reconfort, regard plus tendre. Si l'auto-attaque domine encore, attendre qu'un besoin de douceur formulable apparaisse.",
+  "Potion d'apaisement: pression, stress, tension ou saturation qui demande a redescendre. Sous-cas: tres stresse, a cran, submerge. Si la panique ou la detresse domine, ne transforme pas encore l'etat en potion durable. Ne jamais rendre apaisement court comme nom visible.",
+];
+
 export function buildStatePotionCatalogPrompt(): string {
   return [
     "## Catalogue canonique des potions d'etat",
     "Utilise ce catalogue pour comprendre les nuances, recommander les deux meilleures potions, poser une question dans le bon ton, et rediger le draft.",
+    "Une potion n'est pas le skill conversationnel qui repare le tour courant: c'est un support d'etat a proposer ou preparer avec consentement.",
     "Ne recopie pas mecaniquement les questions: elles servent d'exemples de ton et de niveau de precision.",
     "Les options internes ne doivent jamais devenir une liste visible. Elles servent a classer mentalement, pas a interroger le user comme un formulaire.",
     "Les questions visibles doivent rester courtes, tutoyantes, humaines, non medicales, sans jargon et sans pression.",
-    "Le suivi par defaut est un reminder court sur 7 jours, mais courage, clarte et rappel peuvent etre cales sur une action ponctuelle ou recurrente quand le user donne ce contexte.",
+    "Labels visibles autorises uniquement: Potion anti-décrochage, Potion de courage, Potion de guérison, Potion de clarté, Potion d'amour, Potion d'apaisement.",
+    "Interdits visibles: potion rappel, rappel comme nom de potion, potion de reparation, reparation comme nom de potion, apaisement court.",
+    "Le suivi par defaut est un reminder court sur 7 jours; le chat prepare le choix et les champs UI, puis la plateforme gere l'activation et le contexte eventuel.",
+    "## Frontieres canoniques",
+    ...STATE_POTION_BOUNDARIES.map((rule) => `- ${rule}`),
+    "## Use cases et sous-use cases",
+    ...STATE_POTION_USE_CASES.map((rule) => `- ${rule}`),
     ...STATE_POTION_TYPES.map((type) =>
       formatPotionDefinition(POTION_DEFINITIONS[type])
     ),

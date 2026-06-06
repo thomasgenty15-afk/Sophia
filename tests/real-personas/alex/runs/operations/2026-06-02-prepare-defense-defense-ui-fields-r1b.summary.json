@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1b-t01",
+    "status": 401,
+    "ok": null,
+    "user": "J'ai besoin d'une carte de défense pour le moment où je finis mes mails tard et je bascule sur des vidéos au lieu d'aller dormir. Prépare-moi quoi mettre dans l'app, mais ne crée rien.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1b-t01",
+    "trace_error": null
+  }
+]

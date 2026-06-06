@@ -11,22 +11,38 @@ export const ATTACK_CARD_PLATFORM_DESTINATION =
     ?.user_facing_destination ?? "dans la section Cartes d’attaque";
 
 export const ATTACK_CARD_NO_MUTATION_CLOSING_LINE =
-  `Je ne crée pas la carte depuis le chat. Voici la version à reprendre ${ATTACK_CARD_PLATFORM_DESTINATION}.`;
+  "Je ne crée pas la carte depuis le chat. Utilise ces réponses pour remplir la carte dans la plateforme.";
 
 function draftLines(draft: AttackCardDraftV1): string[] {
   return [
     draft.draft.title,
     `Technique : ${draft.draft.technique_title}`,
-    draft.draft.generated_asset,
     `Mode d'emploi : ${draft.draft.mode_emploi}`,
   ].filter((line) => String(line ?? "").trim());
+}
+
+function sanitizePlatformStep(step: string): string {
+  return step
+    .replace(/\bcopie le brouillon\b/gi, "renseigne les champs préparés")
+    .replace(/\bbrouillon\b/gi, "champs préparés")
+    .replace(/\baperçu\b/gi, "points à vérifier");
+}
+
+function platformInputValue(input: {
+  suggested_answer?: string;
+  value?: string;
+  status?: string;
+}): string {
+  const value = String(input.value ?? input.suggested_answer ?? "").trim();
+  if (!value) return "";
+  return input.status === "proposed" ? `${value} (à valider)` : value;
 }
 
 export function renderAttackCardDraftOnlyReply(
   draft: AttackCardDraftV1,
 ): string {
   return [
-    "Voici le brouillon complet à reprendre dans la plateforme.",
+    "Voici les éléments à renseigner dans la plateforme.",
     "",
     ...draftLines(draft),
     "",
@@ -99,70 +115,42 @@ export function renderAttackCardPlatformHandoff(
     ? draft.recommendation.platform_steps
     : target?.platform_steps ?? [];
   const inputs = platform?.inputs ?? [];
-  const expected = platform?.expected_result;
-  const expectedLines = expected
-    ? [
-      `Titre proposé : ${expected.output_title}`,
-      expected.generated_asset,
-      ...(expected.supporting_points.length > 0
-        ? [
-          "Points d'appui :",
-          ...expected.supporting_points.map((item) => `- ${item}`),
-        ]
-        : []),
-      `Mode d'emploi : ${expected.mode_emploi}`,
-      ...(expected.keyword_trigger
-        ? [
-          "Mot de bascule à renseigner :",
-          `- Mot-clé : ${expected.keyword_trigger.activation_keyword}`,
-          `- Situation à risque : ${expected.keyword_trigger.risk_situation}`,
-          `- Ancrage de force : ${expected.keyword_trigger.strength_anchor}`,
-          `- Première réponse : ${expected.keyword_trigger.first_response_intent}`,
-          `- Prompt Sophia : ${expected.keyword_trigger.assistant_prompt}`,
-        ]
-        : []),
-    ]
-    : [draft.recommendation.card_draft_summary];
+  const keyword = platform?.expected_result?.keyword_trigger;
   return [
-    `Cible/action comprise : ${draft.target_summary}`,
+    `Cible/action : ${draft.target_summary}`,
+    `Piège à contrer : ${draft.blocker_summary}`,
     "",
-    `Obstacle ou piège identifié : ${draft.blocker_summary}`,
+    `Technique à sélectionner : ${draft.recommendation.technique_label}`,
+    `Raison : ${draft.recommendation.why_this_technique}`,
     "",
-    `Technique recommandée : ${draft.recommendation.technique_label}`,
-    `Pourquoi : ${draft.recommendation.why_this_technique}`,
-    "",
-    `Destination plateforme : ${destination}`,
-    ...(platform?.surface_label
-      ? [`Surface UI : ${platform.surface_label}`]
-      : []),
-    ...steps.map((step, index) => `${index + 1}. ${step}`),
+    `Où aller : ${destination}`,
+    ...steps.map((step, index) =>
+      `${index + 1}. ${sanitizePlatformStep(step)}`
+    ),
     ...(platform?.plan_action_note ? ["", platform.plan_action_note] : []),
     "",
-    "Champs à renseigner dans la plateforme :",
+    "Champs à remplir :",
     ...(inputs.length > 0
       ? inputs.flatMap((input, index) => [
-        `${index + 1}. Question plateforme : ${input.question}`,
-        `Réponse proposée : ${input.suggested_answer}`,
+        `${index + 1}. ${input.question}`,
+        `Réponse : ${platformInputValue(input)}`,
       ])
       : platform?.flow_kind === "plan_action_cards"
       ? [
-        "Aucun champ manuel à remplir dans ce parcours : la plateforme génère la carte depuis l'action du plan. Utilise l'aperçu ci-dessous pour contrôler le résultat.",
+        "Aucun champ manuel à remplir dans ce parcours : la plateforme génère la carte depuis l'action du plan.",
       ]
       : [
-        "Sélectionne la technique recommandée, puis renseigne les champs avec la cible, le piège et le brouillon ci-dessous.",
+        "Sélectionne la technique recommandée, puis renseigne les champs avec la cible et le piège ci-dessus.",
       ]),
-    "",
-    "Brouillon de carte :",
-    draft.recommendation.card_draft_summary,
-    "",
-    "Aperçu du résultat attendu :",
-    ...expectedLines,
-    "",
-    "À préserver :",
-    ...draft.recommendation.preserve.map((item) => `- ${item}`),
-    "",
-    "À éviter :",
-    ...draft.recommendation.avoid.map((item) => `- ${item}`),
+    ...(keyword
+      ? [
+        "",
+        "Mot de bascule :",
+        `Mot-clé : ${keyword.activation_keyword}`,
+        `Situation à risque : ${keyword.risk_situation}`,
+        `Ancrage de force : ${keyword.strength_anchor}`,
+      ]
+      : []),
     "",
     ATTACK_CARD_NO_MUTATION_CLOSING_LINE,
   ].join("\n");
@@ -185,14 +173,13 @@ export function renderAttackCardApplyAttemptReply(
     ...(draft
       ? [
         "",
-        "Version à reprendre dans la plateforme :",
-        draft.recommendation.card_draft_summary,
-        "",
         `Destination plateforme : ${destination}`,
         ...(steps.length > 0
           ? [
             "Parcours plateforme :",
-            ...steps.map((step, index) => `${index + 1}. ${step}`),
+            ...steps.map((step, index) =>
+              `${index + 1}. ${sanitizePlatformStep(step)}`
+            ),
           ]
           : []),
         ...(inputs.length > 0
@@ -200,7 +187,7 @@ export function renderAttackCardApplyAttemptReply(
             "Champs à renseigner :",
             ...inputs.flatMap((input, index) => [
               `${index + 1}. ${input.question}`,
-              `Réponse : ${input.suggested_answer}`,
+              `Réponse : ${platformInputValue(input)}`,
             ]),
           ]
           : draft.platform_handoff?.flow_kind === "plan_action_cards"
@@ -208,7 +195,7 @@ export function renderAttackCardApplyAttemptReply(
             "Aucun champ manuel à remplir dans ce parcours : passe par le bloc Ressources de l'action du plan.",
           ]
           : [
-            "Sélectionne la technique recommandée, puis renseigne les champs avec la cible, le piège et le brouillon ci-dessus.",
+            "Sélectionne la technique recommandée, puis renseigne les champs avec la cible et le piège ci-dessus.",
           ]),
       ]
       : []),

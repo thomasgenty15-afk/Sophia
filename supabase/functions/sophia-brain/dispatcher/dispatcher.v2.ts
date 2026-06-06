@@ -697,7 +697,8 @@ function isExplicitStatePotionOperationRequest(text: string): boolean {
   if (isNegatedStatePotionRequest(text)) return false;
   if (
     /\bpotion\b/.test(text) &&
-    /\b(lance|active|choisis|selectionne|sélectionne|fais|faire)\b/.test(text)
+    /\b(veux|besoin|lance|active|choisis|selectionne|sélectionne|fais|faire|donne|prepare|prépare|cree|crée)\b/
+      .test(text)
   ) return true;
   return /\b(lance|active|choisis|selectionne|sélectionne|fais|faire)\b.{0,60}\b(truc|session|exercice|outil)?\b.{0,30}\b(clart[eé]|apaisement|apaiser|calme|courage|guerison|guérison|amour)\b/
     .test(text);
@@ -770,6 +771,21 @@ function selectDominantToolSkillIntent(
     .filter(({ intent }) => (intent.rejected_operations ?? []).length > 0);
   if (withRejections.length > 0) {
     return [withRejections[withRejections.length - 1].intent];
+  }
+
+  const cardIntents = intents.filter((intent) =>
+    intent.operation_type === "prepare_attack_card" ||
+    intent.operation_type === "prepare_defense_card"
+  );
+  const cardOperationTypes = new Set(
+    cardIntents.map((intent) => intent.operation_type),
+  );
+  if (
+    cardOperationTypes.has("prepare_attack_card") &&
+    cardOperationTypes.has("prepare_defense_card") &&
+    cardIntents.length === intents.length
+  ) {
+    return intents;
   }
 
   const hasPlanAndCard =
@@ -1078,6 +1094,27 @@ function objectRecord(value: unknown): Record<string, unknown> | undefined {
     : undefined;
 }
 
+function sanitizedOperationInputFromIntent(
+  intent: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  const explicitInput = objectRecord(intent.operation_input);
+  if (explicitInput) return explicitInput;
+  const payloadHint = objectRecord(intent.payload_hint);
+  if (payloadHint) return undefined;
+  const targetHint = String(intent.target_hint ?? "").trim();
+  const evidence = Array.isArray(intent.evidence)
+    ? intent.evidence.map((item) => String(item).trim()).filter(Boolean).slice(
+      0,
+      4,
+    )
+    : [];
+  if (!targetHint && evidence.length === 0) return undefined;
+  return {
+    ...(targetHint ? { target_hint: targetHint } : {}),
+    ...(evidence.length > 0 ? { evidence } : {}),
+  };
+}
+
 function sanitizeToolSkillIntent(
   raw: unknown,
 ): TurnFrame["tool_skill_intents"][number] | null {
@@ -1129,7 +1166,7 @@ function sanitizeToolSkillIntent(
     operation_type: operationType,
     explicitness,
     target_hint: String(intent.target_hint ?? "").trim() || undefined,
-    operation_input: objectRecord(intent.operation_input),
+    operation_input: sanitizedOperationInputFromIntent(intent),
     payload_hint: objectRecord(intent.payload_hint),
     adjust_plan_scope: adjustPlanScope,
     rejected_operations: rejectedOperations,
@@ -1146,6 +1183,14 @@ function normalizeOpportunityConfidence(
   return value === "high" || value === "medium" ? value : "low";
 }
 
+function canSurfaceStatePotionOpportunity(
+  message: string,
+): boolean {
+  const text = normalize(message);
+  if (!text) return false;
+  return isExplicitStatePotionOperationRequest(text);
+}
+
 function sanitizeToolSkillOpportunity(args: {
   raw: unknown;
   fallback: ToolSkillOpportunity;
@@ -1153,6 +1198,7 @@ function sanitizeToolSkillOpportunity(args: {
   safetyRisk: RiskBand;
   hasPendingOrActiveFlow: boolean;
   suppressNonExplicitOpportunity: boolean;
+  userMessage: string;
 }): ToolSkillOpportunity {
   const candidate = args.raw && typeof args.raw === "object"
     ? args.raw as any
@@ -1192,6 +1238,12 @@ function sanitizeToolSkillOpportunity(args: {
   }
   if (args.operationIntents.length > 0) return DEFAULT_TOOL_SKILL_OPPORTUNITY;
   if (args.safetyRisk === "high" || args.safetyRisk === "critical") {
+    return DEFAULT_TOOL_SKILL_OPPORTUNITY;
+  }
+  if (
+    validType === "state_potion" &&
+    !canSurfaceStatePotionOpportunity(args.userMessage)
+  ) {
     return DEFAULT_TOOL_SKILL_OPPORTUNITY;
   }
 
@@ -1518,26 +1570,6 @@ function inferToolSkillOpportunity(args: {
     };
   }
 
-  const stateRegulation =
-    /\b(honte|panique|angoisse|culpabilite|culpabilité|calmer|me calmer|pression|submerge|submergé|fatigue emotionnelle|fatigue émotionnelle)\b/
-      .test(text);
-  if (stateRegulation && args.progressStatus !== "completed") {
-    return {
-      ...base,
-      type: "state_potion",
-      operation_type: "select_state_potion",
-      surface_id: "potion.state",
-      should_offer: true,
-      prop_reason: "user_mentions_state_regulation_need",
-      source_span: spanFromText(args.message, [
-        /\b(honte|panique|angoisse|culpabilite|culpabilité|calmer|pression|submerge|submergé)\b.{0,90}/,
-      ]),
-      target_status: "none",
-      target_hint: null,
-      suggested_question_intent: "offer_state_potion",
-    };
-  }
-
   const coachPreferenceSignal =
     /\b(trop de questions|moins de questions|une seule question|question courte|questions d'affilee|questions d’affilee|questions d'affilée|questions d’affilée|plus direct|plus doux|plus cash|moins cash|plus frontal|tournes autour du pot|tourne autour du pot|ton style|ta facon|ta façon|ta maniere|ta manière|quand tu me reponds|quand tu me réponds)\b/
       .test(text) &&
@@ -1662,6 +1694,45 @@ function classifyConfirmation(
     return { kind: "topic_change", confidence_band: "medium" };
   }
   return { kind: "unknown", confidence_band: "low" };
+}
+
+function sanitizeActiveHandoffAction(
+  raw: unknown,
+): TurnFrame["active_handoff_action"] {
+  const record = raw && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as Record<string, unknown>
+    : null;
+  if (!record) return null;
+  const type = String(record.type ?? "").trim();
+  if (
+    type !== "handoff_apply_attempt" &&
+    type !== "repeat_handoff" &&
+    type !== "platform_destination_followup" &&
+    type !== "revise_handoff" &&
+    type !== "field_confirmation" &&
+    type !== "cancel_handoff" &&
+    type !== "clarify_handoff" &&
+    type !== "topic_change"
+  ) return null;
+  const confidenceRaw = String(record.confidence ?? "low").trim();
+  const confidence = confidenceRaw === "high" || confidenceRaw === "medium"
+    ? confidenceRaw
+    : "low";
+  const evidence = Array.isArray(record.evidence)
+    ? record.evidence.map((item) => String(item).trim()).filter(Boolean).slice(
+      0,
+      4,
+    )
+    : [];
+  const targetSkillId = typeof record.target_skill_id === "string"
+    ? record.target_skill_id.trim()
+    : null;
+  return {
+    type,
+    confidence,
+    evidence,
+    target_skill_id: targetSkillId || null,
+  };
 }
 
 function addBlockedCode(turnFrame: TurnFrame, code: string): void {
@@ -1854,7 +1925,9 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
     };
   }
 
-  if (conversationRisk.should_exit_flows) {
+  const safetyBlocksToolSkills = safetyRisk === "high" ||
+    safetyRisk === "critical";
+  if (conversationRisk.should_exit_flows || safetyBlocksToolSkills) {
     turnFrame.direct_effects = [];
     turnFrame.tool_skill_intents = [];
     turnFrame.tool_skill_opportunity = DEFAULT_TOOL_SKILL_OPPORTUNITY;
@@ -1916,6 +1989,13 @@ function sanitizeLlmTurnFrame(
       intent.user_intent !== "explain_only"
     )
     : dominantOperationIntents;
+  const messageForIntentGuards = normalize(input.user_message);
+  const guardedOperationIntents = routedOperationIntents.filter((
+    intent: TurnFrame["tool_skill_intents"][number],
+  ) =>
+    intent.operation_type !== "select_state_potion" ||
+    !isNegatedStatePotionRequest(messageForIntentGuards)
+  );
   const safetyRisk = riskMax(
     input.safety_pregate_output.risk_band,
     raw?.safety?.risk_band ?? fallback.safety.risk_band,
@@ -1959,7 +2039,7 @@ function sanitizeLlmTurnFrame(
   const finalRoutedOperationIntents = safetyBlocksToolSkills ||
       fallbackConversationRisk.should_exit_flows
     ? []
-    : routedOperationIntents;
+    : guardedOperationIntents;
   const suppressToolSurfaces = fallbackConversationRisk.should_exit_flows ||
     safetyBlocksToolSkills ||
     reviewSkillActive;
@@ -2005,10 +2085,16 @@ function sanitizeLlmTurnFrame(
           hasActiveRuntimeContext(input),
       ),
       suppressNonExplicitOpportunity,
+      userMessage: input.user_message,
     }),
-    skill_signals: fallbackConversationRisk.should_exit_flows
+    skill_signals: fallbackConversationRisk.should_exit_flows ||
+        safetyBlocksToolSkills
       ? {}
       : skillSignals,
+    active_handoff_action: fallbackConversationRisk.should_exit_flows ||
+        safetyBlocksToolSkills
+      ? null
+      : sanitizeActiveHandoffAction(raw?.active_handoff_action),
     needs_research: fallbackConversationRisk.should_exit_flows
       ? DEFAULT_RESEARCH_SIGNAL
       : sanitizeResearchSignal(
@@ -2039,6 +2125,161 @@ function sanitizeLlmTurnFrame(
   };
 }
 
+function normalizeCoverageText(value: unknown): string {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function directEffectSignature(effect: TurnFrame["direct_effects"][number]) {
+  return `${String(effect.effect_type ?? "")}:${
+    String(effect.target_status ?? "")
+  }:${String(effect.confidence_band ?? "")}`;
+}
+
+function hasAllOriginalDirectEffects(
+  original: TurnFrame,
+  repaired: TurnFrame,
+): boolean {
+  const repairedSignatures = new Set(repaired.direct_effects.map(
+    directEffectSignature,
+  ));
+  return original.direct_effects.every((effect) =>
+    repairedSignatures.has(directEffectSignature(effect))
+  );
+}
+
+function hasEntrySkillSignal(frame: TurnFrame): boolean {
+  const entry = frame.skill_signals?.entry;
+  return Boolean(
+    entry && typeof entry === "object" &&
+      Object.values(entry).some((value) =>
+        value && typeof value === "object" &&
+        (value as { detected?: unknown }).detected !== false
+      ),
+  );
+}
+
+function hasAdditionalStructuredSignal(
+  original: TurnFrame,
+  repaired: TurnFrame,
+): boolean {
+  if (repaired.tool_skill_intents.length > original.tool_skill_intents.length) {
+    return true;
+  }
+  if (
+    original.tool_skill_opportunity.type === "none" &&
+    repaired.tool_skill_opportunity.type !== "none"
+  ) return true;
+  return !hasEntrySkillSignal(original) && hasEntrySkillSignal(repaired);
+}
+
+function needsCompositeIntentRepair(
+  frame: TurnFrame,
+  input: RunDispatcherInput,
+): boolean {
+  if (
+    frame.safety.risk_band === "high" || frame.safety.risk_band === "critical"
+  ) {
+    return false;
+  }
+  if (frame.conversation_risk?.should_exit_flows) return false;
+  if (frame.direct_effects.length === 0) return false;
+  if (frame.tool_skill_intents.length > 0) return false;
+  if (frame.tool_skill_opportunity.type !== "none") return false;
+  if (hasEntrySkillSignal(frame)) return false;
+
+  const message = normalizeCoverageText(input.user_message);
+  if (message.length < 40) return false;
+
+  return frame.direct_effects.some((effect) => {
+    const hint = effect.payload_hint && typeof effect.payload_hint === "object"
+      ? (effect.payload_hint as Record<string, unknown>).raw_text
+      : null;
+    const covered = normalizeCoverageText(hint);
+    return covered.length >= 12 &&
+      covered.length < message.length * 0.82 &&
+      message.includes(covered);
+  });
+}
+
+function buildCompositeIntentRepairPrompt(args: {
+  input: RunDispatcherInput;
+  previous: TurnFrame;
+}): string {
+  const coveredTexts = args.previous.direct_effects
+    .map((effect) => {
+      const hint =
+        effect.payload_hint && typeof effect.payload_hint === "object"
+          ? (effect.payload_hint as Record<string, unknown>).raw_text
+          : null;
+      return String(hint ?? "").trim();
+    })
+    .filter(Boolean);
+  const uncoveredAfterDirectEffect = coveredTexts
+    .map((covered) => {
+      const index = args.input.user_message.indexOf(covered);
+      return index >= 0
+        ? args.input.user_message.slice(index + covered.length).trim()
+        : "";
+    })
+    .find((suffix) => suffix.length > 0) ?? "";
+
+  return JSON.stringify({
+    prompt_version: DISPATCHER_V2_PROMPT_VERSION,
+    task: "dispatcher_composite_intent_repair",
+    instruction: [
+      "Relis le message utilisateur et le TurnFrame déjà produit.",
+      "Le champ uncovered_after_direct_effect contient le texte du message qui n'est pas couvert par le raw_text de l'effet direct.",
+      "Si ce segment non couvert contient une autre demande explicite compatible, retourne un TurnFrame complet qui conserve l'effet direct déjà détecté et ajoute le signal structuré correspondant.",
+      "Ne crée aucun candidat, skill ou opération absent du message.",
+      "Ne déclenche aucune action; retourne seulement les signaux structurés.",
+      "Si le TurnFrame est déjà complet ou si la suite du message n'est pas une demande explicite, retourne le même TurnFrame.",
+      "Pour un tool_skill_intent complexe, fournis operation_input avec un indice minimal et de courtes evidence.",
+    ],
+    user_message: args.input.user_message,
+    covered_texts: coveredTexts,
+    uncovered_after_direct_effect: uncoveredAfterDirectEffect,
+    recent_messages: args.input.recent_messages.slice(-4),
+    plan_snapshot: args.input.plan_snapshot ?? null,
+    previous_turn_frame: args.previous,
+  });
+}
+
+async function maybeRepairCompositeIntentCoverage(args: {
+  input: RunDispatcherInput;
+  initial: TurnFrame;
+  llm_runner: DispatcherLlmRunner;
+  model_name: string;
+}): Promise<TurnFrame> {
+  if (!needsCompositeIntentRepair(args.initial, args.input)) {
+    return args.initial;
+  }
+  try {
+    const raw = await args.llm_runner({
+      system_prompt:
+        `${DISPATCHER_V2_SYSTEM_PROMPT}\n\nTu es encore dans le dispatcher Sophia. Cette passe est une réparation de couverture structurée: elle ne route pas par mots-clés, elle vérifie seulement si le TurnFrame précédent a oublié une autre demande explicite du même message.`,
+      user_prompt: buildCompositeIntentRepairPrompt({
+        input: args.input,
+        previous: args.initial,
+      }),
+      json_mode: true,
+      model_name: args.model_name,
+    });
+    const repaired = sanitizeLlmTurnFrame(raw, args.input);
+    if (
+      hasAllOriginalDirectEffects(args.initial, repaired) &&
+      hasAdditionalStructuredSignal(args.initial, repaired)
+    ) {
+      return repaired;
+    }
+  } catch {
+    return args.initial;
+  }
+  return args.initial;
+}
+
 export async function runDispatcher(
   input: RunDispatcherInput,
 ): Promise<TurnFrame> {
@@ -2067,6 +2308,12 @@ export async function runDispatcher(
       model_name: modelName,
     });
     output = sanitizeLlmTurnFrame(raw, input);
+    output = await maybeRepairCompositeIntentCoverage({
+      input,
+      initial: output,
+      llm_runner: input.llm_runner,
+      model_name: modelName,
+    });
   } else {
     output = heuristicTurnFrame(input);
   }

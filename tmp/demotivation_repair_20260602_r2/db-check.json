@@ -1,0 +1,217 @@
+{
+  "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+  "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+  "summary": {
+    "chat_messages": {
+      "status": 200,
+      "count": 10
+    },
+    "scheduled_checkins": {
+      "status": 400,
+      "count": null
+    },
+    "user_potion_sessions": {
+      "status": 400,
+      "count": null
+    },
+    "user_cycles": {
+      "status": 200,
+      "count": 0
+    },
+    "memory_items": {
+      "status": 400,
+      "count": null
+    },
+    "user_topic_memories": {
+      "status": 400,
+      "count": null
+    },
+    "user_profile_facts": {
+      "status": 200,
+      "count": 9
+    }
+  },
+  "checks": {
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "eed04abc-c868-45f7-9f56-cdcad77ab635",
+          "role": "user",
+          "content": "Je suis devant mon plan et je sens juste un gros blanc. Pas une crise, pas de danger, juste cette impression que tout ce que je relance finit par s'eteindre.",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:43:29.006257+00:00"
+        },
+        {
+          "id": "c50e3b09-9710-4c48-b999-066ad74360ed",
+          "role": "assistant",
+          "content": "Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ? 🙂",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:44:13.796102+00:00"
+        },
+        {
+          "id": "5d4272e1-5913-4a64-9572-4c79db7dc003",
+          "role": "user",
+          "content": "C'est surtout apres deux ou trois jours. Je repars, puis ca retombe, et je conclus que ca ne sert a rien. Ne me propose pas de potion ni d'outil; reste juste avec moi sur ce decouragement.",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:44:47.057249+00:00"
+        },
+        {
+          "id": "fdcb971d-fc16-4b96-b518-fdc547550496",
+          "role": "assistant",
+          "content": "Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ? 🙂",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:45:36.069109+00:00"
+        },
+        {
+          "id": "3fc7cb6a-efd7-47d1-a2af-b620d62760aa",
+          "role": "user",
+          "content": "Je viens de te repondre: apres deux ou trois jours. Ne me repose pas la question. Donne-moi juste une phrase courte pour ne pas transformer cette rechute en preuve que je suis foutu.",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:46:06.000344+00:00"
+        },
+        {
+          "id": "426f7fd4-4fb6-40ed-8659-ebefcb34c96c",
+          "role": "assistant",
+          "content": "Ok. Quand ça retombe au bout de 2-3 jours, ce n’est pas “je suis foutu”, c’est juste “ça ne tient pas encore”, et on ne conclut pas avant d’avoir tenu le prochain petit segment. 🙂",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:46:55.986036+00:00"
+        },
+        {
+          "id": "be32ac0e-e8d3-459a-b194-45cfc1d2aee0",
+          "role": "user",
+          "content": "La phrase m'aide. Maintenant je veux juste un premier geste de 90 secondes, choisi par toi, sans outil et sans reclarification.",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:47:30.441966+00:00"
+        },
+        {
+          "id": "bae22a13-dbc5-4c42-8890-8840b6b18461",
+          "role": "assistant",
+          "content": "Je ne l'ai pas modifié. 🙂",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:48:00.84722+00:00"
+        },
+        {
+          "id": "7c631ee3-07f0-433b-aa6b-73397c6d99c0",
+          "role": "user",
+          "content": "Je ne t'ai pas demande de modifier quoi que ce soit. Je veux juste le geste de 90 secondes a faire maintenant.",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:48:31.657284+00:00"
+        },
+        {
+          "id": "8cf2c022-9744-4947-ab43-fd5ee8f692c5",
+          "role": "assistant",
+          "content": "Ouvre ton plan, choisis la toute première ligne et note juste un mot ou fais un clic pour marquer ta présence dessus. C'est ton geste de 90 secondes pour briser le blanc sans rien relancer de lourd. 🙂",
+          "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+          "created_at": "2026-06-02T14:48:40.011607+00:00"
+        }
+      ]
+    },
+    "scheduled_checkins": {
+      "status": 400,
+      "ok": false,
+      "body": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column scheduled_checkins.type does not exist"
+      }
+    },
+    "user_potion_sessions": {
+      "status": 400,
+      "ok": false,
+      "body": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column user_potion_sessions.created_at does not exist"
+      }
+    },
+    "user_cycles": {
+      "status": 200,
+      "ok": true,
+      "body": []
+    },
+    "memory_items": {
+      "status": 400,
+      "ok": false,
+      "body": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column memory_items.content does not exist"
+      }
+    },
+    "user_topic_memories": {
+      "status": 400,
+      "ok": false,
+      "body": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column user_topic_memories.topic does not exist"
+      }
+    },
+    "user_profile_facts": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "key": "coach.tone",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.challenge_level",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.feedback_style",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.talk_propensity",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.message_length",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.message_format",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.primary_focus",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.emotional_personalization",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        },
+        {
+          "key": "coach.question_tendency",
+          "source_type": "system_default",
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T12:08:51.614102+00:00"
+        }
+      ]
+    }
+  }
+}

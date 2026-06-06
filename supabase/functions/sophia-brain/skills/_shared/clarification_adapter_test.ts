@@ -91,10 +91,14 @@ Deno.test("priority conversation skill owners can call shared clarification", as
       ],
     },
     {
-      owner: "execution_breakdown",
-      ambiguity_kind: "handoff_readiness",
+      owner: "demotivation_repair",
+      ambiguity_kind: "intent",
       candidates: [
-        { id: "break_down_action", label: "découper l'action" },
+        {
+          id: "prepare_attack_card",
+          label: "préparer une carte d'attaque",
+          operation_type: "prepare_attack_card",
+        },
         {
           id: "adjust_plan_handoff",
           label: "ajuster le plan",

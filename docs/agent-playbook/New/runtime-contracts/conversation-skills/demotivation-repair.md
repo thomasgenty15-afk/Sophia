@@ -15,8 +15,9 @@ proposer éventuellement un handoff ou une suggestion outillée avec consentemen
 `demotivation_repair` ne possède aucun effet durable. Il ne crée pas de rappel,
 ne modifie pas un plan, n'active pas de potion et ne prépare pas de carte
 d'attaque directement. Il émet uniquement une décision structurée, une réponse
-visible, des suggestions consenties et, si l'action est réellement prête, une
-demande de handoff vers `execution_breakdown`.
+visible et des suggestions consenties. Si l'action est réellement prête mais
+reste bloquée, il propose `prepare_attack_card` ou `prepare_defense_card` avec
+consentement utilisateur.
 
 ## Dépend De L'Architecture De X
 
@@ -60,7 +61,7 @@ Dans le code actuel, ces briques sont utilisées comme suit :
 - Contrat local :
   `supabase/functions/sophia-brain/skills/demotivation_repair/contract.ts` est
   la source de vérité. `DemotivationRepairDecision` porte `motivation_state`,
-  `action_readiness`, `constraints`, `response_contract`, `handoff_request`,
+  `action_readiness`, `constraints`, `response_contract`,
   `operation_suggestions`, `memory_write_candidates`, `reply` et `state_patch`.
   `normalizeDemotivationRepairDecision` applique les invariants du contrat.
   `reduceDemotivationRepairTurn` dans
@@ -89,8 +90,8 @@ Le chemin nominal est :
    et `getGlobalAiModel` avec `DEMOTIVATION_REPAIR_PROMPT`.
 5. `supabase/functions/sophia-brain/skills/demotivation_repair/contract.ts`
    applique les invariants de décision. `normalizeDemotivationRepairDecision`
-   valide les enums, filtre les suggestions interdites, bloque les handoffs non
-   prêts, sécurise la mémoire et nettoie la réponse visible.
+   valide les enums, filtre les suggestions interdites, sécurise la mémoire et
+   nettoie la réponse visible.
 6. `supabase/functions/sophia-brain/skills/demotivation_repair/reducer.ts`
    possède la transition de tour. `reduceDemotivationRepairTurn` transforme le
    résultat d'intake en `ConversationSkillOutput`, prépare `diagnosis`,
@@ -166,15 +167,37 @@ Sortie principale : `ConversationSkillOutput`.
 Le skill peut produire :
 
 - `status: "responded"` pour une réponse de réparation motivationnelle locale;
-- `status: "handoff"` uniquement si `action_readiness` vaut `ready` ou
-  `already_chosen`;
 - `response_intent`, généralement `repair`, `clarify`, `suggest_tool` ou
-  `handoff_to_execution`;
+  `concrete_action_emerged`;
 - `reply` après normalisation;
 - `operation_suggestions` consenties;
-- `handoff_request` vers `execution_breakdown`;
 - `state_patch.demotivation_repair.decision`;
 - `memory_write_candidates` non persistantes par défaut.
+
+Pour `select_state_potion`, les seules potions suggérables par ce skill sont :
+
+- `clarte` quand le cap, le sens ou le lien entre action et pourquoi profond a
+  été assez clarifié pour devenir un support durable;
+- `courage` quand le diagnostic local montre une peur, une appréhension ou un
+  évitement identifié;
+- `rappel` quand le geste ou cap est connu mais glisse dans le temps.
+
+Le bridge potion est une transition interne stricte :
+
+- état initial : `demotivation_repair` reste propriétaire du repair
+  conversationnel;
+- condition de maturité : le cap, la peur ou le repère est suffisamment nommé
+  pour devenir un support durable;
+- type de potion : uniquement `clarte`, `courage` ou `rappel`;
+- consentement : la reply doit proposer la potion en complément et demander
+  l'accord utilisateur, jamais annoncer une activation;
+- exclusions : pas de `product_help` générique, pas de plan edit, pas de carte
+  d'attaque, pas de carte de défense, pas de priorisation ou prochaine action
+  dans ce bridge sauf demande produit/opération explicite du user.
+
+Chaque suggestion `select_state_potion` doit porter
+`operation_input_hint.context.handoff_summary`: 1 à 3 phrases avec ce qui a été
+clarifié, les mots utilisateur importants et ce que la potion doit soutenir.
 
 ## Invariants
 
@@ -182,10 +205,17 @@ Le skill peut produire :
   doivent pas moraliser, culpabiliser ou figer une identité.
 - `no_potion` supprime toute suggestion `select_state_potion`.
 - `no_tool` supprime toutes les `operation_suggestions`.
+- La perte de sens appartient d'abord à `demotivation_repair`; une potion
+  `clarte`, `courage` ou `rappel` ne peut sortir qu'en complément consenti,
+  après diagnostic local, jamais comme routage primaire.
+- `clarte` est interdite pour un simple besoin de prioriser, trouver une
+  prochaine action ou découper une action; `courage` suppose une peur ou un
+  évitement nommé; `rappel` suppose un repère déjà connu qui glisse.
 - `no_plan_edit` et `allow_plan_edit: false` suppriment toute suggestion
   `adjust_plan_item`.
-- Un handoff vers `execution_breakdown` est interdit si `action_readiness` n'est
-  ni `ready` ni `already_chosen`.
+- `prepare_attack_card` et `prepare_defense_card` sont autorisés seulement
+  comme suggestions consenties quand l'action est assez concrète ou déjà
+  choisie.
 - `create_recurring_reminder` est autorisé seulement quand l'utilisateur demande
   explicitement un soutien répété.
 - `adjust_plan_item` est autorisé seulement avec demande explicite
@@ -207,12 +237,13 @@ Le skill peut produire :
 
 - `supabase/functions/sophia-brain/router/run.ts` : point d'appel
   orchestration-only.
-- `supabase/functions/sophia-brain/skills/execution_breakdown/skill.ts` : cible
-  de handoff quand l'action est prête.
 - `supabase/functions/sophia-brain/tool_skill_runtime/operation_access_policy.ts`
   : allowlist des suggestions d'opération émises par ce skill.
 - `supabase/functions/sophia-brain/tool_skill_runtime/operation_suggestion_resolver.ts`
   : conversion des suggestions consenties en recommandations runtime.
+- `select_state_potion` : reçoit éventuellement
+  `operation_input_hint.context.handoff_summary` depuis ce skill pour éviter de
+  reposer une question déjà clarifiée et choisir la potion dans le bon contexte.
 - `supabase/functions/sophia-brain/recommendation/recommendation_tool.ts` : ne
   doit plus interpréter la démotivation; il doit respecter les suggestions déjà
   émises par le skill.
@@ -225,8 +256,6 @@ Le skill peut produire :
   condition de garder `contract.ts` source de vérité et de ne pas déplacer de
   diagnostic dans le renderer.
 - Améliorer `compactContext` avec des champs structurés existants.
-- Ajouter un nouveau handoff uniquement si le contrat local l'exprime et si le
-  skill cible a un contrat compatible.
 - Ajouter une opération suggérée uniquement avec consentement, policy runtime et
   test d'accès.
 
@@ -241,8 +270,8 @@ Le skill peut produire :
 - Dire ou laisser entendre qu'une action durable est faite avant effet committé.
 - Persister par défaut une phrase identitaire négative.
 - Forcer un emoji ou un style incompatible avec le mode tunnel/sobriété.
-- Transformer "je suis vidé", "ça sert à rien" ou "j'ai encore raté" en handoff
-  execution immédiat.
+- Transformer "je suis vidé", "ça sert à rien" ou "j'ai encore raté" en outil
+  immédiat sans consentement.
 
 ## Legacy Exceptions
 

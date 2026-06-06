@@ -47,6 +47,7 @@ import {
   buildAttackCardHandoffState,
   isAttackCardHandoffState,
 } from "./state.ts";
+import { attackCardPlatformInputsFromFields } from "./platform_fields.ts";
 import {
   ATTACK_CARD_PLATFORM_DESTINATION,
   renderAttackCardApplyAttemptReply,
@@ -608,7 +609,7 @@ function buildAttackCardPlatformSteps(args: {
       `Ouvre ton plan puis l'action "${args.targetSummary}".`,
       "Dans le bloc Ressources, ouvre Attaque ou clique Générer si les cartes ne sont pas encore préparées.",
       "Retrouve la carte dans Ressources > Attaque > Cartes d'attaque du plan.",
-      "Utilise l'aperçu ci-dessous pour vérifier ou ajuster le résultat proposé par la plateforme.",
+      "Vérifie la cible, le piège et la technique avant de générer dans la plateforme.",
     ];
   }
   if (args.flowKind === "adjust_existing_attack_card") {
@@ -643,10 +644,6 @@ function buildAttackCardHandoffDraft(args: {
       typeof args.pendingConfirmation.intake_state === "object"
     ? args.pendingConfirmation.intake_state as Record<string, unknown>
     : null;
-  const preserve = [
-    args.draft.draft.generated_asset,
-    ...stringArray(args.draft.draft.supporting_points),
-  ].filter(Boolean).slice(0, 3);
   const blockerSummary = summarizeBlocker(intakeState?.blocker);
   const previousBlockerSummary = String(
     args.previousHandoffDraft?.blocker_summary ?? "",
@@ -668,7 +665,17 @@ function buildAttackCardHandoffDraft(args: {
     targetSummary,
     techniqueLabel: args.draft.draft.technique_title,
   });
-  const platformInputs = techniqueKey
+  const platformFields = intakeState?.platform_fields &&
+      typeof intakeState.platform_fields === "object" &&
+      !Array.isArray(intakeState.platform_fields)
+    ? intakeState.platform_fields as any
+    : null;
+  const lockedPlatformInputs = attackCardPlatformInputsFromFields(
+    platformFields,
+  );
+  const platformInputs = lockedPlatformInputs.length > 0
+    ? lockedPlatformInputs
+    : techniqueKey
     ? buildAttackCardPlatformInputs({
       techniqueKey,
       targetSummary,
@@ -689,25 +696,16 @@ function buildAttackCardHandoffDraft(args: {
     recommendation: {
       technique_label: args.draft.draft.technique_title,
       why_this_technique: args.draft.draft.why_it_helps,
-      card_draft_summary: [
-        args.draft.draft.title,
-        args.draft.draft.generated_asset,
-        `Mode d'emploi : ${args.draft.draft.mode_emploi}`,
-      ].filter(Boolean).join("\n"),
-      preserve: preserve.length > 0
-        ? preserve
-        : ["Le geste minuscule qui coupe la négociation intérieure."],
-      avoid: [
-        "Transformer ce brouillon en promesse trop longue.",
-        "Ajouter plusieurs techniques concurrentes dans la même carte.",
-      ],
+      card_draft_summary: "",
+      preserve: [],
+      avoid: [],
       platform_destination: platformDestination,
       platform_steps: platformSteps.length > 0
         ? platformSteps
         : handoffTarget?.platform_steps ?? [
           "Ouvre Cartes / Attaque.",
           "Choisis la cible ou l'action correspondante.",
-          "Copie le brouillon puis finalise la carte dans la plateforme.",
+          "Renseigne les champs puis finalise la carte dans la plateforme.",
         ],
     },
     platform_handoff: {
@@ -720,22 +718,22 @@ function buildAttackCardHandoffDraft(args: {
       technique_key: techniqueKey,
       technique_label: args.draft.draft.technique_title,
       inputs: flowKind === "plan_action_cards" ? [] : platformInputs,
-      expected_result: {
-        output_title: args.draft.draft.title,
-        generated_asset: args.draft.draft.generated_asset,
-        supporting_points: stringArray(args.draft.draft.supporting_points),
-        mode_emploi: args.draft.draft.mode_emploi,
-        keyword_trigger: techniqueKey
-          ? buildAttackCardKeywordTriggerDraft({
+      expected_result: techniqueKey === "pre_engagement"
+        ? {
+          output_title: "",
+          generated_asset: "",
+          supporting_points: [],
+          mode_emploi: "",
+          keyword_trigger: buildAttackCardKeywordTriggerDraft({
             techniqueKey,
             draft: args.draft,
             targetSummary,
             blockerSummary: finalBlockerSummary,
-          })
-          : null,
-      },
+          }),
+        }
+        : null,
       plan_action_note: flowKind === "plan_action_cards"
-        ? "Pour une action du plan, la plateforme prépare les cartes depuis le bloc Ressources de l'action. Sophia te donne ici l'aperçu et les points à vérifier, pas une création depuis le chat."
+        ? "Pour une action du plan, la plateforme prépare les cartes depuis le bloc Ressources de l'action. Sophia te donne seulement les points à vérifier avant de générer dans la plateforme."
         : null,
     },
     missing_decisions: [],

@@ -10,16 +10,7 @@ import {
   isFaitPrevuFragileRecapRequest,
   recordToolSkillEffectsInLedgerForTest,
 } from "./run.ts";
-import {
-  detectExplicitNoToolRequest,
-  detectsMinuteByMinuteSequenceRequest,
-  isActiveCardDraftingOperation,
-  isExplicitConversationalFormatRequest,
-  isExplicitOperationCommand,
-  isLocalTextRevisionRequest,
-  isStatusOnlyNoMutationRequest,
-  shouldRenderStatusOnlyNoMutation,
-} from "./legacy_semantic_patches.ts";
+import { isActiveCardDraftingOperation } from "./active_operation_guards.ts";
 import {
   buildFaitPrevuFragileRecapRuntime,
   buildStatusOnlyNoMutationRuntime,
@@ -36,24 +27,12 @@ import {
   withActiveSafetyFlowCaution,
 } from "./safety_crisis_runtime.ts";
 import {
-  buildCoachPreferencePreviewReply,
   detectsCoachPreferenceDirectionContradiction,
-  isApplyExistingCoachPreferenceRequest,
-  isCoachPreferenceExplicitApproval,
-  isCoachPreferencePreviewOnlyRequest,
-  isCoachPreferenceVerificationRequest,
-  isImmediateModeRequestNotCoachPreference,
-  isRuntimeCoachPreferenceRequest,
-  shouldRuntimeCoachPreferenceOverrideRoute,
 } from "../tools/operations/update_coach_preferences/route_guards.ts";
 import { upsertCoachPreferencesFromDraftForTest } from "../tools/operations/update_coach_preferences/status.ts";
 import {
-  detectsExplicitOneShotReminderCancel,
-  isExplicitOneShotReminderModificationRequest,
-  isOneShotReminderExactStatusRequest,
   localTextAddonForOneShotReminder,
   oneShotReminderManagementReply,
-  shouldPreferOneShotReminderOverRecurring,
 } from "../tools/always_on/one_shot_reminder/router.ts";
 const legacyCoachPreferenceKey = (name: string) => `coach.${name}`;
 
@@ -88,24 +67,27 @@ Deno.test("effect ledger maps update_coach_preferences executor commit", () => {
   });
 });
 
-Deno.test("effect ledger guard neutralizes durable preference claim without commit", () => {
+Deno.test("effect ledger guard traces durable preference claim without rewriting", () => {
+  const reply = "C'est fait, préférence enregistrée.";
   const result = rewriteUncommittedEffectClaims({
-    reply: "C'est fait, préférence enregistrée.",
+    reply,
     ledger: createEffectLedger("turn-ledger-2"),
   });
 
   assertEquals(result.changed, true);
-  assertEquals(result.reply, "Je ne l'ai pas enregistré.");
+  assertEquals(result.reply, reply);
 });
 
-Deno.test("effect ledger guard neutralizes reminder claim without commit", () => {
+Deno.test("effect ledger guard traces reminder claim without rewriting", () => {
+  const reply = "Rappel programmé pour demain matin.";
   const result = rewriteUncommittedEffectClaims({
-    reply: "Rappel programmé pour demain matin.",
+    reply,
     ledger: createEffectLedger("turn-ledger-3"),
   });
 
   assertEquals(result.changed, true);
   assertEquals(result.reason_codes, ["uncommitted_reminder_create_claim"]);
+  assertEquals(result.reply, reply);
 });
 
 Deno.test("conversation skill reply override lets product_help own its factual answer", () => {
@@ -270,161 +252,6 @@ Deno.test("active safety flow cannot be downgraded by safe reminder exception", 
   assertEquals(result.pregateOutput.risk_band, "medium");
 });
 
-Deno.test("legacy local text revision detector is disabled in global routing", () => {
-  assertEquals(
-    isLocalTextRevisionRequest(
-      "Oui, formule-le en une version ultra courte que tu pourrais réutiliser quand je reparle d'un document à écrire.",
-    ),
-    false,
-  );
-  assertEquals(
-    isLocalTextRevisionRequest(
-      "Version ultra. Et pour la suite, pose-moi une seule question courte à la fois.",
-    ),
-    false,
-  );
-});
-
-Deno.test("coach preference verification is not a new preference update", () => {
-  assertEquals(
-    isCoachPreferenceVerificationRequest(
-      "Et tu as bien gardé la préférence une seule question courte quand je bloque ?",
-    ),
-    true,
-  );
-  assertEquals(
-    isCoachPreferenceVerificationRequest(
-      "Pour la suite, garde la préférence une seule question courte quand je bloque.",
-    ),
-    false,
-  );
-});
-
-Deno.test("concrete future style request is a coach preference", () => {
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Pour la suite, quand je suis vide comme ca, parle-moi en mode tres concret: une action, pas trois options. Garde cette preference si tu peux.",
-    ),
-    true,
-  );
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Mets a jour ma preference coach : quand je dis que je suis confus, reponds plus directement et avec moins d'options.",
-    ),
-    true,
-  );
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Le rappel est bon, mais la partie 'je prefere les consignes tres courtes' n'etait pas le texte du rappel : c'est une preference de coaching a retenir.",
-    ),
-    true,
-  );
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Je veux vraiment que tu enregistres ça comme préférence de coaching: quand je suis fatigué, une seule action concrète à la fois, pas plusieurs options.",
-    ),
-    true,
-  );
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Pour la suite, enregistre une préférence de coaching: quand je dis que je suis vidé ou vraiment crevé, je veux une seule action concrète à la fois, pas trois options.",
-    ),
-    true,
-  );
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Garde comme repère dans cette conversation que journée brouillée = choisir une seule zone.",
-    ),
-    false,
-  );
-  assertEquals(
-    isApplyExistingCoachPreferenceRequest(
-      "Pas de potion maintenant. Applique plutôt ma préférence: une seule question ou une seule action courte.",
-    ),
-    true,
-  );
-  assertEquals(
-    isApplyExistingCoachPreferenceRequest(
-      "Non, ne lance rien. Donne-moi juste la prochaine mini-action en respectant ma préférence: une seule action.",
-    ),
-    true,
-  );
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Pas de potion maintenant. Applique plutôt ma préférence: une seule question ou une seule action courte.",
-    ),
-    false,
-  );
-});
-
-Deno.test("legacy explicit no-tool detector is disabled in global routing", () => {
-  assertEquals(
-    detectExplicitNoToolRequest(
-      "Merci. Ne lance rien d'autre maintenant, même pas une potion. Fais-moi juste le récap.",
-    ),
-    false,
-  );
-  assertEquals(
-    detectExplicitNoToolRequest(
-      "Non, ne lance rien. Donne-moi juste la prochaine mini-action pour ne pas tout refaire.",
-    ),
-    false,
-  );
-});
-
-Deno.test("explicit coach preference overrides active conversation/product routes", () => {
-  assertEquals(
-    shouldRuntimeCoachPreferenceOverrideRoute({
-      message:
-        "Pour la suite, quand je suis fatigué comme ça, je veux une seule action concrète à la fois, pas trois options.",
-      routeDecision: {
-        response_owner: "conversation_handler",
-        selected_handler: "execution_breakdown",
-      } as any,
-      safetyRiskBand: "none",
-      hasPendingOperationConfirmation: false,
-    }),
-    true,
-  );
-  assertEquals(
-    shouldRuntimeCoachPreferenceOverrideRoute({
-      message:
-        "Je veux vraiment que tu enregistres ça comme préférence de coaching: une seule action concrète à la fois.",
-      routeDecision: {
-        response_owner: "product_help",
-        selected_handler: "product_help",
-      } as any,
-      safetyRiskBand: "none",
-      hasPendingOperationConfirmation: false,
-    }),
-    true,
-  );
-});
-
-Deno.test("immediate calm mode request is not a durable coach preference", () => {
-  assertEquals(
-    isImmediateModeRequestNotCoachPreference(
-      "J'ai envie d'un mode calme maintenant, pas d'un plan militaire.",
-    ),
-    true,
-  );
-  assertEquals(
-    isImmediateModeRequestNotCoachPreference(
-      "Pour la suite, parle-moi en mode tres concret: une action, pas trois options.",
-    ),
-    false,
-  );
-});
-
-Deno.test("coach preference explicit approval accepts exact confirmation", () => {
-  assertEquals(
-    isCoachPreferenceExplicitApproval(
-      "Oui, c'est exactement ca: une action concrete a la fois quand je suis vide.",
-    ),
-    true,
-  );
-});
-
 Deno.test("one-shot reminder management question gets factual product wording", () => {
   const reply = oneShotReminderManagementReply(
     "Le rappel ponctuel de demain, si je change d'avis au reveil, je te demande ici de l'annuler ou je dois aller dans Initiatives ?",
@@ -515,15 +342,6 @@ Deno.test("compact start guard collapses A/B plans into one gesture", () => {
   assertEquals(guarded.includes("Premier geste"), true);
 });
 
-Deno.test("legacy durable recap detector is disabled in global routing", () => {
-  assertEquals(
-    isStatusOnlyNoMutationRequest(
-      "Avant que je coupe, fais-moi le récap: qu'est-ce qui a vraiment été créé ou gardé, et qu'est-ce qui était juste pour la conversation ?",
-    ),
-    false,
-  );
-});
-
 Deno.test("incomplete recap intro gets a minimal fallback body", () => {
   const guarded = applyIncompleteRecapGuard({
     userMessage: "Fais-moi juste le récap de ce qu'on a fixé.",
@@ -532,84 +350,6 @@ Deno.test("incomplete recap intro gets a minimal fallback body", () => {
   });
   assertEquals(guarded.includes("- "), true);
   assertEquals(guarded.endsWith(": 🙂"), false);
-});
-
-Deno.test("legacy one-shot reminder modification detector is disabled", () => {
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Décale ce rappel ponctuel à demain 9h10, même texte.",
-    ),
-    false,
-  );
-});
-
-// ============================================================================
-// Chantier 14 (2026-05-28) — Anti-faux-positif sur la détection de
-// modification de rappel. Voir A2-r6 T4/T8, A3-r7 T3.
-// ============================================================================
-
-Deno.test("'ne change rien' n'est PAS une demande de modification de rappel (A2-r6 T4)", () => {
-  // "Pour le rappel de 11h50, si je veux le vérifier ou l'annuler dans
-  // l'app, je vais où ? Juste l'emplacement, ne change rien."
-  // Avant chantier 14, "change" + "le rappel" + "11h50" déclenchait à
-  // tort la détection de modification.
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Pour le rappel de 11h50, si je veux le vérifier ou l'annuler dans l'app, je vais où ? Juste l'emplacement, ne change rien.",
-    ),
-    false,
-  );
-});
-
-Deno.test("'sans parler de le modifier' n'est PAS une demande de modification (A2-r6 T8)", () => {
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Et pour le rappel ponctuel de 11h50, juste l'emplacement où je peux le vérifier dans l'app, sans parler de le modifier.",
-    ),
-    false,
-  );
-});
-
-Deno.test("'où je vais modifier/supprimer dans l'app' est du product_help, pas une modification (A3-r7 T3)", () => {
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Si je veux modifier ou supprimer ce rappel dans l'app, je vais où ? Ne change rien, je veux juste l'emplacement.",
-    ),
-    false,
-  );
-});
-
-Deno.test("une vraie demande de modification n'est plus détectée par regex locale", () => {
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Décale ce rappel à 14h, même texte.",
-    ),
-    false,
-  );
-  assertEquals(
-    isExplicitOneShotReminderModificationRequest(
-      "Reprogramme le rappel ponctuel à 18h30, garde le même message.",
-    ),
-    false,
-  );
-});
-
-Deno.test("one-shot reminder exact status request is not detected by regex locale", () => {
-  assertEquals(
-    isOneShotReminderExactStatusRequest(
-      "L'heure vraiment enregistrée du rappel, c'est 11h05 ou 11h20 ?",
-    ),
-    false,
-  );
-});
-
-Deno.test("concise durable coach preference is detected", () => {
-  assertEquals(
-    isRuntimeCoachPreferenceRequest(
-      "Préférence durable: réponds en 3 lignes max, sans question finale.",
-    ),
-    true,
-  );
 });
 
 Deno.test("coach response style preferences remove emoji and final question", () => {
@@ -737,126 +477,6 @@ Deno.test("explicit memory retention wording does not overpromise durable memory
   );
   assertEquals(guardedConversationRepere.includes("je retiens que"), false);
   assertEquals(guardedConversationRepere.includes("pour la suite"), false);
-});
-
-// ---------------------------------------------------------------------------
-// Régression chantier 1 (2026-05-28): le composer status_only ne doit pas
-// déclencher quand le user impose un format conversationnel explicite.
-// Voir docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md, section Couche L3.
-// ---------------------------------------------------------------------------
-
-Deno.test("legacy conversational-format detector is disabled for 'fait, prévu, fragile'", () => {
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Ne lance rien maintenant, pas de potion, pas de nouveau rappel. Fais seulement le récap: fait, prévu, fragile, en trois lignes.",
-    ),
-    false,
-  );
-});
-
-Deno.test("legacy conversational-format detector is disabled for no-status wording", () => {
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Ce n'est pas le récap demandé. Pas de statut système: seulement fait, prévu, fragile. Trois lignes, sans emoji.",
-    ),
-    false,
-  );
-});
-
-Deno.test("legacy conversational-format detector is disabled for one-line wording", () => {
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Donc pour le rappel à 11h12 : confirmé ou non confirmé ? Réponds en une ligne.",
-    ),
-    false,
-  );
-});
-
-Deno.test("legacy conversational-format detector is disabled for conversational recap wording", () => {
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "On s'arrête là. Fais seulement un récap conversationnel final.",
-    ),
-    false,
-  );
-});
-
-Deno.test("legacy conversational-format detector is disabled for one-sentence wording", () => {
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Donne-moi une seule phrase qui me remet au calme, pas plus.",
-    ),
-    false,
-  );
-});
-
-Deno.test("explicit conversational format request stays false on a normal status request", () => {
-  // Garde-fou: une demande status sans contrainte de format ne doit PAS
-  // matcher. Sinon le composer status_only ne se déclenchera plus du tout.
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Sans rien modifier, vérifie ce qui est en place: carte, rappel, préférence coach.",
-    ),
-    false,
-  );
-});
-
-Deno.test("explicit conversational format request stays false on a generic 'short' request", () => {
-  // "Court" tout seul n'est pas une contrainte explicite de format
-  // conversationnel: le composer status_only à 4 lignes reste légitime.
-  assertEquals(
-    isExplicitConversationalFormatRequest("Réponds court."),
-    false,
-  );
-});
-
-Deno.test("explicit conversational format request stays false on a card title containing 'X lignes'", () => {
-  // Anti-faux-positif: "carte Samir 3 lignes" est le titre d'une carte
-  // d'attaque (A6-r2). On NE DOIT PAS matcher "3 lignes" comme contrainte
-  // de format. Le contexte demande "ce qui est en place" → status panel
-  // canonique légitime.
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Avant de cloturer, sans rien modifier, verifie ce qui est en place: carte Samir 3 lignes, rappel a 17h05, preference coach, et repere stylo bleu.",
-    ),
-    false,
-  );
-});
-
-Deno.test("explicit conversational format request stays false when 'trois lignes' is an action object", () => {
-  // Anti-faux-positif (A6-r2 T2): "envoyer trois lignes à Samir" est
-  // l'action décrite dans une carte d'attaque, pas une contrainte de
-  // format. Ne doit pas matcher.
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Oui, prepare une carte d'attaque. Action: envoyer trois lignes a Samir avant d'aligner le bureau.",
-    ),
-    false,
-  );
-});
-
-Deno.test("explicit conversational format request stays false when 'une phrase' is an object to write", () => {
-  // Anti-faux-positif: "écris une phrase pour Samir" — "une phrase" est
-  // l'objet de l'action, pas une contrainte sur la réponse de Sophia.
-  assertEquals(
-    isExplicitConversationalFormatRequest(
-      "Donne-moi une phrase courte pour Lina, et rappelle-moi à 11h35.",
-    ),
-    false,
-  );
-});
-
-Deno.test("legacy status_only and explicit-format detectors stay disabled in run guard tests", () => {
-  // Sur les tours A2-r4 T13/T14, isStatusOnlyNoMutationRequest
-  // retournait true (à cause de "en place" / "ce qu'on a fait"), ce qui
-  // déclenchait le panneau. La garde de format ferme la porte avant.
-  const userMessage =
-    "Ne lance rien maintenant, pas de potion. Fais seulement le récap: fait, prévu, fragile, en trois lignes.";
-  assertEquals(isStatusOnlyNoMutationRequest(userMessage), false);
-  assertEquals(
-    isExplicitConversationalFormatRequest(userMessage),
-    false,
-  );
 });
 
 // ---------------------------------------------------------------------------
@@ -1278,7 +898,7 @@ Deno.test("C5: recap composer renders exactly 3 labeled lines, no question (A2-r
 
 Deno.test("C6 anti-FP: 'rappelle-moi de payer le parking' (pas de quote) ne donne pas de quote", async () => {
   const { extractQuotedReminderInstruction } = await import(
-    "../tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts"
+    "../tools/always_on/one_shot_reminder/instruction_parser.ts"
   );
   assertEquals(
     extractQuotedReminderInstruction("rappelle-moi de payer le parking à 14h"),
@@ -1298,189 +918,11 @@ Deno.test("C6 anti-FP: 'rappelle-moi de payer le parking' (pas de quote) ne donn
 // hors statut. Voir A2-codex-r8 T7.
 // ===========================================================================
 
-Deno.test("D2: une demande recap avec opt-out 'pas les statuts système' NE rend PAS le panneau status (A2-r8 T7)", () => {
-  const message =
-    "Ok, laisse tomber la carte. Résume ce que tu dois retenir de mon piège de ce matin, pas les statuts système : seulement le piège utile.";
-  // L'opt-out no-status ("pas les statuts système", pluriel) doit empêcher le
-  // composer status_only de prendre la main, même si la phrase ressemble à un
-  // recap/status.
-  assertEquals(shouldRenderStatusOnlyNoMutation(message), false);
-});
-
-Deno.test("D2: legacy status detector no longer renders a panel from raw text", () => {
-  const message =
-    "Sans modifier, dis-moi quelle carte est active et quels rappels sont confirmés avec heure exacte.";
-  assertEquals(shouldRenderStatusOnlyNoMutation(message), false);
-});
-
-Deno.test("C1: legacy status detector stays disabled for product-help location questions", () => {
-  assertEquals(
-    isStatusOnlyNoMutationRequest(
-      "Pour ce rappel ponctuel de 11h55, où est-ce que je peux le vérifier ou l'annuler dans l'app ? Juste l'emplacement, sans modifier.",
-    ),
-    false,
-  );
-});
-
 // ===========================================================================
 // CHANTIER G0 (2026-05-29) — status/recap ne préempte jamais une commande
 // d'opération explicite. Voir edgecases-r3 T5 (rappel "14h20 ou 16h10") et
 // syncskills-r2 T2 (carte d'attaque). Symétrique de F2 côté opérations.
 // ===========================================================================
-
-Deno.test("G0: legacy operation-command detector is disabled for reminder creation text", () => {
-  assertEquals(
-    isExplicitOperationCommand(
-      "Mets-moi plutôt un rappel pour vérifier les 5 lignes du devis, mais j'hésite : 14h20 ou 16h10.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G0: legacy operation-command detector is disabled for reminder execution text", () => {
-  assertEquals(
-    isExplicitOperationCommand(
-      "Rappel neutre. Programme-le maintenant pour aujourd'hui à 16h10.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G0: legacy operation-command detector is disabled for attack-card creation text", () => {
-  assertEquals(
-    isExplicitOperationCommand(
-      "Prepare-moi une carte d'attaque pour ce moment-là.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G0 anti-FP: un récap de lecture pure n'est PAS une commande d'opération (edgecases-r3 T15)", () => {
-  assertEquals(
-    isExplicitOperationCommand(
-      "Merci. Fais le recap exact : carte créée ou non, rappel créé ou annulé, et le piège messages/devis à retenir.",
-    ),
-    false,
-  );
-  // Et il reste éligible au rendu status (le composer n'est pas désarmé).
-  assertEquals(
-    shouldRenderStatusOnlyNoMutation(
-      "Merci. Fais le recap exact : carte créée ou non, rappel créé ou annulé.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G0 anti-FP: une vraie question d'heure exacte n'est PAS une commande d'opération", () => {
-  assertEquals(
-    isExplicitOperationCommand(
-      "Quelle heure as-tu vraiment programmée pour mon rappel, 11h05 ou 11h20 ?",
-    ),
-    false,
-  );
-});
-
-// ===========================================================================
-// CHANTIER G3 (2026-05-29) — annulation explicite d'un rappel ponctuel. Voir
-// edgecases-r3 T9/T10.
-// ===========================================================================
-
-Deno.test("G3: annulation de rappel n'est plus détectée par regex locale", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Alors annule le rappel de 16h10. Je ne veux plus de ping, ça me stresse.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G3: 'coupe ce ping' / 'annule-le vraiment' restent non routés localement", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel("coupe ce rappel maintenant"),
-    false,
-  );
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Zéro ping aujourd'hui. Pas d'alternative, pas de note, juste annule-le vraiment.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G3 anti-FP: question produit et négation ne sont pas des annulations", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "où je peux annuler ce rappel dans l'app ?",
-    ),
-    false,
-  );
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "ne l'annule pas, je veux garder le rappel",
-    ),
-    false,
-  );
-  assertEquals(
-    detectsExplicitOneShotReminderCancel("merci, c'est noté"),
-    false,
-  );
-});
-
-// G3-fix (2026-05-29) — régression annulations non consenties. Voir A14-r1
-// T3/T13/T14, normal-conv-r4 T13, edgecases-r4 T15.
-Deno.test("G3-fix anti-FP: question produit 'si je veux l'annuler plus tard, je passe par où' (A14-r1 T3)", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Question produit: le rappel est bien unique et déjà créé ? Et si je veux l'annuler plus tard, je passe par où ?",
-    ),
-    false,
-  );
-});
-
-Deno.test("G3-fix anti-FP: description passée + refus d'outil (A14-r1 T13)", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Ne crée rien d'autre maintenant. La pression monte parce que le rappel a été annulé puis recréé et la carte n'a pas marché. Si tu vois un outil de retour au calme, propose-le seulement, sans le lancer.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G3-fix anti-FP: vérification 'dis si tu viens d'annuler' (A14-r1 T14)", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Stop, ne modifie plus rien. Vérifie sans modifier: rappel 16h35, carte de défense, préférence coach, aucune potion lancée, et dis clairement si tu viens d'annuler quelque chose.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G3-fix anti-FP: 'Vérifie sans modifier … l'ancien annulé ?' (normal-conv-r4 T13)", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Vérifie sans modifier : est-ce qu'il y a maintenant un rappel à 17h00 ou seulement l'ancien annulé ?",
-    ),
-    false,
-  );
-});
-
-Deno.test("G3-fix anti-FP: récap 'rappel 15h50 créé ou annulé' (edgecases-r4 T15)", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Stop. Pour finir, récap exact : carte créée ou non, rappel 15h50 créé ou annulé, et ce que tu dois retenir du piège notifications/doc.",
-    ),
-    false,
-  );
-});
-
-Deno.test("G3-fix: commande combinée annuler+créer n'est plus détectée localement", () => {
-  assertEquals(
-    detectsExplicitOneShotReminderCancel(
-      "Alors annule l'ancien rappel de 16h20 et crée celui de 17h00 aujourd'hui, texte : revenir au budget.",
-    ),
-    false,
-  );
-});
 
 // ===========================================================================
 // CHANTIER G4 (2026-05-29) — validation sémantique de la direction de la
@@ -1542,39 +984,4 @@ Deno.test("G4 anti-FP: direction cohérente n'est PAS une contradiction", () => 
     ),
     false,
   );
-});
-
-// ===========================================================================
-// CHANTIER H (2026-05-29) — Correctifs RED hors périmètre G0–G4.
-// ===========================================================================
-
-Deno.test("H3: preview mode tunnel sans enregistrement (A2-r12 T10)", () => {
-  const msg =
-    "Propose seulement la règle mode tunnel, ne l enregistre pas encore.";
-  assertEquals(isCoachPreferencePreviewOnlyRequest(msg), true);
-  const preview = buildCoachPreferencePreviewReply(msg);
-  assertEquals(preview.includes("mode tunnel"), true);
-  assertEquals(preview.includes("non enregistrée"), true);
-  assertEquals(preview.includes("court"), false);
-});
-
-Deno.test("H5: préférence ponctuel/récurrent ne vient plus d'une regex locale", () => {
-  assertEquals(
-    shouldPreferOneShotReminderOverRecurring(
-      "Programme un rappel à 18h30 avec le texte exact à relire, pas récurrent.",
-    ),
-    false,
-  );
-  assertEquals(
-    shouldPreferOneShotReminderOverRecurring(
-      "Rappelle-moi demain à 9h de reprendre la facture.",
-    ),
-    false,
-  );
-});
-
-Deno.test("H6: legacy minute-by-minute detector is disabled in global routing", () => {
-  const msg =
-    "Programme le rappel à 8h, et donne-moi la séquence minute par minute pour traiter les mails de la facture.";
-  assertEquals(detectsMinuteByMinuteSequenceRequest(msg), false);
 });

@@ -259,7 +259,7 @@ function heuristicRecommendation(
       do_not_recommend: [],
     };
   }
-  if (need?.type === "execution_repair") {
+  if (need?.type === "action_repair") {
     const target = resolveRecommendationPlanTarget(input);
     if (!target) {
       return {
@@ -270,7 +270,7 @@ function heuristicRecommendation(
         presentation_level: 1,
         cta_style: "soft",
         requires_consent: false,
-        reason: "execution_repair_target_missing",
+        reason: "action_repair_target_missing",
         user_facing_offer:
           "Je peux preparer une carte d'attaque, mais il faut d'abord choisir l'action exacte.",
         alternatives: [],

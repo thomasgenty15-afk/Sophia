@@ -68,7 +68,6 @@ const ORIENTATION_CLARIFICATION_TOOL_SKILL_HANDLERS = new Set([
 const ORIENTATION_CLARIFICATION_CONVERSATION_SKILL_HANDLERS = new Set([
   "demotivation_repair",
   "emotional_repair",
-  "execution_breakdown",
   "product_help",
   "safety_crisis",
 ]);
@@ -155,11 +154,23 @@ export function currentTurnConversationSkillOverrideForOrientation(args: {
   status: string;
   turnFrame: TurnFrame;
   resolvedToolSkillHandler?: string | null;
+  selectedCandidateOperationType?: string | null;
+  selectedCandidateConfidence?: string | null;
 }): string | null {
   if (args.status !== "resolved") return null;
   const resolvedToolSkillHandler = String(args.resolvedToolSkillHandler ?? "")
     .trim();
   if (!resolvedToolSkillHandler) return null;
+  const selectedCandidateOperationType = String(
+    args.selectedCandidateOperationType ?? "",
+  ).trim();
+  const selectedCandidateConfidence = confidenceRankForOrientation(
+    args.selectedCandidateConfidence,
+  );
+  if (
+    selectedCandidateOperationType === resolvedToolSkillHandler &&
+    selectedCandidateConfidence >= 2
+  ) return null;
   if (
     currentTurnSupportsOrientationToolResolution({
       turnFrame: args.turnFrame,
@@ -191,6 +202,21 @@ export function shouldBypassOrientationClarificationForExplicitToolRoute(args: {
   const explicitReason = reasonCode.startsWith("central_arbitrator_") ||
     reasonCode.endsWith("_interrupts_active_handoff");
   if (!explicitReason) return false;
+  const hasAttackCardIntent = args.turnFrame.tool_skill_intents.some((intent) =>
+    intent.operation_type === "prepare_attack_card" &&
+    intent.user_intent !== "explain_only" &&
+    intent.confidence_band !== "low" &&
+    intent.ambiguity === "none"
+  );
+  const hasDefenseCardIntent = args.turnFrame.tool_skill_intents.some((
+    intent,
+  ) =>
+    intent.operation_type === "prepare_defense_card" &&
+    intent.user_intent !== "explain_only" &&
+    intent.confidence_band !== "low" &&
+    intent.ambiguity === "none"
+  );
+  if (hasAttackCardIntent && hasDefenseCardIntent) return false;
   return args.turnFrame.tool_skill_intents.some((intent) =>
     intent.operation_type === selectedHandler &&
     intent.explicitness === "explicit" &&
@@ -217,7 +243,7 @@ import {
   userRequestsShortStyle,
 } from "./response_style_policy.ts";
 export { applyCoachResponseStylePreferences } from "./response_style_policy.ts";
-import { isActiveCardDraftingOperation } from "./legacy_semantic_patches.ts";
+import { isActiveCardDraftingOperation } from "./active_operation_guards.ts";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
 import { runMemoryV2ActiveLoader } from "../../_shared/memory/runtime/active_loader.ts";
 import {
@@ -380,6 +406,8 @@ import {
   normalizeRecommendationText,
   prepareRecommendationRuntimeForTurn,
 } from "./recommendation_runtime_support.ts";
+import { runSelectStatePotionHandoffSkill } from "../tools/operations/select_state_potion/handoff.ts";
+import { loadStatePotionHandoffStateFromTempMemory } from "../tools/operations/select_state_potion/state.ts";
 import {
   attachDynamicAddons,
   DEFAULT_DISPATCHER_MEMORY_PLAN,
@@ -408,7 +436,6 @@ export {
 import {
   buildConversationRiskFlowExitAddon,
   buildRecentConversationContinuityAddon,
-  isProductHelpExitToConversation,
   normalizeRouteText,
 } from "./conversation_route_runtime_support.ts";
 import {
@@ -945,13 +972,264 @@ export async function processMessage(
   const activeFlowStateForTurn = readActiveFlowState(tempMemory);
   let activeSkillState = activeFlowStateForTurn.activeSkillState;
   let activeOperationIntake = activeFlowStateForTurn.activeToolSkillIntake;
-  const activeOperationIntakeForDispatcher = activeOperationIntake;
+  const activeOperationTypeForLocalFlow = String(
+    (activeOperationIntake as any)?.operation_type ??
+      ((activeOperationIntake as any)?.mode === "platform_handoff"
+        ? (activeOperationIntake as any)?.skill_id
+        : ""),
+  ).trim();
+  const activeStatePotionHandoffForLocalFlow =
+    loadStatePotionHandoffStateFromTempMemory(tempMemory);
+  const activeLocalFlowOperationType = activeStatePotionHandoffForLocalFlow
+    ? "select_state_potion"
+    : activeOperationTypeForLocalFlow;
+  const activeLocalFlowHandler =
+    (activeStatePotionHandoffForLocalFlow as any)?.active_subskill_id ===
+        "select_state_potion.clarte" ||
+      activeStatePotionHandoffForLocalFlow?.clarte_state?.selected_potion ===
+        "clarte"
+      ? "select_state_potion.clarte"
+      : activeLocalFlowOperationType;
+  const activeLocalFlowReasonCode = activeLocalFlowHandler ===
+      "select_state_potion.clarte"
+    ? "active_clarte_local_dispatcher"
+    : "active_select_state_potion_local_dispatcher";
+  const activeLocalFlowBlockedReasonCode = activeLocalFlowHandler ===
+      "select_state_potion.clarte"
+    ? "active_clarte_uses_local_dispatcher"
+    : "active_select_state_potion_uses_local_dispatcher";
+  let activeOperationIntakeForDispatcher = activeOperationIntake;
   let pendingOperationConfirmation =
     readActiveFlowState(tempMemory).pendingToolSkillConfirmation;
   let pendingOperationConfirmationForGlobalRouting =
     pendingConfirmationOwnedByToolSkill(pendingOperationConfirmation)
       ? null
       : pendingOperationConfirmation;
+  if (activeLocalFlowOperationType === "select_state_potion") {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: activeLocalFlowHandler,
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: activeLocalFlowBlockedReasonCode,
+      }],
+      direct_effects_to_run: [],
+      reason_code: activeLocalFlowReasonCode,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    const operationRuntime = await runSelectStatePotionHandoffSkill({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      tempMemory,
+      turnFrame: null,
+      routeDecision: localRouteDecision,
+      safetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      history,
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "select_state_potion_local_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_select_state_potion_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+      } else {
+        await trace(
+          activeLocalFlowHandler === "select_state_potion.clarte"
+            ? "brain:active_clarte_local_dispatcher"
+            : "brain:active_select_state_potion_local_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher: true,
+            active_operation_type: activeLocalFlowOperationType,
+            active_handler: activeLocalFlowHandler,
+            active_state_source: activeStatePotionHandoffForLocalFlow
+              ? "state_potion_handoff"
+              : "active_tool_skill_intake",
+            tool_status: (operationRuntime.toolSkillRun as any)?.status ?? null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        const localRiskScore = Number(
+          (operationRuntime.toolSkillRun as any)?.risk_assessment?.risk_score ??
+            0,
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime: operationRuntime as any,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: Number.isFinite(localRiskScore) ? localRiskScore : 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    }
+    await trace(
+      "brain:active_select_state_potion_local_runtime_null",
+      "routing",
+      {
+        skipped_global_dispatcher: true,
+        active_operation_type: activeLocalFlowOperationType,
+        active_state_source: activeStatePotionHandoffForLocalFlow
+          ? "state_potion_handoff"
+          : "active_tool_skill_intake",
+        reason_code: "active_select_state_potion_local_runtime_null",
+        active_handler: activeLocalFlowHandler,
+      },
+      "error",
+    );
+    return await handleOperationRuntimeResponse({
+      supabase,
+      userId,
+      channel,
+      scope,
+      userMessage,
+      history,
+      state,
+      activeSkillState,
+      operationRuntime: {
+        content:
+          "Je garde le flow Potion de clarté en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+        nextTempMemory: tempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: activeLocalFlowHandler,
+          operation_type: "select_state_potion",
+          mode: "platform_handoff",
+          no_chat_mutation: true,
+          executable_from_chat: false,
+          status: "blocked",
+          reason_code: "active_select_state_potion_local_runtime_null",
+          requested_effects: [],
+          allowed_effects: [],
+          committed_effects: [],
+          blocked_effects: [{
+            type: "local_flow_runtime",
+            reason_code: "active_select_state_potion_local_runtime_null",
+          }],
+          risk_assessment: {
+            risk_score: 0,
+            risk_band: "none",
+            safety_preempt: false,
+            reason_codes: [],
+          },
+          runtime_trace: [{
+            component: activeLocalFlowHandler,
+            event: "local_runtime_null",
+            global_dispatcher_skipped: true,
+          }],
+        },
+      } as any,
+      effectLedger,
+      turnFrame: localTurnFrame,
+      routeDecision: localRouteDecision,
+      turnAgendaSummary: null,
+      safetyPregateOutput,
+      weeklyReviewStateForTurn: null,
+      dispatcherSignals: DEFAULT_SIGNALS,
+      dispatcherV2Stats,
+      dispatcherLatencyMs: 0,
+      targetMode: "companion",
+      riskScore: 0,
+      loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      messageMetadata: opts?.messageMetadata,
+      logMessages,
+      turnStartMs,
+      trace,
+    });
+  }
   const activeRuntimeContextForDispatcher = buildDispatcherActiveRuntimeContext(
     {
       tempMemory,
@@ -1612,6 +1890,9 @@ export async function processMessage(
             status: clarificationArbitration.status,
             turnFrame,
             resolvedToolSkillHandler,
+            selectedCandidateOperationType: resolvedOperationType,
+            selectedCandidateConfidence: clarificationArbitration.output
+              .confidence,
           });
         const resolvedConversationSkillHandler =
           selectedConversationSkillHandler ?? structuredConversationOverride;
@@ -1791,6 +2072,19 @@ export async function processMessage(
           path: "active_handoff",
           reason_code: handoffArbitration.reason_code,
         };
+        const activeHandoffArbitrationTrace = {
+          decision: handoffArbitration.action,
+          active_owner: "tool_skill",
+          selected_owner: handoffArbitration.action ===
+              "interrupt_for_explicit_intent"
+            ? (handoffInterruptTarget ?? "normal_reply")
+            : activeHandoff.operation_type,
+          resume_policy: handoffArbitration.action === "continue_handoff"
+            ? "active_handoff_continue"
+            : "clear_or_interrupt",
+          reason_code: handoffArbitration.reason_code,
+          continuation_intent: handoffArbitration.continuation_intent ?? null,
+        };
         if (oneShotInterruptsHandoff) {
           tempMemory = clearActiveToolFlow({ ...(tempMemory ?? {}) });
           activeOperationIntake = null;
@@ -1801,6 +2095,7 @@ export async function processMessage(
             selected_handler: undefined,
             reason_code: handoffArbitration.reason_code,
             direct_effects_to_run: ["create_one_shot_reminder"],
+            active_flow_arbitration: activeHandoffArbitrationTrace,
             blocked_paths: [...routeDecision.blocked_paths, blockedPath],
           };
           turnFrame = {
@@ -1842,6 +2137,7 @@ export async function processMessage(
             selected_handler: handoffInterruptTarget,
             reason_code: handoffArbitration.reason_code,
             direct_effects_to_run: [],
+            active_flow_arbitration: activeHandoffArbitrationTrace,
             blocked_paths: [...routeDecision.blocked_paths, blockedPath],
           };
           const hasTargetIntent = turnFrame.tool_skill_intents.some((intent) =>
@@ -1890,6 +2186,7 @@ export async function processMessage(
             selected_handler: activeHandoff.operation_type,
             reason_code: handoffArbitration.reason_code,
             direct_effects_to_run: [],
+            active_flow_arbitration: activeHandoffArbitrationTrace,
             blocked_paths: [...routeDecision.blocked_paths, blockedPath],
           };
           turnFrame = {
@@ -1905,6 +2202,7 @@ export async function processMessage(
             selected_handler: "orientation_clarification",
             reason_code: handoffArbitration.reason_code,
             direct_effects_to_run: [],
+            active_flow_arbitration: activeHandoffArbitrationTrace,
             blocked_paths: [...routeDecision.blocked_paths, blockedPath],
           };
           turnFrame = {
@@ -1937,6 +2235,7 @@ export async function processMessage(
             selected_handler: "prepare_defense_card",
             reason_code: handoffArbitration.reason_code,
             direct_effects_to_run: [],
+            active_flow_arbitration: activeHandoffArbitrationTrace,
             blocked_paths: [...routeDecision.blocked_paths, blockedPath],
           };
           turnFrame = {
@@ -1961,6 +2260,7 @@ export async function processMessage(
             selected_handler: undefined,
             reason_code: handoffArbitration.reason_code,
             direct_effects_to_run: [],
+            active_flow_arbitration: activeHandoffArbitrationTrace,
             blocked_paths: [...routeDecision.blocked_paths, blockedPath],
           };
           turnFrame = {

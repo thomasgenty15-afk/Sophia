@@ -132,7 +132,7 @@ async function defaultIntakeModel(
       intent:
         "fatigue_drop|loss_of_meaning|failure_accumulation|avoidance_loop|overwhelm|concrete_action_emerged|asks_smaller_step|asks_no_tool_support|asks_recurring_support|status_or_meta_question|unclear",
       phase:
-        "diagnose|reduce_friction|restore_meaning|stabilize_energy|handoff_to_execution|exit",
+        "diagnose|reduce_friction|restore_meaning|stabilize_energy|action_card_ready|exit",
       motivation_state:
         "fatigue|loss_of_meaning|failure_accumulation|avoidance|overwhelm|unclear",
       action_readiness: "none|hypothetical|ready|already_chosen",
@@ -157,10 +157,8 @@ async function defaultIntakeModel(
         allow_concrete_action: "boolean",
         tone: "grounded|soft_direct|energy_preserving",
       },
-      handoff_request:
-        "optional seulement si action_readiness ready|already_chosen: { target_skill_id: execution_breakdown, reason: string, confidence_band: low|medium|high }",
       operation_suggestions:
-        "optional array of { operation_type: select_state_potion|prepare_attack_card|adjust_plan_item|create_recurring_reminder, reason: string, requires_user_consent: true, operation_input_hint?: object }",
+        "optional array of { operation_type: select_state_potion|prepare_attack_card|prepare_defense_card|adjust_plan_item|create_recurring_reminder, reason: string, requires_user_consent: true, operation_input_hint?: object. Pour select_state_potion: { potion_type?: clarte|courage|rappel, state?: { kind?: loss_of_meaning|fear_avoidance|decrochage, intensity?: low|medium|high, evidence?: string[] }, context?: { handoff_summary: string, target_hint?: string, topic_hint?: string } } }",
       memory_write_candidates:
         "optional array of { source_text: string, should_persist_default: false, anti_identity_freeze_checked: true, sensitivity_level: number, reason: string }",
       reply: "string",
@@ -169,11 +167,17 @@ async function defaultIntakeModel(
     behavioral_rules: [
       "Distingue fatigue, perte de sens, accumulation d'echecs, avoidance, surcharge, action concrete vraiment prete.",
       "Une action hypothetique ou conditionnelle reste action_readiness=hypothetical et ne handoff pas.",
-      "Une action immediate/deja choisie peut handoff vers execution_breakdown.",
+      "Une action immediate/deja choisie peut produire une suggestion prepare_attack_card ou prepare_defense_card avec consentement.",
       "Si l'utilisateur refuse potion/protocole/outil: contraintes no_potion ou no_tool et aucune suggestion interdite.",
       "create_recurring_reminder seulement si soutien repete explicitement demande.",
       "adjust_plan_item seulement si demande explicite d'alleger/modifier ou consentement demande apres diagnostic que l'action est trop lourde.",
-      "select_state_potion seulement si fatigue/decrochage emotionnel domine, jamais si no_potion/no_tool.",
+      "Si le user ne sait plus pourquoi il fait ses actions, ou dit que ca n'a plus de sens, reste dans demotivation_repair avec motivation_state=loss_of_meaning; ne route pas directement select_state_potion.",
+      "Champ d'action potions: clarte=sens/cap/pourquoi profond deja clarifie; courage=peur/apprehension/evitement identifie; rappel=geste/cap/repere deja connu qui glisse.",
+      "Bridge select_state_potion seulement en complement consenti apres diagnostic: etat initial repair conversationnel; condition de maturite=cap/peur/repere suffisamment nomme pour devenir un support durable; jamais si no_potion/no_tool.",
+      "Pour toute suggestion select_state_potion, operation_input_hint.context.handoff_summary resume en 1-3 phrases ce qui a ete clarifie, les mots user importants, et ce que la potion doit soutenir ensuite.",
+      "La reply doit demander le consentement pour la potion en complement et ne jamais dire qu'elle est lancee/activee/programmee.",
+      "Dans un bridge potion, ne substitue pas product_help generique, plan edit, carte d'attaque, carte de defense, priorisation ou prochaine action, sauf demande produit/operation explicite du user.",
+      "Ne suggere pas clarte pour prioriser, choisir la prochaine tache ou decouper une action.",
       "N'ecris jamais de morale, de discipline brute, ni de verdict identitaire.",
       "Ne force aucun emoji; reste sobre si le contexte demande sobriete ou tunnel.",
     ],

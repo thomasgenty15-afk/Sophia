@@ -73,6 +73,127 @@ export function routeDecisionForOperationTrace(args: {
   };
 }
 
+function operationRuntimeSucceededWithChatEffect(
+  operationRuntime: Pick<
+    OperationRuntimeResult,
+    "toolExecution" | "executedTools"
+  >,
+): boolean {
+  if (operationRuntime.toolExecution !== "success") return false;
+  return operationRuntime.executedTools.some((tool) =>
+    tool === "create_one_shot_reminder" ||
+    tool === "cancel_one_shot_reminder" ||
+    tool === "track_progress_plan_item"
+  );
+}
+
+function platformHandoffQuestion(operationType: string): string | null {
+  switch (operationType) {
+    case "prepare_attack_card":
+      return "Maintenant, pour la carte d'attaque, c'est pour quelle action ?";
+    case "prepare_defense_card":
+      return "Maintenant, pour la carte de défense, c'est pour quel moment de risque ?";
+    case "adjust_plan_item":
+      return "Maintenant, pour l'ajustement du plan, tu veux changer quoi en priorité ?";
+    case "select_state_potion":
+      return "Maintenant, pour la potion, tu veux viser quel état ?";
+    case "create_recurring_reminder":
+      return "Maintenant, pour le rappel récurrent, tu veux quel rythme ?";
+    default:
+      return null;
+  }
+}
+
+function uncoveredDirectEffectSuffix(args: {
+  turnFrame: TurnFrame | null;
+  userMessage: string;
+}): string | null {
+  const message = String(args.userMessage ?? "");
+  if (!message.trim()) return null;
+  for (const effect of args.turnFrame?.direct_effects ?? []) {
+    const hint = effect.payload_hint && typeof effect.payload_hint === "object"
+      ? (effect.payload_hint as Record<string, unknown>).raw_text
+      : null;
+    const covered = String(hint ?? "").trim();
+    if (!covered || covered.length < 12) continue;
+    const index = message.indexOf(covered);
+    if (index < 0) continue;
+    const suffix = message.slice(index + covered.length)
+      .replace(/^[\s,.;:!?]+/, "")
+      .trim();
+    if (suffix.length >= 12) return suffix.slice(0, 180);
+  }
+  return null;
+}
+
+function appendUncoveredMessageFollowup(args: {
+  content: string;
+  operationRuntime: Pick<
+    OperationRuntimeResult,
+    "toolExecution" | "executedTools"
+  >;
+  turnFrame: TurnFrame | null;
+  userMessage: string;
+}): string {
+  const content = String(args.content ?? "").trim();
+  if (!content) return content;
+  if (!operationRuntimeSucceededWithChatEffect(args.operationRuntime)) {
+    return content;
+  }
+  const suffix = uncoveredDirectEffectSuffix({
+    turnFrame: args.turnFrame,
+    userMessage: args.userMessage,
+  });
+  if (!suffix || content.includes(suffix)) return content;
+  return `${content}\n\nJe garde aussi la suite : « ${suffix} ». Tu veux qu'on la traite maintenant ?`;
+}
+
+export function appendAgendaPlatformHandoffFollowup(args: {
+  content: string;
+  operationRuntime: Pick<
+    OperationRuntimeResult,
+    "toolExecution" | "executedTools"
+  >;
+  routeDecision: RouteDecision | null;
+  turnAgendaSummary: TurnAgendaSummary | null;
+  turnFrame?: TurnFrame | null;
+  userMessage?: string;
+}): string {
+  const content = String(args.content ?? "").trim();
+  if (!content) return content;
+  if (
+    !operationRuntimeSucceededWithChatEffect(
+      args.operationRuntime,
+    )
+  ) {
+    return content;
+  }
+  const selectedHandler = String(args.routeDecision?.selected_handler ?? "")
+    .trim();
+  const handoffTask = args.turnAgendaSummary?.tasks.find((task) => {
+    const operation = String(task.operation_type ?? "").trim();
+    return task.kind === "platform_handoff" &&
+      operation &&
+      operation !== selectedHandler &&
+      task.status !== "blocked" &&
+      task.status !== "cancelled" &&
+      task.status !== "superseded";
+  });
+  if (!handoffTask && args.turnFrame && args.userMessage) {
+    return appendUncoveredMessageFollowup({
+      content,
+      operationRuntime: args.operationRuntime,
+      turnFrame: args.turnFrame,
+      userMessage: args.userMessage,
+    });
+  }
+  const question = platformHandoffQuestion(
+    String(handoffTask?.operation_type ?? ""),
+  );
+  if (!question || content.includes(question)) return content;
+  return `${content}\n\n${question}`;
+}
+
 function envBool(name: string, fallback: boolean): boolean {
   let raw = "";
   try {
@@ -195,9 +316,17 @@ export async function handleOperationRuntimeResponse(args: {
       weeklyReviewStateAfterOperation
     ? weeklyReturnAfterAdjustmentMessage(userMessage)
     : null;
-  const rawOperationRuntimeContent = weeklyReturnMessage
+  const rawOperationRuntimeContentBeforeAgenda = weeklyReturnMessage
     ? `${operationRuntime.content}\n\n${weeklyReturnMessage}`
     : operationRuntime.content;
+  const rawOperationRuntimeContent = appendAgendaPlatformHandoffFollowup({
+    content: rawOperationRuntimeContentBeforeAgenda,
+    operationRuntime,
+    routeDecision,
+    turnAgendaSummary,
+    turnFrame,
+    userMessage,
+  });
   const weeklyCleanedOperationRuntimeContent = weeklyReviewStateAfterOperation
     ? applyWeeklyConcreteOrganizationGuard({
       responseContent: cleanWeeklyVisibleResponse(rawOperationRuntimeContent),

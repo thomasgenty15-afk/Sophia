@@ -22,8 +22,8 @@ SkillContext + user_message
 ```
 
 Le skill peut répondre, suggérer une opération avec consentement, demander un
-handoff vers `safety_crisis` ou `execution_breakdown`, et proposer des candidats
-mémoire non persistés par défaut. Il ne commit jamais un effet durable.
+handoff vers `safety_crisis`, et proposer des candidats mémoire non persistés
+par défaut. Il ne commit jamais un effet durable.
 
 ## Dépend De L'Architecture De X
 
@@ -51,13 +51,14 @@ travail est ouvert pour le tour (`reply`, `effect`, `status`, `memory`,
 `repair`). `emotional_repair` ne modifie pas cette agenda. Quand il est appelé,
 il possède uniquement la réponse de réparation émotionnelle et les suggestions
 non-mutantes associées. Si le tour doit devenir une action concrète, le skill
-émet un `handoff_request` vers `execution_breakdown`; il ne décompose pas
-l'action lui-même.
+propose `prepare_attack_card` ou `prepare_defense_card` avec consentement; il ne
+prépare pas la carte lui-même.
 
 Le `Confirmation Contract` n'est pas implémenté localement par ce domaine.
 `emotional_repair` peut produire une `operation_suggestions` pour
-`select_state_potion` ou `create_recurring_reminder`, mais toujours avec
-`requires_user_consent: true`. Pour les flows complexes, l'interprétation d'un
+`select_state_potion`, `prepare_attack_card`, `prepare_defense_card` ou
+`create_recurring_reminder`, mais toujours avec `requires_user_consent: true`.
+Pour les flows complexes, l'interprétation d'un
 "oui", "non", "modifie" ou "explique" appartient ensuite au platform handoff
 skill actif; elle ne devient pas une confirmation exécutable.
 
@@ -70,7 +71,7 @@ ou write DB ne doit être produit par ce skill.
 
 Le contrat local est propriétaire des décisions métier du domaine: `contract.ts`
 définit `EmotionalRepairSkillDecision`, les intents, phases, contraintes,
-handoffs, suggestions, invariants et validations; `intake.ts` appelle l'intake
+handoffs safety, suggestions, invariants et validations; `intake.ts` appelle l'intake
 IA structuré; `reducer.ts` transforme la décision en `ConversationSkillOutput`;
 `renderer.ts` fournit uniquement un fallback conservateur quand l'intake échoue
 ou quand la reply modèle viole le contrat.
@@ -104,7 +105,7 @@ skills/emotional_repair/reducer.ts
 Le routeur peut sélectionner `emotional_repair` et bloquer temporairement un
 tool skill quand `routers/routers.ts` applique la priorité `emotion_dominates`.
 Cette priorité est de l'arbitrage global. Elle ne doit pas contenir de
-compréhension locale de honte, no-potion, relationnel ou handoff execution.
+compréhension locale de honte, no-potion, relationnel ou action bloquée.
 
 ## File Ownership
 
@@ -152,7 +153,8 @@ Le skill reçoit:
 
 L'intake structuré doit décider les champs du contrat à partir de ce contexte:
 intent, phase, dominance émotionnelle, domaine, contraintes, contrat de réponse,
-handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
+handoff safety, suggestions d'opération, candidats mémoire, reply et patch
+d'état.
 
 ## Outputs
 
@@ -164,10 +166,37 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
 - `diagnosis`: décision structurée résumée;
 - `recommendation_need`: `needed=false` sauf suggestion consentie;
 - `operation_suggestions`: uniquement suggestions consenties;
-- `handoff_request`: `safety_crisis` ou `execution_breakdown` si applicable;
+- `handoff_request`: `safety_crisis` si applicable;
 - `memory_write_candidates`: candidats non persistés par défaut;
 - `effects`: effets conversationnels dérivés des suggestions/candidats/handoff;
 - `state_patch`: trace locale de la décision.
+
+Pour `select_state_potion`, les seules potions suggérables par ce skill sont :
+
+- `guerison` quand l'épisode émotionnel est assez posé et que le besoin durable
+  est de réparer sans figer la honte ou la culpabilité;
+- `amour` quand le besoin durable est chaleur, douceur ou regard moins dur
+  envers soi;
+- `apaisement` quand la pression ou la tension reste le thème principal après
+  stabilisation.
+
+Le bridge potion est une transition interne stricte :
+
+- état initial : `emotional_repair` reste propriétaire du repair conversationnel
+  tant que honte, culpabilité, panique ou auto-attaque dominent;
+- condition de maturité : l'émotion est assez stabilisée et le besoin durable
+  est nommé comme douceur, réparation ou apaisement;
+- type de potion : uniquement `amour`, `guerison` ou `apaisement`;
+- consentement : la reply doit proposer la potion en complément et demander
+  l'accord utilisateur, jamais annoncer une activation;
+- exclusions : pas de `product_help` générique, pas de plan edit, pas de carte
+  d'attaque, pas de carte de défense, pas de priorisation ou prochaine action
+  dans ce bridge sauf demande produit/opération explicite du user.
+
+Chaque suggestion `select_state_potion` doit porter
+`operation_input_hint.context.handoff_summary`: 1 à 3 phrases avec l'épisode ou
+l'émotion stabilisée, les mots utilisateur importants et le besoin durable que
+la potion doit soutenir.
 
 ## Responsibilities Owned By emotional_repair
 
@@ -183,9 +212,9 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
 - Protéger la mémoire contre l'identity freeze: `should_persist_default=false`,
   `anti_identity_freeze_checked=true`, texte contextualisé si une auto-attaque
   brute apparaît.
-- Demander un handoff vers `execution_breakdown` quand l'émotion est basse ou
-  moyenne et que la décision structurée indique que l'utilisateur est prêt à
-  agir.
+- Proposer `prepare_attack_card` ou `prepare_defense_card` quand l'émotion est
+  basse ou moyenne et que la décision structurée indique que l'utilisateur est
+  prêt à agir.
 - Demander un handoff vers `safety_crisis` si `turn_frame.safety.risk_band` est
   `high` ou `critical`.
 - Fournir une réponse courte non-mutante si l'intake IA échoue ou si la reply
@@ -197,7 +226,8 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
   confirmer un effet durable.
 - Interpréter les réponses `approve`, `reject`, `revise`, `explain` pour un
   handoff complexe: cela appartient au platform handoff skill propriétaire.
-- Décomposer une tâche concrète: cela appartient à `execution_breakdown`.
+- Construire ou exécuter une carte d'action: cela appartient aux tool skills
+  `prepare_attack_card` et `prepare_defense_card`.
 - Répondre à une crise safety avec contenu de crise: cela appartient à
   `safety_crisis`.
 - Ajouter une priorité de route ou un patch de réponse dans `run.ts`.
@@ -213,10 +243,13 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
   retourne un output non-mutant, sans tool et sans mémoire persistée.
 - Les replies invalides ne passent pas: `validateEmotionalRepairDecision` bloque
   les plans interdits, trop de questions, mention potion interdite, wording
-  d'effet durable et handoff execution mal formé.
+  d'effet durable et handoff safety mal formé.
 - `no_potion` bloque à la fois `select_state_potion` et toute mention visible de
   potion.
 - `no_tool` vide les suggestions d'opération.
+- Une émotion aiguë, une honte dominante, une auto-attaque, une panique ou une
+  détresse occupe d'abord `emotional_repair`; `guerison`, `amour` ou
+  `apaisement` ne peuvent sortir qu'en complément consenti après stabilisation.
 - Les suggestions d'opération doivent toutes avoir
   `requires_user_consent: true`.
 - Aucun wording "c'est fait", "j'ai créé", "programmé" ou "enregistré" ne peut
@@ -235,12 +268,13 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
   `SkillContext` et appelle `runEmotionalRepairSkill`.
 - `routers/routers.ts`: la branche `emotion_dominates` peut choisir
   `conversation_handler` et bloquer `tool_skills` pour le tour.
-- `execution_breakdown`: reçoit les handoffs
-  `handoff_request.target_skill_id="execution_breakdown"` quand la phase est
-  `handoff_to_execution`.
+- `prepare_attack_card` et `prepare_defense_card`: peuvent être suggérés avec
+  consentement quand l'action concrète émerge après stabilisation émotionnelle.
 - `safety_crisis`: reçoit les handoffs safety avant intake IA.
 - `select_state_potion`: peut être suggéré seulement si le contrat autorise les
-  tools, autorise la potion et demande le consentement utilisateur.
+  tools, autorise la potion et demande le consentement utilisateur. La
+  suggestion doit transmettre `operation_input_hint.context.handoff_summary`
+  pour que le sous-skill potion conserve le contexte déjà clarifié.
 - `create_recurring_reminder`: peut être suggéré seulement quand l'intake
   structurée décide `asks_recurring_support` et demande le consentement.
 - Mémoire conversationnelle: reçoit au maximum des candidats via
@@ -263,7 +297,7 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
 ## Forbidden Changes
 
 - Ajouter dans `run.ts`, `routers.ts` ou L3/L4 une regex honte, no-potion,
-  action bloquée, relationnelle ou handoff execution.
+  action bloquée, relationnelle ou handoff.
 - Ajouter une reply user-facing hardcodée dans `skill.ts` ou `run.ts`.
 - Exécuter `select_state_potion` ou `create_recurring_reminder` depuis
   `emotional_repair`.
@@ -276,8 +310,8 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
 ## Legacy Exceptions
 
 Il ne reste pas de patch L4 spécifique `emotional_repair` dans `run.ts` pour
-no-potion, reply additive ou handoff execution. Les anciennes protections ont
-été remplacées par le contrat local, le reducer et les validations.
+no-potion, reply additive ou action bloquée. Les anciennes protections ont été
+remplacées par le contrat local, le reducer et les validations.
 
 Deux limites transitionnelles restent documentées:
 
@@ -298,7 +332,7 @@ Le contrat est protégé par
 
 - scénarios de honte/auto-attaque sans push de solution;
 - mémoire anti-identity-freeze;
-- handoff execution quand l'émotion baisse;
+- suggestion de carte d'action quand l'émotion baisse;
 - no-potion qui filtre suggestion et reply;
 - réparation relationnelle;
 - support récurrent seulement sur demande explicite;
@@ -329,6 +363,6 @@ Cette recherche doit rester vide pour éviter la réintroduction de legacy L4.
 
 | Date       | Décision                                                                                                                               | Statut | Référence |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------- |
-| 2026-05-29 | `emotional_repair` porte no-potion, handoff execution et mémoire anti-identity-freeze dans son contrat L5, pas dans `run.ts`.          | Actif  | J8/J16    |
+| 2026-05-29 | `emotional_repair` porte no-potion, carte d'action consentie et mémoire anti-identity-freeze dans son contrat L5, pas dans `run.ts`.   | Actif  | J8/J16    |
 | 2026-05-30 | L'échec d'intake ou de validation passe par un renderer fallback conservateur non-mutant; aucune sortie vide ne doit quitter le skill. | Actif  | J21       |
 | 2026-05-30 | Le contrat runtime documente `reducer.ts`, le fallback L5 et l'absence de legacy L4 spécifique dans `run.ts`.                          | Actif  | J46       |

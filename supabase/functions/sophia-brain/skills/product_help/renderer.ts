@@ -107,6 +107,55 @@ function renderToolBridge(
   ].join("\n");
 }
 
+function renderCompareFeatures(feature: ProductHelpFeature) {
+  if (feature.id === "resources.attack_vs_defense_cards") {
+    return [
+      "Pour choisir: si ton besoin est surtout de te mettre a l'action, pars sur une carte d'attaque. Elle sert a demarrer, preparer le terrain et rendre le premier geste plus simple.",
+      "",
+      "La carte de defense sert plutot quand tu risques de derailer pendant l'action: evitement, impulsion, pression, fatigue ou autre moment de risque. Les deux peuvent coexister, mais elles ne repondent pas au meme probleme.",
+    ].join("\n");
+  }
+  return `${feature.label}: ${feature.explain}`;
+}
+
+function renderWhereIsIt(
+  decision: ProductHelpDecision,
+  feature: ProductHelpFeature,
+) {
+  const locationText = formatLocations(feature, true);
+  const existenceLimit =
+    "Je ne peux pas confirmer qu'elle existe sans source recente ou projection; si elle existe, c'est l'endroit a verifier.";
+
+  if (feature.id === "resources.attack_card") {
+    return [
+      "Si une carte d'attaque a ete generee, tu la retrouves ici:",
+      locationText,
+      "",
+      existenceLimit,
+      "Limite: seul le mot peut etre remplace sur une carte Mot de bascule depuis Ressources; pour changer le contexte, la technique ou le contenu, il faut preparer une nouvelle carte apres confirmation.",
+    ].join("\n");
+  }
+
+  if (feature.id === "resources.defense_card") {
+    return [
+      "Si une carte de defense existe, tu la retrouves ici:",
+      locationText,
+      "",
+      existenceLimit,
+      "Limite: depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, il faut en preparer une nouvelle version apres confirmation.",
+    ].join("\n");
+  }
+
+  return [
+    `${feature.label}: voici ou verifier dans le produit.`,
+    locationText,
+    "",
+    decision.grounding.db_sources_required && !hasCommittedSource(decision)
+      ? "Je ne peux pas confirmer l'etat exact sans source recente ou projection."
+      : "Si l'objet existe, c'est l'endroit a verifier.",
+  ].join("\n");
+}
+
 export function renderCatalog(
   decision: ProductHelpDecision,
   feature: ProductHelpFeature,
@@ -124,9 +173,16 @@ export function renderCatalog(
     }`;
   }
 
+  if (decision.intent === "compare_features") {
+    return `${renderCompareFeatures(feature)}${bridgeSentence(decision)}`;
+  }
+
+  if (decision.intent === "where_is_it") {
+    return `${renderWhereIsIt(decision, feature)}${bridgeSentence(decision)}`;
+  }
+
   if (
     decision.intent === "how_to" ||
-    decision.intent === "where_is_it" ||
     decision.intent === "modify_or_cancel_where" ||
     decision.intent === "can_i_do_x"
   ) {

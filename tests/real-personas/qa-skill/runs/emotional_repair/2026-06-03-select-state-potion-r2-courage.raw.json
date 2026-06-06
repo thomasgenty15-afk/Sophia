@@ -1,0 +1,2131 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+    "auth_method": "refresh_token",
+    "user": "Je veux preparer une potion de courage. J evite d envoyer un message important a mon associe, et je crois que c est surtout la peur du conflit.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+      "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Est-ce que ce qui bloque le plus est la peur du conflit ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+            "source_message_id": "3f617e7d-94d1-4a27-8dc5-d5c7b08947b3",
+            "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "select_state_potion",
+                "explicitness": "explicit",
+                "target_hint": "potion de courage",
+                "operation_input": {
+                  "potion_type": "courage",
+                  "evidence": [
+                    "Je veux preparer une potion de courage"
+                  ]
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "medium",
+                  "reason": "avoidance_due_to_fear_of_conflict"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "peur_du_conflit",
+                  "query_hint": "peur du conflit avec associé",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "peur du conflit et courage",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "state_potion_handoff"
+            ],
+            "operation_types": [
+              "select_state_potion"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:select_state_potion:0",
+                "kind": "platform_handoff",
+                "owner": "state_potion_handoff",
+                "operation_type": "select_state_potion",
+                "intent": "create",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_handoff_clarifying",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_handoff_clarifying",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01:agenda:proposed:dispatcher:select_state_potion:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "state_potion_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:select_state_potion:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "potion de courage"
+                  ],
+                  "user_goal_summary": "potion de courage",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_handoff_clarifying",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+          "source_message_id": "3f617e7d-94d1-4a27-8dc5-d5c7b08947b3",
+          "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "select_state_potion",
+              "explicitness": "explicit",
+              "target_hint": "potion de courage",
+              "operation_input": {
+                "potion_type": "courage",
+                "evidence": [
+                  "Je veux preparer une potion de courage"
+                ]
+              },
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "create"
+            }
+          ],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "medium",
+                "reason": "avoidance_due_to_fear_of_conflict"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "topic",
+                "key": "peur_du_conflit",
+                "query_hint": "peur du conflit avec associé",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "peur du conflit et courage",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "state_potion_handoff"
+          ],
+          "operation_types": [
+            "select_state_potion"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "dispatcher:select_state_potion:0",
+              "kind": "platform_handoff",
+              "owner": "state_potion_handoff",
+              "operation_type": "select_state_potion",
+              "intent": "create",
+              "source": "dispatcher",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_handoff_clarifying",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "clarifying",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_handoff_clarifying",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01:agenda:proposed:dispatcher:select_state_potion:0",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "state_potion_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "dispatcher:select_state_potion:0",
+                "source": "dispatcher",
+                "evidence": [
+                  "explicit",
+                  "high",
+                  "potion de courage"
+                ],
+                "user_goal_summary": "potion de courage",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_handoff_clarifying",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "clarifying",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+    "auth_method": "refresh_token",
+    "user": "Oui, c est bien la peur du conflit. Ce que j evite, c est ce message a mon associe pour poser une limite.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+      "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ce que je comprends : envoyer un message important à ton associé ; conflit\n\nJe te conseille de choisir une potion de courage. Le shift recommandé est de franchir un passage évité avec un appui court.\n\nPourquoi cette potion : Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.\nPetit pas immédiat : Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.\n\nÀ mettre dans la plateforme :\nPotion : Potion de courage\n- Qu'est-ce que tu evites en ce moment ? envoyer un message important à ton associé\n- Qu'est-ce qui bloque le plus ? La peur du conflit\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+            "source_message_id": "71777960-a19d-4ee6-adbe-2659cfd9e398",
+            "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=1.5"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "select_state_potion": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_confirms_and_details_potion_intake_slots"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "peur du conflit et évitement",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "relations.conflit",
+                  "query_hint": "poser des limites associé",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "active_handoff",
+                "reason_code": "active_handoff_turn_unclear"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_handoff_turn_unclear",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "ask_clarification",
+              "active_owner": "tool_skill",
+              "selected_owner": "select_state_potion",
+              "resume_policy": "clear_or_interrupt",
+              "reason_code": "active_handoff_turn_unclear",
+              "continuation_intent": "unclear"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 2,
+            "owners": [
+              "orientation_clarification",
+              "state_potion_handoff"
+            ],
+            "operation_types": [
+              "select_state_potion"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "orientation_clarification",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "asked",
+                "reason_code": "active_handoff_turn_unclear"
+              },
+              {
+                "task_id": "active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "owner": "state_potion_handoff",
+                "operation_type": "select_state_potion",
+                "intent": "create",
+                "source": "active_flow",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_platform_handoff_delivered",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "no_chat_mutation": true,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_state_summary": "envoyer un message important à ton associé ; conflit",
+                "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court.",
+                "recommendation": {
+                  "potion_label": "une potion de courage",
+                  "why_this_potion": "Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.",
+                  "immediate_step": "Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.",
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "dans la section État / Potions",
+                  "platform_steps": [
+                    "ouvre la section État / Potions",
+                    "choisis la potion recommandée",
+                    "active-la depuis la plateforme si elle te convient"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "courage",
+                    "potion_title": "Potion de courage",
+                    "answers": [
+                      {
+                        "question_id": "avoidance_target",
+                        "question_label": "Qu'est-ce que tu evites en ce moment ?",
+                        "value": "envoyer un message important à ton associé",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "blocker_kind",
+                        "question_label": "Qu'est-ce qui bloque le plus ?",
+                        "value": "La peur du conflit",
+                        "option_value": "conflit",
+                        "option_label": "La peur du conflit"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 1,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02:agenda:asked:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.intent",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "orientation_clarification",
+                "status": "asked",
+                "reason_code": "active_handoff_turn_unclear",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": []
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "orientation_clarification",
+                "ambiguity_kind": "intent",
+                "candidate_ids": [],
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02:agenda:proposed:active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "state_potion_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "router",
+                "payload_summary": {
+                  "task_id": "active_flow:select_state_potion",
+                  "source": "active_flow",
+                  "evidence": [],
+                  "user_goal_summary": null,
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "handoff_delivered",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+          "source_message_id": "71777960-a19d-4ee6-adbe-2659cfd9e398",
+          "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0;decay=0.55;recovery=1.5"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "select_state_potion": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_confirms_and_details_potion_intake_slots"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "peur du conflit et évitement",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "relations.conflit",
+                "query_hint": "poser des limites associé",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "active_handoff",
+              "reason_code": "active_handoff_turn_unclear"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_handoff_turn_unclear",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "ask_clarification",
+            "active_owner": "tool_skill",
+            "selected_owner": "select_state_potion",
+            "resume_policy": "clear_or_interrupt",
+            "reason_code": "active_handoff_turn_unclear",
+            "continuation_intent": "unclear"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 2,
+          "owners": [
+            "orientation_clarification",
+            "state_potion_handoff"
+          ],
+          "operation_types": [
+            "select_state_potion"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "clarification:dispatcher",
+              "kind": "clarification",
+              "owner": "orientation_clarification",
+              "operation_type": null,
+              "intent": "clarify",
+              "source": "dispatcher",
+              "status": "asked",
+              "reason_code": "active_handoff_turn_unclear"
+            },
+            {
+              "task_id": "active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "owner": "state_potion_handoff",
+              "operation_type": "select_state_potion",
+              "intent": "create",
+              "source": "active_flow",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_platform_handoff_delivered",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "handoff_delivered",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_platform_handoff_delivered",
+            "no_chat_mutation": true,
+            "draft": {
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_state_summary": "envoyer un message important à ton associé ; conflit",
+              "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court.",
+              "recommendation": {
+                "potion_label": "une potion de courage",
+                "why_this_potion": "Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.",
+                "immediate_step": "Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.",
+                "preserve": [],
+                "avoid": [],
+                "platform_destination": "dans la section État / Potions",
+                "platform_steps": [
+                  "ouvre la section État / Potions",
+                  "choisis la potion recommandée",
+                  "active-la depuis la plateforme si elle te convient"
+                ],
+                "platform_inputs": {
+                  "potion_type": "courage",
+                  "potion_title": "Potion de courage",
+                  "answers": [
+                    {
+                      "question_id": "avoidance_target",
+                      "question_label": "Qu'est-ce que tu evites en ce moment ?",
+                      "value": "envoyer un message important à ton associé",
+                      "option_value": null,
+                      "option_label": null
+                    },
+                    {
+                      "question_id": "blocker_kind",
+                      "question_label": "Qu'est-ce qui bloque le plus ?",
+                      "value": "La peur du conflit",
+                      "option_value": "conflit",
+                      "option_label": "La peur du conflit"
+                    }
+                  ],
+                  "optional_free_text": null
+                }
+              },
+              "missing_decisions": []
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 1,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02:agenda:asked:clarification:dispatcher",
+              "kind": "clarification",
+              "effect_type": "clarification.intent",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "orientation_clarification",
+              "status": "asked",
+              "reason_code": "active_handoff_turn_unclear",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "clarification:dispatcher",
+                "source": "dispatcher",
+                "evidence": []
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": "orientation_clarification",
+              "ambiguity_kind": "intent",
+              "candidate_ids": [],
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02:agenda:proposed:active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "state_potion_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "router",
+              "payload_summary": {
+                "task_id": "active_flow:select_state_potion",
+                "source": "active_flow",
+                "evidence": [],
+                "user_goal_summary": null,
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "handoff_delivered",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+    "auth_method": "refresh_token",
+    "user": "Redis-moi juste quoi mettre dans la plateforme.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+      "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ce que je comprends : envoyer un message important à ton associé ; conflit\n\nJe te conseille de choisir une potion de courage. Le shift recommandé est de franchir un passage évité avec un appui court.\n\nPourquoi cette potion : Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.\nPetit pas immédiat : Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.\n\nÀ mettre dans la plateforme :\nPotion : Potion de courage\n- Qu'est-ce que tu evites en ce moment ? envoyer un message important à ton associé\n- Qu'est-ce qui bloque le plus ? La peur du conflit\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+            "source_message_id": "cb540079-a147-4a8e-8f05-875dfdf7d0e1",
+            "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "previous_scores": [
+                0,
+                1
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": true,
+                  "weight": 10,
+                  "contribution": 0.6,
+                  "evidence": "0,1;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "active_handoff_platform_destination_followup"
+                }
+              },
+              "lifecycle": {
+                "select_state_potion": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_asks_for_platform_handoff_recap"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": {
+              "type": "repeat_handoff",
+              "confidence": "high",
+              "evidence": [
+                "Redis-moi juste quoi mettre dans la plateforme"
+              ],
+              "target_skill_id": "select_state_potion"
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "active_handoff",
+                "reason_code": "active_handoff_repeat_handoff"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_handoff_repeat_handoff",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_handoff",
+              "active_owner": "tool_skill",
+              "selected_owner": "select_state_potion",
+              "resume_policy": "active_handoff_continue",
+              "reason_code": "active_handoff_repeat_handoff",
+              "continuation_intent": "repeat_handoff"
+            },
+            "selected_handler": "select_state_potion"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "state_potion_handoff"
+            ],
+            "operation_types": [
+              "select_state_potion"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "owner": "state_potion_handoff",
+                "operation_type": "select_state_potion",
+                "intent": "create",
+                "source": "active_flow",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion",
+            "reason_code": "state_potion_repeat_handoff",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "repeat_handoff",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "handoff": null,
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "state_potion_repeat_handoff",
+              "no_chat_mutation": true,
+              "draft": {
+                "mode": "platform_handoff",
+                "operation_type": "select_state_potion",
+                "recommendation": {
+                  "avoid": [],
+                  "preserve": [],
+                  "potion_label": "une potion de courage",
+                  "immediate_step": "Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.",
+                  "platform_steps": [
+                    "ouvre la section État / Potions",
+                    "choisis la potion recommandée",
+                    "active-la depuis la plateforme si elle te convient"
+                  ],
+                  "platform_inputs": {
+                    "answers": [
+                      {
+                        "value": "envoyer un message important à ton associé",
+                        "question_id": "avoidance_target",
+                        "option_label": null,
+                        "option_value": null,
+                        "question_label": "Qu'est-ce que tu evites en ce moment ?"
+                      },
+                      {
+                        "value": "La peur du conflit",
+                        "question_id": "blocker_kind",
+                        "option_label": "La peur du conflit",
+                        "option_value": "conflit",
+                        "question_label": "Qu'est-ce qui bloque le plus ?"
+                      }
+                    ],
+                    "potion_type": "courage",
+                    "potion_title": "Potion de courage",
+                    "optional_free_text": null
+                  },
+                  "why_this_potion": "Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.",
+                  "platform_destination": "dans la section État / Potions"
+                },
+                "no_chat_mutation": true,
+                "missing_decisions": [],
+                "user_state_summary": "envoyer un message important à ton associé ; conflit",
+                "executable_from_chat": false,
+                "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03:agenda:proposed:active_flow:select_state_potion",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "state_potion_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "router",
+                "payload_summary": {
+                  "task_id": "active_flow:select_state_potion",
+                  "source": "active_flow",
+                  "evidence": [],
+                  "user_goal_summary": null,
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion",
+                "status": "delivered",
+                "reason_code": "state_potion_repeat_handoff",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "repeat_handoff",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+          "source_message_id": "cb540079-a147-4a8e-8f05-875dfdf7d0e1",
+          "user_id": "14ccd792-eeb4-44b6-9a37-2509d988169e",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "previous_scores": [
+              0,
+              1
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": true,
+                "weight": 10,
+                "contribution": 0.6,
+                "evidence": "0,1;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "active_handoff_platform_destination_followup"
+              }
+            },
+            "lifecycle": {
+              "select_state_potion": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_asks_for_platform_handoff_recap"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": {
+            "type": "repeat_handoff",
+            "confidence": "high",
+            "evidence": [
+              "Redis-moi juste quoi mettre dans la plateforme"
+            ],
+            "target_skill_id": "select_state_potion"
+          },
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "active_handoff",
+              "reason_code": "active_handoff_repeat_handoff"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_handoff_repeat_handoff",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_handoff",
+            "active_owner": "tool_skill",
+            "selected_owner": "select_state_potion",
+            "resume_policy": "active_handoff_continue",
+            "reason_code": "active_handoff_repeat_handoff",
+            "continuation_intent": "repeat_handoff"
+          },
+          "selected_handler": "select_state_potion"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "state_potion_handoff"
+          ],
+          "operation_types": [
+            "select_state_potion"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "owner": "state_potion_handoff",
+              "operation_type": "select_state_potion",
+              "intent": "create",
+              "source": "active_flow",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion",
+          "reason_code": "state_potion_repeat_handoff",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "repeat_handoff",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "handoff": null,
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "state_potion_repeat_handoff",
+            "no_chat_mutation": true,
+            "draft": {
+              "mode": "platform_handoff",
+              "operation_type": "select_state_potion",
+              "recommendation": {
+                "avoid": [],
+                "preserve": [],
+                "potion_label": "une potion de courage",
+                "immediate_step": "Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.",
+                "platform_steps": [
+                  "ouvre la section État / Potions",
+                  "choisis la potion recommandée",
+                  "active-la depuis la plateforme si elle te convient"
+                ],
+                "platform_inputs": {
+                  "answers": [
+                    {
+                      "value": "envoyer un message important à ton associé",
+                      "question_id": "avoidance_target",
+                      "option_label": null,
+                      "option_value": null,
+                      "question_label": "Qu'est-ce que tu evites en ce moment ?"
+                    },
+                    {
+                      "value": "La peur du conflit",
+                      "question_id": "blocker_kind",
+                      "option_label": "La peur du conflit",
+                      "option_value": "conflit",
+                      "question_label": "Qu'est-ce qui bloque le plus ?"
+                    }
+                  ],
+                  "potion_type": "courage",
+                  "potion_title": "Potion de courage",
+                  "optional_free_text": null
+                },
+                "why_this_potion": "Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.",
+                "platform_destination": "dans la section État / Potions"
+              },
+              "no_chat_mutation": true,
+              "missing_decisions": [],
+              "user_state_summary": "envoyer un message important à ton associé ; conflit",
+              "executable_from_chat": false,
+              "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03:agenda:proposed:active_flow:select_state_potion",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "state_potion_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "router",
+              "payload_summary": {
+                "task_id": "active_flow:select_state_potion",
+                "source": "active_flow",
+                "evidence": [],
+                "user_goal_summary": null,
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion",
+              "status": "delivered",
+              "reason_code": "state_potion_repeat_handoff",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "repeat_handoff",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

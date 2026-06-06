@@ -1,208 +1,187 @@
-# QA Run — Demotivation Repair R2
+# QA Run Report - Demotivation Repair R2
 
 ## 1. Contexte Du Test
 
 - Date: 2026-06-02
-- Run: `20260602-r2`
-- Persona: `qa-skill`, connexion temporaire locale `demotivation_repair_20260602-r1`
-- Objectif: tester le chemin IA reel `demotivation_repair` sur fatigue motivationnelle, sans mutation durable.
-- Trajectoire: decrochage motivationnel -> contrainte explicite no tool/no potion/no plan edit -> correction utilisateur -> micro-action deja choisie -> demarrage.
-- Surfaces visees: dispatcher/orientation clarification, `demotivation_repair`, `select_state_potion`, `prepare_attack_card`, TurnAgenda, EffectLedger, no-mutation.
-- Cadre IA reel: Supabase local, `/functions/v1/test-send-message`, `force_full_ai=true`, pas de fallback deterministe.
-- Validite QA: valide pour le runtime reel. Rose/Nina/Alex n'etaient pas utilisables en Auth local; la connexion dediee `qa-skill` a ete utilisee.
+- Run: `demotivation_repair_20260602_r2`
+- Persona: `qa-skill`
+- Connection: `demotivation_repair_20260602-r1` temporaire reutilisee apres reset cible
+- Objectif: rerun IA reel de `demotivation_repair` avec charte anti-patching en tete, sans modification de code pendant le run.
+- Trajectoire: perte d'elan -> refus outil/potion -> phrase anti-identitaire -> demande de micro-action sans outil -> correction utilisateur.
+- Surfaces visees: dispatcher, `demotivation_repair`, `emotional_repair`, `execution_breakdown`, orientation clarification, final response/ledger guards, constraints `no_tool` et `no_potion`.
+- Cadre IA reel: Supabase local, `/functions/v1/test-send-message`, `force_full_ai=true`, `disable_debounce=true`, pas de fallback deterministe.
+- Validite QA: valide. Le run est conversationnel, tour par tour, avec raw JSON dans `tmp/demotivation_repair_20260602_r2/`.
 
 ## 2. Tours De Conversation
 
 ### Tour 1
 
-**Verdict du tour:** yellow
-
-**Famille de bugs si yellow/red:** `BF-ROUTE-01` — Mauvais owner selectionne
+**Verdict du tour:** green
 
 **User**
-> Franchement aujourd'hui j'ai plus envie. Le plan de grignotage, les placards, tout ca, j'ai l'impression que ca ne sert a rien et que je vais encore tenir deux jours puis laisser tomber.
+> Je suis devant mon plan et je sens juste un gros blanc. Pas une crise, pas de danger, juste cette impression que tout ce que je relance finit par s'eteindre.
 
 **Sophia**
-> Est-ce que tu veux faire le point sur la motivation ou est-ce qu'on modifie le plan de grignotage ? 🙂
+> Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ? 🙂
 
 **Trace courte**
 - http_status: 200
-- response_owner: `orientation_clarification`
-- selected_handler: `orientation_clarification`
-- route_reason: `clarification_required`
-- direct_effects: aucun
+- response_owner: `conversation_handler`
+- selected_handler: `demotivation_repair`
+- route_reason: `skill_entry_signal`
+- skill_signal: `demotivation_repair`, high, `user_expresses_futility_and_loss_of_momentum`
+- tool_skill_opportunity: `state_potion`, `should_offer=false`, `must_not_execute=true`
 - executed_tools: `[]`
-- durable_effect: aucun
-
-**Analyse si yellow/red**
-- Symptome: Sophia demande une clarification binaire alors que le signal motivationnel est deja explicite.
-- Source amont probable: orientation clarification / arbitration entre `demotivation_repair` et plan edit.
-- Owner runtime: dispatcher + clarification arbitrator.
-- Meilleure correction selon les guidelines: laisser `demotivation_repair` posseder le diagnostic quand fatigue/perte de sens domine et que la modification plan n'est pas demandee.
-- Pourquoi ce n'est pas un patch local: le contrat interdit de classifier cette semantique dans `run.ts`; l'arbitrage doit s'appuyer sur les skill signals.
+- durable_effect: none
 
 ### Tour 2
 
-**Verdict du tour:** red
+**Verdict du tour:** yellow
 
-**Famille de bugs si yellow/red:** `BF-ROUTE-03` — Product/status/tool mal priorises
+**Famille de bugs si yellow/red:** `BF-INTAKE-01` - slot fourni mais redemande
 
 **User**
-> Plutot motivation. Ne modifie pas le plan, ne lance pas de potion ni d'outil. J'ai juste besoin que tu m'aides a ne pas transformer ce ratage en preuve que je suis nulle.
+> C'est surtout apres deux ou trois jours. Je repars, puis ca retombe, et je conclus que ca ne sert a rien. Ne me propose pas de potion ni d'outil; reste juste avec moi sur ce decouragement.
 
 **Sophia**
-> Je ne l'active pas depuis le chat. Reprends cette recommandation dans la section État / Potions.
+> Ce blanc est souvent une réaction quand l'esprit sature de relancer des efforts qui semblent ne pas tenir. On ne va rien forcer ni modifier pour l'instant. Est-ce que cette impression que tout s'éteint arrive dès le premier geste ou après quelques jours ? 🙂
 
 **Trace courte**
 - http_status: 200
-- response_owner: `tool_skill`
-- selected_handler: `select_state_potion`
-- route_reason: `orientation_clarification_resolved`
-- tool_execution: `blocked`
+- response_owner: `conversation_handler`
+- selected_handler: `demotivation_repair`
+- route_reason: `orientation_clarification_resolved_conversation_skill`
+- skill_signal: lifecycle `demotivation_repair`, high
+- tool_skill_opportunity: `none`, `must_not_execute=true`
 - executed_tools: `[]`
-- durable_effect: aucun
+- durable_effect: none
 
 **Analyse si yellow/red**
-- Symptome: contrainte explicite `pas de potion ni d'outil` ignoree dans le choix du handler; la reponse parle de potion.
-- Source amont probable: orientation clarification resolved path mappe "motivation" vers `select_state_potion` au lieu de `demotivation_repair`.
-- Owner runtime: clarification arbitrator + operation suggestion resolver.
-- Meilleure correction selon les guidelines: les candidats conversationnels (`demotivation_repair`) doivent rester eligibles et prioritaires quand le user choisit "motivation"; `no_potion` doit supprimer `select_state_potion` avant resolution.
-- Pourquoi ce n'est pas un patch local: le contrat `demotivation_repair` couvre deja `no_potion`; le bug est dans la resolution de l'orientation, pas dans le renderer.
+- Symptome: Sophia repete quasiment T1 et repose exactement la question que l'utilisateur vient de traiter.
+- Source amont probable: resolution de clarification vers skill conversationnel sans injection correcte du slot resolu dans le contexte/reponse.
+- Owner runtime: clarification state / `demotivation_repair` context recovery.
+- Meilleure correction: transmettre le slot resolu au skill et interdire la repetition de la question resolue.
+- Pourquoi ce n'est pas un patch regex: la trace a deja la bonne intent; il faut corriger le contrat de clarification/context, pas matcher cette phrase.
 
 ### Tour 3
 
-**Verdict du tour:** yellow
-
-**Famille de bugs si yellow/red:** `BF-ROUTE-03` — Product/status/tool mal priorises
+**Verdict du tour:** green
 
 **User**
-> Non justement, pas de potion. Je te demande de rester avec moi deux minutes sur la demotivation. Je me sens juste fatiguee et decouragee, pas en train de demander une action dans l'app.
+> Je viens de te repondre: apres deux ou trois jours. Ne me repose pas la question. Donne-moi juste une phrase courte pour ne pas transformer cette rechute en preuve que je suis foutu.
 
 **Sophia**
-> Phrase de réparation : "Je reviens au prochain geste, pas a toute la montagne."
-> Micro-action : ferme ce qui attire ton attention, rouvre seulement la tâche utile, et fais 90 secondes dessus. 🙂
+> Ok. Quand ça retombe au bout de 2-3 jours, ce n’est pas “je suis foutu”, c’est juste “ça ne tient pas encore”, et on ne conclut pas avant d’avoir tenu le prochain petit segment. 🙂
 
 **Trace courte**
 - http_status: 200
-- response_owner: `tool_skill`
-- selected_handler: `select_state_potion`
-- route_reason: `explicit_no_tool_request_blocks_tool_start`
-- tool_execution: `blocked`
+- response_owner: `conversation_handler`
+- selected_handler: `emotional_repair`
+- route_reason: `orientation_clarification_resolved_conversation_skill`
+- skill_signals: entry `emotional_repair`, high; lifecycle `demotivation_repair`, high
+- tool_skill_opportunity: `none`, `must_not_execute=true`
 - executed_tools: `[]`
-- durable_effect: aucun
-
-**Analyse si yellow/red**
-- Symptome: reponse visible acceptable, mais trace incoherente: le selected handler reste `select_state_potion`.
-- Source amont probable: final recovery/guard produit une reponse de reparation apres blocage tool, sans reassigner le owner runtime.
-- Owner runtime: TurnAgenda / final response pipeline / operation runtime response handler.
-- Meilleure correction selon les guidelines: quand `no_tool` bloque un tool et que le contenu demande explicitement demotivation, restaurer un owner conversationnel ou repasser par `demotivation_repair`.
-- Pourquoi ce n'est pas un patch local: le probleme est un etat runtime incoherent, pas une phrase visible.
+- durable_effect: none
 
 ### Tour 4
 
-**Verdict du tour:** yellow
+**Verdict du tour:** red
 
-**Famille de bugs si yellow/red:** `BF-AGENDA-02` — Interruption explicite mal restauree
+**Famille de bugs si yellow/red:** `BF-LEDGER-01` - guard ledger/final response hors contexte
 
 **User**
-> Ok. La micro-action que je peux faire maintenant, c'est juste ouvrir le placard le plus visible et enlever un seul paquet, pas plus. Aide-moi a lancer ca sans me refaire un grand plan.
+> La phrase m'aide. Maintenant je veux juste un premier geste de 90 secondes, choisi par toi, sans outil et sans reclarification.
 
 **Sophia**
-> Tu veux découper cette action ou préparer ton démarrage ? 🙂
+> Je ne l'ai pas modifié. 🙂
 
 **Trace courte**
 - http_status: 200
-- response_owner: `orientation_clarification`
-- selected_handler: `orientation_clarification`
-- route_reason: `clarification_required`
-- tool_execution: `none`
+- response_owner: `conversation_handler`
+- selected_handler: `execution_breakdown`
+- route_reason: `orientation_clarification_resolved_conversation_skill`
+- skill_signal: entry `execution_breakdown`, high, `user_requests_micro_step_to_break_friction`
+- tool_skill_opportunity: `none`, `must_not_execute=true`
 - executed_tools: `[]`
-- durable_effect: aucun
+- durable_effect: none
 
 **Analyse si yellow/red**
-- Symptome: Sophia redemande une clarification alors que l'action, la taille et l'intention "demarrage" sont donnees.
-- Source amont probable: handoff readiness / TurnAgenda ne reconnait pas action deja choisie.
-- Owner runtime: clarification arbitrator + `demotivation_repair` handoff readiness.
-- Meilleure correction selon les guidelines: action_readiness `ready/already_chosen` doit autoriser une reponse de demarrage ou handoff execution non-mutant.
-- Pourquoi ce n'est pas un patch local: ajouter une phrase "un paquet" en regex serait trop local; il faut corriger l'intake readiness.
+- Symptome: le routing est coherent (`execution_breakdown`), mais la reponse visible est un message de non-modification hors sujet.
+- Source amont probable: final response guard / ledger guard injecte une phrase de non-commit alors que le user demande une action conversationnelle non mutante.
+- Owner runtime: final response pipeline / EffectLedger guard admission.
+- Meilleure correction: un guard "no mutation" ne doit parler que si une mutation etait demandee, annoncee ou ambigue; il ne doit pas remplacer une reponse conversationnelle attendue.
+- Pourquoi ce n'est pas un patch regex: le dispatcher a reconnu la micro-action; la correction est un invariant de pipeline, pas une detection de mots.
 
 ### Tour 5
 
-**Verdict du tour:** red
-
-**Famille de bugs si yellow/red:** `BF-ROUTE-03` — Product/status/tool mal priorises
+**Verdict du tour:** green
 
 **User**
-> Prepare juste mon demarrage. Pas besoin de decouper plus : un paquet, maintenant, puis je reviens.
+> Je ne t'ai pas demande de modifier quoi que ce soit. Je veux juste le geste de 90 secondes a faire maintenant.
 
 **Sophia**
-> Je n'ai pas pu préparer cette carte depuis le chat pour l'instant. 🙂
+> Ouvre ton plan, choisis la toute première ligne et note juste un mot ou fais un clic pour marquer ta présence dessus. C'est ton geste de 90 secondes pour briser le blanc sans rien relancer de lourd. 🙂
 
 **Trace courte**
 - http_status: 200
-- response_owner: `tool_skill`
-- selected_handler: `prepare_attack_card`
-- route_reason: `orientation_clarification_resolved_tool_skill`
-- tool_execution: `blocked`
+- response_owner: `conversation_handler`
+- selected_handler: `execution_breakdown`
+- route_reason: `active_conversation_skill_continue`
+- skill_signal: lifecycle `execution_breakdown`, high
+- tool_skill_opportunity: `none`, `must_not_execute=true`
 - executed_tools: `[]`
-- durable_effect: aucun
-
-**Analyse si yellow/red**
-- Symptome: "preparer mon demarrage" est resolu en carte d'attaque bloquee, alors que le user demandait une aide conversationnelle immediate.
-- Source amont probable: orientation clarification transforme un slot conversationnel en tool skill.
-- Owner runtime: clarification arbitrator + operation suggestion resolver.
-- Meilleure correction selon les guidelines: distinguer `prepare_attack_card` explicite de "preparer mon demarrage" dans un flow `demotivation_repair`; garder execution_breakdown/demarrage court comme reponse non-mutante.
-- Pourquoi ce n'est pas un patch local: la distinction doit venir du contrat de readiness et de l'owner, pas du wording exact.
+- durable_effect: none
 
 ## 3. Analyse De Fluidite Humaine
 
-**Verdict: red**
+**Verdict: yellow/red**
 
 **Ce qui marche**
-- Aucun message ne moralise la demotivation.
-- Aucun effet durable n'est applique.
-- Le tour 3 contient une phrase courte exploitable.
+- Le run ne reproduit pas la capture visible par `select_state_potion`.
+- Le refus "pas de potion ni d'outil" est respecte cote tool/effects.
+- T3 et T5 sont humainement utiles et actionnables.
 
 **Problemes**
-- Tour 1: clarification prematuree. Famille: `BF-ROUTE-01`. Impact: Sophia demande au user de choisir une architecture interne au lieu de reparer la demotivation.
-- Tour 2: potion proposee malgre "pas de potion". Famille: `BF-ROUTE-03`. Impact: rupture de confiance forte.
-- Tour 4: clarification inutile alors que la micro-action est claire. Famille: `BF-AGENDA-02`. Impact: friction au moment ou l'utilisateur est pret.
-- Tour 5: carte d'attaque bloquee au lieu d'un demarrage. Famille: `BF-ROUTE-03`. Impact: le flow finit par parler d'une erreur produit plutot que d'aider.
+- T2: repetition forte et question deja resolue. Famille: `BF-INTAKE-01`. Impact: l'utilisateur doit se repeter.
+- T4: reponse hors sujet "Je ne l'ai pas modifié" au lieu du geste demande. Famille: `BF-LEDGER-01`. Impact: rupture du flow juste au moment de retour au concret.
+- Latence: T1-T4 prennent plusieurs dizaines de secondes. Impact: warning technique pour un run conversationnel.
 
 **Fix propose**
-- Source amont: orientation clarification + TurnAgenda readiness.
-- Correction recommandee: prioriser `demotivation_repair` quand fatigue/perte de sens/no_tool/no_potion sont explicites; ne mapper "motivation" ou "preparer mon demarrage" vers tool skill que si le user demande clairement une surface produit.
-- Tests d'invariant attendus: run reel ou "motivation, pas de potion ni outil" produit `selected_handler=demotivation_repair`; "un paquet maintenant" produit reply/handoff execution non-mutant, pas `prepare_attack_card`.
+- Source amont: clarification state/context recovery et final response pipeline.
+- Correction recommandee: propager le slot resolu vers le skill; limiter les guards ledger/no-mutation aux tours ou une mutation est en jeu.
+- Tests d'invariant attendus: clarification resolue ne repose pas la meme question; demande de micro-action non mutante ne peut pas etre remplacee par une phrase de non-modification.
 
 ## 4. Analyse Systeme
 
-**Verdict: red**
+**Verdict: yellow/red**
 
 **Routage**
-- `demotivation_repair` n'est jamais selectionne pendant le run reel.
-- `orientation_clarification` capture le premier tour, puis resolve vers `select_state_potion` et `prepare_attack_card`.
-- Les contraintes explicites `no_potion` et `no_tool` bloquent l'execution, mais trop tard: le mauvais handler est deja choisi.
+- T1-T2: `demotivation_repair` high confidence et owner conversationnel.
+- T3: bascule `emotional_repair` justifiable par auto-attaque explicite, avec `demotivation_repair` encore high en lifecycle.
+- T4-T5: `execution_breakdown` high confidence pour micro-action, routage coherent.
+- Aucun tour ne route vers `select_state_potion`; l'ancienne capture potion du R1 n'est pas reproduite.
 
 **Skills / Operations / Tools**
-- `select_state_potion` apparait aux tours 2-3 sans demande de potion.
-- `prepare_attack_card` apparait au tour 5 sans demande de carte.
-- `executed_tools=[]` et `tool_execution=blocked` aident a eviter les mutations, mais produisent une mauvaise experience.
+- `demotivation_repair`: entree correcte, mais repetition apres clarification resolue.
+- `emotional_repair`: reponse utile sur auto-attaque.
+- `execution_breakdown`: route correcte; T4 rendu casse, T5 rendu correct.
+- Tools/effects: aucun outil execute.
 
-**Memory / Effets durables**
-- DB avant cleanup cible: 10 `chat_messages` dans le scope du run.
-- Aucun `scheduled_checkins`, aucune `user_potion_sessions`, aucune `user_attack_cards`, aucune `memory_items` observee pour ce user QA.
-- Test contractuel local: `/usr/local/bin/deno test --allow-env --allow-net --allow-read --filter "demotivation_repair" supabase/functions/sophia-brain/skills/skills_s3.test.ts` -> 15 passed, 0 failed.
+**DB**
+- Avant cleanup:
+  - `chat_messages`: 10 dans le scope du run.
+  - `scheduled_checkins`: 0.
+  - `user_potion_sessions`: 0.
+  - `user_cycles`: 0.
+  - `memory_items`: 0.
+  - `user_topic_memories`: 0.
+  - `user_profile_facts`: 9 facts systeme par defaut.
 
-**Problemes**
-- Tours 2 et 5: mauvais tool owner malgre contraintes. Famille: `BF-ROUTE-03`. Impact systeme: route incoherente et final response issue d'un tool bloque.
-- Tour 3: selected handler incoherent avec reponse visible. Famille: `BF-TEST-01` secondaire possible, mais source principale `BF-ROUTE-03`.
-- Tour 4: action readiness non reconnue. Famille: `BF-AGENDA-02`. Impact systeme: clarification superflue au lieu d'un handoff/reply.
-
-**Fix propose**
-- Source amont: `clarification_candidate_builder`, `clarification_arbitrator`, orientation resolved path et `operation_suggestion_resolver`.
-- Correction recommandee: quand la clarification porte sur une intention conversationnelle, conserver les candidates conversationnelles comme owners finals; appliquer les contraintes `no_tool/no_potion` avant promotion de candidate tool; brancher le handoff `demotivation_repair -> execution_breakdown` pour action prete.
-- Tests d'invariant attendus: positif `demotivation_repair no_potion real route`, paraphrase "je veux juste motivation", anti-faux-positif "active une potion courage", integration "preparer mon demarrage" dans flow demotivation.
+**Anti-Patching**
+- La meilleure lecture n'est pas "ajouter une regex".
+- T2: le dispatcher/clarification a la bonne destination, mais la reponse ne consomme pas le slot resolu.
+- T4: le dispatcher a la bonne intent `execution_breakdown`; la reponse visible est ecrasee par un guard/final pipeline hors contexte.
 
 ## Verdict Global
 
-Red. Le contrat local `demotivation_repair` est vert, mais le run IA reel ne route jamais vers ce skill et transforme la reparation de demotivation en potion/carte bloquees.
+Yellow/red. Le bug R1 `select_state_potion` n'est pas reproduit, mais le rerun revele deux problemes amont plus larges: clarification resolue qui ne nourrit pas correctement le skill, et final response/ledger guard qui peut remplacer une reponse conversationnelle non mutante.

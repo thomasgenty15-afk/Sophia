@@ -7,9 +7,12 @@ export const GUERISON_POTION_SUBSKILL: StatePotionDetailSubSkillDefinition = {
   tone_rules: [
     "Repare sans culpabiliser et sans figer l'utilisateur dans la honte.",
     "Ne transforme pas l'episode en jugement moral.",
+    "Ne demande jamais si c'est lie au plan ou hors plan dans le chat.",
+    "N'invente jamais une action du plan.",
   ],
   extraction_rules: [
-    "recent_hurt = l'episode qui a fait mal, le craquage, l'echec, ou la blessure recente.",
-    "dominant_feeling = culpabilite, honte, decouragement, ou fatigue si le message permet de choisir; sinon reformule en mots user.",
+    "recent_hurt = l'episode ou la retombee qui a fait mal; ne verrouille pas une reponse trop vague si on ne sait pas ce qui a fait mal.",
+    "dominant_feeling = une des quatre options: culpabilite, honte, decouragement, ou fatigue.",
+    "Si le user exprime un besoin de pardon ou de reprise douce, utilise-le seulement comme nuance de wording, jamais comme champ requis.",
   ],
 };

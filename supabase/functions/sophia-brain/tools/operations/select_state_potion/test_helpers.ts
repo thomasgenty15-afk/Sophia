@@ -8,18 +8,19 @@ import type {
   SelectStatePotionSlotFillerOutput,
   StatePotionConfidence,
   StatePotionDetailAnswer,
+  StatePotionDetailFieldProgress,
   StatePotionShortlistOption,
 } from "./intake.ts";
 
 const TEST_DETAIL_IDS: Record<
   PotionSessionSelectorInput["potion_type"],
-  [string, string]
+  string[]
 > = {
   rappel: ["drift_target", "drift_style"],
   courage: ["avoidance_target", "blocker_kind"],
   guerison: ["recent_hurt", "dominant_feeling"],
-  clarte: ["clarity_problem", "clarity_need"],
-  amour: ["self_talk", "love_need"],
+  clarte: ["plan_meaning_loss_reason"],
+  amour: ["love_lack_context", "love_state"],
   apaisement: ["pressure_source", "pressure_state"],
 };
 
@@ -45,8 +46,21 @@ export function structuredStatePotionSlotFiller(args: {
           evidence: [`structured_detail_${index + 1}`],
         }))
         : []);
+    const detailFields: StatePotionDetailFieldProgress[] = detailAnswers.map(
+      (answer) => ({
+        question_id: answer.question_id,
+        label: answer.label,
+        required: true,
+        status: "locked",
+        proposed_value: null,
+        locked_value: answer.answer,
+        user_evidence: answer.evidence,
+        needs_user_confirmation: false,
+        evidence: answer.evidence,
+      }),
+    );
     const detailsReady = Boolean(selected) &&
-      detailAnswers.length >= 2;
+      detailAnswers.length >= (selected ? TEST_DETAIL_IDS[selected].length : 0);
     const missing = [
       !args.state_kind ? "state" : "",
       !selected ? "potion_type" : "",
@@ -90,6 +104,20 @@ export function structuredStatePotionSlotFiller(args: {
             answer.question_id
           ),
           answers: detailAnswers,
+          fields: detailFields,
+          optional_free_text: detailsReady
+            ? {
+              question_id: "optional_free_text",
+              label: "Champ libre optionnel",
+              required: false,
+              status: "skipped_optional",
+              proposed_value: null,
+              locked_value: null,
+              user_evidence: ["structured_optional_skipped"],
+              needs_user_confirmation: false,
+              evidence: ["structured_optional_skipped"],
+            }
+            : null,
           evidence: detailAnswers.length ? ["structured_details"] : [],
         },
         missing_slots: missing,

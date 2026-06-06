@@ -11,18 +11,10 @@ import { loadStatusRecapProjection } from "./projection.ts";
 import {
   decideStatusRecap,
   isFaitPrevuFragileRecapRequest,
-  isRecapOnlyRequest,
-  isStatusOnlyNoMutationRequest,
-  shouldRenderStatusOnlyNoMutation,
 } from "./reducer.ts";
 import { renderStatusRecapDecision } from "./renderer.ts";
 
-export {
-  isFaitPrevuFragileRecapRequest,
-  isRecapOnlyRequest,
-  isStatusOnlyNoMutationRequest,
-  shouldRenderStatusOnlyNoMutation,
-} from "./reducer.ts";
+export { isFaitPrevuFragileRecapRequest } from "./reducer.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));

@@ -292,6 +292,55 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     ],
   },
   {
+    id: "resources.attack_vs_defense_cards",
+    label: "Cartes d'attaque et de defense",
+    aliases: [
+      "difference entre une carte d'attaque et une carte de defense",
+      "difference carte attaque defense",
+      "difference entre attaque et defense",
+      "carte d'attaque et carte de defense",
+      "cartes d'attaque et de defense",
+      "attaque vs defense",
+      "attaque defense",
+      "attaque et defense",
+      "comparer les cartes",
+    ],
+    explain:
+      "Une carte d'attaque aide a demarrer ou preparer une action: elle reduit la friction avant de commencer et clarifie le premier geste. Une carte de defense protege un moment de risque: elle anticipe ce qui peut faire derailler l'action et prepare une reponse simple ou un plan B. En pratique, l'attaque repond a « comment je m'y mets ? »; la defense repond a « qu'est-ce qui risque de me faire devier, et quoi faire a ce moment-la ? ».",
+    how_to:
+      "Utilise une carte d'attaque quand l'action est voulue mais difficile a lancer, ou quand il faut preparer le terrain avant le moment d'action. Utilise une carte de defense quand le probleme est un piege sur le moment: evitement, impulsion, pression, fatigue, reaction automatique ou risque de craquer. Les deux peuvent coexister pour une meme action: attaque pour entrer dans l'action, defense pour tenir quand le contexte deraille.",
+    benefits: [
+      "Evite de confondre preparation de l'action et protection contre un risque.",
+      "Aide a choisir la bonne ressource selon le besoin actuel.",
+      "Permet de combiner les deux cartes sans les rendre interchangeables.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Plan",
+        when_visible:
+          "Quand une mission ou une habitude propose des ressources liees.",
+        user_can_do: ["voir les cartes liees quand elles existent"],
+      },
+      {
+        surface: "Dashboard > Ressources",
+        when_visible: "Quand des cartes ont ete generees ou sont disponibles.",
+        user_can_do: [
+          "consulter les cartes",
+          "creer certaines cartes libres si l'option est disponible",
+        ],
+      },
+    ],
+    limits: [
+      "Cette comparaison n'execute pas de creation de carte.",
+      "Sophia ne doit pas affirmer qu'une carte existe sans source recente ou projection.",
+      "Pour creer ou preparer une carte depuis le chat, il faut passer par le flow adapte avec confirmation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une carte d'attaque ou de defense a ete creee sans succes outil ou flow.",
+      "Ne pas presenter les deux cartes comme equivalentes ou interchangeables.",
+    ],
+  },
+  {
     id: "resources.attack_card",
     label: "Carte d'attaque",
     aliases: [
@@ -463,12 +512,12 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "reset",
       "reguler",
       "apaiser",
-      "confusion",
+      "perte de sens du plan",
       "pression",
       "peur",
     ],
     explain:
-      "Une potion est un support court pour traverser un etat interieur quand il prend trop de place. Elle cree automatiquement une initiative de suivi sur 7 jours pour soutenir cet etat emotionnel. Types: anti-decrochage quand le user laisse filer, courage quand la peur ou l'evitement bloquent, guerison quand il s'en veut ou se sent blesse, clarte quand tout est flou, amour quand il est dur avec lui-meme, apaisement quand la pression monte.",
+      "Une potion est un support court et durable pour traverser un etat interieur quand il prend trop de place. Elle intervient comme appui de suivi, souvent sur 7 jours, pas comme remplacement d'une conversation de reparation immediate. Types: anti-decrochage quand le user sait quoi proteger mais laisse filer, courage quand la peur ou l'evitement bloquent, guerison apres un episode qui a fait mal, clarte quand le plan perd son lien avec le pourquoi profond, amour quand il manque de douceur envers lui-meme, apaisement quand la pression monte.",
     how_to:
       "Ouvre Ressources, choisis une potion disponible, puis active-la ou reactive-la selon son etat. L'activation cree aussi le suivi de 7 jours.",
     benefits: [
@@ -476,7 +525,7 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Repond a un etat du moment sans refaire tout le plan.",
       "Cree un suivi de 7 jours via une initiative automatique.",
       "Peut soutenir une action quand l'etat interieur bloque l'execution.",
-      "Aide a choisir la potion selon l'etat: decrochage, peur, honte/blessure, confusion, durete envers soi, ou stress.",
+      "Aide a choisir la potion selon l'etat: decrochage, peur, honte/blessure, perte de sens du plan, durete envers soi, ou stress.",
     ],
     locations: [{
       surface: "Dashboard > Ressources",
@@ -491,6 +540,9 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     limits: [
       "Ce n'est pas une solution globale.",
       "Ne remplace pas safety si le risque monte.",
+      "Ne remplace pas demotivation_repair quand le user a d'abord besoin de retrouver pourquoi il agit ou pourquoi ca compte.",
+      "Ne remplace pas emotional_repair quand honte, culpabilite, auto-attaque ou detresse dominent le tour.",
+      "La potion de clarte ne remplace pas les cartes d'action pour trouver un premier pas, prioriser une tache ou decouper une action.",
       "Ne remplace pas l'ajustement du plan si le probleme est structurel.",
       "Le suivi cree est une initiative de soutien sur 7 jours, pas une modification du plan.",
     ],

@@ -81,7 +81,7 @@ Deno.test("skill_router covers start, continue, handoff, none and safety", () =>
   );
   assertEquals(
     runSkillRouter({
-      active_skill_state: { skill_id: "execution_breakdown" },
+      active_skill_state: { skill_id: "demotivation_repair" },
       turn_frame: frame({
         skill_signals: {
           entry: {
@@ -451,18 +451,18 @@ Deno.test("conversation routers let explicit tool skill interrupt active emotion
 
 Deno.test("conversation routers let explicit tool skill supersede an active conversation exit", () => {
   const route = runConversationRouters({
-    active_skill_state: { skill_id: "execution_breakdown" },
+    active_skill_state: { skill_id: "demotivation_repair" },
     turn_frame: frame({
       skill_signals: {
         exit: {
-          execution_breakdown: {
+          demotivation_repair: {
             detected: true,
             confidence_band: "high",
             reason: "user_switched_to_tool_skill_intent",
           },
         },
         lifecycle: {
-          execution_breakdown: {
+          demotivation_repair: {
             detected: true,
             confidence_band: "high",
             reason: "active_skill_continue",
@@ -552,29 +552,7 @@ Deno.test("active tool flow blocks weak product_help and continues active operat
   );
 });
 
-Deno.test("active tool flow absorbs execution_breakdown but lets high emotional repair suspend it", () => {
-  const executionRoute = runConversationRouters({
-    active_tool_skill_intake: { operation_type: "prepare_attack_card" },
-    turn_frame: frame({
-      skill_signals: {
-        entry: {
-          execution_breakdown: {
-            detected: true,
-            confidence_band: "high",
-            reason: "execution_blocked",
-          },
-        },
-      },
-    }),
-    safety_pregate_risk_band: "none",
-  });
-  assertEquals(executionRoute.response_owner, "tool_skill");
-  assertEquals(executionRoute.selected_handler, "prepare_attack_card");
-  assertEquals(
-    executionRoute.reason_code,
-    "execution_breakdown_absorbed_by_active_tool_skill",
-  );
-
+Deno.test("active tool flow lets high emotional repair suspend it", () => {
   const emotionalRoute = runConversationRouters({
     active_tool_skill_intake: { operation_type: "prepare_attack_card" },
     turn_frame: frame({
@@ -659,19 +637,10 @@ Deno.test("active tool flow can be superseded by explicit high-confidence differ
   assertEquals(route.reason_code, "explicit_tool_intent_supersedes_active");
 });
 
-Deno.test("active tool flow lets explicit different tool intent beat execution breakdown absorption", () => {
+Deno.test("active tool flow lets explicit different tool intent supersede active flow", () => {
   const route = runConversationRouters({
     active_tool_skill_intake: { operation_type: "create_recurring_reminder" },
     turn_frame: frame({
-      skill_signals: {
-        entry: {
-          execution_breakdown: {
-            detected: true,
-            confidence_band: "high",
-            reason: "execution_blocked",
-          },
-        },
-      },
       tool_skill_intents: [{
         operation_type: "prepare_attack_card",
         explicitness: "explicit",

@@ -29,5 +29,6 @@ export type RouteDecision = {
     selected_owner: string;
     resume_policy: string;
     reason_code: string;
+    continuation_intent?: string | null;
   };
 };

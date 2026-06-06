@@ -259,6 +259,26 @@ export type PotionFollowUpMode =
   | "suggested_series"
   | "scheduled_series";
 
+export type PotionScopeKind =
+  | "plan_linked"
+  | "out_of_plan";
+
+export type PotionTargetScope =
+  | "plan_item"
+  | "whole_plan"
+  | "unknown";
+
+export type PotionScopeSelection = {
+  scope_kind: PotionScopeKind;
+  target_plan_item_id?: string | null;
+  target_scope?: PotionTargetScope | null;
+  target_label?: string | null;
+};
+
+export type RappelScopeKind = PotionScopeKind;
+export type RappelTargetScope = PotionTargetScope;
+export type RappelScopeSelection = PotionScopeSelection;
+
 export type Phase1RuntimeStatus =
   | "pending"
   | "in_progress"
@@ -440,7 +460,12 @@ export type UserPlanItemRow = {
   phase_order?: number | null;
   defense_card_id?: string | null;
   attack_card_id?: string | null;
-  cards_status?: "not_required" | "not_started" | "generating" | "ready" | "failed";
+  cards_status?:
+    | "not_required"
+    | "not_started"
+    | "generating"
+    | "ready"
+    | "failed";
   cards_generated_at?: string | null;
   payload: Record<string, unknown>;
   created_at: string;
@@ -713,6 +738,22 @@ export type PotionFollowUpStrategy = {
   scheduled_message_count?: number | null;
   scheduled_at?: string | null;
   linked_recurring_reminder_id?: string | null;
+  scheduled_message_series?:
+    | Array<{
+      day_index: number;
+      theme: string;
+      draft_message: string;
+    }>
+    | null;
+  generated_series?:
+    | Array<{
+      day_index: number;
+      theme: string;
+      draft_message: string;
+    }>
+    | null;
+  series_generated_at?: string | null;
+  series_generator_version?: string | null;
 };
 
 export type PotionDefinition = {
@@ -722,8 +763,8 @@ export type PotionDefinition = {
   state_trigger: string[];
   effect_goal: string[];
   questionnaire: PotionQuestion[];
-  free_text_label: string;
-  free_text_placeholder: string;
+  free_text_label: string | null;
+  free_text_placeholder: string | null;
   free_text_required: boolean;
   default_follow_up_strategy: PotionFollowUpStrategy;
 };
@@ -982,7 +1023,12 @@ export type LevelTransitionDecision =
 
 export type LevelReviewSummary = {
   level_kind: "clarity" | "mission" | "habit" | "hybrid";
-  global_metric_state?: "strong_progress" | "slight_progress" | "stable" | "regressed" | "unclear";
+  global_metric_state?:
+    | "strong_progress"
+    | "slight_progress"
+    | "stable"
+    | "regressed"
+    | "unclear";
   next_plan_coherence?: "yes" | "mostly" | "no" | "not_sure";
   coherence_reason?: string | null;
   difficulty_signal?: "no" | "minor" | "blocking";

@@ -266,7 +266,7 @@ export function summarizeWeeklyAdaptiveReviewForAddon(
     "Si le user signale une fatigue forte, ne parle pas d'objectif 100%, de perfection ou de tout finir a tout prix. Propose plutot une charge tenable et la prochaine etape utile.",
     "Tant que le flow d'ajustement n'a pas ete lance et confirme, ne dis pas que tu verrouilles, appliques ou enregistres un plan precis. Dis que c'est une proposition concrete et demande si le user veut l'appliquer maintenant ou continuer la discussion sans confirmation.",
     "Pendant le weekly, evite le mot brouillon. Dis plutot proposition d'organisation, version proposee, ou rien n'est confirme.",
-    "Si le user demande explicitement de modifier et appliquer l'organisation, le weekly peut passer ponctuellement par adjust_plan_item, puis revenir ici pour conclure le bilan.",
+    "Si le user demande explicitement de modifier l'organisation, le weekly peut passer ponctuellement par adjust_plan_item seulement pour l'aider à formuler une demande à reprendre dans Plan; rien ne s'applique depuis le chat.",
     "Si le user demande un rappel, une carte ou une fiche pendant le weekly, ne commence pas une collecte de slots dans la reponse weekly. Dis simplement qu'on pourra le faire apres le bilan si besoin, puis reviens a la question weekly ou a l'organisation de la semaine prochaine.",
     "Si le user pose seulement une question hypothetique du type 'si je demande a changer...' ou 'tu peux passer par le flow...', reponds dans le weekly sans lancer d'ajustement.",
     "Si le user veut attendre demain/plus tard ou dit de ne rien changer maintenant, dis qu'on reprendra plus tard et que rien n'est confirme maintenant. Ne demande pas une heure de reprise sauf demande explicite de rappel.",

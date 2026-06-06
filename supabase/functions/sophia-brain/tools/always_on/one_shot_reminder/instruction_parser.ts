@@ -145,7 +145,9 @@ export function extractReminderInstruction(message: string): string {
   const quotedInstruction = extractQuotedReminderInstruction(full);
   if (quotedInstruction) return quotedInstruction;
 
-  const clause = extractReminderClause(full) || full;
+  const clause = stripSideIntentContinuation(
+    extractReminderClause(full) || full,
+  );
   const explicitLabelTarget = clause.match(
     /\b(?:texte\s+exact|texte|instruction|message|contenu)\s*[:=]\s*([\s\S]+)$/i,
   )?.[1] ?? "";
@@ -187,9 +189,21 @@ export function extractReminderInstruction(message: string): string {
   return "ce que tu as prévu";
 }
 
+function stripSideIntentContinuation(value: string): string {
+  return String(value ?? "")
+    .replace(
+      /\s*,?\s+et\s+(?:l[àa]\s+)?(?:tout\s+de\s+suite|maintenant|dans\s+la\s+foul[ée]e|ensuite)\b[\s\S]*$/i,
+      "",
+    )
+    .replace(
+      /\s*,?\s+(?:puis|ensuite|et)\s+(?:(?:juste\s+)?apr[eè]s\s+|dans\s+la\s+foul[ée]e\s+)?(?:j['’]?\s*(?:aimerais|voudrais)|je\s+(?:veux|souhaite|vais)|on\s+(?:peut|pourrait|va)|tu\s+(?:peux|pourrais))\b[\s\S]*$/i,
+      "",
+    );
+}
+
 function cleanReminderInstructionTarget(value: string): string {
   return compactText(
-    String(value ?? "")
+    stripSideIntentContinuation(value)
       .replace(/\bmanière\s+à\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
       .replace(/\bmaniere\s+à\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
       .replace(/\bmaniere\s+a\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
@@ -202,6 +216,14 @@ function cleanReminderInstructionTarget(value: string): string {
       .replace(/\s*,?\s+mais\b[\s\S]*$/i, "")
       .replace(
         /\s*,?\s+et\s+(?:retiens|garde|enregistre)\s+(?:aussi\s+)?(?:en\s+t[eê]te\s+)?que\b[\s\S]*$/i,
+        "",
+      )
+      .replace(
+        /\s*,?\s+et\s+(?:l[àa]\s+)?(?:tout\s+de\s+suite|maintenant|dans\s+la\s+foul[ée]e|ensuite)\b[\s\S]*$/i,
+        "",
+      )
+      .replace(
+        /\s*,?\s+(?:puis|ensuite|et)\s+(?:(?:juste\s+)?apr[eè]s\s+|dans\s+la\s+foul[ée]e\s+)?(?:j['’]?\s*(?:aimerais|voudrais)|je\s+(?:veux|souhaite|vais)|on\s+(?:peut|pourrait|va)|tu\s+(?:peux|pourrais))\b[\s\S]*$/i,
         "",
       )
       .replace(

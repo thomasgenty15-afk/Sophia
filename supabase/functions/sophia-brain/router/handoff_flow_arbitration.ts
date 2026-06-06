@@ -13,11 +13,25 @@ export type ActiveHandoffOperation =
 export type HandoffContinuationIntent =
   | "revise_handoff"
   | "repeat_handoff"
+  | "platform_destination_followup"
+  | "handoff_apply_attempt"
+  | "field_confirmation"
   | "apply_attempt"
   | "cancel_handoff"
   | "topic_change"
   | "explicit_interrupt"
   | "unclear";
+
+export type PlatformHandoffAction =
+  | "continue"
+  | "repeat_handoff"
+  | "platform_destination_followup"
+  | "revise_handoff"
+  | "field_confirmation"
+  | "handoff_apply_attempt"
+  | "cancel_handoff"
+  | "topic_change"
+  | "clarify_handoff";
 
 export type ActiveHandoffStateSnapshot = {
   operation_type: ActiveHandoffOperation;
@@ -126,6 +140,29 @@ function explicitChatExecutableInterrupt(
   return null;
 }
 
+function structuredActiveHandoffAction(
+  input: HandoffArbitrationInput,
+): PlatformHandoffAction | null {
+  const action = input.turn_frame.active_handoff_action;
+  if (!action || action.confidence === "low") return null;
+  const targetSkill = String(action.target_skill_id ?? "").trim();
+  if (
+    targetSkill &&
+    targetSkill !== input.active_handoff?.operation_type
+  ) return null;
+  if (action.type === "handoff_apply_attempt") return "handoff_apply_attempt";
+  if (action.type === "repeat_handoff") return "repeat_handoff";
+  if (action.type === "platform_destination_followup") {
+    return "platform_destination_followup";
+  }
+  if (action.type === "revise_handoff") return "revise_handoff";
+  if (action.type === "field_confirmation") return "field_confirmation";
+  if (action.type === "cancel_handoff") return "cancel_handoff";
+  if (action.type === "topic_change") return "topic_change";
+  if (action.type === "clarify_handoff") return "clarify_handoff";
+  return null;
+}
+
 function hasAmbiguousCompetingIntent(input: HandoffArbitrationInput): boolean {
   return input.turn_frame.direct_effects.some((effect) =>
     CHAT_EXECUTABLE_INTERRUPTS.has(effect.effect_type) &&
@@ -170,8 +207,25 @@ function productHelpInterrupt(input: HandoffArbitrationInput): boolean {
     input.route_decision?.response_owner !== "product_help" &&
     input.route_decision?.selected_handler !== "product_help"
   ) return false;
+  if (productHelpContinuesActiveHandoff(input)) return false;
   const signal = input.turn_frame.skill_signals.entry?.product_help;
   return Boolean(signal?.detected && signal.confidence_band === "high");
+}
+
+const ACTIVE_HANDOFF_PRODUCT_HELP_FOLLOWUP_REASONS = new Set([
+  "active_handoff_platform_destination_followup",
+  "active_handoff_setting_steps_followup",
+  "user_asks_for_specific_platform_steps_after_handoff",
+]);
+
+function productHelpContinuesActiveHandoff(
+  input: HandoffArbitrationInput,
+): boolean {
+  if (!input.active_handoff) return false;
+  const signal = input.turn_frame.skill_signals.entry?.product_help;
+  if (!signal?.detected || signal.confidence_band === "low") return false;
+  const reason = String(signal.reason ?? "").trim();
+  return ACTIVE_HANDOFF_PRODUCT_HELP_FOLLOWUP_REASONS.has(reason);
 }
 
 function sameOperationContinuation(input: HandoffArbitrationInput): boolean {
@@ -256,6 +310,8 @@ export function arbitrateActiveHandoffFlow(
   }
 
   const confirmation = input.turn_frame.confirmation_response?.kind;
+  const structuredAction = structuredActiveHandoffAction(input);
+
   if (confirmation === "topic_change") {
     return decision("clear_handoff", {
       continuation_intent: "topic_change",
@@ -269,6 +325,62 @@ export function arbitrateActiveHandoffFlow(
       continuation_intent: "explicit_interrupt",
       operation_type: active.operation_type,
       reason_code: `${chatExecutableInterrupt}_interrupts_active_handoff`,
+    });
+  }
+  if (structuredAction === "handoff_apply_attempt") {
+    return decision("continue_handoff", {
+      continuation_intent: "handoff_apply_attempt",
+      operation_type: active.operation_type,
+      reason_code: "active_handoff_apply_attempt",
+    });
+  }
+  if (structuredAction === "repeat_handoff") {
+    return decision("continue_handoff", {
+      continuation_intent: "repeat_handoff",
+      operation_type: active.operation_type,
+      reason_code: "active_handoff_repeat_handoff",
+    });
+  }
+  if (structuredAction === "platform_destination_followup") {
+    return decision("continue_handoff", {
+      continuation_intent: "platform_destination_followup",
+      operation_type: active.operation_type,
+      reason_code: "active_handoff_platform_destination_followup",
+    });
+  }
+  if (structuredAction === "revise_handoff") {
+    return decision("continue_handoff", {
+      continuation_intent: "revise_handoff",
+      operation_type: active.operation_type,
+      reason_code: "active_handoff_revise_handoff",
+    });
+  }
+  if (structuredAction === "field_confirmation") {
+    return decision("continue_handoff", {
+      continuation_intent: "field_confirmation",
+      operation_type: active.operation_type,
+      reason_code: "active_handoff_field_confirmation",
+    });
+  }
+  if (structuredAction === "cancel_handoff") {
+    return decision("clear_handoff", {
+      continuation_intent: "cancel_handoff",
+      operation_type: active.operation_type,
+      reason_code: "explicit_cancel_clears_active_handoff",
+    });
+  }
+  if (structuredAction === "topic_change") {
+    return decision("clear_handoff", {
+      continuation_intent: "topic_change",
+      operation_type: active.operation_type,
+      reason_code: "topic_change_clears_active_handoff",
+    });
+  }
+  if (structuredAction === "clarify_handoff") {
+    return decision("ask_clarification", {
+      continuation_intent: "unclear",
+      operation_type: active.operation_type,
+      reason_code: "active_handoff_action_unclear",
     });
   }
   if (confirmation === "no") {
@@ -322,6 +434,13 @@ export function arbitrateActiveHandoffFlow(
       continuation_intent: "explicit_interrupt",
       operation_type: active.operation_type,
       reason_code: "product_help_interrupts_active_handoff",
+    });
+  }
+  if (productHelpContinuesActiveHandoff(input)) {
+    return decision("continue_handoff", {
+      continuation_intent: "platform_destination_followup",
+      operation_type: active.operation_type,
+      reason_code: "product_help_followup_continues_active_handoff",
     });
   }
   if (sameOperationContinuation(input)) {

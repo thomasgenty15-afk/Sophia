@@ -13,6 +13,7 @@ import {
   type EmotionalRepairConstraint,
   type EmotionalRepairMemoryWriteCandidate,
   type EmotionalRepairSkillDecision,
+  normalizeEmotionalRepairConstraints,
   toConversationOperationSuggestion,
   validateEmotionalRepairDecision,
 } from "./contract.ts";
@@ -25,6 +26,8 @@ export type EmotionalRepairReductionInput = {
   run_input: RunSkillInput;
   intake_decision: EmotionalRepairSkillDecision | null;
   intake_errors: string[];
+  intake_trace?: Record<string, unknown>;
+  explicit_constraints?: unknown;
 };
 
 function statusForDecision(decision: EmotionalRepairSkillDecision) {
@@ -34,9 +37,6 @@ function statusForDecision(decision: EmotionalRepairSkillDecision) {
 }
 
 function responseIntentForDecision(decision: EmotionalRepairSkillDecision) {
-  if (decision.handoff_request?.target_skill_id === "execution_breakdown") {
-    return "handoff_to_execution";
-  }
   if (decision.handoff_request?.target_skill_id === "safety_crisis") {
     return "handoff_to_safety";
   }
@@ -112,52 +112,14 @@ function validationIsReplyOnly(errors: string[]) {
     errors.every((error) => error.startsWith("reply_"));
 }
 
-function normalizeConstraintText(value: unknown): string {
-  return String(value ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/['’`]/g, " ")
-    .toLowerCase()
-    .trim();
-}
-
-function explicitConstraintsFromUserMessage(
-  userMessage: string,
-): EmotionalRepairConstraint[] {
-  const text = normalizeConstraintText(userMessage);
-  const constraints = new Set<EmotionalRepairConstraint>();
-  if (/\bpas de potion\b|\bsans potion\b|\bpas de protocole\b|\bsans protocole\b/.test(text)) {
-    constraints.add("no_potion");
-    constraints.add("no_tool");
-  }
-  if (
-    /\bpas de plan\b|\bsans plan\b|\bpas de solution\b|\bsans solution\b|\bpas de protocole\b|\bsans protocole\b/
-      .test(text)
-  ) {
-    constraints.add("no_plan");
-  }
-  if (
-    /\bpas de question\b|\bsans question\b|\bne me pose pas\b/.test(text)
-  ) {
-    constraints.add("no_questions");
-  }
-  if (
-    /\bjuste une phrase\b|\bphrase courte\b|\breponse courte\b|\bréponse courte\b|\bsans protocole\b|\bpas de protocole\b/
-      .test(text)
-  ) {
-    constraints.add("short_reply");
-    constraints.add("no_plan");
-    constraints.add("no_questions");
-  }
-  return [...constraints];
-}
-
 function mergeExplicitUserConstraints(
   decision: EmotionalRepairSkillDecision,
-  userMessage: string,
+  explicitConstraints: unknown,
 ): EmotionalRepairSkillDecision {
   const constraints = new Set<EmotionalRepairConstraint>(decision.constraints);
-  for (const constraint of explicitConstraintsFromUserMessage(userMessage)) {
+  for (
+    const constraint of normalizeEmotionalRepairConstraints(explicitConstraints)
+  ) {
     constraints.add(constraint);
   }
   return {
@@ -242,34 +204,47 @@ export function reduceEmotionalRepairTurn(
   input: EmotionalRepairReductionInput,
 ): ConversationSkillOutput {
   if (!input.intake_decision) {
-    return baseOutput("emotional_repair", {
-      status: "continue",
-      response_intent: "technical_intake_failure",
-      diagnosis: {
-        intake_status: "technical_fallback",
-        intake_errors: input.intake_errors,
-      },
-      recommendation_need: {
-        needed: false,
-        type: "none",
-        urgency: "none",
-        constraints: ["no_tool", "no_memory_persistence_by_default"],
-      },
-      operation_suggestions: [],
-      memory_write_candidates: [],
-      effects: conversationEffectsFromCandidates({ intake_failed: true }),
+    const constraints = normalizeEmotionalRepairConstraints(
+      input.explicit_constraints,
+    );
+    const fallback = applyEmotionalRepairInvariants(
+      buildFallbackEmotionalRepairDecision({
+        constraints,
+        reason: "intake_failure",
+      }),
+    );
+    const output = outputFromDecision(input.run_input, {
+      ...fallback,
       state_patch: {
+        ...fallback.state_patch,
         intake_status: "technical_fallback",
         intake_errors: input.intake_errors,
-        emotional_repair_decision: null,
+        intake_trace: input.intake_trace ?? null,
       },
     });
+    return {
+      ...output,
+      response_intent: "technical_intake_failure",
+      diagnosis: {
+        ...(output.diagnosis ?? {}),
+        intake_status: "technical_fallback",
+        intake_errors: input.intake_errors,
+        intake_trace: input.intake_trace ?? null,
+      },
+      effects: conversationEffectsFromCandidates({ intake_failed: true }),
+      state_patch: {
+        ...(output.state_patch ?? {}),
+        intake_status: "technical_fallback",
+        intake_errors: input.intake_errors,
+        intake_trace: input.intake_trace ?? null,
+      },
+    };
   }
 
   const decision = applyEmotionalRepairInvariants(
     mergeExplicitUserConstraints(
       input.intake_decision,
-      input.run_input.user_message,
+      input.explicit_constraints,
     ),
   );
   const validation = validateEmotionalRepairDecision(decision);

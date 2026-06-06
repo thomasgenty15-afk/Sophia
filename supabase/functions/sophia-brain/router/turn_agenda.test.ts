@@ -408,6 +408,45 @@ Deno.test("attack card and recurring reminder intents become platform_handoff", 
   );
 });
 
+Deno.test("agenda keeps one-shot reminder effect and attack card handoff", () => {
+  const agenda = buildTurnAgenda(snapshot({
+    frame: turnFrame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: "prendre mes médicaments" },
+      }],
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+        target_hint: "action demandée maintenant",
+      }],
+    }),
+    route: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "create_one_shot_reminder",
+      direct_effects_to_run: ["create_one_shot_reminder"],
+    }),
+  }));
+
+  assertEquals(
+    agenda.tasks.find((item) =>
+      item.operation_type === "create_one_shot_reminder"
+    )?.kind,
+    "effect",
+  );
+  assertEquals(
+    agenda.tasks.find((item) => item.operation_type === "prepare_attack_card")
+      ?.kind,
+    "platform_handoff",
+  );
+});
+
 Deno.test("direct executable effects stay effect tasks", () => {
   const agenda = buildTurnAgenda(snapshot({
     frame: turnFrame({

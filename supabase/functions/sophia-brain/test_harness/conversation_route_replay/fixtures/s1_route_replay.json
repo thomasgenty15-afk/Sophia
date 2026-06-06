@@ -48,7 +48,7 @@
   },
   {
     "fixture_id": "G4",
-    "description": "blocked execution starts execution breakdown",
+    "description": "blocked action offers attack card support",
     "input": {
       "user_message": "j'arrive pas a faire ma marche",
       "recent_messages": [],
@@ -56,8 +56,9 @@
     },
     "expected": {
       "safety_pregate_risk_band": "none",
-      "response_owner": "conversation_handler",
-      "selected_handler": "execution_breakdown"
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "operation_type_started": "prepare_attack_card"
     }
   },
   {
@@ -137,11 +138,11 @@
   },
   {
     "fixture_id": "G10",
-    "description": "execution breakdown hands off to emotional repair",
+    "description": "demotivation repair hands off to emotional repair",
     "input": {
       "user_message": "je suis vraiment nul de bloquer la-dessus",
       "recent_messages": [],
-      "active_skill_state": { "skill_id": "execution_breakdown" },
+      "active_skill_state": { "skill_id": "demotivation_repair" },
       "memory_payload_fixture": {}
     },
     "expected": {
@@ -401,7 +402,8 @@
     "expected": {
       "safety_pregate_risk_band": "none",
       "response_owner": "conversation_handler",
-      "selected_handler": "execution_breakdown",
+      "selected_handler": "prepare_attack_card",
+      "operation_type_started": "prepare_attack_card",
       "memory_used_for_route": false
     }
   }

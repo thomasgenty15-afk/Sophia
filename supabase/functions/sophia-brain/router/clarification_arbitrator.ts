@@ -111,6 +111,63 @@ function suppressExecutableSignals(turnFrame: TurnFrame): TurnFrame {
   };
 }
 
+function isInternalSkillCandidate(
+  candidate: ClarificationCandidate | null | undefined,
+): boolean {
+  return Boolean(
+    candidate?.evidence?.some((item) =>
+      item === "active_skill_state.phase" ||
+      item.startsWith("active_skill_state.phase:")
+    ),
+  );
+}
+
+function shouldResolveInternalCandidateToOwner(args: {
+  owner: string;
+  candidate: ClarificationCandidate | null;
+}): boolean {
+  if (!args.candidate) return false;
+  if (!isInternalSkillCandidate(args.candidate)) return false;
+  if (args.candidate.operation_type) return false;
+  if (
+    args.candidate.id === args.owner ||
+    args.candidate.id === "emotional_repair" ||
+    args.candidate.id === "product_help" ||
+    args.candidate.id === "safety_crisis"
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function outputForResolvedActiveSkillCandidate(args: {
+  output: ClarificationToolOutput;
+  owner: string;
+  candidate: ClarificationCandidate | null;
+}): ClarificationToolOutput {
+  if (
+    args.output.status !== "resolved" ||
+    !shouldResolveInternalCandidateToOwner({
+      owner: args.owner,
+      candidate: args.candidate,
+    })
+  ) {
+    return args.output;
+  }
+  return {
+    ...args.output,
+    selected_candidate_id: args.owner,
+    handoff_notes: {
+      ...(args.output.handoff_notes ?? {}),
+      known_slots: {
+        ...(args.output.handoff_notes?.known_slots ?? {}),
+        clarified_internal_candidate_id: args.candidate?.id,
+        clarified_internal_candidate_label: args.candidate?.label,
+      },
+    },
+  };
+}
+
 function stateFromRequest(args: {
   clarificationId: string;
   owner: ClarificationState["owner"];
@@ -147,6 +204,24 @@ function none(
   };
 }
 
+function explicitStructuredToolIntent(args: {
+  turnFrame: TurnFrame;
+  candidates: ClarificationCandidate[];
+  operationType: string;
+}): ClarificationCandidate | null {
+  const hasCandidate = args.candidates.find((candidate) =>
+    candidate.operation_type === args.operationType ||
+    candidate.id === args.operationType
+  );
+  if (!hasCandidate) return null;
+  const intent = (args.turnFrame.tool_skill_intents ?? []).find((item) =>
+    item.operation_type === args.operationType &&
+    item.confidence_band === "high" &&
+    item.user_intent !== "explain_only"
+  );
+  return intent ? hasCandidate : null;
+}
+
 export async function maybeStartDispatcherClarification(args: {
   turnFrame: TurnFrame;
   userMessage: string;
@@ -173,6 +248,37 @@ export async function maybeStartDispatcherClarification(args: {
     : buildClarificationCandidatesFromTurnFrame(args.turnFrame);
   if (!built || built.candidates.length < 2) {
     return none(args.turnFrame, args.tempMemory);
+  }
+  if (!previous) {
+    const explicitStatePotion = explicitStructuredToolIntent({
+      turnFrame: args.turnFrame,
+      candidates: built.candidates,
+      operationType: "select_state_potion",
+    });
+    if (explicitStatePotion) {
+      return {
+        status: "resolved",
+        turnFrame: args.turnFrame,
+        tempMemory: typeof args.tempMemory === "object" && args.tempMemory
+          ? { ...(args.tempMemory as Record<string, unknown>) }
+          : {},
+        output: {
+          status: "resolved",
+          selected_candidate_id: explicitStatePotion.id,
+          confidence: "high",
+          user_goal_summary:
+            "Structured dispatcher output already identified a state potion request.",
+          reasoning_summary:
+            "No orientation clarification needed when the explicit structured tool intent is select_state_potion.",
+          handoff_notes: {
+            known_slots: {
+              operation_type: "select_state_potion",
+            },
+          },
+        },
+        selectedCandidate: explicitStatePotion,
+      };
+    }
   }
 
   const clarificationId = previous?.clarification_id ??
@@ -328,11 +434,16 @@ export async function maybeStartActiveSkillClarification(args: {
     const selectedCandidate = request.candidates.find((candidate) =>
       candidate.id === output.selected_candidate_id
     ) ?? null;
+    const routedOutput = outputForResolvedActiveSkillCandidate({
+      output,
+      owner: built.owner,
+      candidate: selectedCandidate,
+    });
     return {
       status: output.status,
       turnFrame: suppressExecutableSignals(args.turnFrame),
       tempMemory: clearClarificationState(args.tempMemory),
-      output,
+      output: routedOutput,
       selectedCandidate,
     };
   }

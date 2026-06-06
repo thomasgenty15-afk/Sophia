@@ -30,10 +30,6 @@ import { loadEmotionalRepairContext } from "./emotional_repair/context_loader.ts
 import type { EmotionalRepairSkillDecision } from "./emotional_repair/contract.ts";
 import { EMOTIONAL_REPAIR_PROMPT } from "./emotional_repair/prompt.ts";
 import { runEmotionalRepairSkill } from "./emotional_repair/skill.ts";
-import { loadExecutionBreakdownContext } from "./execution_breakdown/context_loader.ts";
-import type { ExecutionDecision } from "./execution_breakdown/contract.ts";
-import { EXECUTION_BREAKDOWN_PROMPT } from "./execution_breakdown/prompt.ts";
-import { runExecutionBreakdownSkill } from "./execution_breakdown/skill.ts";
 import { loadProductHelpContext } from "./product_help/context_loader.ts";
 import { baseProductHelpDecision } from "./product_help/contract.ts";
 import {
@@ -41,7 +37,10 @@ import {
   type ProductHelpStructuredIntakeInput,
 } from "./product_help/intake.ts";
 import { PRODUCT_HELP_PROMPT } from "./product_help/prompt.ts";
-import { getProductHelpFeature } from "./product_help/retrieval.ts";
+import {
+  getProductHelpFeature,
+  retrieveProductHelpCandidates,
+} from "./product_help/retrieval.ts";
 import {
   runProductHelpSkill as runProductHelpSkillImpl,
 } from "./product_help/skill.ts";
@@ -236,11 +235,11 @@ Deno.test("active skill state supports create, patch, handoff and clear", async 
   });
   assertEquals((await loadActiveSkill("u1"))?.skill_id, "emotional_repair");
   await patchActiveSkill("u1", {
-    skill_id: "execution_breakdown",
+    skill_id: "demotivation_repair",
     working_state: { target: "walk" },
   });
   const loaded = await loadActiveSkill("u1");
-  assertEquals(loaded?.skill_id, "execution_breakdown");
+  assertEquals(loaded?.skill_id, "demotivation_repair");
   assertEquals(loaded?.previous_skill_id, "emotional_repair");
   assertEquals(loaded?.working_state?.target, "walk");
   await clearActiveSkill("u1");
@@ -459,6 +458,34 @@ Deno.test("safety_crisis deescalates when means are away and human support is pr
   assertEquals(typographicMoved.state_patch?.phase, "support_contact");
   assertEquals((typographicMoved.state_patch as any).has_means_nearby, false);
 
+  const neighborHandoffWithPhoneSupport = await runSafetyCrisisSkill({
+    user_message:
+      "j'ai donne les medicaments a ma voisine et ma soeur est au telephone avec moi",
+    context: supportContext,
+  });
+  assertEquals(neighborHandoffWithPhoneSupport.status, "continue");
+  assertEquals(
+    neighborHandoffWithPhoneSupport.state_patch?.phase,
+    "stabilizing",
+  );
+  assertEquals(
+    (neighborHandoffWithPhoneSupport.state_patch as any).has_means_nearby,
+    false,
+  );
+  assertEquals(
+    (neighborHandoffWithPhoneSupport.state_patch as any).user_not_alone,
+    true,
+  );
+  assertEquals(
+    /eloigne d'abord|pose ou eloigne|reponds seulement|mode securite|mode sécurité/i
+      .test(String(neighborHandoffWithPhoneSupport.reply ?? "")),
+    false,
+  );
+  assertStringIncludes(
+    String(neighborHandoffWithPhoneSupport.reply ?? ""),
+    "deja securise",
+  );
+
   const exitCheckContext = await loadSafetyCrisisContext(contextInput({
     active_skill_working_state: {
       version: 1,
@@ -506,11 +533,9 @@ Deno.test("safety_crisis deescalates when means are away and human support is pr
     String(contactedSupport.reply ?? "").includes("Qui peux-tu joindre"),
     false,
   );
-  assertEquals(
-    String(contactedSupport.reply ?? "").includes(
-      "Dis-moi quand quelqu'un est avec toi",
-    ),
-    true,
+  assertStringIncludes(
+    String(contactedSupport.reply ?? ""),
+    "rester avec toi",
   );
 
   const reminderDetour = await runSafetyCrisisSkill({
@@ -1086,23 +1111,23 @@ Deno.test("emotional_repair scenarios produce safe memory candidates and handoff
       "ca va mieux mais j'arrive pas a faire ma marche",
       emotionalDecision({
         intent: "emotion_lowered_action_blocked",
-        phase: "handoff_to_execution",
+        phase: "action_card_ready",
         emotional_dominance: "low",
         context_domain: "plan_execution",
         constraints: [],
         response_contract: {
           max_questions: 0,
           allow_plan: false,
-          allow_tool_suggestion: false,
+          allow_tool_suggestion: true,
           allow_potion_suggestion: false,
           allow_concrete_action: true,
           tone: "grounded",
         },
-        handoff_request: {
-          target_skill_id: "execution_breakdown",
+        operation_suggestions: [{
+          operation_type: "prepare_attack_card",
           reason: "emotion_lowered_action_remains_blocked",
-          confidence_band: "high",
-        },
+          requires_user_consent: true,
+        }],
         memory_write_candidates: [],
         reply:
           "Ok, l'émotion est descendue; on peut passer au blocage concret de la marche.",
@@ -1127,17 +1152,20 @@ Deno.test("emotional_repair scenarios produce safe memory candidates and handoff
       );
     }
   }
-  const handoff = await runEmotionalRepairSkill({
+  const actionSuggestion = await runEmotionalRepairSkill({
     user_message: scenarios[4][0],
     context,
     intake_model: () => scenarios[4][1],
   });
-  assertEquals(handoff.status, "handoff");
-  assertEquals(handoff.handoff_request?.target_skill_id, "execution_breakdown");
+  assertEquals(actionSuggestion.status, "continue");
+  assertEquals(
+    actionSuggestion.operation_suggestions?.[0]?.operation_type,
+    "prepare_attack_card",
+  );
 
   const softenedDecision = emotionalDecision({
-    intent: "handoff_ready",
-    phase: "handoff_to_execution",
+    intent: "action_card_ready",
+    phase: "action_card_ready",
     emotional_dominance: "low",
     context_domain: "relationship",
     constraints: ["relationship_context"],
@@ -1149,11 +1177,6 @@ Deno.test("emotional_repair scenarios produce safe memory candidates and handoff
       allow_concrete_action: true,
       tone: "grounded",
     },
-    handoff_request: {
-      target_skill_id: "execution_breakdown",
-      reason: "user_ready_to_send_one_line",
-      confidence_band: "high",
-    },
     memory_write_candidates: [],
     reply:
       "Oui, on peut maintenant se concentrer sur la ligne à envoyer, sans revenir au verdict sur toi.",
@@ -1164,11 +1187,7 @@ Deno.test("emotional_repair scenarios produce safe memory candidates and handoff
     context,
     intake_model: () => softenedDecision,
   });
-  assertEquals(softenedConcreteAsk.status, "handoff");
-  assertEquals(
-    softenedConcreteAsk.handoff_request?.target_skill_id,
-    "execution_breakdown",
-  );
+  assertEquals(softenedConcreteAsk.status, "continue");
 });
 
 Deno.test("emotional_repair contract covers no-potion, relation repair, recurring support and safety", async () => {
@@ -1188,7 +1207,7 @@ Deno.test("emotional_repair contract covers no-potion, relation repair, recurrin
         response_contract: {
           max_questions: 0,
           allow_plan: false,
-          allow_tool_suggestion: false,
+          allow_tool_suggestion: true,
           allow_potion_suggestion: false,
           allow_concrete_action: false,
           tone: "soft",
@@ -1274,7 +1293,7 @@ Deno.test("emotional_repair contract covers no-potion, relation repair, recurrin
         response_contract: {
           max_questions: 0,
           allow_plan: false,
-          allow_tool_suggestion: false,
+          allow_tool_suggestion: true,
           allow_potion_suggestion: false,
           allow_concrete_action: true,
           tone: "direct_soft",
@@ -1343,6 +1362,55 @@ Deno.test("emotional_repair contract covers no-potion, relation repair, recurrin
   });
   assertEquals(shameOnly.operation_suggestions?.length ?? 0, 0);
 
+  const stabilizedPotion = await runEmotionalRepairSkill({
+    user_message:
+      "la honte est redescendue, j'aimerais garder un soutien doux pour reparer sans me taper dessus",
+    context,
+    intake_model: () =>
+      emotionalDecision({
+        intent: "shame_or_guilt",
+        phase: "de_shame",
+        emotional_dominance: "low",
+        response_contract: {
+          max_questions: 1,
+          allow_plan: false,
+          allow_tool_suggestion: true,
+          allow_potion_suggestion: true,
+          allow_concrete_action: true,
+          tone: "grounded",
+        },
+        operation_suggestions: [{
+          operation_type: "select_state_potion",
+          reason: "stabilized_emotion_can_be_supported_by_healing_potion",
+          requires_user_consent: true,
+          operation_input_hint: {
+            potion_type: "guerison",
+            state: {
+              kind: "shame_guilt",
+              intensity: "medium",
+              evidence: ["la honte est redescendue"],
+            },
+            context: {
+              handoff_summary:
+                "Le user dit que la honte est redescendue et veut un soutien doux pour reparer l'episode sans se taper dessus.",
+              topic_hint: "honte redescendue",
+            },
+          },
+        }],
+      }),
+  });
+  const emotionalPotion = stabilizedPotion.operation_suggestions?.[0];
+  assertEquals(emotionalPotion?.operation_type, "select_state_potion");
+  assertEquals(emotionalPotion?.requires_user_consent, true);
+  assertEquals(
+    (emotionalPotion?.operation_input_hint as any)?.potion_type,
+    "guerison",
+  );
+  assertEquals(
+    (emotionalPotion?.operation_input_hint as any)?.context?.handoff_summary,
+    "Le user dit que la honte est redescendue et veut un soutien doux pour reparer l'episode sans se taper dessus.",
+  );
+
   const noDoneLanguage = await runEmotionalRepairSkill({
     user_message: "aide-moi",
     context,
@@ -1388,7 +1456,11 @@ Deno.test("emotional_repair safe renderer finalizes failures, memory and prompt 
     },
   });
   assertEquals(intakeFailure.status, "continue");
-  assertEquals(intakeFailure.reply, undefined);
+  assertEquals(
+    typeof intakeFailure.reply === "string" &&
+      intakeFailure.reply.length > 0,
+    true,
+  );
   assertEquals(intakeFailure.operation_suggestions?.length ?? 0, 0);
   assertEquals(intakeFailure.memory_write_candidates?.length ?? 0, 0);
   assertEquals(intakeFailure.recommendation_need?.needed, false);
@@ -1418,7 +1490,7 @@ Deno.test("emotional_repair safe renderer finalizes failures, memory and prompt 
         response_contract: {
           max_questions: 0,
           allow_plan: false,
-          allow_tool_suggestion: false,
+          allow_tool_suggestion: true,
           allow_potion_suggestion: false,
           allow_concrete_action: false,
           tone: "soft",
@@ -1514,6 +1586,17 @@ Deno.test("emotional_repair safe renderer finalizes failures, memory and prompt 
     false,
   );
   assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "ne jamais forcer un emoji");
+  assertStringIncludes(
+    EMOTIONAL_REPAIR_PROMPT,
+    "champ d'action des potions",
+  );
+  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "amour: soutenir une douceur");
+  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "guerison: soutenir la reparation");
+  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "apaisement: soutenir une pression");
+  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "condition de maturite");
+  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "context.handoff_summary");
+  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "product_help generique");
+  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "carte de defense");
 
   const handoff = await runEmotionalRepairSkill({
     user_message: "ça va mieux mais je bloque encore",
@@ -1521,490 +1604,31 @@ Deno.test("emotional_repair safe renderer finalizes failures, memory and prompt 
     intake_model: () =>
       emotionalDecision({
         intent: "emotion_lowered_action_blocked",
-        phase: "handoff_to_execution",
+        phase: "action_card_ready",
         emotional_dominance: "low",
         context_domain: "plan_execution",
         constraints: [],
         response_contract: {
           max_questions: 0,
           allow_plan: false,
-          allow_tool_suggestion: false,
+          allow_tool_suggestion: true,
           allow_potion_suggestion: false,
           allow_concrete_action: true,
           tone: "grounded",
         },
-        handoff_request: {
-          target_skill_id: "execution_breakdown",
+        operation_suggestions: [{
+          operation_type: "prepare_attack_card",
           reason: "emotion_lowered_action_blocked",
-          confidence_band: "high",
-        },
+          requires_user_consent: true,
+        }],
         memory_write_candidates: [],
         reply: "On passe au blocage concret.",
       }),
   });
-  assertEquals(handoff.status, "handoff");
-  assertEquals(handoff.handoff_request?.target_skill_id, "execution_breakdown");
-});
-
-function executionDecision(
-  patch: Partial<ExecutionDecision>,
-): ExecutionDecision {
-  return {
-    skill_id: "execution_breakdown",
-    intent: "diagnose_blocker",
-    phase: "diagnose",
-    target: {
-      kind: "message",
-      title: "dossier",
-      raw_label: "dossier",
-      confidence_band: "medium",
-    },
-    blocker: "friction_demarrage",
-    action_readiness: "none",
-    emotional_dominance: "low",
-    constraints: ["short_reply", "one_question_max"],
-    response_contract: {
-      max_questions: 1,
-      allow_tool_suggestion: true,
-      allow_plan_edit_suggestion: false,
-      allow_card_suggestion: true,
-      allow_exact_phrase: false,
-      must_start_with_concrete_action: false,
-      max_bullets: 2,
-      tone: "practical",
-    },
-    operation_suggestions: [],
-    memory_write_candidates: [{
-      source_text: "execution blocker in current turn",
-      should_persist_default: false,
-      anti_identity_freeze_checked: true,
-      sensitivity_level: 1,
-      reason: "execution_breakdown_structured_observation",
-    }],
-    reply:
-      "On garde la cible et on repère juste le point de blocage avant d'ajouter un outil.",
-    state_patch: { summary: "Structured execution decision for test." },
-    ...patch,
-  };
-}
-
-async function withExecutionDecision(
-  decision: ExecutionDecision,
-  userMessage: string,
-) {
-  const context = await loadExecutionBreakdownContext(contextInput());
-  return await runExecutionBreakdownSkill({
-    user_message: userMessage,
-    context,
-    intake_model: () => decision,
-  });
-}
-
-Deno.test("execution_breakdown uses structured intake model", async () => {
-  const output = await withExecutionDecision(
-    executionDecision({
-      target: {
-        kind: "plan_item",
-        plan_item_id: "walk",
-        title: "marche",
-        raw_label: "marche",
-        confidence_band: "high",
-      },
-      blocker: "flou",
-      reply: "Pose tes chaussures devant la porte, puis ouvre la sortie.",
-    }),
-    "je bloque sur la marche",
-  );
-  assertEquals(output.skill_id, "execution_breakdown");
-  assertEquals(output.diagnosis?.intake_status, "ok");
+  assertEquals(handoff.status, "continue");
   assertEquals(
-    (output.diagnosis?.execution_decision as any).target.title,
-    "marche",
-  );
-  assertEquals((output.diagnosis?.execution_decision as any).blocker, "flou");
-});
-
-Deno.test("execution_breakdown model failure is conservative and non-mutating", async () => {
-  const context = await loadExecutionBreakdownContext(contextInput());
-  const output = await runExecutionBreakdownSkill({
-    user_message: "je bloque sur ma marche",
-    context,
-    intake_model: () => {
-      throw new Error("model_down");
-    },
-  });
-  assertEquals(output.diagnosis?.intake_status, "technical_fallback");
-  assertEquals(output.diagnosis?.execution_decision, null);
-  assertEquals((output.diagnosis?.target as any).confidence_band, "low");
-  assertEquals(
-    (output.diagnosis?.response_contract as any).allow_tool_suggestion,
-    false,
-  );
-  assertEquals(output.operation_suggestions?.length, 0);
-  assertEquals(output.reply, undefined);
-  assertEquals(output.effects?.committed, []);
-});
-
-Deno.test("execution_breakdown contract owns target blocker constraints and tool suggestions", async () => {
-  const targetMissing = await withExecutionDecision(
-    executionDecision({
-      intent: "target_resolution",
-      phase: "resolve_target",
-      target: { kind: "unknown", confidence_band: "low" },
-      blocker: "unknown",
-      response_contract: {
-        max_questions: 1,
-        allow_tool_suggestion: true,
-        allow_plan_edit_suggestion: true,
-        allow_card_suggestion: true,
-        allow_exact_phrase: false,
-        must_start_with_concrete_action: false,
-        max_bullets: 0,
-        tone: "direct_soft",
-      },
-      operation_suggestions: [{
-        operation_type: "prepare_attack_card",
-        reason: "should_be_filtered_when_target_low",
-        requires_user_consent: true,
-      }],
-      reply: "Quelle action précise bloque là, maintenant ?",
-    }),
-    "je bloque",
-  );
-  const targetMissingDecision = targetMissing.diagnosis
-    ?.execution_decision as any;
-  assertEquals(targetMissingDecision.target.confidence_band, "low");
-  assertEquals(targetMissing.operation_suggestions?.length, 0);
-  assertEquals(targetMissingDecision.response_contract.max_questions, 1);
-  assertEquals((targetMissing.reply ?? "").split("?").length - 1, 1);
-
-  const concrete = await withExecutionDecision(
-    executionDecision({
-      intent: "asks_micro_action",
-      phase: "give_micro_action",
-      action_readiness: "needs_first_step",
-      constraints: ["concrete_before_question", "short_reply"],
-      response_contract: {
-        max_questions: 1,
-        allow_tool_suggestion: false,
-        allow_plan_edit_suggestion: false,
-        allow_card_suggestion: false,
-        allow_exact_phrase: false,
-        must_start_with_concrete_action: true,
-        max_bullets: 0,
-        tone: "practical",
-      },
-      reply: "Ouvre le dossier et écris une première ligne imparfaite.",
-    }),
-    "donne-moi juste un premier pas concret",
-  );
-  const concreteDecision = concrete.diagnosis?.execution_decision as any;
-  assertEquals(
-    concreteDecision.response_contract.must_start_with_concrete_action,
-    true,
-  );
-  assertEquals((concrete.reply ?? "").startsWith("Ouvre"), true);
-
-  const noQuestions = await withExecutionDecision(
-    executionDecision({
-      intent: "asks_micro_action",
-      phase: "give_micro_action",
-      constraints: ["no_questions", "concrete_before_question"],
-      response_contract: {
-        max_questions: 1,
-        allow_tool_suggestion: false,
-        allow_plan_edit_suggestion: false,
-        allow_card_suggestion: false,
-        allow_exact_phrase: false,
-        must_start_with_concrete_action: true,
-        max_bullets: 0,
-        tone: "practical",
-      },
-      reply: "Ouvre le dossier et écris une ligne.",
-    }),
-    "pas de questions, dis-moi quoi faire",
-  );
-  const noQuestionsDecision = noQuestions.diagnosis?.execution_decision as any;
-  assertEquals(noQuestionsDecision.response_contract.max_questions, 0);
-  assertEquals((noQuestions.reply ?? "").includes("?"), false);
-
-  const exactPhrase = await withExecutionDecision(
-    executionDecision({
-      intent: "asks_exact_phrase",
-      phase: "draft_phrase",
-      target: {
-        kind: "relationship",
-        raw_label: "message à envoyer",
-        confidence_band: "medium",
-      },
-      blocker: "relationnel",
-      constraints: ["exact_phrase_requested", "short_reply"],
-      response_contract: {
-        max_questions: 0,
-        allow_tool_suggestion: true,
-        allow_plan_edit_suggestion: false,
-        allow_card_suggestion: true,
-        allow_exact_phrase: true,
-        must_start_with_concrete_action: false,
-        max_bullets: 0,
-        tone: "relationship_repair",
-      },
-      operation_suggestions: [{
-        operation_type: "prepare_attack_card",
-        reason: "should_be_filtered_for_exact_phrase",
-        requires_user_consent: true,
-      }],
-      reply:
-        "Tu peux envoyer: « Je suis désolé pour mon ton. Je veux réparer simplement. »",
-    }),
-    "donne-moi une phrase exacte à envoyer",
-  );
-  const exactPhraseDecision = exactPhrase.diagnosis?.execution_decision as any;
-  assertEquals(exactPhraseDecision.intent, "asks_exact_phrase");
-  assertEquals(exactPhraseDecision.target.kind, "relationship");
-  assertEquals(exactPhrase.operation_suggestions?.length, 0);
-  assertStringIncludes(exactPhrase.reply ?? "", "Tu peux envoyer");
-
-  const emotionHandoff = await withExecutionDecision(
-    executionDecision({
-      intent: "emotion_dominates",
-      phase: "diagnose",
-      emotional_dominance: "high",
-      response_contract: {
-        max_questions: 0,
-        allow_tool_suggestion: true,
-        allow_plan_edit_suggestion: true,
-        allow_card_suggestion: true,
-        allow_exact_phrase: false,
-        must_start_with_concrete_action: false,
-        max_bullets: 0,
-        tone: "direct_soft",
-      },
-      operation_suggestions: [{
-        operation_type: "adjust_plan_item",
-        reason: "should_be_filtered_when_emotion_high",
-        requires_user_consent: true,
-      }],
-      reply:
-        "On enlève d'abord le verdict contre toi. Ensuite seulement on découpe l'action.",
-    }),
-    "je suis nul incapable, j'arrive pas",
-  );
-  const emotionHandoffDecision = emotionHandoff.diagnosis
-    ?.execution_decision as any;
-  assertEquals(emotionHandoff.status, "handoff");
-  assertEquals(emotionHandoffDecision.emotional_dominance, "high");
-  assertEquals(emotionHandoff.operation_suggestions?.length, 0);
-
-  const emotionConcrete = await withExecutionDecision(
-    executionDecision({
-      intent: "asks_micro_action",
-      phase: "give_micro_action",
-      emotional_dominance: "medium",
-      constraints: ["concrete_before_question", "short_reply"],
-      response_contract: {
-        max_questions: 0,
-        allow_tool_suggestion: false,
-        allow_plan_edit_suggestion: false,
-        allow_card_suggestion: false,
-        allow_exact_phrase: false,
-        must_start_with_concrete_action: true,
-        max_bullets: 0,
-        tone: "direct_soft",
-      },
-      reply: "Ouvre le message et écris seulement la première ligne.",
-    }),
-    "j'ai honte mais donne-moi juste la première ligne",
-  );
-  const emotionConcreteDecision = emotionConcrete.diagnosis
-    ?.execution_decision as any;
-  assertEquals(emotionConcrete.status, "continue");
-  assertEquals(emotionConcreteDecision.emotional_dominance, "medium");
-  assertEquals((emotionConcrete.reply ?? "").startsWith("Ouvre"), true);
-
-  const attack = await withExecutionDecision(
-    executionDecision({
-      operation_suggestions: [{
-        operation_type: "prepare_attack_card",
-        reason: "clear_punctual_execution_block_can_use_attack_card",
-        requires_user_consent: true,
-      }],
-    }),
-    "je bloque sur mon dossier",
-  );
-  assertEquals(
-    attack.operation_suggestions?.[0]?.operation_type,
+    handoff.operation_suggestions?.[0]?.operation_type,
     "prepare_attack_card",
-  );
-  assertEquals(attack.operation_suggestions?.[0]?.requires_user_consent, true);
-
-  const defense = await withExecutionDecision(
-    executionDecision({
-      intent: "recurrent_risk",
-      blocker: "risque_rechute",
-      operation_suggestions: [{
-        operation_type: "prepare_defense_card",
-        reason: "recurrent_risk_needs_prevention",
-        requires_user_consent: true,
-      }],
-    }),
-    "je risque de craquer ce soir",
-  );
-  assertEquals(
-    defense.operation_suggestions?.[0]?.operation_type,
-    "prepare_defense_card",
-  );
-  assertEquals(defense.operation_suggestions?.[0]?.requires_user_consent, true);
-
-  const adjust = await withExecutionDecision(
-    executionDecision({
-      intent: "action_too_large",
-      blocker: "trop_grand",
-      response_contract: {
-        max_questions: 1,
-        allow_tool_suggestion: true,
-        allow_plan_edit_suggestion: true,
-        allow_card_suggestion: false,
-        allow_exact_phrase: false,
-        must_start_with_concrete_action: false,
-        max_bullets: 2,
-        tone: "practical",
-      },
-      operation_suggestions: [{
-        operation_type: "adjust_plan_item",
-        reason: "action_too_large_or_user_asks_to_reduce",
-        requires_user_consent: true,
-      }],
-    }),
-    "ma marche est trop lourde, allège",
-  );
-  assertEquals(
-    adjust.operation_suggestions?.[0]?.operation_type,
-    "adjust_plan_item",
-  );
-  assertEquals(adjust.operation_suggestions?.[0]?.requires_user_consent, true);
-
-  const vagueBlock = await withExecutionDecision(
-    executionDecision({
-      target: { kind: "unknown", confidence_band: "low" },
-      operation_suggestions: [{
-        operation_type: "adjust_plan_item",
-        reason: "should_be_filtered_when_target_low",
-        requires_user_consent: true,
-      }],
-    }),
-    "je bloque",
-  );
-  assertEquals(
-    vagueBlock.operation_suggestions?.some((suggestion) =>
-      suggestion.operation_type === "adjust_plan_item"
-    ),
-    false,
-  );
-
-  const noTool = await withExecutionDecision(
-    executionDecision({
-      constraints: ["no_tool"],
-      operation_suggestions: [{
-        operation_type: "prepare_attack_card",
-        reason: "should_be_filtered_by_no_tool",
-        requires_user_consent: true,
-      }],
-    }),
-    "pas d'outil, je bloque sur mon dossier",
-  );
-  assertEquals(noTool.operation_suggestions?.length, 0);
-
-  const noPlanEdit = await withExecutionDecision(
-    executionDecision({
-      constraints: ["do_not_edit_plan"],
-      response_contract: {
-        max_questions: 1,
-        allow_tool_suggestion: true,
-        allow_plan_edit_suggestion: true,
-        allow_card_suggestion: true,
-        allow_exact_phrase: false,
-        must_start_with_concrete_action: false,
-        max_bullets: 2,
-        tone: "practical",
-      },
-      operation_suggestions: [{
-        operation_type: "adjust_plan_item",
-        reason: "should_be_filtered_by_no_plan_edit",
-        requires_user_consent: true,
-      }],
-    }),
-    "ne change pas mon plan, ma marche est trop lourde",
-  );
-
-  const lowTargetTool = await withExecutionDecision(
-    executionDecision({
-      target: { kind: "unknown", confidence_band: "low" },
-      operation_suggestions: [{
-        operation_type: "prepare_defense_card",
-        reason: "should_be_filtered_when_target_low",
-        requires_user_consent: true,
-      }],
-    }),
-    "aide-moi",
-  );
-  assertEquals(lowTargetTool.operation_suggestions?.length, 0);
-
-  const noDoneLanguage = await withExecutionDecision(
-    executionDecision({
-      reply: "C'est fait, j'ai créé la carte.",
-    }),
-    "aide-moi",
-  );
-  assertEquals(
-    /(c'est fait|créé|programmé|enregistré)/i.test(
-      noDoneLanguage.reply ?? "",
-    ),
-    false,
-  );
-  assertEquals(
-    noPlanEdit.operation_suggestions?.some((suggestion) =>
-      suggestion.operation_type === "adjust_plan_item"
-    ),
-    false,
-  );
-
-  for (
-    const output of [
-      targetMissing,
-      concrete,
-      noQuestions,
-      exactPhrase,
-      emotionHandoff,
-      emotionConcrete,
-      attack,
-      defense,
-      adjust,
-      noTool,
-      noPlanEdit,
-      lowTargetTool,
-      noDoneLanguage,
-    ]
-  ) {
-    const reply = output.reply ?? "";
-    assertEquals(reply.includes("c'est fait"), false);
-    assertEquals(reply.includes("créé"), false);
-    assertEquals(reply.includes("programmé"), false);
-    assertEquals(reply.includes("enregistré"), false);
-  }
-});
-
-Deno.test("execution_breakdown prompt contract includes priority rules", () => {
-  assertStringIncludes(EXECUTION_BREAKDOWN_PROMPT, "cible avant diagnostic");
-  assertStringIncludes(
-    EXECUTION_BREAKDOWN_PROMPT,
-    "geste concret avant question",
-  );
-  assertStringIncludes(EXECUTION_BREAKDOWN_PROMPT, "phrase exacte");
-  assertStringIncludes(EXECUTION_BREAKDOWN_PROMPT, "handoff emotional_repair");
-  assertStringIncludes(
-    EXECUTION_BREAKDOWN_PROMPT,
-    "suggestions tool consenties",
   );
 });
 
@@ -2085,6 +1709,17 @@ Deno.test("demotivation_repair prompt does not force emoji", () => {
     false,
   );
   assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "ne force jamais un emoji");
+  assertStringIncludes(
+    DEMOTIVATION_REPAIR_PROMPT,
+    "Champ d'action des potions",
+  );
+  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "clarte: soutenir un sens");
+  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "courage: soutenir une peur");
+  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "rappel: soutenir un geste");
+  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "Condition de maturite");
+  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "context.handoff_summary");
+  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "product_help generique");
+  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "carte de defense");
 });
 
 Deno.test("demotivation_repair identity memory redacted", async () => {
@@ -2152,6 +1787,57 @@ Deno.test("demotivation_repair loss_of_meaning_stays_demotivation", async () => 
   assertEquals(output.handoff_request, undefined);
 });
 
+Deno.test("demotivation_repair can suggest courage potion with handoff summary after diagnosis", async () => {
+  const output = await withDemotivationDecision(
+    demotivationDecision({
+      intent: "avoidance_loop",
+      phase: "reduce_friction",
+      motivation_state: "avoidance",
+      response_contract: {
+        max_questions: 1,
+        allow_plan_edit: false,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: true,
+        allow_attack_card_suggestion: false,
+        allow_concrete_action: true,
+        tone: "soft_direct",
+      },
+      operation_suggestions: [{
+        operation_type: "select_state_potion",
+        reason: "fear_is_now_clarified_and_can_be_supported_by_courage",
+        requires_user_consent: true,
+        operation_input_hint: {
+          potion_type: "courage",
+          state: {
+            kind: "fear_avoidance",
+            intensity: "medium",
+            evidence: ["peur du regard"],
+          },
+          context: {
+            handoff_summary:
+              "Le user a clarifie que le decrochage vient surtout d'une peur du regard et veut soutenir le passage a l'action avec plus de courage.",
+            topic_hint: "peur du regard",
+          },
+        },
+      }],
+      reply:
+        "La peur est assez nommee maintenant. Je peux te proposer une potion de courage en complement, si tu veux.",
+    }),
+    "je crois que je bloque surtout parce que j'ai peur du regard des autres",
+  );
+  const suggestion = output.operation_suggestions?.[0];
+  assertEquals(suggestion?.operation_type, "select_state_potion");
+  assertEquals(suggestion?.requires_user_consent, true);
+  assertEquals(
+    (suggestion?.operation_input_hint as any)?.potion_type,
+    "courage",
+  );
+  assertEquals(
+    (suggestion?.operation_input_hint as any)?.context?.handoff_summary,
+    "Le user a clarifie que le decrochage vient surtout d'une peur du regard et veut soutenir le passage a l'action avec plus de courage.",
+  );
+});
+
 Deno.test("demotivation_repair failure_accumulation_no_identity_freeze", async () => {
   const output = await withDemotivationDecision(
     demotivationDecision({
@@ -2175,26 +1861,38 @@ Deno.test("demotivation_repair failure_accumulation_no_identity_freeze", async (
   assertEquals(candidate?.anti_identity_freeze_checked, true);
 });
 
-Deno.test("demotivation_repair concrete_action_ready_handoff", async () => {
+Deno.test("demotivation_repair concrete_action_ready_suggests_attack_card", async () => {
   const output = await withDemotivationDecision(
     demotivationDecision({
       intent: "concrete_action_emerged",
-      phase: "handoff_to_execution",
+      phase: "action_card_ready",
       motivation_state: "fatigue",
       action_readiness: "ready",
-      handoff_request: {
-        target_skill_id: "execution_breakdown",
-        reason: "ready_action_can_be_reduced",
-        confidence_band: "high",
+      response_contract: {
+        max_questions: 0,
+        allow_plan_edit: false,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: true,
+        allow_concrete_action: true,
+        tone: "grounded",
       },
+      operation_suggestions: [{
+        operation_type: "prepare_attack_card",
+        reason: "ready_action_can_be_reduced",
+        requires_user_consent: true,
+      }],
       reply:
         "La prochaine action est assez claire. Je bascule vers le decoupage pour reduire la friction.",
     }),
     "ok je vais mettre mes chaussures maintenant",
   );
-  assertEquals(output.status, "handoff");
-  assertEquals(output.response_intent, "handoff_to_execution");
-  assertEquals(output.handoff_request?.target_skill_id, "execution_breakdown");
+  assertEquals(output.status, "continue");
+  assertEquals(output.response_intent, "concrete_action_emerged");
+  assertEquals(
+    output.operation_suggestions?.[0]?.operation_type,
+    "prepare_attack_card",
+  );
 });
 
 Deno.test("demotivation_repair hypothetical_action_no_handoff", async () => {
@@ -2203,11 +1901,6 @@ Deno.test("demotivation_repair hypothetical_action_no_handoff", async () => {
       intent: "concrete_action_emerged",
       motivation_state: "fatigue",
       action_readiness: "hypothetical",
-      handoff_request: {
-        target_skill_id: "execution_breakdown",
-        reason: "hypothetical_action_only",
-        confidence_band: "medium",
-      },
       reply:
         "Comme c'est encore au conditionnel, je reste avec le decrochage et on garde l'action minuscule.",
     }),
@@ -2641,6 +2334,204 @@ Deno.test("product_help catalog covers defense free creation and potion follow-u
     context,
   });
   assertEquals(levelCompletion.diagnosis?.feature_id, "plan.level_completion");
+});
+
+Deno.test("product_help compares attack and defense cards as a catalog resource", async () => {
+  const context = await loadProductHelpContext(contextInput());
+  const candidates = retrieveProductHelpCandidates(
+    "Explique-moi la difference entre une carte d'attaque et une carte de defense.",
+  );
+  assertEquals(candidates[0]?.id, "resources.attack_vs_defense_cards");
+
+  const output = await runProductHelpSkill({
+    user_message:
+      "Explique-moi la difference entre une carte d'attaque et une carte de defense.",
+    context,
+    intake_model: () =>
+      productHelpDecision({
+        intent: "compare_features",
+        target: {
+          kind: "feature_catalog",
+          feature_id: "resources.attack_vs_defense_cards",
+          confidence_band: "high",
+        },
+        grounding: {
+          catalog_feature_ids: [
+            "resources.attack_vs_defense_cards",
+            "resources.attack_card",
+            "resources.defense_card",
+          ],
+          db_sources_required: false,
+          db_sources_used: [{
+            source_type: "catalog",
+            id: "resources.attack_vs_defense_cards",
+            label: "Cartes d'attaque et de defense",
+          }],
+        },
+      }),
+  });
+
+  assertEquals(output.skill_id, "product_help");
+  assertEquals(output.response_intent, "compare_features");
+  assertEquals(output.operation_suggestions, []);
+  assertEquals(output.effects?.committed, []);
+  assertEquals(
+    output.diagnosis?.feature_id,
+    "resources.attack_vs_defense_cards",
+  );
+  assertStringIncludes(output.reply ?? "", "carte d'attaque");
+  assertStringIncludes(output.reply ?? "", "carte de defense");
+  assertStringIncludes(output.reply ?? "", "demarrer");
+  assertStringIncludes(output.reply ?? "", "moment de risque");
+  assertEquals((output.reply ?? "").includes("Ce que ca apporte"), false);
+  assertEquals(
+    /j'ai créé|j'ai cree|c'est fait|prepare ta carte/i.test(
+      output.reply ?? "",
+    ),
+    false,
+  );
+});
+
+Deno.test("product_help compare resource has paraphrase coverage without replacing single-card help", async () => {
+  const context = await loadProductHelpContext(contextInput());
+  const paraphrase = retrieveProductHelpCandidates(
+    "attaque vs defense, c'est quoi la difference ?",
+  );
+  assertEquals(paraphrase[0]?.id, "resources.attack_vs_defense_cards");
+
+  const singleAttack = await runProductHelpSkill({
+    user_message: "quelles sont les techniques d'une carte d'attaque ?",
+    context,
+    intake_model: () =>
+      productHelpDecision({
+        target: {
+          kind: "feature_catalog",
+          feature_id: "resources.attack_card",
+          confidence_band: "high",
+        },
+        grounding: {
+          catalog_feature_ids: ["resources.attack_card"],
+          db_sources_required: false,
+          db_sources_used: [{
+            source_type: "catalog",
+            id: "resources.attack_card",
+            label: "Carte d'attaque",
+          }],
+        },
+      }),
+  });
+
+  assertEquals(singleAttack.diagnosis?.feature_id, "resources.attack_card");
+  assertStringIncludes(singleAttack.reply ?? "", "Le texte magique");
+  assertStringIncludes(singleAttack.reply ?? "", "Mot de bascule");
+});
+
+Deno.test("product_help compare follow-up can render a targeted choice reply", async () => {
+  const context = await loadProductHelpContext(contextInput({
+    recent_messages: [
+      {
+        role: "assistant",
+        content:
+          "Cartes d'attaque et de defense: une carte d'attaque aide a demarrer; une carte de defense protege un moment de risque.",
+      },
+    ],
+  }));
+  const targetedReply =
+    "Pour te mettre a l'action, pars sur une carte d'attaque. La defense sert plutot si tu risques de derailer pendant l'action.";
+  const output = await runProductHelpSkill({
+    user_message:
+      "attaque vs defense, je choisis quoi quand je veux juste me mettre a l'action ?",
+    context,
+    intake_model: () =>
+      productHelpDecision({
+        intent: "compare_features",
+        target: {
+          kind: "feature_catalog",
+          feature_id: "resources.attack_vs_defense_cards",
+          confidence_band: "high",
+        },
+        grounding: {
+          catalog_feature_ids: ["resources.attack_vs_defense_cards"],
+          db_sources_required: false,
+          db_sources_used: [{
+            source_type: "catalog",
+            id: "resources.attack_vs_defense_cards",
+            label: "Cartes d'attaque et de defense",
+          }],
+        },
+        reply: targetedReply,
+      }),
+  });
+
+  assertEquals(output.response_intent, "compare_features");
+  assertEquals(output.reply, targetedReply);
+  assertEquals((output.reply ?? "").includes("Ce que ca apporte"), false);
+  assertEquals(output.operation_suggestions, []);
+});
+
+Deno.test("product_help where_is_it answers conditional location without catalog template", async () => {
+  const context = await loadProductHelpContext(contextInput({
+    active_skill_working_state: {
+      version: 1,
+      skill_id: "prepare_defense_card",
+      status: "active",
+      turn_count: 1,
+      started_at: "2026-06-03T10:00:00.000Z",
+      summary: "Collecting defense card slots.",
+      working_state: {},
+      updated_at: "2026-06-03T10:00:00.000Z",
+      user_id: "user-s3",
+      scope: "web",
+    },
+  }));
+  const output = await runProductHelpSkill({
+    user_message:
+      "Stop pour la creation, je veux juste savoir ou je retrouverai une carte d'attaque si elle existe.",
+    context,
+    intake_model: () =>
+      productHelpDecision({
+        intent: "where_is_it",
+        target: {
+          kind: "feature_catalog",
+          feature_id: "resources.attack_card",
+          confidence_band: "high",
+        },
+        grounding: {
+          catalog_feature_ids: ["resources.attack_card"],
+          db_sources_required: false,
+          db_sources_used: [{
+            source_type: "catalog",
+            id: "resources.attack_card",
+            label: "Carte d'attaque",
+          }],
+        },
+        constraints: [
+          "non_mutating",
+          "do_not_execute_tool",
+          "do_not_claim_object_exists_without_source",
+          "do_not_render_status_block",
+          "preserve_active_flow",
+          "short_reply",
+          "exact_location_requested",
+        ],
+        response_contract: {
+          max_questions: 0,
+          allow_operation_suggestion: false,
+          allow_status_projection: false,
+          allow_generic_catalog_answer: true,
+          must_include_location: true,
+          must_include_limit: true,
+        },
+      }),
+  });
+
+  assertEquals(output.response_intent, "where_is_it");
+  assertEquals(output.operation_suggestions, []);
+  assertStringIncludes(output.reply ?? "", "Si une carte d'attaque");
+  assertStringIncludes(output.reply ?? "", "Dashboard > Ressources");
+  assertStringIncludes(output.reply ?? "", "Je ne peux pas confirmer");
+  assertEquals((output.reply ?? "").includes("Ce que ca apporte"), false);
+  assertEquals((output.reply ?? "").includes("Le texte magique"), false);
 });
 
 Deno.test("product_help catalog reflects dashboard action corrections", async () => {

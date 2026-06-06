@@ -11,6 +11,7 @@ import { maybeRunPrepareDefenseCardOperation } from "./router.ts";
 import {
   readyDefenseCardStatePatch,
   structuredDefenseCardDraftGenerator,
+  structuredDefenseCardPlatformFieldFiller,
   structuredDefenseCardSlotFiller,
 } from "./test_helpers.ts";
 
@@ -134,6 +135,7 @@ Deno.test("defense_intake_ai_unavailable_returns_technical_blocked", async () =>
     trigger_message_id: "m-defense-ai-unavailable",
     safety_pregate_risk_band: "none",
     slot_filler: async () => null,
+    platform_field_filler: structuredDefenseCardPlatformFieldFiller(),
     draft_generator: structuredDefenseCardDraftGenerator,
   });
 
@@ -144,7 +146,8 @@ Deno.test("defense_intake_ai_unavailable_returns_technical_blocked", async () =>
   assertEquals(output.committed_effects, []);
 });
 
-Deno.test("defense_generation_failed_no_pending_confirmation", async () => {
+Deno.test("defense_nominal_platform_handoff_does_not_call_draft_generator", async () => {
+  let draftGeneratorCalled = false;
   const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
@@ -154,18 +157,24 @@ Deno.test("defense_generation_failed_no_pending_confirmation", async () => {
     trigger_message_id: "m-defense-generation-failed",
     safety_pregate_risk_band: "none",
     slot_filler: structuredDefenseCardSlotFiller(readyDefenseCardStatePatch()),
+    platform_field_filler: structuredDefenseCardPlatformFieldFiller(),
     draft_generator: async () => {
+      draftGeneratorCalled = true;
       throw new Error("generator_down");
     },
   });
 
-  assertEquals(output.status, "technical_blocked");
-  assertEquals(output.reason_code, "draft_generation_failed");
+  assertEquals(output.status, "handoff_ready");
+  assertEquals(output.reason_code, undefined);
   assertEquals(
     (output.state_patch.operation_input as any)?.attachment.title,
     "marche",
   );
+  assertEquals(output.draft, undefined);
+  assertEquals(output.platform_fields?.status, "complete");
+  assertEquals(draftGeneratorCalled, false);
   assertEquals(output.pending_confirmation, undefined);
+  assertEquals(output.committed_effects, undefined);
 });
 
 Deno.test("defense_pending_confirmation_approve_becomes_platform_handoff_apply_attempt", async () => {
@@ -272,15 +281,31 @@ Deno.test("defense card handoff produces UI field content without mutation", asy
   assertEquals(result?.executedTools, []);
   assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
   assertEquals(writes.defenseWrites, 0);
-  assertStringIncludes(content, "Ressources / Défense / Cartes de défense libres / Ajouter une carte");
-  assertStringIncludes(content, "Besoin libre à renseigner");
-  assertStringIncludes(content, "Réponses aux 3 questions");
-  assertStringIncludes(content, "Nom de la carte");
-  assertStringIncludes(content, "Le moment");
-  assertStringIncludes(content, "Le piège");
-  assertStringIncludes(content, "Mon geste");
-  assertStringIncludes(content, "Plan B");
-  assertStringIncludes(content, "Je ne crée ni ne modifie aucune carte depuis ce chat.");
+  assertStringIncludes(
+    content,
+    "Ressources / Défense / Cartes de défense libres / Ajouter une carte",
+  );
+  assertStringIncludes(
+    content,
+    "Dans la plateforme, le champ à préparer est",
+  );
+  assertStringIncludes(
+    content,
+    "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+  );
+  assertStringIncludes(content, "Je te proposerais d'écrire");
+  assertEquals(content.includes(" ? : "), false);
+  assertEquals(content.includes("Besoin libre"), false);
+  assertEquals(content.includes("Premier signal"), false);
+  assertEquals(content.includes("Geste de défense"), false);
+  assertEquals(content.includes("Besoin libre à renseigner"), false);
+  assertEquals(content.includes("Réponses aux 3 questions"), false);
+  assertEquals(content.includes("Nom de la carte"), false);
+  assertEquals(content.includes("Plan B"), false);
+  assertStringIncludes(
+    content,
+    "Je ne crée pas la carte depuis le chat.",
+  );
   const lower = content.toLowerCase();
   assertEquals(lower.includes("c'est créé"), false);
   assertEquals(lower.includes("j'ai créé"), false);
@@ -376,6 +401,7 @@ Deno.test("defense_no_done_language_on_technical_block", async () => {
     trigger_message_id: "m-defense-no-done",
     safety_pregate_risk_band: "none",
     slot_filler: async () => null,
+    platform_field_filler: structuredDefenseCardPlatformFieldFiller(),
     draft_generator: structuredDefenseCardDraftGenerator,
   });
   const lower = (output.ack ?? "").toLowerCase();

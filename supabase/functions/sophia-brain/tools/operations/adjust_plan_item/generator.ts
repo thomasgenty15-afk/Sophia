@@ -4,6 +4,295 @@ import {
 } from "../../../../_shared/gemini.ts";
 import type { PlanAdjustmentGeneratorInput } from "../_shared/operation_payload_builder.ts";
 import type { AdjustPlanCoachGuidance } from "./coach_guidance.ts";
+import type { AdjustPlanPlatformInputDraft } from "./contract.ts";
+import {
+  type AdjustPlanReplyRenderIntent,
+  finalizeAdjustPlanPlatformInputReply,
+} from "./renderer.ts";
+
+export type AdjustPlanPlatformInputGeneratorInput = {
+  user_message: string;
+  conversation_context?: Array<{ role: "user" | "assistant"; content: string }>;
+  previous_draft?: AdjustPlanPlatformInputDraft | null;
+  user_revision_request?: string | null;
+  request_id?: string | null;
+  user_id?: string | null;
+  force_real_ai?: boolean;
+};
+
+export type AdjustPlanPlatformInputReplyWriterInput = {
+  user_message: string;
+  draft: AdjustPlanPlatformInputDraft;
+  conversation_context?: Array<{ role: "user" | "assistant"; content: string }>;
+  previous_draft?: AdjustPlanPlatformInputDraft | null;
+  intent: AdjustPlanReplyRenderIntent;
+  request_id?: string | null;
+  user_id?: string | null;
+  force_real_ai?: boolean;
+};
+
+function normalizeText(value: unknown, fallback = ""): string {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  return text || fallback;
+}
+
+function cleanPlatformInput(value: unknown, fallback: string): string {
+  const cleaned = normalizeText(value, fallback)
+    .replace(
+      /\b(c['’]est fait|j['’]ai modifi[eé]|j['’]ai ajust[eé]|j['’]ai appliqu[eé])\b/gi,
+      "",
+    )
+    .replace(/\b(dis[- ]moi oui|confirme)\b[^.?!]*(?:[.?!]|$)/gi, "")
+    .replace(
+      /\b(applique|ex[eé]cute|modifie) (?:ça|cela|mon plan|l['’]ajustement)\b/gi,
+      "formuler cette demande",
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || fallback;
+}
+
+function cleanListValues(values: unknown, fallback: string[]): string[] {
+  const items = Array.isArray(values)
+    ? values.map((item) => normalizeText(item)).filter(Boolean)
+    : [];
+  return (items.length ? items : fallback).slice(0, 4);
+}
+
+function fallbackDraft(
+  input: AdjustPlanPlatformInputGeneratorInput,
+): AdjustPlanPlatformInputDraft {
+  const source = normalizeText(
+    input.user_revision_request,
+    normalizeText(
+      input.user_message,
+      "Je veux ajuster mon plan pour qu'il soit plus tenable.",
+    ),
+  );
+  const previousInput = input.previous_draft?.suggested_platform_input;
+  const suggested = previousInput && input.user_revision_request
+    ? cleanPlatformInput(
+      `${previousInput} ${source}`,
+      previousInput,
+    )
+    : cleanPlatformInput(
+      `Je veux ajuster mon plan parce que ${source}. Je veux une version plus simple et plus tenable, sans perdre le cap important.`,
+      "Je veux ajuster mon plan pour le rendre plus simple et plus tenable, sans perdre le cap important.",
+    );
+  return {
+    operation_type: "adjust_plan_item",
+    mode: "platform_input_coaching",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    user_blocker_summary: cleanPlatformInput(
+      source,
+      "Le plan semble trop lourd ou mal ajusté pour le moment.",
+    ),
+    suggested_platform_input: suggested,
+    preserve: cleanListValues(input.previous_draft?.preserve, [
+      "le cap global",
+      "ce qui fonctionne déjà",
+      "une version humainement tenable",
+    ]),
+    avoid: cleanListValues(input.previous_draft?.avoid, [
+      "transformer l'ajustement en abandon",
+      "tout refaire si le blocage est local ou temporaire",
+      "ajouter une consigne plus lourde que le plan actuel",
+    ]),
+    destination: {
+      product_area: "Plan",
+      instruction:
+        "Va dans Plan, ouvre l'élément ou la zone que tu veux ajuster, puis colle cette demande dans l'encart d'ajustement.",
+    },
+    missing_clarity: [],
+  };
+}
+
+function parsePlatformInputJsonObject(
+  raw: unknown,
+): Record<string, unknown> | null {
+  const text = normalizeText(raw);
+  if (!text) return null;
+  try {
+    const parsed = JSON.parse(text);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : null;
+  } catch {
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start < 0 || end <= start) return null;
+    try {
+      const parsed = JSON.parse(text.slice(start, end + 1));
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+        ? parsed as Record<string, unknown>
+        : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
+export async function generateAdjustPlanPlatformInputDraft(
+  input: AdjustPlanPlatformInputGeneratorInput,
+): Promise<AdjustPlanPlatformInputDraft> {
+  const fallback = fallbackDraft(input);
+  const recent = (input.conversation_context ?? [])
+    .slice(-8)
+    .map((turn) => `${turn.role}: ${turn.content}`)
+    .join("\n");
+  const previous = input.previous_draft
+    ? JSON.stringify(input.previous_draft)
+    : "null";
+  const systemPrompt = [
+    "Tu aides l'utilisateur à formuler une demande d'ajustement de plan à reprendre dans la plateforme.",
+    "Tu ne choisis jamais si l'ajustement porte sur une action, une semaine, un niveau ou tout le plan.",
+    "Tu ne produis jamais de patch, d'effet durable, de confirmation ou de promesse d'exécution.",
+    "La plateforme décidera du scope grâce au contexte UI. Le chat aide seulement à formuler l'input.",
+    "Retourne uniquement un JSON valide.",
+  ].join("\n");
+  const userPrompt = [
+    "Message utilisateur actuel:",
+    input.user_message,
+    "",
+    "Demande de révision éventuelle:",
+    input.user_revision_request ?? "",
+    "",
+    "Draft précédent:",
+    previous,
+    "",
+    "Contexte récent:",
+    recent,
+    "",
+    "Schéma JSON attendu:",
+    JSON.stringify({
+      user_blocker_summary: "résumé humain de ce qui bloque",
+      suggested_platform_input:
+        "phrase naturelle à coller dans Plan, rédigée à la première personne utilisateur",
+      preserve: ["ce qu'il faut garder"],
+      avoid: ["ce qu'il faut éviter"],
+      missing_clarity: ["question courte si l'input serait inutilisable"],
+    }),
+  ].join("\n");
+
+  try {
+    const raw = await generateWithGemini(
+      systemPrompt,
+      userPrompt,
+      0.2,
+      true,
+      [],
+      "json",
+      {
+        requestId: input.request_id ?? undefined,
+        userId: input.user_id ?? undefined,
+        source: "adjust_plan_platform_input_coach",
+        forceRealAi: input.force_real_ai === true,
+        model: getGeminiFallbackModel("gemini-2.5-flash"),
+        reasoningEffort: "low",
+      },
+    );
+    const parsed = parsePlatformInputJsonObject(raw);
+    if (!parsed) return fallback;
+    return {
+      ...fallback,
+      user_blocker_summary: cleanPlatformInput(
+        parsed.user_blocker_summary,
+        fallback.user_blocker_summary,
+      ),
+      suggested_platform_input: cleanPlatformInput(
+        parsed.suggested_platform_input,
+        fallback.suggested_platform_input,
+      ),
+      preserve: cleanListValues(parsed.preserve, fallback.preserve),
+      avoid: cleanListValues(parsed.avoid, fallback.avoid),
+      missing_clarity: cleanListValues(parsed.missing_clarity, []),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function cleanReplyJson(raw: unknown): string {
+  const parsed = parsePlatformInputJsonObject(raw);
+  if (parsed) return normalizeText(parsed.reply);
+  return normalizeText(raw);
+}
+
+export async function writeAdjustPlanPlatformInputReply(
+  input: AdjustPlanPlatformInputReplyWriterInput,
+): Promise<string> {
+  const recent = (input.conversation_context ?? [])
+    .slice(-8)
+    .map((turn) => `${turn.role}: ${turn.content}`)
+    .join("\n");
+  const systemPrompt = [
+    "Tu es Sophia, dans le flow adjust_plan_item transforme en coaching d'input plateforme.",
+    "Tu ecris la reponse visible finale. Ne rends pas un template avec titres fixes.",
+    "Le chat n'applique jamais l'ajustement, ne cree pas de confirmation et ne modifie pas le plan.",
+    "Aide l'utilisateur a clarifier ce qu'il veut coller dans Plan, avec un ton humain et naturel.",
+    "Si l'utilisateur demande seulement la phrase, reponds court avec la phrase et une indication Plan tres breve.",
+    "Si l'utilisateur demande d'appliquer, explique chaleureusement que la formulation est prete et qu'il faut la reprendre dans Plan.",
+    "Ne dis jamais c'est fait, j'ai modifie, j'ai applique, je peux l'appliquer, dis-moi oui.",
+    "Mentionne toujours Plan comme destination, sans inventer d'ecran non fourni.",
+    "Retourne uniquement un JSON valide avec la cle reply.",
+  ].join("\n");
+  const userPrompt = [
+    "Intent de ce tour:",
+    input.intent,
+    "",
+    "Message utilisateur actuel:",
+    input.user_message,
+    "",
+    "Draft structure a utiliser comme source, sans le rendre comme un template:",
+    JSON.stringify(input.draft),
+    "",
+    "Draft precedent:",
+    input.previous_draft ? JSON.stringify(input.previous_draft) : "null",
+    "",
+    "Contexte recent:",
+    recent,
+    "",
+    "Contraintes de style:",
+    "- Reponse naturelle, pas de sections systematiques.",
+    "- Varie la forme selon le tour.",
+    "- La phrase a coller peut etre citee clairement.",
+    "- Destination produit: utilise l'instruction destination du draft.",
+    "",
+    "Schema JSON attendu:",
+    JSON.stringify({ reply: "message final visible" }),
+  ].join("\n");
+
+  try {
+    const raw = await generateWithGemini(
+      systemPrompt,
+      userPrompt,
+      0.45,
+      true,
+      [],
+      "json",
+      {
+        requestId: input.request_id ?? undefined,
+        userId: input.user_id ?? undefined,
+        source: "adjust_plan_platform_input_reply_writer",
+        forceRealAi: input.force_real_ai === true,
+        model: getGeminiFallbackModel("gemini-2.5-flash"),
+        reasoningEffort: "low",
+      },
+    );
+    return finalizeAdjustPlanPlatformInputReply({
+      draft: input.draft,
+      reply: cleanReplyJson(raw),
+      intent: input.intent,
+    });
+  } catch {
+    return finalizeAdjustPlanPlatformInputReply({
+      draft: input.draft,
+      reply: null,
+      intent: input.intent,
+    });
+  }
+}
 
 export type LevelAdjustmentCapability =
   | "change_level_duration"

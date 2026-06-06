@@ -10,10 +10,6 @@ import {
 } from "./test_helpers.ts";
 import { loadCoachPreferenceRuntimePolicy } from "./runtime_policy.ts";
 import { maybeRunUpdateCoachPreferencesOperation } from "./router.ts";
-import {
-  isCoachPreferenceVerificationRequest,
-  shouldRuntimeCoachPreferenceOverrideRoute,
-} from "./route_guards.ts";
 import { buildCoachPreferencesStatusReply } from "./status.ts";
 import { renderCoachPreferenceHandoffDraft } from "./renderer.ts";
 
@@ -79,7 +75,7 @@ Deno.test("coach preference handoff produces full renderer content", () => {
   });
   const rendered = renderCoachPreferenceHandoffDraft(draft);
   assert(rendered.includes("pour la suite"));
-  assert(rendered.includes("Le réglage correspondant"));
+  assert(rendered.includes("Ça correspond au réglage suivant"));
   assert(rendered.includes("ne correspond pas à un réglage durable"));
   assert(rendered.includes("Préférences coach"));
   assert(rendered.includes("Il ne manque plus qu’à aller"));
@@ -238,7 +234,7 @@ Deno.test("apply_attempt repeats every recommended setting from active draft", a
   assert(runtime?.content.includes("ne jamais finir par une question"));
 });
 
-Deno.test("legacy pending confirmation plus ok applique does not execute", async () => {
+Deno.test("old pending confirmation plus ok applique is ignored", async () => {
   const runtime = await maybeRunUpdateCoachPreferencesOperation({
     supabase: fakeWriteDetectingSupabase(),
     userId: "u1",
@@ -257,9 +253,7 @@ Deno.test("legacy pending confirmation plus ok applique does not execute", async
     safetyPregateOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-legacy-apply",
   });
-  assertEquals(runtime?.executedTools, []);
-  assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
-  assertEquals((runtime?.toolSkillRun as any)?.status, "apply_attempt");
+  assertEquals(runtime, null);
 });
 
 Deno.test("repeat_handoff repeats recommended setting", async () => {
@@ -554,23 +548,6 @@ Deno.test("status of existing preferences remains read-only", async () => {
     fallback: "fallback",
   });
   assertEquals(reply, "Oui. Préférences coach actives : ton très direct.");
-});
-
-Deno.test("coach preference status request routes to read-only skill", () => {
-  const message = "Vérifie quelles préférences coach sont déjà actives.";
-  assertEquals(isCoachPreferenceVerificationRequest(message), true);
-  assertEquals(
-    shouldRuntimeCoachPreferenceOverrideRoute({
-      message,
-      routeDecision: {
-        response_owner: "normal_reply",
-        selected_handler: undefined,
-      },
-      safetyRiskBand: "none",
-      hasPendingOperationConfirmation: false,
-    }),
-    true,
-  );
 });
 
 Deno.test("runtime_policy still reads existing preferences", () => {

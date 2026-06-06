@@ -8,29 +8,7 @@ import type {
   StatusRecapProjection,
 } from "./contract.ts";
 
-export function isRecapOnlyRequest(message: string): boolean {
-  void message;
-  return false;
-}
-
-export function isStatusOnlyNoMutationRequest(message: string): boolean {
-  void message;
-  return false;
-}
-
 export function isFaitPrevuFragileRecapRequest(message: string): boolean {
-  void message;
-  return false;
-}
-
-export function isExplicitConversationalFormatRequest(
-  message: string,
-): boolean {
-  void message;
-  return false;
-}
-
-export function shouldRenderStatusOnlyNoMutation(message: string): boolean {
   void message;
   return false;
 }

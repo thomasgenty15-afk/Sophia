@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n3-r2-t01",
+    "auth_method": "refresh_token",
+    "user": "Je veux préparer une potion de clarté. Je continue mes blocs de travail, mais je ne sens plus le lien avec la raison pour laquelle j'avais construit ce plan.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

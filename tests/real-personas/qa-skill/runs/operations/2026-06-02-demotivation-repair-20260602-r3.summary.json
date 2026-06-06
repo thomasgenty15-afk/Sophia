@@ -1,0 +1,155 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t01",
+    "status": "client_timeout_then_db_completed",
+    "ok": null,
+    "user": "Ce soir je sens que je decroche. Le plan autour des placards me parait inutile, comme si j'allais juste refaire trois efforts puis abandonner encore. Je n'ai pas envie de changer le plan maintenant, j'ai surtout besoin de retrouver un peu de prise.",
+    "assistant": "Je comprends ce sentiment que l'effort ne mènera nulle part ; c'est ce qui pèse le plus ce soir. Quand j'ai l'impression de tourner en rond, m'acharner sur le plan est souvent épuisant. Pour retrouver un peu de prise sans toucher aux placards, y a-t-il un micro-geste de deux minutes, même déconnecté de tout ça, qui te ferait du bien ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "companion",
+    "selected_handler": null,
+    "route_reason": null,
+    "target_final": "companion",
+    "latency_total_ms": 46060,
+    "safety_pregate": "NONE",
+    "turn_agenda_summary": null,
+    "effect_ledger": null,
+    "direct_effects": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, reste sur motivation. Pas de potion, pas d'outil et ne change pas le plan. Le micro-geste possible, c'est juste poser mon téléphone deux minutes et aller remplir un verre d'eau. Aide-moi à lancer ça sans me faire un grand plan.",
+    "assistant": "Je comprends ce sentiment que l'effort ne mènera nulle part ; c'est ce qui pèse le plus ce soir. Quand j'ai l'impression de tourner en rond, m'acharner sur le plan est souvent épuisant. Pour retrouver un peu de prise sans toucher aux placards, y a-t-il un micro-geste de deux minutes, même déconnecté de tout ça, qui te ferait du bien ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "orientation_clarification_resolved_conversation_skill",
+    "target_final": "companion",
+    "latency_total_ms": 8172,
+    "safety_pregate": "NONE",
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "demotivation_repair"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "demotivation_repair",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "orientation_clarification_resolved_conversation_skill"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t02",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t02",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Tu viens de me redemander le micro-geste alors que je l'ai donné. Je veux juste démarrer maintenant : téléphone posé, verre d'eau, puis je reviens. Donne-moi une phrase courte pour lancer, pas une autre question.",
+    "assistant": "Je comprends ce sentiment que l'effort ne mènera nulle part ; c'est ce qui pèse le plus ce soir. Quand j'ai l'impression de tourner en rond, m'acharner sur le plan est souvent épuisant. Pour retrouver un peu de prise sans toucher aux placards, y a-t-il un micro-geste de deux minutes, même déconnecté de tout ça, qui te ferait du bien ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "active_conversation_skill_continue",
+    "target_final": "companion",
+    "latency_total_ms": 4803,
+    "safety_pregate": "NONE",
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "demotivation_repair"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "demotivation_repair",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "active_conversation_skill_continue"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t03",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r3-t03",
+    "trace_error": null,
+    "operation_flow_run": null
+  }
+]

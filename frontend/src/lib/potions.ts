@@ -1,8 +1,4 @@
-import type {
-  PotionDefinition,
-  PotionQuestion,
-  PotionType,
-} from "../types/v2";
+import type { PotionDefinition, PotionQuestion, PotionType } from "../types/v2";
 
 function selectQuestion(
   id: string,
@@ -70,22 +66,14 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "baisse_elan", label: "Je perds l'elan" },
         ],
       ),
-      selectQuestion(
-        "support_need",
-        "Qu'est-ce qui t'aiderait le plus en ce moment ?",
-        [
-          { value: "rappel", label: "Un rappel court" },
-          { value: "presence", label: "Une presence reguliere" },
-          { value: "relance", label: "Une relance pour repartir" },
-        ],
-      ),
     ],
-    free_text_label: "Si tu veux, ajoute ce que tu sens en train de glisser.",
-    free_text_placeholder: "Tu peux rester simple. Une phrase suffit.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un petit message quotidien peut aider a raccrocher avant que le glissement s'installe.",
+      rationale:
+        "Un petit message quotidien peut aider a raccrocher avant que le glissement s'installe.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -121,22 +109,14 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "conflit", label: "La peur du conflit" },
         ],
       ),
-      selectQuestion(
-        "desired_help",
-        "Tu as surtout besoin de quoi ?",
-        [
-          { value: "premier_pas", label: "D'un premier pas concret" },
-          { value: "force", label: "D'un regain de force" },
-          { value: "permission", label: "D'une permission d'y aller doucement" },
-        ],
-      ),
     ],
-    free_text_label: "Si tu veux, precise ce qui te fait le plus hesiter.",
-    free_text_placeholder: "Exemple: je sais quoi faire, mais mon corps se ferme des que j'y pense.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un petit appui pendant quelques jours peut aider a ne pas re-rentrer dans l'evitement.",
+      rationale:
+        "Un petit appui pendant quelques jours peut aider a ne pas re-rentrer dans l'evitement.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -172,22 +152,14 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "fatigue", label: "De la fatigue" },
         ],
       ),
-      selectQuestion(
-        "repair_need",
-        "Tu as surtout besoin de quoi maintenant ?",
-        [
-          { value: "pardonner", label: "Me pardonner" },
-          { value: "relever", label: "Me relever" },
-          { value: "reprendre_doucement", label: "Reprendre doucement" },
-        ],
-      ),
     ],
-    free_text_label: "Si tu veux, ajoute ce que cet episode t'a fait ressentir.",
-    free_text_placeholder: "Le but n'est pas de tout raconter. Juste d'ancrer la reparation dans le reel.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un message doux sur quelques jours aide a reparer sans replonger dans l'auto-attaque.",
+      rationale:
+        "Un message doux sur quelques jours aide a reparer sans replonger dans l'auto-attaque.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -196,48 +168,32 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     type: "clarte",
     title: "Potion de clarte",
     short_description:
-      "Quand tout est flou, qu'il y a trop de choses ou que tu perds le sens, elle remet de l'ordre.",
+      "Quand ton plan perd son sens, elle t'aide a retrouver pourquoi il compte pour toi et a te reconnecter a ton pourquoi profond.",
     state_trigger: [
-      "Je ne sais plus par quoi commencer.",
-      "J'ai trop de choses dans la tete, tout se melange.",
-      "Je ne vois plus clairement ce qui est important.",
+      "Je fais les actions de mon plan mecaniquement.",
+      "Je ne vois plus le lien entre mon plan et mon pourquoi profond.",
+      "Je ne me reconnais plus vraiment dans ce plan.",
     ],
     effect_goal: [
-      "retrouver du sens",
-      "voir plus clair",
-      "faire emerger la prochaine etape",
+      "retrouver pourquoi ce plan compte",
+      "reconnecter le plan au pourquoi profond",
+      "ramener du sens dans les actions du plan",
     ],
     questionnaire: [
       textQuestion(
-        "clarity_problem",
-        "Qu'est-ce qui est flou pour toi en ce moment ?",
-        "Exemple: je ne sais plus quoi prioriser, je suis noye, je ne sais plus ce qui compte vraiment.",
-      ),
-      selectQuestion(
-        "clarity_need",
-        "Tu as surtout besoin de comprendre quoi ?",
-        [
-          { value: "quoi_faire", label: "Quoi faire" },
-          { value: "par_ou_commencer", label: "Par ou commencer" },
-          { value: "ce_qui_compte", label: "Ce qui compte vraiment" },
-        ],
-      ),
-      selectQuestion(
-        "output_style",
-        "Tu veux ressortir avec quoi ?",
-        [
-          { value: "simple", label: "Quelque chose de simple" },
-          { value: "structure", label: "Quelque chose de plus structure" },
-          { value: "priorite", label: "Une priorite nette" },
-        ],
+        "plan_meaning_loss_reason",
+        "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+        "Exemple: je fais les actions mecaniquement, je ne vois plus le lien avec mon pourquoi profond, ou je ne me reconnais plus dans ce plan.",
       ),
     ],
-    free_text_label: "Si tu veux, ajoute le point qui te brouille le plus.",
+    free_text_label:
+      "Si tu veux, ajoute ce que tu aimerais retrouver dans ce plan.",
     free_text_placeholder: "Une phrase suffit.",
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un point de recentrage sur quelques jours peut aider a ne pas te re-disperser.",
+      rationale:
+        "Un rappel quotidien peut t'aider a garder le lien entre ton plan et ton pourquoi profond.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -259,35 +215,27 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     ],
     questionnaire: [
       textQuestion(
-        "self_talk",
-        "Comment est-ce que tu te parles en ce moment ?",
-        "Exemple: je me juge, je me rabaisse, je me sens froid avec moi.",
+        "love_lack_context",
+        "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+        "Exemple: une partie de moi que je juge, une situation ou je me sens seul, un echec, ou quelque chose que je n'arrive pas a m'offrir.",
       ),
       selectQuestion(
         "love_state",
-        "Tu te sens plutot comment ?",
+        "Tu te sens surtout comment ?",
         [
           { value: "dur", label: "Dur avec moi" },
           { value: "seul", label: "Seul" },
-          { value: "vide", label: "Vide affectivement" },
-        ],
-      ),
-      selectQuestion(
-        "love_need",
-        "Tu as surtout besoin de quoi ?",
-        [
-          { value: "douceur", label: "De douceur" },
-          { value: "reconfort", label: "De reconfort" },
-          { value: "tendresse", label: "D'un regard plus tendre" },
+          { value: "vide", label: "Vide" },
         ],
       ),
     ],
-    free_text_label: "Pourquoi est-ce que tu manques d'amour en ce moment ?",
-    free_text_placeholder: "Tu peux rester tres simple.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Une parole douce pendant quelques jours peut aider a changer le climat interieur.",
+      rationale:
+        "Une parole douce pendant quelques jours peut aider a changer le climat interieur.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -322,22 +270,14 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "submerge", label: "Submerge" },
         ],
       ),
-      selectQuestion(
-        "calm_need",
-        "Tu as besoin de quoi ?",
-        [
-          { value: "ralentir", label: "Ralentir" },
-          { value: "respirer", label: "Respirer" },
-          { value: "relacher", label: "Relacher la pression" },
-        ],
-      ),
     ],
-    free_text_label: "Si tu veux, ajoute ce qui a allume l'alerte.",
-    free_text_placeholder: "Une phrase suffit.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un point d'apaisement quotidien sur quelques jours peut aider a casser la montee en charge.",
+      rationale:
+        "Un point d'apaisement quotidien sur quelques jours peut aider a casser la montee en charge.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },

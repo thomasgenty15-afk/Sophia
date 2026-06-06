@@ -553,59 +553,8 @@ export function rewriteUncommittedEffectClaims(args: {
   if (reasonCodes.length === 0) {
     return { reply, changed: false, reason_codes: [] };
   }
-  if (reasonCodes.includes("uncommitted_coach_preferences_update_claim")) {
-    return {
-      reply: "Je ne l'ai pas enregistré.",
-      changed: true,
-      reason_codes: reasonCodes,
-    };
-  }
-  if (reasonCodes.includes("uncommitted_card_create_claim")) {
-    return {
-      reply:
-        "Je l'ai préparé, mais pas encore créé. Je peux le faire si tu confirmes.",
-      changed: true,
-      reason_codes: reasonCodes,
-    };
-  }
-  if (reasonCodes.includes("uncommitted_state_potion_activate_claim")) {
-    return {
-      reply:
-        "Je ne l'active pas depuis le chat. Reprends cette recommandation dans la section État / Potions.",
-      changed: true,
-      reason_codes: reasonCodes,
-    };
-  }
-  if (reasonCodes.includes("uncommitted_plan_adjust_claim")) {
-    return {
-      reply: "Je ne l'ai pas modifié.",
-      changed: true,
-      reason_codes: reasonCodes,
-    };
-  }
-  if (reasonCodes.includes("uncommitted_progress_track_claim")) {
-    return {
-      reply: "Je ne l'ai pas noté.",
-      changed: true,
-      reason_codes: reasonCodes,
-    };
-  }
-  if (reasonCodes.includes("uncommitted_memory_write_claim")) {
-    return {
-      reply: "Je ne l'ai pas enregistré en mémoire.",
-      changed: true,
-      reason_codes: reasonCodes,
-    };
-  }
-  if (reasonCodes.includes("uncommitted_generic_success_claim")) {
-    return {
-      reply: "Je ne confirme aucun changement durable sans effet confirmé.",
-      changed: true,
-      reason_codes: reasonCodes,
-    };
-  }
   return {
-    reply: "Je n'ai pas réussi à le faire.",
+    reply,
     changed: true,
     reason_codes: reasonCodes,
   };

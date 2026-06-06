@@ -3,6 +3,7 @@ import type {
   RiskBand,
 } from "../../../contracts/turn_frame.v1.ts";
 import type { PotionBaseContext } from "../../../../_shared/potion-base-context.ts";
+import { POTION_DEFINITIONS } from "../../../../_shared/v2-potions.ts";
 import {
   buildOperationDraftRequest,
   buildPotionSelectionPayload,
@@ -23,17 +24,13 @@ import {
 } from "./subskills/potion_detail_intake.ts";
 import { fillPotionRouterSlotsWithAi } from "./subskills/potion_router.ts";
 
-export { reviewSelectStatePotionDraft } from "./draft_validation.ts";
-
 export type StatePotionConfidence = "low" | "medium" | "high";
 export type StatePotionSlotStatus = "missing" | "ambiguous" | "identified";
 export type SelectStatePotionSubSkill =
   | "state_resolution"
   | "potion_choice"
   | "detail_intake"
-  | "draft_generation"
-  | "draft_validation"
-  | "confirmation";
+  | "draft_generation";
 
 export type StatePotionShortlistOption = {
   potion_type: PotionSessionSelectorInput["potion_type"];
@@ -46,6 +43,24 @@ export type StatePotionDetailAnswer = {
   question_id: string;
   label: string;
   answer: string;
+  evidence: string[];
+};
+
+export type StatePotionDetailFieldStatus =
+  | "missing"
+  | "proposed"
+  | "locked"
+  | "skipped_optional";
+
+export type StatePotionDetailFieldProgress = {
+  question_id: string;
+  label: string;
+  required: boolean;
+  status: StatePotionDetailFieldStatus;
+  proposed_value?: string | null;
+  locked_value?: string | null;
+  user_evidence: string[];
+  needs_user_confirmation: boolean;
   evidence: string[];
 };
 
@@ -79,12 +94,20 @@ export type SelectStatePotionIntakeState = {
     status: StatePotionSlotStatus;
     required_question_ids: string[];
     answers: StatePotionDetailAnswer[];
+    fields?: StatePotionDetailFieldProgress[];
+    optional_free_text?: StatePotionDetailFieldProgress | null;
     evidence: string[];
   };
   context: {
     target_hint?: string | null;
     related_plan_item_id?: string | null;
     topic_hint?: string | null;
+    handoff_summary?: string | null;
+    opportunistic_detail_candidates?: Array<{
+      field_id: string;
+      candidate_value: string;
+      confidence: StatePotionConfidence;
+    }>;
   };
   missing_slots: string[];
   confidence: StatePotionConfidence;
@@ -124,7 +147,7 @@ export type SelectStatePotionOperationOutput = {
   operation_type: "select_state_potion";
   status:
     | "ask_question"
-    | "pending_confirmation"
+    | "handoff_ready"
     | "cancelled"
     | "invalid_recommendation_payload"
     | "blocked_by_safety"
@@ -135,16 +158,10 @@ export type SelectStatePotionOperationOutput = {
     | "potion_choice"
     | "detail_intake"
     | "generation"
-    | "confirmation"
+    | "handoff_ready"
     | "exit";
   draft?: PotionSessionDraftV1;
-  confirmation?: {
-    required: boolean;
-    message: string;
-    actions: ["yes", "no"];
-  };
   next_question?: { needed: boolean; question?: string; reason?: string };
-  pending_confirmation?: Record<string, unknown>;
   ack?: string;
   state_patch: {
     summary: string;
@@ -200,6 +217,13 @@ function slotStatus(value: unknown): StatePotionSlotStatus {
   return raw === "identified" || raw === "ambiguous" ? raw : "missing";
 }
 
+function fieldStatus(value: unknown): StatePotionDetailFieldStatus {
+  const raw = String(value ?? "").trim();
+  return raw === "proposed" || raw === "locked" || raw === "skipped_optional"
+    ? raw
+    : "missing";
+}
+
 function subSkill(value: unknown): SelectStatePotionSubSkill {
   const raw = String(value ?? "").trim();
   return [
@@ -207,8 +231,6 @@ function subSkill(value: unknown): SelectStatePotionSubSkill {
       "potion_choice",
       "detail_intake",
       "draft_generation",
-      "draft_validation",
-      "confirmation",
     ].includes(raw)
     ? raw as SelectStatePotionSubSkill
     : "state_resolution";
@@ -260,6 +282,7 @@ function potionType(
   value: unknown,
 ): PotionSessionSelectorInput["potion_type"] | null {
   const raw = String(value ?? "").trim();
+  if (raw === "anti_decrochage") return "rappel";
   return [
       "rappel",
       "courage",
@@ -289,6 +312,31 @@ function normalizeDetailAnswer(
   };
 }
 
+function normalizeDetailFieldProgress(
+  value: unknown,
+  potion: PotionSessionSelectorInput["potion_type"] | null,
+): StatePotionDetailFieldProgress | null {
+  const root = objectValue(value);
+  const questionId = String(root?.question_id ?? "").trim();
+  if (!questionId) return null;
+  const status = fieldStatus(root?.status);
+  const lockedValue = String(root?.locked_value ?? root?.answer ?? "").trim();
+  const proposedValue = String(root?.proposed_value ?? "").trim();
+  return {
+    question_id: questionId,
+    label: String(root?.label ?? "").trim() ||
+      chatDetailQuestionLabel(potion, questionId),
+    required: root?.required === false ? false : true,
+    status,
+    proposed_value: proposedValue || null,
+    locked_value: lockedValue || null,
+    user_evidence: stringArray(root?.user_evidence),
+    needs_user_confirmation: root?.needs_user_confirmation === true ||
+      status === "proposed",
+    evidence: stringArray(root?.evidence),
+  };
+}
+
 function normalizeShortlistOption(
   value: unknown,
 ): StatePotionShortlistOption | null {
@@ -301,6 +349,63 @@ function normalizeShortlistOption(
     reason,
     fit_confidence: confidence(root?.fit_confidence),
     evidence: stringArray(root?.evidence),
+  };
+}
+
+function lockedAnswerFromField(
+  field: StatePotionDetailFieldProgress,
+): StatePotionDetailAnswer | null {
+  if (field.status !== "locked") return null;
+  const answer = String(field.locked_value ?? "").trim();
+  if (!field.question_id || !answer) return null;
+  return {
+    question_id: field.question_id,
+    label: field.label,
+    answer,
+    evidence: field.user_evidence.length > 0
+      ? field.user_evidence
+      : field.evidence,
+  };
+}
+
+function firstUnlockedQuestionId(args: {
+  requiredQuestionIds: string[];
+  answers: StatePotionDetailAnswer[];
+  fields: StatePotionDetailFieldProgress[];
+}): string | null {
+  const locked = new Set([
+    ...args.answers
+      .filter((answer) => answer.answer.trim())
+      .map((answer) => answer.question_id),
+    ...args.fields
+      .filter((field) =>
+        field.status === "locked" && String(field.locked_value ?? "").trim()
+      )
+      .map((field) => field.question_id),
+  ]);
+  return args.requiredQuestionIds.find((questionId) =>
+    !locked.has(questionId)
+  ) ??
+    null;
+}
+
+function fieldFromQuestion(args: {
+  potion: PotionSessionSelectorInput["potion_type"] | null;
+  questionId: string;
+  required: boolean;
+  answer?: StatePotionDetailAnswer | null;
+}): StatePotionDetailFieldProgress {
+  return {
+    question_id: args.questionId,
+    label: args.answer?.label ??
+      chatDetailQuestionLabel(args.potion, args.questionId),
+    required: args.required,
+    status: args.answer ? "locked" : "missing",
+    proposed_value: null,
+    locked_value: args.answer?.answer ?? null,
+    user_evidence: args.answer?.evidence ?? [],
+    needs_user_confirmation: false,
+    evidence: args.answer?.evidence ?? [],
   };
 }
 
@@ -335,6 +440,8 @@ function defaultState(): SelectStatePotionIntakeState {
       status: "missing",
       required_question_ids: [],
       answers: [],
+      fields: [],
+      optional_free_text: null,
       evidence: [],
     },
     context: {},
@@ -416,6 +523,32 @@ function normalizeStatePatch(
         return normalized ? [normalized] : [];
       })
       : [];
+    const fields = Array.isArray(details.fields)
+      ? details.fields.flatMap((field) => {
+        const normalized = normalizeDetailFieldProgress(
+          field,
+          selectedForDetails,
+        );
+        return normalized ? [normalized] : [];
+      })
+      : [];
+    const optionalRoot = objectValue(details.optional_free_text);
+    const optionalFreeText = optionalRoot
+      ? normalizeDetailFieldProgress(
+        {
+          question_id: "optional_free_text",
+          label: optionalRoot.label,
+          required: false,
+          status: optionalRoot.status,
+          proposed_value: optionalRoot.proposed_value,
+          locked_value: optionalRoot.locked_value ?? optionalRoot.answer,
+          user_evidence: optionalRoot.user_evidence,
+          needs_user_confirmation: optionalRoot.needs_user_confirmation,
+          evidence: optionalRoot.evidence,
+        },
+        selectedForDetails,
+      )
+      : undefined;
     patch.details = {
       status: answers.filter((answer) => required.includes(answer.question_id))
               .length >= required.length && required.length > 0
@@ -423,6 +556,8 @@ function normalizeStatePatch(
         : slotStatus(details.status),
       required_question_ids: required,
       answers,
+      fields,
+      optional_free_text: optionalFreeText,
       evidence: stringArray(details.evidence),
     };
   }
@@ -438,6 +573,24 @@ function normalizeStatePatch(
       topic_hint: context.topic_hint == null
         ? null
         : String(context.topic_hint).trim() || null,
+      handoff_summary: context.handoff_summary == null
+        ? null
+        : String(context.handoff_summary).trim().slice(0, 700) || null,
+      opportunistic_detail_candidates: Array.isArray(
+          context.opportunistic_detail_candidates,
+        )
+        ? context.opportunistic_detail_candidates.flatMap((candidate) => {
+          const root = objectValue(candidate);
+          const fieldId = String(root?.field_id ?? "").trim();
+          const candidateValue = String(root?.candidate_value ?? "").trim();
+          if (!fieldId || !candidateValue) return [];
+          return [{
+            field_id: fieldId,
+            candidate_value: candidateValue,
+            confidence: confidence(root?.confidence),
+          }];
+        }).slice(0, 6)
+        : undefined,
     };
   }
   if (Array.isArray(root.missing_slots)) {
@@ -471,6 +624,10 @@ function mergeState(
       ...base.details,
       required_question_ids: [...base.details.required_question_ids],
       answers: [...base.details.answers],
+      fields: [...(base.details.fields ?? [])],
+      optional_free_text: base.details.optional_free_text
+        ? { ...base.details.optional_free_text }
+        : null,
       evidence: [...base.details.evidence],
     },
     context: { ...base.context },
@@ -513,16 +670,83 @@ function mergeState(
       };
   }
   if (normalized.details) {
+    const selectedForDetails = next.selected_potion.value ??
+      next.explicit_potion_request.potion_type;
+    const requiredQuestionIds =
+      normalized.details.required_question_ids.length >
+          0
+        ? normalized.details.required_question_ids
+        : next.details.required_question_ids;
     const answerById = new Map(
       next.details.answers.map((answer) => [answer.question_id, answer]),
     );
+    for (const field of normalized.details.fields ?? []) {
+      const existing = (next.details.fields ?? []).find((item) =>
+        item.question_id === field.question_id
+      );
+      const mergedField = {
+        ...(existing ?? fieldFromQuestion({
+          potion: selectedForDetails,
+          questionId: field.question_id,
+          required: requiredQuestionIds.includes(field.question_id),
+        })),
+        ...field,
+        required: requiredQuestionIds.includes(field.question_id),
+      };
+      next.details.fields = [
+        ...(next.details.fields ?? []).filter((item) =>
+          item.question_id !== field.question_id
+        ),
+        mergedField,
+      ];
+      const locked = lockedAnswerFromField(mergedField);
+      if (locked) answerById.set(locked.question_id, locked);
+    }
     for (const answer of normalized.details.answers ?? []) {
       answerById.set(answer.question_id, answer);
+      const existing = (next.details.fields ?? []).find((item) =>
+        item.question_id === answer.question_id
+      );
+      next.details.fields = [
+        ...(next.details.fields ?? []).filter((item) =>
+          item.question_id !== answer.question_id
+        ),
+        {
+          ...(existing ?? fieldFromQuestion({
+            potion: selectedForDetails,
+            questionId: answer.question_id,
+            required: requiredQuestionIds.includes(answer.question_id),
+          })),
+          status: "locked",
+          locked_value: answer.answer,
+          proposed_value: null,
+          user_evidence: answer.evidence,
+          needs_user_confirmation: false,
+          evidence: answer.evidence,
+        },
+      ];
+    }
+    if (normalized.details.optional_free_text) {
+      next.details.optional_free_text = {
+        ...(next.details.optional_free_text ?? fieldFromQuestion({
+          potion: selectedForDetails,
+          questionId: "optional_free_text",
+          required: false,
+        })),
+        ...normalized.details.optional_free_text,
+        question_id: "optional_free_text",
+        required: false,
+        label: normalized.details.optional_free_text.label ||
+          next.details.optional_free_text?.label ||
+          "Si tu veux, ajoute le point qui te brouille le plus.",
+      };
     }
     next.details = {
       ...next.details,
       ...normalized.details,
       answers: [...answerById.values()],
+      fields: next.details.fields ?? [],
+      optional_free_text: next.details.optional_free_text,
     };
   }
   if (normalized.context) {
@@ -560,7 +784,10 @@ function stateFromOperationInput(
     String(previousDraftFollowUp?.reminder_instruction ?? "").trim(),
     ...stringArray(previousDraftTarget?.evidence),
   ].filter(Boolean);
+  const existingSelectedPotion = objectValue(existing?.selected_potion);
+  const existingExplicitPotion = objectValue(existing?.explicit_potion_request);
   const selectedPotionValue = selectedPotion?.value ?? inputPotionValue ??
+    existingSelectedPotion?.value ?? existingExplicitPotion?.potion_type ??
     previousDraftPotion;
   const existingDetails = objectValue(existing?.details);
   const existingState = objectValue(existing?.state);
@@ -609,13 +836,14 @@ function stateFromOperationInput(
       confidence: state?.confidence ?? existingState?.confidence ?? "high",
     },
     explicit_potion_request: {
-      ...(objectValue(existing?.explicit_potion_request) ?? {}),
+      ...(existingExplicitPotion ?? {}),
       ...(explicitPotion ?? {}),
       potion_type: explicitPotion?.potion_type ?? input.explicit_potion_type ??
-        inputPotionValue ?? previousDraftPotion,
+        inputPotionValue ?? existingExplicitPotion?.potion_type ??
+        previousDraftPotion,
     },
     selected_potion: {
-      ...(objectValue(existing?.selected_potion) ?? {}),
+      ...(existingSelectedPotion ?? {}),
       ...(selectedPotion ?? {}),
       value: selectedPotionValue,
       status: selectedPotion?.status ??
@@ -635,6 +863,17 @@ function stateFromOperationInput(
           status: "identified",
           required_question_ids: chatDetailQuestionIds(previousDraftPotion!),
           answers: seededDetailAnswers,
+          optional_free_text: {
+            question_id: "optional_free_text",
+            label: "Champ libre optionnel",
+            required: false,
+            status: "skipped_optional",
+            proposed_value: null,
+            locked_value: null,
+            user_evidence: ["previous_draft"],
+            needs_user_confirmation: false,
+            evidence: ["previous_draft"],
+          },
           evidence: ["previous_draft"],
         }
         : {}),
@@ -642,6 +881,9 @@ function stateFromOperationInput(
     context: {
       ...(objectValue(existing?.context) ?? {}),
       ...(objectValue(input.context) ?? {}),
+      ...(input.handoff_summary
+        ? { handoff_summary: String(input.handoff_summary).trim() }
+        : {}),
     },
     generated_user_message: existing?.generated_user_message,
   });
@@ -676,6 +918,7 @@ function recalculateReadiness(
 ): SelectStatePotionIntakeState {
   const selectedFromExplicit = state.explicit_potion_request.potion_type;
   const selectedPotion = state.selected_potion.value ?? selectedFromExplicit;
+  const definition = selectedPotion ? POTION_DEFINITIONS[selectedPotion] : null;
   const baseRequiredDetailIds = chatDetailQuestionIds(selectedPotion);
   const supportTimingWasRequested = isActionAwarePotion(selectedPotion) &&
     (state.missing_slots.includes(SUPPORT_TIMING_SLOT) ||
@@ -688,26 +931,90 @@ function recalculateReadiness(
   const requiredDetailIds = supportTimingWasRequested
     ? [...baseRequiredDetailIds, SUPPORT_TIMING_QUESTION_ID]
     : baseRequiredDetailIds;
-  const detailAnswers = state.details.answers.filter((answer) =>
-    requiredDetailIds.includes(answer.question_id) &&
-    answer.answer.trim()
+  const lockedFields = (state.details.fields ?? []).filter((field) =>
+    field.status === "locked" &&
+    requiredDetailIds.includes(field.question_id) &&
+    String(field.locked_value ?? "").trim()
   );
+  const lockedAnswersFromFields = lockedFields.flatMap((field) => {
+    const answer = lockedAnswerFromField(field);
+    return answer ? [answer] : [];
+  });
+  const answerById = new Map<string, StatePotionDetailAnswer>();
+  for (const answer of state.details.answers) {
+    if (
+      requiredDetailIds.includes(answer.question_id) &&
+      answer.answer.trim()
+    ) {
+      answerById.set(answer.question_id, answer);
+    }
+  }
+  for (const answer of lockedAnswersFromFields) {
+    answerById.set(answer.question_id, answer);
+  }
+  const detailAnswers = [...answerById.values()];
   const answeredDetailIds = new Set(
     detailAnswers.map((answer) => answer.question_id),
   );
+  const fieldsById = new Map(
+    (state.details.fields ?? []).map((field) => [field.question_id, field]),
+  );
+  const progressFields = requiredDetailIds.map((questionId) => {
+    const existing = fieldsById.get(questionId);
+    const answer = detailAnswers.find((item) =>
+      item.question_id === questionId
+    );
+    return {
+      ...(existing ?? fieldFromQuestion({
+        potion: selectedPotion,
+        questionId,
+        required: true,
+        answer,
+      })),
+      required: true,
+      ...(answer
+        ? {
+          status: "locked" as const,
+          locked_value: answer.answer,
+          proposed_value: null,
+          needs_user_confirmation: false,
+        }
+        : {}),
+    };
+  });
+  const optionalFreeText = selectedPotion && definition?.free_text_label
+    ? {
+      ...(state.details.optional_free_text ?? fieldFromQuestion({
+        potion: selectedPotion,
+        questionId: "optional_free_text",
+        required: false,
+      })),
+      question_id: "optional_free_text",
+      label: definition.free_text_label,
+      required: false,
+    }
+    : null;
   const missingDetails = requiredDetailIds
     .filter((questionId) => !answeredDetailIds.has(questionId))
     .map((questionId) => `potion_detail:${questionId}`);
+  const optionalMissing = selectedPotion && definition?.free_text_label &&
+      missingDetails.length === 0 &&
+      optionalFreeText?.status !== "locked" &&
+      optionalFreeText?.status !== "skipped_optional"
+    ? ["potion_detail:optional_free_text"]
+    : [];
   const missing = [
     !state.state.kind ? "state" : "",
     !selectedPotion ? "potion_type" : "",
     ...(selectedPotion ? missingDetails : []),
+    ...optionalMissing,
   ].filter(Boolean);
   const nextSubSkill: SelectStatePotionSubSkill = missing.length === 0
     ? "draft_generation"
     : state.state.kind && !selectedPotion
     ? "potion_choice"
-    : selectedPotion && missingDetails.length > 0
+    : selectedPotion &&
+        (missingDetails.length > 0 || optionalMissing.length > 0)
     ? "detail_intake"
     : "state_resolution";
   return {
@@ -731,8 +1038,11 @@ function recalculateReadiness(
       ...state.details,
       required_question_ids: requiredDetailIds,
       answers: detailAnswers,
+      fields: progressFields,
+      optional_free_text: optionalFreeText,
       status: requiredDetailIds.length > 0 &&
-          detailAnswers.length >= requiredDetailIds.length
+          detailAnswers.length >= requiredDetailIds.length &&
+          optionalMissing.length === 0
         ? "identified"
         : selectedPotion
         ? "missing"
@@ -776,6 +1086,8 @@ function operationInputFromState(
         details: {
           required_question_ids: state.details.required_question_ids,
           answers: state.details.answers,
+          fields: state.details.fields ?? [],
+          optional_free_text: state.details.optional_free_text ?? null,
         },
       }
       : {}),
@@ -809,6 +1121,37 @@ function needsPotionDetailIntake(state: SelectStatePotionIntakeState): boolean {
     state.missing_slots.some((slot) => slot.startsWith("potion_detail:"));
 }
 
+function selectedPotionFromState(
+  state: SelectStatePotionIntakeState,
+): PotionSessionSelectorInput["potion_type"] | null {
+  return state.selected_potion.value ??
+    state.explicit_potion_request.potion_type;
+}
+
+function isClarteDetailIntakeState(
+  state: SelectStatePotionIntakeState,
+): boolean {
+  return selectedPotionFromState(state) === "clarte" &&
+    needsPotionDetailIntake(state);
+}
+
+function preserveForClarteSubflow(
+  state: SelectStatePotionIntakeState,
+): SelectStatePotionSlotFillerOutput {
+  return {
+    current_sub_skill: "detail_intake",
+    state_patch: {
+      ...state,
+      current_sub_skill: "detail_intake",
+      generated_user_message: null,
+    },
+    missing_slots: state.missing_slots,
+    confidence: state.confidence,
+    generated_user_message: null,
+    evidence: ["clarte_detail_deferred_to_local_dispatcher"],
+  };
+}
+
 function stripRouterOwnedDetails(
   output: SelectStatePotionSlotFillerOutput,
 ): SelectStatePotionSlotFillerOutput {
@@ -824,6 +1167,82 @@ function stripRouterOwnedDetails(
       current_sub_skill: output.current_sub_skill === "draft_generation"
         ? "detail_intake"
         : statePatch.current_sub_skill,
+    },
+  };
+}
+
+function limitDetailSubskillOutputToCurrentField(
+  state: SelectStatePotionIntakeState,
+  output: SelectStatePotionSlotFillerOutput,
+): SelectStatePotionSlotFillerOutput {
+  const selectedPotion = state.selected_potion.value ??
+    state.explicit_potion_request.potion_type;
+  const requiredQuestionIds = state.details.required_question_ids.length > 0
+    ? state.details.required_question_ids
+    : chatDetailQuestionIds(selectedPotion);
+  const currentQuestionId = firstUnlockedQuestionId({
+    requiredQuestionIds,
+    answers: state.details.answers,
+    fields: state.details.fields ?? [],
+  }) ?? "optional_free_text";
+  const statePatch = { ...output.state_patch };
+  const details = objectValue(statePatch.details);
+  if (!details) return output;
+  const filteredDetails = { ...details };
+  if (currentQuestionId === "optional_free_text") {
+    filteredDetails.answers = [];
+    filteredDetails.fields = [];
+  } else {
+    filteredDetails.answers = Array.isArray(details.answers)
+      ? details.answers.filter((answer) =>
+        objectValue(answer)?.question_id === currentQuestionId
+      ).slice(0, 1)
+      : [];
+    const normalizedFields = Array.isArray(details.fields)
+      ? details.fields.flatMap((field) => {
+        const root = objectValue(field);
+        if (!root) return [];
+        const questionId = String(root.question_id ?? "").trim();
+        if (!questionId) return [];
+        if (questionId === currentQuestionId) return [root];
+        if (!requiredQuestionIds.includes(questionId)) return [];
+        const candidate = String(
+          root.proposed_value ?? root.locked_value ?? root.answer ?? "",
+        ).trim();
+        if (!candidate) return [];
+        return [{
+          ...root,
+          status: "proposed",
+          proposed_value: candidate,
+          locked_value: null,
+          needs_user_confirmation: true,
+          evidence: [
+            ...stringArray(root.evidence),
+            "opportunistic_future_field_candidate",
+          ],
+        }];
+      })
+      : [];
+    const currentFields = normalizedFields.filter((field) =>
+      objectValue(field)?.question_id === currentQuestionId
+    ).slice(0, 1);
+    const futureFields = normalizedFields.filter((field) =>
+      objectValue(field)?.question_id !== currentQuestionId
+    );
+    const dedupedFutureFields = requiredQuestionIds.flatMap((questionId) => {
+      const field = futureFields.find((item) =>
+        objectValue(item)?.question_id === questionId
+      );
+      return field ? [field] : [];
+    });
+    filteredDetails.fields = [...currentFields, ...dedupedFutureFields];
+    delete filteredDetails.optional_free_text;
+  }
+  return {
+    ...output,
+    state_patch: {
+      ...statePatch,
+      details: filteredDetails as any,
     },
   };
 }
@@ -862,10 +1281,16 @@ export async function fillSelectStatePotionSlotsWithAi(
   const routerSubSkill = subskills.router ?? fillPotionRouterSlotsWithAi;
   const detailSubSkill = subskills.detail ?? fillPotionDetailSlotsWithAi;
   if (needsPotionDetailIntake(state)) {
-    return await detailSubSkill(
+    if (isClarteDetailIntakeState(state)) {
+      return preserveForClarteSubflow(state);
+    }
+    const detailed = await detailSubSkill(
       { ...input, current_state: state },
       normalizeSelectStatePotionSlotFillerOutput,
     );
+    return detailed
+      ? limitDetailSubskillOutputToCurrentField(state, detailed)
+      : null;
   }
 
   const routed = await routerSubSkill(
@@ -877,13 +1302,19 @@ export async function fillSelectStatePotionSlotsWithAi(
   const routerOutput = stripRouterOwnedDetails(routed);
   const routedState = mergeState(state, routerOutput.state_patch);
   if (!needsPotionDetailIntake(routedState)) return routerOutput;
+  if (isClarteDetailIntakeState(routedState)) {
+    return preserveForClarteSubflow(routedState);
+  }
 
   const detailed = await detailSubSkill(
     { ...input, current_state: routedState },
     normalizeSelectStatePotionSlotFillerOutput,
   );
-  return detailed
-    ? composeSubSkillOutputs(state, routerOutput, detailed)
+  const incrementalDetail = detailed
+    ? limitDetailSubskillOutputToCurrentField(routedState, detailed)
+    : null;
+  return incrementalDetail
+    ? composeSubSkillOutputs(state, routerOutput, incrementalDetail)
     : routerOutput;
 }
 
@@ -946,84 +1377,8 @@ function unstructuredRecoveryQuestionOutput(
 function fallbackQuestionForState(
   state: SelectStatePotionIntakeState,
 ): string | null {
-  const selectedPotion = state.selected_potion.value ??
-    state.explicit_potion_request.potion_type;
-  if (!selectedPotion) return null;
-  const missingDetailIds = state.missing_slots
-    .map((slot) => slot.startsWith("potion_detail:") ? slot.slice(14) : "")
-    .filter(Boolean);
-  if (missingDetailIds.length === 0) return null;
-  const firstMissing = missingDetailIds[0];
-  const byPotion: Partial<
-    Record<PotionSessionSelectorInput["potion_type"], Record<string, string>>
-  > = {
-    rappel: {
-      drift_target:
-        "Qu'est-ce que tu veux surtout ne pas laisser filer en ce moment ?",
-      drift_style:
-        "Je vois ce qui glisse. Ça part plutôt comment, chez toi, au moment où tu décroches ?",
-      support_timing:
-        "Tu voudrais que Sophia te rattrape à quel moment autour de ça ?",
-    },
-    courage: {
-      avoidance_target: "C'est quel passage concret que tu évites là ?",
-      blocker_kind:
-        "Je vois le passage à franchir. Qu'est-ce qui serre le plus quand tu t'en approches ?",
-      support_timing:
-        "Tu voudrais que Sophia soit là à quel moment autour de ce passage ?",
-    },
-    guerison: {
-      recent_hurt: "Quel moment récent a laissé cette trace ?",
-      dominant_feeling:
-        "Je vois l'épisode. Qu'est-ce qui pèse le plus maintenant quand tu y repenses ?",
-    },
-    clarte: {
-      clarity_problem: "Qu'est-ce qui est le plus mélangé là, concrètement ?",
-      clarity_need:
-        "Je vois le brouillard. Tu as surtout besoin de retrouver quel fil en premier ?",
-      support_timing:
-        "Tu voudrais placer ce soutien à quel moment, pour que ça aide vraiment ?",
-    },
-    amour: {
-      self_talk: "Quelle phrase dure revient le plus contre toi en ce moment ?",
-      love_need:
-        "Je vois la dureté. De quoi tu aurais le plus besoin dans la manière de te parler là ?",
-    },
-    apaisement: {
-      pressure_source: "Qu'est-ce qui met le plus ton corps sous pression là ?",
-      pressure_state:
-        "Je vois la pression. Comment elle se manifeste le plus dans ton corps maintenant ?",
-    },
-  };
-  return byPotion[selectedPotion]?.[firstMissing] ??
-    `${chatDetailQuestionLabel(selectedPotion, firstMissing)}`;
-}
-
-function normalizeVisibleQuestionText(value: string): string {
-  return value.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-}
-
-function preventPotionRerouteQuestion(
-  question: string,
-  state: SelectStatePotionIntakeState,
-): string {
-  const selectedPotion = state.selected_potion.value ??
-    state.explicit_potion_request.potion_type;
-  if (!selectedPotion) return question;
-  const text = normalizeVisibleQuestionText(question);
-  const otherPotionMentioned = [
-    "rappel",
-    "courage",
-    "guerison",
-    "clarte",
-    "amour",
-    "apaisement",
-  ].some((potion) => potion !== selectedPotion && text.includes(potion));
-  const asksChoiceBetweenPotions = /\btu preferes\b/.test(text) &&
-    /\bou\b/.test(text) &&
-    (text.includes("potion") || otherPotionMentioned);
-  if (!otherPotionMentioned && !asksChoiceBetweenPotions) return question;
-  return fallbackQuestionForState(state) ?? question;
+  void state;
+  return null;
 }
 
 function recoverableQuestionOutput(
@@ -1189,10 +1544,6 @@ export async function runSelectStatePotionIntake(input: {
       : nextState.current_sub_skill === "detail_intake"
       ? "detail_intake"
       : "state_resolution";
-    const visibleQuestion = preventPotionRerouteQuestion(
-      nextState.generated_user_message,
-      nextState,
-    );
     return {
       operation_type: "select_state_potion",
       status: "ask_question",
@@ -1200,17 +1551,34 @@ export async function runSelectStatePotionIntake(input: {
       phase,
       next_question: {
         needed: true,
-        question: visibleQuestion,
+        question: nextState.generated_user_message,
         reason: nextState.missing_slots[0],
       },
       state_patch: {
         summary: phase === "potion_choice"
           ? "Potion intake needs user choice from shortlist."
           : phase === "detail_intake"
-          ? "Potion intake needs two chat detail fields."
+          ? "Potion intake needs incremental potion detail fields."
           : "Potion intake needs structured state completion.",
         phase,
         missing_slots: nextState.missing_slots,
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: nextState,
+      },
+    };
+  }
+
+  if (selectedPotionFromState(nextState) === "clarte") {
+    return {
+      operation_type: "select_state_potion",
+      status: "handoff_ready",
+      source,
+      phase: "handoff_ready",
+      state_patch: {
+        summary: "Potion de clarté platform handoff ready.",
+        phase: "handoff_ready",
+        missing_slots: [],
         turn_count_increment: 1,
         operation_input: operationInput,
         intake_state: nextState,
@@ -1292,7 +1660,7 @@ export async function runSelectStatePotionIntake(input: {
       },
       state_patch: {
         summary:
-          "Potion intake needs explicit action support timing before draft confirmation.",
+          "Potion intake needs explicit action support timing before handoff.",
         phase: "detail_intake",
         missing_slots: [SUPPORT_TIMING_SLOT],
         turn_count_increment: 1,
@@ -1303,27 +1671,13 @@ export async function runSelectStatePotionIntake(input: {
   }
   return {
     operation_type: "select_state_potion",
-    status: "pending_confirmation",
+    status: "handoff_ready",
     source,
-    phase: "confirmation",
+    phase: "handoff_ready",
     draft,
-    confirmation: {
-      required: true,
-      message: draft.confirmation_message,
-      actions: ["yes", "no"],
-    },
-    pending_confirmation: {
-      operation_id: request.operation_id,
-      operation_type: "select_state_potion",
-      source,
-      summary: draft.draft.title,
-      draft,
-      intake_state: nextState,
-      expires_after_turns: 2,
-    },
     state_patch: {
-      summary: "Potion draft generated.",
-      phase: "confirmation",
+      summary: "Potion platform handoff ready.",
+      phase: "handoff_ready",
       missing_slots: [],
       turn_count_increment: 1,
       operation_input: operationInput,

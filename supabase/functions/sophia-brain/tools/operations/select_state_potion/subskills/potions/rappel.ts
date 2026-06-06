@@ -9,8 +9,11 @@ export const RAPPEL_POTION_SUBSKILL: StatePotionDetailSubSkillDefinition = {
     "Reste concret sur ce qui glisse et la maniere dont ca glisse.",
   ],
   extraction_rules: [
-    "drift_target = ce par rapport a quoi le user decroche: action, moment, routine, geste a proteger, ou priorite qui se perd.",
+    "drift_target = objet du decrochage, formule simplement et reutilisable dans la plateforme: action, moment, routine, geste a proteger, ou priorite qui se perd.",
     "Si le user parle d'un moment a proteger, d'une fermeture d'ordi, d'une marche, d'un bureau a ranger, ou d'une routine du soir, c'est du drift_target.",
-    "drift_style = oubli, repousse, laisse_filer, ou baisse_elan si le message permet de choisir; sinon reformule en mots user.",
+    "Ne verrouille pas drift_target si la reponse est trop vague et ne dit pas ce qui glisse.",
+    "drift_style = exactement une des quatre options: oubli, repousse, laisse_filer, baisse_elan.",
+    "Ne demande jamais si c'est lie au plan ou hors plan dans le chat; ce choix appartient a l'UI plateforme.",
+    "N'invente jamais de lien avec le plan et ne demande jamais de choisir une action du plan dans le chat.",
   ],
 };

@@ -197,6 +197,10 @@ Il ne doit pas lire :
 - Prioriser moyens éloignés, présence humaine, aide d'urgence et ressources
   France si risque critique/imminent.
 - Rendre une réponse courte, actionnable, sans produit ni outil.
+- Rendre une réponse visible contextualisée par les signaux structurés et le
+  working state : si les moyens sont déjà hors de portée ou confiés à quelqu'un,
+  et si un appui humain est présent/en ligne, le renderer doit reconnaître ces
+  gestes au lieu de rejouer une checklist de phase.
 - Sortir du mode safety uniquement après séquence stricte validée par le
   reducer.
 
@@ -294,6 +298,9 @@ Application des effets :
 - Ajouter un override déterministe qui escalade ou maintient le risque.
 - Ajouter une preuve de stabilisation utilisable par le reducer, sans permettre
   une résolution directe.
+- Adapter le renderer pour composer une réponse depuis le contrat safety, les
+  signaux structurés et l'état précédent, tant que les obligations critiques
+  restent vérifiables par tests.
 - Renforcer une condition de non-résolution.
 - Ajouter un test de runtime safety qui empêche tools/direct effects.
 - Mettre à jour les ressources de crise si les sources officielles changent,
@@ -304,6 +311,8 @@ Application des effets :
 - Ajouter une logique safety sémantique dans `run.ts`, L3/L4 ou un router
   global au lieu du skill/runtime safety.
 - Ajouter un fallback regex qui désescalade ou force `resolved`.
+- Ajouter une phrase visible complète figée par phase qui ignore les preuves
+  déjà produites par l'utilisateur dans le tour courant.
 - Laisser l'intake IA choisir une phase, exécuter un effet ou déclarer une
   résolution.
 - Proposer un outil, une potion, un rappel, une carte, un plan ou un dashboard.
@@ -326,10 +335,14 @@ Application des effets :
 - `RunSkillInput.context` sert de snapshot local au lieu d'un
   `UserTurnSnapshot` typé dédié. Condition de suppression : adoption d'un
   snapshot runtime commun pour tous les conversation skills.
-- Le renderer est déterministe et codé en dur. C'est accepté ici parce que la
-  réponse safety doit être courte, stable, non-mutante et vérifiable. Condition
-  de suppression : un renderer IA devrait être strictement validé par un
-  response contract et des tests de non-régression safety.
+- Le renderer reste déterministe sur les obligations safety vérifiables
+  (ressources de crise, absence de produit/tool, priorité aide humaine, nombre
+  de questions), mais il ne doit pas être une table de phrases complètes par
+  phase. Il doit composer une réponse contextualisée depuis les signaux
+  structurés et l'état précédent, notamment pour ne pas redemander d'éloigner
+  des moyens déjà confiés/éloignés. Condition de suppression : si un renderer
+  IA est introduit, il devra être strictement validé par un response contract,
+  des garde-fous de sortie et des tests de non-régression safety.
 - Les memory candidates safety existent encore comme résumé minimal, mais
   `should_persist_default=false`. Condition de suppression : si le runtime
   mémoire décide que le mode safety ne doit jamais émettre de candidate, le
@@ -344,6 +357,10 @@ Tests skill :
 - `safety_crisis deescalates when means are away and human support is present` ;
 - `safety_crisis L5 contract keeps conservative safety invariants` ;
 - `safety_crisis structured intake finalization cases`.
+- Régression `BF-SAFETY-01` : moyens donnés/confiés à quelqu'un + support au
+  téléphone doivent être reconnus comme stabilisation sans sortie directe, et
+  la réponse ne doit pas relancer `Eloigne d'abord`, `Pose ou eloigne` ou
+  `reponds seulement`.
 
 Tests router/runtime :
 
@@ -371,3 +388,4 @@ changent, ajouter le `deno check` ciblé correspondant.
 | --- | --- | --- | --- |
 | 2026-05-29 | Safety = IA structurée + reducer déterministe conservateur. | Active | J20 safety_crisis structured intake finalization |
 | 2026-05-30 | `safety_crisis` n'a pas d'executor durable propriétaire ; ses seuls effets sont des candidates mémoire non persistées par défaut et les suppressions runtime des tools/direct effects. | Active | Ce contrat runtime |
+| 2026-06-02 | Le renderer safety n'est plus une exception de templates complets par phase : il compose une réponse contextualisée à partir des signaux structurés, tout en gardant les obligations safety déterministes. | Active | J78 BF-SAFETY-01 contextual safety renderer |

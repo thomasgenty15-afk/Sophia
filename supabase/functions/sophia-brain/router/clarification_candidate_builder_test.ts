@@ -99,18 +99,41 @@ Deno.test("clarification_candidate_builder: product_help + prepare_attack_card p
   ]);
 });
 
-Deno.test("clarification_candidate_builder: execution_breakdown + adjust_plan_item demande clarification", () => {
+Deno.test("clarification_candidate_builder: prepare_defense_card + prepare_attack_card demande clarification", () => {
   const result = buildClarificationCandidatesFromTurnFrame(frame({
-    skill_signals: {
-      entry: {
-        execution_breakdown: {
-          detected: true,
-          confidence_band: "medium",
-          reason: "structured_execution_block",
-        },
-      },
-    },
     tool_skill_intents: [{
+      operation_type: "prepare_defense_card",
+      explicitness: "explicit",
+      confidence_band: "high",
+      ambiguity: "target_ambiguous",
+      user_intent: "create",
+      operation_input: { target_hint: "moment de risque à clarifier" },
+    }, {
+      operation_type: "prepare_attack_card",
+      explicitness: "explicit",
+      confidence_band: "high",
+      ambiguity: "target_ambiguous",
+      user_intent: "create",
+      operation_input: { target_hint: "action à clarifier" },
+    }],
+  }));
+
+  assertEquals(result?.ambiguity_kind, "intent");
+  assertEquals(result?.candidates.map((candidate) => candidate.id), [
+    "prepare_defense_card",
+    "prepare_attack_card",
+  ]);
+});
+
+Deno.test("clarification_candidate_builder: prepare_attack_card + adjust_plan_item demande clarification", () => {
+  const result = buildClarificationCandidatesFromTurnFrame(frame({
+    tool_skill_intents: [{
+      operation_type: "prepare_attack_card",
+      explicitness: "implied",
+      confidence_band: "medium",
+      ambiguity: "intent_ambiguous",
+      user_intent: "create",
+    }, {
       operation_type: "adjust_plan_item",
       explicitness: "explicit",
       confidence_band: "high",
@@ -120,14 +143,14 @@ Deno.test("clarification_candidate_builder: execution_breakdown + adjust_plan_it
     }],
   }));
 
-  assertEquals(result?.ambiguity_kind, "handoff_readiness");
+  assertEquals(result?.ambiguity_kind, "intent");
   assertEquals(result?.candidates.map((candidate) => candidate.id), [
+    "prepare_attack_card",
     "adjust_plan_item",
-    "execution_breakdown",
   ]);
 });
 
-Deno.test("clarification_candidate_builder: emotional_repair + state potion + execution demande clarification", () => {
+Deno.test("clarification_candidate_builder: emotional_repair + state potion + attack card demande clarification", () => {
   const result = buildClarificationCandidatesFromTurnFrame(frame({
     skill_signals: {
       entry: {
@@ -136,7 +159,7 @@ Deno.test("clarification_candidate_builder: emotional_repair + state potion + ex
           confidence_band: "medium",
           reason: "structured_emotional_need",
         },
-        execution_breakdown: {
+        prepare_attack_card: {
           detected: true,
           confidence_band: "medium",
           reason: "structured_micro_action_need",
@@ -162,14 +185,15 @@ Deno.test("clarification_candidate_builder: emotional_repair + state potion + ex
   assertEquals(result?.ambiguity_kind, "target");
   assertEquals(result?.candidates.map((candidate) => candidate.id), [
     "emotional_repair",
-    "execution_breakdown",
+    "prepare_attack_card",
     "select_state_potion",
   ]);
 });
 
-Deno.test("clarification_candidate_builder: skill actif execution ajoute son candidat sans signal dispatcher", () => {
+Deno.test("clarification_candidate_builder: ancien skill execution actif est ignoré", () => {
+  const deprecatedActionBreakdownSkillId = "execution" + "_breakdown";
   const result = buildActiveSkillClarificationCandidatesFromTurnFrame({
-    activeSkillState: { skill_id: "execution_breakdown" },
+    activeSkillState: { skill_id: deprecatedActionBreakdownSkillId },
     turnFrame: frame({
       skill_signals: {
         entry: {
@@ -197,12 +221,7 @@ Deno.test("clarification_candidate_builder: skill actif execution ajoute son can
     }),
   });
 
-  assertEquals(result?.owner, "execution_breakdown");
-  assertEquals(result?.ambiguity_kind, "handoff_readiness");
-  assertEquals(result?.candidates.map((candidate) => candidate.id), [
-    "execution_breakdown",
-    "adjust_plan_item",
-  ]);
+  assertEquals(result, null);
 });
 
 Deno.test("clarification_candidate_builder: skill_signal select_state_potion est normalisé en operation candidate", () => {
@@ -216,7 +235,7 @@ Deno.test("clarification_candidate_builder: skill_signal select_state_potion est
             confidence_band: "medium",
             reason: "structured_state_regulation",
           },
-          execution_breakdown: {
+          prepare_attack_card: {
             detected: true,
             confidence_band: "medium",
             reason: "structured_micro_action_need",
@@ -245,9 +264,9 @@ Deno.test("clarification_candidate_builder: skill_signal select_state_potion est
         operation_type: "select_state_potion",
       },
       {
-        id: "execution_breakdown",
-        label: "découper une action",
-        operation_type: null,
+        id: "prepare_attack_card",
+        label: "préparer une carte d'attaque",
+        operation_type: "prepare_attack_card",
       },
     ],
   );
@@ -261,7 +280,7 @@ Deno.test("clarification_candidate_builder: skill actif emotional conserve une p
     turnFrame: frame({
       skill_signals: {
         entry: {
-          execution_breakdown: {
+          prepare_attack_card: {
             detected: true,
             confidence_band: "medium",
             reason: "structured_micro_action_need",
@@ -290,9 +309,150 @@ Deno.test("clarification_candidate_builder: skill actif emotional conserve une p
       { id: "emotional_repair", operation_type: null },
       { id: "select_state_potion", operation_type: "select_state_potion" },
       { id: "adjust_plan_item", operation_type: "adjust_plan_item" },
-      { id: "execution_breakdown", operation_type: null },
+      { id: "prepare_attack_card", operation_type: "prepare_attack_card" },
     ],
   );
+});
+
+Deno.test("clarification_candidate_builder: demotivation actif expose des candidats internes de source", () => {
+  const result = buildActiveSkillClarificationCandidatesFromTurnFrame({
+    activeSkillState: {
+      skill_id: "demotivation_repair",
+      working_state: { phase: "sorting_demotivation_source" },
+    },
+    turnFrame: frame({}),
+  });
+
+  assertEquals(result?.owner, "demotivation_repair");
+  assertEquals(result?.ambiguity_kind, "intent");
+  assertEquals(
+    result?.candidates.map((candidate) => ({
+      id: candidate.id,
+      label: candidate.label,
+      operation_type: candidate.operation_type ?? null,
+    })),
+    [
+      {
+        id: "demotivation_loss_of_meaning",
+        label: "une perte de sens",
+        operation_type: null,
+      },
+      {
+        id: "demotivation_fatigue",
+        label: "de la fatigue",
+        operation_type: null,
+      },
+      {
+        id: "prepare_attack_card",
+        label: "préparer une carte d'attaque",
+        operation_type: "prepare_attack_card",
+      },
+      {
+        id: "adjust_plan_item",
+        label: "un plan mal calibré",
+        operation_type: "adjust_plan_item",
+      },
+    ],
+  );
+  assertEquals(
+    result?.known_context.candidate_sources,
+    [
+      {
+        id: "demotivation_loss_of_meaning",
+        source: "active_skill_internal",
+        confidence_band: "medium",
+      },
+      {
+        id: "demotivation_fatigue",
+        source: "active_skill_internal",
+        confidence_band: "medium",
+      },
+      {
+        id: "prepare_attack_card",
+        source: "active_skill_internal",
+        confidence_band: "medium",
+      },
+      {
+        id: "adjust_plan_item",
+        source: "active_skill_internal",
+        confidence_band: "medium",
+      },
+    ],
+  );
+});
+
+Deno.test("clarification_candidate_builder: demotivation diagnostic est une paraphrase de phase valide", () => {
+  const result = buildActiveSkillClarificationCandidatesFromTurnFrame({
+    activeSkillState: {
+      skill_id: "demotivation_repair",
+      working_state: { phase: "diagnose" },
+    },
+    turnFrame: frame({}),
+  });
+
+  assertEquals(result?.owner, "demotivation_repair");
+  assertEquals(result?.candidates.map((candidate) => candidate.id), [
+    "demotivation_loss_of_meaning",
+    "demotivation_fatigue",
+    "prepare_attack_card",
+    "adjust_plan_item",
+  ]);
+});
+
+Deno.test("clarification_candidate_builder: demotivation hors phase de clarification ne force rien", () => {
+  const result = buildActiveSkillClarificationCandidatesFromTurnFrame({
+    activeSkillState: {
+      skill_id: "demotivation_repair",
+      working_state: { phase: "reduce_friction" },
+    },
+    turnFrame: frame({}),
+  });
+
+  assertEquals(result, null);
+});
+
+Deno.test("clarification_candidate_builder: weekly actif expose recap ou ajustement sans patch", () => {
+  const result = buildActiveSkillClarificationCandidatesFromTurnFrame({
+    activeSkillState: {
+      skill_id: "weekly_adaptive_review_v1",
+      working_state: { phase: "weekly_review_discussion" },
+    },
+    turnFrame: frame({}),
+  });
+
+  assertEquals(result?.owner, "weekly_adaptive_review_v1");
+  assertEquals(result?.ambiguity_kind, "handoff_readiness");
+  assertEquals(
+    result?.candidates.map((candidate) => ({
+      id: candidate.id,
+      label: candidate.label,
+      operation_type: candidate.operation_type ?? null,
+    })),
+    [
+      {
+        id: "weekly_recap",
+        label: "faire un récap clair de la semaine",
+        operation_type: null,
+      },
+      {
+        id: "adjust_plan_item",
+        label: "ajuster le plan",
+        operation_type: "adjust_plan_item",
+      },
+    ],
+  );
+});
+
+Deno.test("clarification_candidate_builder: weekly hors phase de discussion ne force rien", () => {
+  const result = buildActiveSkillClarificationCandidatesFromTurnFrame({
+    activeSkillState: {
+      skill_id: "weekly_adaptive_review_v1",
+      working_state: { phase: "ready_for_confirmation" },
+    },
+    turnFrame: frame({}),
+  });
+
+  assertEquals(result, null);
 });
 
 Deno.test("clarification_candidate_builder: un seul signal clair ne demande rien", () => {

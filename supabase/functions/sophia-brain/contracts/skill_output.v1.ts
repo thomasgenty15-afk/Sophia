@@ -46,7 +46,7 @@ export type ConversationSkillOutput = {
     needed: boolean;
     type:
       | "state_regulation"
-      | "execution_repair"
+      | "action_repair"
       | "motivation_repair"
       | "product_help"
       | "none";

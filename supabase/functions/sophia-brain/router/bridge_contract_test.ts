@@ -87,7 +87,7 @@ Deno.test("recommendation_suggestion_has_no_committed_effect", () => {
     },
   });
   assertEquals(ledger.entries.length, 1);
-  assertEquals(ledger.entries[0].status, "requested");
+  assertEquals(ledger.entries[0].status, "proposed");
   assertEquals(
     hasCommittedEffect(
       ledger,

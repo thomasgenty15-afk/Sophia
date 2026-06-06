@@ -375,7 +375,10 @@ Deno.test("active attack_card + structured no confirmation clears inside handoff
   });
   assertEquals(result.action, "clear_handoff");
   assertEquals(result.continuation_intent, "cancel_handoff");
-  assertEquals(result.reason_code, "negative_confirmation_clears_active_handoff");
+  assertEquals(
+    result.reason_code,
+    "negative_confirmation_clears_active_handoff",
+  );
 });
 
 Deno.test("active defense_card + softer continues revise_handoff", () => {
@@ -412,7 +415,10 @@ Deno.test("active defense_card + softer plan B wording continues revise_handoff"
   });
   assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "revise_handoff");
-  assertEquals(result.reason_code, "same_operation_signal_continues_active_handoff");
+  assertEquals(
+    result.reason_code,
+    "same_operation_signal_continues_active_handoff",
+  );
 });
 
 Deno.test("active defense_card + structured no confirmation clears inside handoff", () => {
@@ -425,7 +431,10 @@ Deno.test("active defense_card + structured no confirmation clears inside handof
   });
   assertEquals(result.action, "clear_handoff");
   assertEquals(result.continuation_intent, "cancel_handoff");
-  assertEquals(result.reason_code, "negative_confirmation_clears_active_handoff");
+  assertEquals(
+    result.reason_code,
+    "negative_confirmation_clears_active_handoff",
+  );
 });
 
 Deno.test("active defense_card + explicit coach preference interrupts handoff", () => {
@@ -524,7 +533,10 @@ Deno.test("active recurring + slot revision stays with skill when dispatcher kee
 
   assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "revise_handoff");
-  assertEquals(result.reason_code, "same_operation_signal_continues_active_handoff");
+  assertEquals(
+    result.reason_code,
+    "same_operation_signal_continues_active_handoff",
+  );
 });
 
 Deno.test("active recurring + unclassified compact edit stays with skill clarification", () => {
@@ -536,6 +548,21 @@ Deno.test("active recurring + unclassified compact edit stays with skill clarifi
   assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "unclear");
   assertEquals(result.reason_code, "active_recurring_handoff_stays_with_skill");
+});
+
+Deno.test("active state potion + unclassified field answer stays with skill", () => {
+  const result = decide({
+    message:
+      "Quand je regarde mes actions, j'ai l'impression de cocher des cases pour rester occupé.",
+    operation: "select_state_potion",
+  });
+
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "unclear");
+  assertEquals(
+    result.reason_code,
+    "active_state_potion_handoff_stays_with_skill",
+  );
 });
 
 Deno.test("active recurring + structured apply attempt stays non-mutating", () => {
@@ -550,6 +577,119 @@ Deno.test("active recurring + structured apply attempt stays non-mutating", () =
   assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "apply_attempt");
   assertEquals(result.reason_code, "confirmation_yes_is_handoff_apply_attempt");
+});
+
+Deno.test("active platform handoff + structured apply request becomes handoff_apply_attempt", () => {
+  const result = decide({
+    message: "message déjà classé active_handoff_action",
+    operation: "select_state_potion",
+    turnFrame: frame({
+      active_handoff_action: {
+        type: "handoff_apply_attempt",
+        confidence: "high",
+        evidence: ["Ok vas-y active-la."],
+        target_skill_id: "select_state_potion",
+      },
+    }),
+  });
+
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "handoff_apply_attempt");
+  assertEquals(result.operation_type, "select_state_potion");
+  assertEquals(result.reason_code, "active_handoff_apply_attempt");
+  assertEquals(result.no_chat_mutation, true);
+});
+
+Deno.test("active platform handoff + field confirmation continues collection", () => {
+  const result = decide({
+    message: "message déjà classé confirmation de champ",
+    operation: "select_state_potion",
+    turnFrame: frame({
+      active_handoff_action: {
+        type: "field_confirmation",
+        confidence: "high",
+        evidence: ["Oui, c'est la honte surtout."],
+        target_skill_id: "select_state_potion",
+      },
+    }),
+  });
+
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "field_confirmation");
+  assertEquals(result.operation_type, "select_state_potion");
+  assertEquals(result.reason_code, "active_handoff_field_confirmation");
+});
+
+Deno.test("active platform handoff + destination followup stays with handoff", () => {
+  const result = decide({
+    message: "message déjà classé destination plateforme",
+    operation: "select_state_potion",
+    turnFrame: frame({
+      active_handoff_action: {
+        type: "platform_destination_followup",
+        confidence: "high",
+        evidence: ["Et je la lance ou exactement dans la plateforme ?"],
+        target_skill_id: "select_state_potion",
+      },
+    }),
+  });
+
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "platform_destination_followup");
+  assertEquals(result.operation_type, "select_state_potion");
+  assertEquals(
+    result.reason_code,
+    "active_handoff_platform_destination_followup",
+  );
+});
+
+Deno.test("structured active handoff apply keeps active owner without executor signal", () => {
+  const result = decide({
+    message: "message déjà classé active_handoff_action",
+    operation: "prepare_attack_card",
+    turnFrame: frame({
+      active_handoff_action: {
+        type: "handoff_apply_attempt",
+        confidence: "high",
+        evidence: ["crée-la"],
+        target_skill_id: "prepare_attack_card",
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+    }),
+  });
+
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.operation_type, "prepare_attack_card");
+  assertEquals(result.continuation_intent, "handoff_apply_attempt");
+});
+
+Deno.test("explicit new tool still interrupts structured active handoff action", () => {
+  const result = decide({
+    message: "message déjà classé rappel ponctuel",
+    operation: "select_state_potion",
+    turnFrame: frame({
+      active_handoff_action: {
+        type: "handoff_apply_attempt",
+        confidence: "high",
+        evidence: ["vas-y"],
+        target_skill_id: "select_state_potion",
+      },
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {},
+      }],
+    }),
+  });
+
+  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(
+    result.reason_code,
+    "create_one_shot_reminder_interrupts_active_handoff",
+  );
 });
 
 Deno.test("active preferences + fewer questions continues revise_handoff", () => {
@@ -568,6 +708,98 @@ Deno.test("active preferences + fewer questions continues revise_handoff", () =>
   });
   assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "revise_handoff");
+});
+
+Deno.test("active preferences + platform steps product_help signal stays with handoff", () => {
+  const result = decide({
+    message: "Ok, concrètement je dois changer quoi dans la plateforme ?",
+    operation: "update_coach_preferences",
+    routeDecision: route({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      reason_code: "skill_entry_signal",
+    }),
+    turnFrame: frame({
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "active_handoff_platform_destination_followup",
+          },
+        },
+        lifecycle: {},
+        exit: {},
+      },
+    }),
+  });
+
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "platform_destination_followup");
+  assertEquals(
+    result.reason_code,
+    "product_help_followup_continues_active_handoff",
+  );
+});
+
+Deno.test("active preferences + legacy after-handoff product_help reason stays with handoff", () => {
+  const result = decide({
+    message: "Ok, concrètement je dois changer quoi dans la plateforme ?",
+    operation: "update_coach_preferences",
+    routeDecision: route({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      reason_code: "skill_entry_signal",
+    }),
+    turnFrame: frame({
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user_asks_for_specific_platform_steps_after_handoff",
+          },
+        },
+        lifecycle: {},
+        exit: {},
+      },
+    }),
+  });
+
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "platform_destination_followup");
+  assertEquals(
+    result.reason_code,
+    "product_help_followup_continues_active_handoff",
+  );
+});
+
+Deno.test("active preferences + unrelated product help still interrupts handoff", () => {
+  const result = decide({
+    message: "Au fait, où sont les rappels dans l'app ?",
+    operation: "update_coach_preferences",
+    routeDecision: route({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      reason_code: "skill_entry_signal",
+    }),
+    turnFrame: frame({
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user_asks_app_location_for_durable_surface",
+          },
+        },
+        lifecycle: {},
+        exit: {},
+      },
+    }),
+  });
+
+  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.reason_code, "product_help_interrupts_active_handoff");
 });
 
 Deno.test("active preferences + explicit recurring reminder resumes reminder flow", () => {

@@ -247,6 +247,9 @@ function compactCatalogFeature(feature: ProductHelpFeature) {
     id: feature.id,
     label: feature.label,
     aliases: feature.aliases.slice(0, 8),
+    explain: feature.explain,
+    how_to: feature.how_to,
+    benefits: feature.benefits.slice(0, 4),
     locations: feature.locations.map((location) => ({
       surface: location.surface,
       when_visible: location.when_visible,
@@ -608,7 +611,8 @@ async function defaultProductHelpIntakeModel(
         must_include_limit: "boolean",
       },
       operation_suggestions: [],
-      reply: "optional string; renderer can fill it",
+      reply:
+        "optional string; required when intent=compare_features and the user asks a contextual choice or follow-up; keep it short, grounded in catalog_candidates, non-mutating",
       state_patch: "object",
     },
     behavioral_rules: [
@@ -617,6 +621,8 @@ async function defaultProductHelpIntakeModel(
       "Une demande d'action tool devient intent=tool_action_request avec bridge requires_confirmation=true; ne dis jamais que c'est fait.",
       "Une question d'etat reel devient object_status_question, pas une reponse catalogue generique.",
       "'ou retrouver/modifier/annuler dans l'app' est product_help et doit inclure localisation/limites sans mutation.",
+      "Pour intent=where_is_it, repondre a la localisation, pas au modele complet de la fonctionnalite.",
+      "Pour intent=compare_features avec demande de choix, inclure une reply courte qui choisit selon le besoin courant, sans creer ni proposer une operation.",
       "Le message courant prime sur le contexte recent pour carte vs rappel vs potion.",
       "Le contexte recent sert seulement a resoudre un pronom ou une reference ambigue.",
       "N'affirme pas qu'un objet reel existe sans source recente/db/active_flow choisie dans grounding.db_sources_used.",

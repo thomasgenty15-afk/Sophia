@@ -22,16 +22,11 @@ export function reduceDemotivationRepairTurn(args: {
       args.run_input.context.turn_frame.source_message_id,
     )
     : [];
-  const handoffRequest = args.intake.ok ? decision.handoff_request : undefined;
-
   return baseOutput("demotivation_repair", {
-    status: handoffRequest ? "handoff" : "continue",
+    status: "continue",
     response_intent: !args.intake.ok
       ? "technical_intake_failure"
-      : handoffRequest
-      ? "handoff_to_execution"
       : decision.intent,
-    handoff_request: handoffRequest,
     reply: renderDemotivationRepairReply({
       decision,
       intake_ok: args.intake.ok,
@@ -58,7 +53,6 @@ export function reduceDemotivationRepairTurn(args: {
       intake_failed: !args.intake.ok,
       operation_suggestions: operationSuggestions,
       memory_write_candidates: memoryWriteCandidates,
-      handoff_request: handoffRequest,
     }),
     state_patch: {
       ...(args.intake.ok ? decision.state_patch : {}),

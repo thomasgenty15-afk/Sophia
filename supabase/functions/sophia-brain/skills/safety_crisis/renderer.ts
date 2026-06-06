@@ -18,7 +18,56 @@ export const FRANCE_SAFETY_RESOURCES: SafetyCrisisResources = {
 };
 
 function emergencyLine(resources: SafetyCrisisResources): string {
-  return `Si tu peux te faire du mal maintenant, appelle le ${resources.emergency_numbers} maintenant; pour les idees suicidaires, le ${resources.suicide_prevention_number} est aussi la.`;
+  return `Si tu sens que tu peux passer a l'acte maintenant, appelle le ${resources.emergency_numbers} tout de suite. Pour les idees suicidaires, le ${resources.suicide_prevention_number} peut aussi t'aider maintenant.`;
+}
+
+function meansAreSafe(
+  signals: SafetySignal,
+  previousState: SafetyCrisisWorkingState,
+): boolean {
+  return signals.means_moved_away === true ||
+    signals.has_means_nearby === false ||
+    (previousState.has_means_nearby === false &&
+      signals.has_means_nearby !== true);
+}
+
+function meansAreNearby(
+  signals: SafetySignal,
+  previousState: SafetyCrisisWorkingState,
+): boolean {
+  return signals.immediate_danger === true ||
+    signals.has_means_nearby === true ||
+    (previousState.has_means_nearby === true &&
+      signals.means_moved_away !== true &&
+      signals.has_means_nearby !== false);
+}
+
+function supportIsKnown(
+  signals: SafetySignal,
+  previousState: SafetyCrisisWorkingState,
+): boolean {
+  return signals.human_support_available === true ||
+    signals.emergency_help_contacted === true ||
+    signals.user_currently_alone === false ||
+    previousState.human_support_mentioned === true ||
+    previousState.user_not_alone === true;
+}
+
+function userIsKnownAlone(
+  signals: SafetySignal,
+  previousState: SafetyCrisisWorkingState,
+): boolean {
+  return signals.user_currently_alone === true ||
+    (previousState.user_not_alone === false &&
+      signals.user_currently_alone !== false);
+}
+
+function withEmergencyPrefix(
+  required: boolean,
+  resources: SafetyCrisisResources,
+  body: string,
+): string {
+  return required ? `${emergencyLine(resources)} ${body}` : body;
 }
 
 export function renderSafetyReply(args: {
@@ -34,68 +83,120 @@ export function renderSafetyReply(args: {
     riskBand: args.riskBand,
     signals: args.signals,
   });
-  const emergency = responseContract.must_include_emergency_numbers
-    ? `${emergencyLine(resources)} `
-    : "";
+  const meansSafe = meansAreSafe(args.signals, args.previousState);
+  const meansNearby = meansAreNearby(args.signals, args.previousState);
+  const supportKnown = supportIsKnown(args.signals, args.previousState);
+  const userKnownAlone = userIsKnownAlone(args.signals, args.previousState);
+  const emergencyRequired = responseContract.must_include_emergency_numbers;
 
   if (args.phase === "acute_grounding") {
-    const userKnownAlone = args.signals.user_currently_alone === true ||
-      (args.previousState.user_not_alone === false &&
-        args.signals.user_currently_alone !== false);
-    const meansNearby = args.signals.immediate_danger === true ||
-      args.signals.has_means_nearby === true ||
-      (args.previousState.has_means_nearby === true &&
-        args.signals.means_moved_away !== true);
+    if (meansSafe && supportKnown) {
+      return {
+        responseContract,
+        reply: withEmergencyPrefix(
+          emergencyRequired,
+          resources,
+          "Tu as deja fait les deux gestes qui comptent: ce qui pouvait te blesser est hors de portee, et tu as un lien humain maintenant. Reste avec cette personne ou au telephone; dis-moi juste si elle peut rester avec toi encore un moment.",
+        ),
+      };
+    }
+    if (meansSafe) {
+      return {
+        responseContract,
+        reply: withEmergencyPrefix(
+          emergencyRequired,
+          resources,
+          `C'est important que ce qui pouvait te blesser soit hors de portee. Maintenant, ne reste pas seul avec ca: appelle une personne proche ou le ${resources.suicide_prevention_number}. Qui peux-tu joindre maintenant ?`,
+        ),
+      };
+    }
+    if (supportKnown) {
+      return {
+        responseContract,
+        reply: withEmergencyPrefix(
+          emergencyRequired,
+          resources,
+          "Garde cette personne avec toi ou au telephone. Mets le plus de distance possible avec ce qui peut te blesser, meme en le posant dans une autre piece; dis-moi juste si c'est hors de portee.",
+        ),
+      };
+    }
     if (meansNearby && userKnownAlone) {
       return {
         responseContract,
-        reply:
-          `${emergency}Pose ou eloigne ce qui peut te blesser, puis appelle une personne proche ou va vers quelqu'un maintenant. Reste sur une seule chose: ne pas rester seul avec ca.`,
+        reply: withEmergencyPrefix(
+          emergencyRequired,
+          resources,
+          "Pose ou eloigne ce qui peut te blesser, puis appelle une personne proche ou va vers quelqu'un maintenant. Reste sur une seule chose: ne pas rester seul avec ca.",
+        ),
       };
     }
     return {
       responseContract,
-      reply:
-        `${emergency}Eloigne d'abord ce qui pourrait te blesser, meme dans une autre piece. Ensuite reponds seulement: es-tu seul la ?`,
+      reply: withEmergencyPrefix(
+        emergencyRequired,
+        resources,
+        "Mets le plus de distance possible avec ce qui pourrait te blesser, meme dans une autre piece. Le point important maintenant: es-tu seul la ?",
+      ),
     };
   }
 
   if (args.phase === "immediate_risk_check") {
     return {
       responseContract,
-      reply:
-        `${emergency}Je reste sur ta securite immediate. Reponds juste a ces deux points: es-tu en danger de te faire du mal maintenant, et es-tu seul ?`,
+      reply: withEmergencyPrefix(
+        emergencyRequired,
+        resources,
+        "Je reste sur ta securite immediate. Dis-moi juste ces deux points: est-ce que tu risques de te faire du mal maintenant, et est-ce que tu es seul ?",
+      ),
     };
   }
 
   if (args.phase === "support_contact") {
-    if (args.signals.human_support_available === true) {
+    if (supportKnown) {
       return {
         responseContract,
-        reply:
-          "Bien, garde ce qui peut blesser hors de portee. Demande clairement a cette personne de venir maintenant ou de rester au telephone avec toi. Dis-moi quand quelqu'un est avec toi.",
+        reply: withEmergencyPrefix(
+          emergencyRequired,
+          resources,
+          meansSafe
+            ? "Ce qui pouvait te blesser est hors de portee. Garde le lien avec cette personne maintenant, au telephone ou pres de toi; dis-moi juste si elle peut rester avec toi encore un moment."
+            : "Garde cette personne avec toi ou au telephone. Mets ce qui peut te blesser hors de portee, puis dis-moi juste si c'est fait.",
+        ),
       };
     }
     return {
       responseContract,
-      reply:
-        `Bien, garde ce qui peut blesser hors de portee. Maintenant, ne reste pas seul avec ca: appelle ou envoie un message a une personne proche, ou contacte le ${resources.suicide_prevention_number} si les idees restent fortes. Qui peux-tu joindre maintenant ?`,
+      reply: withEmergencyPrefix(
+        emergencyRequired,
+        resources,
+        meansSafe
+          ? `Ce qui pouvait te blesser est hors de portee; maintenant l'etape importante, c'est de ne pas rester seul avec ca. Appelle ou envoie un message a une personne proche, ou contacte le ${resources.suicide_prevention_number}. Qui peux-tu joindre maintenant ?`
+          : `Mets ce qui peut te blesser hors de portee si tu peux le faire sans te mettre plus en danger. Ensuite appelle ou envoie un message a une personne proche, ou contacte le ${resources.suicide_prevention_number}. Qui peux-tu joindre maintenant ?`,
+      ),
     };
   }
 
   if (args.phase === "stabilizing") {
     return {
       responseContract,
-      reply:
-        "Ok, reste avec la personne qui est la, qui arrive, ou qui est au telephone. Garde ce qui peut blesser hors de portee et dis-lui simplement: j'ai besoin que tu restes avec moi un moment.",
+      reply: withEmergencyPrefix(
+        emergencyRequired,
+        resources,
+        meansSafe && supportKnown
+          ? "Tu as deja securise l'immediat. Reste avec la personne qui est la ou au telephone, et dis-lui simplement: j'ai besoin que tu restes avec moi un moment."
+          : "Reste avec la personne qui est la, qui arrive, ou qui est au telephone. Garde ce qui peut blesser hors de portee et dis-lui simplement: j'ai besoin que tu restes avec moi un moment.",
+      ),
     };
   }
 
   if (args.phase === "exit_check") {
     return {
       responseContract,
-      reply:
-        "Tu as fait les bons gestes immediats. Reste avec cette personne au telephone ou pres de toi encore un moment, et si ca remonte, appelle-la tout de suite ou appelle le 15 ou 112.",
+      reply: withEmergencyPrefix(
+        emergencyRequired,
+        resources,
+        "Tu as fait les gestes immediats. Reste avec cette personne au telephone ou pres de toi encore un moment; si ca remonte, appelle-la tout de suite ou appelle le 15 ou 112.",
+      ),
     };
   }
 
@@ -103,7 +204,7 @@ export function renderSafetyReply(args: {
     return {
       responseContract,
       reply:
-        "Ok. Le danger immediat est ecarte et tu as un appui humain. On reprend doucement, sans pression.",
+        "Ok. L'immediat est stabilise et tu as un appui humain. On reprend doucement, sans pression.",
     };
   }
 

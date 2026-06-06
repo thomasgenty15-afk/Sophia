@@ -21,6 +21,11 @@ export type ExplicitTurnConstraints = {
   no_tool?: boolean;
   no_mutation?: boolean;
   no_potion?: boolean;
+  no_plan?: boolean;
+  no_protocol?: boolean;
+  no_technique?: boolean;
+  no_questions?: boolean;
+  soft_support_only?: boolean;
   preview_only?: boolean;
   status_only?: boolean;
   draft_only?: boolean;
@@ -114,6 +119,16 @@ function deriveExplicitConstraints(args: {
       hasRouteSignal("no_mutation"),
     no_potion: explicit.no_potion === true ||
       hasRouteSignal("no_potion"),
+    no_plan: explicit.no_plan === true ||
+      hasFlowConstraint("no_plan"),
+    no_protocol: explicit.no_protocol === true ||
+      hasFlowConstraint("no_protocol"),
+    no_technique: explicit.no_technique === true ||
+      hasFlowConstraint("no_technique"),
+    no_questions: explicit.no_questions === true ||
+      hasFlowConstraint("no_questions"),
+    soft_support_only: explicit.soft_support_only === true ||
+      hasFlowConstraint("soft_support_only"),
     preview_only: explicit.preview_only === true ||
       hasFlowConstraint("preview_only") ||
       toolIntents.some((intent) => intent.user_intent === "explain_only"),

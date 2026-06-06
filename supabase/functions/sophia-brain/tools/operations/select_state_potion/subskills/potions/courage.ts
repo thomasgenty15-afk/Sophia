@@ -7,11 +7,12 @@ export const COURAGE_POTION_SUBSKILL: StatePotionDetailSubSkillDefinition = {
   tone_rules: [
     "Parle de courage sans pousser brutalement a l'action.",
     "Cherche le premier appui face a l'inconfort, pas une injonction.",
-    "Si la peur concerne une action, clarifie le moment sans utiliser les mots ponctuel/recurrent.",
+    "Ne demande jamais si c'est lie au plan, hors plan, ou quelle action du plan est visee.",
   ],
   extraction_rules: [
-    "avoidance_target = ce que le user evite maintenant.",
-    "blocker_kind = resultat, regard, inconfort, ou conflit si le message permet de choisir; sinon reformule en mots user.",
-    "Si avoidance_target est une action mais que le timing est absent, generated_user_message demande naturellement quand le soutien serait utile, sans proposer une liste de categories.",
+    "avoidance_target = ce que le user evite concretement maintenant; ne verrouille pas une reponse vague si on ne sait pas ce qui est evite.",
+    "blocker_kind = resultat, regard, inconfort, ou conflit si le message permet de choisir; sinon propose la meilleure lecture et demande validation.",
+    "Si le user parle de premier pas, utilise-le comme nuance de formulation, mais ne cree pas de champ requis.",
+    "N'invente jamais une action du plan.",
   ],
 };

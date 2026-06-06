@@ -1,5 +1,6 @@
 import type { DefenseCardGeneratorInput } from "../_shared/operation_payload_builder.ts";
 import type {
+  DefenseCardPlatformFieldState,
   PrepareDefenseCardConstraint,
   PrepareDefenseCardUserIntent,
 } from "./contract.ts";
@@ -12,6 +13,7 @@ export type DefenseCardStep =
   | "attachment_intake"
   | "risk_intake"
   | "response_design"
+  | "platform_field_intake"
   | "draft_generation"
   | "draft_validation"
   | "confirmation";
@@ -89,6 +91,7 @@ export type DefenseCardIntakeState = {
   trigger: DefenseCardTriggerSlot;
   defense_goal: DefenseCardGoalSlot;
   defense_response_hint: DefenseCardResponseSlot;
+  platform_fields?: DefenseCardPlatformFieldState | null;
   constraints: PrepareDefenseCardConstraint[];
   missing_slots: string[];
   confidence: DefenseCardConfidence;

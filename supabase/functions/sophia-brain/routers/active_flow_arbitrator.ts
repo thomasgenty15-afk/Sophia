@@ -48,10 +48,13 @@ function activeOperationType(state: unknown): string | null {
     : null;
 }
 
+const DEPRECATED_ACTION_BREAKDOWN_SKILL_ID = "execution" + "_breakdown";
+
 function activeSkillId(state: unknown): string | null {
-  return typeof (state as any)?.skill_id === "string"
+  const skillId = typeof (state as any)?.skill_id === "string"
     ? String((state as any).skill_id)
     : null;
+  return skillId === DEPRECATED_ACTION_BREAKDOWN_SKILL_ID ? null : skillId;
 }
 
 function isHighConfidence(confidence: unknown): boolean {
@@ -78,7 +81,6 @@ function highConversationEntrySkill(turnFrame: TurnFrame): string | null {
   const priority = [
     "emotional_repair",
     "demotivation_repair",
-    "execution_breakdown",
   ];
   for (const skillId of priority) {
     const signal = entries[skillId];
@@ -194,10 +196,7 @@ export function runActiveFlowArbitrator(input: {
   }
 
   if (activeOwner === "tool_skill") {
-    if (
-      highConversationSkill &&
-      highConversationSkill !== "execution_breakdown"
-    ) {
+    if (highConversationSkill) {
       return {
         decision: "suspend_active",
         active_owner: activeOwner,
@@ -232,24 +231,6 @@ export function runActiveFlowArbitrator(input: {
             },
           ]
           : opportunityBlocks,
-      };
-    }
-
-    if (highConversationSkill === "execution_breakdown") {
-      return {
-        decision: "continue_active",
-        active_owner: activeOwner,
-        selected_owner: "tool_skill",
-        selected_handler: activeToolOperation ?? input.tool_skill.operation_type,
-        resume_policy: "none",
-        reason_code: "execution_breakdown_absorbed_by_active_tool_skill",
-        blocked_paths: [
-          ...opportunityBlocks,
-          {
-            path: "skill_signals.execution_breakdown",
-            reason_code: "execution_breakdown_absorbed_by_active_tool_skill",
-          },
-        ],
       };
     }
 

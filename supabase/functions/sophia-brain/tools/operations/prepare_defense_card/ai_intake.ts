@@ -9,12 +9,24 @@ import {
 import type { DefenseCardGeneratorInput } from "../_shared/operation_payload_builder.ts";
 import {
   type CardTechnicalBlockReason,
+  type DefenseCardPlatformFieldState,
   normalizePrepareDefenseCardConstraints,
   normalizePrepareDefenseCardUserIntent,
   type PrepareDefenseCardConstraint,
   type PrepareDefenseCardUserIntent,
 } from "./contract.ts";
 import { type DefenseCardDraftV1 } from "./generator.ts";
+import {
+  createDefenseCardPlatformFieldState,
+  getDefenseCardPlatformFieldDefinitions,
+  mergeDefenseCardPlatformFieldState,
+  normalizeDefenseCardPlatformFieldState,
+  type DefenseCardPlatformRouteKind,
+} from "./platform_fields.ts";
+import {
+  type DefenseCardPlatformFieldFiller,
+  fillDefenseCardPlatformFieldsWithAi,
+} from "./platform_field_filler.ts";
 import {
   type DefenseCardSlotFiller,
   fillDefenseCardSlotsWithAi,
@@ -41,10 +53,12 @@ export type PrepareDefenseCardOperationOutput = {
     | "attachment_resolution"
     | "risk_intake"
     | "response_design"
+    | "platform_field_intake"
     | "generation"
     | "confirmation"
     | "exit";
   draft?: DefenseCardDraftV1;
+  platform_fields?: DefenseCardPlatformFieldState;
   confirmation?: {
     required: boolean;
     message: string;
@@ -53,7 +67,12 @@ export type PrepareDefenseCardOperationOutput = {
   handoff_message?: string;
   next_question?: {
     needed: boolean;
-    slot: "attachment" | "risk_situation" | "tool_fit" | "defense_response";
+    slot:
+      | "attachment"
+      | "risk_situation"
+      | "tool_fit"
+      | "defense_response"
+      | "platform_field";
     status: "missing" | "ambiguous";
     reason: string;
     question?: string;
@@ -95,6 +114,7 @@ export type PrepareDefenseCardOperationOutput = {
     turn_count_increment: 1;
     operation_input?: Record<string, unknown> | null;
     intake_state?: unknown;
+    platform_fields?: DefenseCardPlatformFieldState | null;
     tool_skill_state?: unknown;
     draft_review_decision?: {
       decision:
@@ -140,6 +160,14 @@ function objectValue(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : null;
+}
+
+function firstText(...values: unknown[]): string | null {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text) return text;
+  }
+  return null;
 }
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
@@ -244,6 +272,7 @@ function defaultState(): DefenseCardIntakeState {
       confidence: "low",
       evidence: [],
     },
+    platform_fields: null,
     constraints: [],
     missing_slots: ["attachment", "risk_situation"],
     confidence: "low",
@@ -257,9 +286,43 @@ function seedStateFromOperationInput(
   const input = operationInput ?? {};
   const existing = objectValue(input.intake_state);
   const base = defaultState();
-  const attachment = objectValue(input.attachment ?? input.target);
-  const risk = objectValue(input.risk_situation);
+  const dispatcherIntent = objectValue(input.dispatcher_intent);
+  const targetHint = firstText(
+    input.target_hint,
+    dispatcherIntent?.target_hint,
+  );
+  const riskBehavior = firstText(
+    input.risk_behavior,
+    input.risk_summary,
+    dispatcherIntent?.risk_behavior,
+  );
+  const attachment = objectValue(input.attachment ?? input.target) ??
+    (targetHint || riskBehavior
+      ? {
+        kind: "free_risk_context",
+        plan_item_id: null,
+        title: targetHint ?? riskBehavior,
+      }
+      : null);
+  const risk = objectValue(input.risk_situation) ??
+    (riskBehavior || targetHint
+      ? {
+        label: riskBehavior ?? targetHint,
+        description: targetHint && riskBehavior && targetHint !== riskBehavior
+          ? targetHint
+          : riskBehavior,
+        timing_hint: firstText(input.trigger_hint),
+        context_hint: targetHint,
+      }
+      : null);
   const response = objectValue(input.defense_response_hint);
+  const routeKind = attachment?.kind === "plan_item"
+    ? "plan_item_card"
+    : "free_card";
+  const platformFields = normalizeDefenseCardPlatformFieldState(
+    input.platform_fields,
+    routeKind,
+  );
   return mergeState(base, {
     ...(existing ?? {}),
     ...(attachment
@@ -298,6 +361,7 @@ function seedStateFromOperationInput(
         },
       }
       : {}),
+    ...(platformFields ? { platform_fields: platformFields } : {}),
   });
 }
 
@@ -316,6 +380,7 @@ function mergeState(
     trigger: { ...base.trigger },
     defense_goal: { ...base.defense_goal },
     defense_response_hint: { ...base.defense_response_hint },
+    platform_fields: base.platform_fields,
     constraints: [...base.constraints],
     missing_slots: [...base.missing_slots],
   };
@@ -387,6 +452,7 @@ function mergeState(
         "attachment_intake",
         "risk_intake",
         "response_design",
+        "platform_field_intake",
         "draft_generation",
         "draft_validation",
         "confirmation",
@@ -397,6 +463,16 @@ function mergeState(
     next.generated_user_message = root.generated_user_message == null
       ? null
       : String(root.generated_user_message).trim() || null;
+  }
+  if (objectValue(root.platform_fields)) {
+    const routeKind = next.attachment.status === "identified" &&
+        next.attachment.kind === "plan_item"
+      ? "plan_item_card"
+      : "free_card";
+    next.platform_fields = normalizeDefenseCardPlatformFieldState(
+      root.platform_fields,
+      routeKind,
+    );
   }
   next.confidence = confidence(root.confidence);
   return next;
@@ -448,7 +524,54 @@ function nextStepForMissing(
     return "risk_intake";
   }
   if (missing.includes("defense_goal")) return "response_design";
-  return "draft_generation";
+  return "platform_field_intake";
+}
+
+function defaultQuestionForMissing(
+  missing: string[],
+  state: DefenseCardIntakeState,
+): string {
+  if (missing.includes("tool_fit")) {
+    return "Tu veux préparer une carte de défense pour un moment où ça risque de déraper, ou plutôt une carte d'attaque pour démarrer une action ?";
+  }
+  if (missing.includes("attachment")) {
+    return "Tu veux que la carte de défense protège quelle situation ou action précise ?";
+  }
+  if (missing.includes("risk_situation")) {
+    return "Qu'est-ce qui se passe exactement au moment où ça craque, et quel est le piège concret ?";
+  }
+  if (missing.includes("defense_goal")) {
+    return "Tu veux surtout interrompre l'impulsion, sortir du contexte, remplacer l'action, ou réduire les dégâts ?";
+  }
+  const target = state.attachment.status === "identified"
+    ? String(state.attachment.title ?? "").trim()
+    : "";
+  return target
+    ? `Quel geste simple tu veux prévoir pour protéger ${target} ?`
+    : "Quel geste simple tu veux prévoir dans la carte de défense ?";
+}
+
+function routeKindFromState(
+  state: DefenseCardIntakeState,
+): DefenseCardPlatformRouteKind {
+  return state.attachment.status === "identified" &&
+      state.attachment.kind === "plan_item"
+    ? "plan_item_card"
+    : "free_card";
+}
+
+function defaultQuestionForPlatformField(
+  platformFields: DefenseCardPlatformFieldState,
+): string {
+  const missingId = platformFields.missing_field_ids[0];
+  const field = platformFields.fields.find((item) =>
+    item.field_id === missingId
+  );
+  if (field?.field_id === "support_need") {
+    return "Avec quelle situation, contexte, environnement ou pulsion as-tu besoin d'aide ?";
+  }
+  return field?.question_label ??
+    "Avec quelle situation, contexte, environnement ou pulsion as-tu besoin d'aide ?";
 }
 
 function operationInputFromState(
@@ -486,6 +609,9 @@ function operationInputFromState(
           value: state.defense_response_hint.value ?? null,
         },
       }
+      : {}),
+    ...(state.platform_fields
+      ? { platform_fields: state.platform_fields }
       : {}),
   };
 }
@@ -663,7 +789,7 @@ function normalizeDraft(
   const planB = sanitizeDefenseCardField(rawPlanB, ["plan_b"]);
   const confirmationMessage = String(root.confirmation_message ?? "").trim() ||
     [
-      "Voici la version à reprendre dans Cartes / Défense :",
+      "Voici les champs à utiliser dans Cartes / Défense :",
       `Le moment : ${situation}`,
       `Le piège : ${signal}`,
       `Mon geste : ${defenseResponse}`,
@@ -725,7 +851,7 @@ function withPlatformDefenseCardConfirmation(
     ...draft,
     draft: sanitizedDraft,
     confirmation_message: [
-      "Voici la version à reprendre dans Cartes / Défense :",
+      "Voici les champs à utiliser dans Cartes / Défense :",
       `Le moment : ${sanitizedDraft.situation}`,
       `Le piège : ${sanitizedDraft.signal}`,
       `Mon geste : ${sanitizedDraft.defense_response}`,
@@ -796,7 +922,7 @@ export async function generateDefenseCardDraftWithAi(
   const systemPrompt = [
     "Tu es le generator interne du Tool Skill prepare_defense_card de Sophia.",
     "Tu retournes uniquement un JSON defense_card_draft_v1, jamais de texte libre hors JSON.",
-    "Le brouillon doit être court, utilisable sur WhatsApp, et cohérent avec le moment de risque.",
+    "Le contenu doit être court, utilisable sur WhatsApp, et cohérent avec le moment de risque.",
     "Ne change jamais la cible, le risque, le trigger ni l'objectif donnés par l'état structuré.",
     "Le message de confirmation doit montrer le contenu utile de la carte et demander validation avant création.",
     'Tu tutoies toujours l\'utilisateur dans confirmation_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
@@ -896,6 +1022,7 @@ export async function runPrepareDefenseCardAiIntake(input: {
   operation_input?: Record<string, unknown> | null;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   slot_filler?: DefenseCardSlotFiller;
+  platform_field_filler?: DefenseCardPlatformFieldFiller;
   draft_generator?: DefenseCardDraftGenerator;
 }): Promise<PrepareDefenseCardOperationOutput> {
   const source = input.source ?? "direct_user_request";
@@ -1010,12 +1137,6 @@ export async function runPrepareDefenseCardAiIntake(input: {
     };
   }
   if (missing.length > 0) {
-    if (!state.generated_user_message) {
-      return technicalFailure("ai_slot_question_missing", source, {
-        state,
-        operation_input: operationInput,
-      });
-    }
     if (source === "recommendation_tool" && missing.includes("attachment")) {
       return {
         operation_type: "prepare_defense_card",
@@ -1048,6 +1169,8 @@ export async function runPrepareDefenseCardAiIntake(input: {
         },
       };
     }
+    const question = state.generated_user_message ??
+      defaultQuestionForMissing(missing, state);
     return {
       operation_type: "prepare_defense_card",
       status: "ask_question",
@@ -1071,7 +1194,7 @@ export async function runPrepareDefenseCardAiIntake(input: {
           ? "ambiguous"
           : "missing",
         reason: `structured_ai_missing_${missing[0]}`,
-        question: state.generated_user_message,
+        question,
         candidates: state.attachment.status === "ambiguous" ||
             state.attachment.status === "missing"
           ? (state.attachment.candidates ?? []).map((candidate) => ({
@@ -1121,41 +1244,123 @@ export async function runPrepareDefenseCardAiIntake(input: {
       { state, operation_input: operationInput },
     );
   }
-  let draft: DefenseCardDraftV1;
+  const routeKind = routeKindFromState(state);
+  const basePlatformFields = createDefenseCardPlatformFieldState(routeKind);
+  const existingPlatformFields = normalizeDefenseCardPlatformFieldState(
+    state.platform_fields ?? objectValue(input.operation_input)?.platform_fields,
+    routeKind,
+  );
+  const currentPlatformFields = existingPlatformFields
+    ? mergeDefenseCardPlatformFieldState(
+      basePlatformFields,
+      existingPlatformFields,
+    )
+    : basePlatformFields;
+  const fieldFiller = input.platform_field_filler ??
+    fillDefenseCardPlatformFieldsWithAi;
+  let fieldOutput;
   try {
-    draft = await (input.draft_generator ?? generateDefenseCardDraftWithAi)({
+    fieldOutput = await fieldFiller({
       user_id: input.user_id,
       request_id: input.request_id,
       message: input.message,
-      channel: input.channel,
-      timezone: input.timezone,
-      source,
-      trigger_message_id: input.trigger_message_id,
-      state,
+      recent_messages: input.recent_messages,
+      route_kind: routeKind,
+      field_definitions: getDefenseCardPlatformFieldDefinitions(routeKind),
+      current_state: currentPlatformFields,
+      operation_input: operationInput,
     });
   } catch {
-    try {
-      draft = fallbackDefenseCardDraftFromState(state);
-    } catch {
-      return technicalFailure("ai_draft_generator_error", source, {
-        state,
-        operation_input: operationInput,
-      });
-    }
+    return technicalFailure("ai_slot_filler_error", source, {
+      state,
+      operation_input: operationInput,
+    });
   }
-  draft = withPlatformDefenseCardConfirmation(draft);
+  if (!fieldOutput) {
+    return technicalFailure("ai_slot_filler_unavailable", source, {
+      state,
+      operation_input: operationInput,
+    });
+  }
+  const platformFields = mergeDefenseCardPlatformFieldState(
+    currentPlatformFields,
+    fieldOutput.state_patch.platform_fields,
+  );
+  state = {
+    ...state,
+    current_step: platformFields.status === "complete"
+      ? "confirmation"
+      : "platform_field_intake",
+    platform_fields: platformFields,
+    generated_user_message: fieldOutput.state_patch.generated_user_message ??
+      state.generated_user_message,
+    missing_slots: platformFields.missing_field_ids.map((id) =>
+      `platform_field:${id}`
+    ),
+  };
+  const operationInputWithFields = operationInputFromState(
+    state,
+    operationInput,
+  );
+  if (platformFields.status !== "complete") {
+    const question = fieldOutput.state_patch.generated_user_message ??
+      defaultQuestionForPlatformField(platformFields);
+    const missingPlatformSlots = platformFields.missing_field_ids.map((id) =>
+      `platform_field:${id}`
+    );
+    return {
+      operation_type: "prepare_defense_card",
+      status: "ask_question",
+      source,
+      phase: "platform_field_intake",
+      next_question: {
+        needed: true,
+        slot: "platform_field",
+        status: "missing",
+        reason:
+          `structured_ai_missing_${missingPlatformSlots[0] ?? "platform_field"}`,
+        question,
+        known_slots: operationInputWithFields,
+      },
+      readiness: {
+        ready_to_generate: false,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: missingPlatformSlots,
+        reason:
+          `structured_ai_missing_${missingPlatformSlots[0] ?? "platform_field"}`,
+      },
+      state_patch: {
+        summary: "Defense card platform field intake needs user input.",
+        phase: "platform_field_intake",
+        user_intent: state.user_intent,
+        constraints: state.constraints,
+        missing_slots: missingPlatformSlots,
+        turn_count_increment: 1,
+        operation_input: operationInputWithFields,
+        intake_state: state,
+        platform_fields: platformFields,
+        tool_skill_state: toolSkillState({
+          status: "collecting",
+          state,
+          missing: missingPlatformSlots,
+          summary: "Defense card platform field intake is collecting UI fields.",
+        }),
+      },
+    };
+  }
   return {
     operation_type: "prepare_defense_card",
     status: "handoff_ready",
     source,
     phase: "confirmation",
-    draft,
+    platform_fields: platformFields,
     confirmation: {
       required: false,
-      message: draft.confirmation_message,
+      message: "J'ai préparé les champs à remplir dans la plateforme.",
       actions: ["yes", "no"],
     },
-    handoff_message: draft.confirmation_message,
+    handoff_message: "J'ai préparé les champs à remplir dans la plateforme.",
     pending_confirmation: undefined,
     readiness: {
       ready_to_generate: true,
@@ -1171,8 +1376,9 @@ export async function runPrepareDefenseCardAiIntake(input: {
       constraints: state.constraints,
       missing_slots: [],
       turn_count_increment: 1,
-      operation_input: operationInput,
+      operation_input: operationInputWithFields,
       intake_state: state,
+      platform_fields: platformFields,
       tool_skill_state: toolSkillState({
         status: "awaiting_user_confirmation",
         state,

@@ -18,15 +18,17 @@ export type SkillRouterDecision = {
 const SKILL_PRIORITY = [
   "safety_crisis",
   "emotional_repair",
-  "execution_breakdown",
   "demotivation_repair",
   "product_help",
 ];
 
+const DEPRECATED_ACTION_BREAKDOWN_SKILL_ID = "execution" + "_breakdown";
+
 function activeSkillId(state: unknown): string | null {
-  return typeof (state as any)?.skill_id === "string"
+  const skillId = typeof (state as any)?.skill_id === "string"
     ? String((state as any).skill_id)
     : null;
+  return skillId === DEPRECATED_ACTION_BREAKDOWN_SKILL_ID ? null : skillId;
 }
 
 function bestEntrySkill(turnFrame: TurnFrame): string | null {

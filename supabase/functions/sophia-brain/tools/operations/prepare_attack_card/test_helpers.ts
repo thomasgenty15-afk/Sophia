@@ -2,7 +2,13 @@ import type {
   AttackCardDraftGenerator,
   AttackCardDraftGeneratorInput,
 } from "./ai_intake.ts";
+import type { AttackCardPlatformFieldFiller } from "./platform_field_filler.ts";
 import type { AttackCardSlotFiller } from "./slot_filler.ts";
+import type { AttackCardTechniqueKey } from "./contract.ts";
+import {
+  getAttackCardPlatformFieldDefinitions,
+  normalizeAttackCardPlatformFieldState,
+} from "./platform_fields.ts";
 
 export function structuredAttackCardSlotFiller(
   statePatch: Record<string, unknown>,
@@ -35,12 +41,13 @@ export function readyAttackCardStatePatch(options?: {
   activationKeyword?: string | null;
 }) {
   const technique = options?.technique ?? "texte_recadrage";
+  const target = options?.title ?? "marche";
   return {
     target: {
       status: "identified",
       kind: "plan_item",
       plan_item_id: options?.planItemId ?? "walk",
-      title: options?.title ?? "marche",
+      title: target,
       confidence: "high",
       evidence: ["structured target"],
     },
@@ -67,8 +74,85 @@ export function readyAttackCardStatePatch(options?: {
       confidence: 0.8,
       evidence: ["structured blocker"],
     },
+    platform_fields: readyAttackCardPlatformFields({
+      technique,
+      target,
+      blocker: "structured blocker",
+    }),
   };
 }
+
+export function readyAttackCardPlatformFields(options?: {
+  technique?: AttackCardTechniqueKey;
+  target?: string;
+  blocker?: string;
+}) {
+  const technique = options?.technique ?? "texte_recadrage";
+  const target = options?.target ?? "marche";
+  const blocker = options?.blocker ?? "négociation intérieure";
+  const valuesByTechnique: Record<AttackCardTechniqueKey, string[]> = {
+    texte_recadrage: [
+      target,
+      blocker,
+      "Revenir au premier geste sans négocier.",
+    ],
+    mantra_force: [target, `Protéger ${target}.`, "Calme et percutant."],
+    ancre_visuelle: [
+      `Garder vivant ${target}.`,
+      "Sur un objet visible au moment de commencer.",
+      "Je fais le premier geste.",
+    ],
+    visualisation_matinale: [
+      target,
+      "Le matin avant que la journée démarre.",
+      `Me voir commencer malgré ${blocker}.`,
+    ],
+    preparer_terrain: [
+      target,
+      "Préparer le support avant le moment d'action.",
+      "Le premier geste doit être visible et prêt.",
+    ],
+    pre_engagement: [
+      blocker,
+      `Protéger mon engagement envers ${target}.`,
+    ],
+  };
+  const definitions = getAttackCardPlatformFieldDefinitions(technique);
+  return normalizeAttackCardPlatformFieldState({
+    technique_key: technique,
+    fields: definitions.map((definition, index) => ({
+      field_id: definition.field_id,
+      technique_key: technique,
+      question: definition.question,
+      required: true,
+      status: "locked",
+      locked_value: valuesByTechnique[technique][index] ?? target,
+      proposed_value: null,
+      user_evidence: ["structured platform field"],
+      needs_user_confirmation: false,
+      evidence: ["structured platform field"],
+    })),
+  }, technique);
+}
+
+export const structuredAttackCardPlatformFieldFiller:
+  AttackCardPlatformFieldFiller = async (input) => ({
+    current_step: "handoff_ready",
+    state_patch: {
+      platform_fields: readyAttackCardPlatformFields({
+        technique: input.technique_key,
+        target: input.current_state.target.status === "identified"
+          ? input.current_state.target.title
+          : "action",
+        blocker: input.current_state.blocker.evidence[0] ?? "piège",
+      }),
+      generated_user_message: null,
+    },
+    missing_slots: [],
+    confidence: "high",
+    generated_user_message: null,
+    evidence: ["structured platform field filler"],
+  });
 
 export const structuredAttackCardDraftGenerator: AttackCardDraftGenerator =
   async (input: AttackCardDraftGeneratorInput) => {

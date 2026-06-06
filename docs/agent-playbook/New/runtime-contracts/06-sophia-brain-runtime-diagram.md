@@ -112,7 +112,6 @@ flowchart TB
   subgraph Conversation["Conversation Skills"]
     EMO["emotional_repair"]
     DEMO["demotivation_repair"]
-    EXECB["execution_breakdown"]
     HELP["product_help"]
     SAFETY["safety_crisis"]
     STATUS["status_recap"]

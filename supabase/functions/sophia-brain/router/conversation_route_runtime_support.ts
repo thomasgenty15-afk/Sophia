@@ -13,6 +13,22 @@ import {
 } from "./safety_crisis_runtime.ts";
 import { isWeeklyAdaptiveReviewActive } from "../skills/weekly_review/runtime.ts";
 
+const DEPRECATED_ACTION_BREAKDOWN_SKILL_ID = "execution" + "_breakdown";
+
+function isDeprecatedConversationSkillId(skillId: unknown): boolean {
+  return skillId === DEPRECATED_ACTION_BREAKDOWN_SKILL_ID;
+}
+
+function clearDeprecatedConversationSkillState(tempMemory: any): any {
+  const next = { ...(tempMemory ?? {}) };
+  const active = next.__active_skill_state ?? next.active_skill_state;
+  if (isDeprecatedConversationSkillId(active?.skill_id)) {
+    delete next.__active_skill_state;
+    delete next.active_skill_state;
+  }
+  return next;
+}
+
 export function buildConversationRiskFlowExitAddon(
   conversationRisk: TurnFrame["conversation_risk"] | null | undefined,
 ): string | null {
@@ -63,50 +79,6 @@ export function normalizeRouteText(text: string): string {
   return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 }
 
-export function isProductHelpExitToConversation(
-  message: string,
-  isRuntimeCoachPreferenceRequest: (message: string) => boolean,
-): boolean {
-  const text = normalizeRouteText(message);
-  if (
-    /\b(je ne parle plus|je parle plus|pas du rappel|plus du rappel|sans parler des rappels|pas parler des rappels|sujet different|sujet different|pas de l app|pas de l interface)\b/
-      .test(text)
-  ) return true;
-  if (isRuntimeCoachPreferenceRequest(message)) return true;
-  if (
-    /\b(donne moi|donne-moi|fais moi|fais-moi|formule|reformule|phrase|version)\b[\s\S]{0,100}\b(maintenant|sans parler des rappels|pas du rappel|sujet different|sujet different)\b/
-      .test(text)
-  ) return true;
-  if (isConversationScopedRepereRequest(text)) return true;
-  if (
-    /\b(laisse tomber|oublie|stop|pas grave)\b.{0,60}\b(interface|dashboard|produit|app|rappel|plan)\b/
-      .test(text)
-  ) return true;
-  if (
-    /\btu te souviens\b[\s\S]{0,140}\b(piege|garde en tete|garder en tete)\b/
-      .test(text)
-  ) return true;
-  if (
-    /\b(tu as retenu quoi|qu as tu retenu|qu est ce que tu as retenu|tu retiens quoi)\b/
-      .test(text) &&
-    /\b(conversation|bureau|mail|mails|piege|repere|retenu)\b/.test(text)
-  ) return true;
-  if (
-    /\b(recap|recapitule|resume|resumer|on s arrete|on stoppe)\b/.test(text) &&
-    /\b(ce que j ai fait|ce qu on a fait|ce qui est prevu|demain|piege|surveiller|garde|mail|carte|preference|rappel)\b/
-      .test(text)
-  ) return true;
-  return false;
-}
-
-function isConversationScopedRepereRequest(normalizedText: string): boolean {
-  return /\b(pour cette conversation|dans cette conversation|comme repere|repere dans cette conversation|garde comme repere|garde ca comme repere)\b/
-    .test(normalizedText) &&
-    /\b(retiens|garde|repere|quand je dis|ca veut dire|cela veut dire)\b/.test(
-      normalizedText,
-    );
-}
-
 export function buildRecentConversationContinuityAddon(args: {
   userMessage: string;
   history: any[];
@@ -144,7 +116,7 @@ export function persistConversationSkillRoute(
   routeDecision: RouteDecision | null,
   skillOutput?: ConversationSkillOutput | null,
 ): any {
-  let next = { ...(tempMemory ?? {}) };
+  let next = clearDeprecatedConversationSkillState(tempMemory);
   const now = new Date().toISOString();
   const arbitration = routeDecision?.active_flow_arbitration;
   if (

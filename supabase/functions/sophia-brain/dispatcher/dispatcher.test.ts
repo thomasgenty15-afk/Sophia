@@ -10,6 +10,7 @@ import {
 import {
   buildDispatcherPrompt,
   DISPATCHER_V2_PROMPT_VERSION,
+  DISPATCHER_V2_SYSTEM_PROMPT,
 } from "./dispatcher.prompts.ts";
 import { type DispatcherRunStats, runDispatcher } from "./dispatcher.v2.ts";
 
@@ -72,6 +73,56 @@ Deno.test("dispatcher v2 returns valid TurnFrames for varied messages", async ()
   }
 });
 
+Deno.test("dispatcher prompt injects only the active stable skill description", () => {
+  const activePrompt = JSON.parse(buildDispatcherPrompt({
+    user_message: "support dans Sophia pour garder cette douceur",
+    recent_messages: [],
+    safety_risk_band: "none",
+    active_skill_state: { skill_id: "emotional_repair" },
+    plan_snapshot: { items: [] },
+  }));
+
+  assertEquals(
+    activePrompt.active_skill_stable_description.skill_id,
+    "emotional_repair",
+  );
+  assertStringIncludes(
+    activePrompt.active_skill_stable_description.instruction,
+    "Cette description ne crée pas une intention à elle seule",
+  );
+  assertStringIncludes(
+    activePrompt.active_skill_stable_description.description,
+    "“support”, “aide dans Sophia”, “un truc pour m’aider” peut signaler une potion, pas product_help",
+  );
+
+  const inactivePrompt = JSON.parse(buildDispatcherPrompt({
+    user_message: "c'est quoi les potions dans Sophia ?",
+    recent_messages: [],
+    safety_risk_band: "none",
+    plan_snapshot: { items: [] },
+  }));
+  assertEquals(inactivePrompt.active_skill_stable_description, null);
+});
+
+Deno.test("dispatcher prompt injects active handoff stable description", () => {
+  const prompt = JSON.parse(buildDispatcherPrompt({
+    user_message: "ok vas-y",
+    recent_messages: [],
+    safety_risk_band: "none",
+    active_tool_skill_intake: { operation_type: "select_state_potion" },
+    plan_snapshot: { items: [] },
+  }));
+
+  assertEquals(
+    prompt.active_skill_stable_description.skill_id,
+    "select_state_potion",
+  );
+  assertStringIncludes(
+    prompt.active_skill_stable_description.description,
+    "il ne lance pas la potion depuis le chat",
+  );
+});
+
 Deno.test("dispatcher v2 never lowers safety pregate risk", async () => {
   const { frame } = await dispatch("je veux me faire du mal ce soir");
   assertEquals(frame.safety.risk_band, "critical");
@@ -82,7 +133,7 @@ Deno.test("dispatcher v2 computes independent conversation risk with matrix and 
     "Non mais stop, tu comprends rien, je te l'ai deja dit, c'est n'importe quoi !!!",
     {
       conversation_risk_history: [4, 7.2],
-      active_skill_state: { skill_id: "execution_breakdown" },
+      active_skill_state: { skill_id: "demotivation_repair" },
       active_tool_skill_intake: { operation_type: "prepare_attack_card" },
     },
   );
@@ -170,11 +221,11 @@ Deno.test("dispatcher v2 preserves heuristic emotional repair when LLM omits it"
   const { frame } = await dispatch(
     "la je sens la honte monter: c'est ridicule d'etre bloque sur un dossier mutuelle",
     {
-      active_skill_state: { skill_id: "execution_breakdown" },
+      active_skill_state: { skill_id: "demotivation_repair" },
       llm_runner: () => ({
         skill_signals: {
           lifecycle: {
-            execution_breakdown: {
+            demotivation_repair: {
               detected: true,
               confidence_band: "high",
               reason: "active_skill_continue",
@@ -189,7 +240,7 @@ Deno.test("dispatcher v2 preserves heuristic emotional repair when LLM omits it"
     true,
   );
   assertEquals(
-    frame.skill_signals.lifecycle?.execution_breakdown?.detected,
+    frame.skill_signals.lifecycle?.demotivation_repair?.detected,
     true,
   );
 });
@@ -257,6 +308,187 @@ Deno.test("dispatcher v2 keeps product questions out of tool skill intents", asy
   }
 });
 
+Deno.test("active emotional repair stable description keeps ambiguous support out of generic product_help", async () => {
+  const { frame } = await dispatch(
+    "support dans Sophia pour garder cette douceur",
+    {
+      active_skill_state: { skill_id: "emotional_repair" },
+      llm_runner: async (input: { user_prompt: string }) => {
+        const { user_prompt } = input;
+        const prompt = JSON.parse(user_prompt);
+        assertEquals(
+          prompt.active_skill_stable_description.skill_id,
+          "emotional_repair",
+        );
+        return {
+          skill_signals: {
+            lifecycle: {
+              emotional_repair: {
+                detected: true,
+                confidence_band: "high",
+                reason: "active_skill_description_weights_ambiguous_support",
+              },
+            },
+          },
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            should_offer: false,
+            offer_timing: "after_current_pending",
+            must_not_execute: true,
+          },
+        };
+      },
+    },
+  );
+
+  assertEquals(frame.skill_signals.entry?.product_help?.detected ?? false, false);
+  assertEquals(frame.skill_signals.lifecycle?.emotional_repair?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 0);
+});
+
+Deno.test("active demotivation repair stable description keeps ambiguous cap support out of generic product_help", async () => {
+  const { frame } = await dispatch("support pour garder ce cap clair", {
+    active_skill_state: { skill_id: "demotivation_repair" },
+    llm_runner: async (input: { user_prompt: string }) => {
+      const { user_prompt } = input;
+      const prompt = JSON.parse(user_prompt);
+      assertEquals(
+        prompt.active_skill_stable_description.skill_id,
+        "demotivation_repair",
+      );
+      return {
+        skill_signals: {
+          lifecycle: {
+            demotivation_repair: {
+              detected: true,
+              confidence_band: "high",
+              reason: "active_skill_description_weights_ambiguous_support",
+            },
+          },
+        },
+        tool_skill_intents: [],
+        tool_skill_opportunity: {
+          type: "none",
+          should_offer: false,
+          offer_timing: "after_current_pending",
+          must_not_execute: true,
+        },
+      };
+    },
+  });
+
+  assertEquals(frame.skill_signals.entry?.product_help?.detected ?? false, false);
+  assertEquals(
+    frame.skill_signals.lifecycle?.demotivation_repair?.detected,
+    true,
+  );
+  assertEquals(frame.tool_skill_intents.length, 0);
+});
+
+Deno.test("without active skill potion explanation remains product_help", async () => {
+  const { frame } = await dispatch("c'est quoi les potions dans Sophia ?", {
+    llm_runner: async (input: { user_prompt: string }) => {
+      const { user_prompt } = input;
+      const prompt = JSON.parse(user_prompt);
+      assertEquals(prompt.active_skill_stable_description, null);
+      return {
+        skill_signals: {
+          entry: {
+            product_help: {
+              detected: true,
+              confidence_band: "high",
+              reason: "product_question",
+            },
+          },
+        },
+        tool_skill_intents: [],
+      };
+    },
+  });
+
+  assertEquals(frame.skill_signals.entry?.product_help?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 0);
+});
+
+Deno.test("active skill still allows a true app location question to product_help", async () => {
+  const { frame } = await dispatch(
+    "où est-ce que je trouve les potions dans l'app ?",
+    {
+      active_skill_state: { skill_id: "emotional_repair" },
+      llm_runner: async (input: { user_prompt: string }) => {
+        const { user_prompt } = input;
+        const prompt = JSON.parse(user_prompt);
+        assertEquals(
+          prompt.active_skill_stable_description.skill_id,
+          "emotional_repair",
+        );
+        return {
+          skill_signals: {
+            entry: {
+              product_help: {
+                detected: true,
+                confidence_band: "high",
+                reason: "true_app_location_question",
+              },
+            },
+          },
+          tool_skill_intents: [],
+        };
+      },
+    },
+  );
+
+  assertEquals(frame.skill_signals.entry?.product_help?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 0);
+});
+
+Deno.test("safety still preempts active skill stable description", async () => {
+  const { frame } = await dispatch(
+    "je veux me faire du mal, est-ce qu'il y a un support Sophia ?",
+    {
+      active_skill_state: { skill_id: "demotivation_repair" },
+      llm_runner: async (input: { user_prompt: string }) => {
+        const { user_prompt } = input;
+        const prompt = JSON.parse(user_prompt);
+        assertEquals(
+          prompt.active_skill_stable_description.skill_id,
+          "demotivation_repair",
+        );
+        return {
+          safety: {
+            risk_band: "critical",
+            reason_codes: ["self_harm"],
+            evidence: ["je veux me faire du mal"],
+          },
+          skill_signals: {
+            entry: {
+              product_help: {
+                detected: true,
+                confidence_band: "high",
+                reason: "generic_support_question",
+              },
+            },
+          },
+          tool_skill_intents: [{
+            operation_type: "select_state_potion",
+            user_intent: "select",
+            explicitness: "explicit",
+            confidence_band: "high",
+            ambiguity: "none",
+            operation_input: { potion_type: "apaisement" },
+          }],
+        };
+      },
+    },
+  );
+
+  assertEquals(frame.safety.risk_band, "critical");
+  assertEquals(frame.skill_signals.entry?.product_help?.detected ?? false, false);
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "none");
+});
+
 Deno.test("dispatcher v2 routes light relationship regret to emotional_repair", async () => {
   const { frame } = await dispatch(
     "Je suis un peu mal depuis ce matin. J ai repondu sechement a quelqu un que j aime, et ca me reste dans la tete.",
@@ -289,7 +521,7 @@ Deno.test("dispatcher v2 keeps local tone wording out of coach preference update
   );
 });
 
-Deno.test("dispatcher v2 hands stabilized concrete asks to execution_breakdown", async () => {
+Deno.test("dispatcher v2 hands stabilized concrete asks to attack card", async () => {
   const messages = [
     "ok la phrase m'aide un peu, je peux peut-etre envoyer une ligne simple",
     "plus simple et doux oui, je veux une phrase exacte qui reconnait le tort sans me flageller",
@@ -302,7 +534,10 @@ Deno.test("dispatcher v2 hands stabilized concrete asks to execution_breakdown",
       active_skill_state: { skill_id: "emotional_repair" },
     });
     assertEquals(
-      frame.skill_signals.entry?.execution_breakdown?.detected,
+      frame.tool_skill_intents.some((intent) =>
+        intent.operation_type === "prepare_attack_card"
+      ) ||
+        frame.tool_skill_opportunity.operation_type === "prepare_attack_card",
       true,
       message,
     );
@@ -357,7 +592,10 @@ Deno.test("dispatcher v2 suppresses sticky LLM emotional entry after stabilizati
     },
   );
   assertEquals(
-    frame.skill_signals.entry?.execution_breakdown?.detected,
+    frame.tool_skill_intents.some((intent) =>
+      intent.operation_type === "prepare_attack_card"
+    ) ||
+      frame.tool_skill_opportunity.operation_type === "prepare_attack_card",
     true,
   );
   assertEquals(
@@ -402,6 +640,187 @@ Deno.test("dispatcher v2 supports injectable LLM runner with sanitization", asyn
   assertEquals(frame.safety.risk_band, "medium");
 });
 
+Deno.test("dispatcher v2 preserves explicit attack and defense card intents for clarification", async () => {
+  const message =
+    "J'aimerais créer une carte de défense et une carte d'attaque.";
+  const safety = runSafetyPregate({
+    user_message: message,
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+  });
+  const frame = await runDispatcher({
+    user_message: message,
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+    plan_snapshot: {},
+    safety_pregate_output: safety,
+    llm_runner: async () => ({
+      safety: { risk_band: "low", reason_codes: [], evidence: [] },
+      direct_effects: [],
+      tool_skill_intents: [{
+        operation_type: "prepare_defense_card",
+        explicitness: "explicit",
+        target_hint: "moment de risque à clarifier",
+        confidence_band: "high",
+        ambiguity: "target_ambiguous",
+        user_intent: "create",
+        operation_input: {
+          target_hint: "moment de risque à clarifier",
+          evidence: ["créer une carte de défense"],
+        },
+      }, {
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: "action à clarifier",
+        confidence_band: "high",
+        ambiguity: "target_ambiguous",
+        user_intent: "create",
+        operation_input: {
+          target_hint: "action à clarifier",
+          evidence: ["créer une carte d'attaque"],
+        },
+      }],
+      tool_skill_opportunity: { type: "none" },
+      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+    }),
+  });
+
+  assertEquals(
+    frame.tool_skill_intents.map((intent) => intent.operation_type),
+    ["prepare_defense_card", "prepare_attack_card"],
+  );
+});
+
+Deno.test("dispatcher v2 repairs partial composite coverage with LLM, without keyword routing", async () => {
+  const message =
+    "J'aimerais que tous me rappelle dans 10 minutes de prendr mes médicaments, et là tout de suite j'aimerais qu'on crée une carte d'attaque";
+  const safety = runSafetyPregate({
+    user_message: message,
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+  });
+  let calls = 0;
+  let repairPrompt = "";
+  const frame = await runDispatcher({
+    user_message: message,
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+    plan_snapshot: {},
+    safety_pregate_output: safety,
+    llm_runner: async (llmInput) => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          safety: { risk_band: "low", reason_codes: [], evidence: [] },
+          direct_effects: [{
+            effect_type: "create_one_shot_reminder",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              raw_text: "rappelle dans 10 minutes de prendr mes médicaments",
+              when_hint: "dans 10 minutes",
+              instruction_hint: "prendre mes médicaments",
+            },
+          }],
+          tool_skill_intents: [],
+          tool_skill_opportunity: { type: "none" },
+          skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+        };
+      }
+      repairPrompt = llmInput.user_prompt;
+      return {
+        safety: { risk_band: "low", reason_codes: [], evidence: [] },
+        direct_effects: [{
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text: "rappelle dans 10 minutes de prendr mes médicaments",
+            when_hint: "dans 10 minutes",
+            instruction_hint: "prendre mes médicaments",
+          },
+        }],
+        tool_skill_intents: [{
+          operation_type: "prepare_attack_card",
+          explicitness: "explicit",
+          target_hint: "action à clarifier",
+          confidence_band: "high",
+          ambiguity: "target_ambiguous",
+          user_intent: "create",
+          evidence: ["crée une carte d'attaque"],
+        }],
+        tool_skill_opportunity: { type: "none" },
+        skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+      };
+    },
+  });
+  assertEquals(calls, 2);
+  assertStringIncludes(repairPrompt, "uncovered_after_direct_effect");
+  assertStringIncludes(
+    repairPrompt,
+    "et là tout de suite j'aimerais qu'on crée une carte d'attaque",
+  );
+  assertEquals(
+    frame.direct_effects[0]?.effect_type,
+    "create_one_shot_reminder",
+  );
+  assertEquals(
+    frame.tool_skill_intents[0]?.operation_type,
+    "prepare_attack_card",
+  );
+  assertEquals(
+    Boolean(frame.tool_skill_intents[0]?.operation_input),
+    true,
+  );
+});
+
+Deno.test("dispatcher v2 does not repair when the direct effect already covers the message", async () => {
+  const message = "Rappelle-moi dans 10 minutes de prendre mes médicaments";
+  const safety = runSafetyPregate({
+    user_message: message,
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+  });
+  let calls = 0;
+  const frame = await runDispatcher({
+    user_message: message,
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+    plan_snapshot: {},
+    safety_pregate_output: safety,
+    llm_runner: async () => {
+      calls += 1;
+      return {
+        safety: { risk_band: "low", reason_codes: [], evidence: [] },
+        direct_effects: [{
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text: message,
+            when_hint: "dans 10 minutes",
+            instruction_hint: "prendre mes médicaments",
+          },
+        }],
+        tool_skill_intents: [],
+        tool_skill_opportunity: { type: "none" },
+        skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+      };
+    },
+  });
+  assertEquals(calls, 1);
+  assertEquals(frame.tool_skill_intents.length, 0);
+});
+
 Deno.test("route replay 12 golden fixtures pass with S2 dispatcher and routers", async () => {
   const fixtures = (await loadReplayFixtures(
     "supabase/functions/sophia-brain/test_harness/conversation_route_replay/fixtures",
@@ -427,10 +846,10 @@ Deno.test("route replay passes all 25 fixtures with S2 runtime", async () => {
 // par buildDispatcherPrompt, sous la forme attendue.
 // ---------------------------------------------------------------------------
 
-Deno.test("dispatcher prompt version reflects clarification signal contract s19", () => {
+Deno.test("dispatcher prompt version reflects active skill stable description contract s26", () => {
   assertEquals(
     DISPATCHER_V2_PROMPT_VERSION,
-    "dispatcher_v2_prompt_2026_06_s19_clarification_signals",
+    "dispatcher_v2_prompt_2026_06_s26_active_skill_stable_description",
   );
 });
 
@@ -588,6 +1007,107 @@ Deno.test("dispatcher prompt one_shot_reminder few-shot includes raw_text in pay
   assertStringIncludes(
     String(directEffect?.payload_hint?.raw_text ?? ""),
     "rappel ponctuel",
+  );
+});
+
+Deno.test("dispatcher prompt keeps explicit composite reminder plus attack-card intents", () => {
+  const promptJson = buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+    safety_risk_band: "low",
+  });
+  const parsed = JSON.parse(promptJson) as {
+    critical_routing_examples: Array<{
+      user_message?: string;
+      expected: {
+        direct_effects?: Array<{ effect_type?: string }>;
+        tool_skill_intents?: Array<{
+          operation_type?: string;
+          operation_input?: Record<string, unknown>;
+        }>;
+        note?: string;
+      };
+    }>;
+  };
+  assertStringIncludes(
+    promptJson,
+    "J'aimerais que tu me rappelles dans 10 minutes de prendre mes médicaments",
+  );
+  assertStringIncludes(
+    DISPATCHER_V2_SYSTEM_PROMPT,
+    "rappelle-moi dans 10 minutes de prendre mes medicaments",
+  );
+  assertStringIncludes(
+    DISPATCHER_V2_SYSTEM_PROMPT,
+    "tool_skill_intents prepare_attack_card pour la carte",
+  );
+  assertEquals(
+    promptJson.includes(
+      "Ne mets PAS tool_skill_intents prepare_attack_card même si le message mentionne une action concrète",
+    ),
+    false,
+  );
+  const reminderExample = parsed.critical_routing_examples.find((ex) =>
+    String(ex.expected.note ?? "").includes("simple instruction de rappel")
+  );
+  if (!reminderExample) throw new Error("few-shot rappel ponctuel manquant");
+  assertStringIncludes(
+    String(reminderExample.expected.note ?? ""),
+    "si le même message contient aussi une demande explicite distincte",
+  );
+  const compositeExample = parsed.critical_routing_examples.find((ex) =>
+    String(ex.user_message ?? "").includes("crée une carte d'attaque")
+  );
+  if (!compositeExample) {
+    throw new Error("few-shot composite rappel + carte manquant");
+  }
+  assertEquals(
+    compositeExample.expected.direct_effects?.some((effect) =>
+      effect.effect_type === "create_one_shot_reminder"
+    ),
+    true,
+  );
+  const attackIntent = compositeExample.expected.tool_skill_intents?.find((
+    intent,
+  ) => intent.operation_type === "prepare_attack_card");
+  assertEquals(Boolean(attackIntent?.operation_input), true);
+});
+
+Deno.test("dispatcher prompt keeps attack and defense card pair as two tool intents", () => {
+  const promptJson = buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+    safety_risk_band: "low",
+  });
+  const parsed = JSON.parse(promptJson) as {
+    critical_routing_examples: Array<{
+      user_message?: string;
+      expected: {
+        tool_skill_intents?: Array<{
+          operation_type?: string;
+          operation_input?: Record<string, unknown>;
+        }>;
+      };
+    }>;
+  };
+  const cardPairExample = parsed.critical_routing_examples.find((ex) =>
+    String(ex.user_message ?? "").includes("carte de défense") &&
+    String(ex.user_message ?? "").includes("carte d'attaque")
+  );
+  if (!cardPairExample) {
+    throw new Error("few-shot carte défense + carte attaque manquant");
+  }
+  assertEquals(
+    cardPairExample.expected.tool_skill_intents?.map((intent) =>
+      intent.operation_type
+    ),
+    ["prepare_defense_card", "prepare_attack_card"],
+  );
+  assertEquals(
+    cardPairExample.expected.tool_skill_intents?.every((intent) =>
+      Boolean(intent.operation_input)
+    ),
+    true,
   );
 });
 

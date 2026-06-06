@@ -22,8 +22,10 @@ import {
   refineAttackCardTechniqueFit,
 } from "./slot_filler.ts";
 import {
+  readyAttackCardPlatformFields,
   readyAttackCardStatePatch,
   structuredAttackCardDraftGenerator,
+  structuredAttackCardPlatformFieldFiller,
   structuredAttackCardSlotFiller,
 } from "./test_helpers.ts";
 import {
@@ -41,6 +43,7 @@ import {
   applyPrepareAttackCardInitialDraftDecision,
   maybeRunPrepareAttackCardOperation,
 } from "./router.ts";
+import { mergeAttackCardPlatformFieldPatch } from "./platform_fields.ts";
 
 const sampleAttackCardDraft = () => ({
   operation_type: "prepare_attack_card" as const,
@@ -251,6 +254,7 @@ Deno.test("prepare_attack_card initial intake accepts dispatcher aliases for tar
       generated_user_message: null,
       evidence: ["structured test filler"],
     }),
+    platform_field_filler: structuredAttackCardPlatformFieldFiller,
     draft_generator: async (input) => ({
       ...sampleAttackCardDraft(),
       draft: {
@@ -323,6 +327,7 @@ Deno.test("prepare_attack_card initial intake recommends technique when target a
         "Je peux la créer, quelle technique préfères-tu ?",
       evidence: ["structured test filler"],
     }),
+    platform_field_filler: structuredAttackCardPlatformFieldFiller,
     draft_generator: async (input) => ({
       ...sampleAttackCardDraft(),
       draft: {
@@ -390,6 +395,7 @@ Deno.test("prepare_attack_card initial intake binds titled plan target without i
       generated_user_message: null,
       evidence: ["structured test filler"],
     }),
+    platform_field_filler: structuredAttackCardPlatformFieldFiller,
     draft_generator: structuredAttackCardDraftGenerator,
   });
 
@@ -399,6 +405,319 @@ Deno.test("prepare_attack_card initial intake binds titled plan target without i
     "personal_action",
   );
   assertEquals(output.draft?.draft.technique, "texte_recadrage");
+});
+
+Deno.test("attack_card platform field intake locks multiple explicit fields in one turn", async () => {
+  const statePatch = {
+    ...readyAttackCardStatePatch({
+      title: "ouvrir mon carnet avant le café",
+    }),
+  } as any;
+  delete statePatch.platform_fields;
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Action : ouvrir mon carnet avant le café. Excuse : je me dis que je regarderai plus tard. État voulu : revenir au premier geste.",
+    source: "direct_user_request",
+    trigger_message_id: "m-platform-fields-multi",
+    safety_pregate_risk_band: "none",
+    plan_snapshot: {
+      items: [{ id: "walk", title: "ouvrir mon carnet avant le café" }],
+    },
+    slot_filler: structuredAttackCardSlotFiller(statePatch),
+    platform_field_filler: async (input) => ({
+      current_step: "handoff_ready",
+      state_patch: {
+        platform_fields: readyAttackCardPlatformFields({
+          technique: input.technique_key,
+          target: "ouvrir mon carnet avant le café",
+          blocker: "je me dis que je regarderai plus tard",
+        }),
+        generated_user_message: null,
+      },
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["all fields from user"],
+    }),
+    draft_generator: structuredAttackCardDraftGenerator,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const fields = (output.pending_confirmation as any)?.intake_state
+    ?.platform_fields;
+  assertEquals(fields?.status, "complete");
+  assertEquals(fields?.fields.length, 3);
+  assertEquals(
+    fields?.fields.every((field: any) => field.status === "locked"),
+    true,
+  );
+});
+
+Deno.test("attack_card platform field intake does not infer missing fields globally", async () => {
+  const statePatch = {
+    ...readyAttackCardStatePatch({
+      title: "ouvrir mon carnet avant le café",
+    }),
+  } as any;
+  delete statePatch.platform_fields;
+  const partialFields = readyAttackCardPlatformFields({
+    target: "ouvrir mon carnet avant le café",
+    blocker: "je me dis que je regarderai plus tard",
+  });
+  partialFields.fields = partialFields.fields.map((field) =>
+    field.field_id === "desired_reframe_state"
+      ? {
+        ...field,
+        status: "missing" as const,
+        locked_value: null,
+        user_evidence: [],
+        evidence: [],
+      }
+      : field
+  );
+  partialFields.missing_field_ids = ["desired_reframe_state"];
+  partialFields.status = "partial";
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Action : ouvrir mon carnet avant le café. Excuse : je me dis que je regarderai plus tard.",
+    source: "direct_user_request",
+    trigger_message_id: "m-platform-fields-missing",
+    safety_pregate_risk_band: "none",
+    plan_snapshot: {
+      items: [{ id: "walk", title: "ouvrir mon carnet avant le café" }],
+    },
+    slot_filler: structuredAttackCardSlotFiller(statePatch),
+    platform_field_filler: async () => ({
+      current_step: "platform_field_intake",
+      state_patch: {
+        platform_fields: partialFields,
+        generated_user_message:
+          "Tu veux que le texte te ramène vers quel état ?",
+      },
+      missing_slots: ["platform_field:desired_reframe_state"],
+      confidence: "high",
+      generated_user_message: "Tu veux que le texte te ramène vers quel état ?",
+      evidence: ["missing desired state"],
+    }),
+    draft_generator: structuredAttackCardDraftGenerator,
+  });
+
+  assertEquals(output.status, "ask_question");
+  assertEquals(output.phase, "platform_field_intake");
+  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(output.next_question?.slot, "platform_field");
+  assertEquals(
+    output.readiness.missing_required_slots,
+    ["platform_field:desired_reframe_state"],
+  );
+});
+
+Deno.test("attack_card platform field merge preserves locked fields across partial patch", () => {
+  const previous = readyAttackCardPlatformFields({
+    target: "ouvrir mon carnet avant le café",
+    blocker: "je me dis que je regarderai plus tard",
+  });
+  previous.fields = previous.fields.map((field) =>
+    field.field_id === "desired_reframe_state"
+      ? {
+        ...field,
+        status: "missing" as const,
+        locked_value: null,
+        user_evidence: [],
+        evidence: [],
+      }
+      : field
+  );
+  previous.missing_field_ids = ["desired_reframe_state"];
+  previous.status = "partial";
+
+  const merged = mergeAttackCardPlatformFieldPatch(previous, {
+    technique_key: "texte_recadrage",
+    fields: [{
+      field_id: "desired_reframe_state",
+      question: "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+      required: true,
+      status: "locked",
+      locked_value:
+        "ouvrir le carnet sans négocier, même si je n’ai pas encore envie",
+      user_evidence: [
+        "ouvrir le carnet sans négocier, même si je n’ai pas encore envie",
+      ],
+      needs_user_confirmation: false,
+      evidence: [],
+    }],
+  }, "texte_recadrage");
+
+  assertEquals(merged.status, "complete");
+  assertEquals(merged.missing_field_ids, []);
+  assertEquals(
+    merged.fields.map((field) => [field.field_id, field.status]),
+    [
+      ["negotiated_action", "locked"],
+      ["recurring_excuse", "locked"],
+      ["desired_reframe_state", "locked"],
+    ],
+  );
+});
+
+Deno.test("attack_card platform field intake preserves prior locked fields when dispatcher sends partial intake_state", async () => {
+  const previous = readyAttackCardPlatformFields({
+    target: "ouvrir mon carnet avant le café",
+    blocker: "je me dis que je regarderai plus tard",
+  });
+  previous.fields = previous.fields.map((field) =>
+    field.field_id === "desired_reframe_state"
+      ? {
+        ...field,
+        status: "missing" as const,
+        locked_value: null,
+        user_evidence: [],
+        evidence: [],
+      }
+      : field
+  );
+  previous.missing_field_ids = ["desired_reframe_state"];
+  previous.status = "partial";
+
+  const partialIntakeFields = readyAttackCardPlatformFields({
+    target: "ouvrir mon carnet avant le café",
+    blocker: "je me dis que je regarderai plus tard",
+  });
+  partialIntakeFields.fields = partialIntakeFields.fields.map((field) =>
+    field.field_id === "desired_reframe_state"
+      ? {
+        ...field,
+        locked_value:
+          "ouvrir le carnet sans négocier, même si je n’ai pas encore envie",
+        user_evidence: [
+          "ouvrir le carnet sans négocier, même si je n’ai pas encore envie",
+        ],
+      }
+      : {
+        ...field,
+        status: "missing" as const,
+        locked_value: null,
+        user_evidence: [],
+        evidence: [],
+      }
+  );
+  partialIntakeFields.missing_field_ids = [
+    "negotiated_action",
+    "recurring_excuse",
+  ];
+  partialIntakeFields.status = "partial";
+
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux que ça me ramène à un état direct : ouvrir le carnet sans négocier, même si je n’ai pas encore envie.",
+    source: "direct_user_request",
+    trigger_message_id: "m-platform-fields-preserve",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      target: {
+        kind: "personal_action",
+        title: "ouvrir mon carnet avant le café",
+      },
+      technique: "texte_recadrage",
+      constraints: [{ kind: "no_create", evidence: ["message_no_create"] }],
+      user_intent: "draft_only",
+      platform_fields: previous,
+      intake_state: {
+        skill_id: "prepare_attack_card",
+        current_step: "platform_field_intake",
+        target: {
+          status: "identified",
+          kind: "personal_action",
+          title: "ouvrir mon carnet avant le café",
+          confidence: "high",
+          evidence: ["structured_operation_input"],
+        },
+        technique: {
+          status: "identified",
+          value: "texte_recadrage",
+          explicitly_requested: true,
+          fit_warning: null,
+          options: [],
+          confidence: "high",
+          evidence: ["structured_operation_input"],
+        },
+        blocker: { type: "mixed", confidence: 0.5, evidence: [] },
+        constraints: [{ kind: "no_create", evidence: ["message_no_create"] }],
+        user_intent: "draft_only",
+        missing_slots: [
+          "platform_field:negotiated_action",
+          "platform_field:recurring_excuse",
+        ],
+        confidence: "high",
+        generated_user_message: null,
+        platform_fields: partialIntakeFields,
+      },
+    } as any,
+    slot_filler: async (input) => ({
+      current_step: "platform_field_intake",
+      user_intent: "draft_only",
+      constraints: [{ kind: "no_create", evidence: ["message_no_create"] }],
+      state_patch: {
+        current_step: "platform_field_intake",
+        platform_fields: input.current_state?.platform_fields,
+      } as any,
+      missing_slots: ["platform_field:desired_reframe_state"],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["continuing platform field intake"],
+    }),
+    platform_field_filler: async () => ({
+      current_step: "handoff_ready",
+      state_patch: {
+        platform_fields: {
+          technique_key: "texte_recadrage",
+          fields: [{
+            field_id: "desired_reframe_state",
+            question:
+              "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+            required: true,
+            status: "locked",
+            locked_value:
+              "ouvrir le carnet sans négocier, même si je n’ai pas encore envie",
+            user_evidence: [
+              "ouvrir le carnet sans négocier, même si je n’ai pas encore envie",
+            ],
+            needs_user_confirmation: false,
+            evidence: [],
+          }],
+        } as any,
+        generated_user_message: null,
+      },
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["desired state from user"],
+    }),
+    draft_generator: structuredAttackCardDraftGenerator,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const fields = (output.pending_confirmation as any)?.intake_state
+    ?.platform_fields;
+  assertEquals(fields?.status, "complete");
+  assertEquals(fields?.missing_field_ids, []);
+  assertEquals(
+    fields?.fields.map((field: any) => [field.field_id, field.status]),
+    [
+      ["negotiated_action", "locked"],
+      ["recurring_excuse", "locked"],
+      ["desired_reframe_state", "locked"],
+    ],
+  );
 });
 
 Deno.test("prepare_attack_card contract blocks draft-only create effects", () => {
@@ -461,11 +780,17 @@ Deno.test("prepare_attack_card initial draft-only stores review draft, not execu
     runtime?.nextTempMemory.__active_attack_card_handoff?.no_chat_mutation,
     true,
   );
-  assertStringIncludes(runtime?.content ?? "", "Cible/action comprise");
-  assertStringIncludes(runtime?.content ?? "", "Destination plateforme");
+  assertStringIncludes(runtime?.content ?? "", "Cible/action");
+  assertStringIncludes(runtime?.content ?? "", "Où aller");
+  assertStringIncludes(runtime?.content ?? "", "Champs à remplir");
   assertStringIncludes(
     runtime?.content ?? "",
     "Je ne crée pas la carte depuis le chat",
+  );
+  assertEquals((runtime?.content ?? "").includes("Brouillon de carte"), false);
+  assertEquals(
+    (runtime?.content ?? "").includes("Aperçu du résultat attendu"),
+    false,
   );
   assertEquals(
     (runtime?.content ?? "").includes("Confirme explicitement"),
@@ -559,8 +884,7 @@ Deno.test("prepare_attack_card renderer separates handoff and failed states", ()
   const pending = renderAttackCardPendingConfirmationReply(draft);
   assertStringIncludes(
     pending,
-    getHandoffTargetForOperation("prepare_attack_card")
-      ?.user_facing_destination ?? "Cartes d’attaque",
+    "Utilise ces réponses pour remplir la carte dans la plateforme",
   );
 
   const handoff = renderAttackCardPlatformHandoff({
@@ -611,16 +935,16 @@ Deno.test("prepare_attack_card renderer separates handoff and failed states", ()
     },
     missing_decisions: [],
   });
-  assertStringIncludes(handoff, "Cible/action comprise");
-  assertStringIncludes(handoff, "Obstacle ou piège identifié");
-  assertStringIncludes(handoff, "Champs à renseigner dans la plateforme");
-  assertStringIncludes(handoff, "Question plateforme");
-  assertStringIncludes(handoff, "Réponse proposée : marche");
-  assertStringIncludes(handoff, "Aperçu du résultat attendu");
-  assertStringIncludes(handoff, "Brouillon de carte");
-  assertStringIncludes(handoff, "À préserver");
-  assertStringIncludes(handoff, "À éviter");
-  assertStringIncludes(handoff, "Destination plateforme");
+  assertStringIncludes(handoff, "Cible/action");
+  assertStringIncludes(handoff, "Piège à contrer");
+  assertStringIncludes(handoff, "Champs à remplir");
+  assertStringIncludes(handoff, "Réponse : marche");
+  assertStringIncludes(handoff, "Où aller");
+  assertEquals(handoff.includes("Surface UI"), false);
+  assertEquals(handoff.includes("Brouillon de carte"), false);
+  assertEquals(handoff.includes("Aperçu du résultat attendu"), false);
+  assertEquals(handoff.includes("À préserver"), false);
+  assertEquals(handoff.includes("À éviter"), false);
   assertEquals(
     /c'est créé|j'ai créé|j'ai ajouté|c'est fait/i.test(handoff),
     false,
@@ -672,10 +996,10 @@ Deno.test("prepare_attack_card renderer handles plan action handoff without manu
     missing_decisions: [],
   });
 
-  assertStringIncludes(handoff, "Plan > Action > Ressources > Attaque");
   assertStringIncludes(handoff, "Aucun champ manuel à remplir");
   assertStringIncludes(handoff, "Générer");
-  assertStringIncludes(handoff, "Aperçu du résultat attendu");
+  assertEquals(handoff.includes("Surface UI"), false);
+  assertEquals(handoff.includes("Aperçu du résultat attendu"), false);
   assertStringIncludes(handoff, "Je ne crée pas la carte depuis le chat");
 });
 
@@ -869,9 +1193,9 @@ Deno.test("prepare_attack_card apply_attempt does not execute from active handof
   );
   assertStringIncludes(
     runtime?.content ?? "",
-    getHandoffTargetForOperation("prepare_attack_card")
-      ?.user_facing_destination ?? "Cartes d’attaque",
+    "Utilise ces réponses pour remplir la carte dans la plateforme",
   );
+  assertEquals((runtime?.content ?? "").includes("brouillon"), false);
 });
 
 Deno.test("prepare_attack_card active handoff captures redis-moi as repeat_handoff", async () => {
@@ -922,7 +1246,8 @@ Deno.test("prepare_attack_card active handoff captures redis-moi as repeat_hando
     ledger.entries[0].reason_code,
     "repeat_platform_handoff",
   );
-  assertStringIncludes(runtime?.content ?? "", "Brouillon de carte");
+  assertStringIncludes(runtime?.content ?? "", "Champs à remplir");
+  assertEquals((runtime?.content ?? "").includes("Brouillon de carte"), false);
 });
 
 Deno.test("prepare_attack_card active handoff forces plus simple to revise_handoff", async () => {
@@ -984,9 +1309,10 @@ Deno.test("prepare_attack_card active handoff forces plus simple to revise_hando
     (runtime?.toolSkillRun as any)?.platform_handoff?.reason_code,
     "revised_platform_handoff",
   );
-  assertStringIncludes(
-    runtime?.content ?? "",
-    "J'envoie le dossier maintenant",
+  assertStringIncludes(runtime?.content ?? "", "Champs à remplir");
+  assertEquals(
+    (runtime?.content ?? "").includes("J'envoie le dossier maintenant"),
+    false,
   );
 });
 
@@ -1084,9 +1410,10 @@ Deno.test("prepare_attack_card revise_handoff regenerates recommendation", async
     "revised_platform_handoff",
   );
   assertEquals(runtime?.executedTools, []);
-  assertStringIncludes(
-    runtime?.content ?? "",
-    "Je fais seulement le premier pas",
+  assertStringIncludes(runtime?.content ?? "", "Champs à remplir");
+  assertEquals(
+    (runtime?.content ?? "").includes("Je fais seulement le premier pas"),
+    false,
   );
 });
 
@@ -1249,10 +1576,10 @@ Deno.test("prepare_attack_card active intake continuation can deliver initial ha
     (runtime?.toolSkillRun as any)?.platform_handoff?.reason_code,
     "attack_card_platform_handoff",
   );
-  assertStringIncludes(runtime?.content ?? "", "Cible/action comprise");
+  assertStringIncludes(runtime?.content ?? "", "Cible/action");
   assertStringIncludes(
     runtime?.content ?? "",
-    "Champs à renseigner dans la plateforme",
+    "Champs à remplir",
   );
   assertStringIncludes(
     runtime?.content ?? "",
@@ -1776,7 +2103,7 @@ Deno.test("C8: enforceExplicitTechniqueRequest locks user-named 'ancre visuelle'
   assertEquals(enforced.state_patch.technique?.explicitly_requested, true);
 });
 
-Deno.test("C8: a generation failure retries once before falling back (A3-r8 T11)", async () => {
+Deno.test("prepare_attack_card platform handoff does not call draft generator", async () => {
   let calls = 0;
   const flaky: AttackCardDraftGenerator = async (inp) => {
     calls += 1;
@@ -1794,12 +2121,15 @@ Deno.test("C8: a generation failure retries once before falling back (A3-r8 T11)
     slot_filler: structuredAttackCardSlotFiller(readyAttackCardStatePatch()),
     draft_generator: flaky,
   });
-  assertEquals(calls, 2, "le générateur doit être retenté une fois");
+  assertEquals(calls, 0, "le générateur de carte ne doit plus être appelé");
   assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.generated_asset, "");
 });
 
-Deno.test("C8: persistent failure yields a clean technical error + retry invitation, not a vague refusal (A3-r8 T11)", async () => {
+Deno.test("prepare_attack_card ignores draft generator failure because chat only prepares inputs", async () => {
+  let calls = 0;
   const alwaysFails: AttackCardDraftGenerator = async () => {
+    calls += 1;
     throw new Error("hard_generation_failure");
   };
   const output = await runPrepareAttackCardAiIntake({
@@ -1813,13 +2143,10 @@ Deno.test("C8: persistent failure yields a clean technical error + retry invitat
     slot_filler: structuredAttackCardSlotFiller(readyAttackCardStatePatch()),
     draft_generator: alwaysFails,
   });
-  assertEquals(output.status, "technical_blocked");
-  assertEquals(output.reason_code, "draft_generation_failed");
-  assertEquals(output.readiness.reason, "ai_draft_generator_error");
-  // Erreur technique propre + invitation à relancer.
-  assertStringIncludes(output.ack ?? "", "reprendre dans un instant");
-  // Plus de refus vague "deviner à ta place".
-  assertEquals((output.ack ?? "").includes("deviner à ta place"), false);
+  assertEquals(calls, 0);
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.reason_code, undefined);
+  assertStringIncludes(output.confirmation?.message ?? "", "champs");
 });
 
 Deno.test("prepare_attack_card no_create draft generator failure falls back to no-mutation handoff draft", async () => {
@@ -1868,13 +2195,15 @@ Deno.test("prepare_attack_card no_create draft generator failure falls back to n
       confidence: "high" as const,
       generated_user_message: null,
     }),
+    platform_field_filler: structuredAttackCardPlatformFieldFiller,
     draft_generator: alwaysFails,
   });
   assertEquals(output.status, "pending_confirmation");
   assertEquals(output.draft?.draft.technique, "ancre_visuelle");
+  assertEquals(output.draft?.draft.generated_asset, "");
   assertStringIncludes(
     output.draft?.confirmation_message ?? "",
-    "Je ne cree pas la carte depuis le chat",
+    "Je ne crée pas la carte depuis le chat",
   );
   assertEquals(output.committed_effects, undefined);
 });
@@ -1949,10 +2278,14 @@ Deno.test("D0: a desynced LLM draft (confirmation ne cite pas l'asset, technique
   // Technique verrouillée préservée + activation_keyword neutralisé.
   assertEquals(normalized.draft.technique, "ancre_visuelle");
   assertEquals(normalized.draft.activation_keyword, null);
-  // Confirmation reconstruite déterministe et fidèle (cite l'asset réel).
+  // Confirmation reconstruite déterministe sans exposer un modèle final de carte.
   assertStringIncludes(
     normalized.confirmation_message,
-    "Post-it 'paye, je ferme'",
+    "éléments à renseigner",
+  );
+  assertEquals(
+    normalized.confirmation_message.includes("Post-it 'paye, je ferme'"),
+    false,
   );
 });
 
@@ -1975,7 +2308,14 @@ Deno.test("D0: un title manquant est défaillé déterministe au lieu de jeter",
   assertStringIncludes(normalized.draft.title, "payer le parking");
   // instruction défaillée sur le mode d'emploi de la technique (non vide).
   assertEquals(normalized.draft.instruction.length > 0, true);
-  assertStringIncludes(normalized.confirmation_message, "Post-it visuel");
+  assertStringIncludes(
+    normalized.confirmation_message,
+    "éléments à renseigner",
+  );
+  assertEquals(
+    normalized.confirmation_message.includes("Post-it visuel"),
+    false,
+  );
 });
 
 Deno.test("prepare_attack_card normalized draft confirmation stays no-mutation", () => {

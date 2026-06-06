@@ -91,17 +91,18 @@ Deno.test("summarizeEffectLedgerForTrace ne leak pas de payload massif", () => {
   assertEquals(summary.entries[0].payload_summary.nested, "[object]");
 });
 
-Deno.test("rewriteUncommittedEffectClaims retire preference enregistree sans commit", () => {
+Deno.test("rewriteUncommittedEffectClaims trace preference enregistree sans commit sans reecrire", () => {
   const ledger = createEffectLedger("turn-1");
+  const reply = "C'est fait, préférence enregistrée.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "C'est fait, préférence enregistrée.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
   assertEquals(rewritten.reason_codes, [
     "uncommitted_coach_preferences_update_claim",
   ]);
-  assertEquals(rewritten.reply, "Je ne l'ai pas enregistré.");
+  assertEquals(rewritten.reply, reply);
 });
 
 Deno.test("rewriteUncommittedEffectClaims ne touche pas une reponse si commit present", () => {
@@ -153,16 +154,18 @@ Deno.test("blocked ne compte pas comme committed", () => {
   );
 });
 
-Deno.test("rewriteUncommittedEffectClaims neutralise rappel programme sans commit", () => {
+Deno.test("rewriteUncommittedEffectClaims trace rappel programme sans commit sans reecrire", () => {
   const ledger = createEffectLedger("turn-1");
+  const reply = "Rappel programmé pour demain.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Rappel programmé pour demain.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
   assertEquals(rewritten.reason_codes, [
     "uncommitted_reminder_create_claim",
   ]);
+  assertEquals(rewritten.reply, reply);
 });
 
 Deno.test("rewriteUncommittedEffectClaims ne transforme pas carte preparee en carte creee", () => {
@@ -174,72 +177,74 @@ Deno.test("rewriteUncommittedEffectClaims ne transforme pas carte preparee en ca
   assertEquals(rewritten.changed, false);
 });
 
-Deno.test("rewriteUncommittedEffectClaims neutralise potion activee sans commit", () => {
+Deno.test("rewriteUncommittedEffectClaims trace potion activee sans commit sans reecrire", () => {
   const ledger = createEffectLedger("turn-1");
+  const reply = "Potion activée.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Potion activée.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
   assertEquals(rewritten.reason_codes, [
     "uncommitted_state_potion_activate_claim",
   ]);
-  assertEquals(rewritten.reply, "Je ne l'ai pas activée.");
+  assertEquals(rewritten.reply, reply);
 });
 
-Deno.test("rewriteUncommittedEffectClaims neutralise plan modifie sans commit", () => {
+Deno.test("rewriteUncommittedEffectClaims trace plan modifie sans commit sans reecrire", () => {
   const ledger = createEffectLedger("turn-1");
+  const reply = "Plan ajusté pour la semaine.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Plan ajusté pour la semaine.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
   assertEquals(rewritten.reason_codes, [
     "uncommitted_plan_adjust_claim",
   ]);
-  assertEquals(rewritten.reply, "Je ne l'ai pas modifié.");
+  assertEquals(rewritten.reply, reply);
 });
 
-Deno.test("rewriteUncommittedEffectClaims neutralise progres note sans commit", () => {
+Deno.test("rewriteUncommittedEffectClaims trace progres note sans commit sans reecrire", () => {
   const ledger = createEffectLedger("turn-1");
+  const reply = "Progression notée.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Progression notée.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
   assertEquals(rewritten.reason_codes, [
     "uncommitted_progress_track_claim",
   ]);
-  assertEquals(rewritten.reply, "Je ne l'ai pas noté.");
+  assertEquals(rewritten.reply, reply);
 });
 
-Deno.test("rewriteUncommittedEffectClaims neutralise memoire enregistree sans commit", () => {
+Deno.test("rewriteUncommittedEffectClaims trace memoire enregistree sans commit sans reecrire", () => {
   const ledger = createEffectLedger("turn-1");
+  const reply = "Je garde ça en mémoire, je m'en souviens.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Je garde ça en mémoire, je m'en souviens.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
   assertEquals(rewritten.reason_codes, [
     "uncommitted_memory_write_claim",
   ]);
-  assertEquals(rewritten.reply, "Je ne l'ai pas enregistré en mémoire.");
+  assertEquals(rewritten.reply, reply);
 });
 
-Deno.test("rewriteUncommittedEffectClaims neutralise success generique sans commit", () => {
+Deno.test("rewriteUncommittedEffectClaims trace success generique sans commit sans reecrire", () => {
   const ledger = createEffectLedger("turn-1");
+  const reply = "C'est fait.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "C'est fait.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
   assertEquals(rewritten.reason_codes, [
     "uncommitted_generic_success_claim",
   ]);
-  assertEquals(
-    rewritten.reply,
-    "Je ne confirme aucun changement durable sans effet confirmé.",
-  );
+  assertEquals(rewritten.reply, reply);
 });
 
 Deno.test("rewriteUncommittedEffectClaims neutralise success generique avec effet bloque", () => {

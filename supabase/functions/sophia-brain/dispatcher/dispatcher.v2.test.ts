@@ -730,7 +730,149 @@ Deno.test("dispatcher suppresses tool skill intents when acute emotional repair 
   assertEquals(frame.tool_skill_opportunity.type, "none");
 });
 
-Deno.test("dispatcher removes execution overlap when acute emotional repair dominates", async () => {
+Deno.test("dispatcher suppresses state potion opportunity for loss of meaning repair", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Je ne sais plus pourquoi je fais mes actions, ça n'a plus de sens.",
+    ),
+    llm_runner: async () => ({
+      skill_signals: {
+        entry: {
+          demotivation_repair: {
+            detected: true,
+            confidence_band: "high",
+            reason: "loss_of_meaning",
+          },
+        },
+      },
+      tool_skill_opportunity: {
+        type: "state_potion",
+        confidence_band: "high",
+        should_offer: true,
+        prop_reason: "user_mentions_state_regulation_need",
+        target_status: "none",
+        target_hint: null,
+        offer_timing: "now",
+      },
+    }),
+  });
+
+  assertEquals(frame.skill_signals.entry?.demotivation_repair?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "none");
+});
+
+Deno.test("dispatcher suppresses state potion opportunity for acute shame repair", async () => {
+  const frame = await runDispatcher({
+    ...baseInput("J'ai honte, je me déteste et je m'en veux tellement."),
+    llm_runner: async () => ({
+      skill_signals: {
+        entry: {
+          emotional_repair: {
+            detected: true,
+            confidence_band: "high",
+            reason: "self_attack_or_shame",
+          },
+        },
+      },
+      tool_skill_opportunity: {
+        type: "state_potion",
+        confidence_band: "high",
+        should_offer: true,
+        prop_reason: "user_mentions_state_regulation_need",
+        target_status: "none",
+        target_hint: null,
+        offer_timing: "now",
+      },
+    }),
+  });
+
+  assertEquals(frame.skill_signals.entry?.emotional_repair?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "none");
+});
+
+Deno.test("dispatcher suppresses implicit state potion opportunity without explicit potion request", async () => {
+  const frame = await runDispatcher({
+    ...baseInput("Je suis sous pression et complètement saturé ce soir."),
+    llm_runner: async () => ({
+      tool_skill_opportunity: {
+        type: "state_potion",
+        confidence_band: "high",
+        should_offer: true,
+        prop_reason: "user_mentions_state_regulation_need",
+        target_status: "none",
+        target_hint: null,
+        offer_timing: "now",
+      },
+    }),
+  });
+
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "none");
+});
+
+Deno.test("dispatcher keeps explicit state potion request routeable", async () => {
+  const frame = await runDispatcher({
+    ...baseInput("Je veux une potion de clarté pour me recentrer."),
+    llm_runner: async () => ({
+      tool_skill_opportunity: {
+        type: "state_potion",
+        confidence_band: "high",
+        should_offer: true,
+        prop_reason: "explicit_state_potion_request",
+        target_status: "none",
+        target_hint: "potion de clarté",
+        offer_timing: "now",
+      },
+    }),
+  });
+
+  assertEquals(frame.tool_skill_opportunity.type, "state_potion");
+});
+
+Deno.test("dispatcher keeps explicit clarity potion intent with plan meaning loss", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Je veux une potion de clarté. Mon plan commence à perdre son sens, je ne vois plus le lien entre mes actions et mon pourquoi profond.",
+    ),
+    llm_runner: async () => ({
+      skill_signals: {
+        entry: {
+          demotivation_repair: {
+            detected: true,
+            confidence_band: "medium",
+            reason: "loss_of_plan_meaning",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "select_state_potion",
+        user_intent: "select",
+        explicitness: "explicit",
+        target_hint: "potion de clarté",
+        confidence_band: "high",
+        ambiguity: "none",
+        operation_input: {
+          potion_type: "clarte",
+        },
+      }],
+    }),
+  });
+
+  assertEquals(frame.skill_signals.entry?.demotivation_repair?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 1);
+  assertEquals(
+    frame.tool_skill_intents[0]?.operation_type,
+    "select_state_potion",
+  );
+  assertEquals(
+    (frame.tool_skill_intents[0]?.operation_input as any)?.potion_type,
+    "clarte",
+  );
+});
+
+Deno.test("dispatcher removes card intent when acute emotional repair dominates", async () => {
   const frame = await runDispatcher({
     ...baseInput(
       "Je me déteste quand je craque, prépare une carte pour ne pas replonger ce soir.",
@@ -742,11 +884,6 @@ Deno.test("dispatcher removes execution overlap when acute emotional repair domi
             detected: true,
             confidence_band: "high",
             reason: "self_attack_or_shame",
-          },
-          execution_breakdown: {
-            detected: true,
-            confidence_band: "medium",
-            reason: "unclear_start",
           },
         },
       },
@@ -766,10 +903,6 @@ Deno.test("dispatcher removes execution overlap when acute emotional repair domi
 
   assertEquals(frame.skill_signals.entry?.emotional_repair?.detected, true);
   assertEquals(
-    frame.skill_signals.entry?.execution_breakdown?.detected ?? false,
-    false,
-  );
-  assertEquals(
     frame.skill_signals.entry?.product_help?.detected ?? false,
     false,
   );
@@ -784,13 +917,7 @@ Deno.test("dispatcher respects explicit negation of state potion", async () => {
     ),
     llm_runner: async () => ({
       skill_signals: {
-        entry: {
-          execution_breakdown: {
-            detected: true,
-            confidence_band: "high",
-            reason: "unclear_start",
-          },
-        },
+        entry: {},
       },
       tool_skill_intents: [{
         operation_type: "select_state_potion",
@@ -806,8 +933,12 @@ Deno.test("dispatcher respects explicit negation of state potion", async () => {
     }),
   });
 
-  assertEquals(frame.skill_signals.entry?.execution_breakdown?.detected, true);
-  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(
+    frame.tool_skill_intents.some((intent) =>
+      intent.operation_type === "select_state_potion"
+    ),
+    false,
+  );
 });
 
 Deno.test("dispatcher routes send-me recurring content as recurring reminder", async () => {
@@ -1078,17 +1209,15 @@ Deno.test("dispatcher emits action reference and action memory target outside re
   );
 });
 
-Deno.test("dispatcher does not start execution skill for explicit action memory recall", async () => {
+Deno.test("dispatcher does not start card flow for explicit action memory recall", async () => {
   const frame = await runDispatcher(
     baseInput(
       "Pour marche, souvenirs mémorisés uniquement : qu'est-ce qui aide au démarrage ?",
     ),
   );
 
-  assertEquals(
-    frame.skill_signals.entry?.execution_breakdown?.detected ?? false,
-    false,
-  );
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.should_offer, false);
   assertEquals(frame.memory_plan.memory_mode, "light");
   assertEquals(
     frame.memory_plan.targets.some((target) => target.type === "action"),

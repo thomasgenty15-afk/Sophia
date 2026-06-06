@@ -25,7 +25,7 @@ export function renderDefenseCardExecuted(args: {
 
 export function renderDefenseCardBlocked(reasonCode: string): string {
   if (reasonCode === "draft_invalid") {
-    return "Je ne peux pas créer cette carte de défense : le brouillon est incomplet.";
+    return "Je ne peux pas préparer cette carte de défense : le contenu est incomplet.";
   }
   return "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.";
 }
@@ -34,12 +34,15 @@ export function renderDefenseCardFallbackFailed(): string {
   return "Je n'ai pas pu préparer cette carte de défense depuis le chat pour l'instant.";
 }
 
-function lines(items: string[]): string {
-  return items.filter(Boolean).map((item) => `- ${item}`).join("\n");
+function fieldLabel(fieldId: string | undefined, fallback: string): string {
+  if (fieldId === "support_need") {
+    return "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?";
+  }
+  return fallback;
 }
 
-function fieldLine(label: string, value: string): string {
-  return `- ${label} : ${String(value ?? "").trim() || "à compléter"}`;
+function destinationForImperative(destination: string): string {
+  return destination.replace(/^dans\s+/i, "");
 }
 
 export function renderDefenseCardHandoff(args: {
@@ -55,67 +58,56 @@ export function renderDefenseCardHandoff(args: {
   const destination = handoff.recommendation.platform_destination ||
     target?.user_facing_destination ||
     "dans la section Cartes de défense";
-  const steps = handoff.recommendation.platform_steps.length > 0
-    ? handoff.recommendation.platform_steps
-    : target?.platform_steps ?? [];
-  const platformFields = (handoff as any).platform_fields ?? {};
+  if (args.status === "apply_attempt") {
+    return [
+      "Je ne crée pas la carte depuis le chat.",
+      `Va dans ${
+        destinationForImperative(destination)
+      }; reprends la phrase préparée juste au-dessus dans la plateforme.`,
+    ].join("\n");
+  }
   const platformFlow = (handoff as any).platform_flow ?? {};
-  const finalFields = {
-    label: String(platformFields.label ?? "").trim(),
-    situation: String(platformFields.situation ?? "").trim(),
-    signal: String(platformFields.signal ?? "").trim(),
-    defense_response: String(platformFields.defense_response ?? "").trim(),
-    plan_b: String(platformFields.plan_b ?? "").trim(),
-  };
-  const hasFinalFields = Object.values(finalFields).some(Boolean);
+  const entryNeed = platformFlow.entry_need &&
+      typeof platformFlow.entry_need === "object"
+    ? platformFlow.entry_need as { question_label?: string; value?: string }
+    : null;
   const questionnaireAnswers = Array.isArray(platformFlow.questionnaire_answers)
     ? platformFlow.questionnaire_answers
     : [];
-  const intro = args.status === "apply_attempt"
-    ? `Je ne crée pas la carte depuis le chat. Voici la version à reprendre ${destination}.`
-    : `Je ne crée pas la carte depuis le chat. Voici la version à reprendre ${destination}.`;
+  const supportAnswer = questionnaireAnswers.find((answer: any) =>
+    String(answer?.field_id ?? "").trim() === "support_need"
+  );
+  const supportField = [
+    ...(entryNeed?.value
+      ? [{
+        field_id: "support_need",
+        question_label: entryNeed.question_label ??
+          "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+        value: entryNeed.value,
+      }]
+      : []),
+    ...(!entryNeed?.value && supportAnswer
+      ? [{
+        field_id: "support_need",
+        question_label: String(supportAnswer.question_label ?? "Champ").trim(),
+        value: String(supportAnswer.value ?? supportAnswer.answer ?? "").trim(),
+      }]
+      : []),
+  ][0] ?? null;
+  const supportLabel = supportField
+    ? fieldLabel(supportField.field_id, supportField.question_label)
+    : "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?";
+  const supportValue = String(supportField?.value ?? "").trim();
   return [
-    intro,
+    `Où aller : ${destination}`,
     "",
-    `1. Situation / action comprise : ${handoff.target_summary}`,
-    `2. Risque identifié : ${handoff.risk_summary}`,
-    `3. Stratégie de défense recommandée : ${handoff.recommendation.defense_strategy_label}`,
-    `Pourquoi : ${handoff.recommendation.why_this_strategy}`,
+    "Dans la plateforme, le champ à préparer est :",
+    `« ${supportLabel} »`,
+    supportValue ? "" : "",
+    supportValue ? "Je te proposerais d'écrire :" : "",
+    supportValue ? `« ${supportValue} »` : "",
     "",
-    `4. Parcours plateforme : ${String(platformFlow.route_label ?? "Carte de défense").trim()}`,
-    String(platformFlow.entry_need ?? "").trim()
-      ? `Besoin libre à renseigner : ${String(platformFlow.entry_need).trim()}`
-      : "",
-    questionnaireAnswers.length > 0
-      ? `Réponses aux 3 questions :\n${questionnaireAnswers.map((
-        answer: any,
-      ) =>
-        fieldLine(
-          String(answer.question_label ?? answer.field ?? "Question").trim(),
-          String(answer.answer ?? "").trim(),
-        )
-      ).join("\n")}`
-      : "",
-    "",
-    hasFinalFields
-      ? [
-        "5. Champs finaux à recopier :",
-        fieldLine("Nom de la carte", finalFields.label),
-        fieldLine("Le moment", finalFields.situation),
-        fieldLine("Le piège", finalFields.signal),
-        fieldLine("Mon geste", finalFields.defense_response),
-        fieldLine("Plan B", finalFields.plan_b),
-      ].join("\n")
-      : `5. Brouillon de carte : ${handoff.recommendation.card_draft_summary}`,
-    "",
-    `6. À préserver :\n${lines(handoff.recommendation.preserve)}`,
-    "",
-    `7. À éviter :\n${lines(handoff.recommendation.avoid)}`,
-    "",
-    `8. Destination plateforme : ${destination}`,
-    lines(steps),
-    "",
-    "Je ne crée ni ne modifie aucune carte depuis ce chat.",
+    "Je ne crée pas la carte depuis le chat.",
   ].filter((line) => line !== "").join("\n");
 }
 

@@ -158,7 +158,8 @@ Deno.test("attack_intake_ai_unavailable_returns_technical_blocked", async () => 
   assertEquals(output.committed_effects, []);
 });
 
-Deno.test("attack_generation_failed_no_pending_confirmation", async () => {
+Deno.test("attack_generation_not_called_for_platform_input_handoff", async () => {
+  let calls = 0;
   const output = await runPrepareAttackCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
@@ -169,17 +170,20 @@ Deno.test("attack_generation_failed_no_pending_confirmation", async () => {
     safety_pregate_risk_band: "none",
     slot_filler: structuredAttackCardSlotFiller(readyAttackCardStatePatch()),
     draft_generator: async () => {
+      calls += 1;
       throw new Error("generator_down");
     },
   });
 
-  assertEquals(output.status, "technical_blocked");
-  assertEquals(output.reason_code, "draft_generation_failed");
+  assertEquals(calls, 0);
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.reason_code, undefined);
   assertEquals(
     (output.state_patch.operation_input as any)?.target.title,
     "marche",
   );
-  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(output.pending_confirmation !== undefined, true);
+  assertEquals(output.draft?.draft.generated_asset, "");
 });
 
 Deno.test("attack_pending_confirmation_approve_becomes_non_mutant_apply_attempt", async () => {

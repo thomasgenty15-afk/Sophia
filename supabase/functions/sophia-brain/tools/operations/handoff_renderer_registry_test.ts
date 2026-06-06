@@ -5,6 +5,7 @@ import { getHandoffTargetForOperation } from "../../product_surface_registry/con
 import { renderAdjustPlanHandoffDraft } from "./adjust_plan_item/renderer.ts";
 import { renderAttackCardPlatformHandoff } from "./prepare_attack_card/renderer.ts";
 import { renderDefenseCardHandoff } from "./prepare_defense_card/renderer.ts";
+import { createDefenseCardPlatformFieldState } from "./prepare_defense_card/platform_fields.ts";
 import { renderSelectStatePotionHandoffDraft } from "./select_state_potion/renderer.ts";
 import { renderRecurringReminderPlatformHandoff } from "./create_recurring_reminder/renderer.ts";
 import { renderCoachPreferenceHandoffDraft } from "./update_coach_preferences/renderer.ts";
@@ -13,21 +14,21 @@ Deno.test("adjust_plan renderer includes registry Plan destination", () => {
   const target = getHandoffTargetForOperation("adjust_plan_item")!;
   const content = renderAdjustPlanHandoffDraft({
     operation_type: "adjust_plan_item",
-    mode: "platform_handoff",
+    mode: "platform_input_coaching",
     no_chat_mutation: true,
     executable_from_chat: false,
-    scope: { kind: "specific_plan_item", target_summary: "Action" },
-    user_goal_summary: "alléger l'action",
-    coaching_read: "ça réduit la charge",
-    recommendation: {
-      summary: "alléger",
-      recommended_change: "version courte",
-      preserve: ["objectif"],
-      avoid: ["tout changer"],
-      platform_destination: "legacy",
-      platform_steps: ["legacy"],
+    user_blocker_summary: "alléger l'action",
+    suggested_platform_input:
+      "Je veux rendre cette partie du plan plus légère sans perdre l'objectif.",
+    preserve: ["objectif"],
+    avoid: ["tout changer"],
+    destination: {
+      product_area: "Plan",
+      instruction: `${target.user_facing_destination}. ${
+        target.platform_steps.join(" ")
+      }`,
     },
-    missing_decisions: [],
+    missing_clarity: [],
   });
   assertStringIncludes(content, target.user_facing_destination);
 });
@@ -47,8 +48,8 @@ Deno.test("attack card renderer includes registry Cards destination", () => {
       card_draft_summary: "Brouillon",
       preserve: ["geste court"],
       avoid: ["trop long"],
-      platform_destination: "legacy",
-      platform_steps: ["legacy"],
+      platform_destination: target.user_facing_destination,
+      platform_steps: target.platform_steps,
     },
     missing_decisions: [],
   });
@@ -68,40 +69,41 @@ Deno.test("defense card renderer includes registry Defense Cards destination", (
       platform_flow: {
         route_kind: "free_card",
         route_label: "Carte de défense libre",
-        entry_need: "Risque",
+        entry_need: {
+          question_label: "Besoin libre",
+          value: "Risque",
+          status: "locked",
+        },
         questionnaire_answers: [
           {
-            field: "moment",
+            field_id: "risk_moment",
             question_label: "A quel moment précis ça arrive ?",
-            answer: "Situation",
+            value: "Situation",
+            status: "locked",
           },
           {
-            field: "signal",
+            field_id: "first_signal",
             question_label: "Quel est le premier signal ?",
-            answer: "Signal",
+            value: "Signal",
+            status: "locked",
           },
           {
-            field: "response",
+            field_id: "defense_response",
             question_label: "Quel geste simple ?",
-            answer: "Geste",
+            value: "Geste",
+            status: "locked",
           },
         ],
       },
-      platform_fields: {
-        label: "Carte test",
-        situation: "Situation",
-        signal: "Signal",
-        defense_response: "Geste",
-        plan_b: "Plan B",
-      },
+      platform_fields: createDefenseCardPlatformFieldState("free_card"),
       recommendation: {
         defense_strategy_label: "Réponse",
         why_this_strategy: "prévenir",
         card_draft_summary: "Brouillon",
         preserve: ["signal"],
         avoid: ["flou"],
-        platform_destination: "legacy",
-        platform_steps: ["legacy"],
+        platform_destination: target.user_facing_destination,
+        platform_steps: target.platform_steps,
       },
       missing_decisions: [],
     },

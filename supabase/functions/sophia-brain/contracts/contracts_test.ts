@@ -99,7 +99,7 @@ Deno.test("conversation contracts accept canonical sample payloads", () => {
     operation_id: "operation-1",
     operation_type: "prepare_attack_card",
     source: {
-      skill_id: "execution_breakdown",
+      skill_id: "demotivation_repair",
       recommendation_id: "recommendation-1",
       trigger_message_id: "message-1",
     },

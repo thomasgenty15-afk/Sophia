@@ -10,7 +10,6 @@ import { runRecommendationTool } from "../recommendation/recommendation_tool.ts"
 import { resolveSkillOperationSuggestion } from "../tool_skill_runtime/operation_suggestion_resolver.ts";
 import { runDemotivationRepairSkill } from "../skills/demotivation_repair/skill.ts";
 import { runEmotionalRepairSkill } from "../skills/emotional_repair/skill.ts";
-import { runExecutionBreakdownSkill } from "../skills/execution_breakdown/skill.ts";
 import { runProductHelpSkill } from "../skills/product_help/skill.ts";
 import { runSafetyCrisisSkill } from "../skills/safety_crisis/skill.ts";
 import {
@@ -21,7 +20,6 @@ import {
   buildAttackCardRecommendationOperationInput,
   isAttackCardPostCreationVerificationQuestion,
 } from "../tools/operations/prepare_attack_card/run_support.ts";
-import { isImmediateModeRequestNotCoachPreference } from "../tools/operations/update_coach_preferences/route_guards.ts";
 import { readSurfaceState } from "../surface_state.ts";
 import { isSafetyRoute } from "./safety_crisis_runtime.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
@@ -38,6 +36,8 @@ type TraceFn = (
   payload?: Record<string, unknown>,
   level?: "debug" | "info" | "warn" | "error",
 ) => Promise<void>;
+
+const DEPRECATED_ACTION_BREAKDOWN_SKILL_ID = "execution" + "_breakdown";
 
 export type RecommendationRuntimeForTurn = {
   selectedSkillForRecommendation: string;
@@ -75,6 +75,39 @@ function buildSkillContextForRecommendation(args: {
   } as any;
 }
 
+const CONVERSATION_EXPLICIT_CONSTRAINTS = [
+  "no_tool",
+  "no_potion",
+  "no_plan",
+  "no_protocol",
+  "no_technique",
+  "no_questions",
+  "soft_support_only",
+  "short_reply",
+] as const;
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function conversationExplicitConstraints(tempMemory: unknown): string[] {
+  const temp = asRecord(tempMemory);
+  const constraints = {
+    ...asRecord(temp.__explicit_turn_constraints),
+    ...asRecord(temp.__turn_constraints),
+  };
+  return CONVERSATION_EXPLICIT_CONSTRAINTS.filter((key) =>
+    constraints[key] === true
+  );
+}
+
+function activeRecommendationSkillId(activeSkillState: unknown): string {
+  const skillId = String((activeSkillState as any)?.skill_id ?? "").trim();
+  return skillId === DEPRECATED_ACTION_BREAKDOWN_SKILL_ID ? "" : skillId;
+}
+
 export async function runConversationSkillForRecommendation(args: {
   skillId: string;
   userId: string;
@@ -84,16 +117,19 @@ export async function runConversationSkillForRecommendation(args: {
   activeSkillState: unknown;
   planItemSnapshot: unknown[] | null | undefined;
   productSurfaces: unknown[];
+  explicitConstraints?: string[];
 }): Promise<ConversationSkillOutput | null> {
   const context = buildSkillContextForRecommendation(args);
-  const input = { user_message: args.userMessage, context };
+  const input = {
+    user_message: args.userMessage,
+    context,
+    explicit_constraints: args.explicitConstraints ?? [],
+  };
   switch (args.skillId) {
     case "demotivation_repair":
       return await runDemotivationRepairSkill(input);
     case "emotional_repair":
       return await runEmotionalRepairSkill(input);
-    case "execution_breakdown":
-      return await runExecutionBreakdownSkill(input);
     case "product_help":
       return await runProductHelpSkill(input);
     case "safety_crisis":
@@ -129,13 +165,12 @@ export async function prepareRecommendationRuntimeForTurn(args: {
       ? "safety_crisis"
       : args.routeDecision?.response_owner === "product_help"
       ? "product_help"
-      : String((args.activeSkillState as any)?.skill_id ?? "").trim();
+      : activeRecommendationSkillId(args.activeSkillState);
   const suppressOperationRecommendationForVerification =
     isAttackCardPostCreationVerificationQuestion({
       message: args.userMessage,
       recentMessages: args.recentMessages,
-    }) ||
-    isImmediateModeRequestNotCoachPreference(args.userMessage);
+    });
 
   if (
     args.turnFrame &&
@@ -154,6 +189,7 @@ export async function prepareRecommendationRuntimeForTurn(args: {
           activeSkillState: args.activeSkillState,
           planItemSnapshot: args.planItemSnapshot,
           productSurfaces: registry.surfaces,
+          explicitConstraints: conversationExplicitConstraints(args.tempMemory),
         })
         : null;
       if (

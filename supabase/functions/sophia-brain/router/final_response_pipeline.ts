@@ -83,8 +83,8 @@ export type FinalResponsePipelineDeps = {
   ensureVisibleSophiaEmoji: (text: unknown) => string;
 };
 
-// Legacy defensive renderer guards. They are intentionally centralized here so
-// run.ts does not keep owning final semantic rewrites.
+// Final response policy: contract validation, EffectLedger grounding and
+// non-mutating visibility guards stay centralized outside run.ts.
 export function runFinalResponsePipeline(args: {
   baseResponseContent: string;
   userMessage: string;

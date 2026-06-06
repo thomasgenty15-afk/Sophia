@@ -1,4 +1,5 @@
 import type {
+  ClarteHandoffState,
   StatePotionHandoffDraft,
   StatePotionHandoffStatus,
 } from "./contract.ts";
@@ -13,12 +14,14 @@ export type SelectStatePotionFrame = {
 
 export type StatePotionHandoffState = {
   skill_id: "select_state_potion";
+  active_subskill_id?: "select_state_potion.clarte" | null;
   mode: "platform_handoff";
   status: StatePotionHandoffStatus;
   draft?: StatePotionHandoffDraft | null;
   phase?: string | null;
   operation_input?: Record<string, unknown> | null;
   intake_state?: SelectStatePotionIntakeState | null;
+  clarte_state?: ClarteHandoffState | null;
   turn_count: number;
   max_turns: number;
   created_at: string;
@@ -53,13 +56,11 @@ export function writeSelectStatePotionActiveIntake(
   return next;
 }
 
-export function writeSelectStatePotionPendingConfirmation(
+export function clearSelectStatePotionLegacyPendingConfirmation(
   tempMemory: any,
-  pending: Record<string, unknown> | null,
 ) {
   const next = { ...(tempMemory ?? {}) };
-  if (pending) next.__pending_tool_skill_confirmation = pending;
-  else delete next.__pending_tool_skill_confirmation;
+  delete next.__pending_tool_skill_confirmation;
   delete next.pending_tool_skill_confirmation;
   return next;
 }
@@ -78,7 +79,7 @@ export function writeSelectStatePotionPendingRecommendation(
 }
 
 export function clearSelectStatePotionFrame(tempMemory: any) {
-  let next = writeSelectStatePotionPendingConfirmation(tempMemory, null);
+  let next = clearSelectStatePotionLegacyPendingConfirmation(tempMemory);
   next = writeSelectStatePotionActiveIntake(next, null);
   next = writeSelectStatePotionPendingRecommendation(next, null);
   next = clearPotionFollowupConsent(next);

@@ -39,9 +39,56 @@ export type AttackCardTechniqueKey =
   | "preparer_terrain"
   | "pre_engagement";
 
+export type AttackCardPlatformFieldId =
+  | "negotiated_action"
+  | "recurring_excuse"
+  | "desired_reframe_state"
+  | "effort_target"
+  | "importance_reason"
+  | "mantra_tone"
+  | "commitment_to_keep_alive"
+  | "anchor_location"
+  | "visual_phrase"
+  | "visualized_action"
+  | "morning_window"
+  | "helpful_sensations"
+  | "action_to_simplify"
+  | "prep_in_advance"
+  | "ready_environment"
+  | "risk_situation"
+  | "protected_value";
+
+export type AttackCardPlatformFieldStatus =
+  | "missing"
+  | "proposed"
+  | "locked";
+
+export type AttackCardPlatformFieldProgress = {
+  field_id: AttackCardPlatformFieldId;
+  technique_key: AttackCardTechniqueKey;
+  question: string;
+  required: true;
+  status: AttackCardPlatformFieldStatus;
+  proposed_value?: string | null;
+  locked_value?: string | null;
+  user_evidence: string[];
+  needs_user_confirmation: boolean;
+  evidence: string[];
+};
+
+export type AttackCardPlatformFieldState = {
+  technique_key: AttackCardTechniqueKey;
+  status: "missing" | "partial" | "complete";
+  fields: AttackCardPlatformFieldProgress[];
+  missing_field_ids: AttackCardPlatformFieldId[];
+};
+
 export type AttackCardPlatformInput = {
+  field_id?: AttackCardPlatformFieldId;
   question: string;
   suggested_answer: string;
+  value?: string;
+  status?: "locked" | "proposed";
 };
 
 export type AttackCardKeywordTriggerDraft = {

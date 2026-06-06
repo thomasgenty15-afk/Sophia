@@ -127,19 +127,6 @@ function isCoachPreferenceHandoffState(
   );
 }
 
-function isLegacyCoachPreferencesPending(value: unknown): value is {
-  operation_id?: string;
-  operation_type: "update_coach_preferences";
-  draft?: unknown;
-  intake_state?: unknown;
-  turn_count?: number;
-} {
-  const record = value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
-    : null;
-  return record?.operation_type === "update_coach_preferences";
-}
-
 function routeIsSelected(args: {
   operationType: "update_coach_preferences";
   routeDecision: RouteDecision | null;
@@ -148,7 +135,6 @@ function routeIsSelected(args: {
 }): boolean {
   const frame = loadCoachPreferenceFrameFromTempMemory(args.tempMemory);
   if (isCoachPreferenceHandoffState(frame.handoff)) return true;
-  if (isLegacyCoachPreferencesPending(frame.pending)) return true;
   if (frame.active?.operation_type === args.operationType) return true;
   if (frame.active?.operation_type) return false;
   if (
@@ -402,21 +388,6 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
         user_intent: "cancel",
         reply: "Ok, je ne prépare pas de changement de préférence.",
         reason_code: "handoff_cancelled",
-      }),
-      nextTempMemory: clearCoachPreferenceFrame(args.tempMemory),
-    });
-  }
-
-  if (
-    isLegacyCoachPreferencesPending(frame.pending) &&
-    followUpIntent(args.userMessage) === "apply_attempt"
-  ) {
-    return skillResultToRuntimeResult({
-      result: buildSkillResult({
-        status: "apply_attempt",
-        user_intent: "apply_attempt",
-        reply: applyAttemptReply(null),
-        reason_code: "legacy_pending_apply_attempt_no_chat_mutation",
       }),
       nextTempMemory: clearCoachPreferenceFrame(args.tempMemory),
     });

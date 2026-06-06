@@ -20,19 +20,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 const EFFECT_TYPE_BY_TOOL_TYPE: Record<string, string> = {
   create_one_shot_reminder: "one_shot_reminder.create",
   cancel_one_shot_reminder: "one_shot_reminder.cancel",
+  create_recurring_reminder: "recurring_reminder.create",
   create_attack_card: "attack_card.create",
+  prepare_attack_card: "attack_card.create",
   create_defense_card: "defense_card.create",
+  prepare_defense_card: "defense_card.create",
   activate_state_potion: "state_potion.activate",
   track_progress_plan_item: "plan_item_progress.track",
+  adjust_plan_item: "plan_item.adjust",
   update_coach_preferences: "coach_preferences.update",
 };
 
 const OPERATION_TYPE_BY_EFFECT_TYPE: Record<string, string> = {
   "one_shot_reminder.create": "one_shot_reminder",
   "one_shot_reminder.cancel": "one_shot_reminder",
+  "recurring_reminder.create": "recurring_reminder",
   "attack_card.create": "prepare_attack_card",
   "defense_card.create": "prepare_defense_card",
+  "state_potion.activate": "select_state_potion",
   "plan_item_progress.track": "track_progress_plan_item",
+  "plan_item.adjust": "adjust_plan_item",
   "coach_preferences.update": "update_coach_preferences",
 };
 
@@ -51,9 +58,12 @@ const COMMITTED_ID_KEYS = [
 const COMMITTED_DB_TABLE_BY_EFFECT_TYPE: Record<string, string> = {
   "one_shot_reminder.create": "scheduled_checkins",
   "one_shot_reminder.cancel": "scheduled_checkins",
+  "recurring_reminder.create": "scheduled_checkins",
   "attack_card.create": "user_attack_cards",
   "defense_card.create": "user_defense_cards",
+  "state_potion.activate": "potion_sessions",
   "plan_item_progress.track": "plan_item_progress_logs",
+  "plan_item.adjust": "plan_patches",
 };
 
 // Traduction runtime/tool/Agenda vers le ledger d'effets. Le coeur du ledger reste dans effect_ledger.ts.

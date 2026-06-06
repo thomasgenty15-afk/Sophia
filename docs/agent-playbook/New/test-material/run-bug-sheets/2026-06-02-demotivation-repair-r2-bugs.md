@@ -1,73 +1,39 @@
-# Bug Sheet — Demotivation Repair R2
+# Run Bug Sheet - demotivation_repair_20260602_r2
 
-## Run
+## Metadata
 
 - Date: 2026-06-02
-- Run id: `20260602-r2`
-- Rapport: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-02-demotivation-repair-r2.md`
-- Persona: `qa-skill`, connexion temporaire locale `demotivation_repair_20260602-r1`
-- Verdict: red
+- Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-02-demotivation-repair-r2.md`
+- Run id: `demotivation_repair_20260602_r2`
+- Persona / scenario: `qa-skill` / `demotivation_repair`
+- Verdict run: yellow/red
+- Validite QA: valide, IA reelle locale, `/functions/v1/test-send-message`, `force_full_ai=true`
+- Agent owner: Codex
 
-## Bugs
+## Synthese
 
-### R2-B01
+- Familles dominantes: `BF-INTAKE-01`, `BF-LEDGER-01`
+- Bug le plus bloquant: T4 remplace une demande de micro-action par une phrase de non-modification hors contexte.
+- Fix architectural prioritaire: corriger le pipeline de clarification/final response sans ajouter de routing regex.
+- Rerun requis: oui, apres correction, rejouer demande de micro-action non mutante + clarification resolue.
 
-- Bug id: `R2-B01`
-- Tours: 1
-- Famille: `BF-ROUTE-01`
-- Domaine owner: dispatcher / orientation clarification
-- Source amont: arbitration entre `demotivation_repair` et plan edit.
-- Symptome visible: Sophia demande "motivation ou modifier le plan" alors que la demotivation est explicite et qu'aucune modification n'est demandee.
-- Preuve systeme: `response_owner=orientation_clarification`, `selected_handler=orientation_clarification`, `route_reason=clarification_required`.
-- Correction attendue: prioriser `demotivation_repair` quand fatigue/perte de sens/abandon dominent sans demande explicite de plan edit.
-- Statut: `open`
-- Fix reference: a definir.
-- Tests requis: positif "ca ne sert a rien / je vais laisser tomber" -> `demotivation_repair`; anti-faux-positif "je veux alleger le plan" -> plan edit/handoff.
+## Bug Ledger
 
-### R2-B02
+| Bug id | Tours | Famille | Domaine owner | Source amont | Symptome visible | Preuve systeme | Correction attendue | Statut | Fix reference | Tests requis |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `DR-R2-B01` | T2 | `BF-INTAKE-01` | clarification state / `demotivation_repair` context recovery | Slot de clarification resolu non consomme dans la reponse suivante | Sophia repose "premier geste ou apres quelques jours ?" juste apres la reponse "apres deux ou trois jours" | T2: `selected_handler=demotivation_repair`, `route_reason=orientation_clarification_resolved_conversation_skill`, `tool_skill_opportunity=none` | La clarification resolue doit alimenter le contexte du skill et bloquer la repetition de la meme question | `open` |  | positif: slot resolu; paraphrase: "je viens de repondre"; anti-FP: vraie nouvelle ambiguite peut clarifier |
+| `DR-R2-B02` | T4 | `BF-LEDGER-01` | final response pipeline / EffectLedger guard | Guard de non-modification applique hors contexte non mutant | Sophia repond "Je ne l'ai pas modifié" au lieu du geste de 90 secondes demande | T4: `selected_handler=execution_breakdown`, `direct_effects=[]`, `executed_tools=[]`, reponse visible hors sujet | Le guard ledger/no-mutation ne doit pas remplacer la reponse conversationnelle si aucune mutation n'est demandee ou annoncee | `open` |  | positif: micro-action non mutante; paraphrase: "sans rien modifier"; anti-FP: vraie demande de mutation doit garder guard ledger |
 
-- Bug id: `R2-B02`
-- Tours: 2, 3
-- Famille: `BF-ROUTE-03`
-- Domaine owner: clarification arbitrator / operation suggestion resolver.
-- Source amont: resolved path transforme "motivation" en `select_state_potion` malgre `no_potion/no_tool`.
-- Symptome visible: Sophia repond avec une recommandation Potions apres "pas de potion ni d'outil".
-- Preuve systeme: tour 2 `response_owner=tool_skill`, `selected_handler=select_state_potion`, `tool_execution=blocked`; tour 3 handler encore `select_state_potion`.
-- Correction attendue: appliquer `no_potion` et `no_tool` avant promotion d'un candidate tool; conserver `demotivation_repair` comme owner final.
-- Statut: `open`
-- Fix reference: a definir.
-- Tests requis: positif "motivation, pas de potion ni outil"; paraphrase "reste avec moi, pas dans l'app"; anti-faux-positif "active une potion courage".
+## Decisions / Arbitrages
 
-### R2-B03
+| Date | Decision | Pourquoi | Owner | Reference |
+| --- | --- | --- | --- | --- |
+| 2026-06-02 | Ne pas classer R2 comme bug de dispatcher | Les traces montrent les bonnes intents high confidence; les erreurs sont post-dispatcher | QA | `2026-06-02-demotivation-repair-r2.md` |
+| 2026-06-02 | Ne pas proposer de regex | La charte anti-patching interdit le routing metier par regex; les fixs attendus sont contrats/pipeline | QA | anti-patching QA charter |
 
-- Bug id: `R2-B03`
-- Tours: 4
-- Famille: `BF-AGENDA-02`
-- Domaine owner: TurnAgenda / demotivation handoff readiness.
-- Source amont: action readiness non reconnue apres micro-action explicitement choisie.
-- Symptome visible: Sophia redemande "decouper ou preparer" alors que l'utilisateur dit "un paquet, pas plus, aide-moi a lancer".
-- Preuve systeme: tour 4 `response_owner=orientation_clarification`, `route_reason=clarification_required`, aucun effet.
-- Correction attendue: traiter une micro-action concrete deja choisie comme `action_readiness=ready/already_chosen`, puis repondre ou handoff vers `execution_breakdown` sans mutation.
-- Statut: `open`
-- Fix reference: a definir.
-- Tests requis: "un seul paquet maintenant" -> reponse de demarrage; "je ne sais pas quoi choisir" -> clarification.
+## Verification
 
-### R2-B04
-
-- Bug id: `R2-B04`
-- Tours: 5
-- Famille: `BF-ROUTE-03`
-- Domaine owner: clarification arbitrator / prepare attack card admission.
-- Source amont: "preparer mon demarrage" dans un flow demotivation devient `prepare_attack_card`.
-- Symptome visible: Sophia dit qu'elle n'a pas pu preparer une carte, alors que le user demandait une aide de demarrage conversationnelle.
-- Preuve systeme: `selected_handler=prepare_attack_card`, `route_reason=orientation_clarification_resolved_tool_skill`, `tool_execution=blocked`, `executed_tools=[]`.
-- Correction attendue: distinguer preparation conversationnelle du demarrage et demande explicite de carte; router vers `execution_breakdown`/reply non-mutant, pas tool skill.
-- Statut: `open`
-- Fix reference: a definir.
-- Tests requis: positif "prepare juste mon demarrage" -> no tool; anti-faux-positif "prepare une carte d'attaque" -> `prepare_attack_card`.
-
-## Verifications
-
-- Run IA reel local avec `force_full_ai=true`: fait.
-- Effets durables: aucun rappel, aucune potion session, aucune carte d'attaque, aucune memoire observee.
-- Test contractuel local: 15 tests `demotivation_repair` passes, 0 failed.
+| Date | Bug id | Verification | Resultat | Reference |
+| --- | --- | --- | --- | --- |
+| 2026-06-02 | `DR-R2-B01` | Run IA reel local, T2 | fail observe | `tmp/demotivation_repair_20260602_r2/turn-02.json` |
+| 2026-06-02 | `DR-R2-B02` | Run IA reel local, T4 | fail observe | `tmp/demotivation_repair_20260602_r2/turn-04.json` |

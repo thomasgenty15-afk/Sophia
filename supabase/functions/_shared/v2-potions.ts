@@ -7,7 +7,9 @@ import type {
   PotionActivationContent,
   PotionDefinition,
   PotionQuestion,
+  PotionScopeSelection,
   PotionType,
+  RappelScopeSelection,
 } from "./v2-types.ts";
 
 type PotionResponseShape = PotionActivationContent;
@@ -78,18 +80,9 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "baisse_elan", label: "Je perds l'elan" },
         ],
       ),
-      selectQuestion(
-        "support_need",
-        "Qu'est-ce qui t'aiderait le plus en ce moment ?",
-        [
-          { value: "rappel", label: "Un rappel court" },
-          { value: "presence", label: "Une presence reguliere" },
-          { value: "relance", label: "Une relance pour repartir" },
-        ],
-      ),
     ],
-    free_text_label: "Si tu veux, ajoute ce que tu sens en train de glisser.",
-    free_text_placeholder: "Tu peux rester simple. Une phrase suffit.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
@@ -130,22 +123,9 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "conflit", label: "La peur du conflit" },
         ],
       ),
-      selectQuestion(
-        "desired_help",
-        "Tu as surtout besoin de quoi ?",
-        [
-          { value: "premier_pas", label: "D'un premier pas concret" },
-          { value: "force", label: "D'un regain de force" },
-          {
-            value: "permission",
-            label: "D'une permission d'y aller doucement",
-          },
-        ],
-      ),
     ],
-    free_text_label: "Si tu veux, precise ce qui te fait le plus hesiter.",
-    free_text_placeholder:
-      "Exemple: je sais quoi faire, mais mon corps se ferme des que j'y pense.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
@@ -186,20 +166,9 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "fatigue", label: "De la fatigue" },
         ],
       ),
-      selectQuestion(
-        "repair_need",
-        "Tu as surtout besoin de quoi maintenant ?",
-        [
-          { value: "pardonner", label: "Me pardonner" },
-          { value: "relever", label: "Me relever" },
-          { value: "reprendre_doucement", label: "Reprendre doucement" },
-        ],
-      ),
     ],
-    free_text_label:
-      "Si tu veux, ajoute ce que cet episode t'a fait ressentir.",
-    free_text_placeholder:
-      "Le but n'est pas de tout raconter. Juste d'ancrer la reparation dans le reel.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
@@ -213,49 +182,31 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     type: "clarte",
     title: "Potion de clarte",
     short_description:
-      "Quand tout est flou, qu'il y a trop de choses ou que tu perds le sens, elle remet de l'ordre.",
+      "Quand ton plan perd son sens, elle t'aide a retrouver pourquoi il compte pour toi et a te reconnecter a ton pourquoi profond.",
     state_trigger: [
-      "Je ne sais plus par quoi commencer.",
-      "J'ai trop de choses dans la tete, tout se melange.",
-      "Je ne vois plus clairement ce qui est important.",
+      "Je fais les actions de mon plan mecaniquement.",
+      "Je ne vois plus le lien entre mon plan et mon pourquoi profond.",
+      "Je ne me reconnais plus vraiment dans ce plan.",
     ],
     effect_goal: [
-      "retrouver du sens",
-      "voir plus clair",
-      "faire emerger la prochaine etape",
+      "retrouver pourquoi ce plan compte",
+      "reconnecter le plan au pourquoi profond",
+      "ramener du sens dans les actions du plan",
     ],
     questionnaire: [
       textQuestion(
-        "clarity_problem",
-        "Qu'est-ce qui est flou pour toi en ce moment ?",
-        "Exemple: je ne sais plus quoi prioriser, je suis noye, je ne sais plus ce qui compte vraiment.",
-      ),
-      selectQuestion(
-        "clarity_need",
-        "Tu as surtout besoin de comprendre quoi ?",
-        [
-          { value: "quoi_faire", label: "Quoi faire" },
-          { value: "par_ou_commencer", label: "Par ou commencer" },
-          { value: "ce_qui_compte", label: "Ce qui compte vraiment" },
-        ],
-      ),
-      selectQuestion(
-        "output_style",
-        "Tu veux ressortir avec quoi ?",
-        [
-          { value: "simple", label: "Quelque chose de simple" },
-          { value: "structure", label: "Quelque chose de plus structure" },
-          { value: "priorite", label: "Une priorite nette" },
-        ],
+        "plan_meaning_loss_reason",
+        "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+        "Exemple: je fais les actions mecaniquement, je ne vois plus le lien avec mon pourquoi profond, ou je ne me reconnais plus dans ce plan.",
       ),
     ],
-    free_text_label: "Si tu veux, ajoute le point qui te brouille le plus.",
-    free_text_placeholder: "Une phrase suffit.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
       rationale:
-        "Un point de recentrage sur quelques jours peut aider a ne pas te re-disperser.",
+        "Un rappel quotidien peut t'aider a garder le lien entre ton plan et ton pourquoi profond.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -277,31 +228,22 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     ],
     questionnaire: [
       textQuestion(
-        "self_talk",
-        "Comment est-ce que tu te parles en ce moment ?",
-        "Exemple: je me juge, je me rabaisse, je me sens froid avec moi.",
+        "love_lack_context",
+        "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+        "Exemple: une partie de moi que je juge, une situation ou je me sens seul, un echec, ou quelque chose que je n'arrive pas a m'offrir.",
       ),
       selectQuestion(
         "love_state",
-        "Tu te sens plutot comment ?",
+        "Tu te sens surtout comment ?",
         [
           { value: "dur", label: "Dur avec moi" },
           { value: "seul", label: "Seul" },
-          { value: "vide", label: "Vide affectivement" },
-        ],
-      ),
-      selectQuestion(
-        "love_need",
-        "Tu as surtout besoin de quoi ?",
-        [
-          { value: "douceur", label: "De douceur" },
-          { value: "reconfort", label: "De reconfort" },
-          { value: "tendresse", label: "D'un regard plus tendre" },
+          { value: "vide", label: "Vide" },
         ],
       ),
     ],
-    free_text_label: "Pourquoi est-ce que tu manques d'amour en ce moment ?",
-    free_text_placeholder: "Tu peux rester tres simple.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
@@ -341,18 +283,9 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
           { value: "submerge", label: "Submerge" },
         ],
       ),
-      selectQuestion(
-        "calm_need",
-        "Tu as besoin de quoi ?",
-        [
-          { value: "ralentir", label: "Ralentir" },
-          { value: "respirer", label: "Respirer" },
-          { value: "relacher", label: "Relacher la pression" },
-        ],
-      ),
     ],
-    free_text_label: "Si tu veux, ajoute ce qui a allume l'alerte.",
-    free_text_placeholder: "Une phrase suffit.",
+    free_text_label: null,
+    free_text_placeholder: null,
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
@@ -397,6 +330,8 @@ Regles :
 - suggested_next_step peut etre null si rien n'est utile
 - follow_up_proposal doit etre presente sauf cas tres exceptionnel ou elle n'apporte vraiment rien
 - follow_up_proposal.message_text doit etre un vrai message court que la personne pourrait recevoir tel quel
+- si la potion est de clarte, reconnecte le plan au pourquoi profond; ne la transforme pas en priorisation, todo-list ou breakdown d'action
+- si la potion est d'amour, parle de douceur envers soi sans infantiliser, sans medicaliser et sans en faire une performance emotionnelle
 - si la potion est d'apaisement, privilegie la deceleration
 - si la potion est de guerison, ne culpabilise jamais`;
 
@@ -410,6 +345,9 @@ export function buildPotionActivationPrompt(args: {
   definition: PotionDefinition;
   answers: Record<string, string>;
   freeText: string | null;
+  potionScope?: PotionScopeSelection | null;
+  rappelScope?: RappelScopeSelection | null;
+  targetBinding?: Record<string, unknown> | null;
 }): string {
   const answerLines = args.definition.questionnaire.map((question) => {
     const rawAnswer = args.answers[question.id];
@@ -433,6 +371,104 @@ export function buildPotionActivationPrompt(args: {
       args.context.classification.recommended_metrics.join(", ")
     }`
     : "";
+  const potionScope = args.potionScope ?? args.rappelScope ?? null;
+  const potionScopeBlock = args.definition.type === "rappel"
+    ? `
+## Scope anti-decrochage plateforme
+
+${
+      JSON.stringify(
+        {
+          potion_scope: potionScope,
+          rappel_scope: potionScope,
+          target_binding: args.targetBinding ?? null,
+        },
+        null,
+        2,
+      )
+    }
+
+Regles anti-decrochage:
+- si potion_scope.scope_kind = "plan_linked", tu peux utiliser le pourquoi profond, le plan actif, la transformation et les actions actives; si target_plan_item_id est fourni, relie prioritairement a cette action; si target_scope = "whole_plan", relie au cap global; si target_scope = "unknown", reste prudent et n'invente pas d'action precise.
+- si potion_scope.scope_kind = "out_of_plan", ne force pas le pourquoi profond, ne fais pas de lien au plan et reste centre sur drift_target.
+- ne deduis jamais plan-linked/out-of-plan par mots-cles: utilise seulement le scope structure ci-dessus.`
+    : args.definition.type === "courage"
+    ? `
+## Scope courage plateforme
+
+${
+      JSON.stringify(
+        {
+          potion_scope: potionScope,
+          target_binding: args.targetBinding ?? null,
+        },
+        null,
+        2,
+      )
+    }
+
+Regles courage:
+- si potion_scope.scope_kind = "plan_linked", tu peux utiliser le pourquoi profond, le plan actif, l'action ciblee si connue, la contrainte principale, identity_shift et core_principle; relie l'objet evite au passage de transformation sans pousser brutalement.
+- si potion_scope.scope_kind = "out_of_plan", ne force pas le plan, ne force pas le pourquoi profond, et reste centre sur avoidance_target et blocker_kind.
+- ne deduis jamais plan-linked/out-of-plan par mots-cles: utilise seulement le scope structure ci-dessus.`
+    : args.definition.type === "guerison"
+    ? `
+## Scope guerison plateforme
+
+${
+      JSON.stringify(
+        {
+          potion_scope: potionScope,
+          target_binding: args.targetBinding ?? null,
+        },
+        null,
+        2,
+      )
+    }
+
+Regles guerison:
+- si potion_scope.scope_kind = "plan_linked", tu peux utiliser le pourquoi profond, la transformation, la strategie du plan, identity_shift, core_principle, la contrainte principale et l'action ciblee si connue; repare le lien au chemin sans pousser a performer.
+- si potion_scope.scope_kind = "out_of_plan", ne force pas le plan, ne force pas le pourquoi profond, et reste centre sur recent_hurt et dominant_feeling.
+- ne deduis jamais plan-linked/out-of-plan par mots-cles: utilise seulement le scope structure ci-dessus.`
+    : args.definition.type === "amour"
+    ? `
+## Scope amour plateforme
+
+${
+      JSON.stringify(
+        {
+          potion_scope: potionScope,
+          target_binding: args.targetBinding ?? null,
+        },
+        null,
+        2,
+      )
+    }
+
+Regles amour:
+- si potion_scope.scope_kind = "plan_linked", tu peux utiliser le pourquoi profond, le plan actif, l'action ciblee si connue, identity_shift et core_principle; ramene le plan comme soutien, jamais comme preuve de valeur.
+- si potion_scope.scope_kind = "out_of_plan", ne force pas le plan, ne force pas le pourquoi profond, et reste centre sur love_lack_context et love_state.
+- ne deduis jamais plan-linked/out-of-plan par mots-cles: utilise seulement le scope structure ci-dessus.`
+    : args.definition.type === "apaisement"
+    ? `
+## Scope apaisement plateforme
+
+${
+      JSON.stringify(
+        {
+          potion_scope: potionScope,
+          target_binding: args.targetBinding ?? null,
+        },
+        null,
+        2,
+      )
+    }
+
+Regles apaisement:
+- si potion_scope.scope_kind = "plan_linked", tu peux utiliser le plan, la charge visible, la contrainte principale, le pourquoi profond et l'action ciblee si connue pour desserrer la pression autour du plan; ne transforme jamais l'apaisement en motivation ou performance.
+- si potion_scope.scope_kind = "out_of_plan", ne force pas le plan, ne force pas le pourquoi profond, et reste centre sur pressure_source et pressure_state.
+- ne deduis jamais plan-linked/out-of-plan par mots-cles: utilise seulement le scope structure ci-dessus.`
+    : "";
 
   return `## Potion
 
@@ -448,9 +484,11 @@ ${args.definition.state_trigger.map((item) => `- ${item}`).join("\n")}
 
 ${answerLines}
 
-## Champ libre
-
-${args.freeText?.trim() || "Non renseigne"}
+${
+    args.definition.free_text_label
+      ? `## Champ libre\n\n${args.freeText?.trim() || "Non renseigne"}`
+      : ""
+  }
 
 ## Transformation
 
@@ -471,9 +509,12 @@ ${JSON.stringify(args.context.questionnaire_answers ?? {}, null, 2)}
 ## Contexte de base disponible en base
 
 ${formatPotionBaseContextForPrompt(args.baseContext)}
+${potionScopeBlock}
 
 Rappels importants:
 - traite d'abord l'etat interieur, pas la mecanique du plan
+- si la potion est de clarte, l'etat interieur est la perte de sens du plan: reconnecte les actions au pourquoi profond quand il est disponible
+- si la potion est d'amour, l'etat interieur est le manque de douceur ou de regard tendre envers soi; ne transforme jamais l'amour en performance emotionnelle
 - si le user parle d'une action du plan, tu peux t'y raccrocher, mais la potion reste centree sur son etat
 - n'invente jamais de contexte personnel absent de la base ou des reponses de l'utilisateur
 - le texte doit etre court, chaud, concret et utile

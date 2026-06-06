@@ -1,0 +1,263 @@
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
+import { runSelectStatePotionHandoffSkill } from "./handoff.ts";
+import { loadStatePotionHandoffStateFromTempMemory } from "./state.ts";
+import { structuredStatePotionSlotFiller } from "./test_helpers.ts";
+
+const fakeSupabase = {} as any;
+const fakeSafetyPregate = {
+  risk_band: "none",
+  reason_codes: [],
+  evidence: [],
+} as any;
+
+const selectPotionRouteDecision = {
+  route_version: "v1",
+  response_owner: "tool_skill",
+  selected_handler: "select_state_potion",
+  reason_code: "test_select_state_potion_entry",
+  direct_effects_to_run: [],
+  blocked_paths: [],
+  memory_used_for_route: false,
+  memory_item_ids_used_for_route: [],
+  memory_use_kind: "none",
+} as any;
+
+Deno.test("select_state_potion hands off to clarté subskill when clarté is identified", async () => {
+  const result = await runSelectStatePotionHandoffSkill({
+    supabase: fakeSupabase,
+    userId: "u-clarte-baton",
+    userMessage:
+      "C'est surtout retrouver le sens de mes efforts et le lien avec mon pourquoi.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-clarte-baton",
+    requestId: "r-clarte-baton",
+    history: [],
+    slotFillerOverride: structuredStatePotionSlotFiller({
+      state_kind: "confusion_overload",
+      selected_potion: "clarte",
+      omit_detail_answers: true,
+    }),
+    clarteLocalDispatcherOverride: async () => ({
+      flow_action: "answer_current_field",
+      confidence: "high",
+      selected_potion: "clarte",
+      field_id: "plan_meaning_loss_reason",
+      field_state: {
+        status: "proposed",
+        candidate_value:
+          "Je ne vois plus le lien entre mes efforts quotidiens et mon pourquoi profond.",
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: true,
+        why_status: "proposition clarté",
+      },
+      revision: {
+        is_revision: false,
+        replacement_value: null,
+        replaces_previous_value: false,
+      },
+      visible_task: {
+        kind: "confirm_proposal",
+        required_data: {
+          potion_name: "Potion de clarté",
+          field_label:
+            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+          field_value:
+            "Je ne vois plus le lien entre mes efforts quotidiens et mon pourquoi profond.",
+          platform_destination: "section État / Potions",
+        },
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        flow_summary: null,
+        collected_value: null,
+        handoff_hint_for_global_dispatcher: null,
+      },
+      no_chat_mutation: {
+        potion_session_created: false,
+        recurring_reminder_created: false,
+        scheduled_checkin_created: false,
+        executable_confirmation_generated: false,
+      },
+      risk_assessment: {
+        risk_score: 0,
+        risk_band: "none",
+        safety_preempt: false,
+        reason_codes: [],
+      },
+      evidence: ["test baton"],
+    }),
+    visibleAgentOverride: async () => "Est-ce que cette formulation te va ?",
+  });
+
+  assert(result);
+  assertEquals(
+    (result.toolSkillRun as any).selected_handler,
+    "select_state_potion.clarte",
+  );
+  assertEquals((result.toolSkillRun as any).status, "clarifying");
+  assertEquals(
+    (result.toolSkillRun as any).reason_code,
+    "clarte_field_proposed",
+  );
+  const nextState = loadStatePotionHandoffStateFromTempMemory(
+    result.nextTempMemory,
+  );
+  assertEquals(nextState?.skill_id, "select_state_potion");
+  assertEquals(nextState?.active_subskill_id, "select_state_potion.clarte");
+  assertEquals(nextState?.clarte_state?.selected_potion, "clarte");
+  assertEquals(
+    nextState?.clarte_state?.field_state.status,
+    "proposed",
+  );
+  assertEquals(result.executedTools, []);
+});
+
+Deno.test("active clarté safety exits local flow and exposes local risk assessment", async () => {
+  const result = await runSelectStatePotionHandoffSkill({
+    supabase: fakeSupabase,
+    userId: "u-local-risk",
+    userMessage: "message safety dans le flow actif",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        skill_id: "select_state_potion",
+        mode: "platform_handoff",
+        status: "clarifying",
+        phase: "detail_intake",
+        draft: null,
+        intake_state: null,
+        clarte_state: {
+          flow_id: "select_state_potion.clarte",
+          selected_potion: "clarte",
+          field_id: "plan_meaning_loss_reason",
+          field_label:
+            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+          potion_name: "Potion de clarté",
+          platform_destination: "section État / Potions",
+          field_state: {
+            status: "missing",
+            candidate_value: null,
+            locked_value: null,
+            previous_value: null,
+            needs_user_confirmation: false,
+            why_status: "test",
+          },
+          visible_task: "ask_deeper",
+        },
+        turn_count: 1,
+        max_turns: 6,
+        created_at: "2026-06-01T00:00:00.000Z",
+        updated_at: "2026-06-01T00:00:00.000Z",
+        no_chat_mutation: true,
+      },
+    },
+    turnFrame: null,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "select_state_potion",
+      reason_code: "active_select_state_potion_local_dispatcher",
+      direct_effects_to_run: [],
+      blocked_paths: [],
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    } as any,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-local-risk",
+    requestId: "r-local-risk",
+    history: [],
+    clarteLocalDispatcherOverride: async () => ({
+      flow_action: "safety_preempt",
+      confidence: "high",
+      selected_potion: "clarte",
+      field_id: "plan_meaning_loss_reason",
+      field_state: {
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "safety",
+      },
+      revision: {
+        is_revision: false,
+        replacement_value: null,
+        replaces_previous_value: false,
+      },
+      visible_task: {
+        kind: "safety",
+        required_data: {
+          potion_name: "Potion de clarté",
+          field_label:
+            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+          field_value: null,
+          platform_destination: "section État / Potions",
+        },
+      },
+      exit_memo: {
+        needed: true,
+        reason: "safety",
+        flow_summary: "safety local",
+        collected_value: null,
+        handoff_hint_for_global_dispatcher: null,
+      },
+      no_chat_mutation: {
+        potion_session_created: false,
+        recurring_reminder_created: false,
+        scheduled_checkin_created: false,
+        executable_confirmation_generated: false,
+      },
+      risk_assessment: {
+        risk_score: 9,
+        risk_band: "high",
+        safety_preempt: true,
+        reason_codes: ["local_clarte_safety"],
+      },
+      evidence: ["local dispatcher output"],
+    }),
+    visibleAgentOverride: async () => "Ok, on met la potion de clarté de côté.",
+  });
+
+  assert(result);
+  assertEquals((result.toolSkillRun as any).status, "blocked");
+  assertEquals(
+    (result.toolSkillRun as any).selected_handler,
+    "select_state_potion.clarte",
+  );
+  assertEquals((result.toolSkillRun as any).risk_assessment.risk_score, 9);
+  assertEquals(
+    (result.toolSkillRun as any).risk_assessment.safety_preempt,
+    true,
+  );
+  assertEquals(
+    loadStatePotionHandoffStateFromTempMemory(result.nextTempMemory),
+    null,
+  );
+  assertEquals(result.executedTools, []);
+  const runtimeTrace = (result.toolSkillRun as any).runtime_trace;
+  assert(Array.isArray(runtimeTrace));
+  assert(
+    runtimeTrace.some((event: any) =>
+      event.component === "local_dispatcher" &&
+      event.flow_action === "safety_preempt"
+    ),
+  );
+  assert(
+    runtimeTrace.some((event: any) =>
+      event.component === "local_reducer" &&
+      event.exit_to_global_dispatcher === false
+    ),
+  );
+});

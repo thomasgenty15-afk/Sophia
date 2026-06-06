@@ -265,6 +265,68 @@ Deno.test("ambiguous tool routes can still enter orientation clarification", () 
   assertEquals(bypass, false);
 });
 
+Deno.test("competing attack and defense card routes do not bypass orientation clarification", () => {
+  const bypass = shouldBypassOrientationClarificationForExplicitToolRoute({
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "central_arbitrator_defense_card_structured_intent",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    turnFrame: {
+      turn_id: "t",
+      source_message_id: "m",
+      user_id: "u",
+      channel: "web",
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      confirmation_response: { kind: "unknown", confidence_band: "low" },
+      direct_effects: [],
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }, {
+        operation_type: "prepare_defense_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+      memory_plan: {
+        context_need: "minimal",
+        memory_mode: "none",
+        context_budget_tier: "tiny",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  });
+
+  assertEquals(bypass, false);
+});
+
 Deno.test("orientation clarification resolved to state potion resumes tool skill", () => {
   assertEquals(
     resolveOrientationClarificationToolSkillHandler({
@@ -284,13 +346,13 @@ Deno.test("orientation clarification resolved to state potion resumes tool skill
   );
 });
 
-Deno.test("orientation clarification resolved to conversation skill resumes skill handler", () => {
+Deno.test("orientation clarification resolved to supported conversation skill resumes skill handler", () => {
   assertEquals(
     resolveOrientationClarificationConversationSkillHandler({
       status: "resolved",
-      selectedCandidateId: "execution_breakdown",
+      selectedCandidateId: "demotivation_repair",
     }),
-    "execution_breakdown",
+    "demotivation_repair",
   );
   assertEquals(
     resolveOrientationClarificationConversationSkillHandler({
@@ -302,7 +364,14 @@ Deno.test("orientation clarification resolved to conversation skill resumes skil
   assertEquals(
     resolveOrientationClarificationConversationSkillHandler({
       status: "ask",
-      selectedCandidateId: "execution_breakdown",
+      selectedCandidateId: "demotivation_repair",
+    }),
+    null,
+  );
+  assertEquals(
+    resolveOrientationClarificationConversationSkillHandler({
+      status: "resolved",
+      selectedCandidateId: "execution" + "_breakdown",
     }),
     null,
   );
@@ -344,6 +413,40 @@ Deno.test("orientation clarification: current conversation signal can override s
       resolvedToolSkillHandler: "select_state_potion",
     }),
     "demotivation_repair",
+  );
+});
+
+Deno.test("orientation clarification: selected tool candidate prevents conversation override", () => {
+  const turnFrame = orientationTurnFrame({
+    skill_signals: {
+      entry: {
+        emotional_repair: {
+          detected: true,
+          confidence_band: "high",
+          reason: "structured_emotional_repair",
+        },
+      },
+      lifecycle: {},
+      exit: {},
+    },
+  });
+
+  assertEquals(
+    currentTurnSupportsOrientationToolResolution({
+      turnFrame,
+      operationType: "select_state_potion",
+    }),
+    false,
+  );
+  assertEquals(
+    currentTurnConversationSkillOverrideForOrientation({
+      status: "resolved",
+      turnFrame,
+      resolvedToolSkillHandler: "select_state_potion",
+      selectedCandidateOperationType: "select_state_potion",
+      selectedCandidateConfidence: "high",
+    }),
+    null,
   );
 });
 

@@ -1,0 +1,720 @@
+{
+  "run_id": "clarification-corrections-20260603-r2-attack-defense",
+  "scope": "qa-normal-conversation-clarification-corrections-20260603-r2-attack-defense",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-clarification-corrections-20260603-r2-attack-defense-1780496656514@example.com",
+  "user_id": "4b6c2144-6f68-488a-9153-90292713649f",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI0YjZjMjE0NC02ZjY4LTQ4OGEtOTE1My05MDI5MjcxMzY0OWYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwNTAwMjU2LCJpYXQiOjE3ODA0OTY2NTYsImVtYWlsIjoicWEtbm9ybWFsLWNsYXJpZmljYXRpb24tY29ycmVjdGlvbnMtMjAyNjA2MDMtcjItYXR0YWNrLWRlZmVuc2UtMTc4MDQ5NjY1NjUxNEBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtY2xhcmlmaWNhdGlvbi1jb3JyZWN0aW9ucy0yMDI2MDYwMy1yMi1hdHRhY2stZGVmZW5zZS0xNzgwNDk2NjU2NTE0QGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJjbGFyaWZpY2F0aW9uLWNvcnJlY3Rpb25zLTIwMjYwNjAzLXIyLWF0dGFjay1kZWZlbnNlIiwic3ViIjoiNGI2YzIxNDQtNmY2OC00ODhhLTkxNTMtOTAyOTI3MTM2NDlmIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODA0OTY2NTZ9XSwic2Vzc2lvbl9pZCI6ImM0ZWY4MTlmLWE5YjktNGYxMC1iMGYxLTg4NzlhNzA5MGJhMiIsImlzX2Fub255bW91cyI6ZmFsc2V9.a6honZhrNl7lNpb9O1EMQ5IMqLhCmxDxfGp3q4S-lbw",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-03T14:24:16.762Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-03T14:24:45.227Z",
+      "user": "J'aimerais créer une carte de défense et une carte d'attaque.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Par laquelle de ces deux cartes veux-tu commencer : la carte de défense ou la carte d'attaque ? 🙂",
+      "trace_short": {
+        "response_owner": "orientation_clarification",
+        "selected_handler": "orientation_clarification",
+        "route_reason": "clarification_required",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-03T14:24:45.185Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-03T14:24:45.185Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-03T14:24:45.185Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-03T14:24:45.185Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-03T14:24:45.185Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__clarification_state_v1": {
+                  "owner": "dispatcher",
+                  "skill_id": "orientation_clarification",
+                  "max_turns": 2,
+                  "candidates": [
+                    {
+                      "id": "prepare_defense_card",
+                      "label": "préparer une carte de défense",
+                      "evidence": [
+                        "turn_frame.tool_skill_intents"
+                      ],
+                      "surface_id": null,
+                      "description": null,
+                      "operation_type": "prepare_defense_card"
+                    },
+                    {
+                      "id": "prepare_attack_card",
+                      "label": "préparer une carte d'attaque",
+                      "evidence": [
+                        "turn_frame.tool_skill_intents"
+                      ],
+                      "surface_id": null,
+                      "description": null,
+                      "operation_type": "prepare_attack_card"
+                    }
+                  ],
+                  "created_at": "2026-06-03T14:24:45.132Z",
+                  "turn_count": 1,
+                  "known_context": {
+                    "safety_risk_band": "low",
+                    "candidate_sources": [
+                      {
+                        "id": "prepare_defense_card",
+                        "source": "tool_skill_intent",
+                        "confidence_band": "high"
+                      },
+                      {
+                        "id": "prepare_attack_card",
+                        "source": "tool_skill_intent",
+                        "confidence_band": "high"
+                      }
+                    ]
+                  },
+                  "ambiguity_kind": "intent",
+                  "clarification_id": "clarification-corrections-20260603-r2-attack-defense-t01:dispatcher_clarification",
+                  "no_chat_mutation": true
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-03T14:24:45.184Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-03T14:24:45.187187+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "clarification-corrections-20260603-r2-attack-defense-t01",
+        "user_id": "4b6c2144-6f68-488a-9153-90292713649f",
+        "channel": "web",
+        "scope": "qa-normal-conversation-clarification-corrections-20260603-r2-attack-defense",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Par laquelle de ces deux cartes veux-tu commencer : la carte de défense ou la carte d'attaque ? 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "clarification-corrections-20260603-r2-attack-defense-t01",
+              "source_message_id": "d69ab782-a736-4b34-acca-17c67d40b858",
+              "user_id": "4b6c2144-6f68-488a-9153-90292713649f",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": null
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "orientation_clarification",
+              "selected_handler": "orientation_clarification",
+              "blocked_paths": [
+                {
+                  "path": "tool_skill_router",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "product_help",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "operation_runtime_pipeline",
+                  "reason_code": "clarification_required"
+                },
+                {
+                  "path": "direct_effects",
+                  "reason_code": "clarification_required"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "clarification_required",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "turn_agenda_summary": {
+              "task_count": 1,
+              "owners": [
+                "dispatcher"
+              ],
+              "operation_types": [],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "clarification:dispatcher",
+                  "kind": "clarification",
+                  "owner": "dispatcher",
+                  "operation_type": null,
+                  "intent": "clarify",
+                  "source": "dispatcher",
+                  "status": "asked",
+                  "reason_code": "clarification_required"
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "clarification-corrections-20260603-r2-attack-defense-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 1,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "clarification-corrections-20260603-r2-attack-defense-t01:agenda:asked:clarification:dispatcher",
+                  "kind": "clarification",
+                  "effect_type": "clarification.intent",
+                  "operation_type": null,
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "dispatcher",
+                  "status": "asked",
+                  "reason_code": "clarification_required",
+                  "source": "dispatcher",
+                  "payload_summary": {
+                    "task_id": "clarification:dispatcher",
+                    "source": "dispatcher",
+                    "evidence": [
+                      "prepare_defense_card",
+                      "prepare_attack_card"
+                    ]
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": "dispatcher",
+                  "ambiguity_kind": "intent",
+                  "candidate_ids": [
+                    "prepare_defense_card",
+                    "prepare_attack_card"
+                  ],
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "orientation_clarification"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "clarification-corrections-20260603-r2-attack-defense-t01",
+            "source_message_id": "d69ab782-a736-4b34-acca-17c67d40b858",
+            "user_id": "4b6c2144-6f68-488a-9153-90292713649f",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "orientation_clarification",
+            "selected_handler": "orientation_clarification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "dispatcher"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "dispatcher",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "clarification-corrections-20260603-r2-attack-defense-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 1,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "clarification-corrections-20260603-r2-attack-defense-t01:agenda:asked:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.intent",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "prepare_defense_card",
+                    "prepare_attack_card"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "dispatcher",
+                "ambiguity_kind": "intent",
+                "candidate_ids": [
+                  "prepare_defense_card",
+                  "prepare_attack_card"
+                ],
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "orientation_clarification"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-03T14:24:45.228Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-03T14:25:15.321Z"
+}

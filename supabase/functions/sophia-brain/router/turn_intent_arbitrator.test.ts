@@ -144,3 +144,41 @@ Deno.test("L3 routes attack card from structured tool_skill_intents", () => {
     "central_arbitrator_structured_product_help_operation_conflict",
   );
 });
+
+Deno.test("L3 asks clarification when attack and defense card intents compete", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "je ne sais pas si je dois faire une carte d'attaque ou de défense",
+    routeDecision: routeDecision({ response_owner: "normal_reply" }),
+    turnFrame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: "mails du soir",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }, {
+        operation_type: "prepare_defense_card",
+        explicitness: "explicit",
+        target_hint: "YouTube après les mails",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.routeDecision.response_owner, "orientation_clarification");
+  assertEquals(result.routeDecision.selected_handler, "orientation_clarification");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_attack_defense_card_ambiguity",
+  );
+  assertEquals(
+    result.turnFrame.tool_skill_intents.map((intent) => intent.operation_type),
+    ["prepare_attack_card", "prepare_defense_card"],
+  );
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
+});

@@ -10,16 +10,19 @@ export type EmotionalRepairIntent =
   | "asks_regulation_without_potion"
   | "asks_recurring_support"
   | "status_or_meta_question"
-  | "handoff_ready"
+  | "action_card_ready"
   | "unclear";
 
 export type EmotionalRepairConstraint =
   | "no_potion"
   | "no_tool"
   | "no_plan"
+  | "no_protocol"
+  | "no_technique"
   | "no_questions"
   | "one_question_max"
   | "concrete_before_question"
+  | "soft_support_only"
   | "short_reply"
   | "relationship_context"
   | "do_not_persist_identity_attack";
@@ -29,7 +32,7 @@ export type EmotionalRepairPhase =
   | "de_shame"
   | "separate_fact_from_identity"
   | "repair_relationship"
-  | "handoff_to_execution"
+  | "action_card_ready"
   | "exit";
 
 export type EmotionalRepairDominance = "high" | "medium" | "low";
@@ -44,7 +47,11 @@ export type EmotionalRepairContextDomain =
 export type EmotionalRepairResponseTone = "soft" | "grounded" | "direct_soft";
 
 export type EmotionalRepairOperationSuggestion = {
-  operation_type: "select_state_potion" | "create_recurring_reminder";
+  operation_type:
+    | "prepare_attack_card"
+    | "prepare_defense_card"
+    | "select_state_potion"
+    | "create_recurring_reminder";
   reason: string;
   requires_user_consent: true;
   operation_input_hint?: Record<string, unknown>;
@@ -74,7 +81,7 @@ export type EmotionalRepairSkillDecision = {
     tone: EmotionalRepairResponseTone;
   };
   handoff_request?: {
-    target_skill_id: "execution_breakdown" | "safety_crisis";
+    target_skill_id: "safety_crisis";
     reason: string;
     confidence_band: "low" | "medium" | "high";
   };
@@ -99,7 +106,7 @@ const INTENTS: readonly EmotionalRepairIntent[] = [
   "asks_regulation_without_potion",
   "asks_recurring_support",
   "status_or_meta_question",
-  "handoff_ready",
+  "action_card_ready",
   "unclear",
 ];
 
@@ -108,7 +115,7 @@ const PHASES: readonly EmotionalRepairPhase[] = [
   "de_shame",
   "separate_fact_from_identity",
   "repair_relationship",
-  "handoff_to_execution",
+  "action_card_ready",
   "exit",
 ];
 
@@ -130,9 +137,12 @@ const CONSTRAINTS: readonly EmotionalRepairConstraint[] = [
   "no_potion",
   "no_tool",
   "no_plan",
+  "no_protocol",
+  "no_technique",
   "no_questions",
   "one_question_max",
   "concrete_before_question",
+  "soft_support_only",
   "short_reply",
   "relationship_context",
   "do_not_persist_identity_attack",
@@ -186,6 +196,20 @@ function enumArray<T extends string>(
   return [...new Set(out)];
 }
 
+export function normalizeEmotionalRepairConstraints(
+  value: unknown,
+): EmotionalRepairConstraint[] {
+  if (!Array.isArray(value)) return [];
+  return [
+    ...new Set(
+      value.filter((item): item is EmotionalRepairConstraint =>
+        typeof item === "string" &&
+        (CONSTRAINTS as readonly string[]).includes(item)
+      ),
+    ),
+  ];
+}
+
 function booleanValue(
   value: unknown,
   field: string,
@@ -216,11 +240,25 @@ function objectValue(
   return {};
 }
 
+function decisionContractValue(
+  raw: unknown,
+  errors: string[],
+): Record<string, unknown> {
+  const root = objectValue(raw, "decision", errors);
+  if (isRecord(root.decision)) {
+    return root.decision;
+  }
+  if (root.decision !== undefined) {
+    errors.push("invalid_decision_envelope");
+  }
+  return root;
+}
+
 export function normalizeEmotionalRepairDecision(
   raw: unknown,
 ): { decision: EmotionalRepairSkillDecision | null; errors: string[] } {
   const errors: string[] = [];
-  const value = objectValue(raw, "decision", errors);
+  const value = decisionContractValue(raw, errors);
   const contract = objectValue(
     value.response_contract,
     "response_contract",
@@ -238,7 +276,7 @@ export function normalizeEmotionalRepairDecision(
     const h = objectValue(handoffRaw, "handoff_request", errors);
     const target = enumValue(
       h.target_skill_id,
-      ["execution_breakdown", "safety_crisis"] as const,
+      ["safety_crisis"] as const,
       "handoff_target_skill_id",
       errors,
     );
@@ -270,7 +308,12 @@ export function normalizeEmotionalRepairDecision(
         );
         const operationType = enumValue(
           suggestion.operation_type,
-          ["select_state_potion", "create_recurring_reminder"] as const,
+          [
+            "prepare_attack_card",
+            "prepare_defense_card",
+            "select_state_potion",
+            "create_recurring_reminder",
+          ] as const,
           "operation_type",
           errors,
         );
@@ -418,6 +461,18 @@ export function validateEmotionalRepairDecision(
     errors.push("reply_contains_plan_wording");
   }
   if (
+    (
+      decision.constraints.includes("no_protocol") ||
+      decision.constraints.includes("no_technique") ||
+      decision.constraints.includes("soft_support_only") ||
+      !decision.response_contract.allow_concrete_action
+    ) &&
+    /\b(?:respire|respirer|respiration|inspire|inspirer|expire|expiration|souffle|souffler|pose les pieds|pieds au sol|regarde autour|protocole|technique|exercice|micro[- ]?action|geste concret|fais ceci|fais juste|ecris|écris)\b/i
+      .test(decision.reply)
+  ) {
+    errors.push("reply_contains_protocol_or_technique");
+  }
+  if (
     !decision.response_contract.allow_potion_suggestion &&
     /\bpotion\b/i.test(decision.reply)
   ) {
@@ -438,12 +493,6 @@ export function validateEmotionalRepairDecision(
     errors.push("reply_claims_durable_effect");
   }
   if (
-    decision.handoff_request?.target_skill_id === "execution_breakdown" &&
-    decision.phase !== "handoff_to_execution"
-  ) {
-    errors.push("execution_handoff_requires_handoff_phase");
-  }
-  if (
     decision.constraints.includes("no_potion") &&
     decision.response_contract.allow_potion_suggestion
   ) {
@@ -462,6 +511,15 @@ export function applyEmotionalRepairInvariants(
   decision: EmotionalRepairSkillDecision,
 ): EmotionalRepairSkillDecision {
   const constraints = new Set(decision.constraints);
+  if (constraints.has("soft_support_only")) {
+    constraints.add("no_plan");
+    constraints.add("no_protocol");
+    constraints.add("no_technique");
+    constraints.add("no_questions");
+    constraints.add("no_tool");
+    constraints.add("no_potion");
+  }
+  if (constraints.has("no_technique")) constraints.add("no_protocol");
   const responseContract = { ...decision.response_contract };
   if (constraints.has("no_potion")) {
     responseContract.allow_potion_suggestion = false;
@@ -470,6 +528,13 @@ export function applyEmotionalRepairInvariants(
     responseContract.allow_tool_suggestion = false;
   }
   if (constraints.has("no_plan")) responseContract.allow_plan = false;
+  if (constraints.has("no_protocol")) responseContract.allow_plan = false;
+  if (constraints.has("no_technique") || constraints.has("soft_support_only")) {
+    responseContract.allow_plan = false;
+    responseContract.allow_concrete_action = false;
+    responseContract.allow_tool_suggestion = false;
+    responseContract.allow_potion_suggestion = false;
+  }
   if (constraints.has("no_questions")) responseContract.max_questions = 0;
   if (decision.emotional_dominance === "high") {
     responseContract.allow_plan = false;

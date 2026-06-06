@@ -17,6 +17,11 @@ import {
 } from "./contract.ts";
 import { runPrepareDefenseCardAiIntake } from "./ai_intake.ts";
 import type { DefenseCardDraftV1 } from "./generator.ts";
+import {
+  getDefenseCardPlatformField,
+  type DefenseCardPlatformFieldProgress,
+  type DefenseCardPlatformFieldState,
+} from "./platform_fields.ts";
 import type { DefenseCardAttachment } from "./persistence.ts";
 import {
   renderDefenseCardBlocked,
@@ -157,6 +162,105 @@ function operationInputFromLastPlanItem(
   };
 }
 
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function textValue(value: unknown): string | null {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+function hasAttachmentSeed(value?: Record<string, unknown> | null): boolean {
+  if (!value) return false;
+  return Boolean(recordValue(value.attachment) || recordValue(value.target));
+}
+
+function selectedDefenseCardIntent(
+  turnFrame: TurnFrame | null,
+): NonNullable<TurnFrame["tool_skill_intents"]>[number] | null {
+  const intents = (turnFrame?.tool_skill_intents ?? []).filter((intent) =>
+    intent.operation_type === "prepare_defense_card" &&
+    intent.confidence_band !== "low"
+  );
+  return intents.find((intent) => intent.explicitness === "explicit") ??
+    intents[0] ?? null;
+}
+
+function operationInputFromTurnFrameIntent(
+  turnFrame: TurnFrame | null,
+  base?: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  const intent = selectedDefenseCardIntent(turnFrame);
+  if (!intent) return null;
+  const operationInput = recordValue(intent.operation_input) ?? {};
+  const payloadHint = recordValue(intent.payload_hint) ?? {};
+  const targetHint = textValue(intent.target_hint) ??
+    textValue(operationInput.target_hint) ??
+    textValue(payloadHint.target_hint);
+  const riskBehavior = textValue(operationInput.risk_behavior) ??
+    textValue(operationInput.risk_summary) ??
+    textValue(payloadHint.risk_behavior) ??
+    textValue(payloadHint.risk_summary);
+  const triggerHint = textValue(operationInput.trigger) ??
+    textValue(operationInput.trigger_hint) ??
+    textValue(payloadHint.trigger) ??
+    textValue(payloadHint.trigger_hint);
+  const next: Record<string, unknown> = {
+    ...operationInput,
+    dispatcher_intent: {
+      operation_type: intent.operation_type,
+      explicitness: intent.explicitness,
+      confidence_band: intent.confidence_band,
+      ambiguity: intent.ambiguity,
+      user_intent: intent.user_intent,
+      target_hint: targetHint,
+      risk_behavior: riskBehavior,
+    },
+  };
+  if (targetHint && !textValue(next.target_hint)) {
+    next.target_hint = targetHint;
+  }
+  if (triggerHint && !textValue(next.trigger_hint)) {
+    next.trigger_hint = triggerHint;
+  }
+  if (!hasAttachmentSeed(next) && !hasAttachmentSeed(base)) {
+    const title = targetHint ?? riskBehavior;
+    if (title) {
+      next.attachment = {
+        kind: "free_risk_context",
+        plan_item_id: null,
+        title,
+      };
+    }
+  }
+  if (!recordValue(next.risk_situation)) {
+    const label = riskBehavior ?? targetHint;
+    if (label) {
+      next.risk_situation = {
+        label,
+        description: targetHint && riskBehavior && targetHint !== riskBehavior
+          ? targetHint
+          : riskBehavior,
+        timing_hint: triggerHint,
+        context_hint: targetHint,
+      };
+    }
+  }
+  return Object.keys(next).length > 1 ? next : null;
+}
+
+function mergeOperationInputSeeds(
+  base: Record<string, unknown> | null,
+  incoming: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!base) return incoming;
+  if (!incoming) return base;
+  return { ...base, ...incoming };
+}
+
 function defenseCardFrameRecord(tempMemory: any) {
   const memory = tempMemory ?? {};
   return {
@@ -229,11 +333,6 @@ function buildDefenseCardHandoffDraft(args: {
     .trim() || "situation libre";
   const risk = String(card.risk_situation ?? card.situation ?? "").trim();
   const signal = String(card.signal ?? "").trim();
-  const response = String(card.defense_response ?? "").trim();
-  const planB = String(card.plan_b ?? card.fallback_plan ?? "").trim();
-  const label = String(card.title ?? "").trim() ||
-    `Carte de défense - ${risk || target}`;
-  const situation = String(card.situation ?? risk).trim();
   const routeKind = args.attachment?.kind === "plan_item"
     ? "plan_item_card"
     : "free_card";
@@ -241,14 +340,13 @@ function buildDefenseCardHandoffDraft(args: {
     ? "Carte de défense liée à une mission ou habitude du plan"
     : "Carte de défense libre";
   const platformDestination = routeKind === "plan_item_card"
-    ? "Ressources / Défense / Cartes de défense du plan"
-    : "Ressources / Défense / Cartes de défense libres / Ajouter une carte";
-  const entryNeed = routeKind === "plan_item_card"
-    ? target
-    : [
-      target,
-      risk ? `risque : ${risk}` : "",
-    ].filter(Boolean).join(" - ");
+    ? "dans Ressources / Défense / Cartes de défense du plan"
+    : "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte";
+  const supportNeed = [
+    target && target !== "situation libre" ? target : "",
+    risk ? `situation : ${risk}` : "",
+    signal ? `pulsion ou signal : ${signal}` : "",
+  ].filter(Boolean).join(" - ") || target;
   const platformSteps = routeKind === "plan_item_card"
     ? [
       "Ouvre la mission ou l'habitude concernée dans le plan.",
@@ -270,56 +368,94 @@ function buildDefenseCardHandoffDraft(args: {
     platform_flow: {
       route_kind: routeKind,
       route_label: routeLabel,
-      entry_need: entryNeed,
-      questionnaire_answers: [
-        {
-          field: "moment",
+      entry_need: supportNeed
+        ? {
           question_label:
-            "A quel moment précis ça arrive, et dans quel contexte ?",
-          answer: situation,
-        },
-        {
-          field: "signal",
-          question_label:
-            "Quel est le premier signal qui montre que ça bascule ?",
-          answer: signal || risk,
-        },
-        {
-          field: "response",
-          question_label:
-            "Quel geste simple et réaliste pourrait couper ça tout de suite ?",
-          answer: response,
-        },
-      ],
+            "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+          value: supportNeed,
+          status: "locked",
+        }
+        : null,
+      questionnaire_answers: [],
     },
-    platform_fields: {
-      label,
-      situation,
-      signal: signal || risk,
-      defense_response: response,
-      plan_b: planB,
-    },
+    platform_fields: null,
     recommendation: {
-      defense_strategy_label: "Réponse préparée avant le moment de risque",
-      why_this_strategy: String(card.why_it_helps ?? "").trim() ||
-        "Elle prépare une réponse simple avant que le piège ne décide à ta place.",
-      card_draft_summary: [
-        `Nom de la carte : ${label}`,
-        `Le moment : ${situation}`,
-        `Le piège : ${signal || risk}`,
-        `Mon geste : ${response}`,
-        `Plan B : ${planB}`,
-      ].join("\n"),
-      preserve: [
-        "Le moment précis où le risque apparaît",
-        "Un geste court et faisable même avec peu d'énergie",
-        "Un plan B qui réduit les dégâts sans culpabiliser",
-      ],
-      avoid: [
-        "Transformer la défense en injonction trop dure",
-        "Créer une carte vague sans signal concret",
-        "Compter sur la motivation du moment fragile",
-      ],
+      platform_destination: platformDestination,
+      platform_steps: platformSteps,
+    },
+    missing_decisions: args.missingDecisions ?? [],
+  };
+}
+
+function platformFieldValue(
+  field: DefenseCardPlatformFieldProgress | null,
+): string | null {
+  if (!field) return null;
+  if (field.status !== "locked") return null;
+  const value = String(field.locked_value ?? "").trim();
+  return value || null;
+}
+
+function buildDefenseCardHandoffDraftFromPlatformFields(args: {
+  intakeState?: unknown;
+  attachment?: DefenseCardAttachment | null;
+  platformFields: DefenseCardPlatformFieldState;
+  missingDecisions?: string[];
+}): DefenseCardHandoffDraft {
+  const intake = recordValue(args.intakeState);
+  const risk = recordValue(intake?.risk_situation);
+  const attachment = args.attachment;
+  const routeKind = args.platformFields.route_kind;
+  const routeLabel = routeKind === "plan_item_card"
+    ? "Carte de défense liée à une mission ou habitude du plan"
+    : "Carte de défense libre";
+  const platformDestination = routeKind === "plan_item_card"
+    ? "dans Ressources / Défense / Cartes de défense du plan"
+    : "dans Ressources / Défense / Cartes de défense libres / Ajouter une carte";
+  const platformSteps = routeKind === "plan_item_card"
+    ? [
+      "Ouvre la mission ou l'habitude concernée dans le plan.",
+      "Ouvre son bloc Ressources / Défense.",
+      "Renseigne les réponses ci-dessous dans les champs de la carte.",
+    ]
+    : [
+      "Ouvre Ressources / Défense.",
+      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+      "Renseigne les réponses ci-dessous dans les champs de la plateforme.",
+    ];
+  const supportNeed = platformFieldValue(
+    getDefenseCardPlatformField(args.platformFields, "support_need"),
+  );
+  const target = String(
+    attachment?.title ?? supportNeed ?? intake?.target_summary ?? "",
+  ).trim() || "situation à protéger";
+  const riskSummary = String(risk?.label ?? risk?.description ?? supportNeed ??
+    "").trim();
+  const supportField = getDefenseCardPlatformField(
+    args.platformFields,
+    "support_need",
+  );
+  return {
+    operation_type: "prepare_defense_card",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    target_summary: target,
+    risk_summary: riskSummary || target,
+    platform_flow: {
+      route_kind: routeKind,
+      route_label: routeLabel,
+      entry_need: supportNeed && supportField
+        ? {
+          question_label: supportField.question_label,
+          value: supportNeed,
+          status: "locked",
+        }
+        : null,
+      questionnaire_answers: [],
+    },
+    platform_fields: args.platformFields,
+    recommendation: {
       platform_destination: platformDestination,
       platform_steps: platformSteps,
     },
@@ -463,6 +599,42 @@ function defenseCardAttachmentFromPendingConfirmation(
     title,
     plan_item_id: planItemId ?? null,
   };
+}
+
+function buildDefenseCardHandoffDraftFromOutput(args: {
+  output: {
+    draft?: DefenseCardDraftV1;
+    platform_fields?: DefenseCardPlatformFieldState;
+    pending_confirmation?: Record<string, unknown>;
+    state_patch: {
+      intake_state?: unknown;
+      platform_fields?: DefenseCardPlatformFieldState | null;
+    };
+  };
+  fallbackOperationInput?: Record<string, unknown> | null;
+}): DefenseCardHandoffDraft | null {
+  const platformFields = args.output.platform_fields ??
+    args.output.state_patch.platform_fields ?? null;
+  if (platformFields) {
+    return buildDefenseCardHandoffDraftFromPlatformFields({
+      intakeState: args.output.state_patch.intake_state,
+      attachment: defenseCardAttachmentFromPendingConfirmation(
+        args.output.pending_confirmation,
+        args.fallbackOperationInput,
+      ),
+      platformFields,
+    });
+  }
+  if (args.output.draft) {
+    return buildDefenseCardHandoffDraft({
+      draft: args.output.draft,
+      attachment: defenseCardAttachmentFromPendingConfirmation(
+        args.output.pending_confirmation,
+        args.fallbackOperationInput,
+      ),
+    });
+  }
+  return null;
 }
 
 function defenseCardAttachmentFromQuestionCandidate(
@@ -672,7 +844,11 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
   ) {
     return null;
   }
-  let fallbackOperationInput = operationInputFromLastPlanItem(nextTempMemory);
+  const lastPlanOperationInput = operationInputFromLastPlanItem(nextTempMemory);
+  let fallbackOperationInput = mergeOperationInputSeeds(
+    lastPlanOperationInput,
+    operationInputFromTurnFrameIntent(args.turnFrame, lastPlanOperationInput),
+  );
 
   if (isPendingDefenseCardOperation(pendingRaw)) {
     const directConfirmationDecision = buildToolConfirmationDecision({
@@ -799,25 +975,23 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       if (
         (pendingReviewOutput.status === "pending_confirmation" ||
           pendingReviewOutput.status === "handoff_ready") &&
-        pendingReviewOutput.draft
+        (pendingReviewOutput.platform_fields || pendingReviewOutput.draft)
       ) {
-        const handoff = buildDefenseCardHandoffDraft({
-          draft: pendingReviewOutput.draft,
-          attachment: defenseCardAttachmentFromPendingConfirmation(
-            pendingReviewOutput.pending_confirmation,
-            {
-              attachment: pendingRaw.attachment ?? null,
-              risk_situation: pendingRaw.risk_situation ?? null,
-              intake_state: (pendingRaw as any).intake_state ?? undefined,
-            },
-          ),
+        const handoff = buildDefenseCardHandoffDraftFromOutput({
+          output: pendingReviewOutput,
+          fallbackOperationInput: {
+            attachment: pendingRaw.attachment ?? null,
+            risk_situation: pendingRaw.risk_situation ?? null,
+            intake_state: (pendingRaw as any).intake_state ?? undefined,
+          },
         });
+        if (!handoff) return null;
         const active = writeDefenseCardHandoffState({
           tempMemory: nextTempMemory,
           status: noCreate ? "handoff_ready" : "handoff_delivered",
           handoff,
           previous: {
-            draft_payload: pendingReviewOutput.draft,
+            draft_payload: pendingReviewOutput.draft ?? null,
             operation_input: pendingReviewOutput.state_patch.operation_input ??
               null,
           },
@@ -832,7 +1006,9 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
             : "platform_handoff_delivered",
           extraToolSkillRun: {
             previous_operation_id: pendingRaw.operation_id ?? null,
-            draft: pendingReviewOutput.draft,
+            draft: pendingReviewOutput.draft ?? null,
+            platform_fields: pendingReviewOutput.platform_fields ??
+              pendingReviewOutput.state_patch.platform_fields ?? null,
             draft_review_decision: null,
           },
         });
@@ -1001,18 +1177,22 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       if (
         (pendingReviewOutput.status === "pending_confirmation" ||
           pendingReviewOutput.status === "handoff_ready") &&
-        pendingReviewOutput.draft
+        (pendingReviewOutput.platform_fields || pendingReviewOutput.draft)
       ) {
-        const handoff = buildDefenseCardHandoffDraft({
-          draft: pendingReviewOutput.draft,
-          attachment: pendingRaw.attachment ?? null,
+        const handoff = buildDefenseCardHandoffDraftFromOutput({
+          output: pendingReviewOutput,
+          fallbackOperationInput: {
+            attachment: pendingRaw.attachment ?? null,
+            risk_situation: pendingRaw.risk_situation ?? null,
+          },
         });
+        if (!handoff) return null;
         const active = writeDefenseCardHandoffState({
           tempMemory: nextTempMemory,
           status: "revise_handoff",
           handoff,
           previous: {
-            draft_payload: pendingReviewOutput.draft,
+            draft_payload: pendingReviewOutput.draft ?? null,
             operation_input: pendingReviewOutput.state_patch.operation_input ??
               null,
           },
@@ -1026,7 +1206,9 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
           extraToolSkillRun: {
             previous_operation_id: pendingRaw.operation_id ?? null,
             confirmation_decision: confirmationDecision,
-            draft: pendingReviewOutput.draft,
+            draft: pendingReviewOutput.draft ?? null,
+            platform_fields: pendingReviewOutput.platform_fields ??
+              pendingReviewOutput.state_patch.platform_fields ?? null,
             draft_review_decision: draftReviewDecision,
           },
         });
@@ -1165,7 +1347,7 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     if (
       (recommendationOutput.status !== "pending_confirmation" &&
         recommendationOutput.status !== "handoff_ready") ||
-      !recommendationOutput.draft
+      !(recommendationOutput.platform_fields || recommendationOutput.draft)
     ) {
       delete nextTempMemory.__pending_recommendation_operation;
       if (recommendationOutput.status === "ask_question") {
@@ -1209,20 +1391,18 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     const noCreate = hasPrepareDefenseCardNoCreateConstraint(
       recommendationOutput.state_patch.constraints,
     ) || recommendationOutput.state_patch.user_intent === "draft_only";
-    const handoff = buildDefenseCardHandoffDraft({
-      draft: recommendationOutput.draft,
-      attachment: defenseCardAttachmentFromPendingConfirmation(
-        recommendationOutput.pending_confirmation,
-        pendingRecommendation.operation_input ?? null,
-      ),
+    const handoff = buildDefenseCardHandoffDraftFromOutput({
+      output: recommendationOutput,
+      fallbackOperationInput: pendingRecommendation.operation_input ?? null,
     });
+    if (!handoff) return null;
     delete nextTempMemory.__pending_recommendation_operation;
     const active = writeDefenseCardHandoffState({
       tempMemory: nextTempMemory,
       status: noCreate ? "handoff_ready" : "handoff_delivered",
       handoff,
       previous: {
-        draft_payload: recommendationOutput.draft,
+        draft_payload: recommendationOutput.draft ?? null,
         operation_input: recommendationOutput.state_patch.operation_input ??
           pendingRecommendation.operation_input ?? null,
       },
@@ -1238,7 +1418,9 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       extraToolSkillRun: {
         source: "recommendation_tool",
         recommendation_id: pendingRecommendation.recommendation_id ?? null,
-        draft: recommendationOutput.draft,
+        draft: recommendationOutput.draft ?? null,
+        platform_fields: recommendationOutput.platform_fields ??
+          recommendationOutput.state_patch.platform_fields ?? null,
       },
     });
   }
@@ -1410,21 +1592,20 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       reviewOutput.status === "handoff_ready" ||
       reviewOutput.status === "pending_confirmation"
     ) {
-      if (reviewOutput.draft) {
-        const revised = buildDefenseCardHandoffDraft({
-          draft: reviewOutput.draft,
-          attachment: defenseCardAttachmentFromPendingConfirmation(
-            reviewOutput.pending_confirmation,
-            reviewOutput.state_patch.operation_input ?? null,
-          ),
+      if (reviewOutput.platform_fields || reviewOutput.draft) {
+        const revised = buildDefenseCardHandoffDraftFromOutput({
+          output: reviewOutput,
+          fallbackOperationInput: reviewOutput.state_patch.operation_input ??
+            activeDefenseIntake.operation_input ?? null,
         });
+        if (!revised) return null;
         const active = writeDefenseCardHandoffState({
           tempMemory: nextTempMemory,
           status: "revise_handoff",
           handoff: revised,
           previous: {
             ...activeDefenseIntake,
-            draft_payload: reviewOutput.draft,
+            draft_payload: reviewOutput.draft ?? null,
             operation_input: reviewOutput.state_patch.operation_input ??
               activeDefenseIntake.operation_input ?? null,
           },
@@ -1521,24 +1702,22 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     if (
       (candidateOutput.status === "pending_confirmation" ||
         candidateOutput.status === "handoff_ready") &&
-      candidateOutput.draft
+      (candidateOutput.platform_fields || candidateOutput.draft)
     ) {
       const noCreate = hasPrepareDefenseCardNoCreateConstraint(
         candidateOutput.state_patch.constraints,
       ) || candidateOutput.state_patch.user_intent === "draft_only";
-      const handoff = buildDefenseCardHandoffDraft({
-        draft: candidateOutput.draft,
-        attachment: defenseCardAttachmentFromPendingConfirmation(
-          candidateOutput.pending_confirmation,
-          { attachment: activeAttachmentCandidate },
-        ),
+      const handoff = buildDefenseCardHandoffDraftFromOutput({
+        output: candidateOutput,
+        fallbackOperationInput: { attachment: activeAttachmentCandidate },
       });
+      if (!handoff) return null;
       const active = writeDefenseCardHandoffState({
         tempMemory: nextTempMemory,
         status: noCreate ? "handoff_ready" : "handoff_delivered",
         handoff,
         previous: {
-          draft_payload: candidateOutput.draft,
+          draft_payload: candidateOutput.draft ?? null,
           operation_input: candidateOutput.state_patch.operation_input ?? {
             ...activeKnownSlots,
             attachment_candidate: activeAttachmentCandidate,
@@ -1555,6 +1734,8 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
           : "platform_handoff_delivered",
         extraToolSkillRun: {
           draft: candidateOutput.draft ?? null,
+          platform_fields: candidateOutput.platform_fields ??
+            candidateOutput.state_patch.platform_fields ?? null,
           attachment_slot_resolution: {
             status: "resolved_by_skill_intake",
             attachment: activeAttachmentCandidate,
@@ -1630,24 +1811,22 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
   if (
     (output.status === "pending_confirmation" ||
       output.status === "handoff_ready") &&
-    output.draft
+    (output.platform_fields || output.draft)
   ) {
     const noCreate = hasPrepareDefenseCardNoCreateConstraint(
       output.state_patch.constraints,
     ) || output.state_patch.user_intent === "draft_only";
-    const handoff = buildDefenseCardHandoffDraft({
-      draft: output.draft,
-      attachment: defenseCardAttachmentFromPendingConfirmation(
-        output.pending_confirmation,
-        fallbackOperationInput,
-      ),
+    const handoff = buildDefenseCardHandoffDraftFromOutput({
+      output,
+      fallbackOperationInput,
     });
+    if (!handoff) return null;
     const active = writeDefenseCardHandoffState({
       tempMemory: nextTempMemory,
       status: noCreate ? "handoff_ready" : "handoff_delivered",
       handoff,
       previous: {
-        draft_payload: output.draft,
+        draft_payload: output.draft ?? null,
         operation_input: output.state_patch.operation_input ??
           fallbackOperationInput ?? null,
       },
@@ -1662,6 +1841,8 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
         : "platform_handoff_delivered",
       extraToolSkillRun: {
         draft: output.draft ?? null,
+        platform_fields: output.platform_fields ??
+          output.state_patch.platform_fields ?? null,
       },
     });
   }

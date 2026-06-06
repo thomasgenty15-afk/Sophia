@@ -43,7 +43,7 @@ function deps(overrides: Record<string, unknown> = {}) {
   } as any;
 }
 
-Deno.test("final_response_pipeline rewrites done claim without committed effect", () => {
+Deno.test("final_response_pipeline traces done claim without rewriting response", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent: "C'est fait, le rappel est programmé.",
     userMessage: "programme un rappel",
@@ -59,7 +59,7 @@ Deno.test("final_response_pipeline rewrites done claim without committed effect"
     deps: deps({ ensureVisibleSophiaEmoji: (text: unknown) => String(text) }),
   });
   assert(result.guardEvents.length > 0);
-  assert(!/C'est fait, le rappel est programmé/.test(result.responseContent));
+  assertEquals(result.responseContent, "C'est fait, le rappel est programmé.");
 });
 
 Deno.test("final_response_pipeline respects no emoji short style", () => {
@@ -245,7 +245,7 @@ Deno.test("final_response_pipeline allows honest platform handoff wording withou
   );
 });
 
-Deno.test("final_response_pipeline blocks plan done language without commit", () => {
+Deno.test("final_response_pipeline traces plan done language without rewriting response", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent: "J'ai modifié ton plan.",
     userMessage: "allège mon plan",
@@ -262,10 +262,10 @@ Deno.test("final_response_pipeline blocks plan done language without commit", ()
   });
 
   assertEquals(result.guardEvents, ["uncommitted_plan_adjust_claim"]);
-  assertEquals(result.responseContent, "Je ne l'ai pas modifié.");
+  assertEquals(result.responseContent, "J'ai modifié ton plan.");
 });
 
-Deno.test("final_response_pipeline blocks state potion activation claim without commit", () => {
+Deno.test("final_response_pipeline traces state potion activation claim without rewriting response", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent:
       'Yes, activée "Clarté" ✅🧭\n\nMaintenant, écris une phrase.',
@@ -287,11 +287,11 @@ Deno.test("final_response_pipeline blocks state potion activation claim without 
   ]);
   assertEquals(
     result.responseContent,
-    "Je ne l'active pas depuis le chat. Reprends cette recommandation dans la section État / Potions.",
+    'Yes, activée "Clarté" ✅🧭\n\nMaintenant, écris une phrase.',
   );
 });
 
-Deno.test("final_response_pipeline blocks recurring creation done language without commit", () => {
+Deno.test("final_response_pipeline traces recurring creation done language without rewriting response", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent: "C'est créé, le rappel récurrent est en place.",
     userMessage: "crée un rappel récurrent",
@@ -308,7 +308,7 @@ Deno.test("final_response_pipeline blocks recurring creation done language witho
   });
 
   assert(result.guardEvents.length > 0);
-  assert(!/C'est créé/.test(result.responseContent));
+  assertEquals(result.responseContent, "C'est créé, le rappel récurrent est en place.");
 });
 
 Deno.test("final_response_pipeline allows recurring platform redirect", () => {

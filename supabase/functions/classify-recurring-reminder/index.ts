@@ -13,11 +13,14 @@ type PersonalizationLevel = 1 | 2 | 3;
 type WeekdayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 const RDV_GENERATION_MODEL = "gpt-5.2";
 const LIVE_TARGET_STATUSES = ["active", "in_maintenance"];
+type SupabaseAdminClient = ReturnType<typeof createClient<any>>;
 
 type RecurringReminderRow = {
   id: string;
   user_id: string;
   transformation_id?: string | null;
+  initiative_kind?: string | null;
+  source_potion_session_id?: string | null;
   message_instruction: string;
   rationale: string | null;
   local_time_hhmm: string;
@@ -307,7 +310,7 @@ function formatLiveTargetGrounding(
 }
 
 async function resolveLiveReminderTarget(params: {
-  admin: ReturnType<typeof createClient>;
+  admin: SupabaseAdminClient;
   reminder: RecurringReminderRow;
 }): Promise<LiveReminderTarget> {
   const reminder = params.reminder;
@@ -394,7 +397,7 @@ async function resolveLiveReminderTarget(params: {
 }
 
 async function seedReminderUntilNextSunday(params: {
-  admin: ReturnType<typeof createClient>;
+  admin: SupabaseAdminClient;
   reminder: RecurringReminderRow;
   level: PersonalizationLevel;
 }): Promise<number> {
@@ -876,7 +879,7 @@ Deno.serve(async (req) => {
     const { data: reminder, error: reminderErr } = await admin
       .from("user_recurring_reminders")
       .select(
-        "id,user_id,transformation_id,message_instruction,rationale,local_time_hhmm,scheduled_days,status,target_kind,target_plan_item_id,target_action_family_key,target_generated_temp_id,target_binding_policy,target_lifecycle_policy,initiative_metadata",
+        "id,user_id,transformation_id,initiative_kind,source_potion_session_id,message_instruction,rationale,local_time_hhmm,scheduled_days,status,target_kind,target_plan_item_id,target_action_family_key,target_generated_temp_id,target_binding_policy,target_lifecycle_policy,initiative_metadata",
       )
       .eq("id", reminderId)
       .eq("user_id", userId)
@@ -916,6 +919,21 @@ Deno.serve(async (req) => {
       .eq("id", reminderId)
       .eq("user_id", userId);
     if (updateErr) throw updateErr;
+
+    if (str((reminder as any).initiative_kind) === "potion_follow_up") {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          reminder_id: reminderId,
+          personalization_level: level,
+          context_policy: contextPolicy,
+          classification_reason: reason,
+          seeded_checkins: 0,
+          skipped_seed_reason: "potion_follow_up_prescheduled",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     if (fullReset) {
       const eventContext = `recurring_reminder:${reminderId}`;

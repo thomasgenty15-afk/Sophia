@@ -1,0 +1,49 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-05-select-state-potion-visible-agent-smoke-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une potion, mais je ne sais pas laquelle. Je suis tendu et je perds un peu l'élan, j'hésite entre me calmer et me remettre en route.",
+    "assistant": "Je comprends que tu te sentes tendu et que tu perdes l'élan. Entre te calmer et te remettre en route, laquelle de ces potions t'aiderait le mieux : une Potion d'apaisement ou une Potion anti-décrochage ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "skill_entry_signal",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-05-select-state-potion-visible-agent-smoke-r1-t01",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_collecting",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "collecting",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_collecting",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    }
+  }
+]

@@ -166,18 +166,18 @@ Deno.test("no_prod_runtime_imports_for_test_helpers", async () => {
   assertEquals(offenders, []);
 });
 
-Deno.test("legacy_semantic_patches_are_isolated", async () => {
+Deno.test("global_legacy_semantic_patch_file_is_removed", async () => {
   const runText = await Deno.readTextFile(new URL("./router/run.ts", ROOT));
   assert(!runText.includes("function isStatusOnlyNoMutationRequest("));
   assert(!runText.includes("function shouldRenderStatusOnlyNoMutation("));
   assert(!runText.includes("function detectExplicitNoToolRequest("));
 
-  const legacyText = await Deno.readTextFile(
-    new URL("./router/legacy_semantic_patches.ts", ROOT),
-  );
-  assert(legacyText.includes("Legacy semantic patches retired"));
-  assert(legacyText.includes("removal_condition"));
-  assert(!/\/.+\/[gimsuy]?\s*\.test\(/.test(legacyText));
+  try {
+    await Deno.stat(new URL("./router/legacy_semantic_patches.ts", ROOT));
+    assert(false, "legacy_semantic_patches.ts must not be restored");
+  } catch (error) {
+    assert(error instanceof Deno.errors.NotFound);
+  }
 });
 
 Deno.test("turn_intent_arbitrator_transition_detectors_stay_explicitly_listed", async () => {
@@ -280,7 +280,7 @@ Deno.test("one_shot_reminder_runtime_requires_structured_direct_effect", async (
     new URL("agents/companion.ts", ROOT),
   );
 
-  assert(!intakeText.includes("fallbackLegacyGuards: true"));
+  assert(!intakeText.includes("fallbackLegacyGuards"));
   assert(intakeText.includes("no_structured_one_shot_intent"));
   assert(!executorText.includes("isLikelyOneShotReminderRequest"));
   assert(
@@ -293,8 +293,39 @@ Deno.test("one_shot_reminder_runtime_requires_structured_direct_effect", async (
       "if (!hasDispatcherSignal) return { detected: false };",
     ),
   );
-  assert(routerText.includes("fallbackLegacyGuards: false"));
+  assert(!routerText.includes("fallbackLegacyGuards"));
   assert(!companionText.includes("maybeCreateOneShotReminder"));
+
+  try {
+    await Deno.stat(
+      new URL(
+        "tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts",
+        ROOT,
+      ),
+    );
+    assert(
+      false,
+      "one_shot_reminder_tool.ts compatibility facade must stay removed",
+    );
+  } catch (error) {
+    assert(error instanceof Deno.errors.NotFound);
+  }
+
+  const routeGuardsText = await Deno.readTextFile(
+    new URL("tools/always_on/one_shot_reminder/route_guards.ts", ROOT),
+  );
+  for (
+    const removedHelper of [
+      "isLikelyOneShotReminderRequest",
+      "looksLikeReminderCreationCommand",
+      "isOneShotReminderOperationCommand",
+      "detectsExplicitOneShotReminderCancel",
+      "oneShotReminderModificationRouteGuard",
+      "shouldOneShotReminderSupersedeToolFlow",
+    ]
+  ) {
+    assert(!routeGuardsText.includes(removedHelper), removedHelper);
+  }
 });
 
 Deno.test("product_help_legacy_heuristic_is_not_a_raw_text_fallback", async () => {

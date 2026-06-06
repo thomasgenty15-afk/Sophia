@@ -1,0 +1,132 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "e86db8f2-ed29-42e5-8a43-a87f7c40d08b",
+        "role": "user",
+        "content": "J'ai besoin d'une carte de défense pour le moment où je finis mes mails tard et je bascule sur des vidéos au lieu d'aller dormir. Prépare-moi quoi mettre dans l'app, mais ne crée rien.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T14:43:53.786294+00:00"
+      },
+      {
+        "id": "d36ababd-0195-4e9f-8e22-39418f286c6f",
+        "role": "assistant",
+        "content": "Je n'arrive pas à préparer cette carte proprement là. On peut reprendre dans un instant. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "source": "direct_user_request",
+              "status": "technical_blocked",
+              "retryable": true,
+              "reason_code": "invalid_ai_output",
+              "user_intent": "unknown",
+              "operation_id": null,
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "prepare_defense_card",
+                  "reason_code": "invalid_ai_output"
+                }
+              ],
+              "selected_handler": "prepare_defense_card",
+              "technical_source": "technical_fallback",
+              "committed_effects": [],
+              "recommendation_id": null,
+              "requested_effects": [],
+              "pending_confirmation": null,
+              "should_preserve_pending": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T14:44:10.850209+00:00"
+      },
+      {
+        "id": "9a9a1a86-af4e-466a-85ff-cce7e3a50a46",
+        "role": "user",
+        "content": "On reprend. Le moment: après 22h quand je ferme mes mails. Le piège: je me dis juste une vidéo et je perds 45 minutes. Mon geste: fermer l'ordinateur, poser le téléphone dans l'entrée et préparer une tisane. Plan B: si je regarde quand même une vidéo, je mets un minuteur 10 minutes puis je vais au lit. Prépare-moi les champs à mettre dans la carte de défense, sans création.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T14:44:48.869368+00:00"
+      },
+      {
+        "id": "b6cfa162-49f9-45b1-be14-b4eaf9c695c6",
+        "role": "assistant",
+        "content": "Je n'arrive pas à préparer cette carte proprement là. On peut reprendre dans un instant. 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-02-defense-ui-fields-r1c-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "source": "direct_user_request",
+              "status": "technical_blocked",
+              "retryable": true,
+              "reason_code": "invalid_ai_output",
+              "user_intent": "unknown",
+              "operation_id": null,
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "prepare_defense_card",
+                  "reason_code": "invalid_ai_output"
+                }
+              ],
+              "selected_handler": "prepare_defense_card",
+              "technical_source": "technical_fallback",
+              "committed_effects": [],
+              "recommendation_id": null,
+              "requested_effects": [],
+              "pending_confirmation": null,
+              "should_preserve_pending": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T14:45:41.879711+00:00"
+      }
+    ]
+  }
+}

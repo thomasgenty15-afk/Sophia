@@ -18,34 +18,37 @@ function stripComments(source: string): string {
     .join("\n");
 }
 
-Deno.test("final guards neutralize plan modified without commit", () => {
+Deno.test("final guards trace plan modified without rewriting visible reply", () => {
   const ledger = createEffectLedger("turn-plan");
+  const reply = "Plan ajusté pour la semaine.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Plan ajusté pour la semaine.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, "Je ne l'ai pas modifié.");
+  assertEquals(rewritten.reply, reply);
 });
 
-Deno.test("final guards neutralize coach preference saved without commit", () => {
+Deno.test("final guards trace coach preference saved without rewriting visible reply", () => {
   const ledger = createEffectLedger("turn-preference");
+  const reply = "C'est fait, préférence enregistrée.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "C'est fait, préférence enregistrée.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, "Je ne l'ai pas enregistré.");
+  assertEquals(rewritten.reply, reply);
 });
 
-Deno.test("final guards neutralize potion activated without commit", () => {
+Deno.test("final guards trace potion activated without rewriting visible reply", () => {
   const ledger = createEffectLedger("turn-potion");
+  const reply = "Potion activée.";
   const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Potion activée.",
+    reply,
     ledger,
   });
   assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, "Je ne l'ai pas activée.");
+  assertEquals(rewritten.reply, reply);
 });
 
 Deno.test("final guards keep committed potion activation claim", () => {

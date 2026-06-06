@@ -603,7 +603,7 @@ export default function DashboardV2() {
   const [planReviewBusyAction, setPlanReviewBusyAction] = useState<
     "submit" | "preview" | "confirm" | null
   >(null);
-  const [planReviewSessionStatus, setPlanReviewSessionStatus] =
+  const [, setPlanReviewSessionStatus] =
     useState<PlanReviewSessionStatus | null>(null);
   const [planReviewSessionExpiresAt, setPlanReviewSessionExpiresAt] = useState<string | null>(null);
   const [planReviewPreview, setPlanReviewPreview] = useState<PlanContentV3 | null>(null);
@@ -1365,11 +1365,11 @@ export default function DashboardV2() {
             Dashboard
           </p>
           <h1 className="mt-3 text-3xl font-bold text-stone-950">
-            Aucun plan actif
+            {error ? "Dashboard indisponible" : "Aucun plan actif"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-stone-600">
-            Le cycle est peut-être en génération, ou aucun plan d'exécution
-            n'a encore été activé.
+            {error ||
+              "Le cycle est peut-être en génération, ou aucun plan d'exécution n'a encore été activé."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
@@ -2053,7 +2053,7 @@ export default function DashboardV2() {
         ended_reason: reminderEndReason,
         deactivated_at: now,
         updated_at: now,
-      } as any)
+      } as never)
       .eq("user_id", user.id)
       .eq("transformation_id", transformation.id)
       .in("initiative_kind", reminderKinds)
@@ -2069,7 +2069,7 @@ export default function DashboardV2() {
         .update({
           status: "cancelled",
           processed_at: now,
-        } as any)
+        } as never)
         .in("recurring_reminder_id", reminderIds)
         .in("status", ["pending", "retrying", "awaiting_user"]);
 
@@ -3499,6 +3499,7 @@ export default function DashboardV2() {
                           onActivatePotion={potions.activatePotion}
                           onReactivatePotion={potions.reactivatePotion}
                           onSchedulePotionFollowUp={potions.schedulePotionFollowUp}
+                          planItems={planItems}
                           planAttackCardsNode={
                             <PlanActionCardsByLevel
                               kind="attack"

@@ -1,0 +1,283 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux préparer une potion d apaisement. Ce qui me met sous pression là, c est une discussion qui tourne en boucle, et je me sens à cran.",
+    "assistant": "Ok, ce qui te met sous pression, c'est une discussion qui tourne en boucle. Et tu te sens à cran, c'est bien ça ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_selected_handler": "select_state_potion",
+    "route_reason_code": "tool_skill_intent_start",
+    "active_handoff_action": null,
+    "active_flow_arbitration": {
+      "decision": "none",
+      "active_owner": "none",
+      "selected_owner": "none",
+      "resume_policy": "none",
+      "reason_code": "no_active_flow"
+    },
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_clarifying",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_clarifying",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "durable_counts": {
+      "user_potion_sessions": 0,
+      "user_recurring_reminders": 0,
+      "scheduled_checkins": 0
+    },
+    "trace_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, c est bien ça : discussion qui tourne en boucle, et je suis à cran.",
+    "assistant": "Ce que je comprends : une discussion qui tourne en boucle ; a_cran\n\nJe te conseille de choisir une potion d'apaisement court. Le shift recommandé est de redescendre la pression avant de reprendre.\n\nPourquoi cette potion : Tu te sens à cran à cause d'une discussion qui tourne en boucle et tu as besoin de redescendre en pression.\nPetit pas immédiat : Je vois que cette discussion qui tourne en boucle te met à cran. Prends un instant pour respirer. Laisse la pression redescendre un peu.\n\nÀ mettre dans la plateforme :\nPotion : Potion d'apaisement\n- Qu'est-ce qui te met le plus sous pression la ? une discussion qui tourne en boucle\n- Tu te sens plutot comment ? A cran\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_selected_handler": "select_state_potion",
+    "route_reason_code": "active_handoff_field_confirmation",
+    "active_handoff_action": {
+      "type": "field_confirmation",
+      "confidence": "high",
+      "evidence": [
+        "Oui, c est bien ça",
+        "discussion qui tourne en boucle, et je suis à cran"
+      ],
+      "target_skill_id": "select_state_potion"
+    },
+    "active_flow_arbitration": {
+      "decision": "continue_handoff",
+      "active_owner": "tool_skill",
+      "selected_owner": "select_state_potion",
+      "resume_policy": "active_handoff_continue",
+      "reason_code": "active_handoff_field_confirmation",
+      "continuation_intent": "field_confirmation"
+    },
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "une discussion qui tourne en boucle ; a_cran",
+          "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre.",
+          "recommendation": {
+            "potion_label": "une potion d'apaisement court",
+            "why_this_potion": "Tu te sens à cran à cause d'une discussion qui tourne en boucle et tu as besoin de redescendre en pression.",
+            "immediate_step": "Je vois que cette discussion qui tourne en boucle te met à cran. Prends un instant pour respirer. Laisse la pression redescendre un peu.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "answers": [
+                {
+                  "question_id": "pressure_source",
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "value": "une discussion qui tourne en boucle",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "pressure_state",
+                  "question_label": "Tu te sens plutot comment ?",
+                  "value": "A cran",
+                  "option_value": "a_cran",
+                  "option_label": "A cran"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "durable_counts": {
+      "user_potion_sessions": 0,
+      "user_recurring_reminders": 0,
+      "scheduled_checkins": 0
+    },
+    "trace_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Et concrètement je vais où dans la plateforme pour la lancer ?",
+    "assistant": "Tu peux la reprendre dans la plateforme, dans la section État / Potions.\nChoisis : Potion d'apaisement.\nÀ renseigner :\n- Qu'est-ce qui te met le plus sous pression la ? une discussion qui tourne en boucle\n- Tu te sens plutot comment ? A cran\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_selected_handler": "select_state_potion",
+    "route_reason_code": "active_handoff_platform_destination_followup",
+    "active_handoff_action": {
+      "type": "platform_destination_followup",
+      "confidence": "high",
+      "evidence": [
+        "Et concrètement je vais où dans la plateforme pour la lancer ?"
+      ],
+      "target_skill_id": "select_state_potion"
+    },
+    "active_flow_arbitration": {
+      "decision": "continue_handoff",
+      "active_owner": "tool_skill",
+      "selected_owner": "select_state_potion",
+      "resume_policy": "active_handoff_continue",
+      "reason_code": "active_handoff_platform_destination_followup",
+      "continuation_intent": "platform_destination_followup"
+    },
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_destination_followup",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "repeat_handoff",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_destination_followup",
+        "no_chat_mutation": true,
+        "draft": {
+          "mode": "platform_handoff",
+          "operation_type": "select_state_potion",
+          "recommendation": {
+            "avoid": [],
+            "preserve": [],
+            "potion_label": "une potion d'apaisement court",
+            "immediate_step": "Je vois que cette discussion qui tourne en boucle te met à cran. Prends un instant pour respirer. Laisse la pression redescendre un peu.",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "answers": [
+                {
+                  "value": "une discussion qui tourne en boucle",
+                  "question_id": "pressure_source",
+                  "option_label": null,
+                  "option_value": null,
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                },
+                {
+                  "value": "A cran",
+                  "question_id": "pressure_state",
+                  "option_label": "A cran",
+                  "option_value": "a_cran",
+                  "question_label": "Tu te sens plutot comment ?"
+                }
+              ],
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "optional_free_text": null
+            },
+            "why_this_potion": "Tu te sens à cran à cause d'une discussion qui tourne en boucle et tu as besoin de redescendre en pression.",
+            "platform_destination": "dans la section État / Potions"
+          },
+          "no_chat_mutation": true,
+          "missing_decisions": [],
+          "user_state_summary": "une discussion qui tourne en boucle ; a_cran",
+          "executable_from_chat": false,
+          "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre."
+        }
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "durable_counts": {
+      "user_potion_sessions": 0,
+      "user_recurring_reminders": 0,
+      "scheduled_checkins": 0
+    },
+    "trace_id": "qa-state-potion-state_potion_postfix_20260603_r3-apaisement_destination-t03",
+    "trace_error": null
+  }
+]

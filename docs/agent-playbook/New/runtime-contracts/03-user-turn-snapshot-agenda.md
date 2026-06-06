@@ -131,6 +131,11 @@ TurnAgenda n'a pas d'intake IA propre. Son intake structure est compose de :
   `__explicit_turn_constraints`, plus certains signaux non semantiques deja
   presents dans `RouteDecision.reason_code`, `selected_handler` et
   `blocked_paths`.
+- `TurnFrame.active_handoff_action`, quand un `platform_handoff` est actif,
+  porte les suites transversales `handoff_apply_attempt`, `repeat_handoff`,
+  `revise_handoff`, `cancel_handoff`, `clarify_handoff` ou `topic_change`.
+  Ce champ est produit par le dispatcher ou une sortie structuree equivalente ;
+  l'arbitrage actif le consomme sans relire le texte brut.
 
 Toute nouvelle comprehension semantique doit rester en L1 dispatcher ou dans le
 slot filler L5 du tool concerne. Il est interdit d'ajouter ici une regex metier
