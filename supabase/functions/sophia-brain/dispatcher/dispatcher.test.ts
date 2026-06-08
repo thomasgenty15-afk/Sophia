@@ -892,6 +892,14 @@ Deno.test("dispatcher prompt embeds the 5 L3-migration few-shots in critical_rou
     true,
     "few-shot update_coach_preferences manquant",
   );
+  assertEquals(
+    messages.some((m) =>
+      m.includes("limite vraiment les questions") &&
+      m.includes("réponds plus directement")
+    ),
+    true,
+    "few-shot update_coach_preferences direct style manquant",
+  );
   // Few-shot 4: detectsExplicitProductHelp
   assertEquals(
     messages.some((m) =>

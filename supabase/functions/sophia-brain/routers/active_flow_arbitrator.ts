@@ -121,7 +121,9 @@ export function runActiveFlowArbitrator(input: {
   active_tool_skill_intake?: unknown;
   pending_tool_skill_confirmation?: unknown;
 }): ActiveFlowArbitration {
-  const activeToolOperation = activeOperationType(input.active_tool_skill_intake);
+  const activeToolOperation = activeOperationType(
+    input.active_tool_skill_intake,
+  );
   const activeConversationSkill = activeSkillId(input.active_skill_state);
   const activeOwner: ActiveFlowOwner = input.pending_tool_skill_confirmation
     ? "pending_confirmation"
@@ -139,6 +141,18 @@ export function runActiveFlowArbitrator(input: {
     input.turn_frame,
     activeOwner,
   );
+
+  if (activeConversationSkill === "product_help") {
+    return {
+      decision: "continue_active",
+      active_owner: "conversation_skill",
+      selected_owner: "product_help",
+      selected_handler: "product_help",
+      resume_policy: "none",
+      reason_code: "active_product_help_local_dispatcher_continue",
+      blocked_paths: opportunityBlocks,
+    };
+  }
 
   if (activeOwner === "none") {
     return {
@@ -203,7 +217,8 @@ export function runActiveFlowArbitrator(input: {
         selected_owner: "conversation_skill",
         selected_handler: highConversationSkill,
         resume_policy: "auto_after_answer",
-        reason_code: "high_conversation_skill_signal_suspends_active_tool_skill",
+        reason_code:
+          "high_conversation_skill_signal_suspends_active_tool_skill",
         blocked_paths: opportunityBlocks,
       };
     }
@@ -257,7 +272,8 @@ export function runActiveFlowArbitrator(input: {
         decision: "continue_active",
         active_owner: activeOwner,
         selected_owner: "tool_skill",
-        selected_handler: activeToolOperation ?? input.tool_skill.operation_type,
+        selected_handler: activeToolOperation ??
+          input.tool_skill.operation_type,
         resume_policy: "none",
         reason_code: "weak_product_help_blocked_by_active_tool_skill",
         blocked_paths: [
@@ -296,7 +312,8 @@ export function runActiveFlowArbitrator(input: {
         selected_owner: "tool_skill",
         selected_handler: explicitToolIntent.operation_type,
         resume_policy: "user_reopens",
-        reason_code: "explicit_tool_intent_supersedes_active_conversation_skill",
+        reason_code:
+          "explicit_tool_intent_supersedes_active_conversation_skill",
         blocked_paths: opportunityBlocks,
       };
     }
@@ -351,7 +368,8 @@ export function runActiveFlowArbitrator(input: {
         : "continue_active",
       active_owner: activeOwner,
       selected_owner: "conversation_skill",
-      selected_handler: activeConversationSkill ?? input.skill.selected_skill_id,
+      selected_handler: activeConversationSkill ??
+        input.skill.selected_skill_id,
       resume_policy: "none",
       reason_code: opportunityBlocks.length > 0
         ? "active_flow_defers_tool_skill_opportunity"

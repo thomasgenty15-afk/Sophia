@@ -1,5 +1,6 @@
 import type { RiskBand, TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { PlanAdjustmentDraftV1 } from "./generator.ts";
 import type { AdjustPlanToolSkillState } from "./workflow.ts";
 
@@ -22,6 +23,7 @@ export type AdjustPlanScopeKind =
   | "current_week"
   | "current_level"
   | "whole_plan"
+  | "multi_plan"
   | "unknown";
 
 export type AdjustPlanChangeKind =
@@ -244,6 +246,7 @@ export type AdjustPlanRouterPlanItemSnapshot = {
 };
 
 export type AdjustPlanRouterContext = {
+  supabase?: SupabaseClient;
   userId: string;
   userMessage: string;
   channel: "web" | "whatsapp";

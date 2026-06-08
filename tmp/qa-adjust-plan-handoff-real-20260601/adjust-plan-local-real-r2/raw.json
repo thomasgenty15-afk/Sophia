@@ -1,0 +1,3392 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t01",
+    "http_status": 200,
+    "ok": true,
+    "user": "Le sas de déchargement du soir est trop ambitieux quand je suis crevé. Je veux garder l’idée, mais le rendre plus léger dans le Plan.",
+    "assistant": "Oui, je vois le souci : quand t’es crevé, “sas de déchargement” ça peut vite devenir un truc de plus à subir 😅. On garde l’idée, mais on le rend faisable même en mode KO.\n\nConcrètement, on peut alléger le sas en version “minimum viable” :\n1) Durée divisée par 2 (ou même 5 minutes)\n2) Réduire à 1 seule brique au lieu de plusieurs (ex: juste vider le mental / noter 3 lignes)\n3) Garder le même esprit (décharger), mais avec moins d’étapes\n\nDis-moi juste : tu veux l’alléger plutôt sur le temps (A) ou sur le nombre d’étapes (B) ? 😊",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "safety": null,
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "durable_effect": "none",
+      "tool_skill_run": null,
+      "trace_error": null
+    },
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t01",
+      "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+      "channel": "web",
+      "scope": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, je vois le souci : quand t’es crevé, “sas de déchargement” ça peut vite devenir un truc de plus à subir 😅. On garde l’idée, mais on le rend faisable même en mode KO.\n\nConcrètement, on peut alléger le sas en version “minimum viable” :\n1) Durée divisée par 2 (ou même 5 minutes)\n2) Réduire à 1 seule brique au lieu de plusieurs (ex: juste vider le mental / noter 3 lignes)\n3) Garder le même esprit (décharger), mais avec moins d’étapes\n\nDis-moi juste : tu veux l’alléger plutôt sur le temps (A) ou sur le nombre d’étapes (B) ? 😊",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "0": {
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "adjust_plan_item",
+                  "explicitness": "explicit",
+                  "target_hint": "Faire le sas de déchargement",
+                  "adjust_plan_scope": "specific_action",
+                  "operation_input": {
+                    "target_granularity": {
+                      "status": "identified",
+                      "value": "specific_action",
+                      "confidence": "high",
+                      "evidence": [
+                        "Le sas de déchargement du soir"
+                      ]
+                    },
+                    "scope": {
+                      "status": "identified",
+                      "kind": "specific_action",
+                      "label": "Faire le sas de déchargement",
+                      "evidence": [
+                        "Le sas de déchargement du soir"
+                      ]
+                    },
+                    "reason_change": "trop ambitieux quand je suis crevé",
+                    "change_target": "le rendre plus léger"
+                  },
+                  "confidence_band": "high",
+                  "ambiguity": "none",
+                  "user_intent": "adjust"
+                }
+              ],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null,
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": true,
+                "status": "identified",
+                "plan_item_id": "a2206a9c-0000-4000-8000-000000000005",
+                "action_title": "Faire le sas de déchargement",
+                "action_family_key": "habit:sas_dechargement",
+                "action_type": "habit",
+                "expansion_policy": "exact_then_action_family_recent",
+                "reason": "matched_active_plan_item"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": null
+              },
+              "memory_plan": {
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "a2206a9c-0000-4000-8000-000000000005",
+                    "query_hint": "sas de déchargement",
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first"
+              }
+            },
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t01",
+            "source_message_id": "ee0d0603-5f63-4c00-9af3-00498fe1552a",
+            "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "normal_reply"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "normal_reply_default"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "0": {
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "target_hint": "Faire le sas de déchargement",
+                "adjust_plan_scope": "specific_action",
+                "operation_input": {
+                  "target_granularity": {
+                    "status": "identified",
+                    "value": "specific_action",
+                    "confidence": "high",
+                    "evidence": [
+                      "Le sas de déchargement du soir"
+                    ]
+                  },
+                  "scope": {
+                    "status": "identified",
+                    "kind": "specific_action",
+                    "label": "Faire le sas de déchargement",
+                    "evidence": [
+                      "Le sas de déchargement du soir"
+                    ]
+                  },
+                  "reason_change": "trop ambitieux quand je suis crevé",
+                  "change_target": "le rendre plus léger"
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "adjust"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null,
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": true,
+              "status": "identified",
+              "plan_item_id": "a2206a9c-0000-4000-8000-000000000005",
+              "action_title": "Faire le sas de déchargement",
+              "action_family_key": "habit:sas_dechargement",
+              "action_type": "habit",
+              "expansion_policy": "exact_then_action_family_recent",
+              "reason": "matched_active_plan_item"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": null
+            },
+            "memory_plan": {
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "a2206a9c-0000-4000-8000-000000000005",
+                  "query_hint": "sas de déchargement",
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first"
+            }
+          },
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t01",
+          "source_message_id": "ee0d0603-5f63-4c00-9af3-00498fe1552a",
+          "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          }
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "normal_reply"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "normal_reply",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "normal_reply_default"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t02",
+    "http_status": 200,
+    "ok": true,
+    "user": "Plutôt sur le nombre d’étapes. Pour l’action du Plan ‘Faire le sas de déchargement’, je veux juste garder: noter 3 lignes dans le carnet, sans couper tous les écrans avant.",
+    "assistant": "OK, on garde ça simple : pour “Faire le sas de déchargement”, tu notes juste 3 lignes dans le carnet, et tu zappes le “couper tous les écrans” 😄\nC’est bien 3 lignes “brut” style :\n1) ce que je ressens là maintenant",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "safety": null,
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "durable_effect": "none",
+      "tool_skill_run": null,
+      "trace_error": null
+    },
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t02",
+      "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+      "channel": "web",
+      "scope": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "OK, on garde ça simple : pour “Faire le sas de déchargement”, tu notes juste 3 lignes dans le carnet, et tu zappes le “couper tous les écrans” 😄\nC’est bien 3 lignes “brut” style :\n1) ce que je ressens là maintenant",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "0": {
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "adjust_plan_item",
+                  "explicitness": "explicit",
+                  "target_hint": "Faire le sas de déchargement",
+                  "adjust_plan_scope": "specific_action",
+                  "operation_input": {
+                    "target_granularity": {
+                      "status": "identified",
+                      "value": "specific_action",
+                      "confidence": "high",
+                      "evidence": [
+                        "Pour l’action du Plan ‘Faire le sas de déchargement’"
+                      ]
+                    },
+                    "scope": {
+                      "status": "identified",
+                      "kind": "specific_action",
+                      "label": "Faire le sas de déchargement",
+                      "evidence": [
+                        "Faire le sas de déchargement"
+                      ]
+                    },
+                    "change_target": "noter 3 lignes dans le carnet, sans couper tous les écrans avant"
+                  },
+                  "confidence_band": "high",
+                  "ambiguity": "none",
+                  "user_intent": "adjust"
+                }
+              ],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null,
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": true,
+                "status": "identified",
+                "plan_item_id": "a2206a9c-0000-4000-8000-000000000005",
+                "action_title": "Faire le sas de déchargement",
+                "action_family_key": "habit:sas_dechargement",
+                "action_type": "habit",
+                "expansion_policy": "exact_then_action_family_recent",
+                "reason": "matched_active_plan_item"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": null
+              },
+              "memory_plan": {
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "a2206a9c-0000-4000-8000-000000000005",
+                    "query_hint": "Faire le sas de déchargement",
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first"
+              }
+            },
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t02",
+            "source_message_id": "9342a660-9177-43c2-8cb8-babd8d7aaeb3",
+            "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "normal_reply"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "normal_reply_default"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "0": {
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "target_hint": "Faire le sas de déchargement",
+                "adjust_plan_scope": "specific_action",
+                "operation_input": {
+                  "target_granularity": {
+                    "status": "identified",
+                    "value": "specific_action",
+                    "confidence": "high",
+                    "evidence": [
+                      "Pour l’action du Plan ‘Faire le sas de déchargement’"
+                    ]
+                  },
+                  "scope": {
+                    "status": "identified",
+                    "kind": "specific_action",
+                    "label": "Faire le sas de déchargement",
+                    "evidence": [
+                      "Faire le sas de déchargement"
+                    ]
+                  },
+                  "change_target": "noter 3 lignes dans le carnet, sans couper tous les écrans avant"
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "adjust"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null,
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": true,
+              "status": "identified",
+              "plan_item_id": "a2206a9c-0000-4000-8000-000000000005",
+              "action_title": "Faire le sas de déchargement",
+              "action_family_key": "habit:sas_dechargement",
+              "action_type": "habit",
+              "expansion_policy": "exact_then_action_family_recent",
+              "reason": "matched_active_plan_item"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": null
+            },
+            "memory_plan": {
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "a2206a9c-0000-4000-8000-000000000005",
+                  "query_hint": "Faire le sas de déchargement",
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first"
+            }
+          },
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t02",
+          "source_message_id": "9342a660-9177-43c2-8cb8-babd8d7aaeb3",
+          "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          }
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "normal_reply"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "normal_reply",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "normal_reply_default"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03",
+    "http_status": 200,
+    "ok": true,
+    "user": "Oui c’est ça. Modifie mon Plan: remplace l’action ‘Faire le sas de déchargement’ par une version plus légère, juste noter 3 lignes dans le carnet.",
+    "assistant": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant. 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "adjust_plan_item",
+      "route_reason": "tool_skill_intent_start",
+      "safety": null,
+      "direct_effects": [],
+      "operation": "adjust_plan_item",
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "durable_effect": "platform_handoff",
+      "tool_skill_run": {
+        "selected_handler": "adjust_plan_item",
+        "reason_code": "adjust_plan_item_visible_agent_failed",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "blocked",
+        "operation_id": null,
+        "input_draft": null,
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [
+          {
+            "type": "local_flow_runtime",
+            "reason_code": "adjust_plan_item_visible_agent_failed"
+          }
+        ],
+        "committed_effects": [],
+        "platform_handoff": {
+          "operation_type": "adjust_plan_item",
+          "status": "delivered",
+          "surface_id": "plan",
+          "reason_code": "adjust_plan_item_visible_agent_failed",
+          "no_chat_mutation": true,
+          "executable_from_chat": false
+        },
+        "skill_result": {
+          "handled": true,
+          "status": "handoff_delivered",
+          "user_intent": "unknown",
+          "reply": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [],
+          "committed_effects": [],
+          "pending_confirmation": null,
+          "debug": {
+            "reason_code": "adjust_plan_item_visible_agent_failed"
+          }
+        },
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "runtime_trace": [
+          {
+            "component": "adjust_plan_item.visible_agent",
+            "stage": "plan_handoff_ready",
+            "accepted": false,
+            "issues": [
+              "missing_suggested_platform_input"
+            ]
+          }
+        ]
+      },
+      "trace_error": null
+    },
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03",
+      "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+      "channel": "web",
+      "scope": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03",
+            "source_message_id": "9543cc30-4f69-468b-af72-747a4b18fba4",
+            "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0,0;decay=0.55;recovery=1.5"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "target_hint": "Faire le sas de déchargement",
+                "operation_input": {
+                  "target_granularity": {
+                    "status": "identified",
+                    "value": "specific_action",
+                    "confidence": "high",
+                    "evidence": [
+                      "remplace l’action ‘Faire le sas de déchargement’"
+                    ]
+                  },
+                  "scope": {
+                    "status": "identified",
+                    "kind": "specific_action",
+                    "label": "Faire le sas de déchargement",
+                    "target_item_id": "a2206a9c-0000-4000-8000-000000000005",
+                    "evidence": [
+                      "remplace l’action ‘Faire le sas de déchargement’"
+                    ]
+                  },
+                  "change_description": "version plus légère, juste noter 3 lignes dans le carnet, sans couper les écrans"
+                },
+                "adjust_plan_scope": "specific_action",
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "adjust"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_explicitly_requests_plan_modification"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "a2206a9c-0000-4000-8000-000000000005",
+                  "query_hint": "Faire le sas de déchargement",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "adjust_plan_item"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "adjust_plan_handoff"
+            ],
+            "operation_types": [
+              "adjust_plan_item"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "owner": "adjust_plan_handoff",
+                "operation_type": "adjust_plan_item",
+                "intent": "update",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "adjust_plan_item_visible_agent_failed",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "status": "blocked",
+            "operation_id": null,
+            "input_draft": null,
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "local_flow_runtime",
+                "reason_code": "adjust_plan_item_visible_agent_failed"
+              }
+            ],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_visible_agent_failed",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "unknown",
+              "reply": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "adjust_plan_item_visible_agent_failed"
+              }
+            },
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "runtime_trace": [
+              {
+                "component": "adjust_plan_item.visible_agent",
+                "stage": "plan_handoff_ready",
+                "accepted": false,
+                "issues": [
+                  "missing_suggested_platform_input"
+                ]
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03:agenda:proposed:dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:adjust_plan_item:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "Faire le sas de déchargement"
+                  ],
+                  "user_goal_summary": "Faire le sas de déchargement",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "adjust_plan_item_visible_agent_failed",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "blocked",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03",
+          "source_message_id": "9543cc30-4f69-468b-af72-747a4b18fba4",
+          "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0,0;decay=0.55;recovery=1.5"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "adjust_plan_item",
+              "explicitness": "explicit",
+              "target_hint": "Faire le sas de déchargement",
+              "operation_input": {
+                "target_granularity": {
+                  "status": "identified",
+                  "value": "specific_action",
+                  "confidence": "high",
+                  "evidence": [
+                    "remplace l’action ‘Faire le sas de déchargement’"
+                  ]
+                },
+                "scope": {
+                  "status": "identified",
+                  "kind": "specific_action",
+                  "label": "Faire le sas de déchargement",
+                  "target_item_id": "a2206a9c-0000-4000-8000-000000000005",
+                  "evidence": [
+                    "remplace l’action ‘Faire le sas de déchargement’"
+                  ]
+                },
+                "change_description": "version plus légère, juste noter 3 lignes dans le carnet, sans couper les écrans"
+              },
+              "adjust_plan_scope": "specific_action",
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "adjust"
+            }
+          ],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "adjust_plan_item": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_explicitly_requests_plan_modification"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "action",
+                "key": "a2206a9c-0000-4000-8000-000000000005",
+                "query_hint": "Faire le sas de déchargement",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "adjust_plan_item"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "adjust_plan_handoff"
+          ],
+          "operation_types": [
+            "adjust_plan_item"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "owner": "adjust_plan_handoff",
+              "operation_type": "adjust_plan_item",
+              "intent": "update",
+              "source": "dispatcher",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "adjust_plan_item",
+          "reason_code": "adjust_plan_item_visible_agent_failed",
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "status": "blocked",
+          "operation_id": null,
+          "input_draft": null,
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "local_flow_runtime",
+              "reason_code": "adjust_plan_item_visible_agent_failed"
+            }
+          ],
+          "committed_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "adjust_plan_item_visible_agent_failed",
+            "no_chat_mutation": true,
+            "executable_from_chat": false
+          },
+          "skill_result": {
+            "handled": true,
+            "status": "handoff_delivered",
+            "user_intent": "unknown",
+            "reply": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "pending_confirmation": null,
+            "debug": {
+              "reason_code": "adjust_plan_item_visible_agent_failed"
+            }
+          },
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "runtime_trace": [
+            {
+              "component": "adjust_plan_item.visible_agent",
+              "stage": "plan_handoff_ready",
+              "accepted": false,
+              "issues": [
+                "missing_suggested_platform_input"
+              ]
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03:agenda:proposed:dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "source": "dispatcher",
+                "evidence": [
+                  "explicit",
+                  "high",
+                  "Faire le sas de déchargement"
+                ],
+                "user_goal_summary": "Faire le sas de déchargement",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t03:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_item",
+              "status": "delivered",
+              "reason_code": "adjust_plan_item_visible_agent_failed",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "blocked",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t04",
+    "http_status": 200,
+    "ok": true,
+    "user": "D’accord, réessaie: dans Plan, propose comme nouvelle version de l’action ‘Faire le sas de déchargement’: ‘Noter 3 lignes dans le carnet le soir’.",
+    "assistant": "Ok, je prends : nouvelle version proposée de “Faire le sas de déchargement” = “Noter 3 lignes dans le carnet le soir”. ✅🙂\nTu veux que ça remplace à la fois la cadence (6 soirs/semaine) et la cible globale (6), ou tu veux juste changer le libellé/la consigne en gardant le reste identique ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "safety": null,
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "durable_effect": "none",
+      "tool_skill_run": null,
+      "trace_error": null
+    },
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t04",
+      "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+      "channel": "web",
+      "scope": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je prends : nouvelle version proposée de “Faire le sas de déchargement” = “Noter 3 lignes dans le carnet le soir”. ✅🙂\nTu veux que ça remplace à la fois la cadence (6 soirs/semaine) et la cible globale (6), ou tu veux juste changer le libellé/la consigne en gardant le reste identique ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "0": {
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "adjust_plan_item",
+                  "explicitness": "explicit",
+                  "target_hint": "Faire le sas de déchargement",
+                  "adjust_plan_scope": "specific_action",
+                  "operation_input": {
+                    "target_granularity": {
+                      "status": "identified",
+                      "value": "specific_action",
+                      "confidence": "high",
+                      "evidence": [
+                        "le user cible une action précise du plan",
+                        "Faire le sas de déchargement"
+                      ]
+                    },
+                    "scope": {
+                      "status": "identified",
+                      "kind": "specific_action",
+                      "label": "Faire le sas de déchargement",
+                      "evidence": [
+                        "action ‘Faire le sas de déchargement’"
+                      ]
+                    },
+                    "change_target": "Noter 3 lignes dans le carnet le soir",
+                    "reason_change": "trop ambitieux quand je suis crevé"
+                  },
+                  "confidence_band": "high",
+                  "ambiguity": "none",
+                  "user_intent": "adjust"
+                }
+              ],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null,
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": true,
+                "status": "identified",
+                "plan_item_id": "a2206a9c-0000-4000-8000-000000000005",
+                "action_title": "Faire le sas de déchargement",
+                "action_family_key": "habit:sas_dechargement",
+                "action_type": "habit",
+                "expansion_policy": "exact_then_action_family_recent",
+                "reason": "matched_active_plan_item"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": null
+              },
+              "memory_plan": {
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "a2206a9c-0000-4000-8000-000000000005",
+                    "query_hint": "historique sas de déchargement",
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first"
+              }
+            },
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t04",
+            "source_message_id": "ac0521c8-3a70-4054-bef1-bad49312da7b",
+            "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0,
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0,0,0;decay=0.55;recovery=1.5"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "normal_reply"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "normal_reply_default"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "0": {
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "target_hint": "Faire le sas de déchargement",
+                "adjust_plan_scope": "specific_action",
+                "operation_input": {
+                  "target_granularity": {
+                    "status": "identified",
+                    "value": "specific_action",
+                    "confidence": "high",
+                    "evidence": [
+                      "le user cible une action précise du plan",
+                      "Faire le sas de déchargement"
+                    ]
+                  },
+                  "scope": {
+                    "status": "identified",
+                    "kind": "specific_action",
+                    "label": "Faire le sas de déchargement",
+                    "evidence": [
+                      "action ‘Faire le sas de déchargement’"
+                    ]
+                  },
+                  "change_target": "Noter 3 lignes dans le carnet le soir",
+                  "reason_change": "trop ambitieux quand je suis crevé"
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "adjust"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null,
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": true,
+              "status": "identified",
+              "plan_item_id": "a2206a9c-0000-4000-8000-000000000005",
+              "action_title": "Faire le sas de déchargement",
+              "action_family_key": "habit:sas_dechargement",
+              "action_type": "habit",
+              "expansion_policy": "exact_then_action_family_recent",
+              "reason": "matched_active_plan_item"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": null
+            },
+            "memory_plan": {
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "a2206a9c-0000-4000-8000-000000000005",
+                  "query_hint": "historique sas de déchargement",
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first"
+            }
+          },
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t04",
+          "source_message_id": "ac0521c8-3a70-4054-bef1-bad49312da7b",
+          "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0,
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0,0,0;decay=0.55;recovery=1.5"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "normal_reply_default",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          }
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "normal_reply"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "normal_reply",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "normal_reply_default"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "normal_reply"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05",
+    "http_status": 200,
+    "ok": true,
+    "user": "Juste changer le libellé/la consigne, garde la cadence. Applique-le dans le Plan s’il te plaît.",
+    "assistant": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant. 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "adjust_plan_item",
+      "route_reason": "tool_skill_intent_start",
+      "safety": null,
+      "direct_effects": [],
+      "operation": "adjust_plan_item",
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "durable_effect": "platform_handoff",
+      "tool_skill_run": {
+        "selected_handler": "adjust_plan_item",
+        "reason_code": "adjust_plan_item_visible_agent_failed",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "blocked",
+        "operation_id": null,
+        "input_draft": null,
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [
+          {
+            "type": "local_flow_runtime",
+            "reason_code": "adjust_plan_item_visible_agent_failed"
+          }
+        ],
+        "committed_effects": [],
+        "platform_handoff": {
+          "operation_type": "adjust_plan_item",
+          "status": "delivered",
+          "surface_id": "plan",
+          "reason_code": "adjust_plan_item_visible_agent_failed",
+          "no_chat_mutation": true,
+          "executable_from_chat": false
+        },
+        "skill_result": {
+          "handled": true,
+          "status": "handoff_delivered",
+          "user_intent": "unknown",
+          "reply": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [],
+          "committed_effects": [],
+          "pending_confirmation": null,
+          "debug": {
+            "reason_code": "adjust_plan_item_visible_agent_failed"
+          }
+        },
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "runtime_trace": [
+          {
+            "component": "adjust_plan_item.visible_agent",
+            "stage": "apply_attempt",
+            "accepted": false,
+            "issues": [
+              "missing_suggested_platform_input"
+            ]
+          }
+        ]
+      },
+      "trace_error": null
+    },
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05",
+      "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+      "channel": "web",
+      "scope": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05",
+            "source_message_id": "0b6da169-51b3-4819-a1e1-3f34ca272cc9",
+            "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0,0,0,0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "target_hint": "Faire le sas de déchargement",
+                "operation_input": {
+                  "target_granularity": {
+                    "status": "identified",
+                    "value": "specific_action",
+                    "confidence": "high",
+                    "evidence": [
+                      "Juste changer le libellé/la consigne",
+                      "Applique-le dans le Plan"
+                    ]
+                  },
+                  "scope": {
+                    "status": "identified",
+                    "kind": "specific_action",
+                    "label": "Faire le sas de déchargement",
+                    "evidence": [
+                      "action du Plan ‘Faire le sas de déchargement’"
+                    ]
+                  },
+                  "target_item_id": "a2206a9c-0000-4000-8000-000000000005",
+                  "new_title": "Noter 3 lignes dans le carnet le soir",
+                  "constraints": "garde la cadence"
+                },
+                "adjust_plan_scope": "specific_action",
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "adjust"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_explicitly_asks_to_apply_plan_modification"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "a2206a9c-0000-4000-8000-000000000005",
+                  "query_hint": "sas de déchargement",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "adjust_plan_item"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "adjust_plan_handoff"
+            ],
+            "operation_types": [
+              "adjust_plan_item"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "owner": "adjust_plan_handoff",
+                "operation_type": "adjust_plan_item",
+                "intent": "update",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "adjust_plan_item_visible_agent_failed",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "status": "blocked",
+            "operation_id": null,
+            "input_draft": null,
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "local_flow_runtime",
+                "reason_code": "adjust_plan_item_visible_agent_failed"
+              }
+            ],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_visible_agent_failed",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "unknown",
+              "reply": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "adjust_plan_item_visible_agent_failed"
+              }
+            },
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "runtime_trace": [
+              {
+                "component": "adjust_plan_item.visible_agent",
+                "stage": "apply_attempt",
+                "accepted": false,
+                "issues": [
+                  "missing_suggested_platform_input"
+                ]
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05:agenda:proposed:dispatcher:adjust_plan_item:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:adjust_plan_item:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "Faire le sas de déchargement"
+                  ],
+                  "user_goal_summary": "Faire le sas de déchargement",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "adjust_plan_item_visible_agent_failed",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "blocked",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05",
+          "source_message_id": "0b6da169-51b3-4819-a1e1-3f34ca272cc9",
+          "user_id": "27780fba-6adb-41fe-84e6-ad393a2faf13",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0,0,0,0;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "adjust_plan_item",
+              "explicitness": "explicit",
+              "target_hint": "Faire le sas de déchargement",
+              "operation_input": {
+                "target_granularity": {
+                  "status": "identified",
+                  "value": "specific_action",
+                  "confidence": "high",
+                  "evidence": [
+                    "Juste changer le libellé/la consigne",
+                    "Applique-le dans le Plan"
+                  ]
+                },
+                "scope": {
+                  "status": "identified",
+                  "kind": "specific_action",
+                  "label": "Faire le sas de déchargement",
+                  "evidence": [
+                    "action du Plan ‘Faire le sas de déchargement’"
+                  ]
+                },
+                "target_item_id": "a2206a9c-0000-4000-8000-000000000005",
+                "new_title": "Noter 3 lignes dans le carnet le soir",
+                "constraints": "garde la cadence"
+              },
+              "adjust_plan_scope": "specific_action",
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "adjust"
+            }
+          ],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "adjust_plan_item": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_explicitly_asks_to_apply_plan_modification"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "action",
+                "key": "a2206a9c-0000-4000-8000-000000000005",
+                "query_hint": "sas de déchargement",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "adjust_plan_item"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "adjust_plan_handoff"
+          ],
+          "operation_types": [
+            "adjust_plan_item"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "owner": "adjust_plan_handoff",
+              "operation_type": "adjust_plan_item",
+              "intent": "update",
+              "source": "dispatcher",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "adjust_plan_item",
+          "reason_code": "adjust_plan_item_visible_agent_failed",
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "status": "blocked",
+          "operation_id": null,
+          "input_draft": null,
+          "requested_effects": [],
+          "allowed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "local_flow_runtime",
+              "reason_code": "adjust_plan_item_visible_agent_failed"
+            }
+          ],
+          "committed_effects": [],
+          "platform_handoff": {
+            "operation_type": "adjust_plan_item",
+            "status": "delivered",
+            "surface_id": "plan",
+            "reason_code": "adjust_plan_item_visible_agent_failed",
+            "no_chat_mutation": true,
+            "executable_from_chat": false
+          },
+          "skill_result": {
+            "handled": true,
+            "status": "handoff_delivered",
+            "user_intent": "unknown",
+            "reply": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "pending_confirmation": null,
+            "debug": {
+              "reason_code": "adjust_plan_item_visible_agent_failed"
+            }
+          },
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "runtime_trace": [
+            {
+              "component": "adjust_plan_item.visible_agent",
+              "stage": "apply_attempt",
+              "accepted": false,
+              "issues": [
+                "missing_suggested_platform_input"
+              ]
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05:agenda:proposed:dispatcher:adjust_plan_item:0",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "dispatcher:adjust_plan_item:0",
+                "source": "dispatcher",
+                "evidence": [
+                  "explicit",
+                  "high",
+                  "Faire le sas de déchargement"
+                ],
+                "user_goal_summary": "Faire le sas de déchargement",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "qa-adjust-plan-handoff-real-20260601-adjust-plan-local-real-r2-t05:platform_handoff:delivered:adjust_plan_item:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "adjust_plan_item",
+              "status": "delivered",
+              "reason_code": "adjust_plan_item_visible_agent_failed",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "blocked",
+                "surface_id": "plan"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "plan",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

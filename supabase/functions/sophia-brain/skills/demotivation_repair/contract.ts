@@ -53,6 +53,213 @@ export type DemotivationRepairActionReadiness =
   | "ready"
   | "already_chosen";
 
+export type DemotivationRepairConfidence = "low" | "medium" | "high";
+
+export type DemotivationRepairBridgePotion = "clarte" | "courage" | "rappel";
+
+export type DemotivationRepairVisiblePotionLabel =
+  | "Potion de clarté"
+  | "Potion de courage"
+  | "Potion anti-décrochage";
+
+export type DemotivationRepairLocalFlowAction =
+  | "answer_repair"
+  | "ask_gentle_clarification"
+  | "reduce_friction"
+  | "restore_meaning"
+  | "stabilize_energy"
+  | "smaller_step"
+  | "action_card_candidate"
+  | "potion_bridge_offer"
+  | "confirm_potion_bridge"
+  | "revise_repair_context"
+  | "repeat_last_repair"
+  | "cancel_flow"
+  | "exit_to_global_dispatcher"
+  | "safety_preempt";
+
+export type DemotivationRepairVisibleTaskKind =
+  | "diagnose"
+  | "reduce_friction"
+  | "restore_meaning"
+  | "stabilize_energy"
+  | "smaller_step"
+  | "action_card_candidate"
+  | "potion_bridge_offer"
+  | "potion_bridge_choice"
+  | "potion_bridge_handoff"
+  | "ask_gentle_clarification"
+  | "repeat_repair"
+  | "exit_or_cancel"
+  | "safety";
+
+export type DemotivationRepairDurableNeedKind =
+  | "meaning_reconnection"
+  | "courage_through_avoidance"
+  | "anti_dropout_anchor";
+
+export type DemotivationRepairPotionBridgeStatus =
+  | "not_applicable"
+  | "candidate"
+  | "offered_waiting_consent"
+  | "confirmed_handoff"
+  | "blocked";
+
+export type DemotivationRepairBridgePrefillCandidates = {
+  plan_meaning_loss_reason?: string | null;
+  avoidance_target?: string | null;
+  blocker_kind?: "resultat" | "regard" | "inconfort" | "conflit" | null;
+  drift_target?: string | null;
+  drift_style?:
+    | "oubli"
+    | "repousse"
+    | "laisse_filer"
+    | "baisse_elan"
+    | null;
+};
+
+export type DemotivationRepairBridgeCandidateValue = {
+  candidate_value?: string | null;
+  option_value?: string | null;
+  option_label?: string | null;
+  confidence: DemotivationRepairConfidence;
+  source: "demotivation_repair";
+};
+
+export type DemotivationRepairNoteInformation = {
+  source_flow_presentation: string;
+  handoff_context_for_next_dispatcher: string;
+  target_flow: "global" | "select_state_potion" | "safety";
+  target_local_dispatcher_hint: string | null;
+};
+
+export type DemotivationRepairPotionBridgeContext = {
+  origin_flow: "demotivation_repair";
+  origin_flow_status: "diagnosed" | "bridge_consented";
+  note_information: DemotivationRepairNoteInformation;
+  origin_turn_summary: string;
+  repair_intent: DemotivationRepairIntent;
+  motivation_state: DemotivationRepairMotivationState;
+  action_readiness: DemotivationRepairActionReadiness;
+  demotivation_episode: {
+    summary: string;
+    user_words: string[];
+    identity_freeze_risk: boolean;
+    already_diagnosed: boolean;
+  };
+  durable_need: {
+    kind: DemotivationRepairDurableNeedKind;
+    summary: string;
+  };
+  selected_potion: DemotivationRepairBridgePotion;
+  visible_potion_label: DemotivationRepairVisiblePotionLabel;
+  selection_reason: string;
+  prefill_candidates: Record<string, DemotivationRepairBridgeCandidateValue>;
+  handoff_instruction_for_potion_subskill: string;
+  no_chat_mutation: {
+    potion_session_created: false;
+    recurring_reminder_created: false;
+    scheduled_checkin_created: false;
+    executable_confirmation_generated: false;
+  };
+};
+
+export type DemotivationRepairLocalState = {
+  skill_id: "demotivation_repair";
+  mode: "local_repair_flow";
+  status: "active" | "closing" | "closed" | "handoff_to_potion" | "safety";
+  repair_state: {
+    intent: DemotivationRepairIntent;
+    phase: DemotivationRepairPhase;
+    motivation_state: DemotivationRepairMotivationState;
+    action_readiness: DemotivationRepairActionReadiness;
+    summary: string;
+    user_words: string[];
+    identity_freeze_risk: boolean;
+    motivation_source_diagnosed: boolean;
+  };
+  last_visible_task: DemotivationRepairVisibleTaskKind | null;
+  last_potion_bridge_offer: {
+    selected_potion: DemotivationRepairBridgePotion;
+    visible_potion_label: DemotivationRepairVisiblePotionLabel;
+    durable_need: {
+      kind: DemotivationRepairDurableNeedKind;
+      summary: string;
+    };
+    prefill_candidates: DemotivationRepairBridgePrefillCandidates;
+    selection_reason: string;
+    offered_at_turn: number;
+    note_information: DemotivationRepairNoteInformation;
+  } | null;
+  previous_repair_summary: string | null;
+  turn_count: number;
+  max_turns: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DemotivationRepairVisibleTask = {
+  kind: DemotivationRepairVisibleTaskKind;
+  required_data: {
+    repair_summary: string;
+    user_words: string[];
+    selected_potion: DemotivationRepairBridgePotion | null;
+    potion_label: DemotivationRepairVisiblePotionLabel | null;
+    bridge_context_summary: string | null;
+  };
+};
+
+export type DemotivationRepairLocalDispatcherOutput = {
+  flow_action: DemotivationRepairLocalFlowAction;
+  confidence: DemotivationRepairConfidence;
+  risk_score: number;
+  repair_state: DemotivationRepairLocalState["repair_state"];
+  constraints: DemotivationRepairConstraint[];
+  response_contract: DemotivationRepairResponseContract;
+  potion_bridge: {
+    status: DemotivationRepairPotionBridgeStatus;
+    selected_potion: DemotivationRepairBridgePotion | null;
+    visible_potion_label: DemotivationRepairVisiblePotionLabel | null;
+    candidate_potions: Array<{
+      potion_type: DemotivationRepairBridgePotion;
+      visible_label: DemotivationRepairVisiblePotionLabel;
+      confidence: DemotivationRepairConfidence;
+      reason: string;
+    }>;
+    durable_need: {
+      kind: DemotivationRepairDurableNeedKind | null;
+      summary: string | null;
+    };
+    prefill_candidates: DemotivationRepairBridgePrefillCandidates;
+    missing_before_handoff: string[];
+    why_ready_or_blocked: string;
+    note_information: DemotivationRepairNoteInformation | null;
+  };
+  visible_task: DemotivationRepairVisibleTask;
+  exit_memo: {
+    needed: boolean;
+    reason:
+      | "topic_change"
+      | "explicit_tool_request"
+      | "cancelled"
+      | "safety"
+      | "potion_handoff"
+      | "none";
+    flow_summary: string | null;
+    handoff_hint_for_global_dispatcher: string | null;
+    potion_bridge_context: Record<string, unknown> | null;
+    note_information: DemotivationRepairNoteInformation | null;
+  };
+  no_chat_mutation: {
+    potion_session_created: false;
+    recurring_reminder_created: false;
+    scheduled_checkin_created: false;
+    executable_confirmation_generated: false;
+    db_write_committed: false;
+  };
+  evidence: string[];
+};
+
 export type DemotivationRepairResponseContract = {
   max_questions: 0 | 1;
   allow_plan_edit: boolean;
@@ -205,6 +412,12 @@ function uniqConstraints(
   }
   if (!next.includes("do_not_moralize")) next.push("do_not_moralize");
   return next;
+}
+
+export function normalizeDemotivationRepairConstraints(
+  constraints: unknown,
+): DemotivationRepairConstraint[] {
+  return uniqConstraints(constraints);
 }
 
 function normalizeReply(reply: unknown, fallback: string): string {

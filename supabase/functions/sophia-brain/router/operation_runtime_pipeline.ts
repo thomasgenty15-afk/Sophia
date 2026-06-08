@@ -42,6 +42,7 @@ import { maybeRunUpdateCoachPreferencesOperation } from "../tools/operations/upd
 import { loadAdjustPlanFrameFromTempMemory } from "../tools/operations/adjust_plan_item/state.ts";
 import { getHandoffTargetForOperation } from "../product_surface_registry/contract.ts";
 import { maybeRunStatusRecapRuntime } from "../skills/status_recap/runtime.ts";
+import { hasActiveStatusRecapFlow } from "../skills/status_recap/local_flow.ts";
 import {
   hasPendingOrActiveAdjustPlanOperation,
   weeklyAdaptiveReviewStateForTurn,
@@ -98,6 +99,7 @@ export type OperationRuntimePipelineInput = {
   fullAiRequested: boolean;
   clientNow?: Date | null;
   enableAdjustPlanCoachGuidance?: boolean;
+  runStatusRecapRuntime?: typeof maybeRunStatusRecapRuntime;
   runAdjustPlanItemOperation: RunAdjustPlanItemOperation;
   guards: OperationRuntimePipelineGuards;
 };
@@ -251,7 +253,7 @@ function routeOrStateRequestsToolSkill(args: {
     (args.activeOperationIntake as any)?.operation_type ??
       ((args.activeOperationIntake as any)?.mode === "platform_handoff"
         ? (args.activeOperationIntake as any)?.skill_id
-        : ""),
+        : (args.activeOperationIntake as any)?.skill_id ?? ""),
   ).trim();
   if (activeOperation === args.operationType) return true;
   const pendingOperation = String(
@@ -282,7 +284,9 @@ function routeRequestsDirectEffect(args: {
   turnFrame: TurnFrame | null;
   effectType: string;
 }): boolean {
-  return Boolean(args.routeDecision?.direct_effects_to_run.includes(args.effectType)) ||
+  return Boolean(
+    args.routeDecision?.direct_effects_to_run.includes(args.effectType),
+  ) ||
     turnFrameHasRunnableDirectEffect(args.turnFrame, args.effectType);
 }
 
@@ -290,7 +294,9 @@ function turnAgendaBlocksOperation(
   turnAgenda: unknown,
   operationType: string,
 ): boolean {
-  return Boolean(agendaBlockedReasonForOperation(turnAgenda as any, operationType));
+  return Boolean(
+    agendaBlockedReasonForOperation(turnAgenda as any, operationType),
+  );
 }
 
 function platformHandoffRuntimeResult(args: {
@@ -665,8 +671,7 @@ export async function runOperationRuntimePipeline(
             message: args.userMessage,
             plan_snapshot: args.planItemSnapshot ?? [],
             pending_tool_skill_confirmation: args.pendingOperationConfirmation,
-            no_mutation_requested:
-              Boolean(blockedReason) ||
+            no_mutation_requested: Boolean(blockedReason) ||
               turnAgendaBlocksOperation(
                 args.turnAgenda,
                 "track_progress_plan_item",
@@ -721,8 +726,10 @@ export async function runOperationRuntimePipeline(
         : undefined,
       turnFrame,
       pendingToolSkillConfirmation: args.pendingOperationConfirmation,
-      noMutationRequested:
-        turnAgendaBlocksOperation(args.turnAgenda, "create_one_shot_reminder") ||
+      noMutationRequested: turnAgendaBlocksOperation(
+        args.turnAgenda,
+        "create_one_shot_reminder",
+      ) ||
         turnAgendaBlocksOperation(args.turnAgenda, "cancel_one_shot_reminder"),
       contextMessages: (args.history ?? [])
         .filter((m: any) =>
@@ -768,7 +775,8 @@ export async function runOperationRuntimePipeline(
   const routeIsCardToolSkill =
     routeDecision?.selected_handler === "prepare_defense_card" ||
     routeDecision?.selected_handler === "prepare_attack_card";
-  const routeRequestsStatusRecap =
+  const activeStatusRecapFlow = hasActiveStatusRecapFlow(tempMemory);
+  const routeRequestsStatusRecap = activeStatusRecapFlow ||
     routeDecision?.selected_handler === "status_only_no_mutation_check" ||
     String(routeDecision?.reason_code ?? "").includes("status_only") ||
     String(routeDecision?.reason_code ?? "").includes("status_recap") ||
@@ -815,11 +823,11 @@ export async function runOperationRuntimePipeline(
   const statusRecapRuntime = !routeSafetyActive &&
       routeRequestsStatusRecap &&
       !activeRecurringReminderHandoff &&
-      !routeIsProductHelp(routeDecision) &&
+      (!routeIsProductHelp(routeDecision) || activeStatusRecapFlow) &&
       !routeIsCardToolSkill &&
       !structuredCardCommand &&
       !args.guards.isActiveCardDraftingOperation(args.activeOperationIntake)
-    ? await maybeRunStatusRecapRuntime({
+    ? await (args.runStatusRecapRuntime ?? maybeRunStatusRecapRuntime)({
       supabase: args.supabase,
       userId: args.userId,
       userMessage: args.userMessage,
@@ -828,12 +836,14 @@ export async function runOperationRuntimePipeline(
       turnFrame,
       routeDecision,
       activeOperationIntake: args.activeOperationIntake,
+      history: args.history,
+      requestId: args.requestId ?? null,
     })
     : null;
 
   const operationRuntime =
     routeSafetyActive || weeklyReviewBlocksToolSkillRuntime ||
-      routeIsProductHelp(routeDecision)
+      (routeIsProductHelp(routeDecision) && !activeStatusRecapFlow)
       ? null
       : pendingAdjustPlanRuntime ??
         trackProgressRuntime ??
@@ -876,6 +886,7 @@ export async function runOperationRuntimePipeline(
             sourceMessageId: args.sourceMessageId,
             requestId: args.requestId ?? null,
             planSnapshot: { items: args.planItemSnapshot ?? [] },
+            history: args.history,
           })
           : null) ??
         (shouldRunPrepareDefenseCard
@@ -892,6 +903,7 @@ export async function runOperationRuntimePipeline(
             sourceMessageId: args.sourceMessageId,
             requestId: args.requestId ?? null,
             planSnapshot: { items: args.planItemSnapshot ?? [] },
+            history: args.history,
           })
           : null) ??
         (shouldRunUpdateCoachPreferences
@@ -907,6 +919,7 @@ export async function runOperationRuntimePipeline(
             safetyPregateOutput: runtimeSafetyPregateOutput,
             sourceMessageId: args.sourceMessageId,
             requestId: args.requestId ?? null,
+            history: args.history,
           })
           : null);
 

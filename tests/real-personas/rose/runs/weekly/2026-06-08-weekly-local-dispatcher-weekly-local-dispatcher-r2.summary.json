@@ -1,0 +1,185 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, je confirme que c est surtout la fatigue en fin de journee. J ai quand meme un peu avance parce que le materiel etait moins visible, mais je n ai pas eu assez d energie pour tenir tout le reste.",
+    "assistant": "C'est noté, la fatigue a été le frein principal malgré le petit progrès sur le matériel. On va adapter la suite pour que ce soit plus gérable avec ton énergie. Est-ce que tu préfères qu'on reste sur un rythme très léger pour la semaine prochaine ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "answer_weekly_question",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, reste sur un rythme tres leger pour la semaine prochaine. Je veux surtout garder le sas de decompression, mais en version plus simple et moins exigeante.",
+    "assistant": "C'est entendu pour le rythme très léger. On va simplifier l'action du sas de décompression dans ton plan \"Libération progressive du cannabis\" pour qu'elle soit moins exigeante. Je te laisse reprendre la main dans l'onglet Plan pour finaliser ces ajustements ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "handoff",
+        "reason_code": "weekly_review_local_prepare_plan_handoff",
+        "flow_action": "prepare_plan_handoff",
+        "visible_task": "plan_handoff_ready",
+        "toolExecution": "platform_handoff",
+        "executedTools": [],
+        "platform_handoff": {
+          "operation_type": "adjust_plan_item",
+          "status": "delivered",
+          "surface_id": "plan",
+          "reason_code": "weekly_review_local_prepare_plan_handoff",
+          "no_chat_mutation": true,
+          "handoff_summary": "Maintenir un rythme très léger. Simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+          "scope": {
+            "kind": "specific_item",
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "plan_title": "Libération progressive du cannabis",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "scope_summary": "Ajustement de l'item sas de décompression et du rythme global de la semaine.",
+            "needs_scope_clarification": false
+          }
+        },
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, applique-la comme ca dans mon plan s il te plait.",
+    "assistant": "Je ne peux pas modifier ton plan directement depuis notre échange. Je t'invite à te rendre dans l'onglet Plan pour y retrouver cette proposition et l'ajuster selon tes besoins. On fait comme ça ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "handoff",
+        "reason_code": "weekly_review_local_apply_attempt",
+        "flow_action": "apply_attempt",
+        "visible_task": "apply_attempt",
+        "toolExecution": "platform_handoff",
+        "executedTools": [],
+        "platform_handoff": {
+          "operation_type": "adjust_plan_item",
+          "status": "delivered",
+          "surface_id": "plan",
+          "reason_code": "weekly_review_local_apply_attempt",
+          "no_chat_mutation": true,
+          "handoff_summary": "Maintenir un rythme très léger et simplifier l'action 'sas de décompression' pour qu'elle soit moins exigeante.",
+          "scope": {
+            "kind": "specific_plan",
+            "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+            "plan_title": "Libération progressive du cannabis",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "scope_summary": "Ajustement du rythme global et de l'item spécifique du sas de décompression.",
+            "needs_scope_clarification": false
+          }
+        },
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-08-weekly-local-dispatcher-weekly-local-dispatcher-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "En fait maintenant je veux plutot une carte d attaque pour le sas de decompression, pas modifier le plan.",
+    "assistant": "Yes, je vois le truc. Pour ton sas de décompression (sans fumer), voilà une carte d’attaque prête à l’emploi 👇🙂\n\nCarte d’attaque: Sas de décompression (3–7 min)\n1) Minute zéro: posture + respiration\n- Assieds-toi/pose-toi confort, épaules relâchées\n- 5 respirations lentes: inspire 4s, expire 6s\n\n2) Décharge mentale (1 min)\n- Note en 3 mots ce qui te tourne dans la tête (ou “vide” si rien)\n\n3) Décharge corps (2–4 min)\n- Option A: étirements doux (nuque/épaules/dos)\n- Option B: marche lente dans la pièce / couloir\n- Option C: 20 “relâchements” (tu contractes léger 2s puis tu relâches 5s)\n\n4) Ancrage (30s)\n- Regard fixe sur un point + relâche la mâchoire\n- Phrase simple dans ta tête: “Je redescends. Là maintenant.”\n\n5) Fin claire (10s)\n- Tu te dis: “C’est fini” puis tu reprends la prochaine micro-tâche (même petite)\n\nVersion ultra-courte (si t’as 2 minutes)\nRespiration 5 cycles + 1 étirement épaules + “Je redescends. Là maintenant.”\n\nTu veux une version A (plutôt corps) ou B (plutôt mental) pour que ça colle à ton profil ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason_code": "normal_reply_default",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [
+          "immediacy_now"
+        ],
+        "evidence": [
+          "maintenant"
+        ]
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  }
+]

@@ -1,0 +1,605 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. Hier j'ai craqué et abandonné mon engagement, et depuis je m'en veux beaucoup, avec pas mal de honte.",
+    "assistant": "C'est pesant de porter cette honte après avoir mis de côté ton engagement hier. Pour t'aider à rebondir, est-ce que tu préfères qu'on travaille à apaiser cette culpabilité pour repartir sur des bases saines, ou as-tu surtout besoin de retrouver un peu de douceur et de bienveillance envers toi-même ? ✨",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "orientation_clarification_resolved_tool_skill",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_clarifying",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": null,
+      "runtime_trace": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_clarifying",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    },
+    "trace_id": "qa-state-potion-guerison-global-20260608-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux surtout apaiser la culpabilité et repartir proprement, donc plutôt une potion de guérison.",
+    "assistant": "La Potion de guérison est tout à fait adaptée pour transformer cette culpabilité en un nouveau départ. Pour bien cibler le soin, est-ce que tu pourrais m'en dire un peu plus sur ce qui s'est passé hier ou sur la nature de cet engagement ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.guerison",
+    "route_reason": "active_select_state_potion_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.guerison",
+      "reason_code": "guerison_field_needs_more_detail",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.guerison",
+          "event": "active_guerison_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "clarifying"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.guerison",
+          "flow_action": "answer_current_field",
+          "confidence": "high",
+          "selected_potion": "guerison",
+          "current_field_id": "recent_hurt",
+          "visible_task": "ask_deeper",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.guerison",
+          "status": "clarifying",
+          "reason_code": "guerison_field_needs_more_detail",
+          "visible_task": "ask_deeper",
+          "current_field_id": "recent_hurt",
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "ask_deeper",
+          "handoff_status": "clarifying"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "guerison_field_needs_more_detail",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    },
+    "trace_id": "qa-state-potion-guerison-global-20260608-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. Depuis je ressens surtout de la honte.",
+    "assistant": "C'est tout à fait humain de se sentir vidé après une longue journée, et cette Potion de guérison va t'aider à apaiser cette honte pour repartir plus sereinement. Tu peux la retrouver dans la section État / Potions de la plateforme en utilisant ces précisions :\n\nQu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.\n\nTu ressens surtout quoi ? De la culpabilite 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.guerison",
+    "route_reason": "active_guerison_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.guerison",
+      "reason_code": "guerison_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": [
+          "no_safety_issue",
+          "shame_guilt_supported"
+        ]
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.guerison",
+          "event": "active_guerison_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "clarifying"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.guerison",
+          "flow_action": "answer_current_field",
+          "confidence": "high",
+          "selected_potion": "guerison",
+          "current_field_id": "recent_hurt",
+          "visible_task": "handoff_ready",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": [
+              "no_safety_issue",
+              "shame_guilt_supported"
+            ]
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.guerison",
+          "status": "handoff_delivered",
+          "reason_code": "guerison_handoff_delivered",
+          "visible_task": "handoff_ready",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "handoff_ready",
+          "handoff_status": "handoff_delivered"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "guerison_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+          "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+          "recommendation": {
+            "potion_label": "Potion de guérison",
+            "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion de guérison"
+            ],
+            "platform_inputs": {
+              "potion_type": "guerison",
+              "potion_title": "Potion de guérison",
+              "answers": [
+                {
+                  "question_id": "recent_hurt",
+                  "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                  "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "dominant_feeling",
+                  "question_label": "Tu ressens surtout quoi ?",
+                  "value": "De la culpabilite",
+                  "option_value": "culpabilite",
+                  "option_label": "De la culpabilite"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-guerison-global-20260608-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Redis-moi juste quoi mettre dans la plateforme.",
+    "assistant": "Bien sûr, voici les éléments à reporter dans la section État / Potions pour ta Potion de guérison :\n\nPour la question « Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? », tu peux écrire : J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.\n\nEt pour « Tu ressens surtout quoi ? », choisis : De la culpabilite.\n\nC'est ce qui permettra à la potion de bien cibler ce que tu traverses pour t'aider à repartir sereinement. ✨",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.guerison",
+    "route_reason": "active_guerison_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.guerison",
+      "reason_code": "guerison_repeat_handoff",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "repeat_handoff",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.guerison",
+          "event": "active_guerison_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "handoff_delivered"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.guerison",
+          "flow_action": "repeat_handoff",
+          "confidence": "high",
+          "selected_potion": "guerison",
+          "current_field_id": null,
+          "visible_task": "repeat_handoff",
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.guerison",
+          "status": "repeat_handoff",
+          "reason_code": "guerison_repeat_handoff",
+          "visible_task": "repeat_handoff",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "repeat_handoff",
+          "handoff_status": "repeat_handoff"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "guerison_repeat_handoff",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+          "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+          "recommendation": {
+            "potion_label": "Potion de guérison",
+            "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion de guérison"
+            ],
+            "platform_inputs": {
+              "potion_type": "guerison",
+              "potion_title": "Potion de guérison",
+              "answers": [
+                {
+                  "question_id": "recent_hurt",
+                  "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                  "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "dominant_feeling",
+                  "question_label": "Tu ressens surtout quoi ?",
+                  "value": "De la culpabilite",
+                  "option_value": "culpabilite",
+                  "option_label": "De la culpabilite"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-guerison-global-20260608-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-state-potion-guerison-global-20260608-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ok active-la.",
+    "assistant": "Je ne peux pas lancer la potion directement depuis notre discussion, mais tu peux le faire en un instant dans la section État / Potions de la plateforme. Il te suffit de sélectionner la Potion de guérison et d'y copier ces éléments :\n\nPour « Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? » : J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.\n\nPour « Tu ressens surtout quoi ? » : De la culpabilite.\n\nC'est ce qui permettra à la potion d'agir au mieux pour t'aider à apaiser cette honte et repartir sereinement. ✨",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.guerison",
+    "route_reason": "active_guerison_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.guerison",
+      "reason_code": "guerison_apply_attempt_no_chat_execution",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "apply_attempt",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.guerison",
+          "event": "active_guerison_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "repeat_handoff"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.guerison",
+          "flow_action": "apply_attempt",
+          "confidence": "high",
+          "selected_potion": "guerison",
+          "current_field_id": null,
+          "visible_task": "apply_attempt",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.guerison",
+          "status": "apply_attempt",
+          "reason_code": "guerison_apply_attempt_no_chat_execution",
+          "visible_task": "apply_attempt",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "apply_attempt",
+          "handoff_status": "apply_attempt"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "guerison_apply_attempt_no_chat_execution",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber. ; De la culpabilite",
+          "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+          "recommendation": {
+            "potion_label": "Potion de guérison",
+            "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion de guérison"
+            ],
+            "platform_inputs": {
+              "potion_type": "guerison",
+              "potion_title": "Potion de guérison",
+              "answers": [
+                {
+                  "question_id": "recent_hurt",
+                  "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                  "value": "J'avais promis de faire une séance de sport après le travail, mais je suis rentré vidé et j'ai tout laissé tomber.",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "dominant_feeling",
+                  "question_label": "Tu ressens surtout quoi ?",
+                  "value": "De la culpabilite",
+                  "option_value": "culpabilite",
+                  "option_label": "De la culpabilite"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-guerison-global-20260608-r1-t05",
+    "trace_error": null
+  }
+]

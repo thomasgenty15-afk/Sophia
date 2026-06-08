@@ -10,7 +10,7 @@ const PRODUCTION_FILES_WITHOUT_VISIBLE_PROSE_TEMPLATES = [
   "supabase/functions/sophia-brain/tools/operations/select_state_potion/policy.ts",
   "supabase/functions/sophia-brain/tools/operations/select_state_potion/renderer.ts",
   "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/clarte_flow.ts",
-  "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/potion_detail_intake.ts",
+  "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts",
 ];
 
 const FORBIDDEN_LEGACY_VISIBLE_SNIPPETS = [
@@ -33,6 +33,7 @@ const PRODUCTION_FILES_WITHOUT_REGEX_OR_LEGACY_POLICY = [
   "supabase/functions/sophia-brain/tools/operations/select_state_potion/handoff.ts",
   "supabase/functions/sophia-brain/tools/operations/select_state_potion/generator.ts",
   "supabase/functions/sophia-brain/tools/operations/select_state_potion/policy.ts",
+  "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts",
 ];
 
 const FORBIDDEN_RUNTIME_CODE_SNIPPETS = [
@@ -77,6 +78,28 @@ Deno.test("select_state_potion architecture: runtime has no regex business gates
   for (const file of PRODUCTION_FILES_WITHOUT_REGEX_OR_LEGACY_POLICY) {
     const source = await Deno.readTextFile(file);
     for (const snippet of FORBIDDEN_RUNTIME_CODE_SNIPPETS) {
+      if (source.includes(snippet)) offenders.push(`${file}: ${snippet}`);
+    }
+  }
+  assertEquals(offenders, []);
+});
+
+Deno.test("select_state_potion architecture: legacy detail intake is not reachable from runtime", async () => {
+  const runtimeFiles = [
+    "supabase/functions/sophia-brain/tools/operations/select_state_potion/intake.ts",
+    "supabase/functions/sophia-brain/tools/operations/select_state_potion/handoff.ts",
+    "supabase/functions/sophia-brain/router/run.ts",
+  ];
+  const offenders: string[] = [];
+  for (const file of runtimeFiles) {
+    const source = await Deno.readTextFile(file);
+    for (
+      const snippet of [
+        "fillPotionDetailSlotsWithAi",
+        "select_state_potion.detail_intake",
+        "./subskills/potion_detail_intake.ts",
+      ]
+    ) {
       if (source.includes(snippet)) offenders.push(`${file}: ${snippet}`);
     }
   }

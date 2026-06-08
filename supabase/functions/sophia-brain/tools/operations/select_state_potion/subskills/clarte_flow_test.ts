@@ -44,6 +44,12 @@ function decision(
         platform_destination: "section État / Potions",
       },
     },
+    subskill_call: overrides.subskill_call ?? {
+      needed: false,
+      skill_id: null,
+      reason: null,
+      context_for_subskill: {},
+    },
     exit_memo: overrides.exit_memo ?? {
       needed: false,
       reason: "none",
@@ -238,4 +244,83 @@ Deno.test("clarte reducer exposes local safety risk assessment", () => {
   assertEquals(reduced.exit_to_global_dispatcher, false);
   assertEquals(reduced.risk_assessment.risk_score, 9);
   assertEquals(reduced.risk_assessment.safety_preempt, true);
+});
+
+Deno.test("clarte reducer routes product help inline with local context", () => {
+  const reduced = reduceClarteDispatcherOutput({
+    previous: createInitialClarteState(null),
+    decision: decision({
+      flow_action: "get_info_product",
+      visible_task: {
+        kind: "none",
+        required_data: {
+          potion_name: "Potion de clarté",
+          field_label:
+            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+          field_value: null,
+          platform_destination: "section État / Potions",
+        },
+      },
+      subskill_call: {
+        needed: true,
+        skill_id: "product_help",
+        reason: "Le user demande comment fonctionne la Potion de clarté.",
+        context_for_subskill: {
+          active_flow: "select_state_potion.clarte",
+          question_to_answer:
+            "Expliquer la Potion de clarté sans quitter le sous-flow actif.",
+          active_flow_context: {
+            selected_potion: "clarte",
+            field_state: { status: "missing" },
+          },
+        },
+      },
+    }),
+  });
+
+  assertEquals(reduced.get_info_product, true);
+  assertEquals(reduced.get_info_db, false);
+  assertEquals(reduced.visible_task, "none");
+  assertEquals(reduced.status, "collecting");
+  assertEquals(reduced.clarte_state?.last_visible_task, "none");
+  assertEquals(reduced.subskill_context?.active_flow, "select_state_potion.clarte");
+});
+
+Deno.test("clarte reducer routes status recap inline with local context", () => {
+  const reduced = reduceClarteDispatcherOutput({
+    previous: createInitialClarteState(null),
+    decision: decision({
+      flow_action: "get_info_db",
+      visible_task: {
+        kind: "none",
+        required_data: {
+          potion_name: "Potion de clarté",
+          field_label:
+            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+          field_value: null,
+          platform_destination: "section État / Potions",
+        },
+      },
+      subskill_call: {
+        needed: true,
+        skill_id: "status_recap",
+        reason: "Le user demande quelles potions existent deja.",
+        context_for_subskill: {
+          active_flow: "select_state_potion.clarte",
+          question_to_answer:
+            "Lister les potions existantes utiles au contexte clarté.",
+          active_flow_context: {
+            selected_potion: "clarte",
+            field_state: { status: "missing" },
+          },
+        },
+      },
+    }),
+  });
+
+  assertEquals(reduced.get_info_product, false);
+  assertEquals(reduced.get_info_db, true);
+  assertEquals(reduced.visible_task, "none");
+  assertEquals(reduced.status, "collecting");
+  assertEquals(reduced.subskill_context?.active_flow, "select_state_potion.clarte");
 });

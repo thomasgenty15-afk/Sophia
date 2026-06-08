@@ -47,6 +47,185 @@ export type RecurringReminderHandoffStatus =
   | "topic_change"
   | "blocked";
 
+export type CreateRecurringReminderLocalFlowAction =
+  | "answer_or_update_slots"
+  | "ask_recurrence"
+  | "ask_time"
+  | "ask_content"
+  | "ask_destination_binding"
+  | "clarify_one_shot_vs_recurring"
+  | "handoff_ready"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "platform_destination_followup"
+  | "apply_attempt"
+  | "handoff_to_one_shot"
+  | "get_info_product"
+  | "get_info_db"
+  | "stop_local_no_handoff"
+  | "cancel_flow"
+  | "exit_to_global_dispatcher"
+  | "safety_preempt";
+
+export type CreateRecurringReminderVisibleTaskKind =
+  | "ask_recurrence"
+  | "ask_time"
+  | "ask_content"
+  | "ask_destination_binding"
+  | "clarify_one_shot_vs_recurring"
+  | "handoff_ready"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "platform_destination_followup"
+  | "apply_attempt"
+  | "handoff_to_one_shot"
+  | "stop_or_cancel"
+  | "exit_ack"
+  | "safety";
+
+export type CreateRecurringReminderNoteInformation = {
+  needed: boolean;
+  source_flow_id: "create_recurring_reminder";
+  source_flow_presentation: string;
+  handoff_reason:
+    | "topic_change"
+    | "safety"
+    | "inline_tool"
+    | "one_shot_boundary"
+    | "flow_interruption"
+    | "none";
+  target_dispatcher:
+    | "global"
+    | "safety_crisis"
+    | "one_shot_reminder"
+    | "product_help"
+    | "status_recap"
+    | null;
+  handoff_context_for_next_dispatcher: string | null;
+  target_local_dispatcher_hint: string | null;
+  structured_context: Record<string, unknown>;
+};
+
+export type CreateRecurringReminderFieldStatus =
+  | "missing"
+  | "ambiguous"
+  | "identified";
+
+export type CreateRecurringReminderLocalFields = {
+  recurrence: {
+    status: CreateRecurringReminderFieldStatus;
+    frequency:
+      | "daily"
+      | "weekly"
+      | "specific_days"
+      | "weekdays"
+      | "custom"
+      | null;
+    days: string[];
+    time: string | null;
+    timezone: string | null;
+    cadence_label: string | null;
+    confidence: "low" | "medium" | "high";
+    evidence: string[];
+  };
+  reminder_content: {
+    status: CreateRecurringReminderFieldStatus;
+    message: string | null;
+    subject_hint: string | null;
+    confidence: "low" | "medium" | "high";
+    evidence: string[];
+  };
+  destination: {
+    status: CreateRecurringReminderFieldStatus;
+    value: "base_de_vie" | "current_plan" | null;
+    related_plan_item_id: string | null;
+    target_kind: "none" | "transformation" | "plan_item" | "action_family" | null;
+    target_plan_item_id: string | null;
+    target_action_family_key: string | null;
+    target_generated_temp_id: string | null;
+    target_binding_policy:
+      | "none"
+      | "snapshot"
+      | "live_action"
+      | "live_action_family"
+      | null;
+    target_lifecycle_policy:
+      | "independent"
+      | "while_target_active"
+      | "while_family_in_current_plan"
+      | null;
+    target_label: string | null;
+    confidence: "low" | "medium" | "high";
+    evidence: string[];
+  };
+};
+
+export type CreateRecurringReminderVisibleTask = {
+  kind: CreateRecurringReminderVisibleTaskKind;
+  required_data: {
+    recurring_summary: string;
+    cadence_summary: string | null;
+    time_summary: string | null;
+    content_summary: string | null;
+    platform_destination: string | null;
+    missing_field: string | null;
+    revised_value_summary: string | null;
+  };
+};
+
+export type CreateRecurringReminderLocalDispatcherOutput = {
+  flow_action: CreateRecurringReminderLocalFlowAction;
+  confidence: "low" | "medium" | "high";
+  risk_score: number;
+  recurring_state: {
+    phase:
+      | "intake"
+      | "recurrence_resolution"
+      | "content_intake"
+      | "destination_binding"
+      | "handoff_ready"
+      | "handoff_delivered"
+      | "revision"
+      | "inline_tool"
+      | "exit";
+    user_intent: CreateRecurringReminderUserIntent;
+    summary: string;
+    user_words: string[];
+    one_shot_conflict: "none" | "ambiguous" | "clear_one_shot";
+    minimum_fields_ready: boolean;
+  };
+  fields: CreateRecurringReminderLocalFields;
+  missing_fields: Array<
+    "recurrence" | "time" | "message" | "destination" | "binding_boundary"
+  >;
+  handoff_draft: {
+    ready: boolean;
+    reminder_summary: string | null;
+    cadence_summary: string | null;
+    time_summary: string | null;
+    content_summary: string | null;
+    platform_destination: string | null;
+    preserve: string[];
+    avoid: string[];
+  };
+  inline_tool: {
+    requested: boolean;
+    tool_name: "get_info_product" | "get_info_db" | null;
+    question_to_answer: string | null;
+    active_flow_context: string | null;
+  };
+  visible_task: CreateRecurringReminderVisibleTask;
+  note_information: CreateRecurringReminderNoteInformation;
+  no_chat_mutation: {
+    recurring_reminder_created: false;
+    db_write_committed: false;
+    scheduled_checkin_created: false;
+    potion_session_created: false;
+    executable_confirmation_generated: false;
+  };
+  evidence: string[];
+};
+
 export type RecurringReminderHandoffDraft = {
   operation_type: "create_recurring_reminder";
   mode: "platform_handoff";
@@ -70,6 +249,9 @@ export type RecurringReminderHandoffState = {
   mode: "platform_handoff";
   status: RecurringReminderHandoffStatus;
   draft?: RecurringReminderHandoffDraft | null;
+  fields?: CreateRecurringReminderLocalFields | null;
+  last_visible_task?: CreateRecurringReminderVisibleTask | null;
+  note_information?: CreateRecurringReminderNoteInformation | null;
   turn_count: number;
   max_turns: number;
   created_at: string;

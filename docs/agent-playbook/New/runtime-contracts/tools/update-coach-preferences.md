@@ -2,285 +2,202 @@
 
 ## Mental Model
 
-`update_coach_preferences` est désormais un `platform_handoff_skill`.
+`update_coach_preferences` est un write-skill local léger.
 
-Il comprend une demande de préférence coach, clarifie si elle est durable ou
-ponctuelle, vérifie si elle correspond aux réglages visibles supportés, prépare
-une recommandation de réglage et redirige vers les Préférences coach de la
-plateforme.
-
-Il ne crée plus de préférence durable depuis le chat.
+Les préférences coach supportées sont simples, fermées et déjà lues par le
+runtime. Quand la demande utilisateur est claire, durable, supportée et non
+bloquée par safety/risk, le chat peut écrire directement dans
+`user_profile_facts`.
 
 Forme cible :
 
 ```txt
-preference intent
--> clarification durable vs ponctuel si besoin
--> preference handoff draft / preview
--> handoff plateforme
--> renderer no-mutation
+message user
+-> update_coach_preferences.local_dispatcher
+-> reducer / validator
+-> writer DB si update locked
+-> prompt visible stage-specific
+-> réponse visible
 ```
 
-## Dépend De L'Architecture De X
+Pendant un flow local actif, le dispatcher global ne tourne pas. Il reprend la
+main uniquement si le dispatcher local retourne explicitement
+`exit_to_global_dispatcher`.
 
-Ce domaine dépend de :
+Pendant ce flow actif, certaines questions inline restent dans le flow local :
 
-- `UserTurnSnapshot` / `TurnFrame` / `RouteDecision` pour détecter l'opportunité
-  préférence sans parser les valeurs dans `run.ts` ;
-- `TurnAgenda` pour représenter `update_coach_preferences` comme
-  `platform_handoff`, pas comme effet durable ;
-- `clarification_tool` pour durable vs ponctuel, réglage supporté vs non
-  supporté, ou préférence vs aide produit ;
-- `Active Handoff Arbitration` pour continuer un handoff actif ;
-- `Product Surface Registry` pour fournir la destination canonique
-  `coach_preferences` ;
-- `EffectLedger` pour tracer le handoff non-mutant ;
-- `status.ts` et `runtime_policy.ts` pour les lectures read-only des préférences
-  existantes.
+- une question sur les préférences coach actives appelle `status_recap` comme
+  sub-skill read-only DB-grounded ;
+- une question d'explication produit sur les réglages coach appelle
+  `product_help` comme sub-skill non-mutant ;
+- après la réponse du sub-skill, `update_coach_preferences` reste owner du
+  flow et conserve son état local.
 
 ## Scope Produit
 
-Les seuls réglages durables supportés sont les réglages visibles dans le front :
+Les seules clés durables supportées sont :
 
-- `coach.tone`
-- `coach.challenge_level`
-- `coach.question_tendency`
+- `coach.tone`: `soft`, `warm_direct`, `direct`
+- `coach.challenge_level`: `low`, `balanced`, `high`
+- `coach.question_tendency`: `low`, `normal`, `high`
 
-Les demandes hors de ces réglages, par exemple longueur exacte, emoji, question
-finale, ordre action-avant-question ou règle conditionnelle cachée, ne sont pas
-stockées depuis le chat. Le skill peut les expliquer, les classer comme demande
-ponctuelle ou proposer un mapping partiel honnête vers les trois réglages.
+Les demandes hors de ces réglages ne sont pas stockées durablement depuis ce
+skill : longueur exacte, emoji, jamais de question finale, ordre
+action-avant-question, format de réponse, règle conditionnelle cachée ou style
+trop spécifique.
+
+Ces demandes doivent être traitées comme consigne ponctuelle, expliquées comme
+non supportées, ou proposées comme mapping partiel vers un réglage supporté avec
+confirmation explicite.
 
 ## Runtime Shape
 
 ```txt
 router/run.ts
-  -> operation_runtime_pipeline.ts
+  -> si __coach_preference_flow_state_v1 actif: skip dispatcher global
   -> maybeRunUpdateCoachPreferencesOperation
-  -> state.ts: load active handoff/intake
-  -> intake.ts + slot_filler.ts: structured understanding
-  -> generator.ts: CoachPreferenceHandoffDraft
-  -> state.ts: writeCoachPreferenceHandoffState
-  -> renderer.ts: render handoff/no-mutation reply
+  -> local_flow.ts: dispatcher local + reducer
+  -> status.ts: writer borné user_profile_facts
+  -> visible_agent.ts: message visible stage-specific
 ```
 
 Chemins read-only séparés :
 
 ```txt
 status question
-  -> status.ts: buildCoachPreferencesStatusReply
+  -> status_recap sub-skill inline, focus coach_preferences
 
 runtime composer constraints
   -> runtime_policy.ts: loadCoachPreferenceRuntimePolicy
+
+product explanation question
+  -> product_help sub-skill inline, origin_flow update_coach_preferences
 ```
 
-`status.ts` et `runtime_policy.ts` peuvent continuer à lire les préférences
-existantes en DB. Le flow chat ne doit pas écrire `user_profile_facts`.
+Le legacy `__coach_preference_handoff_state_v1` peut être lu pour migration
+douce, mais ne pilote plus le chemin nominal.
 
-## File Ownership
+## Dispatcher Local
 
-- `tools/operations/update_coach_preferences/contract.ts` possède les types
-  stables, le draft handoff et les statuts.
-- `tools/operations/update_coach_preferences/intake.ts` et `slot_filler.ts`
-  possèdent la compréhension structurée.
-- `tools/operations/update_coach_preferences/generator.ts` produit
-  `CoachPreferenceHandoffDraft`.
-- `tools/operations/update_coach_preferences/state.ts` possède l'état actif
-  handoff et les clés tempMemory legacy.
-- `tools/operations/update_coach_preferences/router.ts` possède la façade
-  runtime et l'adapter `OperationRuntimeResult`.
-- `tools/operations/update_coach_preferences/renderer.ts` possède le wording
-  no-mutation.
-- `tools/operations/update_coach_preferences/status.ts` lit les préférences
-  existantes.
-- `tools/operations/update_coach_preferences/runtime_policy.ts` traduit les
-  préférences existantes en contraintes composer.
-- `executor.ts`, token et writer legacy sont hors chemin nominal.
+Le dispatcher local retourne uniquement un JSON strict. Il reçoit :
 
-## Inputs
+- message utilisateur courant ;
+- état local actif ;
+- préférences actuelles connues ;
+- mappings supportés ;
+- proposition précédente éventuelle ;
+- risk band safety.
 
-- Message utilisateur courant.
-- `TurnFrame` et `RouteDecision`.
-- `tempMemory` avec handoff actif éventuel.
-- Préférences courantes supportées, en lecture seulement.
-- Contexte produit des préférences visibles.
-- Résultat de clarification éventuel.
+Il distingue durable clair, ponctuel, ambigu, supporté, non supporté, mapping
+partiel, confirmation, révision, status, explication produit, cancel, topic
+change et safety.
 
-## Outputs
+Le dispatcher peut proposer une update. Le reducer est le seul composant qui
+valide si cette update est structurellement writeable.
 
-Le résultat nominal contient :
+Pour `status_question` et `explain_preferences`, le dispatcher local ne répond
+pas lui-même :
 
-- `toolExecution="platform_handoff"`
-- `executedTools=[]`
-- `requested_effects=[]`
-- `allowed_effects=[]`
-- `committed_effects=[]`
-- `pending_confirmation=null`
-- `platform_handoff.operation_type="update_coach_preferences"`
-- `platform_handoff.no_chat_mutation=true`
+- `status_question` route vers `visible_task.kind=get_info_db`, puis le runtime
+  appelle `status_recap` inline avec focus préférences coach ;
+- `explain_preferences` route vers `visible_task.kind=get_info_product`, puis
+  le runtime appelle `product_help` inline avec le contexte du flow ;
+- ces sub-skills ne deviennent jamais owner final et ne clearent pas l'état
+  `__coach_preference_flow_state_v1`.
 
-Le draft canonique est `CoachPreferenceHandoffDraft` :
+## Reducer / Validator
 
-- `mode="platform_handoff"`
-- `no_chat_mutation=true`
-- `executable_from_chat=false`
-- résumé de la demande utilisateur
-- classification durable supportée / durable non supportée / ponctuelle /
-  ambiguë
-- réglages supportés recommandés
-- parties non supportées éventuelles
-- destination plateforme et étapes sobres
-- décisions manquantes éventuelles
+Le reducer peut seulement faire des checks déterministes de contrat :
+
+- JSON et enums ;
+- clé supportée ;
+- valeur supportée pour la clé ;
+- statut `locked` requis pour écrire ;
+- pas de doublon ;
+- `confidence !== low` ;
+- `risk_score` sous seuil ;
+- `preference_intent.kind === durable_supported` ;
+- `durability === durable` ;
+- `support_status === supported` ;
+- commit DB requis avant claim visible de succès.
+
+Le reducer ne parse jamais le message utilisateur et ne mappe jamais des mots
+vers des préférences.
+
+## Writer DB
+
+Le writer écrit uniquement dans `user_profile_facts` avec le pattern existant :
+
+- `user_id`
+- `scope = global`
+- `key`
+- `value.value`
+- `status = active`
+- `source_type = explicit_user`
+- `last_source_message_id`
+- `updated_at`
+- `last_confirmed_at`
+
+L’upsert est borné à `(user_id, scope, key)`. Si le write échoue, aucun succès
+visible durable ne peut être rendu.
+
+## Runtime Effects
+
+Après commit DB réel :
+
+- `toolExecution = "success"`
+- `executedTools = ["update_coach_preferences"]`
+- `committed_effects` contient `type = update_coach_preferences`,
+  `preference_keys` et `preferences_update_ids` si disponibles.
+
+Sans commit :
+
+- `executedTools = []`
+- `committed_effects = []`
+- pas de platform handoff nominal ;
+- pas de pending confirmation ;
+- pas de confirmation token ;
+- pas de phrase visible de succès durable.
+
+## Visible Prompts
+
+Les messages visibles sont produits par `visible_agent.ts` avec des stages :
+
+- `preference_saved`
+- `ask_durable_vs_punctual`
+- `ask_setting_or_value`
+- `confirm_supported_mapping`
+- `punctual_instruction_ack`
+- `unsupported_preference`
+- `get_info_db`
+- `get_info_product`
+- `repeat_saved_preferences`
+- `write_failed_or_blocked`
+- `exit_or_cancel`
+- `safety`
+
+L’agent visible ne décide jamais de champ, de valeur, de mapping ou de write.
+
+Exception de rendu :
+
+- `get_info_db` peut être rendu par `status_recap` quand il s'agit de lire les
+  préférences coach actives pendant le flow ;
+- `get_info_product` peut être rendu par `product_help` quand le user demande
+  à quoi correspondent les réglages ;
+- dans les deux cas, `toolExecution="none"`, `executedTools=[]`,
+  `committed_effects=[]` et `update_coach_preferences` reste le flow actif.
 
 ## Invariants
 
-- Les seules clés durables supportées sont `coach.tone`,
-  `coach.challenge_level`, `coach.question_tendency`.
-- Aucune préférence durable n'est créée/modifiée depuis le chat.
+- Écriture DB uniquement pour préférence claire, durable, supportée, locked.
+- Aucune écriture pour ponctuel, ambigu, unsupported, safety/risk bloqué.
+- Pas de dispatcher global pendant un flow local actif.
+- Pas de renderer déterministe dans le chemin nominal.
+- Pas de regex métier ni `message.includes(...)` métier dans le chemin nominal.
 - Pas de pending confirmation exécutable.
-- Pas de confirmation token.
-- Pas de writer `user_profile_facts`.
-- Pas de `executedTools=["update_coach_preferences"]`.
-- `committed_effects=[]` sur toutes les branches handoff.
-- `apply_attempt` est non-mutant.
-- Les préférences existantes peuvent être lues pour status/runtime policy, mais
-  pas modifiées par ce flow.
-- Les demandes hors réglages visibles sont expliquées ou transformées en
-  recommandation partielle, jamais stockées comme règle cachée.
-
-## Router
-
-Le router gère :
-
-- `start_handoff`
-- `clarify_durable_vs_punctual`
-- `produce_handoff`
-- `revise_handoff`
-- `repeat_handoff`
-- `apply_attempt`
-- `punctual_instruction`
-- `unsupported_preference`
-- `cancel`
-- `topic_change`
-
-Pendant un handoff actif, ces messages restent dans le skill sauf intention
-concurrente claire :
-
-- "plutôt plus doux"
-- "moins de questions"
-- "redis-moi quoi changer"
-- "ok applique"
-- "juste pour cette réponse"
-
-`apply_attempt` ne doit jamais exécuter. Réponse attendue :
-
-```txt
-Je ne peux pas l’appliquer directement depuis ce chat. Le réglage est prêt :
-<réglage recommandé>. Il ne reste qu’à aller dans les Préférences coach pour
-le mettre à jour.
-```
-
-## Renderer
-
-Le renderer doit inclure ces informations, mais pas sous forme de fiche
-déterministe à libellés fixes. Il doit parler naturellement à l’utilisateur.
-
-1. ce que l’utilisateur veut changer ;
-2. durable ou ponctuel ;
-3. réglage supporté recommandé ;
-4. parties non supportées éventuelles ;
-5. destination plateforme ;
-6. no-mutation formulé naturellement.
-
-Formulation attendue pour la clôture :
-
-```txt
-Il ne reste qu’à aller dans les Préférences coach pour le mettre à jour.
-```
-
-Éviter les sorties en style formulaire comme :
-
-```txt
-Ce que je comprends :
-Durable ou ponctuel :
-Réglage supporté recommandé :
-Destination plateforme :
-Je ne modifie pas tes préférences depuis le chat.
-```
-
-Wording interdit dans ce flow :
-
-- "préférence enregistrée"
-- "je le garde"
-- "c’est modifié"
-- "je l’ai appliqué"
-- tout succès durable sans mutation produit.
-
-## Forbidden Runtime Paths
-
-Le chemin nominal ne doit plus appeler :
-
-- `executeUpdateCoachPreferences`
-- `createConfirmationToken`
-- `upsertCoachPreferencesFromDraft`
-- `writeCoachPreferencePendingConfirmation`
-
-Aucun pending confirmation exécutable, aucun token d’exécution, aucun writer
-`user_profile_facts` et aucun `committed_effects` ne doivent être produits par
-ce flow.
-
-## Integration Points
-
-- `router/handoff_flow_arbitration.ts` protège repeat/revise/apply active.
-- `product_surface_registry` fournit la destination `coach_preferences`.
-- `clarification_tool` clarifie durable vs ponctuel si nécessaire.
-- `EffectLedger` trace `platform_handoff.update_coach_preferences`.
-- `status_recap` ou product help peuvent lire les préférences existantes sans
-  mutation.
-
-## Allowed Changes
-
-- Ajouter un réglage durable seulement s'il existe dans le front et dans le
-  registry produit des préférences.
-- Améliorer l'intake IA structuré sans ajouter de regex métier.
-- Améliorer le renderer si la phrase no-mutation reste obligatoire.
-- Extraire le reducer local si les transitions handoff restent identiques.
-
-## Forbidden Changes
-
-- Réintroduire des préférences durables cachées pour emoji, longueur, question
-  finale, action-first ou règles conditionnelles.
-- Écrire directement dans `user_profile_facts` depuis ce flow.
-- Mettre `executedTools` à `update_coach_preferences`.
-- Dire "c'est appliqué/enregistré/modifié" depuis ce flow.
-- Ajouter une regex métier dans `run.ts` pour décoder une préférence.
-- Transformer `ok applique` en execution.
-
-## Legacy Exceptions
-
-- Les chemins historiques d'executor/writer peuvent rester dans le repo pour
-  référence ou migration, mais ils sont hors chemin nominal V1.
-- `runtime_policy.ts` reste read-only et peut continuer à influencer le style à
-  partir des préférences déjà enregistrées.
-- `status.ts` peut continuer à lire les anciennes préférences supportées.
-
-## Required Tests
-
-- handoff renderer complet ;
-- aucun token ou pending confirmation ;
-- aucun appel executor ;
-- aucun write `user_profile_facts` ;
-- `apply_attempt` non-mutant ;
-- `repeat_handoff` répète le réglage recommandé ;
-- `revise_handoff` met à jour la recommandation ;
-- contrainte ponctuelle sans handoff durable inutile ;
-- préférence non supportée expliquée sans write ;
-- status des préférences existantes read-only ;
-- runtime policy lit toujours les préférences existantes.
-
-## Suivi Des Décisions Architecturales
-
-| Date       | Décision                                                                                                                                    | Statut                    | Référence               |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ----------------------- |
-| 2026-05-30 | `update_coach_preferences` ne persiste que les préférences UI visibles (`tone`, `challenge_level`, `question_tendency`).                    | Active pour la plateforme | J45                     |
-| 2026-06-01 | `update_coach_preferences` devient un handoff plateforme no-mutation; le chat prépare une recommandation mais n'écrit plus les préférences. | Active                    | Architecture handoff V1 |
+- Pas de platform handoff sur le chemin nominal write.
+- Les claims visibles de succès dépendent d’un commit DB réel.
+- Les préférences écrites sont relues par `runtime_policy.ts`.
+- Les questions inline de status/produit pendant le flow passent par
+  `status_recap` / `product_help` comme sub-skills, sans relancer le dispatcher
+  global.

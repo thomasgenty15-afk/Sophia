@@ -1,0 +1,88 @@
+[
+  {
+    "turn": 5,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-local-rerun-r4-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ok vas-y crée-la.",
+    "assistant": "Je ne peux pas créer la carte directement pour toi d'ici, mais tu peux l'ajouter en un instant dans Ressources / Défense / Cartes de défense libres. Il te suffit de copier cette formulation dans le champ Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? :\n\nquand je rentre vidé après le travail, j’ai besoin d’aide à ne pas commander compulsivement. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "active_prepare_defense_card_local_dispatcher",
+    "tool_skill_intents": [],
+    "tool_skill_opportunity": {
+      "type": "none",
+      "operation_type": null,
+      "surface_id": null,
+      "confidence_band": "low",
+      "should_offer": false,
+      "prop_reason": null,
+      "source_span": null,
+      "target_hint": null,
+      "target_status": "none",
+      "suggested_question_intent": null,
+      "offer_timing": "never",
+      "must_not_execute": true
+    },
+    "operation_status": null,
+    "operation_reason": null,
+    "local_dispatcher": null,
+    "ai_call_count": null,
+    "executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "direct_effects": []
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-defense-local-rerun-r4-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Finalement je veux plutôt une carte d’attaque pour démarrer mon dossier demain matin.",
+    "assistant": "C'est entendu pour le dossier demain matin. Quel est l'obstacle principal ou le piège qui risque de t'empêcher de t'y mettre au moment voulu ? 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "tool_skill_intents": [
+      {
+        "operation_type": "prepare_attack_card",
+        "explicitness": "explicit",
+        "target_hint": "démarrer mon dossier demain matin",
+        "operation_input": {
+          "target_action_hint": {
+            "status": "identified",
+            "value": "démarrer mon dossier demain matin",
+            "confidence": "high",
+            "evidence": [
+              "je veux plutôt une carte d’attaque",
+              "pour démarrer mon dossier demain matin"
+            ]
+          }
+        },
+        "confidence_band": "high",
+        "ambiguity": "none",
+        "user_intent": "create"
+      }
+    ],
+    "tool_skill_opportunity": {
+      "type": "none",
+      "operation_type": null,
+      "surface_id": null,
+      "confidence_band": "low",
+      "should_offer": false,
+      "prop_reason": null,
+      "source_span": null,
+      "target_hint": null,
+      "target_status": "none",
+      "suggested_question_intent": null,
+      "offer_timing": "never",
+      "must_not_execute": true
+    },
+    "operation_status": null,
+    "operation_reason": null,
+    "local_dispatcher": null,
+    "ai_call_count": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "direct_effects": []
+  }
+]

@@ -1,0 +1,601 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-courage-global-20260608-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. Je dois envoyer un message important, mais je l'évite parce que j'ai peur de la réaction.",
+    "assistant": "Ah merde, je vois le piège : tu “dois” envoyer un message important, mais ta tête part direct sur “et si la réaction me détruisait ?” 😕 On va faire simple et efficace.\n\nPour la “potion”, je te propose un choix rapide (aucune magie, juste le bon levier) :\n1) Potion Apaisement : si ta peur te paralyse / te fait procrastiner.\n2) Potion Courage-Action : si tu sais quoi dire, mais tu bloques au moment d’appuyer “envoyer”.\n3) Potion Cadre & Message : si ton problème c’est plutôt la formulation (peur de mal dire / te faire attaquer).\n\nOption A) Tu sens que c’est surtout la peur qui t’englue (1)  \nOption B) Tu sens que c’est surtout le moment “envoi” et ton cerveau panique (2)  \nOption C) Tu sens que c’est surtout “je ne sais pas comment le dire” (3)  \n\nTu choisis A, B ou C ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "operation_flow_run": null,
+    "trace_id": "qa-state-potion-courage-global-20260608-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-state-potion-courage-global-20260608-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je choisis la potion de courage : je sais quoi dire, mais je bloque au moment d'envoyer.",
+    "assistant": "On part sur la Potion de courage alors, pour t'aider à franchir ce cap et enfin cliquer sur envoyer. Pour que ce soit vraiment efficace, ce message que tu évites, il est destiné à qui ou il porte sur quoi ? ✍️",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.courage",
+    "route_reason": "tool_skill_intent_start",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.courage",
+      "reason_code": "courage_field_needs_more_detail",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "low",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.courage",
+          "event": "active_courage_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": null
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.courage",
+          "flow_action": "answer_current_field",
+          "confidence": "high",
+          "selected_potion": "courage",
+          "current_field_id": "avoidance_target",
+          "visible_task": "ask_deeper",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "low",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.courage",
+          "status": "clarifying",
+          "reason_code": "courage_field_needs_more_detail",
+          "visible_task": "ask_deeper",
+          "current_field_id": "avoidance_target",
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "ask_deeper",
+          "handoff_status": "clarifying"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "courage_field_needs_more_detail",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    },
+    "trace_id": "qa-state-potion-courage-global-20260608-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-state-potion-courage-global-20260608-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "C'est à mon associé, pour lui dire que je ne pourrai pas tenir le délai annoncé et j'ai peur de sa réaction.",
+    "assistant": "Je comprends, c'est toujours délicat d'annoncer un retard, surtout quand on redoute la réaction en face. Ta Potion de courage est prête pour t'aider à franchir ce cap. Tu peux aller la chercher dans la section État / Potions. Voici les éléments que j'ai préparés pour toi :\n\nQu'est-ce que tu evites en ce moment ? : Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé\nQu'est-ce qui bloque le plus ? : La peur du resultat\n\nÇa va t'aider à envoyer ce message et à passer à autre chose. 💪",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.courage",
+    "route_reason": "active_courage_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.courage",
+      "reason_code": "courage_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "low",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.courage",
+          "event": "active_courage_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "clarifying"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.courage",
+          "flow_action": "answer_current_field",
+          "confidence": "high",
+          "selected_potion": "courage",
+          "current_field_id": "avoidance_target",
+          "visible_task": "handoff_ready",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "low",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.courage",
+          "status": "handoff_delivered",
+          "reason_code": "courage_handoff_delivered",
+          "visible_task": "handoff_ready",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "handoff_ready",
+          "handoff_status": "handoff_delivered"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "courage_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé ; La peur du resultat",
+          "desired_shift_summary": "faire un premier pas, tenir face a l'inconfort, sortir de l'evitement",
+          "recommendation": {
+            "potion_label": "Potion de courage",
+            "why_this_potion": "Quand la peur, l'apprehension ou l'evitement te bloquent, elle t'aide a avancer sans te brutaliser.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion de courage"
+            ],
+            "platform_inputs": {
+              "potion_type": "courage",
+              "potion_title": "Potion de courage",
+              "answers": [
+                {
+                  "question_id": "avoidance_target",
+                  "question_label": "Qu'est-ce que tu evites en ce moment ?",
+                  "value": "Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "blocker_kind",
+                  "question_label": "Qu'est-ce qui bloque le plus ?",
+                  "value": "La peur du resultat",
+                  "option_value": "resultat",
+                  "option_label": "La peur du resultat"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-courage-global-20260608-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-state-potion-courage-global-20260608-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Redis-moi juste quoi mettre dans la plateforme.",
+    "assistant": "Pas de souci, voici les infos à copier dans la section État / Potions pour ta Potion de courage :\n\nQu'est-ce que tu evites en ce moment ? : Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé\nQu'est-ce qui bloque le plus ? : La peur du resultat\n\nUne fois que c'est rempli, ça t'aidera à passer à l'action. Tu vas y arriver ! 💪",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.courage",
+    "route_reason": "active_courage_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.courage",
+      "reason_code": "courage_repeat_handoff",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "repeat_handoff",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.courage",
+          "event": "active_courage_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "handoff_delivered"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.courage",
+          "flow_action": "repeat_handoff",
+          "confidence": "high",
+          "selected_potion": "courage",
+          "current_field_id": null,
+          "visible_task": "repeat_handoff",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.courage",
+          "status": "repeat_handoff",
+          "reason_code": "courage_repeat_handoff",
+          "visible_task": "repeat_handoff",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "repeat_handoff",
+          "handoff_status": "repeat_handoff"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "courage_repeat_handoff",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé ; La peur du resultat",
+          "desired_shift_summary": "faire un premier pas, tenir face a l'inconfort, sortir de l'evitement",
+          "recommendation": {
+            "potion_label": "Potion de courage",
+            "why_this_potion": "Quand la peur, l'apprehension ou l'evitement te bloquent, elle t'aide a avancer sans te brutaliser.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion de courage"
+            ],
+            "platform_inputs": {
+              "potion_type": "courage",
+              "potion_title": "Potion de courage",
+              "answers": [
+                {
+                  "question_id": "avoidance_target",
+                  "question_label": "Qu'est-ce que tu evites en ce moment ?",
+                  "value": "Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "blocker_kind",
+                  "question_label": "Qu'est-ce qui bloque le plus ?",
+                  "value": "La peur du resultat",
+                  "option_value": "resultat",
+                  "option_label": "La peur du resultat"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-courage-global-20260608-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-state-potion-courage-global-20260608-r1-t05",
+    "status": 401,
+    "ok": null,
+    "user": "Ok active-la.",
+    "assistant": "",
+    "empty_response": true,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": null,
+    "operation_flow_run": null,
+    "trace_id": "qa-state-potion-courage-global-20260608-r1-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-state-potion-courage-global-20260608-r1-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Ok active-la.",
+    "assistant": "J'aimerais beaucoup pouvoir le faire pour toi, mais je ne peux pas lancer la potion directement depuis notre discussion. 😌 Pour l'activer, il faut que tu te rendes dans la section État / Potions de ton espace.\n\nUne fois là-bas, choisis la Potion de courage et reporte ces informations :\n\nQu'est-ce que tu evites en ce moment ? : Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé\nQu'est-ce qui bloque le plus ? : La peur du resultat\n\nC'est ce dernier petit coup de pouce qui va t'aider à envoyer ce message et à te libérer l'esprit. Tu as tout ce qu'il faut ! 💪",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.courage",
+    "route_reason": "active_courage_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.courage",
+      "reason_code": "courage_apply_attempt_no_chat_execution",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "apply_attempt",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 2,
+        "risk_band": "low",
+        "safety_preempt": false,
+        "reason_codes": [
+          "standard_work_stress"
+        ]
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.courage",
+          "event": "active_courage_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "repeat_handoff"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.courage",
+          "flow_action": "apply_attempt",
+          "confidence": "high",
+          "selected_potion": "courage",
+          "current_field_id": null,
+          "visible_task": "apply_attempt",
+          "risk_assessment": {
+            "risk_score": 2,
+            "risk_band": "low",
+            "safety_preempt": false,
+            "reason_codes": [
+              "standard_work_stress"
+            ]
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.courage",
+          "status": "apply_attempt",
+          "reason_code": "courage_apply_attempt_no_chat_execution",
+          "visible_task": "apply_attempt",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "apply_attempt",
+          "handoff_status": "apply_attempt"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "courage_apply_attempt_no_chat_execution",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé ; La peur du resultat",
+          "desired_shift_summary": "faire un premier pas, tenir face a l'inconfort, sortir de l'evitement",
+          "recommendation": {
+            "potion_label": "Potion de courage",
+            "why_this_potion": "Quand la peur, l'apprehension ou l'evitement te bloquent, elle t'aide a avancer sans te brutaliser.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion de courage"
+            ],
+            "platform_inputs": {
+              "potion_type": "courage",
+              "potion_title": "Potion de courage",
+              "answers": [
+                {
+                  "question_id": "avoidance_target",
+                  "question_label": "Qu'est-ce que tu evites en ce moment ?",
+                  "value": "Envoyer un message à mon associé pour lui dire que je ne pourrai pas tenir le délai annoncé",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "blocker_kind",
+                  "question_label": "Qu'est-ce qui bloque le plus ?",
+                  "value": "La peur du resultat",
+                  "option_value": "resultat",
+                  "option_label": "La peur du resultat"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-courage-global-20260608-r1-t06",
+    "trace_error": null
+  }
+]

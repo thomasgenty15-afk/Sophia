@@ -1,4 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { STATUS_RECAP_FLOW_STATE_KEY } from "../skills/status_recap/local_flow.ts";
 import { runOperationRuntimePipeline } from "./operation_runtime_pipeline.ts";
 
 function fakeAttackSupabase() {
@@ -393,6 +394,60 @@ Deno.test("operation_runtime_pipeline non-complex operation is not converted to 
     result.operationRuntime?.toolExecution === "platform_handoff",
     false,
   );
+});
+
+Deno.test("operation_runtime_pipeline active status_recap flow runs status runtime without route signal", async () => {
+  let statusRuntimeCalls = 0;
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    routeDecision: baseRouteDecision({
+      response_owner: "normal_reply",
+      selected_handler: undefined,
+      reason_code: "normal_reply",
+    }),
+    tempMemory: {
+      [STATUS_RECAP_FLOW_STATE_KEY]: {
+        skill_id: "status_recap",
+        mode: "local_readonly_flow",
+        status: "active",
+        last_intent: "durable_status",
+        last_target_objects: ["unknown"],
+        last_projection_summary: {
+          attack_card_count: 0,
+          defense_card_count: 0,
+          one_shot_pending_count: 0,
+          one_shot_cancelled_recent_count: 0,
+          recurring_reminder_count: 0,
+          potion_session_count: 0,
+          coach_preference_count: 0,
+          recent_effect_history_count: 0,
+        },
+        last_answer_summary: "status précédent",
+        turn_count: 1,
+        max_turns: 3,
+        created_at: "2026-06-08T08:00:00.000Z",
+        updated_at: "2026-06-08T08:00:00.000Z",
+      },
+    },
+    runStatusRecapRuntime: async (input: any) => {
+      statusRuntimeCalls += 1;
+      assertEquals(input.routeDecision?.reason_code, "normal_reply");
+      return {
+        content: "status local",
+        nextTempMemory: input.tempMemory,
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "status_recap",
+          flow_action: "answer_object_status",
+        },
+      };
+    },
+  }));
+
+  assertEquals(statusRuntimeCalls, 1);
+  assertEquals(result.operationRuntime?.content, "status local");
+  assertEquals(result.operationRuntime?.toolExecution, "none");
+  assertEquals(result.operationRuntime?.executedTools, []);
 });
 
 Deno.test("operation_runtime_pipeline passes turn frame direct effect to one-shot reminder", async () => {

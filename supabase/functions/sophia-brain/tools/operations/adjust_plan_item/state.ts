@@ -40,6 +40,7 @@ export type AdjustPlanHandoffState = {
   mode: "platform_input_coaching";
   status: AdjustPlanHandoffStatus;
   draft?: AdjustPlanHandoffDraft | null;
+  local_flow_state?: Record<string, unknown> | null;
   operation_input?: Record<string, unknown> | null;
   turn_count: number;
   max_turns: number;

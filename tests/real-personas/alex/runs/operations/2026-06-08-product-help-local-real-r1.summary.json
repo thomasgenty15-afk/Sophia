@@ -1,0 +1,132 @@
+{
+  "runId": "2026-06-08-product-help-local-real-r1",
+  "persona": "alex",
+  "userId": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "scope": "qa-product-help-local-2026-06-08-product-help-local-real-r1",
+  "incidents": [
+    {
+      "kind": "http_401_invalid_gateway_key",
+      "turn_attempt": 2,
+      "user": "Juste comprendre pour l'instant, pas en préparer une.",
+      "http_status": 401,
+      "resolution": "retry with correct local ANON_KEY"
+    },
+    {
+      "kind": "http_502_upstream_invalid_response",
+      "turn_attempt": 3,
+      "user": "Et si j'en ai une, je la retrouve où dans l'app ?",
+      "http_status": 502,
+      "assistant": "An invalid response was received from the upstream server",
+      "resolution": "retry same turn after no valid trace"
+    }
+  ],
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-2026-06-08-product-help-local-real-r1-t01",
+      "user": "J'ai vu la mention carte d'attaque dans Sophia, concrètement ça sert à quoi ?",
+      "assistant": "Cherches-tu à comprendre à quoi sert une carte d'attaque ou veux-tu en préparer une pour ton action ? 🙂",
+      "ok": true,
+      "http_status": 200,
+      "short_trace": {
+        "http_status": 200,
+        "response_owner": "orientation_clarification",
+        "selected_handler": "orientation_clarification",
+        "route_reason": "clarification_required",
+        "safety": "low",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "executed_tools": [],
+        "durable_effect": [],
+        "skill_run_id": null,
+        "skill_status": null,
+        "skill_intent": null,
+        "product_flow_action": null,
+        "product_visible_task": null,
+        "product_mode": null,
+        "product_return_to_parent": null,
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-2026-06-08-product-help-local-real-r1-t02",
+      "user": "Juste comprendre pour l'instant, pas en préparer une.",
+      "assistant": "C'est un outil pour t'aider à démarrer quand tu bloques sur une tâche. Concrètement, une carte d'attaque transforme une action qui te semble lourde ou intimidante en une version 'minimale' et très concrète. Le but est de réduire la friction au maximum pour que tu puisses enfin te lancer sans trop d'effort. 🙂",
+      "ok": true,
+      "http_status": 200,
+      "short_trace": {
+        "http_status": 200,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "orientation_clarification_resolved_conversation_skill",
+        "safety": "low",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "executed_tools": [],
+        "durable_effect": [],
+        "skill_run_id": "product_help",
+        "skill_status": "continue",
+        "skill_intent": "explain_feature",
+        "product_flow_action": "answer_product_question",
+        "product_visible_task": "answer_product_question",
+        "product_mode": "standalone",
+        "product_return_to_parent": false,
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-2026-06-08-product-help-local-real-r1-t03",
+      "user": "Et si j'en ai une, je la retrouve où dans l'app ?",
+      "assistant": "An invalid response was received from the upstream server",
+      "ok": false,
+      "http_status": 502,
+      "short_trace": {
+        "http_status": 502,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "durable_effect": [],
+        "skill_run_id": null,
+        "skill_status": null,
+        "skill_intent": null,
+        "product_flow_action": null,
+        "product_visible_task": null,
+        "product_mode": null,
+        "product_return_to_parent": null,
+        "trace_error": null
+      }
+    }
+  ]
+}

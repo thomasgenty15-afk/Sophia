@@ -54,6 +54,8 @@ une exception legacy temporaire dans `../test-material/15-chantiers-log.md`.
 - `conversation-skills/product-help.md`
 - `conversation-skills/safety-crisis.md`
 - `conversation-skills/status-recap.md`
+- `conversation-skills/flow-opportunity-verification-prompts.md`
+- `conversation-skills/flow-opportunity-verification-implementation-agent-prompt.md`
 
 ### Proactif
 

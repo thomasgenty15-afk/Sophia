@@ -16,6 +16,21 @@ import {
   writeAdjustPlanHandoffState,
 } from "./state.ts";
 import {
+  type AdjustPlanLocalState,
+  createInitialAdjustPlanLocalState,
+  isAdjustPlanLocalState,
+  reduceAdjustPlanLocalDispatcherOutput,
+  runAdjustPlanLocalDispatcher,
+} from "./local_flow.ts";
+import {
+  type AdjustPlanVisibleAgent,
+  runAdjustPlanVisibleAgent,
+} from "./visible_agent.ts";
+import {
+  type InlineInfoToolContext,
+  runInlineGetInfoDbTool,
+} from "../inline_info_tools.ts";
+import {
   adjustPlanSkillResult,
   ensureRuntimeHasSkillResult,
 } from "./runtime_adapter.ts";
@@ -29,6 +44,8 @@ type FollowupDecision = {
 export type AdjustPlanLifecycleDeps = {
   [key: string]: unknown;
   operationRouteIsSelected?: (args: any) => boolean;
+  localDispatcher?: typeof runAdjustPlanLocalDispatcher;
+  visibleAgent?: AdjustPlanVisibleAgent;
 };
 
 export type AdjustPlanRouterDeps = AdjustPlanLifecycleDeps;
@@ -283,6 +300,7 @@ function writeState(args: {
   tempMemory: any;
   status: AdjustPlanHandoffStatus;
   draft?: AdjustPlanHandoffDraft | null;
+  localState?: AdjustPlanLocalState | null;
   previousTurnCount?: number;
   maxTurns?: number;
   createdAt?: string | null;
@@ -295,6 +313,7 @@ function writeState(args: {
       mode: "platform_input_coaching",
       status: args.status,
       draft: args.draft ?? null,
+      local_flow_state: args.localState ?? null,
       operation_input: null,
       turn_count: Number(args.previousTurnCount ?? 0),
       max_turns: Number(args.maxTurns ?? 6),
@@ -303,6 +322,333 @@ function writeState(args: {
       no_chat_mutation: true,
     },
   );
+}
+
+function localStateFromActive(value: unknown): AdjustPlanLocalState | null {
+  const record = value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+  return isAdjustPlanLocalState(record.local_flow_state)
+    ? record.local_flow_state
+    : null;
+}
+
+function adjustPlanInlineInfoContext(args: {
+  state: AdjustPlanLocalState;
+  userMessage: string;
+  subskillContext: Record<string, unknown> | null;
+  planSnapshot: unknown;
+}): InlineInfoToolContext {
+  const context = args.subskillContext ?? {};
+  const question = String(
+    context.question_to_answer ?? context.question ?? args.userMessage,
+  ).trim();
+  return {
+    active_flow: "adjust_plan_item",
+    active_flow_status: args.state.status,
+    question_to_answer: question,
+    active_flow_context: {
+      stage: args.state.stage,
+      scope: args.state.scope,
+      adjustment_need: args.state.adjustment_need,
+      platform_handoff: args.state.platform_handoff,
+      plan_snapshot: args.planSnapshot,
+    },
+    dispatcher_context: context,
+  };
+}
+
+function appendAdjustPlanSubskillHistory(args: {
+  state: AdjustPlanLocalState | null;
+  userMessage: string;
+  context: InlineInfoToolContext;
+  reply: string;
+}): AdjustPlanLocalState | null {
+  if (!args.state) return null;
+  return {
+    ...args.state,
+    subskill_history: [
+      ...(args.state.subskill_history ?? []),
+      {
+        skill_id: "status_recap",
+        user_message: args.userMessage,
+        question_to_answer: args.context.question_to_answer,
+        active_flow_context: args.context.active_flow_context,
+        reply_summary: args.reply.slice(0, 500),
+        created_at: new Date().toISOString(),
+      },
+    ].slice(-8),
+  };
+}
+
+function statusForLocalRuntime(
+  status: string,
+): AdjustPlanHandoffStatus {
+  if (status === "apply_attempt") return "apply_attempt";
+  if (status === "repeat_handoff") return "repeat_draft";
+  if (status === "cancelled") return "cancelled";
+  if (status === "topic_change") return "topic_change";
+  if (status === "blocked") return "blocked";
+  if (status === "handoff_delivered") return "draft_delivered";
+  return "clarifying";
+}
+
+function userIntentForLocalRuntime(
+  visibleTask: string,
+): AdjustPlanUserIntent {
+  if (visibleTask === "apply_attempt") return "approve";
+  if (visibleTask === "cancel_close") return "cancel";
+  if (visibleTask === "repeat_plan_handoff") return "explain";
+  if (visibleTask === "explain_handoff") return "explain";
+  if (visibleTask === "revise_plan_handoff") return "revise";
+  if (visibleTask.startsWith("clarify_")) return "clarify";
+  return "start";
+}
+
+async function runAdjustPlanLocalFlow(args: {
+  context: AdjustPlanRouterContext;
+  deps: AdjustPlanLifecycleDeps;
+  activeHandoff: ReturnType<typeof loadAdjustPlanFrameFromTempMemory>[
+    "handoff_state"
+  ];
+}): Promise<AdjustPlanOperationRuntimeResult | null> {
+  const localDispatcher = args.deps.localDispatcher ??
+    runAdjustPlanLocalDispatcher;
+  const visibleAgent = args.deps.visibleAgent ?? runAdjustPlanVisibleAgent;
+  const previousLocalState = localStateFromActive(args.activeHandoff) ??
+    createInitialAdjustPlanLocalState();
+  const dispatcherOutput = await localDispatcher({
+    user_id: args.context.userId,
+    request_id: args.context.requestId ?? null,
+    user_message: args.context.userMessage,
+    recent_messages: recentMessages(args.context),
+    active_state: args.activeHandoff,
+    local_state: previousLocalState,
+    route_decision: args.context.routeDecision,
+    turn_frame: args.context.turnFrame,
+    plan_snapshot: { items: args.context.planItemSnapshot ?? [] },
+  });
+  if (!dispatcherOutput) {
+    return runtimeResult({
+      content:
+        "Je garde l'ajustement du plan en cours, mais je n'arrive pas a traiter correctement ce tour. Reessaie dans un instant.",
+      nextTempMemory: args.context.tempMemory,
+      status: "blocked",
+      userIntent: "unknown",
+      reasonCode: "adjust_plan_item_local_dispatcher_failed",
+      extra: {
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        committed_effects: [],
+        blocked_effects: [{
+          type: "local_flow_runtime",
+          reason_code: "adjust_plan_item_local_dispatcher_failed",
+        }],
+      },
+    });
+  }
+  const reduced = reduceAdjustPlanLocalDispatcherOutput({
+    previous: previousLocalState,
+    output: dispatcherOutput,
+  });
+  if (reduced.exit_to_global_dispatcher) {
+    const nextTempMemory = {
+      ...writeAdjustPlanHandoffState(
+        clearAdjustPlanExecutableLegacyState(args.context.tempMemory),
+        null,
+      ),
+      __last_adjust_plan_item_exit_memo: {
+        reason: reduced.exit_memo?.reason ?? "topic_change",
+        flow_summary: reduced.exit_memo?.user_intent_summary ??
+          previousLocalState.last_handoff_summary ??
+          null,
+        handoff_hint_for_global_dispatcher: JSON.stringify(
+          reduced.exit_memo?.handoff_hint_for_global_dispatcher ?? {},
+        ),
+        at: new Date().toISOString(),
+      },
+    };
+    return runtimeResult({
+      content: "",
+      nextTempMemory,
+      status: "topic_change",
+      userIntent: "topic_change",
+      reasonCode: reduced.reason_code,
+      extra: {
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        exit_memo: reduced.exit_memo,
+      },
+    });
+  }
+  if (reduced.get_info_db && reduced.local_state) {
+    if (!args.context.supabase) {
+      return {
+        content:
+          "Je garde l'ajustement du plan en cours, mais je n'arrive pas à lire l'état du plan sur ce tour.",
+        nextTempMemory: args.context.tempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "adjust_plan_item",
+          operation_type: "adjust_plan_item",
+          mode: "platform_input_coaching",
+          status: "blocked",
+          reason_code: "adjust_plan_item_get_info_db_missing_supabase",
+          committed_effects: [],
+          blocked_effects: [{
+            type: "get_info_db",
+            reason_code: "missing_supabase_context",
+          }],
+          no_chat_mutation: true,
+          executable_from_chat: false,
+        },
+      };
+    }
+    const toolContext = adjustPlanInlineInfoContext({
+      state: reduced.local_state,
+      userMessage: args.context.userMessage,
+      subskillContext: reduced.subskill_context,
+      planSnapshot: args.context.planItemSnapshot ?? [],
+    });
+    const info = await runInlineGetInfoDbTool({
+      supabase: args.context.supabase,
+      userId: args.context.userId,
+      userMessage: args.context.userMessage,
+      userTimezone: args.context.userTimezone,
+      history: args.context.history,
+      turnFrame: args.context.turnFrame,
+      routeDecision: args.context.routeDecision,
+      tempMemory: args.context.tempMemory,
+      requestId: args.context.requestId ?? null,
+      objectTypes: ["plan_item"],
+      context: toolContext,
+    });
+    const nextLocalState = appendAdjustPlanSubskillHistory({
+      state: reduced.local_state,
+      userMessage: args.context.userMessage,
+      context: toolContext,
+      reply: info.content,
+    });
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: statusForLocalRuntime(reduced.status),
+      draft: reduced.draft ?? args.activeHandoff?.draft ?? null,
+      localState: nextLocalState,
+      previousTurnCount: Number(args.activeHandoff?.turn_count ?? 0) + 1,
+      maxTurns: Number(args.activeHandoff?.max_turns ?? 8),
+      createdAt: args.activeHandoff?.created_at ?? null,
+    });
+    return {
+      content: info.content ||
+        "Je n'arrive pas à lire cet état maintenant, mais je garde l'ajustement du plan en cours.",
+      additionalContents: info.additionalContents,
+      nextTempMemory,
+      toolExecution: "none",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "adjust_plan_item",
+        operation_type: "adjust_plan_item",
+        mode: "platform_input_coaching",
+        status: statusForLocalRuntime(reduced.status),
+        reason_code: reduced.reason_code,
+        flow_action: dispatcherOutput.flow_action,
+        visible_task: { kind: "none" },
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [],
+        pending_confirmation: null,
+        local_flow_state: nextLocalState,
+        subskill_run: info.subskillRun,
+        risk_score: reduced.risk_score,
+        runtime_trace: info.runtimeTrace,
+      },
+    };
+  }
+  const traceEvents: Record<string, unknown>[] = [];
+  const visibleMessage = await visibleAgent({
+    user_id: args.context.userId,
+    request_id: args.context.requestId ?? null,
+    stage: reduced.visible_task,
+    user_message: args.context.userMessage,
+    recent_messages: recentMessages(args.context),
+    local_state: reduced.local_state,
+    draft: reduced.draft,
+    trace_event: (event) => traceEvents.push(event),
+  });
+  if (!visibleMessage) {
+    return runtimeResult({
+      content:
+        "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
+      nextTempMemory: args.context.tempMemory,
+      status: "blocked",
+      userIntent: "unknown",
+      reasonCode: "adjust_plan_item_visible_agent_failed",
+      extra: {
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        committed_effects: [],
+        blocked_effects: [{
+          type: "local_flow_runtime",
+          reason_code: "adjust_plan_item_visible_agent_failed",
+        }],
+        runtime_trace: traceEvents,
+      },
+    });
+  }
+  const shouldKeepState = Boolean(reduced.local_state) &&
+    reduced.status !== "cancelled";
+  const nextTempMemory = shouldKeepState
+    ? writeState({
+      tempMemory: args.context.tempMemory,
+      status: statusForLocalRuntime(reduced.status),
+      draft: reduced.draft ?? args.activeHandoff?.draft ?? null,
+      localState: reduced.local_state,
+      previousTurnCount: Number(args.activeHandoff?.turn_count ?? 0) + 1,
+      maxTurns: Number(args.activeHandoff?.max_turns ?? 8),
+      createdAt: args.activeHandoff?.created_at ?? null,
+    })
+    : writeAdjustPlanHandoffState(
+      clearAdjustPlanExecutableLegacyState(args.context.tempMemory),
+      null,
+    );
+  return runtimeResult({
+    content: visibleMessage,
+    nextTempMemory,
+    status: statusForLocalRuntime(reduced.status),
+    userIntent: userIntentForLocalRuntime(reduced.visible_task),
+    reasonCode: reduced.reason_code,
+    draft: reduced.draft ?? args.activeHandoff?.draft ?? null,
+    extra: {
+      mode: "platform_handoff",
+      no_chat_mutation: true,
+      executable_from_chat: false,
+      pending_confirmation: null,
+      requested_effects: [],
+      allowed_effects: [],
+      committed_effects: [],
+      blocked_effects: reduced.blocked_effects,
+      local_flow_state: reduced.local_state,
+      visible_task: { kind: reduced.visible_task },
+      risk_score: reduced.risk_score,
+      runtime_trace: traceEvents,
+      platform_handoff: reduced.draft
+        ? {
+          operation_type: "adjust_plan_item",
+          status: reduced.status === "cancelled" ? "cancelled" : "delivered",
+          surface_id: "plan",
+          reason_code: reduced.reason_code,
+          no_chat_mutation: true,
+          executable_from_chat: false,
+          draft: reduced.draft,
+        }
+        : undefined,
+    },
+  });
 }
 
 async function buildDraft(args: {
@@ -480,11 +826,22 @@ export async function maybeRunAdjustPlanItemOperation(args: {
   context: AdjustPlanRouterContext;
   deps: AdjustPlanLifecycleDeps;
 }): Promise<AdjustPlanOperationRuntimeResult | null> {
+  const activeHandoff = loadAdjustPlanFrameFromTempMemory(
+    args.context.tempMemory,
+  ).handoff_state;
+  const selected = routeSelectsAdjustPlan(args.context, args.deps);
+  if (!selected) return null;
+
+  const localRuntime = await runAdjustPlanLocalFlow({
+    context: args.context,
+    deps: args.deps,
+    activeHandoff,
+  });
+  if (localRuntime) return ensureRuntimeHasSkillResult(localRuntime);
+
   const active = await handleActiveInputCoach({ context: args.context });
   if (active) return ensureRuntimeHasSkillResult(active);
 
-  const selected = routeSelectsAdjustPlan(args.context, args.deps);
-  if (!selected) return null;
   const runtime = await startInputCoach({
     context: args.context,
     status: "draft_delivered",

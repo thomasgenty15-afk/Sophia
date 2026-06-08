@@ -4,11 +4,14 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
-import type { StatusRecapProjection } from "./contract.ts";
+import type {
+  StatusRecapLocalDispatcherOutput,
+  StatusRecapProjection,
+} from "./contract.ts";
 import { emptyStatusRecapProjection } from "./projection.ts";
 import { decideStatusRecap } from "./reducer.ts";
 import { renderStatusRecapDecision } from "./renderer.ts";
-import { maybeRunStatusRecapRuntime } from "./runtime.ts";
+import { maybeRunStatusRecapRuntime as maybeRunStatusRecapRuntimeReal } from "./runtime.ts";
 
 function statusRoute(): RouteDecision {
   return {
@@ -156,6 +159,113 @@ function richTables(): Record<string, Array<Record<string, unknown>>> {
       updated_at: "2026-05-29T09:30:00.000Z",
     }],
   };
+}
+
+function testStatusDispatcher(action = "answer_status") {
+  return async (): Promise<StatusRecapLocalDispatcherOutput> => ({
+    flow_action: action as any,
+    confidence: "high" as const,
+    risk_score: 0,
+    status_intent: {
+      kind:
+        (action === "answer_fait_prevu_fragile"
+          ? "fait_prevu_fragile"
+          : "durable_status") as StatusRecapLocalDispatcherOutput[
+            "status_intent"
+          ]["kind"],
+      summary: "test status recap",
+      requires_db_projection: true,
+      requires_effect_history: action === "answer_recent_effects",
+    },
+    target_objects: ["unknown" as const],
+    read_scope: {
+      requested_categories: ["all" as const],
+      include_cancelled: action === "answer_cancelled_objects",
+      include_recent_failed_or_blocked_effects:
+        action === "answer_recent_effects",
+      format: action === "answer_fait_prevu_fragile"
+        ? "fait_prevu_fragile" as const
+        : "compact" as const,
+    },
+    state_updates: {
+      status: "active" as const,
+      turn_count_increment: 1,
+      close_after_visible: false,
+    },
+    visible_task: {
+      kind: action === "answer_fait_prevu_fragile"
+        ? "fait_prevu_fragile" as const
+        : "status_compact" as const,
+      instruction: "test",
+    },
+    exit_memo: {
+      needed: false,
+      reason: "none" as const,
+      user_intent_summary: null,
+      local_flow_context: {
+        skill_id: "status_recap" as const,
+        last_intent: null,
+        last_target_objects: [],
+        last_answer_summary: null,
+        last_projection_summary: null,
+      },
+      handoff_hint_for_global_dispatcher: {
+        likely_intent: "unknown" as const,
+        why: null,
+        constraints: [],
+      },
+    },
+    evidence: ["test"],
+  });
+}
+
+function projectionFromVisibleFacts(input: any): StatusRecapProjection {
+  return {
+    ...emptyStatusRecapProjection(),
+    ...(input.grounded_facts_json?.facts ?? {}),
+  };
+}
+
+async function testStatusVisibleAgent(input: any): Promise<string> {
+  const projection = projectionFromVisibleFacts(input);
+  const decision = renderStatusRecapDecision({
+    projection,
+    decision: {
+      skill_id: "status_recap",
+      intent: input.stage === "fait_prevu_fragile"
+        ? "fait_prevu_fragile"
+        : "durable_status",
+      target_objects: ["unknown"],
+      constraints: [
+        "non_mutating",
+        "db_grounded",
+        "do_not_execute_tool",
+        "do_not_claim_without_source",
+        "short_reply",
+      ],
+      projection_used: true,
+      missing_sources: [],
+      response_contract: {
+        max_questions: 0,
+        format: input.stage === "fait_prevu_fragile"
+          ? "fait_prevu_fragile"
+          : "compact",
+        allow_human_context_lines: false,
+      },
+      operation_suggestions: [],
+    },
+  });
+  return decision.reply;
+}
+
+function maybeRunStatusRecapRuntime(
+  args: Parameters<typeof maybeRunStatusRecapRuntimeReal>[0],
+) {
+  return maybeRunStatusRecapRuntimeReal({
+    ...args,
+    runLocalDispatcher: args.runLocalDispatcher ?? testStatusDispatcher(),
+    runVisibleAgent: args.runVisibleAgent ?? testStatusVisibleAgent,
+  });
 }
 
 Deno.test("status_recap_non_mutating", async () => {

@@ -47,6 +47,16 @@ import {
   buildAttackCardHandoffState,
   isAttackCardHandoffState,
 } from "./state.ts";
+import {
+  createInitialPrepareAttackCardLocalState,
+  reducePrepareAttackCardLocalDispatcherOutput,
+  runPrepareAttackCardLocalDispatcher,
+  type PrepareAttackCardLocalDispatcher,
+} from "./local_flow.ts";
+import {
+  runPrepareAttackCardVisibleAgent,
+  type PrepareAttackCardVisibleAgent,
+} from "./visible_agent.ts";
 import { attackCardPlatformInputsFromFields } from "./platform_fields.ts";
 import {
   ATTACK_CARD_PLATFORM_DESTINATION,
@@ -59,6 +69,11 @@ import {
   renderAttackCardPlatformHandoff,
 } from "./renderer.ts";
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
+import {
+  type InlineInfoToolContext,
+  runInlineGetInfoDbTool,
+  runInlineGetInfoProductTool,
+} from "../inline_info_tools.ts";
 
 export type OperationRuntimeResult = {
   content: string;
@@ -73,6 +88,11 @@ export type OperationRuntimeResult = {
     | "platform_handoff";
   executedTools: string[];
   toolSkillRun: Record<string, unknown>;
+};
+
+type RecentChatMessage = {
+  role: "user" | "assistant";
+  content: string;
 };
 
 function attackCardFrameRecord(tempMemory: any) {
@@ -180,6 +200,561 @@ function attackCardPlatformHandoffCancelledRun(reasonCode: string) {
       ?.surface_id ?? "attack_cards",
     reason_code: reasonCode,
     no_chat_mutation: true,
+  };
+}
+
+function recentMessagesFromHistory(history: unknown): RecentChatMessage[] {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter((message: any) =>
+      (message?.role === "user" || message?.role === "assistant") &&
+      typeof message?.content === "string" && message.content.trim()
+    )
+    .map((message: any) => ({
+      role: message.role as "user" | "assistant",
+      content: String(message.content),
+    }))
+    .slice(-8);
+}
+
+function localRuntimeTraceBase(args: {
+  event: string;
+  flowAction?: string | null;
+  visibleTask?: string | null;
+  currentFieldId?: string | null;
+  techniqueKey?: string | null;
+  targetStatus?: string | null;
+  blockerStatus?: string | null;
+  missingFields?: string[];
+  riskAssessment?: Record<string, unknown> | null;
+  selectedHandler?: string | null;
+}) {
+  return {
+    component: "prepare_attack_card.local_flow",
+    event: args.event,
+    flow_action: args.flowAction ?? null,
+    stage: args.visibleTask ?? null,
+    visible_task_kind: args.visibleTask ?? null,
+    current_field_id: args.currentFieldId ?? null,
+    technique_key: args.techniqueKey ?? null,
+    target_status: args.targetStatus ?? null,
+    blocker_status: args.blockerStatus ?? null,
+    missing_fields: args.missingFields ?? [],
+    risk_assessment: args.riskAssessment ?? null,
+    selected_handler: args.selectedHandler ?? "prepare_attack_card",
+  };
+}
+
+function attackInlineInfoContext(args: {
+  state: ReturnType<typeof createInitialPrepareAttackCardLocalState>;
+  userMessage: string;
+  subskillContext: Record<string, unknown> | null;
+}): InlineInfoToolContext {
+  const context = args.subskillContext ?? {};
+  const question = String(
+    context.question_to_answer ?? context.question ?? args.userMessage,
+  ).trim();
+  return {
+    active_flow: "prepare_attack_card",
+    active_flow_status: "collecting",
+    question_to_answer: question,
+    active_flow_context: {
+      flow_kind: args.state.flow_kind,
+      platform_destination: args.state.platform_destination,
+      target_state: args.state.target_state,
+      blocker_state: args.state.blocker_state,
+      technique_state: args.state.technique_state,
+      current_field_id: args.state.current_field_id,
+      missing_fields: args.state.platform_field_order.filter((fieldId) =>
+        args.state.platform_field_states[fieldId]?.status !== "locked"
+      ),
+    },
+    dispatcher_context: context,
+  };
+}
+
+function appendAttackCardSubskillHistory(args: {
+  state: ReturnType<typeof createInitialPrepareAttackCardLocalState> | null;
+  skillId: "product_help" | "status_recap";
+  userMessage: string;
+  context: InlineInfoToolContext;
+  reply: string;
+}) {
+  if (!args.state) return null;
+  return {
+    ...args.state,
+    subskill_history: [
+      ...(args.state.subskill_history ?? []),
+      {
+        skill_id: args.skillId,
+        user_message: args.userMessage,
+        question_to_answer: args.context.question_to_answer,
+        active_flow_context: args.context.active_flow_context,
+        reply_summary: args.reply.slice(0, 500),
+        created_at: new Date().toISOString(),
+      },
+    ].slice(-8),
+  };
+}
+
+function buildAttackCardRuntimeHandoff(args: {
+  state: ReturnType<typeof createInitialPrepareAttackCardLocalState> | null;
+  draft: AttackCardHandoffDraft | null;
+  activeHandoff: AttackCardHandoffState | null;
+  status: AttackCardHandoffState["status"];
+  missingFields: string[];
+}) {
+  if (!args.state) return null;
+  return buildAttackCardHandoffState({
+    draft: args.draft ?? args.activeHandoff?.draft ?? {
+      operation_type: "prepare_attack_card",
+      mode: "platform_handoff",
+      no_chat_mutation: true,
+      executable_from_chat: false,
+      target_summary: args.state.target_state.locked_value ??
+        args.state.target_state.candidate_value ?? "",
+      blocker_summary: args.state.blocker_state.locked_value ??
+        args.state.blocker_state.candidate_value ?? "",
+      recommendation: {
+        technique_label: args.state.technique_state.technique_label ?? "",
+        why_this_technique: args.state.technique_state.why_status ?? "",
+        card_draft_summary: "",
+        preserve: [],
+        avoid: [],
+        platform_destination: args.state.platform_destination,
+        platform_steps: getHandoffTargetForOperation("prepare_attack_card")
+          ?.platform_steps ?? [],
+      },
+      missing_decisions: args.missingFields,
+    },
+    target: {
+      kind: args.state.target_state.kind ?? "personal_action",
+      plan_item_id: args.state.target_state.plan_item_id,
+      title: args.state.target_state.locked_value ??
+        args.state.target_state.candidate_value,
+    },
+    localState: args.state,
+    previous: args.activeHandoff,
+    status: args.status,
+  });
+}
+
+async function runPrepareAttackCardLocalRuntime(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  userMessage: string;
+  userTimezone: string;
+  tempMemory: any;
+  routeDecision: RouteDecision | null;
+  turnFrame: TurnFrame | null;
+  requestId?: string | null;
+  history?: unknown;
+  planSnapshot?: unknown;
+  activeHandoff: AttackCardHandoffState | null;
+  operationInput?: Record<string, unknown> | null;
+  dispatcher?: PrepareAttackCardLocalDispatcher;
+  visibleAgent?: PrepareAttackCardVisibleAgent;
+}): Promise<OperationRuntimeResult | null> {
+  const runtimeTrace: Array<Record<string, unknown>> = [];
+  const previousLocalState = args.activeHandoff?.local_state ??
+    createInitialPrepareAttackCardLocalState({
+      activeState: args.activeHandoff,
+      operationInput: args.operationInput,
+    });
+  runtimeTrace.push(localRuntimeTraceBase({
+    event: "local_dispatcher start",
+    currentFieldId: previousLocalState.current_field_id,
+    techniqueKey: previousLocalState.technique_state.technique_key,
+    targetStatus: previousLocalState.target_state.status,
+    blockerStatus: previousLocalState.blocker_state.status,
+    missingFields: previousLocalState.platform_field_order.filter((fieldId) =>
+      previousLocalState.platform_field_states[fieldId]?.status !== "locked"
+    ),
+    selectedHandler: args.routeDecision?.selected_handler ??
+      "prepare_attack_card",
+  }));
+  const dispatcher = args.dispatcher ?? runPrepareAttackCardLocalDispatcher;
+  const decision = await dispatcher({
+    user_id: args.userId,
+    request_id: args.requestId ?? null,
+    user_message: args.userMessage,
+    recent_messages: recentMessagesFromHistory(args.history),
+    active_state: args.activeHandoff,
+    local_state: previousLocalState,
+    route_decision: args.routeDecision,
+    turn_frame: args.turnFrame,
+    plan_snapshot: args.planSnapshot ?? null,
+    last_handoff: args.activeHandoff?.draft ?? null,
+  });
+  if (!decision) {
+    return {
+      content:
+        "Je garde la carte d'attaque en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+      nextTempMemory: args.tempMemory,
+      toolExecution: "blocked",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "prepare_attack_card",
+        operation_type: "prepare_attack_card",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        status: "blocked",
+        reason_code: "prepare_attack_card_local_dispatcher_failed",
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [{
+          type: "local_dispatcher",
+          reason_code: "prepare_attack_card_local_dispatcher_failed",
+        }],
+        runtime_trace: runtimeTrace,
+      },
+    };
+  }
+  runtimeTrace.push(localRuntimeTraceBase({
+    event: "local_dispatcher decision",
+    flowAction: decision.flow_action,
+    visibleTask: decision.visible_task.kind,
+    currentFieldId: decision.visible_task.required_data.current_field_id,
+    techniqueKey: decision.technique_state.technique_key,
+    targetStatus: decision.target_state.status,
+    blockerStatus: decision.blocker_state.status,
+    riskAssessment: decision.risk_assessment as any,
+    selectedHandler: args.routeDecision?.selected_handler ??
+      "prepare_attack_card",
+  }));
+  const reduced = reducePrepareAttackCardLocalDispatcherOutput({
+    previous: previousLocalState,
+    output: decision,
+  });
+  const missingFields = reduced.local_state?.platform_field_order.filter((
+    fieldId,
+  ) => reduced.local_state?.platform_field_states[fieldId]?.status !== "locked")
+    ?? [];
+  runtimeTrace.push(localRuntimeTraceBase({
+    event: "reducer reduced",
+    flowAction: decision.flow_action,
+    visibleTask: reduced.visible_task,
+    currentFieldId: reduced.local_state?.current_field_id ?? null,
+    techniqueKey: reduced.local_state?.technique_state.technique_key ?? null,
+    targetStatus: reduced.local_state?.target_state.status ?? null,
+    blockerStatus: reduced.local_state?.blocker_state.status ?? null,
+    missingFields,
+    riskAssessment: reduced.risk_assessment as any,
+    selectedHandler: "prepare_attack_card",
+  }));
+  if (reduced.exit_to_global_dispatcher) {
+    const exitReason = decision.exit_memo?.reason &&
+        decision.exit_memo.reason !== "none"
+      ? decision.exit_memo.reason
+      : "topic_change";
+    const exitMemo = {
+      reason: exitReason,
+      flow_summary: decision.exit_memo?.flow_summary ?? null,
+      handoff_hint_for_global_dispatcher:
+        decision.exit_memo?.handoff_hint_for_global_dispatcher ?? null,
+      at: new Date().toISOString(),
+    };
+    const cleared = {
+      ...clearPrepareAttackCardFrame(args.tempMemory),
+      __last_prepare_attack_card_exit_memo: exitMemo,
+    };
+    runtimeTrace.push(localRuntimeTraceBase({
+      event: "exit_to_global_dispatcher",
+      flowAction: decision.flow_action,
+      visibleTask: reduced.visible_task,
+      riskAssessment: reduced.risk_assessment as any,
+      selectedHandler: "prepare_attack_card",
+    }));
+    return {
+      content: "",
+      nextTempMemory: cleared,
+      toolExecution: "none",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "prepare_attack_card",
+        operation_type: "prepare_attack_card",
+        status: "topic_change",
+        reason_code: "prepare_attack_card_local_exit_to_global_dispatcher",
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [],
+        exit_memo: exitMemo,
+        runtime_trace: runtimeTrace,
+      },
+    };
+  }
+  if (
+    (reduced.get_info_product || reduced.get_info_db) && reduced.local_state
+  ) {
+    const toolContext = attackInlineInfoContext({
+      state: reduced.local_state,
+      userMessage: args.userMessage,
+      subskillContext: reduced.subskill_context,
+    });
+    const info = reduced.get_info_product
+      ? await runInlineGetInfoProductTool({
+        userId: args.userId,
+        userMessage: args.userMessage,
+        history: args.history,
+        turnFrame: args.turnFrame,
+        context: toolContext,
+      })
+      : await runInlineGetInfoDbTool({
+        supabase: args.supabase,
+        userId: args.userId,
+        userMessage: args.userMessage,
+        userTimezone: args.userTimezone,
+        history: args.history,
+        turnFrame: args.turnFrame,
+        routeDecision: args.routeDecision,
+        tempMemory: args.tempMemory,
+        requestId: args.requestId ?? null,
+        objectTypes: ["attack_card"],
+        context: toolContext,
+      });
+    const nextLocalState = appendAttackCardSubskillHistory({
+      state: reduced.local_state,
+      skillId: reduced.get_info_product ? "product_help" : "status_recap",
+      userMessage: args.userMessage,
+      context: toolContext,
+      reply: info.content,
+    });
+    const nextHandoff = buildAttackCardRuntimeHandoff({
+      state: nextLocalState,
+      draft: reduced.draft ?? args.activeHandoff?.draft ?? null,
+      activeHandoff: args.activeHandoff,
+      status: "collecting",
+      missingFields,
+    });
+    const nextTempMemory = writePrepareAttackCardFrameToTempMemory(
+      args.tempMemory,
+      {
+        pending: null,
+        draftReview: null,
+        active: null,
+        recommendation: null,
+        handoff: nextHandoff,
+      },
+    );
+    runtimeTrace.push(...info.runtimeTrace);
+    return {
+      content: info.content ||
+        "Je n'arrive pas à répondre à cette question maintenant, mais je garde la carte d'attaque en cours.",
+      additionalContents: info.additionalContents,
+      nextTempMemory,
+      toolExecution: "none",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "prepare_attack_card",
+        operation_type: "prepare_attack_card",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        status: reduced.status,
+        reason_code: reduced.reason_code,
+        flow_action: decision.flow_action,
+        visible_task_kind: "none",
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [],
+        pending_confirmation: null,
+        handoff_state: nextHandoff,
+        local_flow_state: nextLocalState,
+        subskill_run: info.subskillRun,
+        risk_assessment: reduced.risk_assessment,
+        runtime_trace: runtimeTrace,
+      },
+    };
+  }
+  runtimeTrace.push(localRuntimeTraceBase({
+    event: "visible_stage start",
+    flowAction: decision.flow_action,
+    visibleTask: reduced.visible_task,
+    currentFieldId: reduced.local_state?.current_field_id ?? null,
+    techniqueKey: reduced.local_state?.technique_state.technique_key ?? null,
+    targetStatus: reduced.local_state?.target_state.status ?? null,
+    blockerStatus: reduced.local_state?.blocker_state.status ?? null,
+    missingFields,
+    riskAssessment: reduced.risk_assessment as any,
+    selectedHandler: "prepare_attack_card",
+  }));
+  const visibleAgent = args.visibleAgent ?? runPrepareAttackCardVisibleAgent;
+  const visibleMessage = await visibleAgent({
+    user_id: args.userId,
+    request_id: args.requestId ?? null,
+    stage: reduced.visible_task,
+    user_message: args.userMessage,
+    recent_messages: recentMessagesFromHistory(args.history),
+    local_state: reduced.local_state,
+    draft: reduced.draft,
+    trace_event: (event) => runtimeTrace.push(event),
+  });
+  runtimeTrace.push(localRuntimeTraceBase({
+    event: visibleMessage ? "visible_stage complete" : "visible_stage retry",
+    flowAction: decision.flow_action,
+    visibleTask: reduced.visible_task,
+    currentFieldId: reduced.local_state?.current_field_id ?? null,
+    techniqueKey: reduced.local_state?.technique_state.technique_key ?? null,
+    targetStatus: reduced.local_state?.target_state.status ?? null,
+    blockerStatus: reduced.local_state?.blocker_state.status ?? null,
+    missingFields,
+    riskAssessment: reduced.risk_assessment as any,
+    selectedHandler: "prepare_attack_card",
+  }));
+  if (!visibleMessage) {
+    return {
+      content:
+        "Je garde la carte d'attaque en cours, mais je n'arrive pas à formuler correctement la réponse visible. Réessaie dans un instant.",
+      nextTempMemory: args.tempMemory,
+      toolExecution: "blocked",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "prepare_attack_card",
+        operation_type: "prepare_attack_card",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        status: "blocked",
+        reason_code: "prepare_attack_card_visible_agent_failed",
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [{
+          type: "visible_agent",
+          reason_code: "prepare_attack_card_visible_agent_failed",
+        }],
+        risk_assessment: reduced.risk_assessment,
+        runtime_trace: runtimeTrace,
+      },
+    };
+  }
+  if (reduced.status === "apply_attempt") {
+    runtimeTrace.push(localRuntimeTraceBase({
+      event: "apply_attempt no mutation",
+      flowAction: decision.flow_action,
+      visibleTask: reduced.visible_task,
+      currentFieldId: reduced.local_state?.current_field_id ?? null,
+      techniqueKey: reduced.local_state?.technique_state.technique_key ?? null,
+      targetStatus: reduced.local_state?.target_state.status ?? null,
+      blockerStatus: reduced.local_state?.blocker_state.status ?? null,
+      missingFields,
+      riskAssessment: reduced.risk_assessment as any,
+      selectedHandler: "prepare_attack_card",
+    }));
+  }
+  if (reduced.draft) {
+    runtimeTrace.push(localRuntimeTraceBase({
+      event: "handoff_ready",
+      flowAction: decision.flow_action,
+      visibleTask: reduced.visible_task,
+      currentFieldId: reduced.local_state?.current_field_id ?? null,
+      techniqueKey: reduced.local_state?.technique_state.technique_key ?? null,
+      targetStatus: reduced.local_state?.target_state.status ?? null,
+      blockerStatus: reduced.local_state?.blocker_state.status ?? null,
+      missingFields,
+      riskAssessment: reduced.risk_assessment as any,
+      selectedHandler: "prepare_attack_card",
+    }));
+  }
+  const nextHandoff = reduced.local_state
+    ? buildAttackCardHandoffState({
+      draft: reduced.draft ?? args.activeHandoff?.draft ?? {
+        operation_type: "prepare_attack_card",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        target_summary: reduced.local_state.target_state.locked_value ??
+          reduced.local_state.target_state.candidate_value ?? "",
+        blocker_summary: reduced.local_state.blocker_state.locked_value ??
+          reduced.local_state.blocker_state.candidate_value ?? "",
+        recommendation: {
+          technique_label:
+            reduced.local_state.technique_state.technique_label ?? "",
+          why_this_technique:
+            reduced.local_state.technique_state.why_status ?? "",
+          card_draft_summary: "",
+          preserve: [],
+          avoid: [],
+          platform_destination: reduced.local_state.platform_destination,
+          platform_steps: getHandoffTargetForOperation("prepare_attack_card")
+            ?.platform_steps ?? [],
+        },
+        missing_decisions: missingFields,
+      },
+      target: {
+        kind: reduced.local_state.target_state.kind ?? "personal_action",
+        plan_item_id: reduced.local_state.target_state.plan_item_id,
+        title: reduced.local_state.target_state.locked_value ??
+          reduced.local_state.target_state.candidate_value,
+      },
+      localState: reduced.local_state,
+      previous: args.activeHandoff,
+      status: reduced.status === "apply_attempt"
+        ? "apply_attempt"
+        : reduced.status === "repeat_handoff"
+        ? "repeat_handoff"
+        : reduced.status === "cancelled"
+        ? "cancelled"
+        : reduced.draft
+        ? "handoff_delivered"
+        : "collecting",
+    })
+    : null;
+  const nextTempMemory = writePrepareAttackCardFrameToTempMemory(
+    args.tempMemory,
+    {
+      pending: null,
+      draftReview: null,
+      active: null,
+      recommendation: null,
+      handoff: reduced.status === "cancelled" ? null : nextHandoff,
+    },
+  );
+  const deliversPlatformHandoff = Boolean(reduced.draft) ||
+    [
+      "apply_attempt",
+      "repeat_handoff",
+      "handoff_delivered",
+      "cancelled",
+    ].includes(reduced.status) ||
+    reduced.visible_task === "destination_short";
+  return {
+    content: visibleMessage,
+    nextTempMemory,
+    toolExecution: deliversPlatformHandoff ? "platform_handoff" : "blocked",
+    executedTools: [],
+    toolSkillRun: {
+      selected_handler: "prepare_attack_card",
+      operation_type: "prepare_attack_card",
+      mode: "platform_handoff",
+      no_chat_mutation: true,
+      executable_from_chat: false,
+      status: reduced.status,
+      reason_code: reduced.reason_code,
+      requested_effects: [],
+      allowed_effects: [],
+      committed_effects: [],
+      blocked_effects: reduced.blocked_effects,
+      handoff_state: nextHandoff,
+      risk_assessment: reduced.risk_assessment,
+      runtime_trace: runtimeTrace,
+      ...(deliversPlatformHandoff
+        ? {
+          platform_handoff: {
+            operation_type: "prepare_attack_card",
+            status: reduced.status === "cancelled" ? "cancelled" : "delivered",
+            surface_id: getHandoffTargetForOperation("prepare_attack_card")
+              ?.surface_id ?? "attack_cards",
+            reason_code: reduced.reason_code,
+            no_chat_mutation: true,
+          },
+        }
+        : {}),
+    },
   };
 }
 
@@ -980,7 +1555,10 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   sourceMessageId: string | null;
   requestId?: string | null;
   planSnapshot?: unknown;
+  history?: unknown;
   runIntake?: typeof runPrepareAttackCardAiIntake;
+  runLocalDispatcher?: PrepareAttackCardLocalDispatcher;
+  runVisibleAgent?: PrepareAttackCardVisibleAgent;
 }): Promise<OperationRuntimeResult | null> {
   const initialFrame = loadPrepareAttackCardFrameFromTempMemory(
     args.tempMemory,
@@ -1065,6 +1643,48 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     isAttackCardLocationOrManagementQuestion(args.userMessage)
   ) {
     return null;
+  }
+  if (
+    !args.runIntake &&
+    !isPendingAttackCardOperation(pendingRaw) &&
+    !isPendingAttackCardOperation(draftReviewRaw)
+  ) {
+    const operationInput = attackCardDispatcherOperationInput(
+      args.turnFrame,
+      args.userMessage,
+    ) ?? operationInputFromLastPlanItemLocal(nextTempMemory) ??
+      (activeAttackCardIntakeRaw &&
+          typeof activeAttackCardIntakeRaw === "object" &&
+          !Array.isArray(activeAttackCardIntakeRaw)
+        ? (activeAttackCardIntakeRaw as any).operation_input as
+          | Record<string, unknown>
+          | null
+        : null) ??
+      (pendingRecommendation &&
+          typeof pendingRecommendation === "object" &&
+          !Array.isArray(pendingRecommendation)
+        ? (pendingRecommendation as any).operation_input as
+          | Record<string, unknown>
+          | null
+        : null);
+    return await runPrepareAttackCardLocalRuntime({
+      supabase: args.supabase,
+      userId: args.userId,
+      userMessage: args.userMessage,
+      userTimezone: args.userTimezone,
+      tempMemory: nextTempMemory,
+      routeDecision: args.routeDecision,
+      turnFrame: args.turnFrame,
+      requestId: args.requestId ?? null,
+      history: args.history,
+      planSnapshot: args.planSnapshot ?? null,
+      activeHandoff: isAttackCardHandoffState(activeHandoffRaw)
+        ? activeHandoffRaw
+        : null,
+      operationInput,
+      dispatcher: args.runLocalDispatcher,
+      visibleAgent: args.runVisibleAgent,
+    });
   }
   const occupiedAttackKeywords = await loadActiveAttackKeywordOptions({
     supabase: args.supabase,

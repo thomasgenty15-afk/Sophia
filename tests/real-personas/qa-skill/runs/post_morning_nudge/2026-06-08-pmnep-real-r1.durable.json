@@ -1,0 +1,609 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "0852a164-46a5-4143-b566-d44a16662fd5",
+        "role": "user",
+        "content": "Je crois que ce matin je suis surtout un peu lourd, j'ai pas envie qu'on transforme ca en mission.",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "request_id": "qa-pmnep-real-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:50:36.737663+00:00"
+      },
+      {
+        "id": "482d9da8-a277-46aa-867f-8a6c9fff28ac",
+        "role": "assistant",
+        "content": "Je sens que c'est un peu lourd pour toi aujourd'hui. Je voulais juste te dire qu'il n'y a aucune \"mission\" ou attente particulière ici, on n'a rien à accomplir. \n\nEst-ce que tu préfères qu'on laisse simplement ce constat exister, que tu m'en dises un peu plus sur ce qui pèse, ou qu'on s'accorde juste un moment de calme ? 🙂",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-pmnep-real-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "active",
+              "skill_id": "post_morning_nudge",
+              "exit_memo": null,
+              "flow_kind": "emotional_presence",
+              "confidence": "high",
+              "risk_score": 0,
+              "flow_action": "ask_support_preference",
+              "reason_code": "post_morning_nudge_emotional_presence_local_dispatcher",
+              "visible_task": {
+                "data": {
+                  "coach_intent": "support_emotion",
+                  "source_nudge_summary": "emotional_presence_nudge (open door)",
+                  "reactivation_candidate": null,
+                  "main_emotion_or_context": "feeling heavy / no mission",
+                  "soft_next_step_candidate": null
+                },
+                "kind": "ask_support_preference",
+                "instruction": "Acknowledge the feeling of heaviness and explicitly validate that there is no 'mission' or hidden agenda today. Ask if they prefer to just have this acknowledged, talk a bit more about what's weighing on them, or simply have some quiet space."
+              },
+              "ai_call_count": 2,
+              "runtime_trace": [
+                {
+                  "event": "ask_support_preference",
+                  "component": "post_morning_nudge.emotional_presence_dispatcher",
+                  "flow_action": "ask_support_preference",
+                  "exit_memo.reason": null,
+                  "visible_task.kind": "ask_support_preference",
+                  "close_after_visible": false,
+                  "state_updates.status": "active",
+                  "exit_to_global_dispatcher": false,
+                  "post_morning_nudge.flow_kind": "emotional_presence",
+                  "local_assessment.support_need": "space",
+                  "local_assessment.emotional_load": "medium",
+                  "local_assessment.action_readiness": "not_today",
+                  "global_dispatcher_skipped_due_post_morning_nudge": true
+                }
+              ],
+              "state_updates": {
+                "status": "active",
+                "close_after_visible": false,
+                "turn_count_increment": 1
+              },
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "local_assessment": {
+                "support_need": "space",
+                "emotional_load": "medium",
+                "motivation_need": "unknown",
+                "action_readiness": "not_today",
+                "reactivation_candidate": null,
+                "main_emotion_or_context": "feeling heavy and rejecting any task-oriented approach",
+                "user_wants_conversation": true,
+                "soft_next_step_candidate": null
+              },
+              "no_chat_mutation": true,
+              "selected_handler": "post_morning_nudge.emotional_presence_dispatcher",
+              "committed_effects": [],
+              "requested_effects": [],
+              "close_after_visible": false,
+              "no_durable_mutation": {
+                "card_created": false,
+                "action_created": false,
+                "potion_created": false,
+                "reminder_created": false,
+                "plan_patch_written": false,
+                "preference_written": false,
+                "scheduled_checkin_created": false
+              },
+              "post_morning_nudge.emotional_presence_dispatcher_called": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:50:48.259077+00:00"
+      },
+      {
+        "id": "c03b1605-6315-4f39-a283-a8dc2cfa8383",
+        "role": "user",
+        "content": "Et juste pour verifier, tu attendais une action precise de moi avec ton message ?",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "request_id": "qa-pmnep-real-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:50:48.309335+00:00"
+      },
+      {
+        "id": "46b677c3-9f7e-472c-86a3-b9098d896da9",
+        "role": "assistant",
+        "content": "Il n'y avait vraiment aucune action cachée ou attente particulière derrière mon message de ce matin. Mon intention était simplement de t'offrir une porte ouverte et une présence, sans aucune pression de productivité. Je sais que les choses peuvent sembler un peu lourdes en ce moment, et je voulais juste que tu saches que je respecte ton état et ton rythme, peu importe ce qu'ils sont aujourd'hui. Je suis là, tout simplement. 🙂",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-pmnep-real-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "active",
+              "skill_id": "post_morning_nudge",
+              "exit_memo": null,
+              "flow_kind": "emotional_presence",
+              "confidence": "high",
+              "risk_score": 0,
+              "flow_action": "repeat_presence_context",
+              "reason_code": "post_morning_nudge_emotional_presence_local_dispatcher",
+              "visible_task": {
+                "data": {
+                  "coach_intent": "support_emotion",
+                  "source_nudge_summary": "emotional_presence_nudge (open_door)",
+                  "reactivation_candidate": null,
+                  "main_emotion_or_context": "feeling heavy, rejecting task-oriented approach",
+                  "soft_next_step_candidate": null
+                },
+                "kind": "repeat_presence_context",
+                "instruction": "Confirm clearly that there was no hidden target action or specific expectation in the morning nudge. Reiterate that the intent was purely to offer emotional presence and an open door, respecting the user's current state without pushing for productivity."
+              },
+              "ai_call_count": 2,
+              "runtime_trace": [
+                {
+                  "event": "repeat_presence_context",
+                  "component": "post_morning_nudge.emotional_presence_dispatcher",
+                  "flow_action": "repeat_presence_context",
+                  "exit_memo.reason": null,
+                  "visible_task.kind": "repeat_presence_context",
+                  "close_after_visible": false,
+                  "state_updates.status": "active",
+                  "exit_to_global_dispatcher": false,
+                  "post_morning_nudge.flow_kind": "emotional_presence",
+                  "local_assessment.support_need": "space",
+                  "local_assessment.emotional_load": "medium",
+                  "local_assessment.action_readiness": "not_today",
+                  "global_dispatcher_skipped_due_post_morning_nudge": true
+                }
+              ],
+              "state_updates": {
+                "status": "active",
+                "close_after_visible": false,
+                "turn_count_increment": 1
+              },
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "local_assessment": {
+                "support_need": "space",
+                "emotional_load": "medium",
+                "motivation_need": "unknown",
+                "action_readiness": "not_today",
+                "reactivation_candidate": null,
+                "main_emotion_or_context": "checking for hidden expectations or tasks",
+                "user_wants_conversation": true,
+                "soft_next_step_candidate": null
+              },
+              "no_chat_mutation": true,
+              "selected_handler": "post_morning_nudge.emotional_presence_dispatcher",
+              "committed_effects": [],
+              "requested_effects": [],
+              "close_after_visible": false,
+              "no_durable_mutation": {
+                "card_created": false,
+                "action_created": false,
+                "potion_created": false,
+                "reminder_created": false,
+                "plan_patch_written": false,
+                "preference_written": false,
+                "scheduled_checkin_created": false
+              },
+              "post_morning_nudge.emotional_presence_dispatcher_called": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:51:00.036416+00:00"
+      },
+      {
+        "id": "c35375b9-1013-4073-9d0f-2054cb79dd4d",
+        "role": "user",
+        "content": "Ok. Dans ce cas donne-moi un point d'appui tres simple, pas une todo.",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "request_id": "qa-pmnep-real-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:51:00.084734+00:00"
+      },
+      {
+        "id": "69797333-05d2-4383-a154-4fc85c626f35",
+        "role": "assistant",
+        "content": "Peut-être pourrais-tu simplement laisser ton regard se poser un instant sur une couleur ou une forme qui t'est agréable autour de toi, sans rien attendre de plus. 🙂",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-pmnep-real-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "active",
+              "skill_id": "post_morning_nudge",
+              "exit_memo": null,
+              "flow_kind": "emotional_presence",
+              "confidence": "high",
+              "risk_score": 0,
+              "flow_action": "offer_soft_next_step",
+              "reason_code": "post_morning_nudge_emotional_presence_local_dispatcher",
+              "visible_task": {
+                "data": {
+                  "coach_intent": "support_emotion",
+                  "source_nudge_summary": "emotional presence nudge (no hidden action)",
+                  "reactivation_candidate": null,
+                  "main_emotion_or_context": "lourdeur émotionnelle et refus de mission/todo",
+                  "soft_next_step_candidate": "ancrage doux"
+                },
+                "kind": "offer_soft_next_step",
+                "instruction": "Proposer un point d'appui très doux et non-exécutif (sensoriel, respiratoire ou contemplatif) pour répondre à la demande de l'utilisateur qui cherche un soutien sans 'todo'."
+              },
+              "ai_call_count": 2,
+              "runtime_trace": [
+                {
+                  "event": "offer_soft_next_step",
+                  "component": "post_morning_nudge.emotional_presence_dispatcher",
+                  "flow_action": "offer_soft_next_step",
+                  "exit_memo.reason": null,
+                  "visible_task.kind": "offer_soft_next_step",
+                  "close_after_visible": false,
+                  "state_updates.status": "active",
+                  "exit_to_global_dispatcher": false,
+                  "post_morning_nudge.flow_kind": "emotional_presence",
+                  "local_assessment.support_need": "soft_next_step",
+                  "local_assessment.emotional_load": "medium",
+                  "local_assessment.action_readiness": "not_today",
+                  "global_dispatcher_skipped_due_post_morning_nudge": true
+                }
+              ],
+              "state_updates": {
+                "status": "active",
+                "close_after_visible": false,
+                "turn_count_increment": 1
+              },
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "local_assessment": {
+                "support_need": "soft_next_step",
+                "emotional_load": "medium",
+                "motivation_need": "unknown",
+                "action_readiness": "not_today",
+                "reactivation_candidate": null,
+                "main_emotion_or_context": "recherche d'un point d'ancrage doux sans pression de productivité",
+                "user_wants_conversation": true,
+                "soft_next_step_candidate": "un point d'appui sensoriel ou une micro-pause contemplative"
+              },
+              "no_chat_mutation": true,
+              "selected_handler": "post_morning_nudge.emotional_presence_dispatcher",
+              "committed_effects": [],
+              "requested_effects": [],
+              "close_after_visible": false,
+              "no_durable_mutation": {
+                "card_created": false,
+                "action_created": false,
+                "potion_created": false,
+                "reminder_created": false,
+                "plan_patch_written": false,
+                "preference_written": false,
+                "scheduled_checkin_created": false
+              },
+              "post_morning_nudge.emotional_presence_dispatcher_called": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:51:13.2644+00:00"
+      },
+      {
+        "id": "a9d82ccd-61af-48b6-bde4-312b3c542211",
+        "role": "user",
+        "content": "En fait je prefere une potion de clarte pour poser ca proprement.",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "request_id": "qa-pmnep-real-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:51:14.222456+00:00"
+      },
+      {
+        "id": "9442a871-2f52-476c-afa0-31df97c68d18",
+        "role": "user",
+        "content": "Je reformule simplement: j'aimerais choisir une potion de clarte maintenant.",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "request_id": "qa-pmnep-real-r1-t05-resume",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T15:53:23.687312+00:00"
+      },
+      {
+        "id": "4874478d-84e6-4a8a-96da-d9105755e17e",
+        "role": "assistant",
+        "content": "C'est une excellente idée d'utiliser la Potion de clarté pour mettre tout ça au clair. Qu'est-ce qui te donne le sentiment que ce que tu as prévu pour aujourd'hui a perdu son sens ou sa résonance ? 🙂",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-pmnep-real-r1-t05-resume",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "clarte_field_missing",
+              "runtime_trace": [
+                {
+                  "event": "active_clarte_turn_start",
+                  "component": "select_state_potion.clarte",
+                  "previous_status": null,
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.clarte",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "answer_current_field",
+                  "visible_task": "ask_deeper",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "clarte"
+                },
+                {
+                  "flow": "select_state_potion.clarte",
+                  "event": "reduced",
+                  "status": "clarifying",
+                  "component": "local_reducer",
+                  "reason_code": "clarte_field_missing",
+                  "field_status": "missing",
+                  "visible_task": "ask_deeper",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "start",
+                  "stage": "clarte_task",
+                  "component": "visible_stage",
+                  "handoff_status": "clarifying",
+                  "clarte_visible_task": "ask_deeper",
+                  "potion_subskill_visible_task": null
+                },
+                {
+                  "stage": "clarte_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "clarte_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "clarte_field_missing",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.clarte",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T15:53:37.740401+00:00"
+      }
+    ]
+  },
+  "user_chat_states": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "user_id": "e35e24fe-bb9b-457e-ac70-86892cc17f7a",
+        "scope": "qa-post-morning-nudge-emotional-presence-pmnep-real-r1",
+        "temp_memory": {
+          "qa_run_id": "pmnep-real-r1",
+          "__conversation_risk_last": {
+            "at": "2026-06-08T15:53:27.250Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__active_tool_skill_intake": {
+            "mode": "platform_handoff",
+            "draft": null,
+            "phase": "detail_intake",
+            "status": "clarifying",
+            "skill_id": "select_state_potion",
+            "max_turns": 6,
+            "created_at": "2026-06-08T15:53:33.561Z",
+            "turn_count": 2,
+            "updated_at": "2026-06-08T15:53:33.562Z",
+            "clarte_state": {
+              "flow_id": "select_state_potion.clarte",
+              "field_id": "plan_meaning_loss_reason",
+              "field_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+              "field_state": {
+                "status": "missing",
+                "why_status": "Le champ clarté n'est pas encore rempli.",
+                "locked_value": null,
+                "previous_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "potion_name": "Potion de clarté",
+              "selected_potion": "clarte",
+              "subskill_history": [],
+              "last_visible_task": "ask_deeper",
+              "platform_destination": "section État / Potions",
+              "last_handoff_delivered": false
+            },
+            "intake_state": {
+              "state": {
+                "kind": "confusion_overload",
+                "status": "identified",
+                "evidence": [
+                  "j'aimerais choisir une potion de clarte maintenant",
+                  "En fait je prefere une potion de clarte pour poser ca proprement"
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "lourdeur et perte de sens",
+                "target_hint": "reconnecter le plan au pourquoi profond",
+                "handoff_summary": null,
+                "related_plan_item_id": null,
+                "opportunistic_detail_candidates": []
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "status": "missing",
+                    "evidence": [],
+                    "required": true,
+                    "question_id": "plan_meaning_loss_reason",
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "missing",
+                "answers": [],
+                "evidence": [],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "plan_meaning_loss_reason"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [
+                  {
+                    "reason": "Demande explicite de l'utilisateur pour retrouver du sens face à la lourdeur ressentie.",
+                    "evidence": [
+                      "j'aimerais choisir une potion de clarte maintenant"
+                    ],
+                    "potion_type": "clarte",
+                    "fit_confidence": "high"
+                  }
+                ],
+                "evidence": [
+                  "j'aimerais choisir une potion de clarte maintenant"
+                ]
+              },
+              "confidence": "high",
+              "missing_slots": [
+                "potion_detail:plan_meaning_loss_reason"
+              ],
+              "selected_potion": {
+                "value": "clarte",
+                "status": "identified",
+                "evidence": [
+                  "j'aimerais choisir une potion de clarte maintenant"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "detail_intake",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "j'aimerais choisir une potion de clarte maintenant"
+                ],
+                "potion_type": "clarte"
+              }
+            },
+            "operation_input": null,
+            "no_chat_mutation": true,
+            "active_subskill_id": "select_state_potion.clarte",
+            "potion_subskill_state": null
+          },
+          "__conversation_risk_history": [
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "current_mode": "companion",
+        "updated_at": "2026-06-08T15:53:37.733012+00:00"
+      }
+    ]
+  },
+  "scheduled_checkins": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.metadata does not exist"
+    }
+  }
+}

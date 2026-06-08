@@ -59,6 +59,8 @@ export type ClarteFlowAction =
   | "answer_current_field"
   | "confirm_proposed_field"
   | "revise_current_field"
+  | "get_info_product"
+  | "get_info_db"
   | "platform_destination_followup"
   | "apply_attempt"
   | "repeat_handoff"
@@ -77,7 +79,68 @@ export type ClarteVisibleTaskKind =
   | "apply_attempt"
   | "repeat_handoff"
   | "exit"
-  | "safety";
+  | "safety"
+  | "none";
+
+export type StatePotionSubskillFlowAction =
+  | "answer_current_field"
+  | "confirm_proposed_field"
+  | "revise_current_field"
+  | "get_info_product"
+  | "get_info_db"
+  | "platform_destination_followup"
+  | "apply_attempt"
+  | "repeat_handoff"
+  | "cancel_flow"
+  | "exit_to_global_dispatcher"
+  | "safety_preempt";
+
+export type StatePotionSubskillFieldStatus = "missing" | "proposed" | "locked";
+
+export type StatePotionSubskillFieldDetailSufficiency = {
+  status: "unknown" | "sufficient" | "needs_more_detail";
+  reason: string | null;
+  followup_question: string | null;
+  followup_asked: boolean;
+  followup_answered: boolean;
+  evidence: string[];
+};
+
+export type StatePotionSubskillVisibleTaskKind =
+  | "ask_deeper"
+  | "confirm_proposal"
+  | "handoff_ready"
+  | "revision_done"
+  | "destination_short"
+  | "apply_attempt"
+  | "repeat_handoff"
+  | "exit"
+  | "safety"
+  | "none";
+
+export type StatePotionSubskillFieldState = {
+  field_id: string;
+  field_label: string;
+  input_type: "free_text" | "single_select";
+  status: StatePotionSubskillFieldStatus;
+  candidate_value: string | null;
+  locked_value: string | null;
+  option_value: string | null;
+  option_label: string | null;
+  previous_value: string | null;
+  needs_user_confirmation: boolean;
+  why_status: string;
+  detail_sufficiency: StatePotionSubskillFieldDetailSufficiency;
+};
+
+export type StatePotionSubskillRevisionState = {
+  is_revision: boolean;
+  field_id: string | null;
+  replacement_value: string | null;
+  option_value: string | null;
+  option_label: string | null;
+  replaces_previous_value: boolean;
+};
 
 export type ClarteFieldState = {
   status: ClarteFieldStatus;
@@ -101,6 +164,101 @@ export type SelectStatePotionRiskAssessment = {
   reason_codes: string[];
 };
 
+export type StatePotionSubskillPotionType =
+  | "rappel"
+  | "courage"
+  | "guerison"
+  | "clarte"
+  | "amour"
+  | "apaisement";
+
+export type StatePotionSubskillId =
+  | "select_state_potion.rappel"
+  | "select_state_potion.courage"
+  | "select_state_potion.guerison"
+  | "select_state_potion.clarte"
+  | "select_state_potion.amour"
+  | "select_state_potion.apaisement";
+
+export function statePotionSubskillId(
+  potionType: string | null | undefined,
+): StatePotionSubskillId | null {
+  switch (potionType) {
+    case "rappel":
+      return "select_state_potion.rappel";
+    case "courage":
+      return "select_state_potion.courage";
+    case "guerison":
+      return "select_state_potion.guerison";
+    case "clarte":
+      return "select_state_potion.clarte";
+    case "amour":
+      return "select_state_potion.amour";
+    case "apaisement":
+      return "select_state_potion.apaisement";
+    default:
+      return null;
+  }
+}
+
+export type StatePotionSubskillDispatcherOutput = {
+  flow_action: StatePotionSubskillFlowAction;
+  confidence: "low" | "medium" | "high";
+  selected_potion: StatePotionSubskillPotionType;
+  current_field_id: string | null;
+  field_states: StatePotionSubskillFieldState[];
+  revision: StatePotionSubskillRevisionState;
+  visible_task: {
+    kind: StatePotionSubskillVisibleTaskKind;
+    required_data: {
+      potion_name: string;
+      platform_destination: "section État / Potions";
+      fields: Array<{
+        field_id: string;
+        field_label: string;
+        field_value: string | null;
+        option_value: string | null;
+        option_label: string | null;
+      }>;
+    };
+  };
+  subskill_call?: {
+    needed: boolean;
+    skill_id: "product_help" | "status_recap" | null;
+    reason: string | null;
+    context_for_subskill: Record<string, unknown>;
+  };
+  exit_memo: {
+    needed: boolean;
+    reason: "none" | "topic_change" | "cancelled" | "safety";
+    flow_summary: string | null;
+    collected_value: string | null;
+    handoff_hint_for_global_dispatcher: string | null;
+  };
+  no_chat_mutation: {
+    potion_session_created: false;
+    recurring_reminder_created: false;
+    scheduled_checkin_created: false;
+    executable_confirmation_generated: false;
+  };
+  risk_assessment: SelectStatePotionRiskAssessment;
+  evidence: string[];
+};
+
+export type StatePotionSubskillHandoffState = {
+  flow_id: StatePotionSubskillId;
+  selected_potion: StatePotionSubskillPotionType;
+  potion_name: string;
+  platform_destination: "section État / Potions";
+  origin_bridge_context?: Record<string, unknown> | null;
+  field_order: string[];
+  field_states: Record<string, StatePotionSubskillFieldState>;
+  current_field_id: string | null;
+  last_visible_task: StatePotionSubskillVisibleTaskKind | null;
+  last_handoff_delivered: boolean;
+  subskill_history: Array<Record<string, unknown>>;
+};
+
 export type ClarteDispatcherOutput = {
   flow_action: ClarteFlowAction;
   confidence: "low" | "medium" | "high";
@@ -117,6 +275,12 @@ export type ClarteDispatcherOutput = {
       field_value: string | null;
       platform_destination: "section État / Potions";
     };
+  };
+  subskill_call?: {
+    needed: boolean;
+    skill_id: "product_help" | "status_recap" | null;
+    reason: string | null;
+    context_for_subskill: Record<string, unknown>;
   };
   exit_memo: {
     needed: boolean;
@@ -143,9 +307,11 @@ export type ClarteHandoffState = {
     "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?";
   potion_name: "Potion de clarté";
   platform_destination: "section État / Potions";
+  origin_bridge_context?: Record<string, unknown> | null;
   field_state: ClarteFieldState;
   last_visible_task: ClarteVisibleTaskKind | null;
   last_handoff_delivered: boolean;
+  subskill_history: Array<Record<string, unknown>>;
 };
 
 export type StatePotionHandoffDraft = {

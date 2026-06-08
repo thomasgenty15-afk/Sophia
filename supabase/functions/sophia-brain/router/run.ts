@@ -301,7 +301,21 @@ import {
   buildAttackKeywordContextOverride,
   loadAttackKeywordMatch,
 } from "../tools/operations/prepare_attack_card/run_support.ts";
+import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
+import { maybeRunPrepareDefenseCardOperation } from "../tools/operations/prepare_defense_card/router.ts";
+import { isAttackCardHandoffState } from "../tools/operations/prepare_attack_card/state.ts";
+import {
+  readPostMorningNudgeActiveState,
+  runPostMorningNudgeLocalRuntime,
+} from "../post_morning_nudge.ts";
+import {
+  maybeRunFlowOpportunityVerificationRuntime,
+} from "../skills/flow_opportunity_verification/runtime.ts";
+import {
+  hasActiveFlowOpportunityState,
+} from "../skills/flow_opportunity_verification/state.ts";
 import { clearConversationFlowForCoachPreference } from "../tools/operations/update_coach_preferences/route_guards.ts";
+import { maybeRunUpdateCoachPreferencesOperation } from "../tools/operations/update_coach_preferences/router.ts";
 import { loadCoachPreferenceRuntimeContext } from "../tools/operations/update_coach_preferences/runtime_policy.ts";
 import { createConfirmationToken } from "../confirmation/confirmation_token.ts";
 import {
@@ -321,6 +335,7 @@ import {
   hasPendingOrActiveAdjustPlanOperation,
   isWeeklyAdaptiveReviewActive,
   maybeLogWeeklyForgottenProgressParallel,
+  runWeeklyReviewLocalRuntime,
   shouldKeepWeeklyAdaptiveReviewInConversation,
   summarizeWeeklyAdaptiveReviewForAddon,
   weeklyAdaptiveReviewStateForTurn,
@@ -355,7 +370,9 @@ export {
 } from "./plan_snapshot_runtime.ts";
 import {
   buildDispatcherActiveRuntimeContext,
+  buildLastLocalFlowExitContext,
   clearActiveToolFlow,
+  clearLastLocalFlowExitContext,
   clearPendingToolConfirmation,
   clearToolSkillFlow,
   clearToolSkillFlowForDirectReminder,
@@ -976,27 +993,62 @@ export async function processMessage(
     (activeOperationIntake as any)?.operation_type ??
       ((activeOperationIntake as any)?.mode === "platform_handoff"
         ? (activeOperationIntake as any)?.skill_id
-        : ""),
+        : (activeOperationIntake as any)?.skill_id ?? ""),
   ).trim();
+  const activeAttackCardHandoffForLocalFlow = isAttackCardHandoffState(
+      (tempMemory as any)?.__active_attack_card_handoff,
+    )
+    ? (tempMemory as any).__active_attack_card_handoff
+    : null;
   const activeStatePotionHandoffForLocalFlow =
     loadStatePotionHandoffStateFromTempMemory(tempMemory);
-  const activeLocalFlowOperationType = activeStatePotionHandoffForLocalFlow
+  const activeLocalFlowOperationType = activeAttackCardHandoffForLocalFlow
+    ? "prepare_attack_card"
+    : activeStatePotionHandoffForLocalFlow
     ? "select_state_potion"
     : activeOperationTypeForLocalFlow;
-  const activeLocalFlowHandler =
-    (activeStatePotionHandoffForLocalFlow as any)?.active_subskill_id ===
-        "select_state_potion.clarte" ||
-      activeStatePotionHandoffForLocalFlow?.clarte_state?.selected_potion ===
+  const activeSubskillId = String(
+    (activeStatePotionHandoffForLocalFlow as any)?.active_subskill_id ?? "",
+  ).trim();
+  const activeLocalFlowHandler = activeLocalFlowOperationType ===
+      "prepare_attack_card"
+    ? "prepare_attack_card"
+    : activeSubskillId.startsWith(
+        "select_state_potion.",
+      )
+    ? activeSubskillId
+    : activeStatePotionHandoffForLocalFlow?.clarte_state?.selected_potion ===
         "clarte"
-      ? "select_state_potion.clarte"
-      : activeLocalFlowOperationType;
-  const activeLocalFlowReasonCode = activeLocalFlowHandler ===
-      "select_state_potion.clarte"
-    ? "active_clarte_local_dispatcher"
+    ? "select_state_potion.clarte"
+    : activeLocalFlowOperationType;
+  const activePotionSubskillName = activeLocalFlowHandler.startsWith(
+      "select_state_potion.",
+    )
+    ? activeLocalFlowHandler.slice("select_state_potion.".length)
+    : "";
+  const activeLocalFlowReasonCode = activeLocalFlowOperationType ===
+      "prepare_attack_card"
+    ? "active_prepare_attack_card_local_dispatcher"
+    : activeLocalFlowOperationType === "adjust_plan_item"
+    ? "active_adjust_plan_item_local_dispatcher"
+    : activeLocalFlowOperationType === "prepare_defense_card"
+    ? "active_prepare_defense_card_local_dispatcher"
+    : activeLocalFlowOperationType === "update_coach_preferences"
+    ? "active_update_coach_preferences_local_dispatcher"
+    : activePotionSubskillName
+    ? `active_${activePotionSubskillName}_local_dispatcher`
     : "active_select_state_potion_local_dispatcher";
-  const activeLocalFlowBlockedReasonCode = activeLocalFlowHandler ===
-      "select_state_potion.clarte"
-    ? "active_clarte_uses_local_dispatcher"
+  const activeLocalFlowBlockedReasonCode = activeLocalFlowOperationType ===
+      "prepare_attack_card"
+    ? "active_prepare_attack_card_uses_local_dispatcher"
+    : activeLocalFlowOperationType === "adjust_plan_item"
+    ? "active_adjust_plan_item_uses_local_dispatcher"
+    : activeLocalFlowOperationType === "prepare_defense_card"
+    ? "active_prepare_defense_card_uses_local_dispatcher"
+    : activeLocalFlowOperationType === "update_coach_preferences"
+    ? "active_update_coach_preferences_uses_local_dispatcher"
+    : activePotionSubskillName
+    ? `active_${activePotionSubskillName}_uses_local_dispatcher`
     : "active_select_state_potion_uses_local_dispatcher";
   let activeOperationIntakeForDispatcher = activeOperationIntake;
   let pendingOperationConfirmation =
@@ -1005,6 +1057,1262 @@ export async function processMessage(
     pendingConfirmationOwnedByToolSkill(pendingOperationConfirmation)
       ? null
       : pendingOperationConfirmation;
+  const activePostMorningNudgeState = readPostMorningNudgeActiveState(
+    tempMemory,
+  );
+  const activeWeeklyReviewLocalState = weeklyAdaptiveReviewStateForTurn({
+    activeSkillState,
+    tempMemory,
+  });
+  if (activeWeeklyReviewLocalState) {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "conversation_handler",
+      selected_handler: "weekly_adaptive_review_v1",
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: "active_weekly_review_uses_local_dispatcher",
+      }],
+      direct_effects_to_run: [],
+      reason_code: "active_weekly_review_local_dispatcher",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    const weeklyRuntime = await runWeeklyReviewLocalRuntime({
+      supabase,
+      userId,
+      tempMemory,
+      activeSkillState,
+      userMessage,
+      history,
+      requestId: meta?.requestId ?? null,
+      v2Runtime: v2Runtime ?? null,
+      loggedMessageId,
+    });
+    if (weeklyRuntime) {
+      const localRuntimeReason = String(
+        (weeklyRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "weekly_review_local_exit_to_global_dispatcher" ||
+        localRuntimeReason === "weekly_review_safety_preempt"
+      ) {
+        tempMemory = weeklyRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_weekly_review_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            source_dispatcher_local: "weekly_adaptive_review.local_dispatcher",
+            flow_action: (weeklyRuntime.toolSkillRun as any)?.flow_action ??
+              null,
+            "visible_task.kind":
+              (weeklyRuntime.toolSkillRun as any)?.visible_task ?? null,
+            exit_to_global_dispatcher: true,
+            "exit_memo.reason":
+              (weeklyRuntime.toolSkillRun as any)?.exit_memo?.reason ??
+                null,
+            global_dispatcher_second_pass_after_local_exit: true,
+            local_runtime: weeklyRuntime.toolSkillRun,
+          },
+          "info",
+        );
+      } else {
+        await trace(
+          "brain:active_weekly_review_local_dispatcher",
+          "routing",
+          {
+            global_dispatcher_skipped_due_weekly_review: true,
+            skipped_global_dispatcher: true,
+            source_dispatcher_local: "weekly_adaptive_review.local_dispatcher",
+            flow_action: (weeklyRuntime.toolSkillRun as any)?.flow_action ??
+              null,
+            "visible_task.kind":
+              (weeklyRuntime.toolSkillRun as any)?.visible_task ?? null,
+            reason_code: (weeklyRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+            toolExecution: weeklyRuntime.toolExecution,
+            executedTools: weeklyRuntime.executedTools,
+          },
+          "info",
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState: null,
+          operationRuntime: weeklyRuntime,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: weeklyAdaptiveReviewStateForTurn({
+            activeSkillState: null,
+            tempMemory: weeklyRuntime.nextTempMemory,
+          }),
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    } else {
+      await trace(
+        "brain:active_weekly_review_local_runtime_null",
+        "routing",
+        {
+          global_dispatcher_skipped_due_weekly_review: true,
+          skipped_global_dispatcher: true,
+          reason_code: "active_weekly_review_local_runtime_null",
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState: null,
+        operationRuntime: {
+          content:
+            "Je garde le point weekly, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "weekly_adaptive_review_v1",
+            skill_id: "weekly_adaptive_review_v1",
+            status: "blocked",
+            reason_code: "active_weekly_review_local_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code: "active_weekly_review_local_runtime_null",
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        turnAgendaSummary: null,
+        safetyPregateOutput,
+        weeklyReviewStateForTurn: activeWeeklyReviewLocalState,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+  }
+  if (activePostMorningNudgeState) {
+    const postMorningHandler =
+      activePostMorningNudgeState.flow_kind === "action"
+        ? "post_morning_nudge.action_dispatcher"
+        : activePostMorningNudgeState.flow_kind === "suppressed_action"
+        ? "post_morning_nudge.suppressed_action_dispatcher"
+        : "post_morning_nudge.emotional_presence_dispatcher";
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: postMorningHandler,
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: "active_post_morning_nudge_uses_local_dispatcher",
+      }],
+      direct_effects_to_run: [],
+      reason_code: "active_post_morning_nudge_local_dispatcher",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    const operationRuntime = await runPostMorningNudgeLocalRuntime({
+      tempMemory,
+      userId,
+      userMessage,
+      history,
+      requestId: meta?.requestId ?? null,
+      nowIso: new Date().toISOString(),
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "post_morning_nudge_local_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_post_morning_nudge_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            "post_morning_nudge.flow_kind":
+              activePostMorningNudgeState.flow_kind,
+            source_dispatcher_local: postMorningHandler,
+            flow_action: (operationRuntime.toolSkillRun as any)?.flow_action ??
+              null,
+            "visible_task.kind":
+              (operationRuntime.toolSkillRun as any)?.visible_task?.kind ??
+                null,
+            exit_to_global_dispatcher: true,
+            "exit_memo.reason":
+              (operationRuntime.toolSkillRun as any)?.exit_memo?.reason ??
+                null,
+            global_dispatcher_second_pass_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+      } else {
+        await trace(
+          "brain:active_post_morning_nudge_local_dispatcher",
+          "routing",
+          {
+            global_dispatcher_skipped_due_post_morning_nudge: true,
+            skipped_global_dispatcher: true,
+            "post_morning_nudge.flow_kind":
+              activePostMorningNudgeState.flow_kind,
+            source_dispatcher_local: postMorningHandler,
+            flow_action: (operationRuntime.toolSkillRun as any)?.flow_action ??
+              null,
+            "visible_task.kind":
+              (operationRuntime.toolSkillRun as any)?.visible_task?.kind ??
+                null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime: operationRuntime as any,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    } else {
+      await trace(
+        "brain:active_post_morning_nudge_local_runtime_null",
+        "routing",
+        {
+          global_dispatcher_skipped_due_post_morning_nudge: true,
+          skipped_global_dispatcher: true,
+          "post_morning_nudge.flow_kind": activePostMorningNudgeState.flow_kind,
+          source_dispatcher_local: postMorningHandler,
+          reason_code: "active_post_morning_nudge_local_runtime_null",
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde le fil du message de ce matin, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: postMorningHandler,
+            skill_id: "post_morning_nudge",
+            flow_kind: activePostMorningNudgeState.flow_kind,
+            status: "blocked",
+            reason_code: "active_post_morning_nudge_local_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code: "active_post_morning_nudge_local_runtime_null",
+            }],
+            runtime_trace: [{
+              component: postMorningHandler,
+              event: "local_runtime_null",
+              global_dispatcher_skipped_due_post_morning_nudge: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        turnAgendaSummary: null,
+        safetyPregateOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+  }
+  if (hasActiveFlowOpportunityState(tempMemory)) {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "conversation_handler",
+      selected_handler: "flow_opportunity_verification",
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code:
+          "active_flow_opportunity_verification_uses_local_dispatcher",
+      }],
+      direct_effects_to_run: [],
+      reason_code: "active_flow_opportunity_verification_local_dispatcher",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      flow_opportunity: null,
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    const operationRuntime = await maybeRunFlowOpportunityVerificationRuntime({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      history,
+      tempMemory,
+      turnFrame: localTurnFrame,
+      routeDecision: localRouteDecision,
+      safetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "flow_opportunity_verification_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:flow_opportunity_verification.exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+      } else {
+        await trace(
+          "brain:flow_opportunity_verification.global_dispatcher_skipped_due_active_flow",
+          "routing",
+          {
+            skipped_global_dispatcher: true,
+            source_dispatcher_local: "flow_opportunity_verification",
+            flow_action: (operationRuntime.toolSkillRun as any)?.flow_action ??
+              null,
+            "visible_task.kind":
+              (operationRuntime.toolSkillRun as any)?.visible_task?.kind ??
+                null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    }
+  }
+  if (activeLocalFlowOperationType === "adjust_plan_item") {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "adjust_plan_item",
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: activeLocalFlowBlockedReasonCode,
+      }],
+      direct_effects_to_run: [],
+      reason_code: activeLocalFlowReasonCode,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        confidence_band: "high",
+        explicitness: "implied",
+        user_intent: "adjust",
+        ambiguity: "none",
+      }],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    let continueToGlobalAfterLocalExit = false;
+    const operationRuntime = await maybeRunAdjustPlanItemOperation({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      history,
+      tempMemory,
+      planItemSnapshot: planItemSnapshot ?? [],
+      turnFrame: localTurnFrame,
+      routeDecision: localRouteDecision,
+      safetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      forceFullAi: meta?.forceRealAi === true ||
+        (opts?.messageMetadata as Record<string, unknown> | undefined)
+            ?.force_full_ai === true,
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "adjust_plan_item_local_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_adjust_plan_item_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+        continueToGlobalAfterLocalExit = true;
+      } else {
+        await trace(
+          "brain:active_adjust_plan_item_local_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher: true,
+            active_operation_type: activeLocalFlowOperationType,
+            active_handler: activeLocalFlowHandler,
+            active_state_source: "adjust_plan_handoff",
+            tool_status: (operationRuntime.toolSkillRun as any)?.status ?? null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        const localRiskScore = Number(
+          (operationRuntime.toolSkillRun as any)?.risk_score ?? 0,
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime: operationRuntime as any,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: Number.isFinite(localRiskScore) ? localRiskScore : 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    }
+    if (!continueToGlobalAfterLocalExit) {
+      await trace(
+        "brain:active_adjust_plan_item_local_runtime_null",
+        "routing",
+        {
+          skipped_global_dispatcher: true,
+          active_operation_type: activeLocalFlowOperationType,
+          active_state_source: "adjust_plan_handoff",
+          reason_code: "active_adjust_plan_item_local_runtime_null",
+          active_handler: activeLocalFlowHandler,
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde l'ajustement du plan en cours, mais je n'arrive pas a traiter correctement ce tour. Reessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "adjust_plan_item",
+            operation_type: "adjust_plan_item",
+            mode: "platform_handoff",
+            no_chat_mutation: true,
+            executable_from_chat: false,
+            status: "blocked",
+            reason_code: "active_adjust_plan_item_local_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code: "active_adjust_plan_item_local_runtime_null",
+            }],
+            runtime_trace: [{
+              component: "adjust_plan_item",
+              event: "local_runtime_null",
+              global_dispatcher_skipped: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        turnAgendaSummary: null,
+        safetyPregateOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+  }
+  if (activeLocalFlowOperationType === "prepare_attack_card") {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: activeLocalFlowBlockedReasonCode,
+      }],
+      direct_effects_to_run: [],
+      reason_code: activeLocalFlowReasonCode,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    let continueToGlobalAfterLocalExit = false;
+    const operationRuntime = await maybeRunPrepareAttackCardOperation({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      tempMemory,
+      turnFrame: localTurnFrame,
+      routeDecision: localRouteDecision,
+      safetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      history,
+      planSnapshot: { items: planItemSnapshot ?? [] },
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "prepare_attack_card_local_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_prepare_attack_card_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+        continueToGlobalAfterLocalExit = true;
+      } else {
+        await trace(
+          "brain:active_prepare_attack_card_local_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher: true,
+            active_operation_type: activeLocalFlowOperationType,
+            active_handler: activeLocalFlowHandler,
+            active_state_source: "attack_card_handoff",
+            tool_status: (operationRuntime.toolSkillRun as any)?.status ?? null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        const localRiskScore = Number(
+          (operationRuntime.toolSkillRun as any)?.risk_assessment?.risk_score ??
+            0,
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime: operationRuntime as any,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: Number.isFinite(localRiskScore) ? localRiskScore : 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    }
+    if (!continueToGlobalAfterLocalExit) {
+      await trace(
+        "brain:active_prepare_attack_card_local_runtime_null",
+        "routing",
+        {
+          skipped_global_dispatcher: true,
+          active_operation_type: activeLocalFlowOperationType,
+          active_state_source: "attack_card_handoff",
+          reason_code: "active_prepare_attack_card_local_runtime_null",
+          active_handler: activeLocalFlowHandler,
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde la carte d'attaque en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_attack_card",
+            operation_type: "prepare_attack_card",
+            mode: "platform_handoff",
+            no_chat_mutation: true,
+            executable_from_chat: false,
+            status: "blocked",
+            reason_code: "active_prepare_attack_card_local_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code: "active_prepare_attack_card_local_runtime_null",
+            }],
+            runtime_trace: [{
+              component: "prepare_attack_card",
+              event: "local_runtime_null",
+              global_dispatcher_skipped: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        turnAgendaSummary: null,
+        safetyPregateOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+  }
+  if (activeLocalFlowOperationType === "prepare_defense_card") {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: activeLocalFlowBlockedReasonCode,
+      }],
+      direct_effects_to_run: [],
+      reason_code: activeLocalFlowReasonCode,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    let continueToGlobalAfterLocalExit = false;
+    const operationRuntime = await maybeRunPrepareDefenseCardOperation({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      tempMemory,
+      turnFrame: localTurnFrame,
+      routeDecision: localRouteDecision,
+      safetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      history,
+      planSnapshot: { items: planItemSnapshot ?? [] },
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "prepare_defense_card_local_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_prepare_defense_card_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+        continueToGlobalAfterLocalExit = true;
+      } else {
+        await trace(
+          "brain:active_prepare_defense_card_local_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher: true,
+            active_operation_type: activeLocalFlowOperationType,
+            active_handler: activeLocalFlowHandler,
+            active_state_source: "defense_card_handoff",
+            tool_status: (operationRuntime.toolSkillRun as any)?.status ?? null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        const localRiskScore = Number(
+          (operationRuntime.toolSkillRun as any)?.risk_assessment?.risk_score ??
+            0,
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime: operationRuntime as any,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: Number.isFinite(localRiskScore) ? localRiskScore : 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    }
+    if (!continueToGlobalAfterLocalExit) {
+      await trace(
+        "brain:active_prepare_defense_card_local_runtime_null",
+        "routing",
+        {
+          skipped_global_dispatcher: true,
+          active_operation_type: activeLocalFlowOperationType,
+          active_state_source: "defense_card_handoff",
+          reason_code: "active_prepare_defense_card_local_runtime_null",
+          active_handler: activeLocalFlowHandler,
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde la carte de défense en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_defense_card",
+            operation_type: "prepare_defense_card",
+            mode: "platform_handoff",
+            no_chat_mutation: true,
+            executable_from_chat: false,
+            status: "blocked",
+            reason_code: "active_prepare_defense_card_local_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code: "active_prepare_defense_card_local_runtime_null",
+            }],
+            runtime_trace: [{
+              component: "prepare_defense_card",
+              event: "local_runtime_null",
+              global_dispatcher_skipped: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        turnAgendaSummary: null,
+        safetyPregateOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+  }
   if (activeLocalFlowOperationType === "select_state_potion") {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
@@ -1059,6 +2367,7 @@ export async function processMessage(
       skill_signals: {},
       memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
     };
+    let continueToGlobalAfterLocalExit = false;
     const operationRuntime = await runSelectStatePotionHandoffSkill({
       supabase,
       userId,
@@ -1101,10 +2410,11 @@ export async function processMessage(
           },
           "info",
         );
+        continueToGlobalAfterLocalExit = true;
       } else {
         await trace(
-          activeLocalFlowHandler === "select_state_potion.clarte"
-            ? "brain:active_clarte_local_dispatcher"
+          activePotionSubskillName
+            ? `brain:active_${activePotionSubskillName}_local_dispatcher`
             : "brain:active_select_state_potion_local_dispatcher",
           "routing",
           {
@@ -1154,16 +2464,233 @@ export async function processMessage(
         });
       }
     }
+    if (!continueToGlobalAfterLocalExit) {
+      await trace(
+        "brain:active_select_state_potion_local_runtime_null",
+        "routing",
+        {
+          skipped_global_dispatcher: true,
+          active_operation_type: activeLocalFlowOperationType,
+          active_state_source: activeStatePotionHandoffForLocalFlow
+            ? "state_potion_handoff"
+            : "active_tool_skill_intake",
+          reason_code: "active_select_state_potion_local_runtime_null",
+          active_handler: activeLocalFlowHandler,
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde le flow Potion de clarté en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: activeLocalFlowHandler,
+            operation_type: "select_state_potion",
+            mode: "platform_handoff",
+            no_chat_mutation: true,
+            executable_from_chat: false,
+            status: "blocked",
+            reason_code: "active_select_state_potion_local_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code: "active_select_state_potion_local_runtime_null",
+            }],
+            risk_assessment: {
+              risk_score: 0,
+              risk_band: "none",
+              safety_preempt: false,
+              reason_codes: [],
+            },
+            runtime_trace: [{
+              component: activeLocalFlowHandler,
+              event: "local_runtime_null",
+              global_dispatcher_skipped: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        turnAgendaSummary: null,
+        safetyPregateOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+  }
+  if (activeLocalFlowOperationType === "update_coach_preferences") {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: activeLocalFlowBlockedReasonCode,
+      }],
+      direct_effects_to_run: [],
+      reason_code: activeLocalFlowReasonCode,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyPregateOutput.risk_band,
+        reason_codes: safetyPregateOutput.reason_codes ?? [],
+        evidence: safetyPregateOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    const operationRuntime = await maybeRunUpdateCoachPreferencesOperation({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      tempMemory,
+      turnFrame: localTurnFrame,
+      routeDecision: localRouteDecision,
+      safetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      history,
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "update_coach_preferences_local_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_update_coach_preferences_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+      } else {
+        await trace(
+          "brain:active_update_coach_preferences_local_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher: true,
+            active_operation_type: activeLocalFlowOperationType,
+            active_handler: activeLocalFlowHandler,
+            active_state_source: "coach_preference_local_flow",
+            tool_status: (operationRuntime.toolSkillRun as any)?.status ?? null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime: operationRuntime as any,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          turnAgendaSummary: null,
+          safetyPregateOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    }
     await trace(
-      "brain:active_select_state_potion_local_runtime_null",
+      "brain:active_update_coach_preferences_local_runtime_null",
       "routing",
       {
         skipped_global_dispatcher: true,
         active_operation_type: activeLocalFlowOperationType,
-        active_state_source: activeStatePotionHandoffForLocalFlow
-          ? "state_potion_handoff"
-          : "active_tool_skill_intake",
-        reason_code: "active_select_state_potion_local_runtime_null",
+        active_state_source: "coach_preference_local_flow",
+        reason_code: "active_update_coach_preferences_local_runtime_null",
         active_handler: activeLocalFlowHandler,
       },
       "error",
@@ -1179,33 +2706,25 @@ export async function processMessage(
       activeSkillState,
       operationRuntime: {
         content:
-          "Je garde le flow Potion de clarté en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          "Je garde le changement de préférence en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
         nextTempMemory: tempMemory,
         toolExecution: "blocked",
         executedTools: [],
         toolSkillRun: {
-          selected_handler: activeLocalFlowHandler,
-          operation_type: "select_state_potion",
-          mode: "platform_handoff",
-          no_chat_mutation: true,
-          executable_from_chat: false,
+          selected_handler: "update_coach_preferences",
+          operation_type: "update_coach_preferences",
+          mode: "local_write_flow",
           status: "blocked",
-          reason_code: "active_select_state_potion_local_runtime_null",
+          reason_code: "active_update_coach_preferences_local_runtime_null",
           requested_effects: [],
           allowed_effects: [],
           committed_effects: [],
           blocked_effects: [{
             type: "local_flow_runtime",
-            reason_code: "active_select_state_potion_local_runtime_null",
+            reason_code: "active_update_coach_preferences_local_runtime_null",
           }],
-          risk_assessment: {
-            risk_score: 0,
-            risk_band: "none",
-            safety_preempt: false,
-            reason_codes: [],
-          },
           runtime_trace: [{
-            component: activeLocalFlowHandler,
+            component: "update_coach_preferences",
             event: "local_runtime_null",
             global_dispatcher_skipped: true,
           }],
@@ -1238,6 +2757,14 @@ export async function processMessage(
       pendingOperationConfirmation,
     },
   );
+  const lastLocalFlowExitContextForDispatcher = buildLastLocalFlowExitContext(
+    tempMemory,
+  );
+  if (lastLocalFlowExitContextForDispatcher) {
+    tempMemory = clearLastLocalFlowExitContext(tempMemory);
+    state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+    await updateUserState(supabase, userId, scope, { temp_memory: tempMemory });
+  }
   const fullAiRequested = meta?.forceRealAi === true ||
     (opts?.messageMetadata as Record<string, unknown> | undefined)
         ?.force_full_ai === true;
@@ -1275,6 +2802,7 @@ export async function processMessage(
         onboarding_active: meta?.whatsappMode === "onboarding" ||
           Boolean(opts?.forceOnboardingFlow),
         active_runtime_context: activeRuntimeContextForDispatcher,
+        last_local_flow_exit: lastLocalFlowExitContextForDispatcher,
       },
       plan_snapshot: {
         items: (planItemSnapshot ?? []).map((item: any) => ({
@@ -1685,6 +3213,43 @@ export async function processMessage(
           offer_timing: "never",
           must_not_execute: true,
         },
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    const structuredDefenseCardIntent = (turnFrame.tool_skill_intents ?? [])
+      .some((intent) =>
+        intent.operation_type === "prepare_defense_card" &&
+        intent.explicitness === "explicit" &&
+        intent.user_intent !== "explain_only" &&
+        intent.confidence_band !== "low" &&
+        (intent.ambiguity === "none" ||
+          intent.ambiguity === "target_ambiguous")
+      );
+    if (
+      !isSafetyRoute(routeDecision) &&
+      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      !pendingOperationConfirmationForGlobalRouting &&
+      structuredDefenseCardIntent &&
+      routeDecision.selected_handler !== "prepare_defense_card"
+    ) {
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "tool_skill",
+        selected_handler: "prepare_defense_card",
+        reason_code:
+          "explicit_prepare_defense_card_intent_uses_local_dispatcher",
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "normal_reply",
+            reason_code:
+              "explicit_prepare_defense_card_intent_uses_local_dispatcher",
+          },
+        ],
       };
       dispatcherSignals = dispatcherSignalsFromTurnFrame({
         turnFrame,
@@ -2854,6 +4419,66 @@ export async function processMessage(
 
   if (riskScore !== Number((state as any)?.risk_level ?? 0)) {
     await updateUserState(supabase, userId, scope, { risk_level: riskScore });
+  }
+
+  const flowOpportunityRuntime =
+    await maybeRunFlowOpportunityVerificationRuntime({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      history,
+      tempMemory,
+      turnFrame,
+      routeDecision,
+      safetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+    });
+  if (flowOpportunityRuntime) {
+    await trace(
+      "brain:flow_opportunity_verification.global_opportunity_selected",
+      "routing",
+      {
+        reason_code:
+          (flowOpportunityRuntime.toolSkillRun as any)?.reason_code ?? null,
+        flow_action:
+          (flowOpportunityRuntime.toolSkillRun as any)?.flow_action ?? null,
+        "visible_task.kind":
+          (flowOpportunityRuntime.toolSkillRun as any)?.visible_task?.kind ??
+            null,
+      },
+      "info",
+    );
+    return await handleOperationRuntimeResponse({
+      supabase,
+      userId,
+      channel,
+      scope,
+      userMessage,
+      history,
+      state,
+      activeSkillState,
+      operationRuntime: flowOpportunityRuntime,
+      effectLedger,
+      turnFrame,
+      routeDecision,
+      turnAgendaSummary,
+      safetyPregateOutput,
+      weeklyReviewStateForTurn: null,
+      dispatcherSignals,
+      dispatcherV2Stats,
+      dispatcherLatencyMs,
+      targetMode,
+      riskScore,
+      loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      messageMetadata: opts?.messageMetadata,
+      logMessages,
+      turnStartMs,
+      trace,
+    });
   }
 
   const operationRuntimePipeline = await runOperationRuntimePipeline({

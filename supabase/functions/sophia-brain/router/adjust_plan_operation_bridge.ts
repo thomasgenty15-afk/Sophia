@@ -162,6 +162,7 @@ export async function maybeRunAdjustPlanItemOperation(args: {
 }): Promise<OperationRuntimeResult | null> {
   return await maybeRunAdjustPlanItemOperationInSkill({
     context: {
+      supabase: args.supabase,
       userId: args.userId,
       userMessage: args.userMessage,
       channel: args.channel,

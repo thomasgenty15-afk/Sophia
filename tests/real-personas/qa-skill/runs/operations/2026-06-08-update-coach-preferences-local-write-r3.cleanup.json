@@ -1,0 +1,116 @@
+{
+  "restored_keys": [
+    "coach.tone",
+    "coach.challenge_level",
+    "coach.question_tendency"
+  ],
+  "deleted_keys": [],
+  "unchanged_keys": [],
+  "before_supported": {
+    "coach.tone": {
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "scope": "global",
+      "key": "coach.tone",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-02T14:43:29.482761+00:00",
+      "last_confirmed_at": null,
+      "created_at": "2026-06-02T14:43:29.482761+00:00"
+    },
+    "coach.challenge_level": {
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "scope": "global",
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-02T14:43:29.482761+00:00",
+      "last_confirmed_at": null,
+      "created_at": "2026-06-02T14:43:29.482761+00:00"
+    },
+    "coach.question_tendency": {
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "scope": "global",
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "updated_at": "2026-06-02T14:43:29.482761+00:00",
+      "last_confirmed_at": null,
+      "created_at": "2026-06-02T14:43:29.482761+00:00"
+    }
+  },
+  "after_supported": {
+    "coach.tone": {
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "scope": "global",
+      "key": "coach.tone",
+      "value": {
+        "label": "Très direct",
+        "value": "direct"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "explicit_user",
+      "last_source_message_id": "6cd8f1e7-538c-4874-92d9-b6f1c38567ea",
+      "reason": "Passer à un ton direct et réduire la fréquence des questions.",
+      "updated_at": "2026-06-08T15:51:13.531+00:00",
+      "last_confirmed_at": "2026-06-08T15:51:13.531+00:00",
+      "created_at": "2026-06-02T14:43:29.482761+00:00"
+    },
+    "coach.challenge_level": {
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "scope": "global",
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Élevé",
+        "value": "high"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "explicit_user",
+      "last_source_message_id": "f5a24d9e-41a6-4902-8858-c6b8d38644e8",
+      "reason": "L'utilisateur souhaite augmenter durablement le niveau de challenge du coach.",
+      "updated_at": "2026-06-08T15:53:56.505+00:00",
+      "last_confirmed_at": "2026-06-08T15:53:56.505+00:00",
+      "created_at": "2026-06-02T14:43:29.482761+00:00"
+    },
+    "coach.question_tendency": {
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "scope": "global",
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Peu de questions",
+        "value": "low"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "explicit_user",
+      "last_source_message_id": "6cd8f1e7-538c-4874-92d9-b6f1c38567ea",
+      "reason": "Passer à un ton direct et réduire la fréquence des questions.",
+      "updated_at": "2026-06-08T15:51:13.531+00:00",
+      "last_confirmed_at": "2026-06-08T15:51:13.531+00:00",
+      "created_at": "2026-06-02T14:43:29.482761+00:00"
+    }
+  },
+  "errors": []
+}

@@ -1,0 +1,71 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a55c9881-05f4-4ebc-897e-0ddc63258bf3",
+        "role": "user",
+        "content": "Je veux une carte de défense, je suis en vrac.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r2d",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r2d-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T11:32:29.852267+00:00"
+      },
+      {
+        "id": "af7b7e35-4bf9-4b31-927c-d9713e8bc542",
+        "role": "assistant",
+        "content": "Ok. En vrac, ta carte de défense doit te remettre “au sol” en 30 à 90 secondes, sans réfléchir. Allez, je te propose une version prête à servir 😌\n\nCarte de défense (anti-vrac)\n1) Stop, je respire : 3 respirations lentes (inspire 4s, expire 6s).\n2) Phrase ancre : “Là, tout de suite, je n’ai pas besoin de tout résoudre.”\n3) Mini-réalité : “Qu’est-ce qui est vrai là maintenant ?” (1 seul constat)\n4) Micro-action unique : une seule chose physique (boire un verre d’eau, ouvrir la fenêtre, douche rapide, ranger 5 objets).\n5) J’autorise le report : “Je fais le reste plus tard. Là, je stabilise.”\n\nFaut que ça soit efficace pour toi: tu veux une version plutôt “calme” ou plutôt “booster” ? ⚡",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r2d",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r2d-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-08T11:32:36.650335+00:00"
+      }
+    ]
+  }
+}

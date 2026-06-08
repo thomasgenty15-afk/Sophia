@@ -115,6 +115,12 @@ Un conversation skill peut proposer un bridge ou une suggestion consentie, mais
 il ne doit pas exécuter d'effet durable. L'exécution appartient au tool skill
 propriétaire.
 
+Quand un conversation skill ou un flow local transfere l'ownership a un autre
+dispatcher, il doit produire une `note_information` conforme a
+`09-note-information-contract.md`. Cette note est du contexte runtime non
+visible. Elle ne remplace pas le dispatcher cible, ne route pas
+deterministiquement, et ne peut pas porter de template user-facing.
+
 La forme cible pour un platform handoff skill est :
 
 ```txt
@@ -166,6 +172,8 @@ Règles :
 - pas de phrase user-facing métier codée dans le runtime global;
 - pas de confirmation globale qui applique un brouillon local;
 - pas de "c'est fait" sans effet committé.
+- pas de routing deterministe depuis `note_information` : elle informe le
+  prochain dispatcher, mais ne decide jamais a sa place.
 
 Les fallbacks techniques sont autorisés seulement s'ils sont non-mutants,
 conservateurs et documentés. Ils ne doivent pas inventer une décision métier.

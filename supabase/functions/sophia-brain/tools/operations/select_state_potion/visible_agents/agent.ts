@@ -7,6 +7,8 @@ import type {
   ClarteVisibleTaskKind,
   StatePotionHandoffDraft,
   StatePotionHandoffStatus,
+  StatePotionSubskillHandoffState,
+  StatePotionSubskillVisibleTaskKind,
 } from "../contract.ts";
 import type { SelectStatePotionIntakeState } from "../intake.ts";
 
@@ -22,7 +24,8 @@ export type SelectStatePotionVisibleStage =
   | "repeat_handoff"
   | "cancel"
   | "blocked"
-  | "clarte_task";
+  | "clarte_task"
+  | "potion_subskill_task";
 
 export type SelectStatePotionVisibleAgentInput = {
   user_id: string;
@@ -38,6 +41,8 @@ export type SelectStatePotionVisibleAgentInput = {
   current_field_id?: string | null;
   clarte_state?: ClarteHandoffState | null;
   clarte_visible_task?: ClarteVisibleTaskKind | null;
+  potion_subskill_state?: StatePotionSubskillHandoffState | null;
+  potion_subskill_visible_task?: StatePotionSubskillVisibleTaskKind | null;
   constraints?: Array<Record<string, unknown>>;
   trace_event?: (event: Record<string, unknown>) => void;
 };
@@ -208,6 +213,46 @@ export function visibleContractIssues(
       }
     }
   }
+  if (input.stage === "potion_subskill_task") {
+    const task = input.potion_subskill_visible_task;
+    const state = input.potion_subskill_state;
+    const requiresPlatformData = [
+      "handoff_ready",
+      "revision_done",
+      "destination_short",
+      "apply_attempt",
+      "repeat_handoff",
+    ].includes(String(task ?? ""));
+    if (
+      state && message.includes("Potion") &&
+      !message.includes(state.potion_name)
+    ) {
+      issues.push("potion_subskill_missing_exact_potion_name");
+    }
+    if (requiresPlatformData && state) {
+      if (
+        !message.includes("État / Potions") &&
+        !message.includes("Etat / Potions")
+      ) {
+        issues.push("potion_subskill_missing_platform_destination");
+      }
+      if (!message.includes(state.potion_name)) {
+        issues.push("potion_subskill_missing_potion_name");
+      }
+      for (const fieldId of state.field_order) {
+        const field = state.field_states[fieldId];
+        if (field?.locked_value) {
+          if (!message.includes(field.field_label)) {
+            issues.push(`potion_subskill_missing_field_label:${fieldId}`);
+          }
+          const visibleValue = field.option_label ?? field.locked_value;
+          if (visibleValue && !message.includes(visibleValue)) {
+            issues.push(`potion_subskill_missing_field_value:${fieldId}`);
+          }
+        }
+      }
+    }
+  }
   return issues;
 }
 
@@ -238,11 +283,41 @@ function clarteVisibleTaskInstruction(
   }
 }
 
+function potionSubskillVisibleTaskInstruction(
+  task: StatePotionSubskillVisibleTaskKind | null | undefined,
+): string | null {
+  switch (task) {
+    case "ask_deeper":
+      return "Potion / champ pas clair ou pas assez riche: pose une seule question naturelle sur le champ courant. Si potion_subskill_state contient detail_sufficiency.followup_question pour le champ courant, utilise cette intention de question. Ne récite pas le label plateforme comme un formulaire.";
+    case "confirm_proposal":
+      return "Potion / proposition: demande si la formulation ou l'option proposée correspond, sans dire champ, slot ou valeur, et sans handoff final.";
+    case "handoff_ready":
+      return "Potion / handoff prêt: donne naturellement le nom exact de la potion, le chemin État / Potions, puis recopie verbatim chaque question plateforme exacte et sa valeur exacte.";
+    case "revision_done":
+      return "Potion / révision: indique que la nouvelle formulation remplace l'ancienne et redonne seulement le champ modifié, avec chemin si utile.";
+    case "destination_short":
+      return "Potion / destination: réponds court avec État / Potions et, si disponible, recopie les champs exacts déjà prêts.";
+    case "apply_attempt":
+      return "Potion / tentative de lancement: dis doucement que Sophia ne peut pas lancer depuis le chat, puis donne État / Potions et les données exactes à saisir.";
+    case "repeat_handoff":
+      return "Potion / répétition: redis quoi mettre dans la plateforme sans refaire une longue justification; recopie les champs exacts et leurs valeurs.";
+    case "exit":
+      return "Potion / sortie: réponds court, sans forcer la potion et sans handoff.";
+    case "safety":
+      return "Potion / safety: ne pousse pas vers une potion et laisse la prise en charge safety reprendre.";
+    default:
+      return null;
+  }
+}
+
 function visibleSystemPrompt(
   input: SelectStatePotionVisibleAgentInput,
 ): string {
   const clarteInstruction = input.stage === "clarte_task"
     ? clarteVisibleTaskInstruction(input.clarte_visible_task)
+    : null;
+  const potionSubskillInstruction = input.stage === "potion_subskill_task"
+    ? potionSubskillVisibleTaskInstruction(input.potion_subskill_visible_task)
     : null;
   return [
     "Tu es l'agent conversationnel visible du flow select_state_potion.",
@@ -264,6 +339,7 @@ function visibleSystemPrompt(
     "Si le stage est apply_attempt, dis doucement que Sophia ne peut pas lancer depuis le chat et redonne le chemin plateforme.",
     "Si le stage est cancel, confirme brièvement que la potion est mise de côté; si le user demande autre chose sans potion, réponds naturellement sans protocole fixe.",
     ...(clarteInstruction ? [clarteInstruction] : []),
+    ...(potionSubskillInstruction ? [potionSubskillInstruction] : []),
     ...(input.stage === "clarte_task" &&
         [
           "handoff_ready",
@@ -275,6 +351,19 @@ function visibleSystemPrompt(
       ? [
         "Obligation clarté: si une question plateforme et une valeur sont fournies dans clarte_state, tu dois les recopier exactement, caractère par caractère, dans le message visible.",
         "Tu peux écrire autour de ces données avec un ton naturel, mais tu ne dois ni paraphraser ni omettre la question plateforme ou la valeur.",
+      ]
+      : []),
+    ...(input.stage === "potion_subskill_task" &&
+        [
+          "handoff_ready",
+          "revision_done",
+          "destination_short",
+          "apply_attempt",
+          "repeat_handoff",
+        ].includes(String(input.potion_subskill_visible_task ?? ""))
+      ? [
+        "Obligation potion: si des questions plateforme et des valeurs sont fournies dans potion_subskill_state, tu dois les recopier exactement dans le message visible.",
+        "Tu peux écrire autour de ces données avec un ton naturel, mais tu ne dois ni paraphraser ni omettre les questions plateforme ou les valeurs.",
       ]
       : []),
     'Retourne uniquement un JSON strict: {"message":"..."}.',
@@ -298,6 +387,8 @@ async function generateVisibleMessage(
     handoff_draft: input.draft,
     clarte_state: input.clarte_state,
     clarte_visible_task: input.clarte_visible_task,
+    potion_subskill_state: input.potion_subskill_state,
+    potion_subskill_visible_task: input.potion_subskill_visible_task,
     hard_constraints: {
       no_chat_mutation: true,
       platform_destination: "État / Potions",

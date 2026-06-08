@@ -6,6 +6,9 @@ import {
   clearPendingToolConfirmation,
   readActiveFlowState,
 } from "./active_flow_state.ts";
+import { statePotionSubskillId } from "../tools/operations/select_state_potion/contract.ts";
+import { createInitialStatePotionSubskillState } from "../tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts";
+import { createInitialClarteState } from "../tools/operations/select_state_potion/subskills/clarte_flow.ts";
 import {
   applySafetyCrisisExitStateIfNeeded,
   isSafetyRoute,
@@ -26,6 +29,124 @@ function clearDeprecatedConversationSkillState(tempMemory: any): any {
     delete next.__active_skill_state;
     delete next.active_skill_state;
   }
+  return next;
+}
+
+type ConversationPotionBridgeSource =
+  | "emotional_repair"
+  | "demotivation_repair";
+
+function conversationPotionHandoffPatch(
+  skillOutput?: ConversationSkillOutput | null,
+): {
+  source_flow: ConversationPotionBridgeSource;
+  selected_potion:
+    | "amour"
+    | "guerison"
+    | "apaisement"
+    | "clarte"
+    | "courage"
+    | "rappel";
+  potion_bridge_context: Record<string, unknown>;
+  note_information?: Record<string, unknown> | null;
+} | null {
+  const patch = skillOutput?.state_patch;
+  const patchRecord = patch && typeof patch === "object"
+    ? patch as Record<string, unknown>
+    : {};
+  const source_flow: ConversationPotionBridgeSource =
+    patchRecord.demotivation_repair_potion_handoff
+      ? "demotivation_repair"
+      : "emotional_repair";
+  const handoff = source_flow === "demotivation_repair"
+    ? patchRecord.demotivation_repair_potion_handoff
+    : patchRecord.emotional_repair_potion_handoff;
+  if (!handoff || typeof handoff !== "object" || Array.isArray(handoff)) {
+    return null;
+  }
+  const selected = String((handoff as any).selected_potion ?? "").trim();
+  if (
+    selected !== "amour" &&
+    selected !== "guerison" &&
+    selected !== "apaisement" &&
+    selected !== "clarte" &&
+    selected !== "courage" &&
+    selected !== "rappel"
+  ) return null;
+  const context = (handoff as any).potion_bridge_context;
+  if (!context || typeof context !== "object" || Array.isArray(context)) {
+    return null;
+  }
+  return {
+    source_flow,
+    selected_potion: selected,
+    potion_bridge_context: context as Record<string, unknown>,
+    note_information: (handoff as any).note_information &&
+        typeof (handoff as any).note_information === "object"
+      ? (handoff as any).note_information as Record<string, unknown>
+      : (handoff as any).information_note &&
+          typeof (handoff as any).information_note === "object"
+      ? (handoff as any).information_note as Record<string, unknown>
+      : null,
+  };
+}
+
+function startSelectStatePotionFromConversationBridge(args: {
+  tempMemory: any;
+  skillOutput?: ConversationSkillOutput | null;
+}): any | null {
+  const handoff = conversationPotionHandoffPatch(args.skillOutput);
+  if (!handoff) return null;
+  const activeSubskillId = statePotionSubskillId(handoff.selected_potion);
+  if (!activeSubskillId) return null;
+  const now = new Date().toISOString();
+  const clarteState = handoff.selected_potion === "clarte"
+    ? createInitialClarteState(null, handoff.potion_bridge_context)
+    : null;
+  const potionSubskillState = handoff.selected_potion === "clarte"
+    ? null
+    : createInitialStatePotionSubskillState(
+      handoff.selected_potion as any,
+      null,
+      handoff.potion_bridge_context,
+    );
+  const next = { ...(args.tempMemory ?? {}) };
+  next.__active_tool_skill_intake = {
+    skill_id: "select_state_potion",
+    active_subskill_id: activeSubskillId,
+    mode: "platform_handoff",
+    status: "clarifying",
+    phase: "detail_intake",
+    draft: null,
+    operation_input: {
+      operation_type: "select_state_potion",
+      potion_type: handoff.selected_potion,
+      selected_potion: handoff.selected_potion,
+      origin_bridge_context: handoff.potion_bridge_context,
+      note_information: handoff.note_information ?? null,
+      information_note: handoff.note_information ?? null,
+      no_chat_mutation: true,
+    },
+    origin_bridge_context: handoff.potion_bridge_context,
+    intake_state: null,
+    clarte_state: clarteState,
+    potion_subskill_state: potionSubskillState,
+    turn_count: 0,
+    max_turns: 6,
+    created_at: now,
+    updated_at: now,
+    no_chat_mutation: true,
+  };
+  delete next.active_tool_skill_intake;
+  delete next.__active_skill_state;
+  delete next.active_skill_state;
+  next[`__last_${handoff.source_flow}_potion_bridge`] = {
+    selected_potion: handoff.selected_potion,
+    origin_flow: handoff.source_flow,
+    note_information: handoff.note_information ?? null,
+    at: now,
+    no_chat_mutation: true,
+  };
   return next;
 }
 
@@ -159,6 +280,43 @@ export function persistConversationSkillRoute(
     }
   }
   const selected = selectedConversationSkillForRoute(routeDecision);
+  if (
+    selected === "product_help" &&
+    arbitration?.decision === "inline_answer_then_resume"
+  ) {
+    const trace = skillOutput?.skill_id === "product_help" &&
+        skillOutput.state_patch &&
+        typeof skillOutput.state_patch === "object"
+      ? (skillOutput.state_patch as Record<string, unknown>)
+        .product_help_subskill_trace
+      : null;
+    const active = next.__active_skill_state ?? next.active_skill_state;
+    if (trace && active && typeof active === "object") {
+      const previous = active as Record<string, unknown>;
+      const workingState = previous.working_state &&
+          typeof previous.working_state === "object"
+        ? previous.working_state as Record<string, unknown>
+        : {};
+      next.__active_skill_state = {
+        ...previous,
+        working_state: {
+          ...workingState,
+          product_help_subskill_history: [
+            ...(
+              Array.isArray(workingState.product_help_subskill_history)
+                ? workingState.product_help_subskill_history
+                : []
+            ),
+            trace,
+          ].slice(-5),
+        },
+        updated_at: now,
+      };
+      delete next.active_skill_state;
+    }
+    delete next.__suspended_flow_v1;
+    return next;
+  }
   if (selected) {
     const suspendedFlow = next.__suspended_flow_v1 &&
         typeof next.__suspended_flow_v1 === "object"
@@ -184,6 +342,41 @@ export function persistConversationSkillRoute(
         typeof skillOutput.state_patch === "object"
       ? skillOutput.state_patch as Record<string, unknown>
       : {};
+    if (selected === "product_help") {
+      const productLocalState = patch.product_help_local_state;
+      const productExitMemo = patch.product_help_exit_memo;
+      if (productExitMemo && typeof productExitMemo === "object") {
+        next.__last_product_help_exit_memo = productExitMemo;
+      }
+      const productStatus = productLocalState &&
+          typeof productLocalState === "object"
+        ? String((productLocalState as any).status ?? "")
+        : "";
+      if (
+        !productLocalState ||
+        productStatus === "closing" ||
+        productStatus === "exit_to_global" ||
+        productStatus === "safety"
+      ) {
+        delete next.__active_skill_state;
+        delete next.active_skill_state;
+        return next;
+      }
+    }
+    if (
+      (selected === "emotional_repair" ||
+        selected === "demotivation_repair") &&
+      skillOutput?.status === "handoff"
+    ) {
+      const potionHandoffTempMemory =
+        startSelectStatePotionFromConversationBridge(
+          {
+            tempMemory: next,
+            skillOutput,
+          },
+        );
+      if (potionHandoffTempMemory) return potionHandoffTempMemory;
+    }
     const workingState = {
       ...(previous.working_state && typeof previous.working_state === "object"
         ? previous.working_state as Record<string, unknown>

@@ -52,6 +52,8 @@ Utilisation actuelle dans le code :
 
 ## Runtime Shape
 
+Chemin actuel :
+
 ```txt
 router/run.ts
   -> runConversationSkillForRecommendation(...)
@@ -69,10 +71,33 @@ router/run.ts
   -> ConversationSkillOutput with operation_suggestions=[]
 ```
 
+Chemin cible local :
+
+```txt
+standalone product_help selected
+  -> product_help.local_dispatcher
+  -> reducer non-mutant
+  -> visible_agent stage-specific
+  -> close / continue / exit_to_global_dispatcher
+
+active parent flow
+  -> parent.local_dispatcher
+  -> get_info_product
+  -> product_help.local_dispatcher(mode=inline)
+  -> visible_agent answer
+  -> return_to_parent_flow
+```
+
 Il n'y a pas de reducer mutatif pour ce domaine. `reducer.ts` possède seulement
 la transition locale non-mutante vers `ConversationSkillOutput`, le
 `state_patch` diagnostique et les effets vides ou bloqués en cas d'échec
 technique d'intake.
+
+Architecture cible détaillée :
+
+- `product-help-local-flow-architecture.md`
+- `product-help-local-dispatcher-prompts.md`
+- `product-help-local-flow-implementation-agent-prompt.md`
 
 ## File Ownership
 
@@ -104,7 +129,12 @@ technique d'intake.
   `supabase/functions/sophia-brain/skills/product_help/prompt.ts`
   - `PRODUCT_HELP_PROMPT`
   - `PRODUCT_HELP_PROMPT_VERSION`
-- Renderer user-facing :
+- Visible agent cible :
+  `supabase/functions/sophia-brain/skills/product_help/visible_agent.ts`
+  - prompts stage-specific ;
+  - réponse standalone ;
+  - réponse inline puis retour parent.
+- Renderer legacy/fallback :
   `supabase/functions/sophia-brain/skills/product_help/renderer.ts`
   - `renderProductHelpReply`
   - `renderCatalog`
@@ -215,13 +245,32 @@ Aucune application d'effet n'appartient à ce domaine. Les effets directs sont
 appliqués uniquement par les chat executable tool skills propriétaires. Les
 flows complexes deviennent des platform handoff skills sans mutation chat.
 
-Si le user demande "crée/annule/programme/active/modifie", l'intake doit classer
-`intent="tool_action_request"` et le renderer doit répondre par la destination
-plateforme ou par le direct effect autorisé. Le skill ne doit pas faire plus.
+Si le user demande "crée/annule/programme/active/modifie", le dispatcher local
+doit classer `apply_attempt` ou `bridge_explanation_only` selon le contexte. La
+réponse visible doit rester non-mutante et donner seulement la destination
+plateforme ou expliquer le flow propriétaire. Le skill ne doit pas faire plus.
 
-## Renderer
+## Visible Response
 
-`renderer.ts` est le seul propriétaire de la réponse user-facing pour ce skill :
+Le chemin cible n'utilise pas de renderer déterministe nominal.
+
+`visible_agent.ts` reçoit `visible_task.kind` et les données structurées du
+dispatcher/reducer, puis écrit la réponse naturelle.
+
+Prompts visibles cibles :
+
+- answer_product_question ;
+- clarify_product_question ;
+- answer_destination ;
+- compare_features ;
+- explain_limit ;
+- bridge_explanation_only ;
+- repeat_answer ;
+- apply_attempt ;
+- close_product_help ;
+- safety.
+
+`renderer.ts` peut rester temporairement comme fallback/guard legacy :
 
 - `renderProductHelpReply` choisit entre réponse catalogue, missing source,
   one-shot reminder grounded ou bridge tool ;
@@ -232,8 +281,9 @@ plateforme ou par le direct effect autorisé. Le skill ne doit pas faire plus.
 - `enforceProductHelpReplyInvariants` neutralise le done-language non sourcé et
   respecte `sophia_must_not_claim`.
 
-Le renderer ne lit pas la DB et ne décide pas le routage. Il rend uniquement une
-décision déjà normalisée.
+Le renderer legacy ne lit pas la DB et ne décide pas le routage. Il rend
+uniquement une décision déjà normalisée quand le chemin visible agent n'est pas
+encore disponible ou qu'un guard final est nécessaire.
 
 ## Invariants
 
@@ -256,6 +306,9 @@ décision déjà normalisée.
 - Le contexte récent ne résout un pronom que si le message courant est ambigu.
 - Une question produit inline pendant un active flow ajoute
   `preserve_active_flow` et ne recopie pas le draft pending.
+- En mode inline, `product_help` répond puis retourne au flow parent.
+- En mode standalone actif, le dispatcher global ne tourne pas sauf
+  `exit_to_global_dispatcher`.
 - Le prompt ne force pas d'emoji.
 
 ## Integration Points
@@ -271,7 +324,7 @@ décision déjà normalisée.
 - Les platform handoff skills restent propriétaires des recommandations
   complexes et de leurs destinations plateforme.
 - `EffectLedger` global protège la réponse finale contre les claims non
-  committés, en complément des invariants locaux du renderer.
+  committés, en complément des invariants locaux du visible agent/guard.
 
 ## Allowed Changes
 
@@ -280,8 +333,8 @@ décision déjà normalisée.
   décision finale reste dans l'intake structuré.
 - Ajouter une location, limite, `sophia_must_not_claim` ou bridge catalogue.
 - Ajouter un champ de diagnostic non-mutant dans `state_patch`.
-- Renforcer `validateProductHelpDecision` ou le renderer pour bloquer une
-  contradiction de contrat.
+- Renforcer `validateProductHelpDecision`, le visible agent ou le guard final
+  pour bloquer une contradiction de contrat.
 - Renforcer `reducer.ts` pour garder des effets vides/non-mutants.
 - Ajouter des tests avec `intake_model` stubbé.
 
@@ -299,6 +352,8 @@ décision déjà normalisée.
 - Rendre un status complet.
 - Affirmer un objet réel sans source choisie dans `grounding.db_sources_used`.
 - Forcer un emoji ou une question finale de style.
+- Faire du renderer déterministe le chemin nominal de réponse.
+- Laisser `product_help` inline devenir owner durable à la place du parent.
 
 ## Legacy Exceptions
 

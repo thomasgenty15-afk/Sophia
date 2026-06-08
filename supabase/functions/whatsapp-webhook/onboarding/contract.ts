@@ -1,0 +1,184 @@
+export type WhatsAppOnboardingPlanStatus =
+  | "not_started"
+  | "generating"
+  | "missing"
+  | "ready_pending_activation"
+  | "active"
+  | "unknown";
+
+export type WhatsAppOnboardingState =
+  | "awaiting_plan_finalization"
+  | "awaiting_plan_finalization_support"
+  | "onboarding_pref_tone"
+  | "onboarding_pref_challenge"
+  | "onboarding_pref_questions"
+  | "onboarding_plan_creation_feedback"
+  | "onboarding_topic_choice";
+
+export type WhatsAppOnboardingFlowAction =
+  | "plan_not_ready_wait"
+  | "plan_ready_resume_preferences"
+  | "answer_tone"
+  | "answer_challenge"
+  | "answer_questions"
+  | "skip_optional_preference"
+  | "answer_plan_feedback"
+  | "answer_topic_choice"
+  | "repeat_current_question"
+  | "frustration_exit_after_plan_ready"
+  | "blocked_exit_before_plan_ready"
+  | "complete_onboarding"
+  | "exit_to_global_dispatcher"
+  | "safety_preempt"
+  | "technical_blocked";
+
+export type WhatsAppOnboardingVisibleTaskKind =
+  | "plan_wait"
+  | "plan_ready_resume_preferences"
+  | "ask_tone"
+  | "preference_saved_next_challenge"
+  | "preference_saved_next_questions"
+  | "preference_skipped"
+  | "ask_plan_feedback"
+  | "ask_topic_choice"
+  | "complete_to_plan"
+  | "complete_to_global"
+  | "blocked_exit_before_plan_ready"
+  | "frustration_exit_after_plan_ready"
+  | "repeat_question"
+  | "technical_blocked"
+  | "safety";
+
+export type WhatsAppOnboardingPreferenceKey =
+  | "coach.tone"
+  | "coach.challenge_level"
+  | "coach.question_tendency";
+
+export type WhatsAppOnboardingPreferenceUpdate = {
+  key: WhatsAppOnboardingPreferenceKey;
+  status: "missing" | "ambiguous" | "proposed" | "locked" | "skipped";
+  candidate_value: string | null;
+  locked_value: string | null;
+  label: string | null;
+  notes: string | null;
+  needs_user_confirmation: boolean;
+  why_status: string;
+};
+
+export type WhatsAppOnboardingPlanProjection = {
+  status: WhatsAppOnboardingPlanStatus;
+  is_plan_ready_for_onboarding: boolean;
+  why_status: string;
+  active_plan_title: string | null;
+  active_plan_summary: string | null;
+  active_plan_item_count: number;
+  active_plan_items_user_facing: string[];
+};
+
+export type WhatsAppOnboardingExitMemo = {
+  reason:
+    | "none"
+    | "topic_change"
+    | "frustration"
+    | "unknown_answer"
+    | "user_declined_questions"
+    | "completed"
+    | "safety"
+    | "technical";
+  flow_summary: string | null;
+  handoff_hint_for_global_dispatcher: string | null;
+  handoff_justification_for_global_dispatcher: string | null;
+  at: string;
+};
+
+export type WhatsAppOnboardingLocalDecision = {
+  flow_action: WhatsAppOnboardingFlowAction;
+  confidence: "low" | "medium" | "high";
+  stage:
+    | "plan_wait"
+    | "plan_ready_resume"
+    | "pref_tone"
+    | "pref_challenge"
+    | "pref_questions"
+    | "plan_feedback"
+    | "topic_choice"
+    | "completed"
+    | "exit"
+    | "safety"
+    | "technical";
+  preference_updates: WhatsAppOnboardingPreferenceUpdate[];
+  plan_feedback: {
+    status: "missing" | "positive" | "negative" | "mixed" | "skipped" | "unclear";
+    summary: string | null;
+    needs_followup: boolean;
+  };
+  topic_choice: {
+    status: "missing" | "plan" | "other_topic" | "skip" | "unclear";
+    handoff_hint_for_global_dispatcher: string | null;
+    handoff_justification_for_global_dispatcher: string | null;
+  };
+  visible_task: {
+    kind: WhatsAppOnboardingVisibleTaskKind;
+    required_data: Record<string, unknown>;
+  };
+  exit_memo_request: {
+    needed: boolean;
+    exit_reason: WhatsAppOnboardingExitMemo["reason"];
+    flow_summary: string | null;
+    handoff_hint_for_global_dispatcher: string | null;
+    handoff_justification_for_global_dispatcher: string | null;
+    plan_required_exit_blocked: boolean;
+  };
+  global_effect_policy: {
+    allow_global_dispatcher: boolean;
+    allow_track_progress_plan_item: boolean;
+    allow_update_coach_preferences_runtime: boolean;
+    allow_normal_reply: boolean;
+    why: string;
+  };
+  no_chat_mutation: {
+    plan_created: boolean;
+    plan_item_progress_logged: boolean;
+    pending_confirmation_created: boolean;
+    confirmation_token_created: boolean;
+  };
+  risk_assessment: {
+    risk_score: number;
+    risk_band: "none" | "low" | "medium" | "high" | "critical";
+    safety_preempt: boolean;
+    reason_codes: string[];
+  };
+  evidence: string[];
+};
+
+export type WhatsAppOnboardingReducerInput = {
+  whatsappState: WhatsAppOnboardingState;
+  webOnboardingCompleted: boolean;
+  whatsappPreferencesDone: boolean;
+  planProjection: WhatsAppOnboardingPlanProjection;
+  decision: WhatsAppOnboardingLocalDecision;
+  nowIso?: string;
+};
+
+export type WhatsAppOnboardingReducerResult = {
+  status:
+    | "owned"
+    | "exit_to_global_dispatcher"
+    | "safety_preempt"
+    | "technical_blocked";
+  reason_code: string;
+  next_whatsapp_state: WhatsAppOnboardingState | null;
+  visible_task: WhatsAppOnboardingVisibleTaskKind;
+  preference_writes: WhatsAppOnboardingPreferenceUpdate[];
+  mark_done: boolean;
+  completion_mode:
+    | "not_done"
+    | "completed"
+    | "skipped_after_plan_ready"
+    | "deferred_after_plan_ready";
+  exit_memo: WhatsAppOnboardingExitMemo | null;
+  allow_global_dispatcher: boolean;
+  allow_track_progress_plan_item: boolean;
+  blocked_effects: Array<{ type: string; reason_code: string }>;
+  risk_assessment: WhatsAppOnboardingLocalDecision["risk_assessment"];
+};

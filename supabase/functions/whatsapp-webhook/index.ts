@@ -23,7 +23,12 @@ import {
   handlePendingActions,
   maybeCompletePendingRendezVous,
 } from "./handlers_pending.ts";
-import { handleOnboardingState } from "./handlers_onboarding.ts";
+import {
+  handleOnboardingState,
+  hasCompletedWhatsAppPreferenceOnboarding,
+  isWhatsAppPlanFinalizationWaitState,
+  shouldResumePlanFinalizationForWhatsAppPreferences,
+} from "./handlers_onboarding.ts";
 import {
   computeOptInAndBilanContext,
   handleOptInAndDailyBilanActions,
@@ -989,9 +994,22 @@ Deno.serve(async (req) => {
         // We intercept these states BEFORE calling the AI brain.
         // GUARD: if user already completed onboarding but has a stale whatsapp_state
         // pointing to an onboarding step, clear it and skip.
+        let whatsappPreferenceOnboardingDone: boolean | null = null;
         if (profile.whatsapp_state && profile.onboarding_completed) {
           const staleWa = String(profile.whatsapp_state || "");
+          const isPlanFinalizationWait = isWhatsAppPlanFinalizationWaitState(
+            staleWa,
+          );
+          if (isPlanFinalizationWait) {
+            whatsappPreferenceOnboardingDone =
+              await hasCompletedWhatsAppPreferenceOnboarding(
+                admin,
+                profile.id,
+              );
+          }
           if (
+            !(isPlanFinalizationWait &&
+              whatsappPreferenceOnboardingDone === false) &&
             /^(onboarding_q[123]|awaiting_plan_finalization|awaiting_plan_finalization_support|awaiting_onboarding_focus_choice|awaiting_plan_motivation|awaiting_plan_motivation_followup|awaiting_personal_fact)$/
               .test(staleWa)
           ) {
@@ -1006,6 +1024,26 @@ Deno.serve(async (req) => {
           }
         }
         const waState = String(profile.whatsapp_state || "");
+        const isPlanFinalizationWait = isWhatsAppPlanFinalizationWaitState(
+          waState,
+        );
+        if (
+          profile.onboarding_completed &&
+          isPlanFinalizationWait &&
+          whatsappPreferenceOnboardingDone === null
+        ) {
+          whatsappPreferenceOnboardingDone =
+            await hasCompletedWhatsAppPreferenceOnboarding(
+              admin,
+              profile.id,
+            );
+        }
+        const shouldResumePlanFinalizationForPreferences =
+          shouldResumePlanFinalizationForWhatsAppPreferences({
+            whatsappState: waState,
+            onboardingCompleted: profile.onboarding_completed,
+            whatsappPreferenceOnboardingDone,
+          });
         const isActiveWhatsAppSimulationOnboarding =
           /^onboarding_pref_(tone|challenge|questions)$/.test(waState) ||
           /^(onboarding_plan_creation_feedback|onboarding_topic_choice)$/.test(
@@ -1014,7 +1052,8 @@ Deno.serve(async (req) => {
         if (
           profile.whatsapp_state &&
           (!profile.onboarding_completed ||
-            isActiveWhatsAppSimulationOnboarding)
+            isActiveWhatsAppSimulationOnboarding ||
+            shouldResumePlanFinalizationForPreferences)
         ) {
           logWebhookTrace({
             requestId,
@@ -1038,6 +1077,8 @@ Deno.serve(async (req) => {
             sendWhatsAppText,
             isDonePhrase,
             extractAfterDonePhrase,
+            onboardingCompleted: profile.onboarding_completed,
+            whatsappPreferenceOnboardingDone,
           });
           logWebhookTrace({
             requestId,

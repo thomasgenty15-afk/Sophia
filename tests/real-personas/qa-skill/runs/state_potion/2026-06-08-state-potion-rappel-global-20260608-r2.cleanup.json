@@ -1,0 +1,32 @@
+{
+  "chat_messages": {
+    "status": 204,
+    "ok": true,
+    "body": null
+  },
+  "user_chat_states": {
+    "status": 204,
+    "ok": true,
+    "body": null
+  },
+  "user_potion_sessions": {
+    "status": 204,
+    "ok": true,
+    "body": null
+  },
+  "user_recurring_reminders": {
+    "status": 204,
+    "ok": true,
+    "body": null
+  },
+  "scheduled_checkins": {
+    "status": 204,
+    "ok": true,
+    "body": null
+  },
+  "auth_user": {
+    "status": 200,
+    "ok": true,
+    "body": {}
+  }
+}

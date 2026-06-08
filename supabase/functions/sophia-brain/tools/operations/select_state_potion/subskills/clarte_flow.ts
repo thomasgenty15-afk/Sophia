@@ -53,6 +53,9 @@ export type ClarteReducerResult = {
   draft: StatePotionHandoffDraft | null;
   visible_task: ClarteVisibleTaskKind;
   exit_to_global_dispatcher: boolean;
+  get_info_product: boolean;
+  get_info_db: boolean;
+  subskill_context: Record<string, unknown> | null;
   risk_assessment: SelectStatePotionRiskAssessment;
 };
 
@@ -79,6 +82,8 @@ function flowAction(value: unknown): ClarteFlowAction {
       "answer_current_field",
       "confirm_proposed_field",
       "revise_current_field",
+      "get_info_product",
+      "get_info_db",
       "platform_destination_followup",
       "apply_attempt",
       "repeat_handoff",
@@ -102,6 +107,7 @@ function visibleTaskKind(value: unknown): ClarteVisibleTaskKind {
       "repeat_handoff",
       "exit",
       "safety",
+      "none",
     ].includes(raw)
     ? raw as ClarteVisibleTaskKind
     : "ask_deeper";
@@ -209,6 +215,21 @@ export function normalizeClarteDispatcherOutput(
         platform_destination: CLARTE_PLATFORM_DESTINATION,
       },
     },
+    subskill_call: {
+      needed: (root.subskill_call as any)?.needed === true,
+      skill_id: ["product_help", "status_recap"].includes(
+          String((root.subskill_call as any)?.skill_id ?? ""),
+        )
+        ? (root.subskill_call as any).skill_id
+        : null,
+      reason: stringValue((root.subskill_call as any)?.reason),
+      context_for_subskill: (root.subskill_call as any)?.context_for_subskill &&
+          typeof (root.subskill_call as any).context_for_subskill ===
+            "object" &&
+          !Array.isArray((root.subskill_call as any).context_for_subskill)
+        ? (root.subskill_call as any).context_for_subskill
+        : {},
+    },
     exit_memo: {
       needed: (root.exit_memo as any)?.needed === true,
       reason: [
@@ -248,8 +269,62 @@ export function normalizeClarteDispatcherOutput(
   };
 }
 
+function bridgeClarteCandidate(
+  originBridgeContext: Record<string, unknown> | null | undefined,
+): ClarteFieldState | null {
+  const candidates = originBridgeContext?.prefill_candidates;
+  if (
+    !candidates || typeof candidates !== "object" ||
+    Array.isArray(candidates)
+  ) {
+    return null;
+  }
+  const candidate = (candidates as Record<string, unknown>)[
+    CLARTE_FIELD_ID
+  ];
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+    return null;
+  }
+  const record = candidate as Record<string, unknown>;
+  const value = stringValue(record.candidate_value);
+  if (!value) return null;
+  const confidenceValue = confidence(record.confidence);
+  if (confidenceValue === "high") {
+    return {
+      status: "locked",
+      candidate_value: null,
+      locked_value: value,
+      previous_value: null,
+      needs_user_confirmation: false,
+      why_status:
+        "Champ verrouillé depuis la note d'information du flow précédent.",
+    };
+  }
+  if (confidenceValue === "medium") {
+    return {
+      status: "proposed",
+      candidate_value: value,
+      locked_value: null,
+      previous_value: null,
+      needs_user_confirmation: true,
+      why_status:
+        "Proposition issue de la note d'information du flow précédent.",
+    };
+  }
+  return {
+    status: "missing",
+    candidate_value: value,
+    locked_value: null,
+    previous_value: null,
+    needs_user_confirmation: false,
+    why_status:
+      "Indice faible depuis la note d'information; demander une clarification sans faire répéter l'épisode.",
+  };
+}
+
 function initialFieldStateFromIntake(
   intakeState: SelectStatePotionIntakeState | null,
+  originBridgeContext?: Record<string, unknown> | null,
 ): ClarteFieldState {
   const field = intakeState?.details.fields?.find((item) =>
     item.question_id === CLARTE_FIELD_ID
@@ -287,6 +362,8 @@ function initialFieldStateFromIntake(
       why_status: "Proposition clarté déjà présente dans l'intake.",
     };
   }
+  const bridgeCandidate = bridgeClarteCandidate(originBridgeContext);
+  if (bridgeCandidate) return bridgeCandidate;
   return {
     status: "missing",
     candidate_value: null,
@@ -299,6 +376,7 @@ function initialFieldStateFromIntake(
 
 export function createInitialClarteState(
   intakeState: SelectStatePotionIntakeState | null,
+  originBridgeContext?: Record<string, unknown> | null,
 ): ClarteHandoffState {
   return {
     flow_id: "select_state_potion.clarte",
@@ -307,9 +385,11 @@ export function createInitialClarteState(
     field_label: CLARTE_FIELD_LABEL,
     potion_name: CLARTE_POTION_NAME,
     platform_destination: CLARTE_PLATFORM_DESTINATION,
-    field_state: initialFieldStateFromIntake(intakeState),
+    origin_bridge_context: originBridgeContext ?? null,
+    field_state: initialFieldStateFromIntake(intakeState, originBridgeContext),
     last_visible_task: null,
     last_handoff_delivered: false,
+    subskill_history: [],
   };
 }
 
@@ -367,6 +447,11 @@ export function reduceClarteDispatcherOutput(args: {
   const previous = args.previous;
   const decision = args.decision;
   const current = previous.field_state;
+  const toolFlags = {
+    get_info_product: false,
+    get_info_db: false,
+    subskill_context: null as Record<string, unknown> | null,
+  };
 
   if (decision.flow_action === "safety_preempt") {
     return {
@@ -376,6 +461,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "safety",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -388,6 +474,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "exit",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -400,6 +487,37 @@ export function reduceClarteDispatcherOutput(args: {
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "exit",
       exit_to_global_dispatcher: true,
+      ...toolFlags,
+      risk_assessment: decision.risk_assessment,
+    };
+  }
+
+  if (decision.flow_action === "get_info_product") {
+    return {
+      status: "collecting",
+      reason_code: "clarte_get_info_product",
+      clarte_state: withVisibleTask(previous, "none"),
+      draft: current.locked_value ? lockedDraft(current.locked_value) : null,
+      visible_task: "none",
+      exit_to_global_dispatcher: false,
+      get_info_product: true,
+      get_info_db: false,
+      subskill_context: decision.subskill_call?.context_for_subskill ?? {},
+      risk_assessment: decision.risk_assessment,
+    };
+  }
+
+  if (decision.flow_action === "get_info_db") {
+    return {
+      status: "collecting",
+      reason_code: "clarte_get_info_db",
+      clarte_state: withVisibleTask(previous, "none"),
+      draft: current.locked_value ? lockedDraft(current.locked_value) : null,
+      visible_task: "none",
+      exit_to_global_dispatcher: false,
+      get_info_product: false,
+      get_info_db: true,
+      subskill_context: decision.subskill_call?.context_for_subskill ?? {},
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -412,6 +530,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "apply_attempt",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -424,6 +543,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "destination_short",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -436,6 +556,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "repeat_handoff",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -462,6 +583,7 @@ export function reduceClarteDispatcherOutput(args: {
         draft: null,
         visible_task: "ask_deeper",
         exit_to_global_dispatcher: false,
+        ...toolFlags,
         risk_assessment: decision.risk_assessment,
       };
     }
@@ -483,6 +605,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: lockedDraft(lockedValue),
       visible_task: "handoff_ready",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -508,6 +631,7 @@ export function reduceClarteDispatcherOutput(args: {
         draft: null,
         visible_task: "ask_deeper",
         exit_to_global_dispatcher: false,
+        ...toolFlags,
         risk_assessment: decision.risk_assessment,
       };
     }
@@ -529,6 +653,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: lockedDraft(replacement),
       visible_task: "revision_done",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -551,6 +676,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: lockedDraft(field.locked_value),
       visible_task: "handoff_ready",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -571,6 +697,7 @@ export function reduceClarteDispatcherOutput(args: {
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "confirm_proposal",
       exit_to_global_dispatcher: false,
+      ...toolFlags,
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -593,6 +720,7 @@ export function reduceClarteDispatcherOutput(args: {
     draft: current.locked_value ? lockedDraft(current.locked_value) : null,
     visible_task: "ask_deeper",
     exit_to_global_dispatcher: false,
+    ...toolFlags,
     risk_assessment: decision.risk_assessment,
   };
 }
@@ -669,6 +797,12 @@ function outputFromState(args: {
         field_value: field.locked_value ?? field.candidate_value,
         platform_destination: CLARTE_PLATFORM_DESTINATION,
       },
+    },
+    subskill_call: {
+      needed: false,
+      skill_id: null,
+      reason: null,
+      context_for_subskill: {},
     },
     exit_memo: {
       needed: args.action === "cancel_flow" ||
@@ -793,7 +927,10 @@ const DISPATCHER_SYSTEM_PROMPT = [
   "Objectif du champ : obtenir une phrase utile pour rappeler au user ce qui s’est déconnecté entre son plan, ses actions, son pourquoi profond, et ce qu’il veut retrouver comme sens.",
   "Le but n’est pas de remplir vite. Le but est d’obtenir une formulation juste, contextualisée, et utilisable dans la plateforme.",
   "",
-  "Actions possibles : answer_current_field, confirm_proposed_field, revise_current_field, platform_destination_followup, apply_attempt, repeat_handoff, cancel_flow, exit_to_global_dispatcher, safety_preempt.",
+  "Actions possibles : answer_current_field, confirm_proposed_field, revise_current_field, get_info_product, get_info_db, platform_destination_followup, apply_attempt, repeat_handoff, cancel_flow, exit_to_global_dispatcher, safety_preempt.",
+  "Si le user pose une question produit pendant ce flow (c'est quoi une potion, comment ça marche, où est-ce, limites), retourne flow_action=get_info_product, visible_task.kind=none, subskill_call.skill_id=product_help.",
+  "Si le user pose une question sur ses potions/sessions existantes ou l'état DB pendant ce flow, retourne flow_action=get_info_db, visible_task.kind=none, subskill_call.skill_id=status_recap.",
+  "Pour get_info_product/get_info_db, remplis subskill_call.context_for_subskill avec active_flow='select_state_potion.clarte', question_to_answer reformulée, active_flow_context utile (selected_potion, field_state, platform_destination).",
   "",
   "Statut missing : réponse trop vague, émotionnelle, ou orientée action/priorisation sans lien clair avec le sens du plan. Exemples insuffisants : je suis en vrac, je sais pas, tout est flou, je suis perdu, j’ai trop de trucs, je ne sais pas quoi faire, je veux savoir par où commencer.",
   "Statut proposed : matière presque exploitable, mais qui mérite une formulation plus claire avant d’être utilisée dans la plateforme.",
@@ -821,7 +958,7 @@ export async function runClarteLocalDispatcher(
     task: "dispatch_select_state_potion_clarte_flow",
     required_json_shape: {
       flow_action:
-        "answer_current_field|confirm_proposed_field|revise_current_field|platform_destination_followup|apply_attempt|repeat_handoff|cancel_flow|exit_to_global_dispatcher|safety_preempt",
+        "answer_current_field|confirm_proposed_field|revise_current_field|get_info_product|get_info_db|platform_destination_followup|apply_attempt|repeat_handoff|cancel_flow|exit_to_global_dispatcher|safety_preempt",
       confidence: "low|medium|high",
       selected_potion: "clarte",
       field_id: CLARTE_FIELD_ID,
@@ -840,13 +977,19 @@ export async function runClarteLocalDispatcher(
       },
       visible_task: {
         kind:
-          "ask_deeper|confirm_proposal|handoff_ready|revision_done|destination_short|apply_attempt|repeat_handoff|exit|safety",
+          "ask_deeper|confirm_proposal|handoff_ready|revision_done|destination_short|apply_attempt|repeat_handoff|exit|safety|none",
         required_data: {
           potion_name: CLARTE_POTION_NAME,
           field_label: CLARTE_FIELD_LABEL,
           field_value: "string|null",
           platform_destination: CLARTE_PLATFORM_DESTINATION,
         },
+      },
+      subskill_call: {
+        needed: "boolean",
+        skill_id: "product_help|status_recap|null",
+        reason: "string|null",
+        context_for_subskill: "object",
       },
       exit_memo: {
         needed: false,

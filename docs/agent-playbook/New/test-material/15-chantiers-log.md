@@ -7509,3 +7509,78 @@ Tests / verifications :
 - `/usr/local/bin/deno check` cible select_state_potion : vert;
 - `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/select_state_potion/handoff_test.ts`
   : 32 passed.
+
+---
+
+### J82 — Sous-skills potion: completion de champs vers handoff final commun
+
+Couche. `select_state_potion` / sous-skills locaux / reducer handoff.
+
+Symptome :
+
+- le run reel `state-potion-amour-20260608-r1` montrait que le sous-flow Amour
+  restait en `repeat_handoff` / `platform_destination_followup` avec
+  `platform_handoff.draft=null`;
+- une reponse naturelle comme `je me parle tres durement` n'etait pas toujours
+  traitee comme reponse au champ `love_state=dur`;
+- le probleme etait transverse aux sous-skills potion locaux, pas limite a
+  Amour.
+
+Fix :
+
+- le dispatcher local des sous-skills donne priorite aux reponses de champ
+  (`answer_current_field`) avant les followups destination/repeat;
+- le reducer commun merge les `field_states` meme si l'action IA est
+  `platform_destination_followup` ou `repeat_handoff`;
+- quand tous les champs requis d'un sous-skill local sont lockes, le reducer
+  produit un `handoff_delivered` avec `StatePotionHandoffDraft`;
+- le runtime `handoff.ts` traite `handoff_ready + draft` avant de deleguer vers
+  un sous-skill, pour que les intakes deja complets livrent directement le
+  renderer contractuel.
+
+Tests / verifications :
+
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow_test.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/local_runtime_contract_test.ts`
+  : 10 passed;
+- `/usr/local/bin/deno check supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/handoff.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow_test.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/local_runtime_contract_test.ts`
+  : vert;
+- `handoff_test.ts` non exploitable dans cet environnement sans cle IA visible
+  agent (`OPENAI_API_KEY missing`), apres passage des tests reducer/runtime
+  mockes.
+
+---
+
+### J83 — Sous-skills potion: suffisance des champs libres et repeat post-handoff
+
+Couche. `select_state_potion` / sous-skills locaux / dispatcher commun / reducer
+handoff.
+
+Symptome :
+
+- le run reel direct `state-potion-amour-direct-20260608-r1` a montre que
+  `redis-moi` apres handoff visible correct etait trace en nouveau
+  `handoff_delivered` au lieu d'un repeat;
+- une valeur libre courte comme `mon echec de vendredi` etait acceptee comme
+  finale, alors qu'elle est copiable dans l'UI mais pas assez riche pour guider
+  une potion efficace.
+
+Fix :
+
+- ajout de `StatePotionSubskillFieldDetailSufficiency` sur les champs de
+  sous-skills potion locaux;
+- le dispatcher commun doit renseigner si un champ libre locke est suffisant ou
+  demande un creusement;
+- le reducer commun bloque le handoff sur un champ libre `needs_more_detail` et
+  pose une seule question `ask_deeper`;
+- la reponse au creusement marque `followup_answered=true` et permet le handoff,
+  sans boucle de questions;
+- apres `last_handoff_delivered=true`, un `platform_destination_followup`
+  retourne `repeat_handoff` / `destination_short` au lieu de relivrer un nouveau
+  `handoff_delivered`.
+
+Tests / verifications :
+
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow_test.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/local_runtime_contract_test.ts`
+  : 13 passed;
+- `/usr/local/bin/deno check supabase/functions/sophia-brain/tools/operations/select_state_potion/contract.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/visible_agents/agent.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow_test.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/local_runtime_contract_test.ts`
+  : vert.

@@ -2,21 +2,70 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runUpdateCoachPreferencesIntake } from "./intake.ts";
-import { runCoachPreferenceHandoffDraftBuilder } from "./generator.ts";
+import type {
+  CoachPreferenceLocalDispatcherOutput,
+  CoachPreferenceLocalUpdate,
+} from "./contract.ts";
 import {
-  readyCoachPreferencesStatePatch,
-  structuredCoachPreferencesSlotFiller,
-} from "./test_helpers.ts";
+  createCoachPreferenceLocalFlowState,
+  reduceCoachPreferenceLocalDispatcherOutput,
+} from "./local_flow.ts";
 import { loadCoachPreferenceRuntimePolicy } from "./runtime_policy.ts";
 import { maybeRunUpdateCoachPreferencesOperation } from "./router.ts";
 import { buildCoachPreferencesStatusReply } from "./status.ts";
-import { renderCoachPreferenceHandoffDraft } from "./renderer.ts";
 
-function fakeStatusSupabase(rows: unknown[]) {
+function baseDecision(
+  patch: Partial<CoachPreferenceLocalDispatcherOutput> = {},
+): CoachPreferenceLocalDispatcherOutput {
   return {
-    from() {
-      return {
+    flow_action: "write_preferences",
+    confidence: "high",
+    risk_score: 0,
+    preference_intent: {
+      kind: "durable_supported",
+      durability: "durable",
+      support_status: "supported",
+      summary: "préférence coach durable claire",
+    },
+    preference_updates: [{
+      key: "coach.question_tendency",
+      value: "low",
+      status: "locked",
+      user_facing_label: "Questions",
+      user_facing_value: "Peu de questions",
+      reason: "Demande explicite durable.",
+      needs_user_confirmation: false,
+    }],
+    unsupported_parts: [],
+    missing_decisions: [],
+    visible_task: {
+      kind: "preference_saved",
+      instruction: "Confirmer seulement après commit.",
+    },
+    exit_memo: {
+      needed: false,
+      reason: "none",
+      flow_summary: null,
+      handoff_hint_for_global_dispatcher: null,
+    },
+    evidence: ["test"],
+    ...patch,
+  };
+}
+
+function fakeCoachSupabase(initialRows: any[] = []) {
+  const state = {
+    rows: [...initialRows],
+    wrote: false,
+    upsertedRows: [] as any[],
+    failWrite: false,
+  };
+  const api = {
+    state,
+    from(_table: string) {
+      const builder: any = {
+        _mode: "select",
+        _data: null as any,
         select() {
           return this;
         },
@@ -27,517 +76,492 @@ function fakeStatusSupabase(rows: unknown[]) {
           return this;
         },
         maybeSingle() {
-          return Promise.resolve({ data: rows[0] ?? null, error: null });
+          return Promise.resolve({ data: state.rows[0] ?? null, error: null });
         },
-        then(
-          onFulfilled: (value: { data: unknown[]; error: null }) => unknown,
-        ) {
-          return Promise.resolve({ data: rows, error: null }).then(onFulfilled);
+        upsert(rows: any[]) {
+          state.wrote = true;
+          if (state.failWrite) {
+            this._mode = "upsert_error";
+            return this;
+          }
+          state.upsertedRows = rows.map((row, index) => ({
+            id: `pref-${index + 1}`,
+            ...row,
+          }));
+          for (const row of state.upsertedRows) {
+            const existingIndex = state.rows.findIndex((candidate) =>
+              candidate.user_id === row.user_id &&
+              candidate.scope === row.scope &&
+              candidate.key === row.key
+            );
+            if (existingIndex >= 0) state.rows[existingIndex] = row;
+            else state.rows.push(row);
+          }
+          this._mode = "upsert";
+          this._data = state.upsertedRows.map((row) => ({
+            id: row.id,
+            key: row.key,
+          }));
+          return this;
+        },
+        then(onFulfilled: (value: any) => unknown) {
+          if (this._mode === "upsert_error") {
+            return Promise.resolve({
+              data: null,
+              error: { message: "db_error" },
+            }).then(onFulfilled);
+          }
+          if (this._mode === "upsert") {
+            return Promise.resolve({ data: this._data, error: null }).then(
+              onFulfilled,
+            );
+          }
+          return Promise.resolve({ data: state.rows, error: null }).then(
+            onFulfilled,
+          );
         },
       };
+      return builder;
     },
-  } as any;
+  };
+  return api as any;
 }
 
-function fakeWriteDetectingSupabase() {
-  return {
-    wrote: false,
-    from() {
-      return {
-        select() {
-          return this;
-        },
-        eq() {
-          return this;
-        },
-        like() {
-          return this;
-        },
-        upsert: () => {
-          this.wrote = true;
-          throw new Error("unexpected_write");
-        },
-        then(
-          onFulfilled: (value: { data: unknown[]; error: null }) => unknown,
-        ) {
-          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
-        },
-      };
-    },
-  } as any;
-}
+const visibleAgent = (message: string) => () => Promise.resolve(message);
 
-Deno.test("coach preference handoff produces full renderer content", () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux que Sophia soit plus directe dans la suite",
-    requested_patch: { "coach.tone": "direct" },
-    unsupported_parts: ["répondre toujours en exactement trois lignes"],
+Deno.test("reducer allows locked supported durable update as write-ready", () => {
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: null,
+    output: baseDecision(),
   });
-  const rendered = renderCoachPreferenceHandoffDraft(draft);
-  assert(rendered.includes("pour la suite"));
-  assert(rendered.includes("Ça correspond au réglage suivant"));
-  assert(rendered.includes("ne correspond pas à un réglage durable"));
-  assert(rendered.includes("Préférences coach"));
-  assert(rendered.includes("Il ne manque plus qu’à aller"));
-  assertEquals(rendered.includes("Ce que je comprends :"), false);
-  assertEquals(rendered.includes("Durable ou ponctuel :"), false);
-  assertEquals(rendered.includes("Réglage supporté recommandé :"), false);
-  assertEquals(rendered.includes("Destination plateforme :"), false);
-  assertEquals(rendered.includes("Je ne modifie pas tes préférences"), false);
-  assertEquals(rendered.includes("préférence enregistrée"), false);
-  assertEquals(rendered.includes("je le garde"), false);
-  assertEquals(rendered.includes("c'est modifié"), false);
-  assertEquals(rendered.includes("appliqué"), false);
+  assertEquals(reduced.status, "write_ready");
+  assertEquals(reduced.write_updates[0].key, "coach.question_tendency");
+  assertEquals(reduced.write_updates[0].value, "low");
+  assertEquals(reduced.blocked_effects, []);
 });
 
-Deno.test("handoff intake never creates confirmation token or pending confirmation", async () => {
-  const output = await runUpdateCoachPreferencesIntake({
-    user_id: "u1",
-    channel: "web",
-    timezone: "Europe/Paris",
-    message: "Pour la suite, sois plus direct.",
-    trigger_message_id: "m-handoff",
-    safety_pregate_risk_band: "none",
-    slot_filler: structuredCoachPreferencesSlotFiller(
-      readyCoachPreferencesStatePatch("coach.tone", "direct"),
-    ),
+Deno.test("reducer blocks proposed, ambiguous, unsupported, punctual, invalid and low confidence writes", () => {
+  const proposed = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: null,
+    output: baseDecision({
+      flow_action: "propose_supported_mapping",
+      preference_intent: {
+        kind: "durable_unsupported",
+        durability: "durable",
+        support_status: "partial",
+        summary: "mapping partiel",
+      },
+      preference_updates: [{
+        ...(baseDecision().preference_updates[0]),
+        status: "proposed",
+        needs_user_confirmation: true,
+      }],
+      visible_task: {
+        kind: "confirm_supported_mapping",
+        instruction: "Confirmer le mapping.",
+      },
+    }),
   });
-  assertEquals(output.status, "handoff_ready");
-  assertEquals(output.pending_confirmation, undefined);
-  assertEquals(output.confirmation?.required, false);
-  assertEquals(output.handoff_draft?.no_chat_mutation, true);
-  assertEquals(output.handoff_draft?.executable_from_chat, false);
+  assertEquals(proposed.status, "proposed");
+  assertEquals(proposed.write_updates, []);
+
+  for (
+    const output of [
+      baseDecision({
+        confidence: "low",
+      }),
+      baseDecision({
+        preference_intent: {
+          kind: "ambiguous",
+          durability: "ambiguous",
+          support_status: "ambiguous",
+          summary: "ambigu",
+        },
+      }),
+      baseDecision({
+        preference_intent: {
+          kind: "durable_unsupported",
+          durability: "durable",
+          support_status: "unsupported",
+          summary: "unsupported",
+        },
+      }),
+      baseDecision({
+        preference_intent: {
+          kind: "punctual_instruction",
+          durability: "punctual",
+          support_status: "not_applicable",
+          summary: "ponctuel",
+        },
+      }),
+      baseDecision({
+        preference_updates: [{
+          ...(baseDecision().preference_updates[0]),
+          value: "emoji" as CoachPreferenceLocalUpdate["value"],
+        }],
+      }),
+    ]
+  ) {
+    const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+      previous: null,
+      output,
+    });
+    assertEquals(reduced.write_updates, []);
+    assert(
+      reduced.status === "blocked" || reduced.status === "collecting",
+      `unexpected status ${reduced.status}`,
+    );
+  }
 });
 
-Deno.test("handoff never calls executeUpdateCoachPreferences or writes user_profile_facts", async () => {
-  const supabase = fakeWriteDetectingSupabase();
+Deno.test("confirmation of active proposal becomes write-ready without parsing the message", () => {
+  const previous = createCoachPreferenceLocalFlowState({
+    status: "proposed",
+    currentStage: "confirmation",
+    proposedUpdates: [{
+      key: "coach.question_tendency",
+      value: "low",
+      status: "proposed",
+      user_facing_label: "Questions",
+      user_facing_value: "Peu de questions",
+      reason: "Mapping proposé.",
+      needs_user_confirmation: true,
+    }],
+  });
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "confirm_proposed_mapping",
+      preference_updates: [],
+    }),
+  });
+  assertEquals(reduced.status, "write_ready");
+  assertEquals(reduced.write_updates[0].status, "locked");
+  assertEquals(reduced.write_updates[0].needs_user_confirmation, false);
+});
+
+Deno.test("direct clear write commits user_profile_facts and emits committed effect", async () => {
+  const supabase = fakeCoachSupabase();
   const runtime = await maybeRunUpdateCoachPreferencesOperation({
     supabase,
     userId: "u1",
-    userMessage: "Pour la suite, sois plus direct et pose moins de questions.",
+    userMessage: "À partir de maintenant, pose-moi moins de questions.",
     channel: "web",
     userTimezone: "Europe/Paris",
-    tempMemory: {
-      __active_tool_skill_intake: {
-        operation_type: "update_coach_preferences",
-        operation_input: {
-          slot_filler: structuredCoachPreferencesSlotFiller({
-            user_intent: "set_preference",
-            requested_patch: {
-              "coach.tone": "direct",
-              "coach.question_tendency": "low",
-            },
-            reason: {
-              evidence: ["direct et moins de questions"],
-              confidence: "high",
-            },
-          }),
-        },
-      },
-    },
+    tempMemory: {},
     turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-runtime",
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "test",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    sourceMessageId: "m1",
+    requestId: "op1",
+    runLocalDispatcher: () => Promise.resolve(baseDecision()),
+    runVisibleAgent: visibleAgent("C'est noté : je poserai moins de questions."),
   });
-  assertEquals(runtime?.toolExecution, "platform_handoff");
-  assertEquals(runtime?.executedTools, []);
-  assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
+  assertEquals(runtime?.toolExecution, "success");
+  assertEquals(runtime?.executedTools, ["update_coach_preferences"]);
   assertEquals((runtime?.toolSkillRun as any)?.pending_confirmation, null);
-  assertEquals(
-    (runtime?.toolSkillRun as any)?.platform_handoff?.no_chat_mutation,
-    true,
-  );
-  assertEquals(supabase.wrote, false);
+  assertEquals((runtime?.toolSkillRun as any)?.platform_handoff, undefined);
+  assertEquals((runtime?.toolSkillRun as any)?.committed_effects[0], {
+    type: "update_coach_preferences",
+    operation_id: "op1",
+    preference_keys: ["coach.question_tendency"],
+    preferences_update_ids: ["pref-1"],
+  });
+  assertEquals(supabase.state.wrote, true);
+  assertEquals(supabase.state.rows[0].key, "coach.question_tendency");
+  assertEquals(supabase.state.rows[0].value.value, "low");
 });
 
-Deno.test("apply_attempt does not execute", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux un ton plus direct",
-    requested_patch: { "coach.tone": "direct" },
-  });
-  const supabase = fakeWriteDetectingSupabase();
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase,
-    userId: "u1",
-    userMessage: "ok applique",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-apply",
-  });
-  assertEquals(runtime?.executedTools, []);
-  assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
-  assertEquals((runtime?.toolSkillRun as any)?.status, "apply_attempt");
-  assertEquals(supabase.wrote, false);
-  assert(runtime?.content.includes("Je ne peux pas l’appliquer directement"));
-  assert(runtime?.content.includes("Préférences coach"));
-});
-
-Deno.test("apply_attempt repeats every recommended setting from active draft", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux un ton plus direct et moins de questions",
-    requested_patch: {
-      "coach.tone": "direct",
-      "coach.question_tendency": "low",
-    },
-    unsupported_parts: ["ne jamais finir par une question"],
-  });
-  const supabase = fakeWriteDetectingSupabase();
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase,
-    userId: "u1",
-    userMessage: "ok applique",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-apply-composite",
-  });
-  assertEquals(runtime?.executedTools, []);
-  assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
-  assertEquals((runtime?.toolSkillRun as any)?.status, "apply_attempt");
-  assertEquals(supabase.wrote, false);
-  assert(runtime?.content.includes("Ton global"));
-  assert(runtime?.content.includes("Très direct"));
-  assert(runtime?.content.includes("Tendance à poser des questions"));
-  assert(runtime?.content.includes("Peu de questions"));
-  assert(runtime?.content.includes("ne jamais finir par une question"));
-});
-
-Deno.test("old pending confirmation plus ok applique is ignored", async () => {
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase: fakeWriteDetectingSupabase(),
-    userId: "u1",
-    userMessage: "ok applique cette préférence",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __pending_tool_skill_confirmation: {
-        operation_id: "op-legacy",
-        operation_type: "update_coach_preferences",
-        draft: { draft: { patch: { "coach.tone": "direct" } } },
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-legacy-apply",
-  });
-  assertEquals(runtime, null);
-});
-
-Deno.test("repeat_handoff repeats recommended setting", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux moins de questions",
-    requested_patch: { "coach.question_tendency": "low" },
-  });
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase: fakeStatusSupabase([]),
-    userId: "u1",
-    userMessage: "redis-moi quoi changer",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-repeat",
-  });
-  assertEquals((runtime?.toolSkillRun as any)?.status, "repeat_handoff");
-  assert(runtime?.content.includes("Tendance à poser des questions"));
-  assert(runtime?.content.includes("Peu de questions"));
-});
-
-Deno.test("destination question inside active handoff repeats handoff", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux moins de questions",
-    requested_patch: { "coach.question_tendency": "low" },
-  });
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase: fakeStatusSupabase([]),
-    userId: "u1",
-    userMessage: "Où est-ce que je fais ça ?",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-repeat-destination",
-  });
-  assertEquals((runtime?.toolSkillRun as any)?.status, "repeat_handoff");
-  assert(runtime?.content.includes("Préférences coach"));
-  assert(runtime?.content.includes("Tendance à poser des questions"));
-  assert(runtime?.content.includes("Peu de questions"));
-});
-
-Deno.test("active handoff explains the three visible settings without mutation", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux un ton direct et moins de questions",
-    requested_patch: {
-      "coach.tone": "direct",
-      "coach.question_tendency": "low",
-    },
-  });
-  const supabase = fakeWriteDetectingSupabase();
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase,
-    userId: "u1",
-    userMessage: "ça fait quoi exactement ces réglages ?",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-explain",
-  });
-  assertEquals(runtime?.executedTools, []);
-  assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
-  assertEquals((runtime?.toolSkillRun as any)?.status, "explained");
-  assertEquals(supabase.wrote, false);
-  assert(runtime?.content.includes("Ton global"));
-  assert(runtime?.content.includes("Niveau de challenge"));
-  assert(runtime?.content.includes("Tendance à poser des questions"));
-  assert(runtime?.content.includes("zéro emoji"));
-  assert(runtime?.content.includes("il faut passer"));
-  assert(runtime?.content.includes("Préférences coach"));
-});
-
-Deno.test("active handoff explains comparison phrasing without revision", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux un ton direct et un challenge équilibré",
-    requested_patch: {
-      "coach.tone": "direct",
-      "coach.challenge_level": "balanced",
-    },
-  });
-  const supabase = fakeWriteDetectingSupabase();
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase,
-    userId: "u1",
-    userMessage:
-      "Ça change quoi exactement challenge équilibré par rapport au ton direct ?",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-explain-compare",
-  });
-  assertEquals((runtime?.toolSkillRun as any)?.status, "explained");
-  assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
-  assertEquals(supabase.wrote, false);
-  assert(runtime?.content.includes("Ton global"));
-  assert(runtime?.content.includes("Niveau de challenge"));
-  assert(runtime?.content.includes("Très direct"));
-  assert(runtime?.content.includes("Équilibré"));
-});
-
-Deno.test("active handoff explains combined challenge and question settings", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux plus de challenge et moins de questions",
-    requested_patch: {
-      "coach.challenge_level": "high",
-      "coach.question_tendency": "low",
-    },
-  });
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase: fakeStatusSupabase([]),
-    userId: "u1",
-    userMessage:
-      "Concrètement, ça fait quoi niveau de challenge élevé et peu de questions ensemble ?",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-    },
-    turnFrame: null,
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-explain-combined",
-  });
-  assertEquals((runtime?.toolSkillRun as any)?.status, "explained");
-  assert(runtime?.content.includes("Niveau de challenge"));
-  assert(runtime?.content.includes("Élevé"));
-  assert(runtime?.content.includes("Tendance à poser des questions"));
-  assert(runtime?.content.includes("Peu de questions"));
-});
-
-Deno.test("revise_handoff updates recommendation", async () => {
-  const draft = runCoachPreferenceHandoffDraftBuilder({
-    user_request_summary: "tu veux un ton direct",
-    requested_patch: { "coach.tone": "direct" },
-  });
-  const runtime = await maybeRunUpdateCoachPreferencesOperation({
-    supabase: fakeStatusSupabase([]),
-    userId: "u1",
-    userMessage: "plutôt plus doux",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    tempMemory: {
-      __coach_preference_handoff_state_v1: {
-        skill_id: "update_coach_preferences",
-        mode: "platform_handoff",
-        status: "handoff_delivered",
-        draft,
-        turn_count: 1,
-        max_turns: 4,
-        created_at: "2026-06-01T00:00:00.000Z",
-        updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
-      },
-      __active_tool_skill_intake: {
-        operation_type: "update_coach_preferences",
-        operation_input: {
-          slot_filler: structuredCoachPreferencesSlotFiller(
-            readyCoachPreferencesStatePatch("coach.tone", "soft"),
-          ),
+Deno.test("punctual and unsupported requests do not write or claim durable success", async () => {
+  for (
+    const decision of [
+      baseDecision({
+        flow_action: "punctual_instruction",
+        preference_intent: {
+          kind: "punctual_instruction",
+          durability: "punctual",
+          support_status: "not_applicable",
+          summary: "consigne ponctuelle",
         },
+        preference_updates: [],
+        visible_task: {
+          kind: "punctual_instruction_ack",
+          instruction: "Ack ponctuel.",
+        },
+      }),
+      baseDecision({
+        flow_action: "unsupported_preference",
+        preference_intent: {
+          kind: "durable_unsupported",
+          durability: "durable",
+          support_status: "unsupported",
+          summary: "jamais emoji et trois lignes",
+        },
+        preference_updates: [],
+        unsupported_parts: ["emoji", "trois lignes"],
+        visible_task: {
+          kind: "unsupported_preference",
+          instruction: "Expliquer non supporté.",
+        },
+      }),
+    ]
+  ) {
+    const supabase = fakeCoachSupabase();
+    const runtime = await maybeRunUpdateCoachPreferencesOperation({
+      supabase,
+      userId: "u1",
+      userMessage: "test",
+      channel: "web",
+      userTimezone: "Europe/Paris",
+      tempMemory: {},
+      turnFrame: null,
+      routeDecision: {
+        route_version: "v1",
+        response_owner: "tool_skill",
+        selected_handler: "update_coach_preferences",
+        blocked_paths: [],
+        direct_effects_to_run: [],
+        reason_code: "test",
+        memory_used_for_route: false,
+        memory_item_ids_used_for_route: [],
+        memory_use_kind: "none",
       },
+      safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+      sourceMessageId: "m2",
+      runLocalDispatcher: () => Promise.resolve(decision),
+      runVisibleAgent: visibleAgent("Pas de stockage durable."),
+    });
+    assertEquals(runtime?.executedTools, []);
+    assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
+    assertEquals(supabase.state.wrote, false);
+  }
+});
+
+Deno.test("proposed mapping writes only after local confirmation", async () => {
+  const firstSupabase = fakeCoachSupabase();
+  const first = await maybeRunUpdateCoachPreferencesOperation({
+    supabase: firstSupabase,
+    userId: "u1",
+    userMessage: "Arrête de m'interroger tout le temps.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: null,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "test",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
     },
+    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    sourceMessageId: "m3",
+    runLocalDispatcher: () =>
+      Promise.resolve(baseDecision({
+        flow_action: "propose_supported_mapping",
+        preference_intent: {
+          kind: "durable_unsupported",
+          durability: "ambiguous",
+          support_status: "partial",
+          summary: "mapping vers moins de questions",
+        },
+        preference_updates: [{
+          ...(baseDecision().preference_updates[0]),
+          status: "proposed",
+          needs_user_confirmation: true,
+        }],
+        visible_task: {
+          kind: "confirm_supported_mapping",
+          instruction: "Demander confirmation.",
+        },
+      })),
+    runVisibleAgent: visibleAgent("Je peux le traduire par moins de questions."),
+  });
+  assertEquals(first?.toolExecution, "none");
+  assertEquals(firstSupabase.state.wrote, false);
+  assertEquals(
+    (first?.nextTempMemory as any).__coach_preference_flow_state_v1.status,
+    "proposed",
+  );
+
+  const secondSupabase = fakeCoachSupabase();
+  const second = await maybeRunUpdateCoachPreferencesOperation({
+    supabase: secondSupabase,
+    userId: "u1",
+    userMessage: "Ok applique.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: first?.nextTempMemory,
     turnFrame: null,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "m-revise",
+    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    sourceMessageId: "m4",
+    requestId: "op-confirm",
+    runLocalDispatcher: () =>
+      Promise.resolve(baseDecision({
+        flow_action: "confirm_proposed_mapping",
+        preference_updates: [],
+      })),
+    runVisibleAgent: visibleAgent("C'est noté : moins de questions."),
   });
-  assertEquals((runtime?.toolSkillRun as any)?.status, "revise_handoff");
-  assert(runtime?.content.includes("Doux"));
+  assertEquals(second?.toolExecution, "success");
+  assertEquals(secondSupabase.state.wrote, true);
+  assertEquals(
+    (second?.toolSkillRun as any)?.committed_effects[0].preference_keys,
+    ["coach.question_tendency"],
+  );
 });
 
-Deno.test("punctual instruction does not create durable handoff unless user asks durable", async () => {
-  const output = await runUpdateCoachPreferencesIntake({
-    user_id: "u1",
+Deno.test("status question inside coach preference flow delegates to status_recap without write", async () => {
+  const supabase = fakeCoachSupabase([
+    {
+      key: "coach.tone",
+      value: { value: "direct" },
+      source_type: "ui",
+    },
+  ]);
+  const runtime = await maybeRunUpdateCoachPreferencesOperation({
+    supabase,
+    userId: "u1",
+    userMessage: "C'est quoi mes préférences coach actuelles ?",
     channel: "web",
-    timezone: "Europe/Paris",
-    message: "Juste pour cette réponse, fais court.",
-    trigger_message_id: "m-punctual",
-    safety_pregate_risk_band: "none",
-    slot_filler: structuredCoachPreferencesSlotFiller({
-      user_intent: "punctual_instruction",
-      reason: { evidence: ["juste pour cette réponse"], confidence: "high" },
-    }),
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: null,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "test",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    sourceMessageId: "m-status",
+    runLocalDispatcher: () =>
+      Promise.resolve(baseDecision({
+        flow_action: "status_question",
+        preference_intent: {
+          kind: "status_question",
+          durability: "not_applicable",
+          support_status: "not_applicable",
+          summary: "status",
+        },
+        preference_updates: [],
+        visible_task: {
+          kind: "get_info_db",
+          instruction: "Lire le status.",
+        },
+      })),
+    runVisibleAgent: visibleAgent("wrong owner"),
+    runStatusRecapSubskill: () =>
+      Promise.resolve({
+        content: "Status recap DB-grounded: ton = direct.",
+        nextTempMemory: {},
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "status_recap",
+          reason_code: "status_recap_test",
+        },
+      }),
   });
-  assertEquals(output.status, "punctual_instruction");
-  assertEquals(output.handoff_draft, undefined);
-  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(runtime?.toolExecution, "none");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(supabase.state.wrote, false);
+  assertEquals(runtime?.content, "Status recap DB-grounded: ton = direct.");
+  assertEquals((runtime?.toolSkillRun as any)?.subskill_run.skill_id, "status_recap");
+  assertEquals(
+    (runtime?.nextTempMemory as any).__coach_preference_flow_state_v1
+      .subskill_history[0].skill_id,
+    "status_recap",
+  );
 });
 
-Deno.test("unsupported preference is explained without write", async () => {
-  const output = await runUpdateCoachPreferencesIntake({
-    user_id: "u1",
+Deno.test("preference explanation inside coach preference flow delegates to product_help and preserves flow", async () => {
+  const supabase = fakeCoachSupabase();
+  const activeState = createCoachPreferenceLocalFlowState({
+    status: "collecting",
+    currentStage: "setting",
+  });
+  const runtime = await maybeRunUpdateCoachPreferencesOperation({
+    supabase,
+    userId: "u1",
+    userMessage: "C'est quoi les niveaux de préférences coach ?",
     channel: "web",
-    timezone: "Europe/Paris",
-    message:
-      "Pour la suite, réponds toujours en 3 lignes sans question finale.",
-    trigger_message_id: "m-unsupported",
-    safety_pregate_risk_band: "none",
-    slot_filler: structuredCoachPreferencesSlotFiller({
-      user_intent: "unsupported_preference",
-      reason: {
-        evidence: ["3 lignes sans question finale"],
-        confidence: "high",
-      },
-    }),
+    userTimezone: "Europe/Paris",
+    tempMemory: { __coach_preference_flow_state_v1: activeState },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    sourceMessageId: "m-explain",
+    runLocalDispatcher: () =>
+      Promise.resolve(baseDecision({
+        flow_action: "explain_preferences",
+        preference_intent: {
+          kind: "explain",
+          durability: "not_applicable",
+          support_status: "not_applicable",
+          summary: "explication produit",
+        },
+        preference_updates: [],
+        visible_task: {
+          kind: "get_info_product",
+          instruction: "Expliquer via product_help.",
+        },
+      })),
+    runVisibleAgent: visibleAgent("wrong owner"),
+    runProductHelpSubskill: () =>
+      Promise.resolve({
+        skill_id: "product_help",
+        status: "complete",
+        response_intent: "answer_product_question",
+        reply:
+          "Product help: les préférences coach couvrent le ton, le challenge et les questions.",
+        operation_suggestions: [],
+        memory_trace: {
+          memory_used_for_response: false,
+          memory_item_ids_used: [],
+          correction_detected: false,
+          correction_target_item_ids: [],
+        },
+      }),
   });
-  assertEquals(output.status, "unsupported_preference");
-  assertEquals(output.pending_confirmation, undefined);
-  assertEquals(output.handoff_draft?.supported_settings.length, 0);
-  assertEquals(output.handoff_draft?.unsupported_parts.length, 1);
+  assertEquals(runtime?.toolExecution, "none");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(supabase.state.wrote, false);
+  assertEquals(
+    runtime?.content,
+    "Product help: les préférences coach couvrent le ton, le challenge et les questions.",
+  );
+  assertEquals((runtime?.toolSkillRun as any)?.subskill_run.skill_id, "product_help");
+  assertEquals(
+    (runtime?.nextTempMemory as any).__coach_preference_flow_state_v1
+      .subskill_history[0].skill_id,
+    "product_help",
+  );
 });
 
-Deno.test("status of existing preferences remains read-only", async () => {
+Deno.test("status helper and runtime policy still read existing preferences", async () => {
   const reply = await buildCoachPreferencesStatusReply({
-    supabase: fakeStatusSupabase([
+    supabase: fakeCoachSupabase([
       {
         key: "coach.tone",
         value: { value: "direct" },
@@ -548,9 +572,7 @@ Deno.test("status of existing preferences remains read-only", async () => {
     fallback: "fallback",
   });
   assertEquals(reply, "Oui. Préférences coach actives : ton très direct.");
-});
 
-Deno.test("runtime_policy still reads existing preferences", () => {
   const policy = loadCoachPreferenceRuntimePolicy([
     { key: "coach.tone", value: { value: "direct" } },
     { key: "coach.challenge_level", value: { value: "balanced" } },

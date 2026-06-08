@@ -17,11 +17,10 @@ import {
 import {
   chatDetailQuestionIds,
   chatDetailQuestionLabel,
-  fillPotionDetailSlotsWithAi,
   isActionAwarePotion,
   SUPPORT_TIMING_QUESTION_ID,
   SUPPORT_TIMING_SLOT,
-} from "./subskills/potion_detail_intake.ts";
+} from "./subskills/state_potion_subskill_registry.ts";
 import { fillPotionRouterSlotsWithAi } from "./subskills/potion_router.ts";
 
 export type StatePotionConfidence = "low" | "medium" | "high";
@@ -1128,16 +1127,10 @@ function selectedPotionFromState(
     state.explicit_potion_request.potion_type;
 }
 
-function isClarteDetailIntakeState(
-  state: SelectStatePotionIntakeState,
-): boolean {
-  return selectedPotionFromState(state) === "clarte" &&
-    needsPotionDetailIntake(state);
-}
-
-function preserveForClarteSubflow(
+function preserveForLocalPotionSubflow(
   state: SelectStatePotionIntakeState,
 ): SelectStatePotionSlotFillerOutput {
+  const selectedPotion = selectedPotionFromState(state);
   return {
     current_sub_skill: "detail_intake",
     state_patch: {
@@ -1148,7 +1141,11 @@ function preserveForClarteSubflow(
     missing_slots: state.missing_slots,
     confidence: state.confidence,
     generated_user_message: null,
-    evidence: ["clarte_detail_deferred_to_local_dispatcher"],
+    evidence: [
+      selectedPotion
+        ? `${selectedPotion}_detail_deferred_to_local_dispatcher`
+        : "potion_detail_deferred_to_local_dispatcher",
+    ],
   };
 }
 
@@ -1273,24 +1270,13 @@ export async function fillSelectStatePotionSlotsWithAi(
   input: SelectStatePotionSlotFillerInput,
   subskills: {
     router?: SelectStatePotionSubSkillFiller;
-    detail?: SelectStatePotionSubSkillFiller;
   } = {},
 ): Promise<SelectStatePotionSlotFillerOutput | null> {
   const state = input.current_state ??
     stateFromOperationInput(input.operation_input);
   const routerSubSkill = subskills.router ?? fillPotionRouterSlotsWithAi;
-  const detailSubSkill = subskills.detail ?? fillPotionDetailSlotsWithAi;
   if (needsPotionDetailIntake(state)) {
-    if (isClarteDetailIntakeState(state)) {
-      return preserveForClarteSubflow(state);
-    }
-    const detailed = await detailSubSkill(
-      { ...input, current_state: state },
-      normalizeSelectStatePotionSlotFillerOutput,
-    );
-    return detailed
-      ? limitDetailSubskillOutputToCurrentField(state, detailed)
-      : null;
+    return preserveForLocalPotionSubflow(state);
   }
 
   const routed = await routerSubSkill(
@@ -1302,20 +1288,7 @@ export async function fillSelectStatePotionSlotsWithAi(
   const routerOutput = stripRouterOwnedDetails(routed);
   const routedState = mergeState(state, routerOutput.state_patch);
   if (!needsPotionDetailIntake(routedState)) return routerOutput;
-  if (isClarteDetailIntakeState(routedState)) {
-    return preserveForClarteSubflow(routedState);
-  }
-
-  const detailed = await detailSubSkill(
-    { ...input, current_state: routedState },
-    normalizeSelectStatePotionSlotFillerOutput,
-  );
-  const incrementalDetail = detailed
-    ? limitDetailSubskillOutputToCurrentField(routedState, detailed)
-    : null;
-  return incrementalDetail
-    ? composeSubSkillOutputs(state, routerOutput, incrementalDetail)
-    : routerOutput;
+  return preserveForLocalPotionSubflow(routedState);
 }
 
 function technicalErrorOutput(

@@ -21,6 +21,7 @@ import {
   isAttackCardPostCreationVerificationQuestion,
 } from "../tools/operations/prepare_attack_card/run_support.ts";
 import { readSurfaceState } from "../surface_state.ts";
+import { readActiveFlowState } from "./active_flow_state.ts";
 import { isSafetyRoute } from "./safety_crisis_runtime.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
 import {
@@ -118,8 +119,12 @@ export async function runConversationSkillForRecommendation(args: {
   planItemSnapshot: unknown[] | null | undefined;
   productSurfaces: unknown[];
   explicitConstraints?: string[];
+  activeSkillStateOverride?: unknown;
 }): Promise<ConversationSkillOutput | null> {
-  const context = buildSkillContextForRecommendation(args);
+  const context = buildSkillContextForRecommendation({
+    ...args,
+    activeSkillState: args.activeSkillStateOverride ?? args.activeSkillState,
+  });
   const input = {
     user_message: args.userMessage,
     context,
@@ -179,6 +184,18 @@ export async function prepareRecommendationRuntimeForTurn(args: {
   ) {
     try {
       const registry = await loadProductSurfaceRegistry();
+      const inlineActiveFlow =
+        selectedSkillForRecommendation === "product_help" &&
+          args.routeDecision?.active_flow_arbitration?.decision ===
+            "inline_answer_then_resume"
+          ? readActiveFlowState(args.tempMemory)
+          : null;
+      const inlineParentState = inlineActiveFlow
+        ? inlineActiveFlow.activeSkillState ??
+          inlineActiveFlow.activeToolSkillIntake ??
+          inlineActiveFlow.pendingToolSkillConfirmation ??
+          null
+        : null;
       recommendationSkillOutput = selectedSkillForRecommendation
         ? await runConversationSkillForRecommendation({
           skillId: selectedSkillForRecommendation,
@@ -190,8 +207,21 @@ export async function prepareRecommendationRuntimeForTurn(args: {
           planItemSnapshot: args.planItemSnapshot,
           productSurfaces: registry.surfaces,
           explicitConstraints: conversationExplicitConstraints(args.tempMemory),
+          activeSkillStateOverride: inlineParentState,
         })
         : null;
+      if (selectedSkillForRecommendation === "safety_crisis") {
+        const diagnosis = recommendationSkillOutput?.diagnosis ?? {};
+        const visibleTask = (diagnosis as any).visible_task;
+        await args.trace("brain:safety_crisis.local_flow_result", "routing", {
+          source_risk_band: (diagnosis as any).source_risk_band ?? null,
+          computed_risk_band: (diagnosis as any).risk_band ?? null,
+          phase: (diagnosis as any).phase ?? null,
+          "visible_task.kind": visibleTask?.kind ?? null,
+          no_tooling: true,
+          exit_memo: (diagnosis as any).exit_memo ?? null,
+        }, "info");
+      }
       if (
         !suppressOperationRecommendationForVerification &&
         selectedSkillForRecommendation !== "product_help" &&

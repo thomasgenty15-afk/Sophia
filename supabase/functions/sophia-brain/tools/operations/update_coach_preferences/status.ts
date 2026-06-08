@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { CoachPreferencesPatchDraftV1 } from "./generator.ts";
+import type { CoachPreferenceLocalUpdate } from "./contract.ts";
 
 export const SUPPORTED_COACH_PREFERENCE_KEYS = [
   "coach.tone",
@@ -106,14 +107,73 @@ export async function upsertCoachPreferencesFromDraft(args: {
   const keys = (data ?? []).map((row: any) => String(row?.key ?? "")).filter(
     Boolean,
   );
+  const ids = (data ?? []).map((row: any) => String(row?.id ?? "")).filter(
+    Boolean,
+  );
   return {
-    data: keys.length > 0 ? { key: keys[0], keys } : null,
+    data: keys.length > 0 ? { key: keys[0], keys, ids } : null,
     error: keys.length > 0 ? null : { message: "missing_upserted_key" },
   };
 }
 
 export const upsertCoachPreferencesFromDraftForTest =
   upsertCoachPreferencesFromDraft;
+
+export async function upsertCoachPreferencesFromLockedUpdates(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  updates: CoachPreferenceLocalUpdate[];
+  sourceMessageId?: string | null;
+  reason?: string | null;
+}) {
+  const patch: CoachPreferencesPatchDraftV1["draft"]["patch"] = {};
+  for (const update of args.updates) {
+    if (update.status !== "locked") continue;
+    if (!isSupportedCoachPreferenceKey(update.key)) continue;
+    patch[update.key] = update.value;
+  }
+  return await upsertCoachPreferencesFromDraft({
+    supabase: args.supabase,
+    userId: args.userId,
+    sourceMessageId: args.sourceMessageId ?? null,
+    draft: {
+      operation_type: "update_coach_preferences",
+      output_schema: "coach_preferences_patch_draft_v1",
+      draft: {
+        patch,
+        summary: args.reason ?? "Préférence coach explicite depuis le chat.",
+        reason: args.reason ?? null,
+      },
+      confirmation_message: "",
+      confirmation_actions: ["yes", "no"],
+    },
+  });
+}
+
+export async function loadCurrentCoachPreferenceRows(args: {
+  supabase: SupabaseClient;
+  userId: string;
+}): Promise<Array<{ key: string; value: string; label: string }>> {
+  const { data, error } = await args.supabase
+    .from("user_profile_facts")
+    .select("key,value,status,source_type,updated_at")
+    .eq("user_id", args.userId)
+    .eq("scope", "global")
+    .eq("status", "active")
+    .like("key", "coach.%");
+  if (error || !Array.isArray(data)) return [];
+  return data.flatMap((row: any) => {
+    const key = String(row?.key ?? "").trim();
+    if (!isSupportedCoachPreferenceKey(key)) return [];
+    const value = String(row?.value?.value ?? "").trim();
+    if (!value) return [];
+    return [{
+      key,
+      value,
+      label: coachPreferenceLabel(key, value),
+    }];
+  });
+}
 
 export async function buildCoachPreferencesStatusReply(args: {
   supabase: SupabaseClient;

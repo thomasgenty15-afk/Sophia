@@ -69,3 +69,19 @@ export {
   weeklyRuntimeEffectFromOperation,
 } from "./effects.ts";
 export type { WeeklyRuntimeEffectMarker } from "./effects.ts";
+
+export {
+  normalizeWeeklyReviewLocalDispatcherOutput,
+  reduceWeeklyReviewLocalDispatcherOutput,
+  runWeeklyReviewLocalDispatcher,
+  runWeeklyReviewLocalRuntime,
+  WEEKLY_REVIEW_EXIT_MEMO_KEY,
+} from "./local_flow.ts";
+export type {
+  WeeklyReviewExitMemo,
+  WeeklyReviewLocalDispatcherOutput,
+  WeeklyReviewLocalFlowAction,
+  WeeklyReviewLocalFlowState,
+  WeeklyReviewReducerResult,
+  WeeklyReviewVisibleTaskKind,
+} from "./local_flow.ts";

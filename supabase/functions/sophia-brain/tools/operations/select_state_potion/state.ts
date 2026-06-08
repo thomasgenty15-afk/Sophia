@@ -2,6 +2,8 @@ import type {
   ClarteHandoffState,
   StatePotionHandoffDraft,
   StatePotionHandoffStatus,
+  StatePotionSubskillHandoffState,
+  StatePotionSubskillId,
 } from "./contract.ts";
 import type { SelectStatePotionIntakeState } from "./intake.ts";
 
@@ -14,14 +16,16 @@ export type SelectStatePotionFrame = {
 
 export type StatePotionHandoffState = {
   skill_id: "select_state_potion";
-  active_subskill_id?: "select_state_potion.clarte" | null;
+  active_subskill_id?: StatePotionSubskillId | null;
   mode: "platform_handoff";
   status: StatePotionHandoffStatus;
   draft?: StatePotionHandoffDraft | null;
   phase?: string | null;
   operation_input?: Record<string, unknown> | null;
+  origin_bridge_context?: Record<string, unknown> | null;
   intake_state?: SelectStatePotionIntakeState | null;
   clarte_state?: ClarteHandoffState | null;
+  potion_subskill_state?: StatePotionSubskillHandoffState | null;
   turn_count: number;
   max_turns: number;
   created_at: string;

@@ -83,9 +83,14 @@ import {
 } from "../sophia-brain/momentum_outreach.ts";
 import {
   buildMomentumMorningPlan,
+  buildMorningNudgePayloadV2,
   isMorningNudgeEventContext,
   resolveMorningNudgePlanV2,
 } from "../sophia-brain/momentum_morning_nudge.ts";
+import {
+  createPostMorningNudgeActiveState,
+  writePostMorningNudgeActiveState,
+} from "../sophia-brain/post_morning_nudge.ts";
 import {
   getUserState,
   updateUserState,
@@ -2416,12 +2421,20 @@ Deno.serve(async (req) => {
           continue;
         }
         mode = "dynamic";
+        const morningNudgePayloadV2 = eventContext === "morning_nudge_v2"
+          ? buildMorningNudgePayloadV2({
+            plan: morningPlan as any,
+            sentAtIso: String((checkin as any)?.scheduled_for ?? ""),
+          })
+          : null;
         payload = {
           ...payload,
           source: "process_checkins:momentum_morning_nudge",
           momentum_state: morningPlan.state ?? null,
           momentum_strategy: morningPlanStrategy(morningPlan),
           morning_nudge_posture: morningPlanPosture(morningPlan),
+          ...(morningNudgePayloadV2 ?? {}),
+          morning_nudge_v2: morningNudgePayloadV2,
           relevance: morningPlan.relevance,
           instruction: morningPlan.instruction ?? payload?.instruction ?? "",
           event_grounding: morningPlan.event_grounding ??
@@ -3514,6 +3527,7 @@ Deno.serve(async (req) => {
               null,
             checkin_kind: cleanText(payload?.checkin_kind) || null,
             recurring_reminder_id: recurringReminderId,
+            morning_nudge_v2: payload?.morning_nudge_v2 ?? null,
           },
         });
         const skipped = Boolean((resp as any)?.skipped);
@@ -3617,6 +3631,11 @@ Deno.serve(async (req) => {
         }
 
         if (isMomentumMorningNudge) {
+          if (payload?.morning_nudge_v2) {
+            console.log(
+              `[process-checkins] request_id=${requestId} morning_nudge_v2.nudge_kind=${payload.morning_nudge_v2.nudge_kind} morning_nudge_v2.posture=${payload.morning_nudge_v2.posture} morning_nudge_v2.opens_local_flow=${payload.morning_nudge_v2.opens_local_flow} morning_nudge_v2.intended_followup_flow=${payload.morning_nudge_v2.intended_followup_flow}`,
+            );
+          }
           const currentRepairMode = readRepairMode(tempMemory);
           if (currentRepairMode.active) {
             const nextRepairMode = recordSoftContact(
@@ -3637,6 +3656,26 @@ Deno.serve(async (req) => {
                 tempMemory,
               });
             }
+          }
+          const postMorningState = payload?.morning_nudge_v2
+            ? createPostMorningNudgeActiveState({
+              sourceNudge: payload.morning_nudge_v2,
+              nowIso: new Date().toISOString(),
+            })
+            : null;
+          if (postMorningState) {
+            tempMemory = writePostMorningNudgeActiveState(
+              tempMemory,
+              postMorningState,
+            );
+            await persistWhatsappTempMemory({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+              tempMemory,
+            });
+            console.log(
+              `[process-checkins] request_id=${requestId} post_morning_nudge.flow_kind=${postMorningState.flow_kind} status=${postMorningState.status}`,
+            );
           }
         }
       } catch (e) {

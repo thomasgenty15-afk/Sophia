@@ -6,6 +6,7 @@ import {
 
 import {
   buildMomentumMorningPlan,
+  buildMorningNudgePayloadV2,
   buildMorningNudgePlanV2,
   type LastNudgeInfo,
   type MorningNudgeV2Input,
@@ -15,9 +16,7 @@ import {
 } from "./momentum_morning_nudge.ts";
 import type { StoredMomentumV2 } from "./momentum_state.ts";
 import type { PlanItemRuntimeRow } from "../_shared/v2-runtime.ts";
-import type {
-  ConversationPulse,
-} from "../_shared/v2-types.ts";
+import type { ConversationPulse } from "../_shared/v2-types.ts";
 
 function tempMemoryWithMomentum(
   state: string,
@@ -118,7 +117,8 @@ Deno.test("buildMomentumMorningPlan adapts friction to a known blocker on today'
     missed_actions_7d: 3,
     partial_actions_7d: 1,
   });
-  (tempMemory.__momentum_state_v2 as any).assessment.top_blocker = "Marcher 10 min";
+  (tempMemory.__momentum_state_v2 as any).assessment.top_blocker =
+    "Marcher 10 min";
   (tempMemory.__momentum_state_v2 as any).blockers = {
     blocker_kind: "habit",
     blocker_repeat_score: 4,
@@ -327,6 +327,10 @@ Deno.test("V2 morning nudge: soutien_emotionnel + high emotional → protective_
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "protective_pause");
+  assertEquals(plan.nudge_kind, "suppressed_action_nudge");
+  assertEquals(plan.opens_local_flow, true);
+  assertEquals(plan.intended_followup_flow, "suppressed_action");
+  assertEquals(plan.suppressed_plan_item_titles, ["Marcher 10 min"]);
   assertStringIncludes(
     String(plan.instruction ?? ""),
     "aucune action",
@@ -357,6 +361,8 @@ Deno.test("V2 morning nudge: medium emotional load → support_softly", () => {
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "support_softly");
+  assertEquals(plan.nudge_kind, "suppressed_action_nudge");
+  assertEquals(plan.intended_followup_flow, "suppressed_action");
   assertStringIncludes(
     String(plan.instruction ?? ""),
     "PAS dans un nudge d'actions",
@@ -400,6 +406,8 @@ Deno.test("V2 morning nudge: upcoming_event in pulse → pre_event_grounding", (
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "pre_event_grounding");
+  assertEquals(plan.nudge_kind, "action_nudge");
+  assertEquals(plan.intended_followup_flow, "action");
   assertStringIncludes(
     String(plan.fallback_text ?? ""),
     "Entretien d'embauche vendredi",
@@ -430,6 +438,8 @@ Deno.test("V2 morning nudge: reactivation + silence → open_door", () => {
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "open_door");
+  assertEquals(plan.nudge_kind, "action_nudge");
+  assertEquals(plan.intended_followup_flow, "action");
   assertEquals(plan.relevance, "low");
   assertStringIncludes(
     String(plan.instruction ?? ""),
@@ -455,6 +465,8 @@ Deno.test("V2 morning nudge: friction_legere + blocker → simplify_today", () =
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "simplify_today");
+  assertEquals(plan.nudge_kind, "action_nudge");
+  assertEquals(plan.opens_local_flow, true);
   assertEquals(plan.relevance, "high");
   assertStringIncludes(
     String(plan.fallback_text ?? ""),
@@ -490,6 +502,8 @@ Deno.test("V2 morning nudge: momentum + items → focus_today", () => {
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "focus_today");
+  assertEquals(plan.nudge_kind, "action_nudge");
+  assertEquals(plan.intended_followup_flow, "action");
   assertEquals(plan.relevance, "high");
   assertStringIncludes(String(plan.instruction ?? ""), "cap clair");
   assertStringIncludes(
@@ -524,6 +538,9 @@ Deno.test("V2 morning nudge: recent victory → celebration_ping", () => {
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "celebration_ping");
+  assertEquals(plan.nudge_kind, "no_action_greeting");
+  assertEquals(plan.opens_local_flow, false);
+  assertEquals(plan.intended_followup_flow, null);
   assertStringIncludes(
     String(plan.fallback_text ?? ""),
     "Premier run de 5km sans pause",
@@ -786,4 +803,47 @@ Deno.test("V2 morning nudge: no items → skip", () => {
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "skip");
   assertEquals(plan.reason, "morning_nudge_v2_no_items");
+});
+
+Deno.test("V2 morning nudge: high emotional load with no item becomes emotional presence", () => {
+  const input = makeV2Input({
+    todayPlanItems: [],
+    activePlanItems: [],
+    momentumV2: makeStoredMomentumV2({
+      current_state: "soutien_emotionnel",
+      dimensions: {
+        engagement: { level: "medium" },
+        execution_traction: { level: "flat" },
+        emotional_load: { level: "high" },
+        consent: { level: "open" },
+        plan_fit: { level: "uncertain" },
+        load_balance: { level: "balanced" },
+      },
+    }),
+  });
+
+  const plan = buildMorningNudgePlanV2(input);
+  assertEquals(plan.decision, "send");
+  assertEquals(plan.nudge_kind, "emotional_presence_nudge");
+  assertEquals(plan.opens_local_flow, true);
+  assertEquals(plan.intended_followup_flow, "emotional_presence");
+  assertEquals(plan.target_plan_item_titles, []);
+});
+
+Deno.test("V2 morning nudge payload is canonical and not V1 nominal", () => {
+  const plan = buildMorningNudgePlanV2(makeV2Input({
+    momentumV2: makeStoredMomentumV2({ current_state: "momentum" }),
+  }));
+  const payload = buildMorningNudgePayloadV2({
+    plan,
+    sentAtIso: NOW_ISO,
+  });
+
+  assertEquals(payload?.event_context, "morning_nudge_v2");
+  assertEquals(String(payload?.event_context), "morning_nudge_v2");
+  assertEquals(payload?.nudge_kind, "action_nudge");
+  assertEquals(payload?.opens_local_flow, true);
+  assertEquals(payload?.intended_followup_flow, "action");
+  assertEquals(payload?.target_item_titles, ["Marcher 10 min"]);
+  assertEquals(payload?.sent_at, NOW_ISO);
 });

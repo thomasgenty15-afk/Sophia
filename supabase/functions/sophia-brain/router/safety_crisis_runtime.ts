@@ -74,6 +74,7 @@ export function selectedConversationSkillForRoute(
   routeDecision: RouteDecision | null,
 ): string {
   if (isSafetyRoute(routeDecision)) return "safety_crisis";
+  if (routeDecision?.response_owner === "product_help") return "product_help";
   if (routeDecision?.response_owner === "conversation_handler") {
     return String(routeDecision?.selected_handler ?? "").trim();
   }
@@ -129,6 +130,8 @@ export function applySafetyCrisisExitStateIfNeeded(args: {
     working_state: {
       ...args.workingState,
       phase: "resolved",
+      exit_memo: args.skillOutput.state_patch?.exit_memo ??
+        args.workingState.exit_memo ?? null,
     },
   };
   delete next.__active_skill_state;

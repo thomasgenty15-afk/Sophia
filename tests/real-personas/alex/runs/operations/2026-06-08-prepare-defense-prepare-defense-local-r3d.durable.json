@@ -1,0 +1,291 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "464a1744-ff00-4f9e-8135-d3d215d2d84b",
+        "role": "user",
+        "content": "Je veux une carte de défense, je suis en vrac.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r3d",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r3d-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T11:33:41.114401+00:00"
+      },
+      {
+        "id": "e6090988-7496-45f1-9dd4-b4982cb5c98f",
+        "role": "assistant",
+        "content": "Je comprends, on va regarder ça ensemble. Pour commencer à préparer ta carte, est-ce que l'expression « quand tu te sens 'en vrac' » te semble juste pour répondre à la question : Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r3d",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r3d-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "reason_code": "prepare_defense_card_local_collecting",
+              "ai_call_count": 2,
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": null,
+                "status": "collecting",
+                "skill_id": "prepare_defense_card",
+                "max_turns": 8,
+                "created_at": "2026-06-08T11:34:08.369Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-08T11:34:08.369Z",
+                "local_state": {
+                  "flow_id": "prepare_defense_card",
+                  "risk_state": {
+                    "label": "moment de vrac / débordement",
+                    "status": "proposed",
+                    "why_status": "Le risque est le moment où l'utilisateur se sent dépassé.",
+                    "description": "État de vrac ou de débordement émotionnel.",
+                    "timing_hint": null,
+                    "context_hint": "en vrac",
+                    "needs_user_confirmation": true
+                  },
+                  "route_kind": "free_card",
+                  "trigger_state": {
+                    "type": null,
+                    "status": "missing",
+                    "why_status": "Le signal déclencheur n'est pas encore précisé.",
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "tool_fit_state": {
+                    "reason": "Demande explicite de carte de défense pour gérer un état de débordement.",
+                    "status": "defense",
+                    "why_status": "L'intention est claire et correspond à la protection d'un moment de vulnérabilité.",
+                    "needs_user_confirmation": false
+                  },
+                  "attachment_state": {
+                    "kind": "free_risk_context",
+                    "status": "proposed",
+                    "why_status": "Le contexte 'en vrac' est proposé comme point d'attache de la carte.",
+                    "locked_value": null,
+                    "plan_item_id": null,
+                    "candidate_value": "quand tu te sens 'en vrac'",
+                    "candidate_options": [],
+                    "needs_user_confirmation": true
+                  },
+                  "last_visible_task": "confirm_support_need_proposal",
+                  "defense_goal_state": {
+                    "value": null,
+                    "status": "missing",
+                    "why_status": "L'objectif de la défense (ce qu'il faut éviter ou protéger) n'est pas encore défini.",
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "support_need_state": {
+                    "status": "proposed",
+                    "field_id": "support_need",
+                    "why_status": "On propose de valider si 'être en vrac' est bien la situation cible pour la plateforme.",
+                    "locked_value": null,
+                    "previous_value": null,
+                    "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                    "candidate_value": "quand tu te sens 'en vrac'",
+                    "needs_user_confirmation": true
+                  },
+                  "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+                  "last_handoff_delivered": false,
+                  "defense_response_hint_state": {
+                    "status": "missing",
+                    "why_status": "Aucune piste de réponse ou d'action n'a été évoquée.",
+                    "locked_value": null,
+                    "strategy_hint": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "active flow entry",
+                  "tool_fit": "ambiguous",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "missing",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher called",
+                  "tool_fit": "ambiguous",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": null,
+                  "ai_call_count": 0,
+                  "handoff_ready": false,
+                  "slots_modified": [],
+                  "risk_assessment": null,
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": null,
+                  "support_need_status": "missing",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": false,
+                  "slots_modified": [
+                    "tool_fit_state",
+                    "attachment_state",
+                    "risk_state"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "confirm_support_need_proposal",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "reducer reduced",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": false,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "confirm_support_need_proposal",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "event": "visible_prompt called",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 1,
+                  "handoff_ready": false,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "confirm_support_need_proposal",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "stage": "confirm_support_need_proposal",
+                  "issues": [],
+                  "accepted": true,
+                  "component": "prepare_defense_card.visible_agent"
+                },
+                {
+                  "event": "visible_prompt complete",
+                  "tool_fit": "defense",
+                  "component": "prepare_defense_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "ai_call_count": 2,
+                  "handoff_ready": false,
+                  "slots_modified": [
+                    "tool_fit",
+                    "attachment",
+                    "risk_situation",
+                    "trigger",
+                    "defense_goal",
+                    "defense_response_hint",
+                    "support_need"
+                  ],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_handler": "prepare_defense_card",
+                  "visible_task_kind": "confirm_support_need_proposal",
+                  "support_need_status": "proposed",
+                  "exit_to_global_dispatcher": false
+                }
+              ],
+              "operation_type": "prepare_defense_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "selected_handler": "prepare_defense_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T11:34:08.376834+00:00"
+      }
+    ]
+  }
+}

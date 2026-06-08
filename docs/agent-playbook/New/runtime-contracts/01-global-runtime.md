@@ -72,6 +72,11 @@ processMessage
   `clarification`.
 - Seuls `create_one_shot_reminder` et `track_progress_plan_item` restent des
   effets mutatifs chat nominaux. `status_recap` reste read-only.
+- Tout changement d'ownership entre dispatchers doit transporter une
+  `note_information` conforme a `09-note-information-contract.md`.
+- Un stop local sans nouveau sujet ne rappelle pas le dispatcher global sur le
+  meme tour : le reducer local choisit une `visible_task` d'acknowledgement et
+  ferme ou differe l'etat actif.
 
 ## Integration Points
 
@@ -81,6 +86,9 @@ processMessage
 - `handoff_flow_arbitration` protège un handoff actif contre product_help/status
   trop tôt, tout en laissant sortir safety, direct effects et tool intents quand
   ces signaux existent déjà dans `TurnFrame` ou `RouteDecision`.
+- `note_information` transmet le contexte non visible lors d'une sortie locale
+  valide; le runtime global peut la passer au dispatcher cible mais ne doit pas
+  l'utiliser comme classifieur ou table de routing.
 - `product_surface_registry` fournit les destinations et étapes user-facing des
   handoffs; les renderers ne doivent pas inventer les chemins UI.
 - `status_recap` lit DB + traces, mais ne mute jamais.

@@ -16,6 +16,11 @@ ne remplit pas de target, ne rend pas de réponse et n'exécute rien. Elle déci
 seulement si le tour reste dans le handoff actif, sort vers une intention
 concurrente claire, ou demande clarification.
 
+Quand la sortie vers une intention concurrente change de dispatcher, le flow
+proprietaire doit produire une `note_information` conforme a
+`09-note-information-contract.md`. L'arbitration peut exiger sa presence, mais
+elle ne lit pas la note pour choisir un target.
+
 ## Runtime Shape
 
 ```txt
@@ -171,6 +176,10 @@ révision plan. La policy ne choisit pas par regex.
 - Aucun pending confirmation exécutable n'est créé.
 - `apply_attempt` reste non-mutant.
 - Safety préempte toujours.
+- Une interruption locale vers global, safety, product_help, status_recap ou un
+  autre dispatcher local requiert `note_information`.
+- Un `cancel_handoff` ou stop local sans nouveau sujet ferme ou differe le flow
+  local et ne rappelle pas global sur le meme tour.
 - Les direct effects autorisés (`create_one_shot_reminder`,
   `track_progress_plan_item`) peuvent interrompre proprement le handoff.
 - Un handoff actif ne doit pas être avalé par `status_recap` ou `product_help`

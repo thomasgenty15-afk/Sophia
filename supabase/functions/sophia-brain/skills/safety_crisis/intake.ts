@@ -40,6 +40,10 @@ export function setSafetyCrisisIntakeRunnerForTest(
   intakeRunnerForTest = runner;
 }
 
+export function hasSafetyCrisisIntakeRunnerForTest(): boolean {
+  return Boolean(intakeRunnerForTest);
+}
+
 function workingState(input: RunSkillInput): SafetyCrisisSnapshot[
   "previous_state"
 ] {

@@ -37,6 +37,14 @@ import {
   readRepairMode,
   writeRepairMode,
 } from "./repair_mode_engine.ts";
+import type {
+  MorningNudgeCoachIntent,
+  MorningNudgeKind,
+  MorningNudgePayloadV2,
+  MorningNudgeSuppressionReason,
+  PostMorningNudgeFlowKind,
+} from "./morning_nudge_contract.ts";
+import { flowKindForMorningNudgeKind } from "./morning_nudge_contract.ts";
 
 export const MORNING_ACTIVE_ACTIONS_EVENT_CONTEXT =
   "morning_active_actions_nudge";
@@ -433,6 +441,13 @@ export interface MorningNudgePlanV2 {
   confidence: ConfidenceLevel;
   target_plan_item_ids: string[];
   target_plan_item_titles: string[];
+  nudge_kind?: MorningNudgeKind;
+  opens_local_flow?: boolean;
+  intended_followup_flow?: PostMorningNudgeFlowKind | null;
+  coach_intent?: MorningNudgeCoachIntent;
+  suppressed_plan_item_ids?: string[];
+  suppressed_plan_item_titles?: string[];
+  suppression_reason?: MorningNudgeSuppressionReason;
   instruction?: string;
   event_grounding?: string;
   fallback_text?: string;
@@ -461,6 +476,15 @@ function getPrimaryPlanItemsV2(
 
 function getPrimaryItemTitlesV2(input: MorningNudgeV2Input): string[] {
   return uniq(getPrimaryPlanItemsV2(input).map((item) => item.title));
+}
+
+function hasSupportSignalWithoutItems(input: MorningNudgeV2Input): boolean {
+  const m = input.momentumV2;
+  return m.current_state === "soutien_emotionnel" ||
+    m.current_state === "reactivation" ||
+    m.dimensions.emotional_load.level === "high" ||
+    m.dimensions.emotional_load.level === "medium" ||
+    Boolean(input.conversationPulse?.signals?.upcoming_event);
 }
 
 function heartbeatCelebrationTitle(
@@ -856,7 +880,9 @@ export function skipOrSpeakV2(
   if (
     input.todayPlanItems.length === 0 && input.activePlanItems.length === 0
   ) {
-    return { skip: true, reason: "morning_nudge_v2_no_items" };
+    if (!hasSupportSignalWithoutItems(input)) {
+      return { skip: true, reason: "morning_nudge_v2_no_items" };
+    }
   }
 
   const state = input.momentumV2.current_state;
@@ -1034,7 +1060,9 @@ function buildGroundingV2(args: {
       ? `heartbeat=${args.phaseContext.heartbeat_title}`
       : null,
     args.phaseContext?.heartbeat_progress_ratio != null
-      ? `heartbeat_progress_ratio=${args.phaseContext.heartbeat_progress_ratio.toFixed(2)}`
+      ? `heartbeat_progress_ratio=${
+        args.phaseContext.heartbeat_progress_ratio.toFixed(2)
+      }`
       : null,
     args.phaseContext?.heartbeat_almost_reached
       ? "heartbeat_almost_reached=true"
@@ -1139,6 +1167,137 @@ function buildPostureContent(
   }
 }
 
+function suppressionReasonForPosture(
+  posture: MorningNudgePosture,
+  input: MorningNudgeV2Input,
+): MorningNudgeSuppressionReason {
+  if (posture === "protective_pause") return "high_emotional_load";
+  if (input.momentumV2.dimensions.emotional_load.level === "high") {
+    return "high_emotional_load";
+  }
+  if (input.momentumV2.dimensions.emotional_load.level === "medium") {
+    return "recent_high_emotion";
+  }
+  if (input.momentumV2.dimensions.load_balance.level === "overloaded") {
+    return "overloaded";
+  }
+  if (input.momentumV2.current_state === "pause_consentie") {
+    return "pause_consentie";
+  }
+  return null;
+}
+
+function coachIntentForPosture(args: {
+  posture: MorningNudgePosture;
+  nudgeKind: MorningNudgeKind;
+}): MorningNudgeCoachIntent {
+  if (args.posture === "celebration_ping") return "celebrate";
+  if (args.nudgeKind === "suppressed_action_nudge") return "protect_emotion";
+  if (args.nudgeKind === "emotional_presence_nudge") {
+    return args.posture === "open_door" ? "reactivate" : "support_emotion";
+  }
+  if (args.posture === "simplify_today") return "simplify_action";
+  if (args.posture === "pre_event_grounding") return "ground_before_event";
+  if (args.nudgeKind === "no_action_greeting") return "greet";
+  return "motivate_action";
+}
+
+function classifyMorningNudgeV2(args: {
+  input: MorningNudgeV2Input;
+  posture: MorningNudgePosture;
+  targetPlanItems: PlanItemRuntimeRow[];
+}): {
+  nudge_kind: MorningNudgeKind;
+  opens_local_flow: boolean;
+  intended_followup_flow: PostMorningNudgeFlowKind | null;
+  coach_intent: MorningNudgeCoachIntent;
+  suppressed_plan_item_ids: string[];
+  suppressed_plan_item_titles: string[];
+  suppression_reason: MorningNudgeSuppressionReason;
+} {
+  const hasTarget = args.targetPlanItems.length > 0;
+  let nudgeKind: MorningNudgeKind;
+  const suppressionReason = suppressionReasonForPosture(
+    args.posture,
+    args.input,
+  );
+
+  if (
+    hasTarget &&
+    (args.posture === "support_softly" ||
+      args.posture === "protective_pause") &&
+    suppressionReason
+  ) {
+    nudgeKind = "suppressed_action_nudge";
+  } else if (
+    !hasTarget &&
+    (args.posture === "support_softly" ||
+      args.posture === "protective_pause" ||
+      args.posture === "open_door" ||
+      args.posture === "pre_event_grounding")
+  ) {
+    nudgeKind = "emotional_presence_nudge";
+  } else if (hasTarget && args.posture !== "celebration_ping") {
+    nudgeKind = "action_nudge";
+  } else {
+    nudgeKind = "no_action_greeting";
+  }
+
+  const intendedFollowupFlow = flowKindForMorningNudgeKind(nudgeKind);
+  return {
+    nudge_kind: nudgeKind,
+    opens_local_flow: intendedFollowupFlow !== null,
+    intended_followup_flow: intendedFollowupFlow,
+    coach_intent: coachIntentForPosture({
+      posture: args.posture,
+      nudgeKind,
+    }),
+    suppressed_plan_item_ids: nudgeKind === "suppressed_action_nudge"
+      ? args.targetPlanItems.map((item) => item.id)
+      : [],
+    suppressed_plan_item_titles: nudgeKind === "suppressed_action_nudge"
+      ? args.targetPlanItems.map((item) => item.title)
+      : [],
+    suppression_reason: nudgeKind === "suppressed_action_nudge"
+      ? suppressionReason ?? "high_emotional_load"
+      : null,
+  };
+}
+
+export function buildMorningNudgePayloadV2(args: {
+  plan: MorningNudgePlanV2;
+  sentAtIso?: string | null;
+}): MorningNudgePayloadV2 | null {
+  if (args.plan.decision !== "send" || !args.plan.posture) return null;
+  const nudgeKind = args.plan.nudge_kind ?? "no_action_greeting";
+  const intendedFollowupFlow = args.plan.intended_followup_flow ??
+    flowKindForMorningNudgeKind(nudgeKind);
+  const opensLocalFlow = args.plan.opens_local_flow ??
+    intendedFollowupFlow !== null;
+  return {
+    event_context: MORNING_NUDGE_V2_EVENT_CONTEXT,
+    nudge_kind: nudgeKind,
+    posture: args.plan.posture,
+    opens_local_flow: opensLocalFlow,
+    intended_followup_flow: intendedFollowupFlow,
+    coach_intent: args.plan.coach_intent ??
+      coachIntentForPosture({
+        posture: args.plan.posture,
+        nudgeKind,
+      }),
+    target_action_ids: args.plan.target_plan_item_ids ?? [],
+    target_action_titles: args.plan.target_plan_item_titles ?? [],
+    target_item_ids: args.plan.target_plan_item_ids ?? [],
+    target_item_titles: args.plan.target_plan_item_titles ?? [],
+    suppressed_action_ids: args.plan.suppressed_plan_item_ids ?? [],
+    suppressed_action_titles: args.plan.suppressed_plan_item_titles ?? [],
+    suppression_reason: args.plan.suppression_reason ?? null,
+    source_reason: args.plan.reason,
+    source_grounding: args.plan.event_grounding ?? null,
+    sent_at: cleanText(args.sentAtIso) || new Date().toISOString(),
+  };
+}
+
 // ── Main V2 Entry Point ─────────────────────────────────────────────────────
 
 export function buildMorningNudgePlanV2(
@@ -1197,6 +1356,11 @@ export function buildMorningNudgePlanV2(
     topVictory,
     phaseCelebration,
   );
+  const nudgeClassification = classifyMorningNudgeV2({
+    input,
+    posture,
+    targetPlanItems: primaryPlanItems,
+  });
 
   const { _internal: _, ...publicMomentum } = input.momentumV2;
   const grounding = buildGroundingV2({
@@ -1221,6 +1385,7 @@ export function buildMorningNudgePlanV2(
     confidence: input.momentumV2.assessment.confidence,
     target_plan_item_ids: primaryPlanItems.map((item) => item.id),
     target_plan_item_titles: primaryPlanItems.map((item) => item.title),
+    ...nudgeClassification,
     instruction: content.instruction,
     fallback_text: content.fallback_text,
     event_grounding: grounding,

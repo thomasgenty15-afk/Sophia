@@ -5,6 +5,8 @@ import {
 import { runSelectStatePotionHandoffSkill } from "./handoff.ts";
 import { loadStatePotionHandoffStateFromTempMemory } from "./state.ts";
 import { structuredStatePotionSlotFiller } from "./test_helpers.ts";
+import { statePotionSubskillId } from "./contract.ts";
+import { createInitialStatePotionSubskillState } from "./subskills/state_potion_subskill_flow.ts";
 
 const fakeSupabase = {} as any;
 const fakeSafetyPregate = {
@@ -120,6 +122,276 @@ Deno.test("select_state_potion hands off to clarté subskill when clarté is ide
     "proposed",
   );
   assertEquals(result.executedTools, []);
+});
+
+Deno.test("select_state_potion hands off to every potion detail subskill when selected", async () => {
+  const cases = [
+    "rappel",
+    "courage",
+    "guerison",
+    "amour",
+    "apaisement",
+  ] as const;
+
+  for (const potionType of cases) {
+    const result = await runSelectStatePotionHandoffSkill({
+      supabase: fakeSupabase,
+      userId: `u-${potionType}-baton`,
+      userMessage: `Je choisis ${potionType}.`,
+      channel: "web",
+      userTimezone: "Europe/Paris",
+      tempMemory: {},
+      turnFrame: null,
+      routeDecision: selectPotionRouteDecision,
+      safetyPregateOutput: fakeSafetyPregate,
+      sourceMessageId: `m-${potionType}-baton`,
+      requestId: `r-${potionType}-baton`,
+      history: [],
+      slotFillerOverride: structuredStatePotionSlotFiller({
+        state_kind: "confusion_overload",
+        selected_potion: potionType,
+        omit_detail_answers: true,
+        generated_user_message: "Question conversationnelle de test.",
+      }),
+      potionSubskillLocalDispatcherOverride: async (input) => {
+        const state = createInitialStatePotionSubskillState(
+          potionType,
+          input.intake_state,
+        );
+        const currentField = state.current_field_id
+          ? state.field_states[state.current_field_id]
+          : null;
+        return {
+          flow_action: "answer_current_field",
+          confidence: "high",
+          selected_potion: potionType,
+          current_field_id: state.current_field_id,
+          field_states: currentField ? [currentField] : [],
+          revision: {
+            is_revision: false,
+            field_id: null,
+            replacement_value: null,
+            option_value: null,
+            option_label: null,
+            replaces_previous_value: false,
+          },
+          visible_task: {
+            kind: "ask_deeper",
+            required_data: {
+              potion_name: state.potion_name,
+              platform_destination: "section État / Potions",
+              fields: currentField
+                ? [{
+                  field_id: currentField.field_id,
+                  field_label: currentField.field_label,
+                  field_value: null,
+                  option_value: null,
+                  option_label: null,
+                }]
+                : [],
+            },
+          },
+          exit_memo: {
+            needed: false,
+            reason: "none",
+            flow_summary: null,
+            collected_value: null,
+            handoff_hint_for_global_dispatcher: null,
+          },
+          no_chat_mutation: {
+            potion_session_created: false,
+            recurring_reminder_created: false,
+            scheduled_checkin_created: false,
+            executable_confirmation_generated: false,
+          },
+          risk_assessment: {
+            risk_score: 0,
+            risk_band: "none",
+            safety_preempt: false,
+            reason_codes: [],
+          },
+          evidence: ["test local subskill"],
+        };
+      },
+      visibleAgentOverride: async () => "Question conversationnelle de test.",
+    });
+
+    assert(result, `missing result for ${potionType}`);
+    assertEquals(
+      (result.toolSkillRun as any).selected_handler,
+      statePotionSubskillId(potionType),
+    );
+    assertEquals((result.toolSkillRun as any).status, "clarifying");
+    const nextState = loadStatePotionHandoffStateFromTempMemory(
+      result.nextTempMemory,
+    );
+    assertEquals(
+      nextState?.active_subskill_id,
+      statePotionSubskillId(potionType),
+    );
+    assertEquals(
+      nextState?.intake_state?.selected_potion.value,
+      potionType,
+    );
+    assertEquals(
+      nextState?.potion_subskill_state?.selected_potion,
+      potionType,
+    );
+    assertEquals(result.executedTools, []);
+  }
+});
+
+Deno.test("active potion subskill delivers final handoff when remaining field is answered", async () => {
+  const baseSubskillState = createInitialStatePotionSubskillState(
+    "amour",
+    null,
+  );
+  const previousSubskillState: typeof baseSubskillState = {
+    ...baseSubskillState,
+    field_states: {
+      ...baseSubskillState.field_states,
+      love_lack_context: {
+        ...baseSubskillState.field_states.love_lack_context,
+        status: "locked" as const,
+        locked_value: "mon écriture",
+        candidate_value: null,
+        option_value: null,
+        option_label: null,
+        needs_user_confirmation: false,
+        why_status: "Champ déjà verrouillé avant ce tour.",
+      },
+    },
+    current_field_id: "love_state",
+  };
+
+  const result = await runSelectStatePotionHandoffSkill({
+    supabase: fakeSupabase,
+    userId: "u-amour-runtime-complete",
+    userMessage: "Dans les faits, je me parle très durement.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        skill_id: "select_state_potion",
+        active_subskill_id: "select_state_potion.amour",
+        mode: "platform_handoff",
+        status: "clarifying",
+        phase: "detail_intake",
+        draft: null,
+        intake_state: null,
+        potion_subskill_state: previousSubskillState,
+        turn_count: 1,
+        max_turns: 6,
+        created_at: "2026-06-01T00:00:00.000Z",
+        updated_at: "2026-06-01T00:00:00.000Z",
+        no_chat_mutation: true,
+      },
+    },
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-amour-runtime-complete",
+    requestId: "r-amour-runtime-complete",
+    history: [],
+    potionSubskillLocalDispatcherOverride: async () => ({
+      flow_action: "platform_destination_followup",
+      confidence: "high",
+      selected_potion: "amour",
+      current_field_id: "love_state",
+      field_states: [{
+        ...previousSubskillState.field_states.love_state,
+        status: "locked",
+        locked_value: "Dur",
+        candidate_value: null,
+        option_value: "dur",
+        option_label: "Dur",
+        needs_user_confirmation: false,
+        why_status:
+          "Le user décrit explicitement une parole intérieure très dure.",
+      }],
+      revision: {
+        is_revision: false,
+        field_id: null,
+        replacement_value: null,
+        option_value: null,
+        option_label: null,
+        replaces_previous_value: false,
+      },
+      visible_task: {
+        kind: "destination_short",
+        required_data: {
+          potion_name: "Potion d'amour",
+          platform_destination: "section État / Potions",
+          fields: [{
+            field_id: "love_state",
+            field_label:
+              previousSubskillState.field_states.love_state.field_label,
+            field_value: "Dur",
+            option_value: "dur",
+            option_label: "Dur",
+          }],
+        },
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        flow_summary: null,
+        collected_value: null,
+        handoff_hint_for_global_dispatcher: null,
+      },
+      no_chat_mutation: {
+        potion_session_created: false,
+        recurring_reminder_created: false,
+        scheduled_checkin_created: false,
+        executable_confirmation_generated: false,
+      },
+      risk_assessment: {
+        risk_score: 0,
+        risk_band: "none",
+        safety_preempt: false,
+        reason_codes: [],
+      },
+      evidence: ["je me parle très durement"],
+    }),
+    visibleAgentOverride: async (input: any) => {
+      assertEquals(input.stage, "potion_subskill_task");
+      assertEquals(input.handoff_status, "handoff_delivered");
+      assert(input.draft);
+      assertEquals(input.potion_subskill_visible_task, "handoff_ready");
+      assertEquals(
+        input.potion_subskill_state?.last_handoff_delivered,
+        true,
+      );
+      return "handoff complet mock";
+    },
+  });
+
+  assert(result);
+  assertEquals((result.toolSkillRun as any).status, "handoff_delivered");
+  assertEquals(
+    (result.toolSkillRun as any).selected_handler,
+    "select_state_potion.amour",
+  );
+  assertEquals(
+    (result.toolSkillRun as any).reason_code,
+    "amour_handoff_delivered_from_destination_followup",
+  );
+  assert((result.toolSkillRun as any).platform_handoff?.draft);
+  assertEquals(result.content, "handoff complet mock");
+  assertEquals(result.executedTools, []);
+
+  const nextState = loadStatePotionHandoffStateFromTempMemory(
+    result.nextTempMemory,
+  );
+  assertEquals(nextState?.status, "handoff_delivered");
+  assertEquals(nextState?.active_subskill_id, "select_state_potion.amour");
+  assert(nextState?.draft);
+  assertEquals(
+    nextState?.draft?.recommendation.platform_inputs?.answers.map((answer) =>
+      answer.question_id
+    ),
+    ["love_lack_context", "love_state"],
+  );
 });
 
 Deno.test("active clarté safety exits local flow and exposes local risk assessment", async () => {

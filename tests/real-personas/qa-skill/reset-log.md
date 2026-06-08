@@ -219,3 +219,13 @@
 - 2026-06-05T13:45:34Z reset persona=qa-skill connection=statepotion_visible_agent_smoke_r2 user_id=5d9d523f-8cc9-4e63-881e-a034bdbbb0af
 - 2026-06-05T13:55:36Z reset persona=qa-skill connection=statepotion_visible_agent_smoke_r3 user_id=c6056426-da82-40a7-9745-8829d61faa42
 - 2026-06-05T14:07:11Z reset persona=qa-skill connection=statepotion_selection_guidelines_r1 user_id=18f76a8b-8271-45a1-93c1-364e756c1a72
+- 2026-06-08T11:49:49Z reset persona=qa-skill connection=all_skills_prepareattacklocalr1 user_id=cf476b8c-1834-4aec-91b0-61705580a8af
+- 2026-06-08T13:00:21Z reset persona=qa-skill connection=all_skills_prepareattacklocalr2 user_id=35bcd2b9-4aca-49e9-9ab7-cec5ce9d3e93
+- 2026-06-08T15:51:29Z reset persona=qa-skill connection=status_recap_2026-06-08-status-recap-local-dispatcher-r1 user_id=00e7984c-958d-4926-94b2-fd7b272c01ce
+- 2026-06-08T15:51:35Z reset persona=qa-skill connection=all_skills_prepareattacklocalr3 user_id=85915163-e124-4647-ac36-e6b49f6ebb49
+- 2026-06-08T15:53:11Z reset persona=qa-skill connection=status_recap_2026-06-08-status-recap-local-dispatcher-r2 user_id=c646cedc-c176-4923-82cc-dffdf3fa0ba6
+- 2026-06-08T15:54:16Z reset persona=qa-skill connection=post_morning_nudge_emotional_presence_pmnep_real_r1 user_id=e35e24fe-bb9b-457e-ac70-86892cc17f7a
+- 2026-06-08T15:57:13Z reset persona=qa-skill connection=flow-opportunity-verification_flow-opportunity-verification-r1-20260608 user_id=bf2f9a94-e1ae-4dd1-92e9-e314653a86cc
+- 2026-06-08T15:57:14Z reset persona=qa-skill connection=flow-opportunity-verification_flow-opportunity-verification-r2-20260608 user_id=00233cf1-d0e4-4bab-b6cf-6eaceca7bb33
+- 2026-06-08T15:57:15Z reset persona=qa-skill connection=flow-opportunity-verification_flow-opportunity-verification-r3-20260608 user_id=5f9cdb80-6690-4a7d-a92d-5d1193024874
+- 2026-06-08T15:57:15Z reset persona=qa-skill connection=flow-opportunity-verification_flow-opportunity-verification-r4-20260608 user_id=ad35f54f-a488-42db-8e2d-a975862cec1b

@@ -49,6 +49,7 @@ Champs d'entree et incidence:
 - pending_tool_skill_confirmation: tool skill pret ou brouillon d'ajustement en attente de decision; prioritaire pour les reponses courtes. "oui/ok/vas-y/applique" confirme, "non/stop/annule" refuse, "oui mais..." corrige.
 - active_topic_state: sujet actif; aide les references implicites et le memory_plan, mais ne route pas un skill a lui seul.
 - flow_state_context: flow produit/onboarding actif; respecte le flow en cours sauf intention claire de changer. Si flow_state_context.active_runtime_context existe, utilise-le comme contexte de supervision seulement: il indique qu'un runtime skill/tool-skill est actif ou attend une confirmation, mais le runtime reste proprietaire des slots, corrections, confirmations et executions.
+- flow_state_context.last_local_flow_exit: si present, le message courant a deja ete vu par le dispatcher local du flow indique, qui a explicitement rendu la main au dispatcher global. Utilise operation_type, reason, flow_summary et handoff_hint_for_global_dispatcher comme contexte seulement; ne remets pas automatiquement le user dans ce flow sauf nouvelle intention explicite.
 - plan_snapshot: items de plan visibles; seule source autorisee pour recopier un target_item_id. Si la cible n'est pas claire, utilise target_status=ambiguous ou missing.
 
 Structure de sortie:
@@ -234,6 +235,7 @@ Tool Skills via tool_skill_intents:
 - Pour prepare_attack_card, considere aussi comme explicite les formulations non expertes: "fais un truc d'attaque", "version attaque", "outil d'attaque", "un mot/texte pour attaquer l'action", "j'ai pas d'idee de technique", si le user demande de le faire pour une action.
 - Prepare_attack_card peut aussi etre demande sans nommer "carte": "il me faudrait un petit declencheur pour partir sans negocier", "un signal pour attaquer le dossier", "un truc pour partir direct sur l'action". Si le user demande explicitement cette aide pour demarrer une action voulue, mets tool_skill_intents prepare_attack_card; ne transforme pas en defense_card sauf risque/rechute/tentation.
 - Pour prepare_defense_card, considere aussi comme explicite les formulations non expertes: "fais un truc pour pas deraper", "un filet de securite", "un outil anti-craquage", "un plan quand je vais rechuter", si le user demande de le faire pour un moment de risque. Le Tool Skill fera ensuite le remplissage JSON, sans heuristique code.
+- Pour prepare_defense_card, "j'ai besoin d'aide quand..." peut etre explicite si la suite decrit clairement un moment de risque, d'impulsion, de craquage, de rechute, de fatigue, de stress ou de derapage a proteger. Dans ce cas route prepare_defense_card meme si le user ne dit pas le mot "carte"; le Tool Skill local confirmera ou clarifiera.
 - Pour select_state_potion, considere aussi comme explicite "je veux une potion", "j'ai besoin d'une potion", "lance/active/fais un truc de clarte/apaisement/courage" quand le user demande clairement de lancer une aide d'etat maintenant. "Je veux une potion de clarte/clarté parce que mon plan ne fait plus sens" reste select_state_potion avec potion_type="clarte", pas demotivation_repair seul.
 - Ne mets pas select_state_potion pour un simple "je ne sais plus pourquoi je fais mes actions", "ca n'a plus de sens", "je ne sais pas par ou commencer", "quoi faire", "je suis nul", "j'ai honte" ou "je m'en veux" sans demande de potion. Route demotivation_repair, emotional_repair ou prepare_attack_card selon le besoin primaire.
 - "Changer d'etat avec une potion" appartient a select_state_potion, jamais a adjust_plan_item. Si le user hesite explicitement entre etre ecoute, potion, et petite action, expose emotional_repair, select_state_potion et prepare_attack_card comme candidats concurrents; ne route pas adjust_plan_item.
@@ -612,6 +614,47 @@ export function buildDispatcherPrompt(input: {
           skill_signals_entry: {},
           note:
             "Marqueurs combinés ('pour la suite' / 'enregistre' / 'garde comme préférence' / 'préférence durable') + contenu de préférence concret = update_coach_preferences explicite. C'est un tool_skill_intent, PAS une opportunité coach_preferences. Différent du cas 'tu poses trop de questions' qui reste une opportunité sans intent.",
+        },
+      },
+      {
+        // QA 2026-06-08 r2 Tour 1:
+        // "pour la suite" + demande de style concret = update_coach_preferences.
+        user_message:
+          "Pour la suite, limite vraiment les questions et réponds plus directement quand je suis bloqué.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [{
+            operation_type: "update_coach_preferences",
+            explicitness: "explicit",
+            target_hint:
+              "moins de questions et ton plus direct quand le user est bloqué",
+            confidence_band: "high",
+            ambiguity: "none",
+            user_intent: "update",
+            operation_input: {
+              preference_type: "coach_style",
+              requested_settings: [
+                "coach.question_tendency",
+                "coach.tone",
+              ],
+              evidence: [
+                "Pour la suite",
+                "limite vraiment les questions",
+                "réponds plus directement",
+              ],
+            },
+          }],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {},
+          note:
+            "Demande explicite de changement durable du style de Sophia: route update_coach_preferences. Ne réponds pas en normal_reply comme si c'était déjà appliqué.",
         },
       },
       {

@@ -250,17 +250,20 @@ Infos utiles au dispatcher:
 - coach preferences
 
 Rôle:
-- préparer un réglage de style coach: ton, niveau de challenge, tendance à poser des questions.
+- modifier ou clarifier un réglage de style coach supporté: ton, niveau de challenge, tendance à poser des questions.
 
 Suites naturelles possibles:
 - distinguer consigne ponctuelle et préférence durable;
 - mapper vers un réglage supporté;
-- préparer la mise à jour à faire dans les Préférences coach.
+- écrire la préférence si elle est claire, durable, supportée et confirmée par le flow local;
+- répondre inline aux questions de statut via status_recap et aux questions produit via product_help, sans sortir du flow.
 
 Infos utiles au dispatcher:
 - “parle-moi autrement maintenant” peut rester consigne ponctuelle;
 - “pour la suite”, “souviens-toi”, “garde ce style” renforce le signal préférence durable;
-- “applique/enregistre” dans ce handoff doit rester une redirection/préparation plateforme, pas une écriture implicite.`,
+- “applique/enregistre” appartient au dispatcher local update_coach_preferences si le flow est actif;
+- une question sur les préférences actives pendant ce flow reste dans le flow actif et passe par status_recap inline;
+- une question sur la signification des réglages pendant ce flow reste dans le flow actif et passe par product_help inline.`,
 };
 
 function objectRecord(value: unknown): Record<string, unknown> | null {

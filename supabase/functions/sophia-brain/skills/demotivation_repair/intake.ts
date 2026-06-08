@@ -39,6 +39,10 @@ export function setDemotivationRepairIntakeRunnerForTest(
   intakeRunnerForTest = runner;
 }
 
+export function hasDemotivationRepairIntakeRunnerForTest(): boolean {
+  return Boolean(intakeRunnerForTest);
+}
+
 function structuredWorkingStateDecision(
   active: SkillContext["active_skill_working_state"],
 ): unknown {

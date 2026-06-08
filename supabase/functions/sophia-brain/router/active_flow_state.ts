@@ -130,6 +130,7 @@ export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
   const activePlatformHandoff = adjustPlanFrame.handoff_state ??
     temp.__active_attack_card_handoff ??
     temp.__recurring_reminder_handoff_state ??
+    temp.__coach_preference_flow_state_v1 ??
     temp.__coach_preference_handoff_state_v1 ??
     null;
   return {
@@ -164,6 +165,7 @@ export function clearActiveToolFlow<
   delete next.__active_attack_card_handoff;
   delete next.__recurring_reminder_handoff_state;
   delete next.__coach_preference_handoff_state_v1;
+  delete next.__coach_preference_flow_state_v1;
   return next;
 }
 
@@ -298,6 +300,30 @@ function compactRuntimeRecord(
     }
   }
   return Object.keys(out).length > 0 ? out : null;
+}
+
+function compactPostMorningNudgeExitMemo(
+  record: Record<string, unknown>,
+): {
+  flow_summary: string | null;
+  handoff_hint_for_global_dispatcher: string | null;
+} {
+  const localContext = record.local_flow_context &&
+      typeof record.local_flow_context === "object"
+    ? record.local_flow_context as Record<string, unknown>
+    : {};
+  const handoffHint = record.handoff_hint_for_global_dispatcher &&
+      typeof record.handoff_hint_for_global_dispatcher === "object"
+    ? record.handoff_hint_for_global_dispatcher as Record<string, unknown>
+    : {};
+  const likelyIntent = compactRuntimeString(handoffHint.likely_intent);
+  const why = compactRuntimeString(handoffHint.why);
+  return {
+    flow_summary: compactRuntimeString(record.user_intent_summary) ??
+      compactRuntimeString(localContext.source_nudge_summary),
+    handoff_hint_for_global_dispatcher: [likelyIntent, why].filter(Boolean)
+      .join(": ") || null,
+  };
 }
 
 export function pendingRecommendationOperationType(
@@ -488,4 +514,101 @@ export function buildDispatcherActiveRuntimeContext(args: {
     activeOperationIntake: args.activeOperationIntake,
     pendingOperationConfirmation: args.pendingOperationConfirmation,
   }) ?? buildConversationSkillRuntimeContext(args.activeSkillState);
+}
+
+export function buildLastLocalFlowExitContext(
+  tempMemory: unknown,
+): Record<string, unknown> | null {
+  type LocalFlowExitContext = {
+    operation_type: string;
+    reason: string;
+    flow_summary: string | null;
+    handoff_hint_for_global_dispatcher: string | null;
+    at: string | null;
+  };
+  const temp = (tempMemory ?? {}) as Record<string, unknown>;
+  const candidates: Array<{ operation_type: string; memo: unknown }> = [
+    {
+      operation_type: "adjust_plan_item",
+      memo: temp.__last_adjust_plan_item_exit_memo,
+    },
+    {
+      operation_type: "prepare_attack_card",
+      memo: temp.__last_prepare_attack_card_exit_memo,
+    },
+    {
+      operation_type: "prepare_defense_card",
+      memo: temp.__last_prepare_defense_card_exit_memo,
+    },
+    {
+      operation_type: "select_state_potion",
+      memo: temp.__last_select_state_potion_exit_memo,
+    },
+    {
+      operation_type: "update_coach_preferences",
+      memo: temp.__last_update_coach_preferences_exit_memo,
+    },
+    {
+      operation_type: "post_morning_nudge",
+      memo: temp.__last_post_morning_nudge_exit_memo,
+    },
+    {
+      operation_type: "daily_action_review",
+      memo: temp.__last_daily_action_review_exit_memo,
+    },
+    {
+      operation_type: "weekly_adaptive_review",
+      memo: temp.__last_weekly_adaptive_review_exit_memo,
+    },
+    {
+      operation_type: "product_help",
+      memo: temp.__last_product_help_exit_memo,
+    },
+  ];
+  const valid: LocalFlowExitContext[] = candidates
+    .map((candidate) => {
+      const memo = candidate.memo;
+      if (!memo || typeof memo !== "object" || Array.isArray(memo)) {
+        return null;
+      }
+      const record = memo as Record<string, unknown>;
+      const at = compactRuntimeString(record.at);
+      const structuredLocalMemo =
+        candidate.operation_type === "post_morning_nudge" ||
+          candidate.operation_type === "daily_action_review" ||
+          candidate.operation_type === "weekly_adaptive_review" ||
+          candidate.operation_type === "product_help"
+          ? compactPostMorningNudgeExitMemo(record)
+          : null;
+      return {
+        operation_type: candidate.operation_type,
+        reason: compactRuntimeString(record.reason) ?? "topic_change",
+        flow_summary: structuredLocalMemo?.flow_summary ??
+          compactRuntimeString(record.flow_summary),
+        handoff_hint_for_global_dispatcher:
+          structuredLocalMemo?.handoff_hint_for_global_dispatcher ??
+            compactRuntimeString(record.handoff_hint_for_global_dispatcher),
+        at,
+      };
+    })
+    .filter((value): value is LocalFlowExitContext => value !== null);
+  if (valid.length === 0) return null;
+  valid.sort((a, b) => String(b.at ?? "").localeCompare(String(a.at ?? "")));
+  return valid[0];
+}
+
+export function clearLastLocalFlowExitContext<
+  T extends Record<string, unknown> | null | undefined,
+>(tempMemory: T): Record<string, unknown> {
+  const next = { ...((tempMemory ?? {}) as Record<string, unknown>) };
+  delete next.__last_prepare_attack_card_exit_memo;
+  delete next.__last_adjust_plan_item_exit_memo;
+  delete next.__last_prepare_defense_card_exit_memo;
+  delete next.__last_select_state_potion_exit_memo;
+  delete next.__last_update_coach_preferences_exit_memo;
+  delete next.__last_post_morning_nudge_exit_memo;
+  delete next.__last_daily_action_review_exit_memo;
+  delete next.__last_weekly_adaptive_review_exit_memo;
+  delete next.__last_product_help_exit_memo;
+  return next;
 }

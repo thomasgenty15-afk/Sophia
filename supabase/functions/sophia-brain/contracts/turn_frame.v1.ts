@@ -62,6 +62,27 @@ export type ToolSkillOpportunity = {
   must_not_execute: true;
 };
 
+export type FlowOpportunity = {
+  opportunity_id: string;
+  target_flow:
+    | "status_recap"
+    | "update_coach_preferences"
+    | "emotional_repair"
+    | "demotivation_repair"
+    | "prepare_attack_card"
+    | "prepare_defense_card"
+    | "select_state_potion"
+    | "one_shot_reminder"
+    | "create_recurring_reminder"
+    | "adjust_plan_item"
+    | "unknown";
+  confidence: Exclude<ConfidenceBand, "critical">;
+  priority: number;
+  reason: string;
+  evidence: string[];
+  seed_context: Record<string, unknown>;
+};
+
 export type DispatcherMemoryTargetType =
   | "topic"
   | "event"
@@ -233,6 +254,8 @@ export type TurnFrame = {
   }>;
 
   tool_skill_opportunity: ToolSkillOpportunity;
+
+  flow_opportunity?: FlowOpportunity | null;
 
   skill_signals: {
     entry?: Record<

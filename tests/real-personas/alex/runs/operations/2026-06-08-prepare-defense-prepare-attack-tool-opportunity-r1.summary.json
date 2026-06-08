@@ -1,0 +1,35 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-attack-tool-opportunity-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Hier j’ai fait le sas de déchargement, mais j’ai tourné autour du carnet au lieu de commencer tout de suite. Ce soir je veux couper ce moment d’hésitation.",
+    "assistant": "Est-ce que tu veux valider ton avancée sur le sas de déchargement ou préparer ton démarrage pour ce soir ? 🙂",
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_reason_code": "clarification_required",
+    "tool_skill_intents": [],
+    "tool_skill_opportunity": {
+      "type": "none",
+      "operation_type": null,
+      "surface_id": null,
+      "confidence_band": "low",
+      "should_offer": false,
+      "prop_reason": null,
+      "source_span": null,
+      "target_hint": null,
+      "target_status": "none",
+      "suggested_question_intent": null,
+      "offer_timing": "never",
+      "must_not_execute": true
+    },
+    "operation_status": null,
+    "operation_reason": null,
+    "local_dispatcher": null,
+    "ai_call_count": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "direct_effects": []
+  }
+]

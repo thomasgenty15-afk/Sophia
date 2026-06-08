@@ -1,0 +1,355 @@
+{
+  "seed": {
+    "checkins": [
+      {
+        "id": "c66ec51f-c03a-4ea4-be08-1fc89998a3be",
+        "user_id": "00e7984c-958d-4926-94b2-fd7b272c01ce",
+        "event_context": "one_shot_reminder:2026-06-08-status-recap-local-dispatcher-r1:pending",
+        "draft_message": null,
+        "scheduled_for": "2026-06-09T15:50:26.765+00:00",
+        "status": "pending",
+        "created_at": "2026-06-08T15:50:26.766429+00:00",
+        "processed_at": null,
+        "message_mode": "static",
+        "message_payload": {
+          "source": "2026-06-08-status-recap-local-dispatcher-r1",
+          "reminder_instruction": "relire le brouillon de statut"
+        },
+        "origin": "unknown",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      },
+      {
+        "id": "d1dee430-72af-491a-bdf2-762d5a3f364c",
+        "user_id": "00e7984c-958d-4926-94b2-fd7b272c01ce",
+        "event_context": "one_shot_reminder:2026-06-08-status-recap-local-dispatcher-r1:cancelled",
+        "draft_message": null,
+        "scheduled_for": "2026-06-10T15:50:26.765+00:00",
+        "status": "cancelled",
+        "created_at": "2026-06-08T15:50:26.766429+00:00",
+        "processed_at": null,
+        "message_mode": "static",
+        "message_payload": {
+          "source": "2026-06-08-status-recap-local-dispatcher-r1",
+          "reminder_instruction": "ancien rappel annule de test"
+        },
+        "origin": "unknown",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ],
+    "prefs": [
+      {
+        "user_id": "00e7984c-958d-4926-94b2-fd7b272c01ce",
+        "scope": "global",
+        "key": "coach.question_tendency",
+        "value": {
+          "value": "low"
+        },
+        "status": "active",
+        "confidence": 0.98,
+        "source_type": "explicit_user",
+        "last_source_message_id": null,
+        "reason": "QA fixture 2026-06-08-status-recap-local-dispatcher-r1",
+        "created_at": "2026-06-08T15:50:26.770975+00:00",
+        "updated_at": "2026-06-08T15:50:26.770975+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      }
+    ]
+  },
+  "before_rows": {
+    "scheduled_checkins": {
+      "code": "42703",
+      "details": null,
+      "hint": "Perhaps you meant to reference the column \"scheduled_checkins.created_at\".",
+      "message": "column scheduled_checkins.updated_at does not exist"
+    },
+    "coach_preferences": [
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "value": "low"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "reason": "QA fixture 2026-06-08-status-recap-local-dispatcher-r1",
+        "updated_at": "2026-06-08T15:50:26.770975+00:00"
+      }
+    ],
+    "chat_messages": [],
+    "user_chat_states": []
+  },
+  "after_rows": {
+    "scheduled_checkins": {
+      "code": "42703",
+      "details": null,
+      "hint": "Perhaps you meant to reference the column \"scheduled_checkins.created_at\".",
+      "message": "column scheduled_checkins.updated_at does not exist"
+    },
+    "coach_preferences": [
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "value": "low"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "reason": "QA fixture 2026-06-08-status-recap-local-dispatcher-r1",
+        "updated_at": "2026-06-08T15:50:26.770975+00:00"
+      }
+    ],
+    "chat_messages": [
+      {
+        "id": "954825ee-e03a-41d3-8bc7-62a38cc1dd17",
+        "role": "user",
+        "content": "Avant qu'on fasse quoi que ce soit, dis-moi ce qui est réellement en place pour moi aujourd'hui.",
+        "created_at": "2026-06-08T15:50:26.818445+00:00",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1"
+      },
+      {
+        "id": "a863efa3-a209-45fe-979e-f6d0cb3fed4f",
+        "role": "assistant",
+        "content": "Ok, pour aujourd’hui, voilà ce que je peux dire de façon fiable sur ce qui est réellement en place côté toi : 🙂\n\n1) Cartes d’attaque / défense : aucune active.\n2) Rappels ponctuels : il y a 1 rappel programmé pour relire un brouillon de statut le 09 juin à 17:50 (heure de Paris).\n3) Rappels récurrents : aucun.\n4) Potion / mode spécial : aucun.\n5) Préférence de coaching : tu as un réglage “poser moins de questions” (ça, c’est explicitement enregistré).\n\nTu veux qu’on parte de ça pour prioriser la prochaine micro-action, ou tu veux juste clarifier ce que ça implique concrètement pour ta semaine ?",
+        "created_at": "2026-06-08T15:50:46.285675+00:00",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1"
+      },
+      {
+        "id": "7af0a422-b0c5-4602-ba19-b7929f574918",
+        "role": "user",
+        "content": "Et côté rappels seulement, qu'est-ce qui est actif ou annulé ?",
+        "created_at": "2026-06-08T15:50:46.332719+00:00",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1"
+      },
+      {
+        "id": "ca53b28c-a9e7-4542-8bd4-8d92ca3692f2",
+        "role": "assistant",
+        "content": "Côté rappels, voilà ce qui est réellement en place pour toi aujourd’hui 🙂:\n\n- Actif: 1 rappel ponctuel\n  - 9 juin à 17:50 (heure de Paris) : relire le brouillon de statut\n- Annulé: aucun rappel n’est indiqué comme annulé\n\nTu veux que je te récapitule aussi ce que ça veut dire concrètement, “relire le brouillon”, pour que tu saches quoi vérifier ?",
+        "created_at": "2026-06-08T15:50:58.14516+00:00",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1"
+      },
+      {
+        "id": "efad3394-4ebb-4d9e-8b35-aa6310fa983d",
+        "role": "user",
+        "content": "D'où tu tiens ça exactement ?",
+        "created_at": "2026-06-08T15:50:58.236857+00:00",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1"
+      },
+      {
+        "id": "0619b6e3-0d4e-42aa-aa89-f7b39405d042",
+        "role": "assistant",
+        "content": "Je m'appuie sur les informations enregistrées dans ton espace personnel. C'est là que je retrouve l'historique de nos échanges, tes rappels programmés et les réglages que nous avons validés ensemble, comme ta préférence de coaching. C'est ma source fiable pour savoir exactement où tu en es. 🙂",
+        "created_at": "2026-06-08T15:51:19.722838+00:00",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1"
+      },
+      {
+        "id": "284a73f4-381f-4ed8-b222-0e39be862c56",
+        "role": "user",
+        "content": "Et si je veux le changer, je le fais où ?",
+        "created_at": "2026-06-08T15:51:19.793639+00:00",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1"
+      }
+    ],
+    "user_chat_states": [
+      {
+        "user_id": "00e7984c-958d-4926-94b2-fd7b272c01ce",
+        "scope": "qa-status-recap-2026-06-08-status-recap-local-dispatcher-r1",
+        "temp_memory": {
+          "__momentum_state_v2": {
+            "posture": {
+              "confidence": "high",
+              "recommended_posture": "simplify"
+            },
+            "version": 2,
+            "blockers": {
+              "blocker_kind": null,
+              "blocker_repeat_score": 0
+            },
+            "_internal": {
+              "sources": {
+                "router_updated_at": "2026-06-08T15:51:19.704Z",
+                "last_classified_by": "router"
+              },
+              "stability": {
+                "stable_since_at": "2026-06-08T15:50:46.268Z"
+              },
+              "signal_log": {
+                "consent_events": [],
+                "emotional_turns": [],
+                "response_quality_events": [
+                  {
+                    "at": "2026-06-08T15:50:46.268Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-08T15:50:58.119Z",
+                    "quality": "substantive"
+                  },
+                  {
+                    "at": "2026-06-08T15:51:19.704Z",
+                    "quality": "brief"
+                  }
+                ]
+              },
+              "metrics_cache": {
+                "last_user_turn_at": "2026-06-08T15:51:19.704Z",
+                "last_user_turn_quality": "brief",
+                "days_since_last_user_message": 0
+              }
+            },
+            "assessment": {
+              "top_risk": null,
+              "confidence": "low",
+              "top_blocker": null
+            },
+            "dimensions": {
+              "consent": {
+                "level": "open",
+                "reason": "no_decline_detected"
+              },
+              "plan_fit": {
+                "level": "uncertain"
+              },
+              "engagement": {
+                "level": "medium",
+                "reason": "brief_or_minimal_current_turn"
+              },
+              "load_balance": {
+                "level": "balanced"
+              },
+              "emotional_load": {
+                "level": "low",
+                "reason": "no_emotional_marker"
+              },
+              "execution_traction": {
+                "level": "unknown"
+              }
+            },
+            "updated_at": "2026-06-08T15:51:19.704Z",
+            "active_load": {
+              "needs_reduce": false,
+              "needs_consolidate": false,
+              "current_load_score": 0,
+              "mission_slots_used": 0,
+              "support_slots_used": 0,
+              "habit_building_slots_used": 0
+            },
+            "memory_links": {
+              "last_useful_support_ids": [],
+              "last_failed_technique_ids": []
+            },
+            "state_reason": "engaged_but_not_clearly_progressing",
+            "current_state": "friction_legere"
+          },
+          "__active_skill_state": {
+            "status": "active",
+            "version": 1,
+            "skill_id": "product_help",
+            "started_at": "2026-06-08T15:51:19.704Z",
+            "turn_count": 1,
+            "updated_at": "2026-06-08T15:51:19.704Z",
+            "working_state": {
+              "summary": "L'utilisateur demande la source et la fiabilité des informations fournies sur son état actuel (rappels, préférences, cartes).",
+              "product_help_local_state": {
+                "mode": "standalone",
+                "status": "answered",
+                "skill_id": "product_help",
+                "product_help_state": {
+                  "stage": "answering",
+                  "max_turns": 3,
+                  "turn_count": 1,
+                  "updated_at": "2026-06-08T15:51:14.952Z",
+                  "last_intent": "how_to",
+                  "last_target": {
+                    "kind": "user_object",
+                    "confidence": "high",
+                    "feature_id": null,
+                    "object_ref": null,
+                    "object_type": "unknown"
+                  },
+                  "last_locations": [
+                    "Dashboard > Plan"
+                  ],
+                  "last_answer_summary": "L'utilisateur demande la source et la fiabilité des informations fournies sur son état actuel (rappels, préférences, cartes).",
+                  "parent_flow_context": null,
+                  "last_catalog_feature_ids": []
+                }
+              },
+              "product_help_subskill_trace": null
+            },
+            "previous_skill_id": null
+          },
+          "__active_topic_state_v2": {
+            "version": 2,
+            "confidence": 0.6,
+            "updated_at": "2026-06-08T15:51:19.684Z",
+            "last_decision": "create_candidate",
+            "router_version": "memory_v2_router_mvp_1",
+            "active_topic_id": null,
+            "lifecycle_stage": null,
+            "last_switched_at": null,
+            "active_topic_slug": null,
+            "previous_topic_id": null,
+            "candidate_topic_ids": [],
+            "last_decision_reason": "no_active_topic"
+          },
+          "__conversation_risk_last": {
+            "at": "2026-06-08T15:51:19.704Z",
+            "score": 0,
+            "threshold": 8,
+            "reason_codes": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "__memory_payload_state_v2": {
+            "items": [],
+            "budget": {
+              "max_items": 12,
+              "max_entities": 5,
+              "tokens_target": 1800
+            },
+            "modules": {},
+            "version": 2,
+            "entities": [],
+            "last_turn_id": "efad3394-4ebb-4d9e-8b35-aa6310fa983d",
+            "active_topic_id": null
+          },
+          "companion_question_rhythm": {
+            "preference": "low",
+            "recent_turns": [
+              1,
+              1
+            ],
+            "last_updated_at": "2026-06-08T15:50:58.108Z",
+            "last_turn_had_question": true,
+            "turns_since_last_question": 0
+          },
+          "__conversation_risk_history": [
+            0,
+            0,
+            0
+          ],
+          "__coaching_intervention_history": []
+        },
+        "updated_at": "2026-06-08T15:51:19.706474+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "deleted": {
+      "scheduled_checkins": 204,
+      "user_profile_facts": 204,
+      "chat_messages": 204,
+      "user_chat_states": 204
+    },
+    "script_cleanup": "cleanup complete for qa-skill connection=status_recap_2026-06-08-status-recap-local-dispatcher-r1 (00e7984c-958d-4926-94b2-fd7b272c01ce)",
+    "errors": []
+  }
+}

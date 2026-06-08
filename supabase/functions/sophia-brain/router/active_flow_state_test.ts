@@ -2,7 +2,9 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   ACTIVE_FLOW_TEMP_MEMORY_KEYS,
   buildDispatcherActiveRuntimeContext,
+  buildLastLocalFlowExitContext,
   clearActiveToolFlow,
+  clearLastLocalFlowExitContext,
   clearPendingRecommendation,
   clearPendingToolConfirmation,
   clearToolSkillFlow,
@@ -196,4 +198,67 @@ Deno.test("active_flow_state builds dispatcher context for pending tool confirma
   assertEquals(context?.owner, "tool_skill");
   assertEquals(context?.operation_type, "prepare_attack_card");
   assertEquals(context?.pending_confirmation, true);
+});
+
+Deno.test("active_flow_state exposes last local flow exit context", () => {
+  const context = buildLastLocalFlowExitContext({
+    __last_prepare_attack_card_exit_memo: {
+      reason: "topic_change",
+      flow_summary: "carte d'attaque mise de côté",
+      handoff_hint_for_global_dispatcher: "prioriser la soirée",
+      at: "2026-06-08T10:00:00.000Z",
+    },
+    __last_select_state_potion_exit_memo: {
+      reason: "cancelled",
+      flow_summary: "ancienne sortie",
+      handoff_hint_for_global_dispatcher: null,
+      at: "2026-06-08T09:00:00.000Z",
+    },
+  });
+  assertEquals(context?.operation_type, "prepare_attack_card");
+  assertEquals(context?.reason, "topic_change");
+  assertEquals(
+    context?.handoff_hint_for_global_dispatcher,
+    "prioriser la soirée",
+  );
+});
+
+Deno.test("active_flow_state compacts post morning nudge exit memo for dispatcher", () => {
+  const context = buildLastLocalFlowExitContext({
+    __last_post_morning_nudge_exit_memo: {
+      reason: "explicit_tool_request",
+      user_intent_summary: "User asks for a defense card.",
+      local_flow_context: {
+        skill_id: "post_morning_nudge",
+        flow_kind: "action",
+        source_nudge_summary: "nudge_kind=action_nudge",
+      },
+      handoff_hint_for_global_dispatcher: {
+        likely_intent: "prepare_defense_card",
+        why: "explicit handoff",
+      },
+      at: "2026-06-08T10:01:00.000Z",
+    },
+  });
+
+  assertEquals(context?.operation_type, "post_morning_nudge");
+  assertEquals(context?.reason, "explicit_tool_request");
+  assertEquals(context?.flow_summary, "User asks for a defense card.");
+  assertEquals(
+    context?.handoff_hint_for_global_dispatcher,
+    "prepare_defense_card: explicit handoff",
+  );
+});
+
+Deno.test("active_flow_state clears last local flow exit context keys", () => {
+  assertEquals(
+    clearLastLocalFlowExitContext({
+      __last_prepare_attack_card_exit_memo: { reason: "topic_change" },
+      __last_prepare_defense_card_exit_memo: { reason: "cancelled" },
+      __last_select_state_potion_exit_memo: { reason: "safety" },
+      __last_post_morning_nudge_exit_memo: { reason: "explicit_tool_request" },
+      keep: true,
+    }),
+    { keep: true },
+  );
 });

@@ -1,0 +1,496 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-state-potion-apaisement-global-20260608-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'aimerais bien avoir une potion, mais je ne sais pas laquelle. Là je suis sous pression avec trop de décisions à prendre et je me sens complètement submergé.",
+    "assistant": "C'est vrai que quand on est submergé par les décisions, on finit par se sentir étouffé. Est-ce que tu as surtout besoin d'un moment pour relâcher cette pression et souffler, ou d'un coup de pouce pour y voir plus clair dans tes choix ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "tool_skill_intent_start",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_clarifying",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": null,
+      "runtime_trace": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_clarifying",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    },
+    "trace_id": "qa-state-potion-apaisement-global-20260608-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-state-potion-apaisement-global-20260608-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai surtout besoin de relâcher la pression et de souffler, donc une potion d'apaisement.",
+    "assistant": "C'est une excellente idée, la Potion d'apaisement est parfaite pour t'aider à souffler un peu. Tu peux la retrouver dans la section État / Potions de la plateforme. Voici les éléments que nous avons identifiés ensemble :\n\nQu'est-ce qui te met le plus sous pression la ? : trop de décisions à prendre\nTu te sens plutot comment ? : Submerge\n\nJ'espère que cela t'aidera à retrouver un peu de sérénité. 🌿",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.apaisement",
+    "route_reason": "active_select_state_potion_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.apaisement",
+      "reason_code": "apaisement_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "low",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.apaisement",
+          "event": "active_apaisement_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "clarifying"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.apaisement",
+          "flow_action": "answer_current_field",
+          "confidence": "high",
+          "selected_potion": "apaisement",
+          "current_field_id": "pressure_source",
+          "visible_task": "handoff_ready",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "low",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.apaisement",
+          "status": "handoff_delivered",
+          "reason_code": "apaisement_handoff_delivered",
+          "visible_task": "handoff_ready",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "handoff_ready",
+          "handoff_status": "handoff_delivered"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "apaisement_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "trop de décisions à prendre ; Submerge",
+          "desired_shift_summary": "redescendre, desserrer la pression, retrouver un peu d'espace interieur",
+          "recommendation": {
+            "potion_label": "Potion d'apaisement",
+            "why_this_potion": "Quand tu montes en pression, que tu es a cran ou trop stresse, elle t'aide a redescendre.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion d'apaisement"
+            ],
+            "platform_inputs": {
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "answers": [
+                {
+                  "question_id": "pressure_source",
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "value": "trop de décisions à prendre",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "pressure_state",
+                  "question_label": "Tu te sens plutot comment ?",
+                  "value": "Submerge",
+                  "option_value": "submerge",
+                  "option_label": "Submerge"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-apaisement-global-20260608-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-state-potion-apaisement-global-20260608-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Redis-moi juste quoi mettre dans la plateforme.",
+    "assistant": "Pas de souci, voici les informations à saisir dans la section État / Potions pour ta Potion d'apaisement :\n\nQu'est-ce qui te met le plus sous pression la ? : trop de décisions à prendre\nTu te sens plutot comment ? : Submerge\n\nJ'espère que cela t'aidera à relâcher la pression et à souffler un peu. 🌿",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.apaisement",
+    "route_reason": "active_apaisement_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.apaisement",
+      "reason_code": "apaisement_repeat_handoff",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "repeat_handoff",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.apaisement",
+          "event": "active_apaisement_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "handoff_delivered"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.apaisement",
+          "flow_action": "repeat_handoff",
+          "confidence": "high",
+          "selected_potion": "apaisement",
+          "current_field_id": null,
+          "visible_task": "repeat_handoff",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.apaisement",
+          "status": "repeat_handoff",
+          "reason_code": "apaisement_repeat_handoff",
+          "visible_task": "repeat_handoff",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "repeat_handoff",
+          "handoff_status": "repeat_handoff"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "apaisement_repeat_handoff",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "trop de décisions à prendre ; Submerge",
+          "desired_shift_summary": "redescendre, desserrer la pression, retrouver un peu d'espace interieur",
+          "recommendation": {
+            "potion_label": "Potion d'apaisement",
+            "why_this_potion": "Quand tu montes en pression, que tu es a cran ou trop stresse, elle t'aide a redescendre.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion d'apaisement"
+            ],
+            "platform_inputs": {
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "answers": [
+                {
+                  "question_id": "pressure_source",
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "value": "trop de décisions à prendre",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "pressure_state",
+                  "question_label": "Tu te sens plutot comment ?",
+                  "value": "Submerge",
+                  "option_value": "submerge",
+                  "option_label": "Submerge"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-apaisement-global-20260608-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-state-potion-apaisement-global-20260608-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ok active-la.",
+    "assistant": "Je ne peux pas activer la potion directement d'ici, mais tu peux le faire très facilement dans la section État / Potions de la plateforme. Voici les informations exactes à saisir pour ta Potion d'apaisement :\n\nQu'est-ce qui te met le plus sous pression la ? : trop de décisions à prendre\nTu te sens plutot comment ? : Submerge\n\nUne fois ces détails remplis sur la plateforme, tu pourras la lancer et enfin commencer à souffler. 🌿",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.apaisement",
+    "route_reason": "active_apaisement_local_dispatcher",
+    "safety_pregate": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.apaisement",
+      "reason_code": "apaisement_apply_attempt_no_chat_execution",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "apply_attempt",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 2,
+        "risk_band": "low",
+        "safety_preempt": false,
+        "reason_codes": [
+          "user_under_pressure"
+        ]
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.apaisement",
+          "event": "active_apaisement_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "repeat_handoff"
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.apaisement",
+          "flow_action": "apply_attempt",
+          "confidence": "high",
+          "selected_potion": "apaisement",
+          "current_field_id": null,
+          "visible_task": "apply_attempt",
+          "risk_assessment": {
+            "risk_score": 2,
+            "risk_band": "low",
+            "safety_preempt": false,
+            "reason_codes": [
+              "user_under_pressure"
+            ]
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.apaisement",
+          "status": "apply_attempt",
+          "reason_code": "apaisement_apply_attempt_no_chat_execution",
+          "visible_task": "apply_attempt",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "apply_attempt",
+          "handoff_status": "apply_attempt"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "apaisement_apply_attempt_no_chat_execution",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "trop de décisions à prendre ; Submerge",
+          "desired_shift_summary": "redescendre, desserrer la pression, retrouver un peu d'espace interieur",
+          "recommendation": {
+            "potion_label": "Potion d'apaisement",
+            "why_this_potion": "Quand tu montes en pression, que tu es a cran ou trop stresse, elle t'aide a redescendre.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion d'apaisement"
+            ],
+            "platform_inputs": {
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "answers": [
+                {
+                  "question_id": "pressure_source",
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "value": "trop de décisions à prendre",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "pressure_state",
+                  "question_label": "Tu te sens plutot comment ?",
+                  "value": "Submerge",
+                  "option_value": "submerge",
+                  "option_label": "Submerge"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    },
+    "trace_id": "qa-state-potion-apaisement-global-20260608-r1-t04",
+    "trace_error": null
+  }
+]

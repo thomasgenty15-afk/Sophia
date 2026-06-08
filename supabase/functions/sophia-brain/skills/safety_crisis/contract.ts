@@ -28,6 +28,117 @@ export type SafetySignal = {
   uncertainty: "low" | "medium" | "high";
 };
 
+export type SafetyCrisisLocalFlowAction =
+  | "answer_safety_check"
+  | "provide_means_status"
+  | "provide_alone_status"
+  | "provide_support_status"
+  | "provide_emergency_status"
+  | "provide_deescalation_evidence"
+  | "needs_grounding"
+  | "repeat_current_step"
+  | "product_or_tool_attempt"
+  | "wants_to_exit"
+  | "safety_escalate";
+
+export type SafetyCrisisVisibleTaskKind =
+  | "immediate_risk_check"
+  | "acute_grounding"
+  | "support_contact"
+  | "stabilizing"
+  | "exit_check"
+  | "resolved_exit"
+  | "repeat_current_step"
+  | "product_tool_boundary"
+  | "safety_escalation";
+
+export type SafetyCrisisProductToolAttemptKind =
+  | "product_question"
+  | "tool_creation"
+  | "plan_work"
+  | "status_request"
+  | "none";
+
+export type SafetyCrisisResolutionFact =
+  | "immediate_danger_absent"
+  | "means_safe"
+  | "human_support_available"
+  | "not_alone"
+  | "no_fresh_risk_signal";
+
+export type SafetyCrisisLocalDispatcherOutput = {
+  flow_action: SafetyCrisisLocalFlowAction;
+  confidence: "low" | "medium" | "high";
+  risk_score: number;
+  safety_signals: SafetySignal;
+  user_state_summary: {
+    paraphrase: string | null;
+    current_need:
+      | "immediate_risk_check"
+      | "grounding"
+      | "move_means_away"
+      | "contact_human"
+      | "stay_with_support"
+      | "exit_request"
+      | "unclear";
+    what_changed_since_previous_turn: string | null;
+  };
+  product_tool_boundary: {
+    attempted: boolean;
+    attempt_kind: SafetyCrisisProductToolAttemptKind;
+    defer_reason: string | null;
+  };
+  exit_request: {
+    requested: boolean;
+    why_user_thinks_safe: string | null;
+    missing_resolution_facts: SafetyCrisisResolutionFact[];
+  };
+  state_hints: {
+    suggested_trigger_summary: string | null;
+    suggested_last_user_safety_signal: string | null;
+  };
+  no_tooling: {
+    product_help_called: false;
+    status_recap_called: false;
+    tool_skill_called: false;
+    operation_suggestion_created: false;
+    pending_confirmation_created: false;
+    db_write_committed: false;
+  };
+  evidence: string[];
+};
+
+export type SafetyCrisisVisibleTask = {
+  kind: SafetyCrisisVisibleTaskKind;
+  required_data: {
+    risk_band: Exclude<SafetyRiskBand, "none"> | "none";
+    phase: SafetyCrisisPhase;
+    emergency_numbers: string;
+    suicide_prevention_number: string;
+    must_include_emergency_numbers: boolean;
+    must_prioritize_human_support: boolean;
+    max_questions: 1 | 2;
+    known_facts: {
+      immediate_danger: boolean | null;
+      has_means_nearby: boolean | null;
+      user_not_alone: boolean | null;
+      human_support_available: boolean | null;
+      emergency_help_contacted: boolean | null;
+    };
+    current_step: string | null;
+    deferred_product_or_tool_request: string | null;
+  };
+};
+
+export type SafetyCrisisExitMemo = {
+  reason: "resolved";
+  flow_summary: string;
+  handoff_hint_for_global_dispatcher: {
+    likely_intent: "normal_coaching" | "previous_flow_resume" | "unknown";
+    constraints: string[];
+  };
+};
+
 export type SafetyCrisisWorkingState = {
   phase?: SafetyCrisisPhase;
   risk_band?: SafetyRiskBand | string;
@@ -40,6 +151,18 @@ export type SafetyCrisisWorkingState = {
   consecutive_deescalated_turns?: number;
   last_user_safety_signal?: string | null;
   last_assistant_safety_step?: string | null;
+  exit_memo?: SafetyCrisisExitMemo | null;
+};
+
+export type SafetyCrisisLocalState = {
+  skill_id: "safety_crisis";
+  status: "active" | "resolving" | "exiting";
+  mode: "local_safety_flow";
+  turn_count: number;
+  max_turns: number;
+  created_at: string;
+  updated_at: string;
+  working_state: SafetyCrisisWorkingState;
 };
 
 export type SafetyCrisisResponseContract = {
@@ -64,6 +187,8 @@ export type SafetyCrisisStatePatch = {
   last_user_safety_signal?: string | null;
   last_assistant_safety_step?: string | null;
   trigger_summary?: string | null;
+  visible_task?: SafetyCrisisVisibleTask;
+  exit_memo?: SafetyCrisisExitMemo | null;
   summary?: string;
 };
 
@@ -89,6 +214,9 @@ export type SafetyCrisisReduction = {
   phase: SafetyCrisisPhase;
   riskBand: SafetyRiskBand;
   statePatch: SafetyCrisisStatePatch;
+  visibleTask: SafetyCrisisVisibleTask;
+  exitMemo: SafetyCrisisExitMemo | null;
+  reasonCode: string;
 };
 
 export const SAFETY_CRISIS_INVARIANTS = [

@@ -3,6 +3,8 @@ import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts";
 import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
 import { loadOnboardingContext } from "./onboarding_helpers.ts";
+import { runWhatsAppOnboardingLocalFlow } from "./onboarding/local_flow.ts";
+import { isWhatsAppOnboardingLocalState } from "./onboarding/state.ts";
 import { runUpdateCoachPreferencesIntake } from "../sophia-brain/tools/operations/update_coach_preferences/intake.ts";
 import type { CoachPreferenceKey } from "../sophia-brain/tools/operations/_shared/operation_payload_builder.ts";
 
@@ -101,6 +103,81 @@ async function finishWhatsAppOnboarding(params: any) {
     .upsert(baseState, { onConflict: "user_id,scope" });
 }
 
+export function isWhatsAppPreferenceOnboardingDoneFromTempMemory(
+  tempMemory: unknown,
+): boolean {
+  if (
+    !tempMemory || typeof tempMemory !== "object" || Array.isArray(tempMemory)
+  ) {
+    return false;
+  }
+  const done = (tempMemory as Record<string, unknown>)
+    .__whatsapp_onboarding_done;
+  if (!done || typeof done !== "object" || Array.isArray(done)) {
+    return false;
+  }
+  const completedAt = String(
+    (done as Record<string, unknown>).completed_at ?? "",
+  ).trim();
+  return completedAt.length > 0;
+}
+
+export function isWhatsAppPlanFinalizationWaitState(
+  whatsappState: unknown,
+): boolean {
+  return [
+    "awaiting_plan_finalization",
+    "awaiting_plan_finalization_support",
+  ].includes(String(whatsappState ?? "").trim());
+}
+
+export function shouldResumePlanFinalizationForWhatsAppPreferences(args: {
+  whatsappState: unknown;
+  onboardingCompleted: unknown;
+  whatsappPreferenceOnboardingDone: unknown;
+}): boolean {
+  return Boolean(args.onboardingCompleted) &&
+    isWhatsAppPlanFinalizationWaitState(args.whatsappState) &&
+    args.whatsappPreferenceOnboardingDone === false;
+}
+
+export async function hasCompletedWhatsAppPreferenceOnboarding(
+  admin: any,
+  userId: string,
+): Promise<boolean> {
+  const { data } = await admin
+    .from("user_chat_states")
+    .select("temp_memory")
+    .eq("user_id", userId)
+    .eq("scope", "whatsapp")
+    .maybeSingle();
+  return isWhatsAppPreferenceOnboardingDoneFromTempMemory(
+    (data as any)?.temp_memory,
+  );
+}
+
+async function startWhatsAppPreferenceOnboardingFromPlanReady(params: any) {
+  await params.admin.from("profiles").update({
+    whatsapp_state: "onboarding_pref_tone",
+    whatsapp_state_updated_at: new Date().toISOString(),
+  }).eq("id", params.userId);
+  await replyWithGuidedOnboardingBrain({
+    admin: params.admin,
+    userId: params.userId,
+    fromE164: params.fromE164,
+    requestId: params.requestId,
+    waMessageId: params.waMessageId,
+    siteUrl: params.siteUrl,
+    replyWithBrain: params.replyWithBrain,
+    inboundText: params.inboundText || "C'est fait",
+    purpose: "onboarding_pref_tone_question",
+    previousStep: "plan_finalization",
+    nextStep: "preference_tone",
+    requiredQuestion:
+      "Tu préfères une Sophia plutôt douce, plutôt directe, ou un mix des deux ?",
+  });
+}
+
 function normalizePreferenceText(raw: unknown) {
   return String(raw ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "")
     .toLowerCase();
@@ -190,7 +267,7 @@ async function persistCoachPreferenceViaOperation(params: {
     safety_pregate_risk_band: "none",
     operation_input: { requested_patch: requestedPatch },
   });
-  if (operation.status !== "pending_confirmation" || !operation.draft) {
+  if (operation.status !== "handoff_ready" || !operation.draft) {
     throw new Error(`coach_preference_operation_failed:${operation.status}`);
   }
   const draft = operation.draft;
@@ -299,6 +376,20 @@ export async function handleOnboardingState(params: any) {
     sendWhatsAppText,
   } = params;
   const st = String(whatsappState || "").trim();
+  if (isWhatsAppOnboardingLocalState(st)) {
+    const result = await runWhatsAppOnboardingLocalFlow({
+      admin,
+      userId,
+      whatsappState: st,
+      webOnboardingCompleted: Boolean(params.onboardingCompleted),
+      whatsappPreferencesDone: Boolean(params.whatsappPreferenceOnboardingDone),
+      fromE164,
+      requestId,
+      waMessageId,
+      text: String(text ?? ""),
+    });
+    return Boolean(result.handled);
+  }
   if (st === "onboarding_pref_tone") {
     const tone = inferTonePreference(text);
     await persistCoachPreferenceViaOperation({
@@ -667,15 +758,27 @@ export async function handleOnboardingState(params: any) {
       });
       return true;
     }
-    // Plan is active: transition to onboarding Q1 (managed by dispatcher/router).
-    // Set whatsapp_state = "onboarding_q1" and return false so the message falls through
-    // to the default brain call, where processMessage picks up the onboarding machine.
+    // Plan is active: resume the WhatsApp preference calibration unless it was
+    // already completed. `profiles.onboarding_completed` only means the web plan
+    // onboarding finished; it must not skip the WhatsApp preference flow.
+    if (!(await hasCompletedWhatsAppPreferenceOnboarding(admin, userId))) {
+      await startWhatsAppPreferenceOnboardingFromPlanReady({
+        admin,
+        userId,
+        fromE164,
+        requestId,
+        waMessageId,
+        siteUrl,
+        replyWithBrain,
+        inboundText: raw || "C'est fait",
+      });
+      return true;
+    }
     await admin.from("profiles").update({
-      whatsapp_state: "onboarding_q1",
+      whatsapp_state: null,
       whatsapp_state_updated_at: new Date().toISOString(),
     }).eq("id", userId);
-    return false // fall through to brain → dispatcher handles Q1
-    ;
+    return false;
   }
   // ═══════════════════════════════════════════════════════════════════════════════
   // STATES: onboarding_q1, onboarding_q2, onboarding_q3
@@ -709,25 +812,24 @@ export async function handleOnboardingState(params: any) {
     );
     const planTitle = String(runtime.plan?.title ?? "").trim();
     if (planTitle) {
-      // Plan detected — check if user already completed onboarding before transitioning to Q1.
-      const { data: obCheck } = await admin.from("profiles").select(
-        "onboarding_completed",
-      ).eq("id", userId).maybeSingle();
-      if (obCheck?.onboarding_completed) {
-        // Already onboarded — clear stale state and fall through to normal brain pipeline.
-        await admin.from("profiles").update({
-          whatsapp_state: null,
-          whatsapp_state_updated_at: new Date().toISOString(),
-        }).eq("id", userId);
-        return false;
+      if (!(await hasCompletedWhatsAppPreferenceOnboarding(admin, userId))) {
+        await startWhatsAppPreferenceOnboardingFromPlanReady({
+          admin,
+          userId,
+          fromE164,
+          requestId,
+          waMessageId,
+          siteUrl,
+          replyWithBrain,
+          inboundText: raw || "Ok",
+        });
+        return true;
       }
-      // Transition to onboarding Q1 (managed by dispatcher/router)
       await admin.from("profiles").update({
-        whatsapp_state: "onboarding_q1",
+        whatsapp_state: null,
         whatsapp_state_updated_at: new Date().toISOString(),
       }).eq("id", userId);
-      return false // fall through to brain → dispatcher handles Q1
-      ;
+      return false;
     }
     await replyWithBrain({
       admin,

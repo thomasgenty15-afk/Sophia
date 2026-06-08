@@ -41,9 +41,14 @@ import {
   nextDayAfter,
   occurrenceStatusForDailyOutcome,
   runDailyActionReviewFollowupSkill,
-  runDailyActionReviewSkill,
   stateFromUnknown,
 } from "../_shared/daily_action_review.ts";
+import {
+  buildDailyActionReviewLastExitMemo,
+  type DailyActionReviewLocalFlowResult,
+  runDailyActionReviewLocalFlow,
+  runDailyActionReviewVisibleAgent,
+} from "../_shared/daily_action_review/local_flow.ts";
 import { buildDailyReviewEffectPlan } from "../_shared/daily_action_review/effects.ts";
 import {
   dailyReviewEffectsFullyCommitted,
@@ -1332,7 +1337,8 @@ async function handleActionEveningReviewReply(params: {
   const dayStartIso = `${localDate}T00:00:00.000Z`;
   const dayEndIso = `${nextDateYmd(localDate)}T00:00:00.000Z`;
 
-  let parsed: DailyActionReviewSkillResult = decision
+  let parsed: DailyActionReviewSkillResult | DailyActionReviewLocalFlowResult =
+    decision
     ? (() => {
       const state = stateFromUnknown(payload?.review_state, effectiveTargets);
       for (const target of effectiveTargets) {
@@ -1379,13 +1385,44 @@ async function handleActionEveningReviewReply(params: {
         shouldApplyEffects: state.should_apply_effects,
       };
     })()
-    : await runDailyActionReviewSkill({
+    : await runDailyActionReviewLocalFlow({
       text: inboundText,
       targets: effectiveTargets,
       previousState: payload?.review_state,
       requestId: params.requestId,
       userId: params.userId,
     });
+  if ("exitToGlobalDispatcher" in parsed && parsed.exitToGlobalDispatcher) {
+    const nowForExit = new Date().toISOString();
+    const state = await getUserState(params.admin, params.userId, "whatsapp");
+    const tempMemory = state.temp_memory && typeof state.temp_memory === "object"
+      ? state.temp_memory
+      : {};
+    await updateUserState(params.admin, params.userId, "whatsapp", {
+      temp_memory: {
+        ...tempMemory,
+        __last_daily_action_review_exit_memo:
+          buildDailyActionReviewLastExitMemo({
+            output: parsed.dispatcherOutput,
+            at: nowForExit,
+          }),
+      },
+    });
+    await params.admin
+      .from("whatsapp_pending_actions")
+      .update({
+        payload: {
+          ...payload,
+          message_mode: "conversation",
+          chat_capability: "daily_action_review",
+          review_state: parsed.state,
+          last_user_text: inboundText,
+          last_local_exit_memo: parsed.dispatcherOutput.exit_memo,
+        },
+      })
+      .eq("id", pending.id);
+    return false;
+  }
   parsed = buildClarificationPartialFollowup(parsed, effectiveTargets) ??
     parsed;
   await markDailyActionReviewStructuredExtraction({
@@ -1397,10 +1434,40 @@ async function handleActionEveningReviewReply(params: {
     complete: parsed.shouldApplyEffects,
   });
 
+  if (parsed.state.status === "stopped") {
+    const txt = parsed.generatedUserMessage ||
+      "D'accord, je ne note rien pour ce daily.";
+    await params.admin
+      .from("whatsapp_pending_actions")
+      .update({
+        payload: {
+          ...payload,
+          message_mode: "conversation",
+          chat_capability: "daily_action_review",
+          review_state: parsed.state,
+          missing_occurrence_ids: parsed.missingOccurrenceIds,
+          last_user_text: inboundText,
+        },
+      })
+      .eq("id", pending.id);
+    await markPending(params.admin, pending.id, "cancelled");
+    await sendDailyActionReviewAssistantMessage({
+      admin: params.admin,
+      requestId: params.requestId,
+      userId: params.userId,
+      fromE164: params.fromE164,
+      body: txt,
+      source: "daily_action_review_stopped",
+    });
+    return true;
+  }
+
   if (!parsed.shouldApplyEffects || !parsed.state.effect_plan.allowed) {
     const txt = parsed.generatedUserMessage ||
       buildDailyActionReviewMissingQuestion(parsed, effectiveTargets);
-    parsed.state.next_question = parsed.state.next_question || txt;
+    if (parsed.state.status === "needs_clarification") {
+      parsed.state.next_question = parsed.state.next_question || txt;
+    }
     parsed.state.generated_user_message = parsed.state.generated_user_message ||
       txt;
     const updatedPayload = {
@@ -1625,13 +1692,27 @@ async function handleActionEveningReviewReply(params: {
       result: dailyEffectsResult,
     })
   ) {
+    const failedLocalParsed = "dispatcherOutput" in parsed
+      ? parsed as DailyActionReviewLocalFlowResult
+      : null;
+    const failedVisible = failedLocalParsed
+      ? await runDailyActionReviewVisibleAgent({
+        kind: "commit_failed",
+        targets: effectiveTargets,
+        state: parsed.state,
+        dispatcherOutput: failedLocalParsed.dispatcherOutput,
+        committedEffects: dailyEffectsResult.committed_effects,
+        failedEffects: dailyEffectsResult.failed_effects,
+        requestId: params.requestId,
+        userId: params.userId,
+      })
+      : null;
     const failedState = {
       ...parsed.state,
       status: "needs_clarification" as const,
       should_apply_effects: false,
-      generated_user_message: renderDailyReviewCommitFailureMessage(
-        dailyEffectsResult,
-      ),
+      generated_user_message: failedVisible ||
+        renderDailyReviewCommitFailureMessage(dailyEffectsResult),
     };
     await params.admin
       .from("whatsapp_pending_actions")
@@ -1658,9 +1739,9 @@ async function handleActionEveningReviewReply(params: {
     return true;
   }
 
-  const completedState = {
+  const completedState: typeof parsed.state = {
     ...parsed.state,
-    status: "complete",
+    status: "complete" as const,
     remaining_occurrence_ids: [],
     next_question: null,
     next_question_targets: [],
@@ -1718,8 +1799,24 @@ async function handleActionEveningReviewReply(params: {
     continuationPlanItemByOccurrenceId,
     continuationPlannedDayByOccurrenceId,
   });
+  const successLocalParsed = "dispatcherOutput" in parsed
+    ? parsed as DailyActionReviewLocalFlowResult
+    : null;
+  const commitSuccessVisible = successLocalParsed
+    ? await runDailyActionReviewVisibleAgent({
+      kind: "commit_success",
+      targets: effectiveTargets,
+      state: completedState,
+      dispatcherOutput: successLocalParsed.dispatcherOutput,
+      committedEffects: dailyEffectsResult.committed_effects,
+      failedEffects: dailyEffectsResult.failed_effects,
+      requestId: params.requestId,
+      userId: params.userId,
+    })
+    : null;
   const txt = dailyReviewFinalMessageRequiresCommit({
-    message: parsed.generatedUserMessage || fallbackFinalMessage,
+    message: commitSuccessVisible || parsed.generatedUserMessage ||
+      fallbackFinalMessage,
     effect_plan: parsed.state.effect_plan,
     result: dailyEffectsResult,
   }) ?? fallbackFinalMessage;

@@ -1,0 +1,34 @@
+{
+  "run_id": "flow-opportunity-verification-r1-20260608",
+  "persona": "qa-skill",
+  "connection_name": "flow-opportunity-verification_flow-opportunity-verification-r1-20260608",
+  "user_id": "bf2f9a94-e1ae-4dd1-92e9-e314653a86cc",
+  "email": "qa-qa-skill-flow-opportunity-verification-flow-opportunity-verification-r1-20260608@example.com",
+  "scope": "qa-flow-opportunity-verification-20260608-r1",
+  "updated_at": "2026-06-08T15:51:27.028Z",
+  "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/flow_opportunity_verification/flow-opportunity-verification-r1-20260608.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-flow-opportunity-verification-r1-20260608-t01",
+      "user_message": "Je suis un peu perdu sur ce que j'ai déjà comme carte d'attaque et où j'en suis. Tu peux m'aider à y voir plus clair ?",
+      "http_status": 502,
+      "assistant_message": "An invalid response was received from the upstream server",
+      "short_trace": {
+        "response_owner": null,
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": null,
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 1
+    }
+  ]
+}

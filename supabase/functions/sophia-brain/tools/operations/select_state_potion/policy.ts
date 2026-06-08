@@ -78,12 +78,14 @@ export function selectStatePotionRouteIsSelected(args: {
 
   if (
     args.routeDecision?.response_owner === "tool_skill" &&
-    args.routeDecision?.selected_handler === "select_state_potion"
+    (args.routeDecision?.selected_handler === "select_state_potion" ||
+      args.routeDecision?.selected_handler?.startsWith("select_state_potion."))
   ) return true;
   if (
     args.routeDecision?.response_owner === "tool_skill" &&
     args.routeDecision?.selected_handler &&
-    args.routeDecision.selected_handler !== "select_state_potion"
+    args.routeDecision.selected_handler !== "select_state_potion" &&
+    !args.routeDecision.selected_handler.startsWith("select_state_potion.")
   ) return false;
 
   return (args.turnFrame?.tool_skill_intents ?? []).some((intent) =>
