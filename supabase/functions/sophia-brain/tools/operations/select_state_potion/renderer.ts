@@ -20,7 +20,7 @@ export function renderSelectStatePotionSkillResult(
   return result.reply ?? "";
 }
 
-function disabledLegacyRenderer(): never {
+function disabledRenderer(): never {
   throw new Error(
     "select_state_potion_visible_renderer_legacy_disabled: use visible_agents/agent.ts",
   );
@@ -29,23 +29,23 @@ function disabledLegacyRenderer(): never {
 export function renderSelectStatePotionHandoffDraft(
   _draft: StatePotionHandoffDraft,
 ): string {
-  return disabledLegacyRenderer();
+  return disabledRenderer();
 }
 
 export function renderStatePotionApplyAttemptHandoff(
   _draft?: StatePotionHandoffDraft | null,
 ): string {
-  return disabledLegacyRenderer();
+  return disabledRenderer();
 }
 
 export function renderStatePotionPlatformDestinationHandoff(
   _draft?: StatePotionHandoffDraft | null,
 ): string {
-  return disabledLegacyRenderer();
+  return disabledRenderer();
 }
 
 export function renderStatePotionRepeatHandoff(
   _draft?: StatePotionHandoffDraft | null,
 ): string {
-  return disabledLegacyRenderer();
+  return disabledRenderer();
 }

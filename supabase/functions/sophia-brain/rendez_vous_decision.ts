@@ -36,10 +36,7 @@ import {
   type CreateRendezVousInput,
   getActiveRendezVous,
 } from "../_shared/v2-rendez-vous.ts";
-import {
-  loadProactiveHistory,
-  registerCooldown,
-} from "./cooldown_engine.ts";
+import { loadProactiveHistory, registerCooldown } from "./cooldown_engine.ts";
 import { readMomentumStateV2 } from "./momentum_state.ts";
 import { getUserRelationPreferences } from "./relation_preferences_engine.ts";
 import { readRepairMode } from "./repair_mode_engine.ts";
@@ -280,8 +277,7 @@ export async function registerRendezVousRefusal(
   userId: string,
   nowIso: string,
 ): Promise<void> {
-  const cooldownKey =
-    `${kind}:${transformationId ?? cycleId}`;
+  const cooldownKey = `${kind}:${transformationId ?? cycleId}`;
   await registerCooldown(
     supabase,
     userId,
@@ -314,7 +310,10 @@ export async function loadRecentConversationPulse(
     .from("system_runtime_snapshots")
     .select("payload,created_at")
     .eq("user_id", userId)
-    .eq("snapshot_type", "conversation_pulse")
+    .in("snapshot_type", [
+      "daily_conversation_pulse_v2",
+      "watcher_conversation_pulse_v2",
+    ])
     .eq("cycle_id", cycleId)
     .gte("created_at", lookbackIso)
     .order("created_at", { ascending: false })
@@ -578,10 +577,12 @@ export async function loadLastWeeklyBilanDecision(
   if (error) throw error;
   if (!data) return { decision: null, decidedAt: null };
 
-  const payload = (data as Record<string, unknown>).payload as Record<
-    string,
-    unknown
-  > | null;
+  const payload = (data as Record<string, unknown>).payload as
+    | Record<
+      string,
+      unknown
+    >
+    | null;
   const decision = payload?.decision as WeeklyDecision | undefined;
   const validDecisions: WeeklyDecision[] = [
     "hold",

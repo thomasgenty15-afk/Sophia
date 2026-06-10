@@ -1,9 +1,5 @@
 import type { PotionSessionSelectorInput } from "../_shared/operation_payload_builder.ts";
 import type {
-  PotionSessionDraftGenerator,
-  PotionSessionDraftV1,
-} from "./generator.ts";
-import type {
   SelectStatePotionSlotFiller,
   SelectStatePotionSlotFillerOutput,
   StatePotionConfidence,
@@ -68,7 +64,7 @@ export function structuredStatePotionSlotFiller(args: {
     ].filter(Boolean);
     return {
       current_sub_skill: missing.length === 0
-        ? "draft_generation"
+        ? "detail_intake"
         : args.state_kind && !selected
         ? "potion_choice"
         : selected && !detailsReady
@@ -130,49 +126,4 @@ export function structuredStatePotionSlotFiller(args: {
       evidence: ["structured_test_output"],
     };
   };
-}
-
-export function structuredStatePotionDraftGenerator(): PotionSessionDraftGenerator {
-  return async (input): Promise<PotionSessionDraftV1> => ({
-    operation_type: "select_state_potion",
-    output_schema: "potion_session_draft_v1",
-    draft: {
-      potion_type: input.potion_type,
-      title: `Test potion ${input.potion_type}`,
-      opening_prompt: `Opening ${input.potion_type}`,
-      instant_support_message: `Instant support ${input.potion_type}`,
-      potion_info_message:
-        `Info ${input.potion_type}: suivi 7 jours a ${input.potion_type}.`,
-      expected_duration: "short",
-      why_this_potion: `Why ${input.state.kind}`,
-      target_binding: {
-        kind: "none",
-        label: null,
-        related_plan_item_id: null,
-        target_plan_item_id: null,
-        target_action_family_key: null,
-        target_generated_temp_id: null,
-        recurrence_hint: null,
-        date_or_window_hint: null,
-        evidence: ["structured_test_default_target"],
-      },
-      follow_up: {
-        reminder_instruction: `Reminder ${input.potion_type}`,
-        local_time_hhmm: "09:00",
-        duration_days: 7,
-        reason_for_time: "Reason time",
-        schedule_plan: {
-          mode: "daily_series",
-          duration_days: 7,
-          local_time_hhmm: "09:00",
-          scheduled_days: [],
-          local_dates: [],
-          timing_relation: "daily",
-          reason: "Reason time",
-        },
-      },
-    },
-    confirmation_message: `Confirm ${input.potion_type}?`,
-    confirmation_actions: ["yes", "no"],
-  });
 }

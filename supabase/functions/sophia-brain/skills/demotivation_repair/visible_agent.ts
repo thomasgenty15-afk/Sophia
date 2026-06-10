@@ -2,9 +2,11 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
+import {
+  VISIBLE_OUTPUT_STYLE_RULES,
+  visibleOutputStyleIssues,
+} from "../../router/response_style_policy.ts";
 import type {
-  DemotivationRepairLocalState,
-  DemotivationRepairPotionBridgeContext,
   DemotivationRepairVisibleTask,
   DemotivationRepairVisibleTaskKind,
 } from "./contract.ts";
@@ -13,28 +15,27 @@ export type DemotivationRepairVisibleAgentInput = {
   user_id: string;
   request_id?: string | null;
   stage: DemotivationRepairVisibleTaskKind;
-  user_message: string;
-  recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
-  local_state: DemotivationRepairLocalState | null;
   visible_task: DemotivationRepairVisibleTask;
-  potion_bridge_context?: DemotivationRepairPotionBridgeContext | null;
-  constraints: string[];
-  dispatcher_evidence: string[];
 };
 
 export type DemotivationRepairVisibleAgent = (
   input: DemotivationRepairVisibleAgentInput,
 ) => Promise<string | null>;
 
-function stagePrompt(stage: DemotivationRepairVisibleTaskKind): string {
+export function stagePrompt(stage: DemotivationRepairVisibleTaskKind): string {
   const common = [
     "Tu ecris le prochain message visible de Sophia dans demotivation_repair.",
     "Tu ne decides pas, tu ne routes pas, tu ne remplis pas les champs potion.",
-    "Tu ecris seulement depuis l'etat structure fourni par le dispatcher et le reducer.",
+    "Tu ecris seulement depuis visible_task.conversation_context.",
+    "Tu n'utilises pas l'etat local brut, la DB brute, la memoire brute ou les messages recents bruts.",
     "Retourne uniquement le message visible, sans Markdown technique.",
     "Ne promets aucun write DB, aucune creation, aucune activation, aucun rappel.",
+    "Si conversation_context.selected_candidate.potion est null, ne propose aucune potion.",
+    "Respecte strictement conversation_context.max_questions: si max_questions=0, ne pose aucune question, n'utilise pas de point d'interrogation, et ne demande pas au user de repondre.",
+    "Si max_questions=1, pose au maximum une seule question.",
     "Ne traite jamais la demotivation comme de la paresse.",
     "Ne dis jamais Potion rappel ni rappel comme nom visible de potion.",
+    VISIBLE_OUTPUT_STYLE_RULES,
   ];
   switch (stage) {
     case "diagnose":
@@ -83,6 +84,20 @@ function stagePrompt(stage: DemotivationRepairVisibleTaskKind): string {
         "Ne cree pas de carte et ne donne pas de confirmation executable.",
         "Demande consentement.",
       ].join("\n");
+    case "inline_tool_return":
+      return [
+        ...common,
+        "Stage: inline_tool_return.",
+        "Reponds sobrement au retour inline deja filtre dans conversation_context, puis preserve le fil demotivation_repair.",
+        "Ne change pas de flow et ne lance rien.",
+      ].join("\n");
+    case "apply_attempt":
+      return [
+        ...common,
+        "Stage: apply_attempt.",
+        "Explique que rien n'est applique depuis le chat et ramene au prochain pas local ou au handoff consenti si le contexte l'autorise.",
+        "Ne cree, n'active et ne modifie rien.",
+      ].join("\n");
     case "potion_bridge_offer":
       return [
         ...common,
@@ -130,39 +145,12 @@ function stagePrompt(stage: DemotivationRepairVisibleTaskKind): string {
   }
 }
 
-function guardVisibleMessage(message: string): string | null {
-  const normalized = message.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-  const forbidden = [
-    "potion rappel",
-    "c'est fait",
-    "c est fait",
-    "j'ai cree",
-    "j ai cree",
-    "j'ai active",
-    "j ai active",
-    "j'ai lance",
-    "j ai lance",
-    "j'ai programme",
-    "j ai programme",
-    "enregistre",
-  ];
-  if (forbidden.some((fragment) => normalized.includes(fragment))) {
-    return null;
-  }
-  return message;
-}
-
 export const runDemotivationRepairVisibleAgent: DemotivationRepairVisibleAgent =
   async (input) => {
     const userPrompt = JSON.stringify({
-      current_user_message: input.user_message,
-      recent_messages: input.recent_messages,
-      local_state: input.local_state,
-      visible_task: input.visible_task,
-      potion_bridge_context: input.potion_bridge_context ?? null,
-      constraints: input.constraints,
-      dispatcher_evidence: input.dispatcher_evidence,
+      task: "write_demotivation_repair_visible_message",
+      stage: input.stage,
+      conversation_context: input.visible_task.conversation_context,
     });
     try {
       const text = await generateWithGemini(
@@ -184,7 +172,9 @@ export const runDemotivationRepairVisibleAgent: DemotivationRepairVisibleAgent =
         },
       );
       const message = String(text ?? "").trim();
-      return message ? guardVisibleMessage(message) : null;
+      return message && visibleOutputStyleIssues(message).length === 0
+        ? message
+        : null;
     } catch (error) {
       console.warn("[DemotivationRepair] visible agent failed", {
         stage: input.stage,

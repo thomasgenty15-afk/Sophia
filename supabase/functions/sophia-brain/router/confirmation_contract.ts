@@ -24,7 +24,7 @@ export type ConfirmationDecision = {
   evidence: string[];
   reason_code: string;
   user_text_span?: string | null;
-  // Backward-compatible aliases while legacy tools are migrated.
+  // Derived booleans for callers that need explicit execution gates.
   applies_to_pending_effect: boolean;
   should_clear_pending?: boolean;
   should_execute?: boolean;

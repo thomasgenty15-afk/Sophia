@@ -308,7 +308,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - route_reason: `central_arbitrator_recap_request_priority`
-- selected_handler: `status_only_no_mutation_check`
+- selected_handler: `status_recap`
 - direct_effects: []
 - executed_tools: []
 - durable_effect: aucun; recap incomplet et preference annoncee non observee en DB
@@ -342,7 +342,7 @@
 **Routage**
 - Bon routage initial: `execution_breakdown` au tour 1, `prepare_attack_card` aux tours 2-3, `create_one_shot_reminder` au tour 6, `product_help` au tour 7.
 - Mauvaise persistance de mode: `prepare_attack_card` accroche le tour 4 malgre une demande de sequence immediate; `select_state_potion` accroche les tours 14-15 malgre des demandes de recap/contexte.
-- Le recap du tour 15 passe par `status_only_no_mutation_check`, mais ne repond pas a l'ensemble de l'intention utilisateur.
+- Le recap du tour 15 passe par `status_recap`, mais ne repond pas a l'ensemble de l'intention utilisateur.
 
 **Skills / Operations / Tools**
 - `prepare_attack_card`: effet durable cree, mais le contenu durable ne respecte pas la correction du tour 3. La trace DB montre `draft_review_decision=approve` avec `deterministic_explicit_attack_card_approval`, alors que le message contenait une modification de cible.
@@ -359,13 +359,13 @@
 - Tour 3: execution d'un ancien draft malgre correction dans le meme message de confirmation. Impact systeme: side effect durable faux. Severite: red.
 - Tour 8-9: `update_coach_preferences` echoue sans degrade conversationnel utile. Impact systeme: tool skill non fonctionnel pour preferences explicites simples. Severite: red.
 - Tour 14: `active_select_state_potion_kept_in_tool_skill` domine une demande explicite de recap/memoire. Impact systeme: priorite d'interruption insuffisante. Severite: red.
-- Tour 15: `status_only_no_mutation_check` hallucine/infere une preference non durable et omet le critere mail demande. Impact systeme: recap non fiable. Severite: red.
+- Tour 15: `status_recap` hallucine/infere une preference non durable et omet le critere mail demande. Impact systeme: recap non fiable. Severite: red.
 
 **Fix propose**
 - Dans `prepare_attack_card`, traiter les confirmations mixtes `oui, mais ...` comme `needs_revision`, sauf si la modification est non substantielle.
 - Dans l'arbitrator, ajouter des intents d'interruption: recap/status/context answer > active potion slot filling quand le user dit explicitement "sans creer", "pas besoin", "juste".
 - Corriger `update_coach_preferences` pour les preferences simples deja couvertes par les tests (`one concrete action before questions`) ou router ces demandes vers memoire/preference conversationnelle sans echec technique.
-- Dans `status_only_no_mutation_check`, ne pas annoncer de preference durable sans row DB ou trace de succes; restituer les criteres conversationnels recents depuis l'historique si aucune memoire durable n'existe.
+- Dans `status_recap`, ne pas annoncer de preference durable sans row DB ou trace de succes; restituer les criteres conversationnels recents depuis l'historique si aucune memoire durable n'existe.
 
 ## Verdict Global
 

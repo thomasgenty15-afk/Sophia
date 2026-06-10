@@ -42,7 +42,9 @@ function localStatus() {
       });
       const start = raw.indexOf("{");
       const end = raw.lastIndexOf("}");
-      return JSON.parse(start >= 0 && end >= start ? raw.slice(start, end + 1) : raw);
+      return JSON.parse(
+        start >= 0 && end >= start ? raw.slice(start, end + 1) : raw,
+      );
     } catch {
       // Try the next candidate.
     }
@@ -60,7 +62,10 @@ async function jsonFetch(url, options, timeoutMs = fetchTimeoutMs) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
     const text = await response.text();
     let body = null;
     try {
@@ -86,14 +91,17 @@ function assistantText(body) {
 async function restSelect(status, table, query) {
   const serviceRoleKey = status.SERVICE_ROLE_KEY || status.SECRET_KEY || "";
   if (!serviceRoleKey) return { skipped: "missing_service_role_key" };
-  const result = await jsonFetch(`${status.API_URL}/rest/v1/${table}?${query}`, {
-    method: "GET",
-    headers: {
-      apikey: serviceRoleKey,
-      authorization: `Bearer ${serviceRoleKey}`,
-      accept: "application/json",
+  const result = await jsonFetch(
+    `${status.API_URL}/rest/v1/${table}?${query}`,
+    {
+      method: "GET",
+      headers: {
+        apikey: serviceRoleKey,
+        authorization: `Bearer ${serviceRoleKey}`,
+        accept: "application/json",
+      },
     },
-  });
+  );
   return {
     status: result.response.status,
     ok: result.response.ok,
@@ -104,14 +112,17 @@ async function restSelect(status, table, query) {
 async function getUserJwt(status) {
   const anonKey = status.ANON_KEY;
   if (connection.refresh_token) {
-    const result = await jsonFetch(`${status.API_URL}/auth/v1/token?grant_type=refresh_token`, {
-      method: "POST",
-      headers: {
-        apikey: anonKey,
-        "content-type": "application/json",
+    const result = await jsonFetch(
+      `${status.API_URL}/auth/v1/token?grant_type=refresh_token`,
+      {
+        method: "POST",
+        headers: {
+          apikey: anonKey,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ refresh_token: connection.refresh_token }),
       },
-      body: JSON.stringify({ refresh_token: connection.refresh_token }),
-    });
+    );
     if (result.response.ok && result.body?.access_token) {
       return { jwt: result.body.access_token, auth_method: "refresh_token" };
     }
@@ -120,24 +131,34 @@ async function getUserJwt(status) {
   if (!connection.email || !connection.password) {
     throw new Error("connection has no valid refresh_token or email/password");
   }
-  const result = await jsonFetch(`${status.API_URL}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: {
-      apikey: anonKey,
-      "content-type": "application/json",
+  const result = await jsonFetch(
+    `${status.API_URL}/auth/v1/token?grant_type=password`,
+    {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        email: connection.email,
+        password: connection.password,
+      }),
     },
-    body: JSON.stringify({
-      email: connection.email,
-      password: connection.password,
-    }),
-  });
+  );
   if (!result.response.ok || !result.body?.access_token) {
     throw new Error(`password login failed: ${result.text}`);
   }
   return { jwt: result.body.access_token, auth_method: "password" };
 }
 
-const runDir = path.join(root, "tests", "real-personas", persona, "runs", "operations");
+const runDir = path.join(
+  root,
+  "tests",
+  "real-personas",
+  persona,
+  "runs",
+  "operations",
+);
 fs.mkdirSync(runDir, { recursive: true });
 
 const baseName = `${date}-demotivation-repair-${runId}`;
@@ -150,7 +171,9 @@ const existingSummary = readJsonArray(summaryPath);
 const history = [];
 for (const item of existingSummary.slice(-16)) {
   if (item.user) history.push({ role: "user", content: item.user });
-  if (item.assistant) history.push({ role: "assistant", content: item.assistant });
+  if (item.assistant) {
+    history.push({ role: "assistant", content: item.assistant });
+  }
 }
 
 const status = localStatus();
@@ -183,10 +206,12 @@ const result = await jsonFetch(`${status.FUNCTIONS_URL}/test-send-message`, {
 
 const body = result.body ?? {};
 const response = body.response ?? {};
-const trace = body.conversation_turn_trace ?? body.trace?.trace ?? body.trace ?? null;
+const trace = body.conversation_turn_trace ?? body.trace?.trace ?? body.trace ??
+  null;
 const routeDecision = trace?.route_decision ?? null;
 const turnFrame = trace?.turn_frame ?? null;
-const operationFlowRun = trace?.operation_flow_run ?? trace?.tool_skill_run ?? null;
+const operationFlowRun = trace?.operation_flow_run ?? trace?.tool_skill_run ??
+  null;
 const text = assistantText(body);
 
 const raw = readJsonArray(rawPath);
@@ -211,14 +236,13 @@ summary.push({
   aborted: body.aborted ?? response.aborted ?? false,
   abort_reason: body.abort_reason ?? response.abort_reason ?? null,
   empty_response: text.trim().length === 0,
-  response_owner: trace?.response_owner ?? routeDecision?.response_owner ?? null,
-  selected_handler:
-    operationFlowRun?.selected_handler ??
+  response_owner: trace?.response_owner ?? routeDecision?.response_owner ??
+    null,
+  selected_handler: operationFlowRun?.selected_handler ??
     routeDecision?.selected_handler ??
     routeDecision?.skill_choisi ??
     null,
-  route_reason:
-    routeDecision?.reason_code ??
+  route_reason: routeDecision?.reason_code ??
     routeDecision?.reason ??
     routeDecision?.route_reason ??
     null,
@@ -226,14 +250,14 @@ summary.push({
   turn_agenda_summary: trace?.turn_agenda_summary ?? null,
   effect_ledger: trace?.effect_ledger ?? null,
   direct_effects: trace?.direct_effects ?? turnFrame?.direct_effects ?? null,
-  pending_confirmation:
-    trace?.pending_tool_skill_confirmation ??
+  pending_confirmation: trace?.pending_tool_skill_confirmation ??
     turnFrame?.pending_tool_skill_confirmation ??
     null,
   memory_plan: trace?.memory_plan ?? null,
-  memory_write_candidates_emitted:
-    trace?.memory_write_candidates_emitted ?? null,
-  response_executed_tools: response.executed_tools ?? trace?.executed_tools ?? [],
+  memory_write_candidates_emitted: trace?.memory_write_candidates_emitted ??
+    null,
+  response_executed_tools: response.executed_tools ?? trace?.executed_tools ??
+    [],
   tool_execution: response.tool_execution ?? trace?.tool_execution ?? null,
   trace_id: trace?.turn_id ?? trace?.trace_id ?? requestId,
   trace_error: body.trace_error ?? null,
@@ -254,17 +278,19 @@ const durable = {
   memory_items_recent: await restSelect(
     status,
     "memory_items",
-    `user_id=eq.${userId}&select=id,kind,content,metadata,created_at&order=created_at.desc&limit=20`,
+    `user_id=eq.${userId}&select=*&limit=20`,
   ),
   scheduled_checkins_recent: await restSelect(
     status,
     "scheduled_checkins",
-    `user_id=eq.${userId}&select=id,status,type,event_context,message_payload,created_at,scheduled_for&order=created_at.desc&limit=20`,
+    `user_id=eq.${userId}&select=*&limit=20`,
   ),
   turn_summary_logs: await restSelect(
     status,
     "turn_summary_logs",
-    `user_id=eq.${userId}&request_id=like.${encodeURIComponent(`qa-demotivation-repair-${persona}-${date}-${runId}-%`)}&select=id,summary_type,payload,request_id,created_at&order=created_at.asc`,
+    `user_id=eq.${userId}&request_id=like.${
+      encodeURIComponent(`qa-demotivation-repair-${persona}-${date}-${runId}-%`)
+    }&select=*`,
   ),
 };
 fs.writeFileSync(durablePath, `${JSON.stringify(durable, null, 2)}\n`);
@@ -277,14 +303,13 @@ console.log(
       ok: body.ok ?? null,
       empty_response: text.trim().length === 0,
       aborted: body.aborted ?? response.aborted ?? false,
-      response_owner: trace?.response_owner ?? routeDecision?.response_owner ?? null,
-      selected_handler:
-        operationFlowRun?.selected_handler ??
+      response_owner: trace?.response_owner ?? routeDecision?.response_owner ??
+        null,
+      selected_handler: operationFlowRun?.selected_handler ??
         routeDecision?.selected_handler ??
         routeDecision?.skill_choisi ??
         null,
-      route_reason:
-        routeDecision?.reason_code ??
+      route_reason: routeDecision?.reason_code ??
         routeDecision?.reason ??
         routeDecision?.route_reason ??
         null,

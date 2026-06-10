@@ -1,91 +1,33 @@
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
-import type { PlanAdjustmentDraftV1 } from "../tools/operations/adjust_plan_item/generator.ts";
+import type { PlanAdjustmentDraftV1 } from "../tools/operations/adjust_plan_item/contract.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
 
 export function normalizePlanTargetText(text: unknown): string {
-  return String(text ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function normalizeRouteText(text: string): string {
-  return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
-}
-
-function significantPlanWords(text: string): string[] {
-  const stop = new Set([
-    "le",
-    "la",
-    "les",
-    "un",
-    "une",
-    "des",
-    "du",
-    "de",
-    "d",
-    "a",
-    "au",
-    "aux",
-    "pour",
-    "sur",
-    "dans",
-    "mon",
-    "ma",
-    "mes",
-    "ton",
-    "ta",
-    "tes",
-    "preparer",
-    "envoyer",
-    "faire",
-    "version",
-  ]);
-  return normalizePlanTargetText(text).split(/\s+/)
-    .filter((word) => word.length >= 4 && !stop.has(word));
+  const input = String(text ?? "").toLowerCase();
+  let out = "";
+  let previousSpace = true;
+  for (const char of input) {
+    const isAsciiLetter = char >= "a" && char <= "z";
+    const isDigit = char >= "0" && char <= "9";
+    if (isAsciiLetter || isDigit) {
+      out += char;
+      previousSpace = false;
+    } else if (!previousSpace) {
+      out += " ";
+      previousSpace = true;
+    }
+  }
+  return out.trim();
 }
 
 export function resolvePlanItemTargetFromText(
   text: unknown,
   planItems?: V2PlanItemSnapshotItem[] | null,
 ): V2PlanItemSnapshotItem | null {
-  const normalized = normalizePlanTargetText(text);
-  if (!normalized || !Array.isArray(planItems)) return null;
-  let best: { item: V2PlanItemSnapshotItem; score: number } | null = null;
-  for (const item of planItems) {
-    const title = normalizePlanTargetText(item?.title);
-    const description = normalizePlanTargetText((item as any)?.description);
-    if (!title) continue;
-    if (normalized.includes(title)) return item;
-    if (
-      description && description.includes(normalized) && normalized.length >= 4
-    ) {
-      return item;
-    }
-    const words = significantPlanWords(item.title);
-    const descriptionWords = significantPlanWords(
-      String((item as any)?.description ?? ""),
-    ).slice(0, 12);
-    const allWords = [...new Set([...words, ...descriptionWords])];
-    const hits = allWords.filter((word) =>
-      normalized.includes(word) || normalized === word
-    )
-      .length;
-    const score = allWords.length > 0 ? hits / allWords.length : 0;
-    if (hits >= 2 && score >= 0.45 && (!best || score > best.score)) {
-      best = { item, score };
-    }
-    if (
-      hits >= 1 && normalized.split(/\s+/).length <= 3 &&
-      (!best || score > best.score)
-    ) {
-      best = { item, score: Math.max(score, 0.5) };
-    }
-  }
-  return best?.item ?? null;
+  void text;
+  void planItems;
+  return null;
 }
 
 export function resolvePlanItemTargetFromToolSkillIntent(
@@ -190,7 +132,11 @@ export function planItemTitleFromAdjustmentDraft(
   const scopeLabel = String((draft as any)?.draft?.scope_label ?? "").trim();
   if (scopeLabel) return scopeLabel;
   const rawTitle = String((draft as any)?.draft?.title ?? "").trim();
-  return rawTitle.replace(/^Ajustement\s*-\s*/i, "").trim() || null;
+  const lower = rawTitle.toLowerCase();
+  if (lower.startsWith("ajustement -")) {
+    return rawTitle.slice("ajustement -".length).trim() || null;
+  }
+  return rawTitle || null;
 }
 
 export function compactListText(values: unknown, fallback: string): string {
@@ -299,19 +245,15 @@ export function buildActivePlanSnapshotAddon(args: {
     item.source_kind !== "operation_bridge"
   );
   if (items.length === 0) return null;
-  const normalized = normalizeRouteText(args.userMessage);
-  const likelyPlanContentQuestion =
-    /\b(plans?|actions?|cette semaine|quoi faire|faire quoi|censee|cense|supposee|suppose|tous les jours|chaque jour|quotidien|ponctuel|ponctuelle|combien de fois|frequence|frequence|nettoyer|environnement|missions?|habitudes?)\b/
-      .test(normalized);
+  const shortSnapshot = buildShortActivePlanSnapshotAddon(items);
   const routeSuggestsPlanContext = [
     args.routeDecision?.response_owner,
     args.routeDecision?.selected_handler,
-    args.routeDecision?.reason_code,
   ].some((value) =>
-    /\b(plan|action|mission|habit)\b/.test(normalizePlanTargetText(value))
+    value === "adjust_plan_item" || value === "track_progress_plan_item"
   );
-  const shortSnapshot = buildShortActivePlanSnapshotAddon(items);
-  if (!likelyPlanContentQuestion && !routeSuggestsPlanContext) {
+  if (!routeSuggestsPlanContext) {
+    void args.userMessage;
     return shortSnapshot;
   }
 

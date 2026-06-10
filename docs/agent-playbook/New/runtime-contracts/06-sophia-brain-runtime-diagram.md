@@ -18,7 +18,7 @@ flowchart TD
   ROUTERS --> HARB["Handoff Arbitration\ncontinue / interrupt / clarify"]
   HARB --> CLARIFY["clarification_tool\nquestion or resolve"]
   CLARIFY --> SNAP["UserTurnSnapshot\ncurrent turn truth"]
-  SNAP --> AGENDA["TurnAgenda\nreply/effect/handoff/clarification/status tasks"]
+  SNAP --> AGENDA["local reducer contract\nreply/effect/handoff/clarification/status tasks"]
   AGENDA --> CONF["Confirmation Contract\napprove/reject/revise/explain/status"]
 
   CONF --> OPPIPE["Operation Runtime Pipeline"]
@@ -53,7 +53,7 @@ flowchart LR
   LEDGER["EffectLedger\nexecution timeline"] --> FINAL["Final response guard"]
   LEDGER --> STATUS
 
-  SNAP["UserTurnSnapshot\nstate of this turn"] --> AGENDA["TurnAgenda\nrequested tasks"]
+  SNAP["UserTurnSnapshot\nstate of this turn"] --> AGENDA["local reducer contract\nrequested tasks"]
   AGENDA --> TOOLS
   AGENDA --> HANDOFFS["Platform handoffs\nnon-mutating"]
   AGENDA --> CONV["Conversation skills"]
@@ -74,7 +74,7 @@ Règles :
 - DB métier = vérité d'état actuel.
 - EffectLedger = vérité d'exécution observée.
 - UserTurnSnapshot = vérité du tour courant.
-- TurnAgenda = vérité des tâches demandées par le tour.
+- local reducer contract = vérité des tâches demandées par le tour.
 - Confirmation Contract = vérité de ce que le user vient d'approuver, refuser,
   modifier, demander en preview/status ou rendre ambigu.
 - Product Surface Registry = vérité des destinations de handoff.
@@ -91,7 +91,7 @@ flowchart TB
     DISP["dispatcher\nTurnFrame"]
     ROUTE["routers/arbitrators\nowner selection"]
     SNAP["UserTurnSnapshot"]
-    AGENDA["TurnAgenda"]
+    AGENDA["local reducer contract"]
     CONF["Confirmation Contract"]
     LEDGER["EffectLedger"]
     HARB["handoff_flow_arbitration"]
@@ -269,7 +269,7 @@ rappel, product help, préférence coach ou handoff produit ne doit s'exécuter 
 - Doctrine : `00-architecture-doctrine.md`
 - Runtime global : `01-global-runtime.md`
 - `run.ts` mince : `02-run-thin-orchestrator.md`
-- Snapshot/agenda : `03-user-turn-snapshot-agenda.md`
+- Snapshot de tour : `03-user-turn-snapshot.md`
 - Confirmation : `04-confirmation-contract.md`
 - EffectLedger : `05-effect-ledger.md`
 - Active handoff arbitration : `07-active-handoff-arbitration.md`
@@ -281,5 +281,5 @@ rappel, product help, préférence coach ou handoff produit ne doit s'exécuter 
 | Date | Décision | Statut | Référence |
 | --- | --- | --- | --- |
 | 2026-05-30 | Ajouter une carte système détaillée des instances Sophia Brain dans `runtime-contracts`. | Active | J59 |
-| 2026-05-30 | Séparer les vérités DB, EffectLedger, TurnAgenda, Confirmation Contract et Memory. | Active | `00-architecture-doctrine.md` |
+| 2026-05-30 | Séparer les vérités DB, EffectLedger, local reducer contract, Confirmation Contract et Memory. | Active | `00-architecture-doctrine.md` |
 | 2026-06-01 | Ajouter la vue `platform_handoff_skill` : complex tools no-mutation, Product Surface Registry et active handoff arbitration. | Active | Architecture handoff V1 |

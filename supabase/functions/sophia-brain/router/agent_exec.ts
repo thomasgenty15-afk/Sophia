@@ -7,7 +7,6 @@ import { updateUserState } from "../state-manager.ts";
 import { runSentry, type SentryFlowContext } from "../agents/sentry.ts";
 import { getActiveSafetySentryFlow } from "../supervisor.ts";
 import { runCompanion } from "../agents/companion.ts";
-import { runRoadmapReview } from "../agents/roadmap_review.ts";
 import {
   buildToolAckContract,
   type ToolAckContract,
@@ -155,7 +154,10 @@ export async function runAgentAndVerify(opts: {
     case "sentry": {
       try {
         const flowContext = toSentryContext(tempMemory);
-        responseContent = await runSentry(userMessage, { ...(meta ?? {}), model: sophiaChatModel }, flowContext);
+        responseContent = await runSentry(userMessage, {
+          ...(meta ?? {}),
+          model: sophiaChatModel,
+        }, flowContext);
         nextMode = "sentry";
       } catch (e) {
         console.error("[Router] sentry failed:", e);
@@ -163,61 +165,9 @@ export async function runAgentAndVerify(opts: {
         nextMode = "companion";
         outageFallback = true;
         outageFailedMode = "sentry";
-        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown")
+          .slice(0, 240);
       }
-      break;
-    }
-
-    case "roadmap_review": {
-      try {
-        const roadmapMeta = (opts as any)?.roadmapContext ?? null;
-        if (roadmapMeta?.cycleId) {
-          const out = await runRoadmapReview(
-            supabase,
-            userId,
-            userMessage,
-            history,
-            context,
-            {
-              cycleId: roadmapMeta.cycleId,
-              transformations: roadmapMeta.transformations ?? [],
-              isFirstOnboarding: roadmapMeta.isFirstOnboarding ?? true,
-              previousTransformation: roadmapMeta.previousTransformation ?? null,
-            },
-            { ...(meta ?? {}), model: sophiaChatModel },
-          );
-          responseContent = out.text;
-          executedTools = out.executed_tools ?? [];
-          toolExecution = out.tool_execution === "success"
-            ? "success"
-            : out.tool_execution === "error"
-              ? "failed"
-              : "none";
-        } else {
-          console.warn("[Router] roadmap_review: no cycleId in context, falling back to companion");
-          const out = await runCompanion(
-            supabase,
-            userId,
-            scope,
-            userMessage,
-            history,
-            state,
-            context,
-            { ...(meta ?? {}), model: sophiaChatModel },
-          );
-          responseContent = out.text;
-          executedTools = out.executed_tools ?? [];
-          toolExecution = out.tool_execution ?? "none";
-          nextMode = "companion";
-        }
-      } catch (e) {
-        console.error("[Router] roadmap_review failed:", e);
-        responseContent = outageTemplate;
-        outageFallback = true;
-        outageFailedMode = "roadmap_review";
-        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
-      }
-      if (nextMode !== "companion") nextMode = "roadmap_review";
       break;
     }
 
@@ -244,7 +194,8 @@ export async function runAgentAndVerify(opts: {
         responseContent = outageTemplate;
         outageFallback = true;
         outageFailedMode = "companion";
-        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown")
+          .slice(0, 240);
       }
       nextMode = "companion";
       break;
@@ -253,7 +204,10 @@ export async function runAgentAndVerify(opts: {
 
   // During post-checkup assistant turns, enforce phrasing consistency.
   if (isPostCheckup && responseContent) {
-    responseContent = responseContent.replace(/\bbilan\s+d['’]hier\b/gi, "bilan du jour");
+    responseContent = responseContent.replace(
+      /\bbilan\s+d['’]hier\b/gi,
+      "bilan du jour",
+    );
   }
 
   return {

@@ -15,39 +15,27 @@ import {
   setActiveSkillStateRepositoryForTest,
 } from "./_shared/active_skill_state.ts";
 import type { LoadSkillContextInput } from "./_shared/context.ts";
-import { loadDemotivationRepairContext } from "./demotivation_repair/context_loader.ts";
-import type {
-  DemotivationRepairDecision,
-  DemotivationRepairMotivationState,
-} from "./demotivation_repair/contract.ts";
-import {
-  type DemotivationRepairStructuredIntakeInput,
-  setDemotivationRepairIntakeRunnerForTest,
-} from "./demotivation_repair/intake.ts";
-import { DEMOTIVATION_REPAIR_PROMPT } from "./demotivation_repair/prompt.ts";
-import { runDemotivationRepairSkill } from "./demotivation_repair/skill.ts";
 import { loadEmotionalRepairContext } from "./emotional_repair/context_loader.ts";
-import type { EmotionalRepairSkillDecision } from "./emotional_repair/contract.ts";
-import { EMOTIONAL_REPAIR_PROMPT } from "./emotional_repair/prompt.ts";
 import { runEmotionalRepairSkill } from "./emotional_repair/skill.ts";
 import { loadProductHelpContext } from "./product_help/context_loader.ts";
-import { baseProductHelpDecision } from "./product_help/contract.ts";
-import {
-  legacyProductHelpHeuristicIntake,
-  type ProductHelpStructuredIntakeInput,
-} from "./product_help/intake.ts";
-import { PRODUCT_HELP_PROMPT } from "./product_help/prompt.ts";
 import {
   getProductHelpFeature,
   retrieveProductHelpCandidates,
 } from "./product_help/retrieval.ts";
 import {
+  normalizeProductHelpLocalDispatcherOutput,
+  type ProductHelpLocalDispatcher,
+} from "./product_help/local_flow.ts";
+import {
   runProductHelpSkill as runProductHelpSkillImpl,
 } from "./product_help/skill.ts";
 import { loadSafetyCrisisContext } from "./safety_crisis/context_loader.ts";
-import { setSafetyCrisisIntakeRunnerForTest } from "./safety_crisis/intake.ts";
-import { SAFETY_CRISIS_PROMPT } from "./safety_crisis/prompt.ts";
+import {
+  normalizeSafetyCrisisLocalDispatcherOutput,
+  setSafetyCrisisLocalDispatcherForTest,
+} from "./safety_crisis/local_dispatcher.ts";
 import { runSafetyCrisisSkill } from "./safety_crisis/skill.ts";
+import { setSafetyCrisisVisibleAgentForTest } from "./safety_crisis/visible_agent.ts";
 
 function turnFrame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {
@@ -58,20 +46,6 @@ function turnFrame(patch: Partial<TurnFrame> = {}): TurnFrame {
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -128,102 +102,266 @@ function contextInput(patch: Partial<LoadSkillContextInput> = {}) {
 async function runProductHelpSkill(
   input: Parameters<typeof runProductHelpSkillImpl>[0],
 ) {
+  const dispatcher = input.local_dispatcher ??
+    (async () =>
+      normalizeProductHelpLocalDispatcherOutput({
+        flow_action: "answer_product_question",
+        confidence: "high",
+        risk_score: 0,
+        mode: "standalone",
+        product_help_intent: {
+          kind: "explain_feature",
+          summary: "test product help answer",
+        },
+        target: {
+          kind: "feature_catalog",
+          feature_id: "resources.potions",
+          object_type: "potion",
+          object_ref: null,
+          confidence: "high",
+        },
+        grounding: {
+          catalog_feature_ids: ["resources.potions"],
+          surface_ids: [],
+          db_sources_required: false,
+          db_sources_used: ["resources.potions"],
+          active_flow_used: false,
+          missing_grounding_reason: null,
+        },
+        bridge: {
+          needed: false,
+          operation_type: null,
+          kind: null,
+          executable: false,
+          why: null,
+        },
+        state_updates: {
+          status: "closing",
+          stage: "answering",
+          turn_count_increment: 1,
+          close_after_visible: true,
+          preserve_parent_flow: true,
+        },
+        visible_task: {
+          kind: "answer_product_question",
+          instruction: "test answer",
+          conversation_context: {
+            state_summary: "test product help answer",
+            user_words: [input.user_message],
+            field_or_stage: "answering",
+            known_values: {},
+            missing_or_weak_values: [],
+            selected_candidate: {},
+            handoff_data: {},
+            tone_constraints: [],
+            do_not_say: [],
+            context_summary: null,
+            evidence_used: ["test"],
+          },
+        },
+        return_to_parent: {
+          needed: false,
+          parent_skill_id: null,
+          return_summary: null,
+          preserve_parent_state: true,
+        },
+        exit_memo: {
+          needed: false,
+          reason: "none",
+          user_intent_summary: null,
+          local_flow_context: {
+            skill_id: "product_help",
+            mode: "standalone",
+            stage: null,
+            last_answer_summary: null,
+            parent_skill_id: null,
+            committed_effects: [],
+          },
+          handoff_hint_for_global_dispatcher: {
+            likely_intent: "unknown",
+            why: null,
+            constraints: [],
+          },
+        },
+        evidence: ["test"],
+      }));
   return await runProductHelpSkillImpl({
     ...input,
-    intake_model: input.intake_model ??
-      ((structured: ProductHelpStructuredIntakeInput) =>
-        legacyProductHelpHeuristicIntake(structured)),
+    local_dispatcher: dispatcher,
+    visible_agent: input.visible_agent ??
+      (async () => "Réponse produit de test."),
   });
 }
 
-function productHelpDecision(
-  patch: Parameters<typeof baseProductHelpDecision>[0] = {},
+function productHelpLocalDispatcher(
+  patch: Record<string, unknown> = {},
+): ProductHelpLocalDispatcher {
+  return async (input) =>
+    normalizeProductHelpLocalDispatcherOutput({
+      flow_action: patch.flow_action ?? "answer_product_question",
+      confidence: patch.confidence ?? "high",
+      risk_score: patch.risk_score ?? 0,
+      mode: input.mode,
+      product_help_intent: {
+        kind: patch.intent_kind ?? "explain_feature",
+        summary: patch.summary ?? "test product help answer",
+      },
+      target: {
+        kind: patch.target_kind ?? "feature_catalog",
+        feature_id: patch.feature_id ?? "resources.potions",
+        object_type: patch.object_type ?? "potion",
+        object_ref: patch.object_ref ?? null,
+        confidence: patch.target_confidence ?? "high",
+      },
+      grounding: {
+        catalog_feature_ids: patch.catalog_feature_ids ??
+          [patch.feature_id ?? "resources.potions"],
+        surface_ids: patch.surface_ids ?? [],
+        db_sources_required: patch.db_sources_required ?? false,
+        db_sources_used: patch.db_sources_used ??
+          [patch.feature_id ?? "resources.potions"],
+        active_flow_used: patch.active_flow_used ?? false,
+        missing_grounding_reason: patch.missing_grounding_reason ?? null,
+      },
+      bridge: {
+        needed: patch.bridge_needed ?? false,
+        operation_type: patch.bridge_operation_type ?? null,
+        kind: patch.bridge_kind ?? null,
+        executable: false,
+        why: patch.bridge_why ?? null,
+      },
+      state_updates: {
+        status: patch.status ?? "closing",
+        stage: patch.stage ?? "answering",
+        turn_count_increment: 1,
+        close_after_visible: patch.close_after_visible ?? true,
+        preserve_parent_flow: patch.preserve_parent_flow ?? true,
+      },
+      visible_task: {
+        kind: patch.visible_task_kind ?? "answer_product_question",
+        instruction: patch.instruction ?? "test answer",
+        conversation_context: {
+          state_summary: patch.state_summary ?? "test product help answer",
+          user_words: [input.user_message],
+          field_or_stage: patch.field_or_stage ?? "answering",
+          known_values: patch.known_values ?? {},
+          missing_or_weak_values: patch.missing_or_weak_values ?? [],
+          selected_candidate: patch.selected_candidate ?? {},
+          handoff_data: patch.handoff_data ?? {},
+          tone_constraints: patch.tone_constraints ?? [],
+          do_not_say: patch.do_not_say ?? [],
+          context_summary: patch.context_summary ?? null,
+          evidence_used: patch.evidence_used ?? ["test"],
+        },
+      },
+      return_to_parent: {
+        needed: false,
+        parent_skill_id: null,
+        return_summary: null,
+        preserve_parent_state: true,
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        user_intent_summary: null,
+        local_flow_context: {
+          skill_id: "product_help",
+          mode: input.mode,
+          stage: null,
+          last_answer_summary: null,
+          parent_skill_id: null,
+          committed_effects: [],
+        },
+        handoff_hint_for_global_dispatcher: {
+          likely_intent: "unknown",
+          why: null,
+          constraints: [],
+        },
+      },
+      note_information: null,
+      evidence: ["test"],
+    });
+}
+
+type SafetyDispatcherStubResult = {
+  ok: boolean;
+  signals?: Record<string, unknown>;
+  paraphrase?: string | null;
+  reason?: string | null;
+};
+
+function setSafetyCrisisLocalDispatcherRunnerForTest(
+  runner:
+    | (() => SafetyDispatcherStubResult | Promise<SafetyDispatcherStubResult>)
+    | null,
 ) {
-  return baseProductHelpDecision({
-    intent: "explain_feature",
-    target: {
-      kind: "feature_catalog",
-      feature_id: "resources.potions",
-      confidence_band: "high",
-    },
-    grounding: {
-      catalog_feature_ids: ["resources.potions"],
-      db_sources_required: false,
-      db_sources_used: [{
-        source_type: "catalog",
-        id: "resources.potions",
-        label: "Potions",
-      }],
-    },
-    response_contract: {
-      max_questions: 0,
-      allow_operation_suggestion: false,
-      allow_status_projection: false,
-      allow_generic_catalog_answer: true,
-      must_include_location: false,
-      must_include_limit: false,
-    },
-    ...patch,
+  if (!runner) {
+    setSafetyCrisisLocalDispatcherForTest(null);
+    setSafetyCrisisVisibleAgentForTest(null);
+    return;
+  }
+  setSafetyCrisisLocalDispatcherForTest(async () => {
+    try {
+      const result = await runner();
+      if (!result.ok) return null;
+      return normalizeSafetyCrisisLocalDispatcherOutput({
+        flow_action: "answer_safety_check",
+        confidence: "high",
+        risk_score: 5,
+        safety_signals: {
+          uncertainty: "high",
+          ...(result.signals ?? {}),
+        },
+        user_state_summary: {
+          paraphrase: result.paraphrase ?? null,
+          current_need: "unclear",
+          what_changed_since_previous_turn: null,
+        },
+        product_tool_boundary: {
+          attempted: false,
+          attempt_kind: "none",
+          defer_reason: null,
+        },
+        exit_request: {
+          requested: false,
+          why_user_thinks_safe: null,
+          missing_resolution_facts: [],
+        },
+        state_hints: {
+          suggested_trigger_summary: null,
+          suggested_last_user_safety_signal: null,
+        },
+        no_tooling: {
+          product_help_called: false,
+          status_recap_called: false,
+          tool_skill_called: false,
+          operation_suggestion_created: false,
+          pending_confirmation_created: false,
+          db_write_committed: false,
+        },
+        evidence: [result.reason ?? "skills_s3_test_stub"],
+      });
+    } catch {
+      return null;
+    }
+  });
+  setSafetyCrisisVisibleAgentForTest(async (input) => {
+    const resources = input.visible_task.conversation_context.safety_resources;
+    if (resources.must_include_emergency_numbers) {
+      return `Appelle le ${resources.emergency_numbers} maintenant. Pour les idees suicidaires, le ${resources.suicide_prevention_number} peut aussi aider.`;
+    }
+    if (input.visible_task.kind === "resolved_exit") {
+      return "L'immediat est stabilise, sans relancer de sujet produit.";
+    }
+    return "Je reste avec toi sur la securite immediate.";
   });
 }
 
-function installEmptySafetyIntakeStub() {
-  setSafetyCrisisIntakeRunnerForTest(() => ({
+function installEmptySafetyDispatcherStub() {
+  setSafetyCrisisLocalDispatcherRunnerForTest(() => ({
     ok: true,
     signals: { uncertainty: "high" },
   }));
-}
-
-function demotivationDecision(
-  patch: Partial<DemotivationRepairDecision> = {},
-): DemotivationRepairDecision {
-  return {
-    skill_id: "demotivation_repair",
-    intent: "unclear",
-    phase: "diagnose",
-    motivation_state: "unclear",
-    action_readiness: "none",
-    constraints: [
-      "do_not_moralize",
-      "do_not_modify_plan_yet",
-      "prefer_smallest_action",
-      "one_question_max",
-    ],
-    response_contract: {
-      max_questions: 1,
-      allow_plan_edit: false,
-      allow_tool_suggestion: false,
-      allow_potion_suggestion: false,
-      allow_attack_card_suggestion: false,
-      allow_concrete_action: true,
-      tone: "energy_preserving",
-    },
-    operation_suggestions: [],
-    memory_write_candidates: [],
-    reply:
-      "Je ne transforme pas ce decrochage en verdict sur toi. On garde juste le prochain appui minuscule.",
-    state_patch: { summary: "Structured demotivation repair decision." },
-    ...patch,
-  };
-}
-
-async function withDemotivationDecision(
-  decision: DemotivationRepairDecision,
-  userMessage: string,
-) {
-  const context = await loadDemotivationRepairContext(contextInput());
-  setDemotivationRepairIntakeRunnerForTest(() => ({
-    ok: true,
-    decision,
-  }));
-  try {
-    return await runDemotivationRepairSkill({
-      user_message: userMessage,
-      context,
-    });
-  } finally {
-    setDemotivationRepairIntakeRunnerForTest(null);
-  }
 }
 
 Deno.test("active skill state supports create, patch, handoff and clear", async () => {
@@ -247,7 +385,7 @@ Deno.test("active skill state supports create, patch, handoff and clear", async 
 });
 
 Deno.test("safety_crisis handles varied safety scenarios without product push", async () => {
-  installEmptySafetyIntakeStub();
+  installEmptySafetyDispatcherStub();
   const context = await loadSafetyCrisisContext(contextInput({
     turn_frame: turnFrame({
       safety: { risk_band: "critical", reason_codes: [], evidence: [] },
@@ -272,7 +410,7 @@ Deno.test("safety_crisis handles varied safety scenarios without product push", 
 });
 
 Deno.test("safety_crisis owns phased safety state and exits only after deescalation", async () => {
-  installEmptySafetyIntakeStub();
+  installEmptySafetyDispatcherStub();
   const criticalContext = await loadSafetyCrisisContext(contextInput({
     turn_frame: turnFrame({
       safety: { risk_band: "critical", reason_codes: [], evidence: [] },
@@ -319,7 +457,7 @@ Deno.test("safety_crisis owns phased safety state and exits only after deescalat
 });
 
 Deno.test("safety_crisis deescalates when means are away and human support is present", async () => {
-  installEmptySafetyIntakeStub();
+  installEmptySafetyDispatcherStub();
   const criticalContext = await loadSafetyCrisisContext(contextInput({
     turn_frame: turnFrame({
       safety: { risk_band: "critical", reason_codes: [], evidence: [] },
@@ -651,7 +789,7 @@ Deno.test("safety_crisis deescalates when means are away and human support is pr
 });
 
 Deno.test("safety_crisis L5 contract keeps conservative safety invariants", async () => {
-  installEmptySafetyIntakeStub();
+  installEmptySafetyDispatcherStub();
   const criticalContext = await loadSafetyCrisisContext(contextInput({
     turn_frame: turnFrame({
       safety: { risk_band: "critical", reason_codes: [], evidence: [] },
@@ -812,7 +950,7 @@ Deno.test("safety_crisis L5 contract keeps conservative safety invariants", asyn
   );
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => {
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => {
       throw new Error("stub_intake_failed");
     });
     const conservativeFailure = await runSafetyCrisisSkill({
@@ -821,11 +959,11 @@ Deno.test("safety_crisis L5 contract keeps conservative safety invariants", asyn
     });
     assertEquals(conservativeFailure.state_patch?.phase, "acute_grounding");
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => ({
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => ({
       ok: true,
       signals: {
         immediate_danger: false,
@@ -841,11 +979,11 @@ Deno.test("safety_crisis L5 contract keeps conservative safety invariants", asyn
     assertEquals(conservativeOverride.state_patch?.phase, "acute_grounding");
     assertEquals(conservativeOverride.state_patch?.has_means_nearby, true);
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 });
 
-Deno.test("safety_crisis structured intake finalization cases", async () => {
+Deno.test("safety_crisis local dispatcher finalization cases", async () => {
   const mediumContext = await loadSafetyCrisisContext(contextInput({
     turn_frame: turnFrame({
       safety: {
@@ -857,7 +995,7 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
   }));
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => ({
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => ({
       ok: true,
       signals: {
         suicidal_ideation: true,
@@ -873,13 +1011,16 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
     });
     assertEquals(paraphraseRisk.state_patch?.phase, "acute_grounding");
     assertEquals(paraphraseRisk.status, "continue");
-    assertEquals((paraphraseRisk.diagnosis as any)?.intake_ok, true);
+    assertEquals(
+      (paraphraseRisk.diagnosis as any)?.local_dispatcher_result_ok,
+      true,
+    );
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => ({
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => ({
       ok: true,
       signals: {
         immediate_danger: false,
@@ -899,11 +1040,11 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
     assertEquals(firstSafeTurn.state_patch?.phase, "exit_check");
     assertEquals(firstSafeTurn.status, "continue");
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => ({
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => ({
       ok: true,
       signals: {
         immediate_danger: false,
@@ -949,11 +1090,11 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
     assertEquals(cannotResolveDirectly.state_patch?.phase, "exit_check");
     assertEquals(cannotResolveDirectly.status, "continue");
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => ({
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => ({
       ok: true,
       signals: {
         immediate_danger: false,
@@ -995,11 +1136,11 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
     assertEquals(highSourceBlocked.state_patch?.phase, "exit_check");
     assertEquals(highSourceBlocked.status, "continue");
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => ({
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => ({
       ok: true,
       signals: {
         immediate_danger: false,
@@ -1022,21 +1163,24 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
       true,
     );
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 
   try {
-    setSafetyCrisisIntakeRunnerForTest(() => {
+    setSafetyCrisisLocalDispatcherRunnerForTest(() => {
       throw new Error("intake_failed_for_test");
     });
-    const failedIntake = await runSafetyCrisisSkill({
+    const failedDispatcher = await runSafetyCrisisSkill({
       user_message: "je ne vais pas bien",
       context: mediumContext,
     });
-    assertEquals(failedIntake.state_patch?.phase !== "resolved", true);
-    assertEquals((failedIntake.diagnosis as any)?.intake_ok, false);
+    assertEquals(failedDispatcher.state_patch?.phase !== "resolved", true);
+    assertEquals(
+      (failedDispatcher.diagnosis as any)?.local_dispatcher_result_ok,
+      false,
+    );
   } finally {
-    setSafetyCrisisIntakeRunnerForTest(null);
+    setSafetyCrisisLocalDispatcherRunnerForTest(null);
   }
 
   const criticalContext = await loadSafetyCrisisContext(contextInput({
@@ -1044,7 +1188,7 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
       safety: { risk_band: "critical", reason_codes: [], evidence: [] },
     }),
   }));
-  installEmptySafetyIntakeStub();
+  installEmptySafetyDispatcherStub();
   const criticalReply = await runSafetyCrisisSkill({
     user_message: "je ne suis pas en securite et je suis seul",
     context: criticalContext,
@@ -1057,1152 +1201,7 @@ Deno.test("safety_crisis structured intake finalization cases", async () => {
     ),
     false,
   );
-  setSafetyCrisisIntakeRunnerForTest(null);
-
-  assertEquals(/emoji/i.test(SAFETY_CRISIS_PROMPT), false);
-  assertStringIncludes(SAFETY_CRISIS_PROMPT, "JSON strict");
-});
-
-function emotionalDecision(
-  patch: Partial<EmotionalRepairSkillDecision>,
-): EmotionalRepairSkillDecision {
-  return {
-    skill_id: "emotional_repair",
-    intent: "acute_self_attack",
-    phase: "de_shame",
-    emotional_dominance: "high",
-    context_domain: "unknown",
-    constraints: ["no_plan", "do_not_persist_identity_attack"],
-    response_contract: {
-      max_questions: 0,
-      allow_plan: false,
-      allow_tool_suggestion: false,
-      allow_potion_suggestion: false,
-      allow_concrete_action: false,
-      tone: "soft",
-    },
-    memory_write_candidates: [
-      {
-        source_text: "identity attack in current turn",
-        should_persist_default: false,
-        anti_identity_freeze_checked: true,
-        sensitivity_level: 3,
-        reason: "acute self-attack must not be frozen as identity",
-      },
-    ],
-    reply:
-      "Là, ce n'est pas une information fiable sur toi; c'est une attaque qui parle depuis la honte.",
-    state_patch: { summary: "Identity attack separated from fact." },
-    ...patch,
-  };
-}
-
-Deno.test("emotional_repair scenarios produce safe memory candidates and handoff when ready", async () => {
-  const context = await loadEmotionalRepairContext(contextInput());
-  const scenarios: Array<[string, EmotionalRepairSkillDecision]> = [
-    ["je suis nul", emotionalDecision({ intent: "acute_self_attack" })],
-    [
-      "j'ai honte d'avoir rate",
-      emotionalDecision({ intent: "shame_or_guilt" }),
-    ],
-    ["je culpabilise", emotionalDecision({ intent: "shame_or_guilt" })],
-    ["je suis angoisse", emotionalDecision({ intent: "anxiety_or_panic" })],
-    [
-      "ca va mieux mais j'arrive pas a faire ma marche",
-      emotionalDecision({
-        intent: "emotion_lowered_action_blocked",
-        phase: "action_card_ready",
-        emotional_dominance: "low",
-        context_domain: "plan_execution",
-        constraints: [],
-        response_contract: {
-          max_questions: 0,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: false,
-          allow_concrete_action: true,
-          tone: "grounded",
-        },
-        operation_suggestions: [{
-          operation_type: "prepare_attack_card",
-          reason: "emotion_lowered_action_remains_blocked",
-          requires_user_consent: true,
-        }],
-        memory_write_candidates: [],
-        reply:
-          "Ok, l'émotion est descendue; on peut passer au blocage concret de la marche.",
-      }),
-    ],
-  ];
-  for (const [message, decision] of scenarios) {
-    const output = await runEmotionalRepairSkill({
-      user_message: message,
-      context,
-      intake_model: () => decision,
-    });
-    assertEquals(output.skill_id, "emotional_repair");
-    if (output.memory_write_candidates?.[0]) {
-      assertEquals(
-        output.memory_write_candidates[0].anti_identity_freeze_checked,
-        true,
-      );
-      assertEquals(
-        output.memory_write_candidates[0].should_persist_default,
-        false,
-      );
-    }
-  }
-  const actionSuggestion = await runEmotionalRepairSkill({
-    user_message: scenarios[4][0],
-    context,
-    intake_model: () => scenarios[4][1],
-  });
-  assertEquals(actionSuggestion.status, "continue");
-  assertEquals(
-    actionSuggestion.operation_suggestions?.[0]?.operation_type,
-    "prepare_attack_card",
-  );
-
-  const softenedDecision = emotionalDecision({
-    intent: "action_card_ready",
-    phase: "action_card_ready",
-    emotional_dominance: "low",
-    context_domain: "relationship",
-    constraints: ["relationship_context"],
-    response_contract: {
-      max_questions: 0,
-      allow_plan: false,
-      allow_tool_suggestion: false,
-      allow_potion_suggestion: false,
-      allow_concrete_action: true,
-      tone: "grounded",
-    },
-    memory_write_candidates: [],
-    reply:
-      "Oui, on peut maintenant se concentrer sur la ligne à envoyer, sans revenir au verdict sur toi.",
-  });
-  const softenedConcreteAsk = await runEmotionalRepairSkill({
-    user_message:
-      "la phrase pas incapable m'aide un peu, je peux peut-etre envoyer une ligne",
-    context,
-    intake_model: () => softenedDecision,
-  });
-  assertEquals(softenedConcreteAsk.status, "continue");
-});
-
-Deno.test("emotional_repair contract covers no-potion, relation repair, recurring support and safety", async () => {
-  const context = await loadEmotionalRepairContext(contextInput());
-
-  const acute = await runEmotionalRepairSkill({
-    user_message: "je suis incapable, j'ai honte",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "acute_self_attack",
-        constraints: [
-          "no_plan",
-          "no_questions",
-          "do_not_persist_identity_attack",
-        ],
-        response_contract: {
-          max_questions: 0,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: false,
-          allow_concrete_action: false,
-          tone: "soft",
-        },
-        memory_write_candidates: [
-          {
-            source_text: "je suis incapable, j'ai honte",
-            should_persist_default: false,
-            anti_identity_freeze_checked: true,
-            sensitivity_level: 3,
-            reason: "identity attack is not durable truth",
-          },
-        ],
-        reply:
-          "Je te crois sur la honte, pas sur le verdict. On garde le fait, sans te réduire à ça.",
-      }),
-  });
-  assertEquals(acute.status, "continue");
-  assertEquals(acute.handoff_request?.target_skill_id, undefined);
-  assertEquals(acute.operation_suggestions?.length ?? 0, 0);
-  assertEquals(
-    acute.memory_write_candidates?.[0]?.should_persist_default,
-    false,
-  );
-  assertEquals(
-    acute.memory_write_candidates?.[0]?.anti_identity_freeze_checked,
-    true,
-  );
-  assertEquals((acute.reply ?? "").includes("?"), false);
-  assertEquals(/\bchrono|choix A\/B|plan\b/i.test(acute.reply ?? ""), false);
-
-  const noPotion = await runEmotionalRepairSkill({
-    user_message: "pas de potion, aide-moi juste à redescendre",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "asks_regulation_without_potion",
-        phase: "stabilize",
-        emotional_dominance: "medium",
-        constraints: ["no_potion", "no_tool", "short_reply"],
-        response_contract: {
-          max_questions: 0,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: true,
-          allow_concrete_action: true,
-          tone: "soft",
-        },
-        operation_suggestions: [
-          {
-            operation_type: "select_state_potion",
-            reason: "should_be_filtered_by_no_potion",
-            requires_user_consent: true,
-          },
-        ],
-        memory_write_candidates: [],
-        reply:
-          "D'accord. Pose juste les pieds au sol et reviens à une seule expiration lente.",
-      }),
-  });
-  assertEquals(
-    (noPotion.diagnosis?.constraints as string[]).includes("no_potion"),
-    true,
-  );
-  assertEquals(noPotion.operation_suggestions?.length ?? 0, 0);
-  assertEquals((noPotion.reply ?? "").toLowerCase().includes("potion"), false);
-
-  const relation = await runEmotionalRepairSkill({
-    user_message:
-      "j'ai honte d'avoir parlé sèchement à mon frère, donne-moi une phrase",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "asks_concrete_phrase",
-        phase: "repair_relationship",
-        emotional_dominance: "medium",
-        context_domain: "relationship",
-        constraints: [
-          "relationship_context",
-          "concrete_before_question",
-          "no_plan",
-        ],
-        response_contract: {
-          max_questions: 0,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: false,
-          allow_concrete_action: true,
-          tone: "direct_soft",
-        },
-        memory_write_candidates: [],
-        reply:
-          'Tu peux lui écrire : "Je suis désolé de t\'avoir parlé sèchement. Tu ne méritais pas ça, et je vais faire attention à te parler avec plus de respect."',
-      }),
-  });
-  assertEquals(relation.diagnosis?.context_domain, "relationship");
-  assertStringIncludes(relation.reply ?? "", "Je suis désolé");
-  assertEquals(
-    /\bproductiv|marche|dossier|plan\b/i.test(relation.reply ?? ""),
-    false,
-  );
-  assertEquals(relation.operation_suggestions?.length ?? 0, 0);
-
-  const recurring = await runEmotionalRepairSkill({
-    user_message:
-      "j'aimerais un soutien tous les soirs pour ne pas repartir en honte",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "asks_recurring_support",
-        phase: "de_shame",
-        emotional_dominance: "medium",
-        constraints: ["one_question_max"],
-        response_contract: {
-          max_questions: 1,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: false,
-          allow_concrete_action: true,
-          tone: "grounded",
-        },
-        operation_suggestions: [
-          {
-            operation_type: "create_recurring_reminder",
-            reason: "user_explicitly_asks_recurring_support",
-            requires_user_consent: true,
-            operation_input_hint: { frequency: "daily", time_hint: "evening" },
-          },
-        ],
-        memory_write_candidates: [],
-        reply:
-          "Je peux te proposer un soutien récurrent du soir à valider, sans l'activer tant que tu ne confirmes pas.",
-      }),
-  });
-  assertEquals(
-    recurring.operation_suggestions?.[0]?.operation_type,
-    "create_recurring_reminder",
-  );
-  assertEquals(
-    recurring.operation_suggestions?.[0]?.requires_user_consent,
-    true,
-  );
-
-  const shameOnly = await runEmotionalRepairSkill({
-    user_message: "j'ai honte",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "shame_or_guilt",
-        operation_suggestions: [],
-      }),
-  });
-  assertEquals(shameOnly.operation_suggestions?.length ?? 0, 0);
-
-  const stabilizedPotion = await runEmotionalRepairSkill({
-    user_message:
-      "la honte est redescendue, j'aimerais garder un soutien doux pour reparer sans me taper dessus",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "shame_or_guilt",
-        phase: "de_shame",
-        emotional_dominance: "low",
-        response_contract: {
-          max_questions: 1,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: true,
-          allow_concrete_action: true,
-          tone: "grounded",
-        },
-        operation_suggestions: [{
-          operation_type: "select_state_potion",
-          reason: "stabilized_emotion_can_be_supported_by_healing_potion",
-          requires_user_consent: true,
-          operation_input_hint: {
-            potion_type: "guerison",
-            state: {
-              kind: "shame_guilt",
-              intensity: "medium",
-              evidence: ["la honte est redescendue"],
-            },
-            context: {
-              handoff_summary:
-                "Le user dit que la honte est redescendue et veut un soutien doux pour reparer l'episode sans se taper dessus.",
-              topic_hint: "honte redescendue",
-            },
-          },
-        }],
-      }),
-  });
-  const emotionalPotion = stabilizedPotion.operation_suggestions?.[0];
-  assertEquals(emotionalPotion?.operation_type, "select_state_potion");
-  assertEquals(emotionalPotion?.requires_user_consent, true);
-  assertEquals(
-    (emotionalPotion?.operation_input_hint as any)?.potion_type,
-    "guerison",
-  );
-  assertEquals(
-    (emotionalPotion?.operation_input_hint as any)?.context?.handoff_summary,
-    "Le user dit que la honte est redescendue et veut un soutien doux pour reparer l'episode sans se taper dessus.",
-  );
-
-  const noDoneLanguage = await runEmotionalRepairSkill({
-    user_message: "aide-moi",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        reply: "J'ai créé le soutien, c'est programmé.",
-      }),
-  });
-  assertEquals(noDoneLanguage.status, "continue");
-  assertEquals(
-    /c'est fait|créé|cree|programmé|programme|enregistré|enregistre/i.test(
-      noDoneLanguage.reply ?? "",
-    ),
-    false,
-  );
-
-  const safetyContext = await loadEmotionalRepairContext(contextInput({
-    turn_frame: turnFrame({
-      safety: {
-        risk_band: "critical",
-        reason_codes: ["self_harm"],
-        evidence: ["dispatcher"],
-      },
-    }),
-  }));
-  const safety = await runEmotionalRepairSkill({
-    user_message: "je suis nul",
-    context: safetyContext,
-    intake_model: () => emotionalDecision({}),
-  });
-  assertEquals(safety.status, "handoff");
-  assertEquals(safety.handoff_request?.target_skill_id, "safety_crisis");
-});
-
-Deno.test("emotional_repair safe renderer finalizes failures, memory and prompt invariants", async () => {
-  const context = await loadEmotionalRepairContext(contextInput());
-
-  const intakeFailure = await runEmotionalRepairSkill({
-    user_message: "je suis nul",
-    context,
-    intake_model: () => {
-      throw new Error("stub_intake_failed");
-    },
-  });
-  assertEquals(intakeFailure.status, "continue");
-  assertEquals(
-    typeof intakeFailure.reply === "string" &&
-      intakeFailure.reply.length > 0,
-    true,
-  );
-  assertEquals(intakeFailure.operation_suggestions?.length ?? 0, 0);
-  assertEquals(intakeFailure.memory_write_candidates?.length ?? 0, 0);
-  assertEquals(intakeFailure.recommendation_need?.needed, false);
-  assertEquals(intakeFailure.effects?.committed, []);
-
-  const invalidDoneReply = await runEmotionalRepairSkill({
-    user_message: "je suis incapable",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        reply: "J'ai créé un soutien, c'est programmé.",
-      }),
-  });
-  assertEquals(invalidDoneReply.status, "continue");
-  assertEquals(
-    /c'est fait|créé|cree|programmé|programme|enregistré|enregistre/i.test(
-      invalidDoneReply.reply ?? "",
-    ),
-    false,
-  );
-
-  const tooManyQuestions = await runEmotionalRepairSkill({
-    user_message: "j'ai honte",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        response_contract: {
-          max_questions: 0,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: false,
-          allow_concrete_action: false,
-          tone: "soft",
-        },
-        reply: "Tu veux qu'on regarde ça ? Tu veux une question ?",
-      }),
-  });
-  assertEquals((tooManyQuestions.reply ?? "").includes("?"), false);
-
-  const noPotion = await runEmotionalRepairSkill({
-    user_message: "pas de potion, juste aide-moi",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "asks_regulation_without_potion",
-        phase: "stabilize",
-        emotional_dominance: "medium",
-        constraints: ["no_potion", "short_reply"],
-        response_contract: {
-          max_questions: 0,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: true,
-          allow_concrete_action: true,
-          tone: "soft",
-        },
-        operation_suggestions: [{
-          operation_type: "select_state_potion",
-          reason: "must_be_filtered",
-          requires_user_consent: true,
-        }],
-        reply: "Je peux proposer une potion si tu veux.",
-      }),
-  });
-  assertEquals(noPotion.operation_suggestions?.length ?? 0, 0);
-  assertEquals(
-    (noPotion.reply ?? "").toLowerCase().includes("potion"),
-    false,
-  );
-
-  const identityMemory = await runEmotionalRepairSkill({
-    user_message: "je suis nul",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        memory_write_candidates: [{
-          source_text: "je suis nul",
-          should_persist_default: false,
-          anti_identity_freeze_checked: true,
-          sensitivity_level: 3,
-          reason: "raw_identity_attack_should_not_survive",
-        }],
-      }),
-  });
-  const identityContent = identityMemory.memory_write_candidates?.[0]
-    ?.content_text ?? "";
-  assertEquals(identityContent.includes("je suis nul"), false);
-  assertStringIncludes(identityContent, "Episode de honte");
-  assertEquals(
-    identityMemory.memory_write_candidates?.[0]?.should_persist_default,
-    false,
-  );
-
-  const relationMemory = await runEmotionalRepairSkill({
-    user_message: "j'ai honte d'avoir parlé sèchement à mon frère",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "relational_repair",
-        phase: "repair_relationship",
-        context_domain: "relationship",
-        constraints: [
-          "relationship_context",
-          "do_not_persist_identity_attack",
-        ],
-        memory_write_candidates: [{
-          source_text: "je suis toxique d'avoir parlé sèchement",
-          should_persist_default: false,
-          anti_identity_freeze_checked: true,
-          sensitivity_level: 3,
-          reason: "relationship_context_should_be_contextualized",
-        }],
-        reply: "On peut reconnaître le tort sans te réduire à une identité.",
-      }),
-  });
-  const relationContent = relationMemory.memory_write_candidates?.[0]
-    ?.content_text ?? "";
-  assertEquals(relationContent.includes("je suis toxique"), false);
-  assertStringIncludes(relationContent, "réparation relationnelle sobre");
-
-  assertEquals(
-    EMOTIONAL_REPAIR_PROMPT.includes("doit contenir au moins 1 emoji"),
-    false,
-  );
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "ne jamais forcer un emoji");
-  assertStringIncludes(
-    EMOTIONAL_REPAIR_PROMPT,
-    "champ d'action des potions",
-  );
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "amour: soutenir une douceur");
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "guerison: soutenir la reparation");
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "apaisement: soutenir une pression");
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "condition de maturite");
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "context.handoff_summary");
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "product_help generique");
-  assertStringIncludes(EMOTIONAL_REPAIR_PROMPT, "carte de defense");
-
-  const handoff = await runEmotionalRepairSkill({
-    user_message: "ça va mieux mais je bloque encore",
-    context,
-    intake_model: () =>
-      emotionalDecision({
-        intent: "emotion_lowered_action_blocked",
-        phase: "action_card_ready",
-        emotional_dominance: "low",
-        context_domain: "plan_execution",
-        constraints: [],
-        response_contract: {
-          max_questions: 0,
-          allow_plan: false,
-          allow_tool_suggestion: true,
-          allow_potion_suggestion: false,
-          allow_concrete_action: true,
-          tone: "grounded",
-        },
-        operation_suggestions: [{
-          operation_type: "prepare_attack_card",
-          reason: "emotion_lowered_action_blocked",
-          requires_user_consent: true,
-        }],
-        memory_write_candidates: [],
-        reply: "On passe au blocage concret.",
-      }),
-  });
-  assertEquals(handoff.status, "continue");
-  assertEquals(
-    handoff.operation_suggestions?.[0]?.operation_type,
-    "prepare_attack_card",
-  );
-});
-
-Deno.test("demotivation_repair uses structured intake model", async () => {
-  const context = await loadDemotivationRepairContext(contextInput());
-  const seenInputs: DemotivationRepairStructuredIntakeInput[] = [];
-  const output = await runDemotivationRepairSkill({
-    user_message: "je suis vidé, j'ai plus d'élan",
-    context,
-    intake_model: (input) => {
-      seenInputs.push(input);
-      return demotivationDecision({
-        intent: "fatigue_drop",
-        phase: "stabilize_energy",
-        motivation_state: "fatigue",
-        action_readiness: "none",
-        reply:
-          "Je le prends comme une baisse d'énergie, pas comme un manque de volonté. On garde un geste minuscule.",
-      });
-    },
-  });
-
-  assertEquals(seenInputs.length, 1);
-  const seenInput = seenInputs[0] as DemotivationRepairStructuredIntakeInput;
-  assertEquals(seenInput.user_message, "je suis vidé, j'ai plus d'élan");
-  assertEquals(output.diagnosis?.intake_status, "structured");
-  assertEquals(output.diagnosis?.motivation_state, "fatigue");
-});
-
-Deno.test("demotivation_repair intake failure conservative no tool", async () => {
-  const context = await loadDemotivationRepairContext(contextInput());
-  const output = await runDemotivationRepairSkill({
-    user_message: "je suis vidé",
-    context,
-    intake_model: () => {
-      throw new Error("stub_demotivation_intake_failed");
-    },
-  });
-
-  assertEquals(output.status, "continue");
-  assertEquals(output.handoff_request, undefined);
-  assertEquals(output.operation_suggestions?.length ?? 0, 0);
-  assertEquals(output.recommendation_need?.needed, false);
-  assertEquals(output.diagnosis?.intake_status, "technical_fallback");
-  assertEquals(
-    output.diagnosis?.intake_reason,
-    "stub_demotivation_intake_failed",
-  );
-});
-
-Deno.test("demotivation_repair no existing state uses model when available", async () => {
-  const context = await loadDemotivationRepairContext(contextInput({
-    active_skill_working_state: null,
-  }));
-  let calls = 0;
-  const output = await runDemotivationRepairSkill({
-    user_message: "ça sert à rien",
-    context,
-    intake_model: () => {
-      calls++;
-      return demotivationDecision({
-        intent: "loss_of_meaning",
-        phase: "restore_meaning",
-        motivation_state: "loss_of_meaning",
-        reply: "On reste avec la perte de sens avant de pousser l'action.",
-      });
-    },
-  });
-
-  assertEquals(calls, 1);
-  assertEquals(output.diagnosis?.motivation_state, "loss_of_meaning");
-  assertEquals(output.diagnosis?.intake_status, "structured");
-});
-
-Deno.test("demotivation_repair prompt does not force emoji", () => {
-  assertEquals(
-    DEMOTIVATION_REPAIR_PROMPT.includes("doit contenir au moins 1 emoji"),
-    false,
-  );
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "ne force jamais un emoji");
-  assertStringIncludes(
-    DEMOTIVATION_REPAIR_PROMPT,
-    "Champ d'action des potions",
-  );
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "clarte: soutenir un sens");
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "courage: soutenir une peur");
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "rappel: soutenir un geste");
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "Condition de maturite");
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "context.handoff_summary");
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "product_help generique");
-  assertStringIncludes(DEMOTIVATION_REPAIR_PROMPT, "carte de defense");
-});
-
-Deno.test("demotivation_repair identity memory redacted", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "failure_accumulation",
-      motivation_state: "failure_accumulation",
-      memory_write_candidates: [{
-        source_text: "je suis flemmard et je suis incapable de tenir",
-        should_persist_default: false,
-        anti_identity_freeze_checked: true,
-        sensitivity_level: 2,
-        reason: "raw_identity_negative_statement_should_not_survive",
-      }],
-    }),
-    "je suis flemmard et je suis incapable de tenir",
-  );
-
-  const content = output.memory_write_candidates?.[0]?.content_text ?? "";
-  assertEquals(content.includes("je suis flemmard"), false);
-  assertEquals(content.includes("je suis incapable"), false);
-  assertStringIncludes(content, "Episode de décrochage motivationnel");
-  assertEquals(
-    output.memory_write_candidates?.[0]?.should_persist_default,
-    false,
-  );
-});
-
-Deno.test("demotivation_repair fatigue_drop_no_moralizing", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "fatigue_drop",
-      phase: "stabilize_energy",
-      motivation_state: "fatigue",
-      reply:
-        "Je le prends comme une baisse d'energie, pas comme un manque de volonte. Le plus utile est de garder un geste tres petit.",
-    }),
-    "je suis vide, j'ai plus d'elan",
-  );
-  assertEquals(output.diagnosis?.motivation_state, "fatigue");
-  assertEquals(
-    output.operation_suggestions?.some((s) =>
-      s.operation_type === "adjust_plan_item"
-    ),
-    false,
-  );
-  assertEquals(
-    /discipline|forcer|il faut juste/i.test(output.reply ?? ""),
-    false,
-  );
-});
-
-Deno.test("demotivation_repair loss_of_meaning_stays_demotivation", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "loss_of_meaning",
-      phase: "restore_meaning",
-      motivation_state: "loss_of_meaning",
-      reply:
-        "Si ca parait inutile, on ne saute pas vers l'execution. On cherche d'abord ce qui a perdu son sens.",
-    }),
-    "ca sert a rien",
-  );
-  assertEquals(output.status, "continue");
-  assertEquals(output.handoff_request, undefined);
-});
-
-Deno.test("demotivation_repair can suggest courage potion with handoff summary after diagnosis", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "avoidance_loop",
-      phase: "reduce_friction",
-      motivation_state: "avoidance",
-      response_contract: {
-        max_questions: 1,
-        allow_plan_edit: false,
-        allow_tool_suggestion: true,
-        allow_potion_suggestion: true,
-        allow_attack_card_suggestion: false,
-        allow_concrete_action: true,
-        tone: "soft_direct",
-      },
-      operation_suggestions: [{
-        operation_type: "select_state_potion",
-        reason: "fear_is_now_clarified_and_can_be_supported_by_courage",
-        requires_user_consent: true,
-        operation_input_hint: {
-          potion_type: "courage",
-          state: {
-            kind: "fear_avoidance",
-            intensity: "medium",
-            evidence: ["peur du regard"],
-          },
-          context: {
-            handoff_summary:
-              "Le user a clarifie que le decrochage vient surtout d'une peur du regard et veut soutenir le passage a l'action avec plus de courage.",
-            topic_hint: "peur du regard",
-          },
-        },
-      }],
-      reply:
-        "La peur est assez nommee maintenant. Je peux te proposer une potion de courage en complement, si tu veux.",
-    }),
-    "je crois que je bloque surtout parce que j'ai peur du regard des autres",
-  );
-  const suggestion = output.operation_suggestions?.[0];
-  assertEquals(suggestion?.operation_type, "select_state_potion");
-  assertEquals(suggestion?.requires_user_consent, true);
-  assertEquals(
-    (suggestion?.operation_input_hint as any)?.potion_type,
-    "courage",
-  );
-  assertEquals(
-    (suggestion?.operation_input_hint as any)?.context?.handoff_summary,
-    "Le user a clarifie que le decrochage vient surtout d'une peur du regard et veut soutenir le passage a l'action avec plus de courage.",
-  );
-});
-
-Deno.test("demotivation_repair failure_accumulation_no_identity_freeze", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "failure_accumulation",
-      phase: "reduce_friction",
-      motivation_state: "failure_accumulation",
-      memory_write_candidates: [{
-        source_text: "j'ai encore rate, je suis incapable de tenir",
-        should_persist_default: false,
-        anti_identity_freeze_checked: true,
-        sensitivity_level: 2,
-        reason: "identity_negative_statement_kept_non_persistent",
-      }],
-      reply:
-        "Je ne garde pas cette phrase comme une identite. On regarde seulement le moment ou la boucle casse.",
-    }),
-    "j'ai encore rate, je suis incapable de tenir",
-  );
-  const candidate = output.memory_write_candidates?.[0];
-  assertEquals(candidate?.should_persist_default, false);
-  assertEquals(candidate?.anti_identity_freeze_checked, true);
-});
-
-Deno.test("demotivation_repair concrete_action_ready_suggests_attack_card", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "concrete_action_emerged",
-      phase: "action_card_ready",
-      motivation_state: "fatigue",
-      action_readiness: "ready",
-      response_contract: {
-        max_questions: 0,
-        allow_plan_edit: false,
-        allow_tool_suggestion: true,
-        allow_potion_suggestion: false,
-        allow_attack_card_suggestion: true,
-        allow_concrete_action: true,
-        tone: "grounded",
-      },
-      operation_suggestions: [{
-        operation_type: "prepare_attack_card",
-        reason: "ready_action_can_be_reduced",
-        requires_user_consent: true,
-      }],
-      reply:
-        "La prochaine action est assez claire. Je bascule vers le decoupage pour reduire la friction.",
-    }),
-    "ok je vais mettre mes chaussures maintenant",
-  );
-  assertEquals(output.status, "continue");
-  assertEquals(output.response_intent, "concrete_action_emerged");
-  assertEquals(
-    output.operation_suggestions?.[0]?.operation_type,
-    "prepare_attack_card",
-  );
-});
-
-Deno.test("demotivation_repair hypothetical_action_no_handoff", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "concrete_action_emerged",
-      motivation_state: "fatigue",
-      action_readiness: "hypothetical",
-      reply:
-        "Comme c'est encore au conditionnel, je reste avec le decrochage et on garde l'action minuscule.",
-    }),
-    "je pourrais peut-etre marcher",
-  );
-  assertEquals(output.status, "continue");
-  assertEquals(output.handoff_request, undefined);
-});
-
-Deno.test("demotivation_repair no_potion_blocks_potion", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "asks_no_tool_support",
-      constraints: ["no_potion", "do_not_moralize", "short_reply"],
-      response_contract: {
-        max_questions: 0,
-        allow_plan_edit: false,
-        allow_tool_suggestion: true,
-        allow_potion_suggestion: true,
-        allow_attack_card_suggestion: false,
-        allow_concrete_action: true,
-        tone: "soft_direct",
-      },
-      operation_suggestions: [{
-        operation_type: "select_state_potion",
-        reason: "structured_decision_attempted_potion",
-        requires_user_consent: true,
-      }],
-      reply:
-        "D'accord, sans potion. Je reste simple: un seul geste respirable.",
-    }),
-    "pas de potion, parle-moi juste simplement",
-  );
-  assertEquals(
-    output.operation_suggestions?.some((s) =>
-      s.operation_type === "select_state_potion"
-    ),
-    false,
-  );
-});
-
-Deno.test("demotivation_repair no_tool_blocks_all_suggestions", async () => {
-  const output = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "asks_no_tool_support",
-      constraints: ["no_tool", "do_not_moralize", "short_reply"],
-      response_contract: {
-        max_questions: 0,
-        allow_plan_edit: true,
-        allow_tool_suggestion: true,
-        allow_potion_suggestion: true,
-        allow_attack_card_suggestion: true,
-        allow_concrete_action: true,
-        tone: "soft_direct",
-      },
-      operation_suggestions: [{
-        operation_type: "prepare_attack_card",
-        reason: "structured_decision_attempted_tool",
-        requires_user_consent: true,
-      }],
-      reply: "Sans outil. On revient juste au plus petit mouvement possible.",
-    }),
-    "pas d'outil, aide-moi juste a reprendre",
-  );
-  assertEquals(output.operation_suggestions?.length, 0);
-});
-
-Deno.test("demotivation_repair recurring_support_only_when_explicit", async () => {
-  const explicit = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "asks_recurring_support",
-      response_contract: {
-        max_questions: 0,
-        allow_plan_edit: false,
-        allow_tool_suggestion: true,
-        allow_potion_suggestion: false,
-        allow_attack_card_suggestion: false,
-        allow_concrete_action: true,
-        tone: "grounded",
-      },
-      operation_suggestions: [{
-        operation_type: "create_recurring_reminder",
-        reason: "explicit_recurring_support_requested",
-        requires_user_consent: true,
-        operation_input_hint: {
-          frequency: "daily_evening",
-          message: "Revenir au plus petit geste.",
-        },
-      }],
-      reply:
-        "Je peux te proposer ce soutien regulier seulement si tu confirmes.",
-    }),
-    "rappelle-moi chaque soir de revenir au plus petit geste",
-  );
-  assertEquals(
-    explicit.operation_suggestions?.[0]?.operation_type,
-    "create_recurring_reminder",
-  );
-  assertEquals(
-    explicit.operation_suggestions?.[0]?.requires_user_consent,
-    true,
-  );
-
-  const implicit = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "fatigue_drop",
-      motivation_state: "fatigue",
-      reply:
-        "Je reste sur le decrochage maintenant, sans ajouter de rappel recurrent.",
-    }),
-    "je decroche",
-  );
-  assertEquals(
-    implicit.operation_suggestions?.some((s) =>
-      s.operation_type === "create_recurring_reminder"
-    ),
-    false,
-  );
-});
-
-Deno.test("demotivation_repair plan_edit_only_when_explicit", async () => {
-  const explicit = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "asks_smaller_step",
-      constraints: ["do_not_moralize", "prefer_smallest_action"],
-      response_contract: {
-        max_questions: 0,
-        allow_plan_edit: true,
-        allow_tool_suggestion: true,
-        allow_potion_suggestion: false,
-        allow_attack_card_suggestion: false,
-        allow_concrete_action: true,
-        tone: "grounded",
-      },
-      operation_suggestions: [{
-        operation_type: "adjust_plan_item",
-        reason: "explicit_plan_lightening_requested",
-        requires_user_consent: true,
-      }],
-      reply: "Je peux proposer un allegement, mais seulement avec ton accord.",
-    }),
-    "allege mon plan",
-  );
-  assertEquals(
-    explicit.operation_suggestions?.[0]?.operation_type,
-    "adjust_plan_item",
-  );
-  assertEquals(
-    explicit.operation_suggestions?.[0]?.requires_user_consent,
-    true,
-  );
-
-  const tooEarly = await withDemotivationDecision(
-    demotivationDecision({
-      intent: "fatigue_drop",
-      constraints: ["do_not_modify_plan_yet", "do_not_moralize"],
-      response_contract: {
-        max_questions: 1,
-        allow_plan_edit: true,
-        allow_tool_suggestion: true,
-        allow_potion_suggestion: false,
-        allow_attack_card_suggestion: false,
-        allow_concrete_action: true,
-        tone: "energy_preserving",
-      },
-      operation_suggestions: [{
-        operation_type: "adjust_plan_item",
-        reason: "structured_decision_attempted_plan_edit_too_early",
-        requires_user_consent: true,
-      }],
-      reply:
-        "Je ne modifie pas le plan juste parce que l'elan est bas. On commence par baisser la friction.",
-    }),
-    "j'ai plus envie",
-  );
-  assertEquals(
-    tooEarly.operation_suggestions?.some((s) =>
-      s.operation_type === "adjust_plan_item"
-    ),
-    false,
-  );
-});
-
-Deno.test("demotivation_repair no_done_language", async () => {
-  const outputs = await Promise.all(
-    ([
-      ["fatigue", "je suis vide"],
-      ["loss_of_meaning", "ca sert a rien"],
-      ["failure_accumulation", "j'ai encore rate"],
-    ] as Array<[DemotivationRepairMotivationState, string]>).map((
-      [state, message],
-    ) =>
-      withDemotivationDecision(
-        demotivationDecision({
-          motivation_state: state,
-          reply:
-            "Je reste dans une reponse courte, sans annoncer d'action durable.",
-        }),
-        message,
-      )
-    ),
-  );
-  for (const output of outputs) {
-    assert(
-      !/(créé|cree|programmé|programme|enregistré|enregistre|c'est fait)/i
-        .test(output.reply ?? ""),
-    );
-  }
-});
-
-Deno.test("product_help uses structured intake model decision", async () => {
-  const context = await loadProductHelpContext(contextInput());
-  const seenInputs: ProductHelpStructuredIntakeInput[] = [];
-  const output = await runProductHelpSkill({
-    user_message: "où sont les potions ?",
-    context,
-    intake_model: (input) => {
-      seenInputs.push(input);
-      return productHelpDecision({
-        intent: "where_is_it",
-        target: {
-          kind: "feature_catalog",
-          feature_id: "resources.potions",
-          confidence_band: "high",
-        },
-        response_contract: {
-          max_questions: 0,
-          allow_operation_suggestion: false,
-          allow_status_projection: false,
-          allow_generic_catalog_answer: true,
-          must_include_location: true,
-          must_include_limit: false,
-        },
-      });
-    },
-  });
-
-  assertEquals(output.diagnosis?.feature_id, "resources.potions");
-  assertEquals(output.response_intent, "where_is_it");
-  assertEquals(output.operation_suggestions, []);
-  assertEquals(seenInputs.length, 1);
-  const seenInput = seenInputs[0] as ProductHelpStructuredIntakeInput;
-  assert(
-    seenInput.catalog_candidates.some((feature) =>
-      feature.id === "resources.potions"
-    ),
-  );
-});
-
-Deno.test("product_help intake failure uses non-mutating conservative fallback", async () => {
-  const context = await loadProductHelpContext(contextInput());
-  const output = await runProductHelpSkill({
-    user_message: "où je retrouve cet objet ?",
-    context,
-    intake_model: () => {
-      throw new Error("model_down");
-    },
-  });
-
-  assertEquals(output.operation_suggestions, []);
-  assertEquals(output.diagnosis?.bridge, null);
-  assertEquals(output.reply, undefined);
-  assertEquals(output.effects?.committed, []);
-  assertEquals(output.diagnosis?.intake_status, "technical_fallback");
-});
-
-Deno.test("product_help prompt does not force emoji", () => {
-  assertEquals(
-    /emoji naturel|au moins 1 emoji|doit contenir/i.test(PRODUCT_HELP_PROMPT),
-    false,
-  );
-  assertStringIncludes(
-    PRODUCT_HELP_PROMPT,
-    "operation_suggestions doit toujours etre []",
-  );
-});
-
-Deno.test("product_help legacy heuristic intake is not the default structured path", async () => {
-  const context = await loadProductHelpContext(contextInput());
-  let modelCalls = 0;
-  const output = await runProductHelpSkill({
-    user_message: "à quoi servent les potions ?",
-    context,
-    intake_model: () => {
-      modelCalls += 1;
-      return productHelpDecision({
-        state_patch: { decision: "structured_model_stub" },
-      });
-    },
-  });
-
-  assertEquals(modelCalls, 1);
-  assertEquals(
-    (output.state_patch as Record<string, unknown>)?.decision,
-    "structured_model_stub",
-  );
-  assertEquals(
-    JSON.stringify(output.state_patch).includes(
-      "legacy_product_help_heuristic_intake",
-    ),
-    false,
-  );
+  setSafetyCrisisLocalDispatcherRunnerForTest(null);
 });
 
 Deno.test("product_help scenarios never start operations", async () => {
@@ -2347,28 +1346,19 @@ Deno.test("product_help compares attack and defense cards as a catalog resource"
     user_message:
       "Explique-moi la difference entre une carte d'attaque et une carte de defense.",
     context,
-    intake_model: () =>
-      productHelpDecision({
-        intent: "compare_features",
-        target: {
-          kind: "feature_catalog",
-          feature_id: "resources.attack_vs_defense_cards",
-          confidence_band: "high",
-        },
-        grounding: {
-          catalog_feature_ids: [
-            "resources.attack_vs_defense_cards",
-            "resources.attack_card",
-            "resources.defense_card",
-          ],
-          db_sources_required: false,
-          db_sources_used: [{
-            source_type: "catalog",
-            id: "resources.attack_vs_defense_cards",
-            label: "Cartes d'attaque et de defense",
-          }],
-        },
-      }),
+    local_dispatcher: productHelpLocalDispatcher({
+      flow_action: "compare_features",
+      visible_task_kind: "compare_features",
+      intent_kind: "compare_features",
+      feature_id: "resources.attack_vs_defense_cards",
+      object_type: "unknown",
+      catalog_feature_ids: [
+        "resources.attack_vs_defense_cards",
+        "resources.attack_card",
+        "resources.defense_card",
+      ],
+      db_sources_used: ["resources.attack_vs_defense_cards"],
+    }),
   });
 
   assertEquals(output.skill_id, "product_help");
@@ -2402,23 +1392,12 @@ Deno.test("product_help compare resource has paraphrase coverage without replaci
   const singleAttack = await runProductHelpSkill({
     user_message: "quelles sont les techniques d'une carte d'attaque ?",
     context,
-    intake_model: () =>
-      productHelpDecision({
-        target: {
-          kind: "feature_catalog",
-          feature_id: "resources.attack_card",
-          confidence_band: "high",
-        },
-        grounding: {
-          catalog_feature_ids: ["resources.attack_card"],
-          db_sources_required: false,
-          db_sources_used: [{
-            source_type: "catalog",
-            id: "resources.attack_card",
-            label: "Carte d'attaque",
-          }],
-        },
-      }),
+    local_dispatcher: productHelpLocalDispatcher({
+      feature_id: "resources.attack_card",
+      object_type: "attack_card",
+      catalog_feature_ids: ["resources.attack_card"],
+      db_sources_used: ["resources.attack_card"],
+    }),
   });
 
   assertEquals(singleAttack.diagnosis?.feature_id, "resources.attack_card");
@@ -2442,25 +1421,17 @@ Deno.test("product_help compare follow-up can render a targeted choice reply", a
     user_message:
       "attaque vs defense, je choisis quoi quand je veux juste me mettre a l'action ?",
     context,
-    intake_model: () =>
-      productHelpDecision({
-        intent: "compare_features",
-        target: {
-          kind: "feature_catalog",
-          feature_id: "resources.attack_vs_defense_cards",
-          confidence_band: "high",
-        },
-        grounding: {
-          catalog_feature_ids: ["resources.attack_vs_defense_cards"],
-          db_sources_required: false,
-          db_sources_used: [{
-            source_type: "catalog",
-            id: "resources.attack_vs_defense_cards",
-            label: "Cartes d'attaque et de defense",
-          }],
-        },
-        reply: targetedReply,
-      }),
+    local_dispatcher: productHelpLocalDispatcher({
+      flow_action: "compare_features",
+      visible_task_kind: "compare_features",
+      intent_kind: "compare_features",
+      feature_id: "resources.attack_vs_defense_cards",
+      object_type: "unknown",
+      catalog_feature_ids: ["resources.attack_vs_defense_cards"],
+      db_sources_used: ["resources.attack_vs_defense_cards"],
+      context_summary: targetedReply,
+    }),
+    visible_agent: async () => targetedReply,
   });
 
   assertEquals(output.response_intent, "compare_features");
@@ -2488,41 +1459,24 @@ Deno.test("product_help where_is_it answers conditional location without catalog
     user_message:
       "Stop pour la creation, je veux juste savoir ou je retrouverai une carte d'attaque si elle existe.",
     context,
-    intake_model: () =>
-      productHelpDecision({
-        intent: "where_is_it",
-        target: {
-          kind: "feature_catalog",
-          feature_id: "resources.attack_card",
-          confidence_band: "high",
-        },
-        grounding: {
-          catalog_feature_ids: ["resources.attack_card"],
-          db_sources_required: false,
-          db_sources_used: [{
-            source_type: "catalog",
-            id: "resources.attack_card",
-            label: "Carte d'attaque",
-          }],
-        },
-        constraints: [
-          "non_mutating",
-          "do_not_execute_tool",
-          "do_not_claim_object_exists_without_source",
-          "do_not_render_status_block",
-          "preserve_active_flow",
-          "short_reply",
-          "exact_location_requested",
-        ],
-        response_contract: {
-          max_questions: 0,
-          allow_operation_suggestion: false,
-          allow_status_projection: false,
-          allow_generic_catalog_answer: true,
-          must_include_location: true,
-          must_include_limit: true,
-        },
-      }),
+    local_dispatcher: productHelpLocalDispatcher({
+      flow_action: "answer_destination",
+      visible_task_kind: "answer_destination",
+      intent_kind: "where_is_it",
+      feature_id: "resources.attack_card",
+      object_type: "attack_card",
+      catalog_feature_ids: ["resources.attack_card"],
+      db_sources_used: ["resources.attack_card"],
+      tone_constraints: [
+        "non_mutating",
+        "short_reply",
+        "exact_location_requested",
+      ],
+      do_not_say: [
+        "do_not_claim_object_exists_without_source",
+        "do_not_render_status_block",
+      ],
+    }),
   });
 
   assertEquals(output.response_intent, "where_is_it");

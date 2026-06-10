@@ -31,6 +31,25 @@ Route non visible :
 - `exit_to_global_dispatcher` ne produit pas de message local si le global doit
   reanalyser le meme message. Le local doit fournir un `exit_memo`.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, and inline product/status roundtrips if enabled. Use
+`source_flow_id="post_morning_nudge.action"` and copy the catalog presentation.
+
+Do not produce it for `quick_close_ready`, `cancel_flow`,
+`negative_nudge_feedback`, `support_not_today`, or other local close/support
+actions when no new dispatcher is called. Those are `stop_local_no_handoff`
+actions and global must not run on the same turn.
+
+Choose `target_dispatcher` as `global` for an explicit other tool, product,
+status, preference, new goal, or topic change when not inline, and
+`safety_crisis` for safety. The handoff context must include source nudge
+summary, target actions/items, last local assessment, and no-mutation
+constraints.
+
 ## Mission Du Flow
 
 Le flow `post_morning_nudge.action` sert a traiter la reponse du user apres un
@@ -664,4 +683,3 @@ Checks interdits :
 - Global dispatcher does not run while local action flow is active.
 - Global dispatcher runs only after `exit_to_global_dispatcher`.
 - No durable effect is created by this flow.
-

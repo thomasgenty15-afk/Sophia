@@ -1,3 +1,5 @@
+import type { NoteInformation } from "../../contracts/note_information.v1.ts";
+
 export type SafetyCrisisPhase =
   | "entry"
   | "immediate_risk_check"
@@ -39,6 +41,8 @@ export type SafetyCrisisLocalFlowAction =
   | "repeat_current_step"
   | "product_or_tool_attempt"
   | "wants_to_exit"
+  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "safety_escalate";
 
 export type SafetyCrisisVisibleTaskKind =
@@ -50,6 +54,8 @@ export type SafetyCrisisVisibleTaskKind =
   | "resolved_exit"
   | "repeat_current_step"
   | "product_tool_boundary"
+  | "stop_or_cancel"
+  | "safety_transition"
   | "safety_escalation";
 
 export type SafetyCrisisProductToolAttemptKind =
@@ -105,34 +111,53 @@ export type SafetyCrisisLocalDispatcherOutput = {
     pending_confirmation_created: false;
     db_write_committed: false;
   };
+  note_information?: NoteInformation | null;
   evidence: string[];
 };
 
-export type SafetyCrisisVisibleTask = {
-  kind: SafetyCrisisVisibleTaskKind;
-  required_data: {
-    risk_band: Exclude<SafetyRiskBand, "none"> | "none";
+export type SafetyCrisisConversationContext = {
+  state_summary: string;
+  user_words: string[];
+  field_or_stage: SafetyCrisisPhase | SafetyCrisisVisibleTaskKind | null;
+  known_values: {
+    immediate_danger: boolean | null;
+    has_means_nearby: boolean | null;
+    user_not_alone: boolean | null;
+    human_support_available: boolean | null;
+    emergency_help_contacted: boolean | null;
+    risk_band: SafetyRiskBand;
     phase: SafetyCrisisPhase;
+  };
+  missing_or_weak_values: string[];
+  selected_candidate: Record<string, never>;
+  handoff_data: {
+    deferred_product_or_tool_request: string | null;
+    current_step: string | null;
+    inbound_note_summary: string | null;
+  };
+  next_focus: string;
+  safety_resources: {
     emergency_numbers: string;
     suicide_prevention_number: string;
     must_include_emergency_numbers: boolean;
     must_prioritize_human_support: boolean;
-    max_questions: 1 | 2;
-    known_facts: {
-      immediate_danger: boolean | null;
-      has_means_nearby: boolean | null;
-      user_not_alone: boolean | null;
-      human_support_available: boolean | null;
-      emergency_help_contacted: boolean | null;
-    };
-    current_step: string | null;
-    deferred_product_or_tool_request: string | null;
   };
+  tone_constraints: string[];
+  do_not_say: string[];
+  context_summary: string | null;
+  evidence_used: string[];
+  max_questions: 1 | 2;
+};
+
+export type SafetyCrisisVisibleTask = {
+  kind: SafetyCrisisVisibleTaskKind;
+  conversation_context: SafetyCrisisConversationContext;
 };
 
 export type SafetyCrisisExitMemo = {
   reason: "resolved";
   flow_summary: string;
+  note_information: NoteInformation;
   handoff_hint_for_global_dispatcher: {
     likely_intent: "normal_coaching" | "previous_flow_resume" | "unknown";
     constraints: string[];
@@ -224,8 +249,11 @@ export const SAFETY_CRISIS_INVARIANTS = [
   "resolved_requires_means_absent_or_away",
   "resolved_requires_human_support_or_recall_path",
   "resolved_requires_prior_exit_check",
-  "deterministic_overrides_escalate_only",
+  "risk_score_or_local_dispatcher_escalate_only",
   "operation_suggestions_always_empty",
+  "global_dispatcher_skipped_while_safety_active",
+  "visible_agent_uses_conversation_context_only",
+  "visible_fallback_not_nominal",
 ] as const;
 
 export function emptySafetySignal(

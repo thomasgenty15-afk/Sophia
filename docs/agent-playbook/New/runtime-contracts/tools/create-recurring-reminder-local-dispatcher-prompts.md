@@ -134,6 +134,22 @@ Rules :
 - The dispatcher must not use product-visible wording `created`,
   `programmed`, `active`, `je te relancerai`.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`; the `note_information` object above is
+the local shape and should be migrated to the canonical fields when
+implemented.
+
+Produce it for `exit_to_global_dispatcher`, `safety_preempt`,
+`handoff_to_one_shot`, `get_info_product`, and `get_info_db`. Use
+`source_flow_id="create_recurring_reminder"` and copy the catalog presentation.
+
+Do not produce it for `stop_local_no_handoff`, `cancel_flow`,
+`apply_attempt`, `repeat_handoff`, or `platform_destination_followup` when no
+new dispatcher is called. The handoff context must include recurrence/content
+collected so far, missing decisions, one-shot boundary if relevant, and
+no-recurring-reminder-created status.
+
 ## Prompt 01 - Local Dispatcher
 
 ```txt
@@ -530,4 +546,3 @@ Regles :
 
 Retourne uniquement le message visible.
 ```
-

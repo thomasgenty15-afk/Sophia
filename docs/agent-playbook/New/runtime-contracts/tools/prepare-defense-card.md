@@ -33,7 +33,7 @@ chat. Son succès nominal est un `platform_handoff` avec
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour;
-- `TurnAgenda` pour distinguer `reply`, `effects`, `status`, `memory`,
+- `local reducer contract` pour distinguer `reply`, `effects`, `status`, `memory`,
   `repair`;
 - `Confirmation Contract` pour interpréter `approve`, `reject`, `revise`,
   `explain`;

@@ -1,0 +1,193 @@
+[
+  {
+    "turn": 1,
+    "request_id": "7d2ec529-5fef-4863-9804-58545591808c",
+    "ok": true,
+    "user_message": "Pour la suite, sois plus direct et pose-moi moins de questions quand je bloque.",
+    "sophia": "C'est entendu. J'adopte désormais un ton plus direct et je limiterai le nombre de mes questions pour la suite de nos échanges.",
+    "tool_execution": "success",
+    "executed_tools": [
+      "update_coach_preferences"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "selected_handler": "update_coach_preferences",
+      "reason_code": "update_coach_preferences_write_ready",
+      "operation_type": "update_coach_preferences",
+      "status": "executed",
+      "flow_action": "write_preferences",
+      "visible_task_kind": "preference_saved",
+      "write_attempted": true,
+      "write_committed": true,
+      "write_blocked_reason": null,
+      "committed_effects": [
+        {
+          "type": "update_coach_preferences",
+          "operation_id": "7d2ec529-5fef-4863-9804-58545591808c",
+          "preference_keys": [
+            "coach.tone",
+            "coach.question_tendency"
+          ],
+          "preferences_update_ids": []
+        }
+      ],
+      "preference_updates": [
+        {
+          "key": "coach.tone",
+          "value": "direct",
+          "status": "locked",
+          "user_facing_label": "Ton",
+          "user_facing_value": "Direct",
+          "reason": "Demande d'être plus direct pour la suite.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "sois plus direct"
+          ]
+        },
+        {
+          "key": "coach.question_tendency",
+          "value": "low",
+          "status": "locked",
+          "user_facing_label": "Questions",
+          "user_facing_value": "Peu de questions",
+          "reason": "Demande de moins de questions.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "pose-moi moins de questions"
+          ]
+        }
+      ],
+      "conversation_context": {
+        "unsupported_parts": [
+          "application uniquement en cas de blocage"
+        ],
+        "missing_or_weak_values": [],
+        "do_not_say": [
+          "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+          "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+          "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+          "Ne pas dire que c'est enregistré si le commit échoue au tour suivant.",
+          "Ne pas promettre que cela ne s'activera QUE quand il bloque."
+        ]
+      },
+      "note_information": null
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "cd53727f-2ad0-49ee-9eb5-8d913c6ea9aa",
+    "ok": true,
+    "user_message": "Et pour être précis, ne termine jamais tes réponses par une question.",
+    "sophia": "Je ne peux pas configurer de règle permanente pour bannir systématiquement les questions finales de mes réponses. Ton profil est déjà réglé pour limiter leur fréquence au maximum, mais cette contrainte structurelle spécifique n'est pas supportée dans tes paramètres durables.",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "selected_handler": "update_coach_preferences",
+      "reason_code": "update_coach_preferences_unsupported_preference",
+      "operation_type": "update_coach_preferences",
+      "status": "collecting",
+      "flow_action": "unsupported_preference",
+      "visible_task_kind": "unsupported_preference",
+      "write_attempted": false,
+      "write_committed": false,
+      "write_blocked_reason": null,
+      "committed_effects": [],
+      "preference_updates": [],
+      "conversation_context": {
+        "unsupported_parts": [
+          "Ne jamais terminer les réponses par une question"
+        ],
+        "missing_or_weak_values": [],
+        "do_not_say": [
+          "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+          "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+          "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+          "Ne pas dire que cette règle est enregistrée dans les paramètres durables."
+        ]
+      },
+      "note_information": null
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "e65d42fb-84b1-46d7-98e6-5163c4c073ae",
+    "ok": true,
+    "user_message": "Ok, dans ce cas là maintenant réponds-moi plus doucement juste pour cette réponse.",
+    "sophia": "C'est entendu, je vais m'exprimer avec un peu plus de douceur pour cet échange, comme tu le souhaites.",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "active_update_coach_preferences_local_dispatcher",
+    "tool_skill_run": {
+      "selected_handler": "update_coach_preferences",
+      "reason_code": "update_coach_preferences_punctual_instruction",
+      "operation_type": "update_coach_preferences",
+      "status": "collecting",
+      "flow_action": "punctual_instruction",
+      "visible_task_kind": "punctual_instruction_ack",
+      "write_attempted": false,
+      "write_committed": false,
+      "write_blocked_reason": null,
+      "committed_effects": [],
+      "preference_updates": [],
+      "conversation_context": {
+        "unsupported_parts": [],
+        "missing_or_weak_values": [],
+        "do_not_say": [
+          "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+          "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+          "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+          "Ne pas dire que le réglage est enregistré de façon permanente."
+        ]
+      },
+      "note_information": null
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "3ac8ae48-68e7-4c57-9519-66b0ea814c20",
+    "ok": true,
+    "user_message": "Ok laisse tomber pour les préférences, on s’arrête là.",
+    "sophia": "Entendu, on s'arrête là pour la configuration de tes préférences.",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "active_update_coach_preferences_local_dispatcher",
+    "tool_skill_run": {
+      "selected_handler": "update_coach_preferences",
+      "reason_code": "update_coach_preferences_local_cancelled",
+      "operation_type": "update_coach_preferences",
+      "status": "cancelled",
+      "flow_action": "stop_local_no_handoff",
+      "visible_task_kind": "stop_or_cancel",
+      "write_attempted": false,
+      "write_committed": false,
+      "write_blocked_reason": null,
+      "committed_effects": [],
+      "preference_updates": [],
+      "conversation_context": {
+        "unsupported_parts": [],
+        "missing_or_weak_values": [],
+        "do_not_say": [
+          "Ne pas dire que c'est enregistré, noté, gardé ou appliqué si committed=false.",
+          "Ne pas mentionner le Dashboard comme chemin nominal pour une préférence supportée.",
+          "Ne pas inventer de préférence hors coach.tone, coach.challenge_level, coach.question_tendency.",
+          "Ne pas demander si le user veut régler autre chose.",
+          "Ne pas confirmer d'enregistrement de préférence."
+        ]
+      },
+      "note_information": null
+    }
+  }
+]

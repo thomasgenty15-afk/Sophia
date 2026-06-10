@@ -277,7 +277,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - direct_effects: `[]`
 - operation: status-only incomplet
@@ -298,7 +298,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - direct_effects: `[]`
 - operation: mauvais statut / mauvaise interpretation
@@ -391,7 +391,7 @@
 **Fix propose**
 - Ajouter un test d'arbitrage: "prepare une carte d'attaque + Action/Piege/Signal/Phrase" doit produire `tool_skill` / `prepare_attack_card`, pas `normal_reply`.
 - Faire consommer par le generator `prepare_attack_card` le champ `confirmation_message` des metadata afin d'afficher une confirmation explicite.
-- Pour `status_only_request_blocks_tool_start`, ajouter une collecte des surfaces nommees: cards, reminders, coach preferences, repere conversationnel.
+- Pour `status_recap_request_blocks_tool_start`, ajouter une collecte des surfaces nommees: cards, reminders, coach preferences, repere conversationnel.
 - Ajouter un guard de langage: "inclue explicitement le rappel dans le recap" ne doit pas etre classe comme create/update reminder.
 
 ## Verdict Global

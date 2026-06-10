@@ -97,7 +97,7 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
       const requestedEffects: unknown[] = [];
       const allowedEffects: unknown[] = [];
       for (const item of readyMultiCandidates) {
-        const dateHints = Array.isArray(item.date_hints) ? item.date_hints : [];
+        const dateHints = item.date_hint ? [item.date_hint] : [];
         const effectiveCount = dateHints.length > 1 &&
             (!item.count || item.count < dateHints.length)
           ? dateHints.length

@@ -52,18 +52,6 @@ export function resolveAgentChatModel(args: {
   const plan = args.memoryPlan ?? null;
   const confidence = Number(plan?.plan_confidence ?? 0);
   const hint = String(plan?.model_tier_hint ?? "").trim().toLowerCase();
-  const targets = Array.isArray(plan?.targets) ? plan?.targets ?? [] : [];
-  const hasSensitiveMemoryTarget = targets.some((target: any) => {
-    const key = String(target?.key ?? target?.query_hint ?? "")
-      .trim()
-      .toLowerCase();
-    return key.startsWith("sante.") || key.startsWith("addictions.") ||
-      /\b(allerg|medical|sante|santé|douleur|ingredient|ingrédient|restaurant|alcool|whisky|apero|apéro)\b/
-        .test(key);
-  });
-  const hasEntityMemoryTarget = targets.some((target: any) =>
-    String(target?.type ?? "").trim() === "entity"
-  );
   if (
     confidence < 0.6 ||
     (hint !== "lite" && hint !== "standard" && hint !== "deep")
@@ -90,9 +78,7 @@ export function resolveAgentChatModel(args: {
     ),
   };
   const effectiveHint: DispatcherModelTierHint =
-    hint === "lite" && (hasSensitiveMemoryTarget || hasEntityMemoryTarget)
-      ? "standard"
-      : (hint as DispatcherModelTierHint);
+    hint as DispatcherModelTierHint;
 
   return {
     model: tierModelMap[effectiveHint],

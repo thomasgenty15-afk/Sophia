@@ -63,7 +63,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - skill_entry_ids: `["product_help"]`
 - executed_tools: `[]`
@@ -311,7 +311,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - executed_tools: `[]`
 - durable_effect: aucun nouveau side effect
@@ -344,7 +344,7 @@
 
 **Routage**
 - Tour 1: bon routage `attack_card_cancelled_to_conversation`.
-- Tour 3: mauvais arbitrage. `product_help` est détecté mais `status_only_request_blocks_tool_start` prend le dessus.
+- Tour 3: mauvais arbitrage. `product_help` est détecté mais `status_recap_request_blocks_tool_start` prend le dessus.
 - Tour 5: `prepare_defense_card` démarre correctement.
 - Tour 6: le flow défense est perdu au profit de `normal_reply` avec `central_arbitrator_status_exact_priority`, alors que l'utilisateur vient de donner le slot demandé.
 - Tour 8: Sophia parle de carte de défense mais reste en `normal_reply`; aucun pending confirmation ni tool execution.

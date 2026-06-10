@@ -8,30 +8,6 @@ export type StaleBilanDecision =
   | "stop_for_today"
   | "other_topic";
 
-export function deterministicStaleBilanDecision(
-  text: string,
-): StaleBilanDecision | null {
-  const lower = String(text ?? "").trim().toLowerCase();
-  if (!lower) return "other_topic";
-
-  if (
-    /\b(pas\s+maintenant|plus\s+tard|demain|on\s+verra|pas\s+dispo|une\s+autre\s+fois|laisse\s+tomber|stop|arr[êe]te|on\s+s['’]?arr[êe]te|bonne\s+nuit|à\s+demain|a\s+demain|je\s+te\s+laisse)\b/i
-      .test(lower)
-  ) {
-    return "stop_for_today";
-  }
-
-  if (
-    /^(oui|ok|okay|dac|d'accord|go|yes|ouais|yep)\b/i.test(lower) ||
-    /\b(on\s+reprend|reprenons|on\s+continue|continuons|vas[- ]?y|c['’]est\s+parti)\b/i
-      .test(lower)
-  ) {
-    return "resume_bilan";
-  }
-
-  return null;
-}
-
 export async function classifyStaleBilanResponse(params: {
   userMessage: string;
   lastAssistantMessage: string;
@@ -40,9 +16,6 @@ export async function classifyStaleBilanResponse(params: {
 }): Promise<StaleBilanDecision> {
   const text = String(params.userMessage ?? "").trim();
   if (!text) return "other_topic";
-
-  const deterministic = deterministicStaleBilanDecision(text);
-  if (deterministic) return deterministic;
 
   const recentContext = params.history.slice(-4).map((m) =>
     `${m.role === "assistant" ? "SOPHIA" : "USER"}: ${
@@ -102,10 +75,10 @@ export async function classifyStaleBilanResponse(params: {
     }
   } catch (e) {
     console.warn(
-      "[Router] stale bilan classification failed, using fallback:",
+      "[Router] stale bilan classification failed:",
       e,
     );
   }
 
-  return deterministicStaleBilanDecision(text) ?? "other_topic";
+  return "other_topic";
 }

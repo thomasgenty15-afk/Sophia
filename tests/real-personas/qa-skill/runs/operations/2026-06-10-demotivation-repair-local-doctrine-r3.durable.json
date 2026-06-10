@@ -1,0 +1,1019 @@
+{
+  "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+  "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "b7e84083-8139-4903-a7b1-2934cb6cc5ca",
+        "role": "user",
+        "content": "Je continue mon plan mais j'ai perdu le fil. Les actions avancent un peu, sauf que je ne sens plus pourquoi elles comptent, et ça me donne envie de tout laisser glisser.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-10T11:04:36.952765+00:00"
+      },
+      {
+        "id": "aac756f3-21da-423b-b24d-19fc28800cd8",
+        "role": "assistant",
+        "content": "C'est une sensation très lourde que de continuer à avancer par simple automatisme, alors que la raison profonde semble s'être évaporée. Quand on perd de vue le sens de ses efforts, l'énergie s'épuise naturellement car le lien entre tes gestes d'aujourd'hui et ta destination finale est devenu flou. \n\nSi tu devais regarder un instant en arrière, quel était l'impact ou le changement concret que tu espérais vraiment obtenir en commençant tout cela ?",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-10T11:04:59.02951+00:00"
+      },
+      {
+        "id": "b010e297-aced-4e30-b746-86ca1f364a29",
+        "role": "user",
+        "content": "Au départ je voulais retrouver de la place dans ma tête et arrêter de vivre mes journées comme une suite d'obligations. Là, mes tâches sont devenues correctes sur le papier mais elles ne me rendent pas plus disponible.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-10T11:05:11.309558+00:00"
+      },
+      {
+        "id": "3ca1e8ad-d226-4188-9a9c-718fca67e89e",
+        "role": "assistant",
+        "content": "C'est épuisant de s'acquitter de ses tâches sans jamais sentir que le poids mental s'allège. Si ce que vous faites aujourd'hui ne sert pas votre objectif de disponibilité, cela finit par ressembler à une simple accumulation d'obligations vides de sens.\n\nParmi les choses qui occupent vos journées, laquelle vous donne le plus l'impression de travailler contre votre besoin de retrouver de la place dans votre tête ?",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-10T11:05:34.171303+00:00"
+      },
+      {
+        "id": "afca11cf-cebf-4ce2-b688-276b43dba184",
+        "role": "user",
+        "content": "C'est le tri de fin de journée. Je le fais, mais je le vis comme une preuve que je n'ai jamais fini. En vrai j'aimerais le voir comme un moyen de fermer la journée et de choisir plus calmement demain.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-10T11:05:46.102111+00:00"
+      },
+      {
+        "id": "134e3031-8b86-426d-ab24-8c8cd9dfe7a2",
+        "role": "assistant",
+        "content": "Passer de la « preuve d'inachevé » à un rituel de fermeture change tout : ce n'est plus une contrainte, mais un espace que tu crées pour ton calme de demain. En faisant cela, tu transformes une tâche subie en un acte volontaire de clarté mentale. Qu'est-ce que ce changement de regard modifie dans ton rapport à ce moment de la journée ?",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-10T11:06:23.626236+00:00"
+      },
+      {
+        "id": "523b9184-2620-4fa5-8b68-c95b995a580b",
+        "role": "user",
+        "content": "Ça le rend moins accusateur. Si je me dis que ce tri sert à poser la journée au lieu de me juger, je peux le faire en gardant l'idée que je récupère un peu de calme pour demain.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-10T11:06:33.312046+00:00"
+      },
+      {
+        "id": "b766f726-04f3-4318-937e-f04ead487c87",
+        "role": "assistant",
+        "content": "Ce passage du jugement à la protection de ton calme futur change tout. Le tri devient un rituel de fermeture qui préserve ta clarté mentale pour le lendemain. Je peux formaliser cette approche dans une carte de soutien pour t'aider à l'ancrer. Je préparerai ce support dès réception de ton accord.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-10T11:06:57.318839+00:00"
+      },
+      {
+        "id": "811a7b46-0054-4f87-9c7a-d256dab83097",
+        "role": "user",
+        "content": "Pas maintenant pour la carte. Je veux juste garder la phrase et m'arrêter là pour aujourd'hui.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-10T11:07:09.742093+00:00"
+      },
+      {
+        "id": "0caef3d8-03a6-48d3-a95d-4ab804e3881a",
+        "role": "assistant",
+        "content": "C'est entendu, nous nous arrêtons là pour aujourd'hui. L'essentiel est d'avoir redonné du sens à ce rituel de tri : il n'est plus une contrainte, mais un geste concret pour protéger ton calme futur. À bientôt.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-10T11:07:26.397187+00:00"
+      }
+    ]
+  },
+  "memory_items_recent": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins_recent": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "turn_summary_logs": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": 3065,
+        "created_at": "2026-06-10T11:04:59.033251+00:00",
+        "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t01",
+        "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+        "channel": "web",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "latency_total_ms": 22080,
+        "latency_dispatcher_ms": 6362,
+        "latency_context_ms": 13,
+        "latency_agent_ms": 7,
+        "dispatcher_model": "gemini-3-flash-preview",
+        "dispatcher_safety": "NONE",
+        "dispatcher_intent": null,
+        "dispatcher_intent_conf": null,
+        "dispatcher_interrupt": "NONE",
+        "dispatcher_topic_depth": null,
+        "dispatcher_flow_resolution": null,
+        "context_profile": "companion",
+        "context_elements": [
+          "temporal",
+          "facts",
+          "durable_effects_summary",
+          "dashboard_capabilities_lite_addon",
+          "memory_v2_active_payload"
+        ],
+        "context_tokens": 1153,
+        "target_dispatcher": "companion",
+        "target_initial": "companion",
+        "target_final": "companion",
+        "risk_score": 2,
+        "agent_model": "gpt-5.4-nano",
+        "agent_outcome": "text",
+        "agent_tool": null,
+        "checkup_active": false,
+        "toolflow_active": false,
+        "supervisor_stack_top": "",
+        "aborted": false,
+        "abort_reason": null,
+        "payload": {
+          "ts": "2026-06-10T11:04:59.031Z",
+          "tag": "turn_summary",
+          "agent": {
+            "tool": null,
+            "model": "gpt-5.4-nano",
+            "outcome": "text",
+            "model_tier": "lite",
+            "model_source": "memory_plan_lite",
+            "effective_mode": "companion"
+          },
+          "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+          "channel": "web",
+          "context": {
+            "tokens": 1153,
+            "profile": "companion",
+            "elements": [
+              "temporal",
+              "facts",
+              "durable_effects_summary",
+              "dashboard_capabilities_lite_addon",
+              "memory_v2_active_payload"
+            ]
+          },
+          "details": {
+            "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+            "channel": "web",
+            "momentum": {
+              "state": "friction_legere",
+              "consent": "open",
+              "engagement": "high",
+              "updated_at": "2026-06-10T11:04:59.013Z",
+              "progression": "unknown",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "emotional_load": "low",
+              "stable_since_at": "2026-06-10T11:04:59.013Z",
+              "top_blocker_stage": null,
+              "top_blocker_action": null,
+              "top_blocker_category": null,
+              "active_blockers_count": 0,
+              "chronic_blockers_count": 0,
+              "pending_transition_target": null,
+              "pending_transition_confirmations": null
+            },
+            "tool_ack": {
+              "status": "none",
+              "version": 1,
+              "attempted": false,
+              "tool_name": null,
+              "executed_tools": [],
+              "success_confirmed": false,
+              "user_safe_message": null,
+              "allow_success_claim": false
+            },
+            "outage_error": null,
+            "executed_tools": [],
+            "tool_execution": "none",
+            "outage_fallback": false,
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "outage_failed_mode": null,
+            "selected_surface_id": null,
+            "selected_surface_level": null,
+            "recommendation_tool_run": null,
+            "coaching_intervention_pending": null
+          },
+          "routing": {
+            "risk_score": 2,
+            "target_final": "companion",
+            "target_initial": "companion",
+            "target_dispatcher": "companion"
+          },
+          "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+          "research": {
+            "error": null,
+            "query": null,
+            "executed": false,
+            "has_text": false,
+            "requested": false,
+            "confidence": 0,
+            "domain_hint": null,
+            "sources_count": 0,
+            "snippets_count": 0
+          },
+          "dispatcher": {
+            "model": "gemini-3-flash-preview",
+            "signals": {
+              "safety": "NONE",
+              "interrupt": "NONE"
+            }
+          },
+          "latency_ms": {
+            "agent": 7,
+            "total": 22080,
+            "context": 13,
+            "dispatcher": 6362
+          },
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t01",
+          "state_flags": {
+            "checkup_active": false,
+            "toolflow_active": false,
+            "supervisor_stack_top": ""
+          }
+        }
+      },
+      {
+        "id": 3082,
+        "created_at": "2026-06-10T11:06:57.321847+00:00",
+        "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t04",
+        "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+        "channel": "web",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "latency_total_ms": 24010,
+        "latency_dispatcher_ms": 4090,
+        "latency_context_ms": 11,
+        "latency_agent_ms": 7,
+        "dispatcher_model": "gemini-3-flash-preview",
+        "dispatcher_safety": "NONE",
+        "dispatcher_intent": null,
+        "dispatcher_intent_conf": null,
+        "dispatcher_interrupt": "NONE",
+        "dispatcher_topic_depth": null,
+        "dispatcher_flow_resolution": null,
+        "context_profile": "companion",
+        "context_elements": [
+          "temporal",
+          "durable_effects_summary",
+          "facts",
+          "recent_turns",
+          "dashboard_capabilities_lite_addon",
+          "memory_v2_active_payload"
+        ],
+        "context_tokens": 1619,
+        "target_dispatcher": "companion",
+        "target_initial": "companion",
+        "target_final": "companion",
+        "risk_score": 2,
+        "agent_model": "gpt-5.4-nano",
+        "agent_outcome": "text",
+        "agent_tool": null,
+        "checkup_active": false,
+        "toolflow_active": false,
+        "supervisor_stack_top": "",
+        "aborted": false,
+        "abort_reason": null,
+        "payload": {
+          "ts": "2026-06-10T11:06:57.320Z",
+          "tag": "turn_summary",
+          "agent": {
+            "tool": null,
+            "model": "gpt-5.4-nano",
+            "outcome": "text",
+            "model_tier": "lite",
+            "model_source": "memory_plan_lite",
+            "effective_mode": "companion"
+          },
+          "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+          "channel": "web",
+          "context": {
+            "tokens": 1619,
+            "profile": "companion",
+            "elements": [
+              "temporal",
+              "durable_effects_summary",
+              "facts",
+              "recent_turns",
+              "dashboard_capabilities_lite_addon",
+              "memory_v2_active_payload"
+            ]
+          },
+          "details": {
+            "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+            "channel": "web",
+            "momentum": {
+              "state": "friction_legere",
+              "consent": "open",
+              "engagement": "high",
+              "updated_at": "2026-06-10T11:06:57.304Z",
+              "progression": "unknown",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "emotional_load": "low",
+              "stable_since_at": "2026-06-10T11:04:59.013Z",
+              "top_blocker_stage": null,
+              "top_blocker_action": null,
+              "top_blocker_category": null,
+              "active_blockers_count": 0,
+              "chronic_blockers_count": 0,
+              "pending_transition_target": null,
+              "pending_transition_confirmations": null
+            },
+            "tool_ack": {
+              "status": "none",
+              "version": 1,
+              "attempted": false,
+              "tool_name": null,
+              "executed_tools": [],
+              "success_confirmed": false,
+              "user_safe_message": null,
+              "allow_success_claim": false
+            },
+            "outage_error": null,
+            "executed_tools": [],
+            "tool_execution": "none",
+            "outage_fallback": false,
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "outage_failed_mode": null,
+            "selected_surface_id": null,
+            "selected_surface_level": null,
+            "recommendation_tool_run": null,
+            "coaching_intervention_pending": null
+          },
+          "routing": {
+            "risk_score": 2,
+            "target_final": "companion",
+            "target_initial": "companion",
+            "target_dispatcher": "companion"
+          },
+          "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+          "research": {
+            "error": null,
+            "query": null,
+            "executed": false,
+            "has_text": false,
+            "requested": false,
+            "confidence": 0,
+            "domain_hint": null,
+            "sources_count": 0,
+            "snippets_count": 0
+          },
+          "dispatcher": {
+            "model": "gemini-3-flash-preview",
+            "signals": {
+              "safety": "NONE",
+              "interrupt": "NONE"
+            }
+          },
+          "latency_ms": {
+            "agent": 7,
+            "total": 24010,
+            "context": 11,
+            "dispatcher": 4090
+          },
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t04",
+          "state_flags": {
+            "checkup_active": false,
+            "toolflow_active": false,
+            "supervisor_stack_top": ""
+          }
+        }
+      },
+      {
+        "id": 3071,
+        "created_at": "2026-06-10T11:05:34.174438+00:00",
+        "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t02",
+        "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+        "channel": "web",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "latency_total_ms": 22864,
+        "latency_dispatcher_ms": 9800,
+        "latency_context_ms": 14,
+        "latency_agent_ms": 7,
+        "dispatcher_model": "gemini-3-flash-preview",
+        "dispatcher_safety": "NONE",
+        "dispatcher_intent": null,
+        "dispatcher_intent_conf": null,
+        "dispatcher_interrupt": "NONE",
+        "dispatcher_topic_depth": null,
+        "dispatcher_flow_resolution": null,
+        "context_profile": "companion",
+        "context_elements": [
+          "temporal",
+          "facts",
+          "durable_effects_summary",
+          "recent_turns",
+          "dashboard_capabilities_lite_addon",
+          "memory_v2_active_payload"
+        ],
+        "context_tokens": 1317,
+        "target_dispatcher": "companion",
+        "target_initial": "companion",
+        "target_final": "companion",
+        "risk_score": 2,
+        "agent_model": "gpt-5.4-nano",
+        "agent_outcome": "text",
+        "agent_tool": null,
+        "checkup_active": false,
+        "toolflow_active": false,
+        "supervisor_stack_top": "",
+        "aborted": false,
+        "abort_reason": null,
+        "payload": {
+          "ts": "2026-06-10T11:05:34.173Z",
+          "tag": "turn_summary",
+          "agent": {
+            "tool": null,
+            "model": "gpt-5.4-nano",
+            "outcome": "text",
+            "model_tier": "lite",
+            "model_source": "memory_plan_lite",
+            "effective_mode": "companion"
+          },
+          "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+          "channel": "web",
+          "context": {
+            "tokens": 1317,
+            "profile": "companion",
+            "elements": [
+              "temporal",
+              "facts",
+              "durable_effects_summary",
+              "recent_turns",
+              "dashboard_capabilities_lite_addon",
+              "memory_v2_active_payload"
+            ]
+          },
+          "details": {
+            "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+            "channel": "web",
+            "momentum": {
+              "state": "friction_legere",
+              "consent": "open",
+              "engagement": "high",
+              "updated_at": "2026-06-10T11:05:34.154Z",
+              "progression": "unknown",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "emotional_load": "low",
+              "stable_since_at": "2026-06-10T11:04:59.013Z",
+              "top_blocker_stage": null,
+              "top_blocker_action": null,
+              "top_blocker_category": null,
+              "active_blockers_count": 0,
+              "chronic_blockers_count": 0,
+              "pending_transition_target": null,
+              "pending_transition_confirmations": null
+            },
+            "tool_ack": {
+              "status": "none",
+              "version": 1,
+              "attempted": false,
+              "tool_name": null,
+              "executed_tools": [],
+              "success_confirmed": false,
+              "user_safe_message": null,
+              "allow_success_claim": false
+            },
+            "outage_error": null,
+            "executed_tools": [],
+            "tool_execution": "none",
+            "outage_fallback": false,
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "outage_failed_mode": null,
+            "selected_surface_id": null,
+            "selected_surface_level": null,
+            "recommendation_tool_run": null,
+            "coaching_intervention_pending": null
+          },
+          "routing": {
+            "risk_score": 2,
+            "target_final": "companion",
+            "target_initial": "companion",
+            "target_dispatcher": "companion"
+          },
+          "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+          "research": {
+            "error": null,
+            "query": null,
+            "executed": false,
+            "has_text": false,
+            "requested": false,
+            "confidence": 0,
+            "domain_hint": null,
+            "sources_count": 0,
+            "snippets_count": 0
+          },
+          "dispatcher": {
+            "model": "gemini-3-flash-preview",
+            "signals": {
+              "safety": "NONE",
+              "interrupt": "NONE"
+            }
+          },
+          "latency_ms": {
+            "agent": 7,
+            "total": 22864,
+            "context": 14,
+            "dispatcher": 9800
+          },
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t02",
+          "state_flags": {
+            "checkup_active": false,
+            "toolflow_active": false,
+            "supervisor_stack_top": ""
+          }
+        }
+      },
+      {
+        "id": 3076,
+        "created_at": "2026-06-10T11:06:23.629085+00:00",
+        "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t03",
+        "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+        "channel": "web",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "latency_total_ms": 37527,
+        "latency_dispatcher_ms": 4521,
+        "latency_context_ms": 9,
+        "latency_agent_ms": 7,
+        "dispatcher_model": "gemini-3-flash-preview",
+        "dispatcher_safety": "NONE",
+        "dispatcher_intent": null,
+        "dispatcher_intent_conf": null,
+        "dispatcher_interrupt": "NONE",
+        "dispatcher_topic_depth": null,
+        "dispatcher_flow_resolution": null,
+        "context_profile": "companion",
+        "context_elements": [
+          "temporal",
+          "facts",
+          "durable_effects_summary",
+          "recent_turns",
+          "dashboard_capabilities_lite_addon",
+          "memory_v2_active_payload"
+        ],
+        "context_tokens": 1480,
+        "target_dispatcher": "companion",
+        "target_initial": "companion",
+        "target_final": "companion",
+        "risk_score": 2,
+        "agent_model": "gpt-5.4-nano",
+        "agent_outcome": "text",
+        "agent_tool": null,
+        "checkup_active": false,
+        "toolflow_active": false,
+        "supervisor_stack_top": "",
+        "aborted": false,
+        "abort_reason": null,
+        "payload": {
+          "ts": "2026-06-10T11:06:23.627Z",
+          "tag": "turn_summary",
+          "agent": {
+            "tool": null,
+            "model": "gpt-5.4-nano",
+            "outcome": "text",
+            "model_tier": "lite",
+            "model_source": "memory_plan_lite",
+            "effective_mode": "companion"
+          },
+          "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+          "channel": "web",
+          "context": {
+            "tokens": 1480,
+            "profile": "companion",
+            "elements": [
+              "temporal",
+              "facts",
+              "durable_effects_summary",
+              "recent_turns",
+              "dashboard_capabilities_lite_addon",
+              "memory_v2_active_payload"
+            ]
+          },
+          "details": {
+            "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+            "channel": "web",
+            "momentum": {
+              "state": "friction_legere",
+              "consent": "open",
+              "engagement": "high",
+              "updated_at": "2026-06-10T11:06:23.614Z",
+              "progression": "unknown",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "emotional_load": "low",
+              "stable_since_at": "2026-06-10T11:04:59.013Z",
+              "top_blocker_stage": null,
+              "top_blocker_action": null,
+              "top_blocker_category": null,
+              "active_blockers_count": 0,
+              "chronic_blockers_count": 0,
+              "pending_transition_target": null,
+              "pending_transition_confirmations": null
+            },
+            "tool_ack": {
+              "status": "none",
+              "version": 1,
+              "attempted": false,
+              "tool_name": null,
+              "executed_tools": [],
+              "success_confirmed": false,
+              "user_safe_message": null,
+              "allow_success_claim": false
+            },
+            "outage_error": null,
+            "executed_tools": [],
+            "tool_execution": "none",
+            "outage_fallback": false,
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "outage_failed_mode": null,
+            "selected_surface_id": null,
+            "selected_surface_level": null,
+            "recommendation_tool_run": null,
+            "coaching_intervention_pending": null
+          },
+          "routing": {
+            "risk_score": 2,
+            "target_final": "companion",
+            "target_initial": "companion",
+            "target_dispatcher": "companion"
+          },
+          "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+          "research": {
+            "error": null,
+            "query": null,
+            "executed": false,
+            "has_text": false,
+            "requested": false,
+            "confidence": 0,
+            "domain_hint": null,
+            "sources_count": 0,
+            "snippets_count": 0
+          },
+          "dispatcher": {
+            "model": "gemini-3-flash-preview",
+            "signals": {
+              "safety": "NONE",
+              "interrupt": "NONE"
+            }
+          },
+          "latency_ms": {
+            "agent": 7,
+            "total": 37527,
+            "context": 9,
+            "dispatcher": 4521
+          },
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t03",
+          "state_flags": {
+            "checkup_active": false,
+            "toolflow_active": false,
+            "supervisor_stack_top": ""
+          }
+        }
+      },
+      {
+        "id": 3087,
+        "created_at": "2026-06-10T11:07:26.399472+00:00",
+        "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t05",
+        "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+        "channel": "web",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+        "latency_total_ms": 16658,
+        "latency_dispatcher_ms": 6670,
+        "latency_context_ms": 12,
+        "latency_agent_ms": 5,
+        "dispatcher_model": "gemini-3-flash-preview",
+        "dispatcher_safety": "NONE",
+        "dispatcher_intent": null,
+        "dispatcher_intent_conf": null,
+        "dispatcher_interrupt": "NONE",
+        "dispatcher_topic_depth": null,
+        "dispatcher_flow_resolution": null,
+        "context_profile": "companion",
+        "context_elements": [
+          "temporal",
+          "facts",
+          "durable_effects_summary",
+          "recent_turns",
+          "dashboard_capabilities_lite_addon",
+          "memory_v2_active_payload"
+        ],
+        "context_tokens": 1742,
+        "target_dispatcher": "companion",
+        "target_initial": "companion",
+        "target_final": "companion",
+        "risk_score": 2,
+        "agent_model": "gpt-5.4-nano",
+        "agent_outcome": "text",
+        "agent_tool": null,
+        "checkup_active": false,
+        "toolflow_active": false,
+        "supervisor_stack_top": "",
+        "aborted": false,
+        "abort_reason": null,
+        "payload": {
+          "ts": "2026-06-10T11:07:26.398Z",
+          "tag": "turn_summary",
+          "agent": {
+            "tool": null,
+            "model": "gpt-5.4-nano",
+            "outcome": "text",
+            "model_tier": "lite",
+            "model_source": "memory_plan_lite",
+            "effective_mode": "companion"
+          },
+          "scope": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3",
+          "channel": "web",
+          "context": {
+            "tokens": 1742,
+            "profile": "companion",
+            "elements": [
+              "temporal",
+              "facts",
+              "durable_effects_summary",
+              "recent_turns",
+              "dashboard_capabilities_lite_addon",
+              "memory_v2_active_payload"
+            ]
+          },
+          "details": {
+            "source": "sophia-brain/router/normal_reply_persistence_pipeline.ts",
+            "channel": "web",
+            "momentum": {
+              "state": "friction_legere",
+              "consent": "open",
+              "engagement": "high",
+              "updated_at": "2026-06-10T11:07:26.385Z",
+              "progression": "unknown",
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "emotional_load": "low",
+              "stable_since_at": "2026-06-10T11:04:59.013Z",
+              "top_blocker_stage": null,
+              "top_blocker_action": null,
+              "top_blocker_category": null,
+              "active_blockers_count": 0,
+              "chronic_blockers_count": 0,
+              "pending_transition_target": null,
+              "pending_transition_confirmations": null
+            },
+            "tool_ack": {
+              "status": "none",
+              "version": 1,
+              "attempted": false,
+              "tool_name": null,
+              "executed_tools": [],
+              "success_confirmed": false,
+              "user_safe_message": null,
+              "allow_success_claim": false
+            },
+            "outage_error": null,
+            "executed_tools": [],
+            "tool_execution": "none",
+            "outage_fallback": false,
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "outage_failed_mode": null,
+            "selected_surface_id": null,
+            "selected_surface_level": null,
+            "recommendation_tool_run": null,
+            "coaching_intervention_pending": null
+          },
+          "routing": {
+            "risk_score": 2,
+            "target_final": "companion",
+            "target_initial": "companion",
+            "target_dispatcher": "companion"
+          },
+          "user_id": "94788d44-8dba-4d19-9202-2b2b83363acd",
+          "research": {
+            "error": null,
+            "query": null,
+            "executed": false,
+            "has_text": false,
+            "requested": false,
+            "confidence": 0,
+            "domain_hint": null,
+            "sources_count": 0,
+            "snippets_count": 0
+          },
+          "dispatcher": {
+            "model": "gemini-3-flash-preview",
+            "signals": {
+              "safety": "NONE",
+              "interrupt": "NONE"
+            }
+          },
+          "latency_ms": {
+            "agent": 5,
+            "total": 16658,
+            "context": 12,
+            "dispatcher": 6670
+          },
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-10-local-doctrine-r3-t05",
+          "state_flags": {
+            "checkup_active": false,
+            "toolflow_active": false,
+            "supervisor_stack_top": ""
+          }
+        }
+      }
+    ]
+  }
+}

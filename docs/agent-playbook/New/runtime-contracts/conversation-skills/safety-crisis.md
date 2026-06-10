@@ -34,7 +34,7 @@ dispatcher / safety_pregate
 Ce domaine dépend de :
 
 - UserTurnSnapshot pour lire l'état complet du tour ;
-- TurnAgenda pour distinguer reply/effects/status/memory/repair ;
+- local reducer contract pour distinguer reply/effects/status/memory/repair ;
 - Confirmation Contract pour interpréter approve/reject/revise/explain ;
 - EffectLedger pour ne jamais dire "c'est fait" sans effet committé ;
 - le contrat local de `safety_crisis` pour l'intake, le reducer, les effets et
@@ -48,7 +48,7 @@ Dans le code actuel, l'usage est le suivant :
   `SafetyCrisisSnapshot` dans
   `supabase/functions/sophia-brain/skills/safety_crisis/contract.ts`, construit
   par `buildSafetySnapshot` dans `intake.ts`.
-- Le rôle de `TurnAgenda` est porté en amont par `TurnFrame`,
+- Le rôle de `local reducer contract` est porté en amont par `TurnFrame`,
   `runSkillRouter`, `runConversationRouters`,
   `operation_runtime_pipeline.ts` et `safety_crisis_runtime.ts` :
   `response_owner="safety"` gagne sur product/help/tools, et les direct effects
@@ -247,7 +247,7 @@ Application des effets :
 - Le renderer ne mentionne jamais dashboard, plan, potion, carte, outil ou
   optimisation d'habitude.
 - Une route safety force `tool_skill_intents=[]`, `direct_effects=[]`,
-  `tool_skill_opportunity.type="none"` et `direct_effects_to_run=[]`.
+  `flow_opportunity.type="none"` et `direct_effects_to_run=[]`.
 - Un flow safety actif non résolu force au minimum un risque runtime `medium`
   via `withActiveSafetyFlowCaution` / `runtimeSafetyPregateForTurn`.
 - Une exception de rappel de travail sûr ne peut pas downgrader un flow safety

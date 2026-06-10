@@ -212,9 +212,6 @@ export function runRecurringReminderBuilder(
     throw new Error("recurring_reminder_message_missing");
   }
   const message = input.reminder_content.message.trim();
-  if (/\bdemain\b|\bdans \d+/.test(message.toLowerCase())) {
-    throw new Error("recurring_reminder_one_shot_payload");
-  }
   const title = input.reminder_content.subject_hint
     ? `Rappel récurrent : ${input.reminder_content.subject_hint}`
     : `Rappel récurrent : ${message.slice(0, 42)}`;

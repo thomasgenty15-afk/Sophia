@@ -373,7 +373,7 @@ Nettoyage: ciblé par `user_id` temporaire après vérification DB. Toutes les t
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: none
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `none`
 - direct_effects: none
 - operation: none

@@ -1,137 +1,76 @@
 import {
+  assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { getHandoffTargetForOperation } from "../../product_surface_registry/contract.ts";
-import { renderAdjustPlanHandoffDraft } from "./adjust_plan_item/renderer.ts";
-import { renderAttackCardPlatformHandoff } from "./prepare_attack_card/renderer.ts";
-import { renderDefenseCardHandoff } from "./prepare_defense_card/renderer.ts";
-import { createDefenseCardPlatformFieldState } from "./prepare_defense_card/platform_fields.ts";
 import { renderSelectStatePotionHandoffDraft } from "./select_state_potion/renderer.ts";
 import { renderRecurringReminderPlatformHandoff } from "./create_recurring_reminder/renderer.ts";
-import { renderCoachPreferenceHandoffDraft } from "./update_coach_preferences/renderer.ts";
 
-Deno.test("adjust_plan renderer includes registry Plan destination", () => {
-  const target = getHandoffTargetForOperation("adjust_plan_item")!;
-  const content = renderAdjustPlanHandoffDraft({
-    operation_type: "adjust_plan_item",
-    mode: "platform_input_coaching",
-    no_chat_mutation: true,
-    executable_from_chat: false,
-    user_blocker_summary: "alléger l'action",
-    suggested_platform_input:
-      "Je veux rendre cette partie du plan plus légère sans perdre l'objectif.",
-    preserve: ["objectif"],
-    avoid: ["tout changer"],
-    destination: {
-      product_area: "Plan",
-      instruction: `${target.user_facing_destination}. ${
-        target.platform_steps.join(" ")
-      }`,
-    },
-    missing_clarity: [],
-  });
-  assertStringIncludes(content, target.user_facing_destination);
-});
-
-Deno.test("attack card renderer includes registry Cards destination", () => {
+Deno.test("attack card uses local visible agent instead of deterministic renderer", async () => {
   const target = getHandoffTargetForOperation("prepare_attack_card")!;
-  const content = renderAttackCardPlatformHandoff({
-    operation_type: "prepare_attack_card",
-    mode: "platform_handoff",
-    no_chat_mutation: true,
-    executable_from_chat: false,
-    target_summary: "Action",
-    blocker_summary: "Blocage",
-    recommendation: {
-      technique_label: "Mini départ",
-      why_this_technique: "court",
-      card_draft_summary: "Brouillon",
-      preserve: ["geste court"],
-      avoid: ["trop long"],
-      platform_destination: target.user_facing_destination,
-      platform_steps: target.platform_steps,
-    },
-    missing_decisions: [],
-  });
-  assertStringIncludes(content, target.user_facing_destination);
+  assertStringIncludes(target.user_facing_destination, "Cartes");
+  const moduleNames: string[] = [];
+  for await (
+    const entry of Deno.readDir(
+      new URL("./prepare_attack_card", import.meta.url),
+    )
+  ) {
+    if (entry.isFile && entry.name.endsWith(".ts")) {
+      moduleNames.push(entry.name);
+    }
+  }
+  assertEquals(moduleNames.sort(), [
+    "contract.ts",
+    "local_flow.ts",
+    "local_flow_test.ts",
+    "platform_fields.ts",
+    "router.ts",
+    "run_support.ts",
+    "state.ts",
+    "visible_agent.ts",
+  ]);
 });
 
-Deno.test("defense card renderer includes registry Defense Cards destination", () => {
+Deno.test("defense card uses local visible agent instead of deterministic renderer", async () => {
   const target = getHandoffTargetForOperation("prepare_defense_card")!;
-  const content = renderDefenseCardHandoff({
-    handoff: {
-      operation_type: "prepare_defense_card",
+  assertStringIncludes(target.user_facing_destination, "Défense");
+  await Deno.stat(
+    new URL("./prepare_defense_card/renderer.ts", import.meta.url),
+  )
+    .then(
+      () => {
+        throw new Error("prepare_defense_card_renderer_should_not_exist");
+      },
+      () => undefined,
+    );
+});
+
+Deno.test("potion renderer is disabled in favor of local visible agents", () => {
+  const target = getHandoffTargetForOperation("select_state_potion")!;
+  assertStringIncludes(target.user_facing_destination, "Potions");
+  try {
+    renderSelectStatePotionHandoffDraft({
+      operation_type: "select_state_potion",
       mode: "platform_handoff",
       no_chat_mutation: true,
       executable_from_chat: false,
-      target_summary: "Situation",
-      risk_summary: "Risque",
-      platform_flow: {
-        route_kind: "free_card",
-        route_label: "Carte de défense libre",
-        entry_need: {
-          question_label: "Besoin libre",
-          value: "Risque",
-          status: "locked",
-        },
-        questionnaire_answers: [
-          {
-            field_id: "risk_moment",
-            question_label: "A quel moment précis ça arrive ?",
-            value: "Situation",
-            status: "locked",
-          },
-          {
-            field_id: "first_signal",
-            question_label: "Quel est le premier signal ?",
-            value: "Signal",
-            status: "locked",
-          },
-          {
-            field_id: "defense_response",
-            question_label: "Quel geste simple ?",
-            value: "Geste",
-            status: "locked",
-          },
-        ],
-      },
-      platform_fields: createDefenseCardPlatformFieldState("free_card"),
+      user_state_summary: "tension",
+      desired_shift_summary: "vers plus calme",
       recommendation: {
-        defense_strategy_label: "Réponse",
-        why_this_strategy: "prévenir",
-        card_draft_summary: "Brouillon",
-        preserve: ["signal"],
-        avoid: ["flou"],
-        platform_destination: target.user_facing_destination,
-        platform_steps: target.platform_steps,
+        potion_label: "Pause",
+        why_this_potion: "reguler",
+        immediate_step: null,
+        preserve: ["calme"],
+        avoid: ["forcer"],
+        platform_destination: "legacy",
+        platform_steps: ["legacy"],
       },
       missing_decisions: [],
-    },
-  });
-  assertStringIncludes(content, target.user_facing_destination);
-});
-
-Deno.test("potion renderer includes registry State/Potions destination", () => {
-  const target = getHandoffTargetForOperation("select_state_potion")!;
-  const content = renderSelectStatePotionHandoffDraft({
-    operation_type: "select_state_potion",
-    mode: "platform_handoff",
-    no_chat_mutation: true,
-    executable_from_chat: false,
-    user_state_summary: "tension",
-    desired_shift_summary: "vers plus calme",
-    recommendation: {
-      potion_label: "Pause",
-      why_this_potion: "réguler",
-      immediate_step: null,
-      preserve: ["calme"],
-      avoid: ["forcer"],
-      platform_destination: "legacy",
-      platform_steps: ["legacy"],
-    },
-    missing_decisions: [],
-  });
-  assertStringIncludes(content, target.user_facing_destination);
+    });
+    throw new Error("select_state_potion_renderer_should_be_disabled");
+  } catch (error) {
+    assertStringIncludes(String((error as Error).message), "legacy_disabled");
+  }
 });
 
 Deno.test("recurring renderer includes registry Reminders destination", () => {
@@ -158,29 +97,16 @@ Deno.test("recurring renderer includes registry Reminders destination", () => {
   assertStringIncludes(content, target.user_facing_destination);
 });
 
-Deno.test("preferences renderer includes registry Preferences destination", () => {
+Deno.test("preferences use local visible agent instead of deterministic renderer", async () => {
   const target = getHandoffTargetForOperation("update_coach_preferences")!;
-  const content = renderCoachPreferenceHandoffDraft({
-    operation_type: "update_coach_preferences",
-    mode: "platform_handoff",
-    no_chat_mutation: true,
-    executable_from_chat: false,
-    user_request_summary: "moins de questions",
-    preference_kind: "durable_supported",
-    supported_settings: [{
-      key: "coach.question_tendency",
-      label: "Questions",
-      recommended_value: "moins",
-      explanation: "réduire les questions",
-    }],
-    unsupported_parts: [],
-    recommendation: {
-      platform_destination: "legacy",
-      platform_steps: ["legacy"],
-      preserve: ["utile"],
-      avoid: ["rigide"],
-    },
-    missing_decisions: [],
-  });
-  assertStringIncludes(content, target.user_facing_destination);
+  assertStringIncludes(target.user_facing_destination, "Préférences");
+  await Deno.stat(
+    new URL("./update_coach_preferences/renderer.ts", import.meta.url),
+  )
+    .then(
+      () => {
+        throw new Error("update_coach_preferences_renderer_should_not_exist");
+      },
+      () => undefined,
+    );
 });

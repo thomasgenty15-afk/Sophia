@@ -81,7 +81,7 @@ The dispatcher returns only this JSON :
     "note_information": {
       "source_flow_presentation": "string|null",
       "handoff_context_for_next_dispatcher": "string|null",
-      "target_flow": "select_state_potion|null",
+      "target_dispatcher": "select_state_potion|null",
       "target_local_dispatcher_hint": "string|null"
     }
   },
@@ -104,7 +104,7 @@ The dispatcher returns only this JSON :
     "note_information": {
       "source_flow_presentation": "string|null",
       "handoff_context_for_next_dispatcher": "string|null",
-      "target_flow": "global|select_state_potion|safety|null",
+      "target_dispatcher": "global|select_state_potion|safety_crisis|null",
       "target_local_dispatcher_hint": "string|null"
     }
   },
@@ -133,6 +133,28 @@ Rules :
 - The dispatcher never launches a potion.
 - The dispatcher never renders `rappel` as a product name.
 - `safety_preempt` wins over all repair/potion logic.
+
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `confirm_potion_bridge` when
+`potion_bridge.status=confirmed_handoff`, for `exit_to_global_dispatcher`, and
+for `safety_preempt`. Use `source_flow_id="demotivation_repair"` and copy
+`source_flow_presentation` from `flow-presentation-catalog.md`.
+
+Do not produce it for local support/close actions such as `smaller_step`,
+`repeat_last_repair`, `answer_repair`, or `cancel_flow` when no new topic or
+handoff exists. Those are `stop_local_no_handoff`: the reducer chooses a local
+`visible_task`, closes or defers the state, and global is not called on the same
+turn.
+
+Choose `target_dispatcher` as `select_state_potion` for the consented potion
+bridge, `global` for a clear topic change or explicit out-of-flow request, and
+`safety_crisis` for safety preemption. Write
+`handoff_context_for_next_dispatcher` with the diagnosed motivation source,
+durable need, consent status, selected potion, prefill candidates, weak/missing
+context, and no-chat-mutation status.
 
 ## Prompt 01 - Local Dispatcher
 

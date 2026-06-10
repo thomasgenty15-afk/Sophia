@@ -29,7 +29,7 @@ Ce domaine dépend de :
 
 - `UserTurnSnapshot` / `TurnFrame` / `RouteDecision` pour détecter
   l'opportunité `prepare_attack_card` sans choisir les slots internes ;
-- `TurnAgenda` pour représenter l'intention comme `platform_handoff`, pas comme
+- `local reducer contract` pour représenter l'intention comme `platform_handoff`, pas comme
   effet durable ;
 - `clarification_tool` pour product help vs préparation de carte, attaque vs
   défense, action existante vs contexte libre ;
@@ -152,7 +152,7 @@ Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la s
 
 ## Integration Points
 
-- `TurnAgenda` transforme `prepare_attack_card` en `platform_handoff`.
+- `local reducer contract` transforme `prepare_attack_card` en `platform_handoff`.
 - `handoff_flow_arbitration` protège repeat/revise/apply active.
 - `clarification_tool` clarifie attaque vs défense ou aide produit vs action.
 - `Product Surface Registry` fournit `surface_id="attack_cards"`.

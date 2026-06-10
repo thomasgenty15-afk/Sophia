@@ -2,8 +2,9 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import type { MorningNudgePayloadV2 } from "./morning_nudge_contract.ts";
 import {
+  buildPostMorningNudgeLocalHandoffNote,
   createPostMorningNudgeActiveState,
-  LAST_POST_MORNING_NUDGE_EXIT_MEMO_KEY,
+  LAST_POST_MORNING_NUDGE_NOTE_INFORMATION_KEY,
   normalizePostMorningNudgeActionDispatcherOutput,
   POST_MORNING_NUDGE_TEMP_MEMORY_KEY,
   type PostMorningNudgeActionDispatcherOutput,
@@ -55,11 +56,42 @@ function decision(args: {
     "motivation_need"
   ];
   friction?: string | null;
-  likely_intent?: PostMorningNudgeActionDispatcherOutput["exit_memo"][
-    "handoff_hint_for_global_dispatcher"
-  ]["likely_intent"];
-  exit_reason?: PostMorningNudgeActionDispatcherOutput["exit_memo"]["reason"];
+  likely_intent?:
+    | "prepare_attack_card"
+    | "prepare_defense_card"
+    | "select_state_potion"
+    | "update_coach_preferences"
+    | "product_help"
+    | "normal_coaching"
+    | "unknown";
+  exit_reason?:
+    | "topic_change"
+    | "explicit_tool_request"
+    | "new_goal"
+    | "product_help"
+    | "status_question"
+    | "preference_update"
+    | "safety"
+    | "unknown";
 }): PostMorningNudgeActionDispatcherOutput {
+  const state = activeState();
+  const noteInformation = args.flow_action === "exit_to_global_dispatcher" ||
+      args.flow_action === "safety_preempt"
+    ? buildPostMorningNudgeLocalHandoffNote({
+      state,
+      reason: args.exit_reason ??
+        (args.flow_action === "safety_preempt"
+          ? "safety"
+          : "explicit_tool_request"),
+      userIntentSummary: args.flow_action === "safety_preempt"
+        ? "User has a safety signal."
+        : "User asks for another tool.",
+      likelyIntent: args.likely_intent ?? "unknown",
+      why: args.flow_action === "safety_preempt"
+        ? "Safety preemption selected by local dispatcher."
+        : "Explicit handoff selected by local dispatcher.",
+    }).note_information
+    : null;
   const root = {
     flow_action: args.flow_action,
     confidence: "high",
@@ -86,48 +118,25 @@ function decision(args: {
     visible_task: {
       kind: args.visible_kind,
       instruction: "stage specific visible prompt",
-      data: {
-        target_action_titles: ["Marcher 10 min"],
-        target_item_titles: ["Marcher 10 min"],
-        main_friction: args.friction ?? null,
-        next_step_candidate: null,
-        scope_reduction_candidate: null,
+      conversation_context: {
+        known_values: {
+          target_action_titles: ["Marcher 10 min"],
+          target_item_titles: ["Marcher 10 min"],
+          main_friction: args.friction ?? null,
+          next_step_candidate: args.visible_kind === "choose_first_step"
+            ? "Mettre les chaussures et sortir deux minutes"
+            : null,
+          scope_reduction_candidate: args.visible_kind === "reduce_scope"
+            ? "Marcher deux minutes"
+            : null,
+        },
+        evidence_used: ["test dispatcher output"],
       },
     },
-    exit_memo: {
-      needed: args.flow_action === "exit_to_global_dispatcher" ||
-        args.flow_action === "safety_preempt",
-      reason: args.exit_reason ??
-        (args.flow_action === "exit_to_global_dispatcher"
-          ? "explicit_tool_request"
-          : args.flow_action === "safety_preempt"
-          ? "safety"
-          : "none"),
-      user_intent_summary: args.flow_action === "exit_to_global_dispatcher"
-        ? "User asks for another tool."
-        : null,
-      local_flow_context: {
-        skill_id: "post_morning_nudge",
-        flow_kind: "action",
-        source_nudge_summary: "nudge_kind=action_nudge",
-        target_action_titles: ["Marcher 10 min"],
-        suppressed_action_titles: [],
-        suppression_reason: null,
-        last_local_assessment: null,
-      },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: args.likely_intent ?? "unknown",
-        why: args.flow_action === "exit_to_global_dispatcher"
-          ? "Explicit tool request."
-          : null,
-        constraints: [
-          "Do not treat this as post_morning_nudge continuation unless selected again.",
-        ],
-      },
-    },
+    note_information: noteInformation,
     evidence: ["test dispatcher output"],
   };
-  return normalizePostMorningNudgeActionDispatcherOutput(root, activeState());
+  return normalizePostMorningNudgeActionDispatcherOutput(root, state);
 }
 
 async function runActionScenario(args: {
@@ -323,9 +332,9 @@ Deno.test("post morning nudge action explicit potion request exits to global", a
   );
   assertEquals(
     ((runtime?.nextTempMemory as any)[
-      LAST_POST_MORNING_NUDGE_EXIT_MEMO_KEY
+      LAST_POST_MORNING_NUDGE_NOTE_INFORMATION_KEY
     ] as any)
-      ?.handoff_hint_for_global_dispatcher?.likely_intent,
+      ?.recommended_next_focus,
     "select_state_potion",
   );
 });
@@ -343,8 +352,8 @@ Deno.test("post morning nudge action explicit card request exits to global", asy
 
   assertEquals(runtime?.content, "");
   assertEquals(
-    ((runtime?.toolSkillRun as any)?.exit_memo as any)
-      ?.handoff_hint_for_global_dispatcher?.likely_intent,
+    ((runtime?.toolSkillRun as any)?.local_handoff_note as any)
+      ?.recommended_next_focus,
     "prepare_attack_card",
   );
 });
@@ -421,6 +430,38 @@ Deno.test("post morning nudge action local exit enables global second pass", asy
     true,
   );
   assertEquals((runtime?.toolSkillRun as any)?.ai_call_count, 1);
+});
+
+Deno.test("post morning nudge action safety preempt routes with safety note", async () => {
+  const runtime = await runActionScenario({
+    userMessage: "je ne suis pas en securite",
+    output: decision({
+      flow_action: "safety_preempt",
+      visible_kind: "safety",
+      status: "safety",
+      exit_reason: "safety",
+    }),
+  });
+
+  assertEquals(runtime?.content, "");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.reason_code,
+    "post_morning_nudge_safety_preempt",
+  );
+  assertEquals(
+    ((runtime?.toolSkillRun as any)?.note_information as any)
+      ?.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.runtime_trace?.[0]?.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.runtime_trace?.[0]
+      ?.global_dispatcher_skipped_due_post_morning_nudge,
+    true,
+  );
 });
 
 Deno.test("post morning nudge action max turns closes local flow", () => {

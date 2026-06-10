@@ -4,22 +4,10 @@ import type {
 } from "../../../contracts/turn_frame.v1.ts";
 import type { PotionBaseContext } from "../../../../_shared/potion-base-context.ts";
 import { POTION_DEFINITIONS } from "../../../../_shared/v2-potions.ts";
-import {
-  buildOperationDraftRequest,
-  buildPotionSelectionPayload,
-  type PotionSessionSelectorInput,
-} from "../_shared/operation_payload_builder.ts";
-import {
-  generatePotionSessionDraftWithAi,
-  type PotionSessionDraftGenerator,
-  type PotionSessionDraftV1,
-} from "./generator.ts";
+import type { PotionSessionSelectorInput } from "../_shared/operation_payload_builder.ts";
 import {
   chatDetailQuestionIds,
   chatDetailQuestionLabel,
-  isActionAwarePotion,
-  SUPPORT_TIMING_QUESTION_ID,
-  SUPPORT_TIMING_SLOT,
 } from "./subskills/state_potion_subskill_registry.ts";
 import { fillPotionRouterSlotsWithAi } from "./subskills/potion_router.ts";
 
@@ -28,8 +16,7 @@ export type StatePotionSlotStatus = "missing" | "ambiguous" | "identified";
 export type SelectStatePotionSubSkill =
   | "state_resolution"
   | "potion_choice"
-  | "detail_intake"
-  | "draft_generation";
+  | "detail_intake";
 
 export type StatePotionShortlistOption = {
   potion_type: PotionSessionSelectorInput["potion_type"];
@@ -159,7 +146,7 @@ export type SelectStatePotionOperationOutput = {
     | "generation"
     | "handoff_ready"
     | "exit";
-  draft?: PotionSessionDraftV1;
+  draft?: never;
   next_question?: { needed: boolean; question?: string; reason?: string };
   ack?: string;
   state_patch: {
@@ -229,7 +216,6 @@ function subSkill(value: unknown): SelectStatePotionSubSkill {
       "state_resolution",
       "potion_choice",
       "detail_intake",
-      "draft_generation",
     ].includes(raw)
     ? raw as SelectStatePotionSubSkill
     : "state_resolution";
@@ -919,17 +905,7 @@ function recalculateReadiness(
   const selectedPotion = state.selected_potion.value ?? selectedFromExplicit;
   const definition = selectedPotion ? POTION_DEFINITIONS[selectedPotion] : null;
   const baseRequiredDetailIds = chatDetailQuestionIds(selectedPotion);
-  const supportTimingWasRequested = isActionAwarePotion(selectedPotion) &&
-    (state.missing_slots.includes(SUPPORT_TIMING_SLOT) ||
-      state.details.required_question_ids.includes(
-        SUPPORT_TIMING_QUESTION_ID,
-      ) ||
-      state.details.answers.some((answer) =>
-        answer.question_id === SUPPORT_TIMING_QUESTION_ID
-      ));
-  const requiredDetailIds = supportTimingWasRequested
-    ? [...baseRequiredDetailIds, SUPPORT_TIMING_QUESTION_ID]
-    : baseRequiredDetailIds;
+  const requiredDetailIds = baseRequiredDetailIds;
   const lockedFields = (state.details.fields ?? []).filter((field) =>
     field.status === "locked" &&
     requiredDetailIds.includes(field.question_id) &&
@@ -1009,7 +985,7 @@ function recalculateReadiness(
     ...optionalMissing,
   ].filter(Boolean);
   const nextSubSkill: SelectStatePotionSubSkill = missing.length === 0
-    ? "draft_generation"
+    ? "detail_intake"
     : state.state.kind && !selectedPotion
     ? "potion_choice"
     : selectedPotion &&
@@ -1156,14 +1132,10 @@ function stripRouterOwnedDetails(
   delete statePatch.details;
   return {
     ...output,
-    current_sub_skill: output.current_sub_skill === "draft_generation"
-      ? "detail_intake"
-      : output.current_sub_skill,
+    current_sub_skill: output.current_sub_skill,
     state_patch: {
       ...statePatch,
-      current_sub_skill: output.current_sub_skill === "draft_generation"
-        ? "detail_intake"
-        : statePatch.current_sub_skill,
+      current_sub_skill: statePatch.current_sub_skill,
     },
   };
 }
@@ -1382,27 +1354,6 @@ function recoverableQuestionOutput(
   };
 }
 
-function hasSupportTimingAnswer(state: SelectStatePotionIntakeState): boolean {
-  return state.details.answers.some((answer) =>
-    answer.question_id === SUPPORT_TIMING_QUESTION_ID &&
-    answer.answer.trim()
-  );
-}
-
-function draftNeedsSupportTimingClarification(
-  draft: PotionSessionDraftV1,
-  state: SelectStatePotionIntakeState,
-): boolean {
-  const selectedPotion = state.selected_potion.value ??
-    state.explicit_potion_request.potion_type;
-  if (!isActionAwarePotion(selectedPotion) || hasSupportTimingAnswer(state)) {
-    return false;
-  }
-  const targetKind = draft.draft.target_binding.kind;
-  const scheduleMode = draft.draft.follow_up.schedule_plan.mode;
-  return targetKind !== "none" || scheduleMode !== "daily_series";
-}
-
 export async function runSelectStatePotionIntake(input: {
   user_id: string;
   channel: ConversationChannel;
@@ -1417,7 +1368,6 @@ export async function runSelectStatePotionIntake(input: {
   request_id?: string | null;
   base_context?: PotionBaseContext | null;
   slot_filler?: SelectStatePotionSlotFiller;
-  draft_generator?: PotionSessionDraftGenerator;
 }): Promise<SelectStatePotionOperationOutput> {
   const source = input.source ?? "direct_user_request";
   if (
@@ -1542,14 +1492,16 @@ export async function runSelectStatePotionIntake(input: {
     };
   }
 
-  if (selectedPotionFromState(nextState) === "clarte") {
+  const selectedPotion = selectedPotionFromState(nextState);
+  if (selectedPotion) {
     return {
       operation_type: "select_state_potion",
       status: "handoff_ready",
       source,
       phase: "handoff_ready",
       state_patch: {
-        summary: "Potion de clarté platform handoff ready.",
+        summary:
+          "Potion platform handoff is ready for local dispatcher ownership.",
         phase: "handoff_ready",
         missing_slots: [],
         turn_count_increment: 1,
@@ -1559,102 +1511,5 @@ export async function runSelectStatePotionIntake(input: {
     };
   }
 
-  const request = buildOperationDraftRequest({
-    operation_type: "select_state_potion",
-    user_id: input.user_id,
-    timezone: input.timezone,
-    channel: input.channel,
-    trigger_message_id: input.trigger_message_id,
-    current_user_message: input.message,
-    operation_source: source,
-  }) as ReturnType<typeof buildOperationDraftRequest> & {
-    state_kind: PotionSessionSelectorInput["state"]["kind"];
-    state_intensity: PotionSessionSelectorInput["state"]["intensity"];
-    potion_type: PotionSessionSelectorInput["potion_type"];
-  };
-  request.state_kind = nextState.state.kind!;
-  request.state_intensity = nextState.state.intensity ?? "medium";
-  request.potion_type = nextState.selected_potion.value!;
-  const draftInput = buildPotionSelectionPayload(request);
-  draftInput.details = {
-    required_question_ids: nextState.details.required_question_ids,
-    answers: nextState.details.answers,
-  };
-  const operationInputRoot = objectValue(input.operation_input);
-  const previousDraft = objectValue(operationInputRoot?.previous_draft);
-  if (previousDraft) {
-    (draftInput as typeof draftInput & { previous_draft?: unknown })
-      .previous_draft = previousDraft;
-  }
-  const revisionRequest = String(operationInputRoot?.revision_request ?? "")
-    .trim();
-  if (revisionRequest) {
-    (draftInput as typeof draftInput & { revision_request?: string })
-      .revision_request = revisionRequest;
-  }
-  const draftGenerator = input.draft_generator ??
-    generatePotionSessionDraftWithAi;
-  const draft = await draftGenerator({
-    ...draftInput,
-    user_id: input.user_id,
-    request_id: input.request_id ?? null,
-    base_context: input.base_context ?? null,
-  });
-  if (!draft) return technicalErrorOutput(source, nextState);
-  if (draftNeedsSupportTimingClarification(draft, nextState)) {
-    const timingState = mergeState(nextState, {
-      details: {
-        ...nextState.details,
-        required_question_ids: [
-          ...nextState.details.required_question_ids.filter((id) =>
-            id !== SUPPORT_TIMING_QUESTION_ID
-          ),
-          SUPPORT_TIMING_QUESTION_ID,
-        ],
-      },
-      missing_slots: [SUPPORT_TIMING_SLOT],
-      generated_user_message: fallbackQuestionForState({
-        ...nextState,
-        missing_slots: [SUPPORT_TIMING_SLOT],
-      }) ??
-        "Tu voudrais placer ce soutien à quel moment, pour que ça aide vraiment ?",
-      confidence: "medium",
-    });
-    const timingOperationInput = operationInputFromState(timingState);
-    return {
-      operation_type: "select_state_potion",
-      status: "ask_question",
-      source,
-      phase: "detail_intake",
-      next_question: {
-        needed: true,
-        question: timingState.generated_user_message ?? undefined,
-        reason: SUPPORT_TIMING_SLOT,
-      },
-      state_patch: {
-        summary:
-          "Potion intake needs explicit action support timing before handoff.",
-        phase: "detail_intake",
-        missing_slots: [SUPPORT_TIMING_SLOT],
-        turn_count_increment: 1,
-        operation_input: timingOperationInput,
-        intake_state: timingState,
-      },
-    };
-  }
-  return {
-    operation_type: "select_state_potion",
-    status: "handoff_ready",
-    source,
-    phase: "handoff_ready",
-    draft,
-    state_patch: {
-      summary: "Potion platform handoff ready.",
-      phase: "handoff_ready",
-      missing_slots: [],
-      turn_count_increment: 1,
-      operation_input: operationInput,
-      intake_state: nextState,
-    },
-  };
+  return technicalErrorOutput(source, nextState);
 }

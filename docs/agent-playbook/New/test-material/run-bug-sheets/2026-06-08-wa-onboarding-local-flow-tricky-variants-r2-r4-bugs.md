@@ -22,6 +22,11 @@
   - Le global dispatcher/visible response doit recevoir un signal explicite: le user refuse les questions; repondre court, reconnaitre la friction, ne pas relancer par une question multiple.
 - Statut: `open`
 - Fix reference: a creer
+- Rerun evidence:
+  - 2026-06-08, run `20260608_wa_onboarding_local_flow_r5_frustration_after_plan_fixed`.
+  - Tests unitaires ciblés: 11 passed.
+  - Run reel webhook: bug toujours reproduit.
+  - Preuve: `handoff_hint_for_global_dispatcher=null`, `handoff_justification_for_global_dispatcher=null`, `note_information observed=null`, trace globale `flow_exit_context=null`, réponse visible avec question A/B.
 - Tests requis:
   - positif: plan actif + refus de questions -> exit local, memo hint/justification non vides, no progress entry.
   - UX: reponse globale sans question multiple apres "tes questions me saoulent".

@@ -1,6 +1,17 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import type { CoachPreferencesPatchDraftV1 } from "./generator.ts";
 import type { CoachPreferenceLocalUpdate } from "./contract.ts";
+
+type CoachPreferencesPatchInput = {
+  operation_type: "update_coach_preferences";
+  output_schema: "coach_preferences_patch_draft_v1";
+  draft: {
+    patch: Partial<Record<string, string>>;
+    summary: string;
+    reason?: string | null;
+  };
+  confirmation_message?: string;
+  confirmation_actions?: ["yes", "no"];
+};
 
 export const SUPPORTED_COACH_PREFERENCE_KEYS = [
   "coach.tone",
@@ -67,7 +78,7 @@ export function coachPreferenceStatusLabel(pref: any): string | null {
 export async function upsertCoachPreferencesFromDraft(args: {
   supabase: SupabaseClient;
   userId: string;
-  draft: CoachPreferencesPatchDraftV1;
+  draft: CoachPreferencesPatchInput;
   sourceMessageId?: string | null;
 }) {
   const entries = Object.entries(args.draft.draft.patch).filter(([key]) =>
@@ -126,7 +137,7 @@ export async function upsertCoachPreferencesFromLockedUpdates(args: {
   sourceMessageId?: string | null;
   reason?: string | null;
 }) {
-  const patch: CoachPreferencesPatchDraftV1["draft"]["patch"] = {};
+  const patch: CoachPreferencesPatchInput["draft"]["patch"] = {};
   for (const update of args.updates) {
     if (update.status !== "locked") continue;
     if (!isSupportedCoachPreferenceKey(update.key)) continue;

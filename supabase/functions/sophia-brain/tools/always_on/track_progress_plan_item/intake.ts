@@ -18,16 +18,6 @@ export type TrackProgressIntakeResult = {
   evidence: string[];
 };
 
-function normalizeText(value: unknown): string {
-  return String(value ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[’'`-]/g, " ")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function trackEffect(turnFrame: TurnFrame) {
   return turnFrame.direct_effects.find((effect) =>
     effect.effect_type === "track_progress_plan_item"
@@ -61,26 +51,9 @@ function valueForStatus(status: TrackProgressStatus, raw: unknown): number {
   return 1;
 }
 
-// TRANSITIONAL fallback. Prefer dispatcher `status_hint`; this only completes
-// an otherwise explicit, gated direct-effect payload and is covered by anti-FP
-// tests.
-function inferStatusFallback(message: string): TrackProgressStatus | null {
-  const text = normalizeText(message);
-  if (/\bmoitie\b|\bpartiel|\bcommence mais pas termine\b/.test(text)) {
-    return "partial";
-  }
-  if (/\brate\b|\bratee\b|\brater\b|\bpas fait\b|\bechoue\b/.test(text)) {
-    return "missed";
-  }
-  if (/\bj ai fait\b|\btermine\b|\bvalide\b|\bfini\b/.test(text)) {
-    return "completed";
-  }
-  return null;
-}
-
 export function isTrackProgressFutureIntent(message: string): boolean {
-  const text = normalizeText(message);
-  return /\bje vais\b|\bje compte\b|\bje ferai\b/.test(text);
+  void message;
+  return false;
 }
 
 export function isTrackProgressStatusQuestion(
@@ -89,14 +62,8 @@ export function isTrackProgressStatusQuestion(
 ): boolean {
   const payload = payloadFromTurnFrame(turnFrame);
   if (payload.intent_hint === "status_question") return true;
-
-  const text = normalizeText(message);
-  if (!text) return false;
-  if (/\bj ai\b/.test(text)) return false;
-  return /\b(est ce que|as tu|tu as|deja|statut|status|recap|resume|confirme)\b/
-    .test(text) &&
-    /\b(note|notee|enregistre|enregistree|marque|marquee|logge|loggee|fait|rate|partiel|progres)\b/
-      .test(text);
+  void message;
+  return false;
 }
 
 export function runTrackProgressIntake(args: {
@@ -150,8 +117,7 @@ export function runTrackProgressIntake(args: {
   }
 
   const payload = payloadFromTurnFrame(args.turn_frame);
-  const status = validStatus(payload.status_hint) ??
-    inferStatusFallback(args.message);
+  const status = validStatus(payload.status_hint);
   const targetItemId = typeof payload.target_item_id === "string"
     ? payload.target_item_id.trim()
     : "";
@@ -185,10 +151,8 @@ export function runTrackProgressIntake(args: {
     target_title: targetTitle || null,
     value: valueForStatus(status, payload.value_hint),
     date_hint: dateHint,
-    confidence: payload.status_hint === status ? "high" : "medium",
-    reason_code: payload.status_hint === status
-      ? "dispatcher_status_hint"
-      : "legacy_status_fallback",
+    confidence: "high",
+    reason_code: "dispatcher_status_hint",
     evidence: [args.message],
   };
 }

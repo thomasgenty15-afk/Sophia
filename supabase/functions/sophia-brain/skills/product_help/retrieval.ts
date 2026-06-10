@@ -1,34 +1,6 @@
-import { normalizeText } from "../_shared/skill_helpers.ts";
 import { PRODUCT_HELP_FEATURES, type ProductHelpFeature } from "./knowledge.ts";
 
 const GENERIC_FEATURE_IDS = new Set(["dashboard.plan", "resources.overview"]);
-
-function includesAlias(text: string, alias: string): boolean {
-  const normalized = normalizeText(alias);
-  return Boolean(normalized) && text.includes(normalized);
-}
-
-function featureMatches(text: string, feature: ProductHelpFeature): boolean {
-  if (feature.aliases.some((alias) => includesAlias(text, alias))) return true;
-  return feature.operation_bridge?.trigger_phrases.some((phrase) =>
-    includesAlias(text, phrase)
-  ) ?? false;
-}
-
-function longestMatchedPhraseLength(
-  text: string,
-  feature: ProductHelpFeature,
-): number {
-  const phrases = [
-    ...feature.aliases,
-    ...(feature.operation_bridge?.trigger_phrases ?? []),
-  ];
-  return phrases.reduce((best, phrase) => {
-    const normalized = normalizeText(phrase);
-    if (!normalized || !text.includes(normalized)) return best;
-    return Math.max(best, normalized.length);
-  }, 0);
-}
 
 export function getProductHelpFeature(
   featureId: string | undefined,
@@ -41,26 +13,8 @@ export function getProductHelpFeature(
 export function retrieveProductHelpCandidates(
   userMessage: string,
 ): ProductHelpFeature[] {
-  const text = normalizeText(userMessage);
-  const exact = PRODUCT_HELP_FEATURES
-    .filter((feature) => featureMatches(text, feature))
-    .sort((left, right) =>
-      longestMatchedPhraseLength(text, right) -
-      longestMatchedPhraseLength(text, left)
-    );
-  if (exact.length > 0) return exact;
-
-  if (
-    ["ressource", "carte", "potion", "labo"].some((word) => text.includes(word))
-  ) {
-    return PRODUCT_HELP_FEATURES.filter((feature) =>
-      feature.id === "resources.overview"
-    );
-  }
-
-  return PRODUCT_HELP_FEATURES.filter((feature) =>
-    feature.id === "dashboard.plan"
-  );
+  void userMessage;
+  return PRODUCT_HELP_FEATURES;
 }
 
 export function pickCatalogFeatureForObject(

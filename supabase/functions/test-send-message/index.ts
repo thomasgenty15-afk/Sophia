@@ -324,8 +324,7 @@ Deno.serve({
       {
         forceMode: forceMode === "dispatcher" ||
             forceMode === "sentry" ||
-            forceMode === "companion" ||
-            forceMode === "roadmap_review"
+            forceMode === "companion"
           ? forceMode
           : undefined,
         messageMetadata: {

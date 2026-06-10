@@ -130,7 +130,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - skill_entry_ids: `["product_help"]`
 - executed_tools: `[]`
@@ -315,7 +315,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - executed_tools: `[]`
 - durable_effect: aucun nouveau side effect
@@ -353,7 +353,7 @@
 - Tour 5: `create_one_shot_reminder` s'exécute directement et correctement pour vendredi 29 mai 2026 à 08:45 Europe/Paris.
 - Tours 7-8: `update_coach_preferences` prend la priorité et exécute le bon effet durable.
 - Tours 9-11: `prepare_attack_card` collecte, confirme, puis crée correctement la carte.
-- Tour 15: `status_only_request_blocks_tool_start` empêche correctement tout nouveau side effect.
+- Tour 15: `status_recap_request_blocks_tool_start` empêche correctement tout nouveau side effect.
 
 **Skills / Operations / Tools**
 - `prepare_defense_card`: OK côté effet durable. 1 carte active créée, request `global_run_A3_20260528_strict_r6-t04`.
@@ -369,7 +369,7 @@
 - Aucun side effect inattendu sur les tours 1, 2, 6, 12, 13, 14 ou 15.
 
 **Problemes**
-- Tour 6: `skill_entry_ids=["product_help"]`, mais `route_reason=status_only_request_blocks_tool_start` et réponse status. Impact système: arbitrage trop agressif du statut quand la demande porte sur une aide produit non mutative. Sévérité: yellow.
+- Tour 6: `skill_entry_ids=["product_help"]`, mais `route_reason=status_recap_request_blocks_tool_start` et réponse status. Impact système: arbitrage trop agressif du statut quand la demande porte sur une aide produit non mutative. Sévérité: yellow.
 - Tour 14: product help détecté, mais `response_owner=normal_reply` et relance non demandée. Impact système: le handler produit n'applique pas assez strictement la contrainte de forme. Sévérité: yellow.
 - Tour 12: `opportunity=state_potion` reste en trace, sans tool exécuté. Ce n'est pas bloquant, mais la réponse conversationnelle n'est pas assez contrainte par le refus `Pas de nouvelle carte`. Sévérité: green/yellow.
 - Verif DB: le premier helper de vérification utilisait encore des colonnes inexistantes (`title`, `request_id` sur certaines tables). Impact QA uniquement; une vérification `select=*` ciblée a levé l'ambiguïté. Sévérité: green/yellow.

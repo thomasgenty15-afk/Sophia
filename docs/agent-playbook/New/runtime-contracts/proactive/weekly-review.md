@@ -39,7 +39,7 @@ le chat.
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
-- `TurnAgenda` pour distinguer `reply`, `effect`, `platform_handoff`,
+- `local reducer contract` pour distinguer `reply`, `effect`, `platform_handoff`,
   `clarification`, `status`, `memory` et `repair` ;
 - `clarification_tool` quand la fatigue, le sens de la demande ou le scope
   weekly est ambigu ;
@@ -51,7 +51,7 @@ Ce domaine dépend de :
 
 Utilisation concrète dans le code actuel :
 
-- `UserTurnSnapshot`/`TurnAgenda` ne sont pas encore branchés directement dans
+- `UserTurnSnapshot`/`local reducer contract` ne sont pas encore branchés directement dans
   tout le module weekly. Leur rôle est encore partiellement simulé par
   `TurnFrame` + `RouteDecision` dans `sophia-brain/router/run.ts`.
 - Le maintien du skill actif passe par

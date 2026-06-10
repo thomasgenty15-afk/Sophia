@@ -102,7 +102,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `answered`
 - executed_tools: []
 - durable_effect: none
@@ -329,7 +329,7 @@
 
 **Routage**
 - Tours 1-2: amelioration confirmee. `route_reason=attack_card_cancelled_to_conversation`, aucun outil execute.
-- Tour 5: mauvais owner utile. La trace bloque bien les side effects avec `status_only_request_blocks_tool_start`, mais le systeme choisit une reponse de statut au lieu de `product_help`.
+- Tour 5: mauvais owner utile. La trace bloque bien les side effects avec `status_recap_request_blocks_tool_start`, mais le systeme choisit une reponse de statut au lieu de `product_help`.
 - Tour 9: `normal_reply_default` avec `tool_status=answered` produit encore un statut systeme pour une demande de memoire conversationnelle.
 - Tour 14: `selected_handler=update_coach_preferences` sur une correction de recap, avec `route_reason=explicit_tool_intent_supersedes_active_conversation_skill`. C'est un faux positif de tool skill.
 
@@ -356,7 +356,7 @@
 - Tour 14: faux positif `update_coach_preferences` sur "sans emoji" dans une correction locale de recap. Impact systeme: le router confond preference durable et contrainte de style immediate. Severite: yellow/red.
 
 **Fix propose**
-- Separateur d'intention pour `status_only_request_blocks_tool_start`: ne l'activer que sur demandes d'etat explicites, pas sur "ou dans l'app", "resume ce que tu retiens", "fait/prevu/fragile".
+- Separateur d'intention pour `status_recap_request_blocks_tool_start`: ne l'activer que sur demandes d'etat explicites, pas sur "ou dans l'app", "resume ce que tu retiens", "fait/prevu/fragile".
 - Ajouter un test d'integration `prepare_attack_card` confirmation explicite avec contenu deja complet: `pending_confirmation -> executed -> user_attack_cards active`.
 - Dans `update_coach_preferences`, distinguer "enregistre une preference durable" de contraintes locales comme "trois lignes, sans emoji" quand elles corrigent une reponse en cours.
 - Faire echouer visiblement un tool skill si `executed_tools` est present mais que l'ecriture durable attendue est absente, avec trace d'erreur exploitable.

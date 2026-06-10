@@ -36,6 +36,7 @@ import {
 import type { DispatcherMemoryPlan } from "../router/dispatcher.ts";
 import type { SurfaceRuntimeAddon } from "../surface_state.ts";
 import { getSurfaceDefinition } from "../surface_registry.ts";
+import { DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE } from "../conversation_pulse_builder.ts";
 // R2: getActiveTopicSession removed (topic sessions disabled)
 import type {
   ContextProfile,
@@ -533,6 +534,20 @@ export async function loadContextForMode(
     );
   }
 
+  if (memoryPlanRequestsDailyPulse(opts.memoryPlan)) {
+    promises.push(
+      loadDailyConversationPulseContext({
+        supabase: opts.supabase,
+        userId: opts.userId,
+      }).then((block) => {
+        if (block) {
+          context.dailyConversationPulseContext = block;
+          elementsLoaded.push("daily_conversation_pulse_context");
+        }
+      }),
+    );
+  }
+
   // Durable effects summary (chantier 2 phase B): injecté uniquement en mode
   // companion (où vit normal_reply). Empêche le LLM d'halluciner l'absence
   // d'effets durables qui existent vraiment côté DB (cartes, rappels,
@@ -986,6 +1001,9 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
   if (loaded.weeklyRecapContext) ctx += loaded.weeklyRecapContext + "\n\n";
+  if (loaded.dailyConversationPulseContext) {
+    ctx += loaded.dailyConversationPulseContext;
+  }
   if (loaded.planItemIndicators) ctx += loaded.planItemIndicators + "\n\n";
   if (loaded.memoryV2Payload) ctx += loaded.memoryV2Payload;
   if (loaded.identity) ctx += loaded.identity;
@@ -1785,6 +1803,79 @@ function shouldInjectWeeklyRecapContext(args: {
   return args.mode === "companion";
 }
 
+function memoryPlanRequestsDailyPulse(
+  memoryPlan?: DispatcherMemoryPlan | null,
+): boolean {
+  return Boolean(
+    memoryPlan?.targets?.some((target) =>
+      target?.type === "runtime_snapshot" &&
+      String(target.key ?? "").trim() ===
+        "daily_conversation_pulse:current_week"
+    ),
+  );
+}
+
+function formatDailyConversationPulseSnapshots(
+  snapshots: SystemRuntimeSnapshotRow[],
+): string | null {
+  const lines = snapshots
+    .map((snapshot) => {
+      const payload = snapshot.payload as Record<string, any>;
+      const window = payload?.window && typeof payload.window === "object"
+        ? payload.window as Record<string, unknown>
+        : {};
+      const day = String(window.end ?? snapshot.created_at ?? "").slice(0, 10);
+      const tone = payload?.tone ?? {};
+      const trajectory = payload?.trajectory ?? {};
+      const signals = payload?.signals ?? {};
+      const anchors = Array.isArray(payload?.emotional_anchors)
+        ? payload.emotional_anchors
+          .map((anchor: any) => String(anchor?.topic_summary ?? "").trim())
+          .filter(Boolean)
+          .slice(0, 2)
+        : [];
+      return [
+        `- ${day}`,
+        `tone=${String(tone.dominant ?? "unknown")}`,
+        `load=${String(tone.emotional_load ?? "unknown")}`,
+        `need=${String(signals.likely_need ?? "unknown")}`,
+        `risk=${String(signals.proactive_risk ?? "unknown")}`,
+        `trajectory=${String(trajectory.direction ?? "unknown")}`,
+        `summary=${
+          String(trajectory.summary ?? "").replace(/\s+/g, " ").trim().slice(
+            0,
+            180,
+          )
+        }`,
+        anchors.length > 0 ? `anchors=${anchors.join(" | ")}` : "",
+      ].filter(Boolean).join("; ");
+    })
+    .filter(Boolean);
+  if (lines.length === 0) return null;
+  return `\n[Daily conversation pulses - runtime snapshots dates, non durables]\n${
+    lines.join("\n")
+  }\nUtilisation: contexte recent seulement; ne pas le transformer en fait permanent ni en diagnostic.\n\n`;
+}
+
+async function loadDailyConversationPulseContext(args: {
+  supabase: SupabaseClient;
+  userId: string;
+}): Promise<string | null> {
+  const { data, error } = await args.supabase
+    .from("system_runtime_snapshots")
+    .select(
+      "id,user_id,cycle_id,transformation_id,snapshot_type,payload,created_at",
+    )
+    .eq("user_id", args.userId)
+    .eq("snapshot_type", DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE)
+    .order("created_at", { ascending: false })
+    .limit(7);
+  if (error || !data || data.length === 0) return null;
+  return formatDailyConversationPulseSnapshots(
+    (data as SystemRuntimeSnapshotRow[]).reverse(),
+  );
+}
+
 async function loadWeeklyRecapContext(
   supabase: SupabaseClient,
   userId: string,
@@ -1834,7 +1925,9 @@ function shouldInjectRendezVousSummary(
   if (mode !== "companion") return false;
   const normalized = String(message ?? "").trim();
   if (!normalized) return false;
-  return /\brappels?\b|\brendez[\s-]?vous\b/i.test(normalized);
+  const lower = normalized.toLowerCase();
+  return lower.includes("rappel") || lower.includes("rendez-vous") ||
+    lower.includes("rendez vous");
 }
 
 async function loadRendezVousSummary(

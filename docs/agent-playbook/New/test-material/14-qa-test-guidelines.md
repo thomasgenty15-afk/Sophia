@@ -13,6 +13,7 @@ conversationnels Sophia. Elle complete les fiches specialisees, notamment :
 ## Regles Generales
 
 - Tu n'as pas le droit de faire des commandes de reboot comme supabase restart, supabase stop etc.. Si il y a un pb on arrête le run et tu me le communiques. 
+- Tu dois lancer les tests hors sandbox sinon ça ne marche pas. 
 - Tu n'as pas le droit de corriger le code pendant la demande de run (même si il y en a plusieurs)
 - Des que ce document est cite, demande, lu, explore ou utilise comme cadre de
   test, le run attendu est un run IA reel Sophia, pas un test unitaire ou un

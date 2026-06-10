@@ -309,7 +309,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - executed_tools: `[]`
 - durable_effect: aucun nouveau side effect
 

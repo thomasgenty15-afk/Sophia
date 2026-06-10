@@ -139,8 +139,7 @@ export function runFinalResponsePipeline(args: {
     args.deps.weeklyAdaptiveReviewStateForTurn({
       activeSkillState: args.activeSkillState,
       tempMemory: args.tempMemory,
-    }) ||
-    /C['’]?est enregistré[\s\S]*Respiration de pause/i.test(responseContent)
+    })
   ) {
     responseContent = args.deps.cleanWeeklyVisibleResponse(responseContent);
   }
@@ -159,11 +158,6 @@ export function runFinalResponsePipeline(args: {
     tempMemory: args.tempMemory,
     loggedMessageId: args.loggedMessageId,
   });
-  if (
-    /C['’]?est enregistré[\s\S]*Respiration de pause/i.test(responseContent)
-  ) {
-    responseContent = args.deps.cleanWeeklyVisibleResponse(responseContent);
-  }
   responseContent = args.deps.applyWeeklyRepeatedClarificationGuard({
     responseContent,
     userMessage: args.userMessage,
@@ -233,16 +227,7 @@ export function runFinalResponsePipeline(args: {
     responseContent,
     preferences: args.stylePreferences,
   });
-  if (
-    !routeIsSafety &&
-    !(
-      args.deps.userRequestsShortStyle(args.userMessage) &&
-      (((args.stylePreferences as any)?.noEmoji) ||
-        /\b(sans emoji|zero emoji|0 emoji|pas d emoji|pas d emojis)\b/.test(
-          args.deps.normalizeRouteText(args.userMessage),
-        ))
-    )
-  ) {
+  if (!routeIsSafety) {
     responseContent = args.deps.ensureVisibleSophiaEmoji(responseContent);
   }
 

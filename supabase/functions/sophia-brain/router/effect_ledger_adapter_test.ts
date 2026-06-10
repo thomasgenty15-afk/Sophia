@@ -1,14 +1,11 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { createEffectLedger } from "./effect_ledger.ts";
 import {
-  agendaBlockedReasonForOperation,
   effectTypeFromToolType,
   executedToolsForStatus,
-  recordAgendaEffectsInLedger,
   recordRecommendationEffectInLedger,
   recordToolSkillEffectsInLedger,
 } from "./effect_ledger_adapter.ts";
-import type { TurnAgenda } from "./turn_agenda.ts";
 
 Deno.test("effect_ledger_adapter maps direct chat effect tool types only", () => {
   assertEquals(
@@ -25,9 +22,9 @@ Deno.test("effect_ledger_adapter maps direct chat effect tool types only", () =>
   );
   assertEquals(
     effectTypeFromToolType("prepare_attack_card"),
-    "prepare_attack_card",
+    "attack_card.create",
   );
-  assertEquals(effectTypeFromToolType("adjust_plan_item"), "adjust_plan_item");
+  assertEquals(effectTypeFromToolType("adjust_plan_item"), "plan_item.adjust");
 });
 
 Deno.test("effect_ledger_adapter direct committed effect gets db ref when available", () => {
@@ -98,35 +95,6 @@ Deno.test("executedToolsForStatus requires committed effects", () => {
       type: "prepare_attack_card",
     }]),
     ["prepare_attack_card"],
-  );
-});
-
-Deno.test("effect_ledger_adapter records agenda platform handoff blocks separately", () => {
-  const ledger = createEffectLedger("turn_3");
-  const agenda = {
-    tasks: [{
-      task_id: "task_1",
-      kind: "platform_handoff",
-      status: "blocked",
-      operation_type: "adjust_plan_item",
-      owner: "adjust_plan_item",
-      source: "router",
-      intent: "adjust",
-      requires_confirmation: true,
-      reason_code: "interrupted_by_new_tool",
-      evidence: ["new explicit tool"],
-    }],
-  } as unknown as TurnAgenda;
-  recordAgendaEffectsInLedger({ ledger, agenda });
-  assertEquals(
-    agendaBlockedReasonForOperation(agenda, "adjust_plan_item"),
-    "interrupted_by_new_tool",
-  );
-  assertEquals(ledger.entries[0].kind, "platform_handoff");
-  assertEquals(ledger.entries[0].status, "blocked");
-  assertEquals(
-    ledger.entries[0].effect_type,
-    "platform_handoff.adjust_plan_item",
   );
 });
 
@@ -210,60 +178,6 @@ Deno.test("effect_ledger_adapter records executable recommendation as request on
   assertEquals(ledger.entries.length, 1);
   assertEquals(ledger.entries[0].status, "requested");
   assertEquals(ledger.entries[0].effect_type, "one_shot_reminder.create");
-});
-
-Deno.test("effect_ledger_adapter records agenda platform handoff separately", () => {
-  const ledger = createEffectLedger("turn_handoff_agenda");
-  const agenda = {
-    tasks: [{
-      task_id: "handoff_1",
-      kind: "platform_handoff",
-      status: "proposed",
-      operation_type: "adjust_plan_item",
-      owner: "adjust_plan_handoff",
-      source: "weekly_review",
-      intent: "update",
-      requires_confirmation: false,
-      reason_code: "weekly_recommended_plan_adjustment",
-      surface_id: "plan",
-      no_chat_mutation: true,
-      evidence: ["weekly evidence"],
-    }],
-  } as unknown as TurnAgenda;
-
-  recordAgendaEffectsInLedger({ ledger, agenda });
-
-  assertEquals(ledger.entries.length, 1);
-  assertEquals(ledger.entries[0].kind, "platform_handoff");
-  assertEquals(ledger.entries[0].status, "proposed");
-  assertEquals(ledger.entries[0].operation_type, "adjust_plan_item");
-  assertEquals(ledger.entries[0].committed, false);
-  assertEquals(ledger.entries[0].executed_tool, false);
-});
-
-Deno.test("effect_ledger_adapter records agenda clarification separately", () => {
-  const ledger = createEffectLedger("turn_clarification_agenda");
-  const agenda = {
-    tasks: [{
-      task_id: "clarification_1",
-      kind: "clarification",
-      status: "asked",
-      owner: "orientation_clarification",
-      source: "dispatcher",
-      intent: "clarify",
-      requires_confirmation: false,
-      ambiguity_kind: "intent",
-      candidate_ids: ["one_shot", "recurring"],
-      no_chat_mutation: true,
-    }],
-  } as unknown as TurnAgenda;
-
-  recordAgendaEffectsInLedger({ ledger, agenda });
-
-  assertEquals(ledger.entries.length, 1);
-  assertEquals(ledger.entries[0].kind, "clarification");
-  assertEquals(ledger.entries[0].status, "asked");
-  assertEquals(ledger.entries[0].candidate_ids, ["one_shot", "recurring"]);
 });
 
 Deno.test("effect_ledger_adapter maps complex recommendation to platform handoff", () => {

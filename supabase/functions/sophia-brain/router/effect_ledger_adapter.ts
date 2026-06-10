@@ -5,13 +5,16 @@ import {
   type EffectLedgerEntry,
   recordAllowedEffect,
   recordBlockedEffect,
-  recordClarificationInLedger,
   recordCommittedEffect,
   recordFailedEffect,
   recordPlatformHandoffInLedger,
   recordRequestedEffect,
 } from "./effect_ledger.ts";
-import { isPlatformHandoffOperation, type TurnAgenda } from "./turn_agenda.ts";
+import { getHandoffTargetForOperation } from "../product_surface_registry/contract.ts";
+
+function isPlatformHandoffOperation(operationType: string): boolean {
+  return Boolean(getHandoffTargetForOperation(operationType));
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -239,8 +242,7 @@ export function recordToolSkillEffectsInLedger(args: {
 
   if (
     selectedHandler &&
-    isPlatformHandoffOperation(selectedHandler) &&
-    !hasExplicitEffectArrays
+    isPlatformHandoffOperation(selectedHandler)
   ) {
     const nonTerminalIntakeStatuses = new Set([
       "ask_question",
@@ -426,122 +428,6 @@ export function recordToolSkillEffectsInLedger(args: {
 export const recordToolSkillEffectsInLedgerForTest =
   recordToolSkillEffectsInLedger;
 
-export function recordAgendaEffectsInLedger(args: {
-  ledger: EffectLedger;
-  agenda: TurnAgenda | null;
-}): void {
-  const agenda = args.agenda;
-  if (!agenda) return;
-  const seen = new Set<string>();
-  for (const task of agenda.tasks) {
-    if (task.kind === "platform_handoff" && task.operation_type) {
-      const handoffId =
-        `${args.ledger.turn_id}:agenda:${task.status}:${task.task_id}`;
-      if (seen.has(handoffId)) continue;
-      seen.add(handoffId);
-      const status = task.status === "blocked"
-        ? "blocked"
-        : task.status === "delivered"
-        ? "delivered"
-        : task.status === "cancelled"
-        ? "cancelled"
-        : task.status === "superseded"
-        ? "superseded"
-        : task.status === "requested" || task.status === "candidate"
-        ? "requested"
-        : "proposed";
-      recordPlatformHandoffInLedger(args.ledger, {
-        effect_id: handoffId,
-        operation_type: task.operation_type,
-        operation_id: null,
-        tool_id: task.owner,
-        status,
-        source: task.source === "weekly_review"
-          ? "weekly_review"
-          : task.source === "conversation_skill"
-          ? "conversation_skill"
-          : task.source === "dispatcher"
-          ? "dispatcher"
-          : "router",
-        reason_code: task.reason_code ?? null,
-        surface_id: task.surface_id ?? null,
-        payload_summary: {
-          task_id: task.task_id,
-          source: task.source,
-          evidence: task.evidence ?? [],
-          user_goal_summary: task.user_goal_summary ?? null,
-          recommended_next_step: task.recommended_next_step ?? null,
-        },
-      });
-      continue;
-    }
-    if (task.kind === "clarification") {
-      const clarificationId =
-        `${args.ledger.turn_id}:agenda:${task.status}:${task.task_id}`;
-      if (seen.has(clarificationId)) continue;
-      seen.add(clarificationId);
-      const status = task.status === "asked"
-        ? "asked"
-        : task.status === "resolved"
-        ? "resolved"
-        : task.status === "cancelled"
-        ? "cancelled"
-        : task.status === "topic_change"
-        ? "topic_change"
-        : "requested";
-      recordClarificationInLedger(args.ledger, {
-        effect_id: clarificationId,
-        operation_type: task.operation_type ?? null,
-        operation_id: null,
-        tool_id: task.owner,
-        owner: task.owner,
-        ambiguity_kind: task.ambiguity_kind ?? "intent",
-        candidate_ids: task.candidate_ids ?? [],
-        selected_candidate_id: task.selected_candidate_id ?? null,
-        status,
-        source: task.source === "dispatcher" ? "dispatcher" : "router",
-        reason_code: task.reason_code ?? null,
-        payload_summary: {
-          task_id: task.task_id,
-          source: task.source,
-          evidence: task.evidence ?? [],
-        },
-      });
-      continue;
-    }
-    if (task.kind !== "effect" || !task.operation_type) continue;
-    const effectType = effectTypeFromToolType(task.operation_type);
-    const effectId =
-      `${args.ledger.turn_id}:agenda:${task.status}:${task.task_id}`;
-    if (seen.has(effectId)) continue;
-    seen.add(effectId);
-    const entry = {
-      effect_id: effectId,
-      effect_type: effectType,
-      operation_type: task.operation_type,
-      operation_id: null,
-      committed_id: null,
-      tool_id: task.owner,
-      source: task.source === "dispatcher"
-        ? "dispatcher" as const
-        : "router" as const,
-      reason_code: task.reason_code ?? null,
-      payload_summary: {
-        task_id: task.task_id,
-        intent: task.intent,
-        source: task.source,
-        requires_confirmation: task.requires_confirmation,
-        evidence: task.evidence ?? [],
-      },
-    };
-    if (task.status === "blocked") {
-      recordBlockedEffect(args.ledger, entry);
-    } else {
-      recordRequestedEffect(args.ledger, entry);
-    }
-  }
-}
-
 export function recordRecommendationEffectInLedger(args: {
   ledger: EffectLedger;
   recommendation: unknown;
@@ -610,16 +496,4 @@ export function recordRecommendationEffectInLedger(args: {
     }
     recordRequestedEffect(args.ledger, base);
   }
-}
-
-export function agendaBlockedReasonForOperation(
-  agenda: TurnAgenda | null,
-  operationType: string,
-): string | null {
-  const blocked = agenda?.tasks.find((task) =>
-    (task.kind === "effect" || task.kind === "platform_handoff") &&
-    task.status === "blocked" &&
-    task.operation_type === operationType
-  );
-  return blocked?.reason_code ?? null;
 }

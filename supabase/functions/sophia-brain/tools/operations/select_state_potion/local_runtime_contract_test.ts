@@ -68,14 +68,6 @@ Deno.test("select_state_potion hands off to clarté subskill when clarté is ide
       },
       visible_task: {
         kind: "confirm_proposal",
-        required_data: {
-          potion_name: "Potion de clarté",
-          field_label:
-            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
-          field_value:
-            "Je ne vois plus le lien entre mes efforts quotidiens et mon pourquoi profond.",
-          platform_destination: "section État / Potions",
-        },
       },
       exit_memo: {
         needed: false,
@@ -120,6 +112,20 @@ Deno.test("select_state_potion hands off to clarté subskill when clarté is ide
   assertEquals(
     nextState?.clarte_state?.field_state.status,
     "proposed",
+  );
+  assertEquals(
+    (result.toolSkillRun as any).note_information?.target_dispatcher,
+    "other_local",
+  );
+  assertEquals(
+    (result.toolSkillRun as any).note_information?.target_local_dispatcher_hint,
+    "select_state_potion.clarte",
+  );
+  assert(
+    ((result.toolSkillRun as any).runtime_trace as any[]).some((event) =>
+      event.event === "note_information_created" &&
+      event.target_local_dispatcher_hint === "select_state_potion.clarte"
+    ),
   );
   assertEquals(result.executedTools, []);
 });
@@ -177,19 +183,6 @@ Deno.test("select_state_potion hands off to every potion detail subskill when se
           },
           visible_task: {
             kind: "ask_deeper",
-            required_data: {
-              potion_name: state.potion_name,
-              platform_destination: "section État / Potions",
-              fields: currentField
-                ? [{
-                  field_id: currentField.field_id,
-                  field_label: currentField.field_label,
-                  field_value: null,
-                  option_value: null,
-                  option_label: null,
-                }]
-                : [],
-            },
           },
           exit_memo: {
             needed: false,
@@ -236,6 +229,15 @@ Deno.test("select_state_potion hands off to every potion detail subskill when se
     assertEquals(
       nextState?.potion_subskill_state?.selected_potion,
       potionType,
+    );
+    assertEquals(
+      (result.toolSkillRun as any).note_information?.target_dispatcher,
+      "other_local",
+    );
+    assertEquals(
+      (result.toolSkillRun as any).note_information
+        ?.target_local_dispatcher_hint,
+      statePotionSubskillId(potionType),
     );
     assertEquals(result.executedTools, []);
   }
@@ -319,18 +321,6 @@ Deno.test("active potion subskill delivers final handoff when remaining field is
       },
       visible_task: {
         kind: "destination_short",
-        required_data: {
-          potion_name: "Potion d'amour",
-          platform_destination: "section État / Potions",
-          fields: [{
-            field_id: "love_state",
-            field_label:
-              previousSubskillState.field_states.love_state.field_label,
-            field_value: "Dur",
-            option_value: "dur",
-            option_label: "Dur",
-          }],
-        },
       },
       exit_memo: {
         needed: false,
@@ -355,12 +345,34 @@ Deno.test("active potion subskill delivers final handoff when remaining field is
     }),
     visibleAgentOverride: async (input: any) => {
       assertEquals(input.stage, "potion_subskill_task");
-      assertEquals(input.handoff_status, "handoff_delivered");
-      assert(input.draft);
-      assertEquals(input.potion_subskill_visible_task, "handoff_ready");
+      assertEquals(Object.keys(input).sort(), [
+        "request_id",
+        "stage",
+        "trace_event",
+        "user_id",
+        "visible_task",
+      ]);
+      assert(input.visible_task.conversation_context);
+      assertEquals(input.visible_task.instruction.includes("handoff"), true);
+      assert(
+        input.visible_task.conversation_context.tone_constraints.includes(
+          "répondre naturellement",
+        ),
+      );
+      assert(
+        input.visible_task.conversation_context.do_not_say.includes(
+          "ne demande jamais de dire oui pour lancer depuis le chat",
+        ),
+      );
       assertEquals(
-        input.potion_subskill_state?.last_handoff_delivered,
-        true,
+        input.visible_task.conversation_context.handoff_data.potion_name,
+        "Potion d'amour",
+      );
+      assertEquals(
+        input.visible_task.conversation_context.handoff_data.fields.map((
+          field: any,
+        ) => field.field_id),
+        ["love_lack_context", "love_state"],
       );
       return "handoff complet mock";
     },
@@ -470,13 +482,6 @@ Deno.test("active clarté safety exits local flow and exposes local risk assessm
       },
       visible_task: {
         kind: "safety",
-        required_data: {
-          potion_name: "Potion de clarté",
-          field_label:
-            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
-          field_value: null,
-          platform_destination: "section État / Potions",
-        },
       },
       exit_memo: {
         needed: true,
@@ -514,6 +519,10 @@ Deno.test("active clarté safety exits local flow and exposes local risk assessm
     true,
   );
   assertEquals(
+    (result.toolSkillRun as any).note_information?.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(
     loadStatePotionHandoffStateFromTempMemory(result.nextTempMemory),
     null,
   );
@@ -530,6 +539,104 @@ Deno.test("active clarté safety exits local flow and exposes local risk assessm
     runtimeTrace.some((event: any) =>
       event.component === "local_reducer" &&
       event.exit_to_global_dispatcher === false
+    ),
+  );
+});
+
+Deno.test("active parent stop_local_no_handoff cancels locally without global dispatcher exit", async () => {
+  const result = await runSelectStatePotionHandoffSkill({
+    supabase: fakeSupabase,
+    userId: "u-local-stop",
+    userMessage: "laisse tomber la potion finalement",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        skill_id: "select_state_potion",
+        mode: "platform_handoff",
+        status: "clarifying",
+        phase: "potion_choice",
+        draft: null,
+        intake_state: null,
+        turn_count: 1,
+        max_turns: 6,
+        created_at: "2026-06-01T00:00:00.000Z",
+        updated_at: "2026-06-01T00:00:00.000Z",
+        no_chat_mutation: true,
+      },
+    },
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-local-stop",
+    requestId: "r-local-stop",
+    history: [],
+    localFlowDispatcherOverride: async () => ({
+      flow_action: "stop_local_no_handoff",
+      confidence: "high",
+      target_stage: "detail_intake",
+      slot_interpretation: {
+        answers_current_field: false,
+        confirms_proposed_field: false,
+        corrects_existing_field: false,
+        asks_platform_destination: false,
+        asks_chat_creation: false,
+        gives_future_field_candidates: false,
+      },
+      field_pointer: {
+        likely_field_id: null,
+        raw_user_text: null,
+        relation_to_field: "not_applicable",
+        needs_specialized_interpretation: false,
+      },
+      revision_pointer: {
+        candidate_field_ids: [],
+        raw_revision_text: null,
+        revision_intent: "not_applicable",
+      },
+      exit_memo_request: {
+        needed: false,
+        exit_reason: "none",
+        handoff_hint_for_global_dispatcher: null,
+      },
+      risk_assessment: {
+        risk_score: 0,
+        risk_band: "none",
+        safety_preempt: false,
+        reason_codes: [],
+      },
+      evidence: ["explicit local stop"],
+    }),
+    visibleAgentOverride: async (input: any) => {
+      assertEquals(input.stage, "cancel");
+      assert(input.visible_task.conversation_context);
+      assertEquals(Object.keys(input).sort(), [
+        "request_id",
+        "stage",
+        "trace_event",
+        "user_id",
+        "visible_task",
+      ]);
+      return "Ok, on met la potion de côté.";
+    },
+  });
+
+  assert(result);
+  assertEquals((result.toolSkillRun as any).status, "cancelled");
+  assertEquals(
+    loadStatePotionHandoffStateFromTempMemory(result.nextTempMemory),
+    null,
+  );
+  assertEquals(
+    Boolean(
+      (result.nextTempMemory as any).__last_select_state_potion_exit_memo,
+    ),
+    false,
+  );
+  assertEquals((result.toolSkillRun as any).note_information, null);
+  assert(
+    !((result.toolSkillRun as any).runtime_trace as any[]).some((event) =>
+      event.event === "exit_to_global_dispatcher"
     ),
   );
 });

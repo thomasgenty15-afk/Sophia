@@ -33,7 +33,7 @@ import {
   formatLocalReminderLabel,
   localHHMMForScheduledFor,
   parseOneShotReminderRequest,
-  parseReminderFromMessageDeterministic,
+  parseReminderFromMessage,
   parseScheduledForFromMessage,
 } from "./time_parser.ts";
 let reminderWriteClient: SupabaseClient | null = null;
@@ -289,14 +289,14 @@ export async function maybeCreateOneShotReminder(params: {
     userId: params.userId,
     now: params.now,
   });
-  let parsed = parseReminderFromMessageDeterministic({
+  let parsed = parseReminderFromMessage({
     message: params.message,
     timezone: tctx.user_timezone,
     nowIso: tctx.now_utc,
   });
   if (!parsed && canRecoverFromContext) {
     for (const ctx of params.contextMessages ?? []) {
-      const recovered = parseReminderFromMessageDeterministic({
+      const recovered = parseReminderFromMessage({
         message: ctx,
         timezone: tctx.user_timezone,
         nowIso: tctx.now_utc,
@@ -424,29 +424,13 @@ export async function maybeCancelOneShotReminder(params: {
     };
   }
 
-  const targetHHMM = parseScheduledForFromMessage({
-      message: params.message,
-      timezone: tctx.user_timezone,
-      nowIso: tctx.now_utc,
-    })
+  const textTargetHHMM = parseScheduledForFromMessage({
+    message: params.message,
+    timezone: tctx.user_timezone,
+    nowIso: tctx.now_utc,
+  })
     ? null
     : null;
-  const textTargetHHMM = targetHHMM ?? (() => {
-    const match =
-      String(params.message ?? "").match(/\b(\d{1,2})\s*h\s*(\d{2})\b/) ??
-        String(params.message ?? "").match(/\b(\d{1,2}):(\d{2})\b/) ??
-        String(params.message ?? "").match(/\b(\d{1,2})\s*h\b/);
-    return match
-      ? `${
-        String(Math.max(0, Math.min(23, Number(match[1])))).padStart(2, "0")
-      }:${
-        String(Math.max(0, Math.min(59, Number(match[2] ?? "0")))).padStart(
-          2,
-          "0",
-        )
-      }`
-      : null;
-  })();
   const targets = textTargetHHMM
     ? pendingRows.filter((row: any) =>
       localHHMMForScheduledFor(

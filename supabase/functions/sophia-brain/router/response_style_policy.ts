@@ -6,14 +6,57 @@ export type CoachResponseStylePreferences = {
   avoidFinalQuestion: boolean;
 };
 
-function normalizePolicyText(text: string): string {
-  return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+export const VISIBLE_OUTPUT_STYLE_RULES = [
+  "VISIBLE_OUTPUT_STYLE_RULES:",
+  "- Français naturel, adresse directe en tutoiement. Utilise tu, te, ton, ta, tes; n'utilise pas vous, votre, vos, souhaitez-vous ou preferez-vous pour t'adresser au user.",
+  "- Format WhatsApp: message court, lisible, direct, sans bloc long ni fiche lourde.",
+  "- Base concise: choisis l'information la plus pertinente et la plus utile; une reponse longue doit etre explicitement justifiee par conversation_context.",
+  "- Si le stage demande une question, pose une seule question maximum.",
+  "- N'expose jamais les internals: dispatcher, reducer, JSON, candidate_id, note_information, DB/table, prompt ou outil interne.",
+  "- Ne promets jamais une creation, sauvegarde, activation, programmation, modification ou execution si le contexte visible ne prouve pas un effet deja commis.",
+].join("\n");
+
+export const VISIBLE_OUTPUT_FORBIDDEN_DIRECT_ADDRESS = [
+  "vous",
+  "votre",
+  "vos",
+  "souhaitez-vous",
+  "préférez-vous",
+  "preferez-vous",
+];
+
+export function normalizeVisibleOutputForPolicy(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replaceAll("’", "'")
+    .toLowerCase();
+}
+
+export function visibleOutputStyleIssues(message: string): string[] {
+  const issues: string[] = [];
+  const normalized = normalizeVisibleOutputForPolicy(message);
+  if (/(^|[^a-z])vous([^a-z]|$)/i.test(normalized)) {
+    issues.push("forbidden_vouvoiement:vous");
+  }
+  if (/(^|[^a-z])votre([^a-z]|$)/i.test(normalized)) {
+    issues.push("forbidden_vouvoiement:votre");
+  }
+  if (/(^|[^a-z])vos([^a-z]|$)/i.test(normalized)) {
+    issues.push("forbidden_vouvoiement:vos");
+  }
+  if (normalized.includes("souhaitez-vous")) {
+    issues.push("forbidden_vouvoiement:souhaitez-vous");
+  }
+  if (normalized.includes("preferez-vous")) {
+    issues.push("forbidden_vouvoiement:preferez-vous");
+  }
+  return issues;
 }
 
 export function userRequestsShortStyle(message: string): boolean {
-  const text = normalizePolicyText(message);
-  return /\b(court|courte|bref|breve|bri[eè]vement|3 lignes|trois lignes|sans emoji|zero emoji|pas d emoji|sans question|pas de question)\b/
-    .test(text);
+  void message;
+  return false;
 }
 
 export async function loadCoachResponseStylePreferences(args: {
@@ -38,41 +81,7 @@ export function applyCoachResponseStylePreferences(args: {
   responseContent: string;
   preferences: CoachResponseStylePreferences;
 }): string {
-  const explicitShort = userRequestsShortStyle(args.userMessage);
-  const explicitNoEmoji =
-    /\b(sans emoji|zero emoji|0 emoji|pas d emoji|pas d emojis)\b/
-      .test(normalizePolicyText(args.userMessage));
-  const explicitNoQuestion =
-    /\b(sans question|pas de question|pas de question finale|sans question finale)\b/
-      .test(normalizePolicyText(args.userMessage));
-  const explicitMaxLines = /\b(3 lignes|trois lignes)\b/.test(
-    normalizePolicyText(args.userMessage),
-  );
-  const shouldApply = explicitShort || explicitNoEmoji || explicitNoQuestion ||
-    explicitMaxLines;
-  if (!shouldApply) return args.responseContent;
-
-  let response = String(args.responseContent ?? "").trim();
-  if (args.preferences.noEmoji || explicitNoEmoji) {
-    response = response
-      .replace(/\s*\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?/gu, "")
-      .replace(/[ \t]+\n/g, "\n")
-      .trim();
-  }
-  if (args.preferences.avoidFinalQuestion || explicitNoQuestion) {
-    const parts = response.split(/\n+/);
-    const last = parts[parts.length - 1]?.trim() ?? "";
-    if (/\?\s*$/.test(last)) {
-      parts.pop();
-      response = parts.join("\n").trim();
-    }
-  }
-  const maxLines = explicitMaxLines ? 3 : args.preferences.maxLines;
-  if (maxLines && maxLines > 0) {
-    const lines = response.split(/\n+/).map((line) => line.trim()).filter(
-      Boolean,
-    );
-    response = lines.slice(0, maxLines).join("\n").trim();
-  }
-  return response || args.responseContent;
+  void args.userMessage;
+  void args.preferences;
+  return args.responseContent;
 }

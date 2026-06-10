@@ -1,27 +1,12 @@
 import type { runSafetyPregate } from "../safety/safety_pregate.ts";
 import { isAtLeast } from "../safety/safety_thresholds.ts";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
-import type {
-  RiskBand,
-  ToolSkillOpportunity,
-  TurnFrame,
-} from "../contracts/turn_frame.v1.ts";
+import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { ConversationSkillOutput } from "../contracts/skill_output.v1.ts";
-
-const EMPTY_TOOL_SKILL_OPPORTUNITY: ToolSkillOpportunity = {
-  type: "none",
-  operation_type: null,
-  surface_id: null,
-  confidence_band: "low",
-  should_offer: false,
-  prop_reason: null,
-  source_span: null,
-  target_hint: null,
-  target_status: "none",
-  suggested_question_intent: null,
-  offer_timing: "never",
-  must_not_execute: true,
-};
+import {
+  createNoteInformation,
+  type NoteInformation,
+} from "../contracts/note_information.v1.ts";
 
 export function isSafetyRoute(routeDecision: RouteDecision | null): boolean {
   return routeDecision?.response_owner === "safety";
@@ -34,6 +19,104 @@ export function isActiveSafetyCrisisSkillState(value: unknown): boolean {
   const phase = String(record.working_state?.phase ?? "").trim();
   return phase !== "resolved" &&
     String(record.status ?? "active") !== "exiting";
+}
+
+export function shouldSkipGlobalDispatcherForSafetyLocalTurn(args: {
+  activeSkillState: unknown;
+  safetyPregateOutput: {
+    risk_band: RiskBand;
+    reason_codes?: string[];
+  };
+}): boolean {
+  const safetyMediumReasonsThatOwnLocalFlow = new Set([
+    "recent_safety_context_caution",
+    "passive_ideation_negated_medium_caution",
+    "recent_safety_negated_medium_caution",
+    "active_safety_flow_caution",
+    "passive_disappear_ideation",
+    "passive_absence_ideation",
+    "explicit_suicidal_thoughts",
+  ]);
+  return isActiveSafetyCrisisSkillState(args.activeSkillState) ||
+    isAtLeast(args.safetyPregateOutput.risk_band, "high") ||
+    (args.safetyPregateOutput.risk_band === "medium" &&
+      (args.safetyPregateOutput.reason_codes ?? []).some((reason) =>
+        safetyMediumReasonsThatOwnLocalFlow.has(String(reason))
+      ));
+}
+
+function safetyActivationRiskScore(riskBand: RiskBand): number {
+  switch (riskBand) {
+    case "critical":
+      return 10;
+    case "high":
+      return 8;
+    case "medium":
+      return 5;
+    case "low":
+      return 2;
+    case "none":
+      return 0;
+  }
+}
+
+export function buildSafetyCrisisActivationNoteInformation(args: {
+  userMessage: string;
+  sourceMessageId?: string | null;
+  requestId?: string | null;
+  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+}): NoteInformation {
+  const activeFlowSummary =
+    "No active safety_crisis state existed before this turn; safety pregate selected the safety local dispatcher.";
+  const collectedState = {
+    first_activation: true,
+    source_message_id: args.sourceMessageId ?? null,
+    request_id: args.requestId ?? null,
+    safety_pregate: {
+      detected: args.safetyPregateOutput.detected,
+      risk_band: args.safetyPregateOutput.risk_band,
+      reason_codes: args.safetyPregateOutput.reason_codes ?? [],
+      evidence: args.safetyPregateOutput.evidence ?? [],
+    },
+  };
+  const evidence = [
+    ...(args.safetyPregateOutput.evidence ?? []),
+    ...(args.userMessage ? [`user_message:${args.userMessage}`] : []),
+  ].slice(0, 8);
+  return createNoteInformation({
+    source_flow_id: "global",
+    source_flow_presentation:
+      "Global routing boundary handing first ownership to the safety_crisis local dispatcher.",
+    source_flow_state_summary: activeFlowSummary,
+    handoff_reason: "safety",
+    target_dispatcher: "safety_crisis",
+    handoff_context_for_next_dispatcher:
+      "Safety pregate selected safety_crisis for first local ownership on this turn. The safety local dispatcher must own routing and produce the conversation_context.",
+    target_local_dispatcher_hint:
+      "Start safety_crisis from pregate risk context; defer product, status, reminder, plan, card, and potion work.",
+    user_words: args.userMessage ? [args.userMessage] : [],
+    structured_context: {
+      source_flow: "global",
+      target_dispatcher: "safety_crisis",
+      handoff_reason: "safety",
+      user_message_summary: args.userMessage || null,
+      active_flow_summary: activeFlowSummary,
+      collected_state: collectedState,
+      unresolved_questions: [
+        "immediate_danger_absent",
+        "means_safe",
+        "human_support_available",
+      ],
+      confidence: args.safetyPregateOutput.risk_band === "critical" ||
+          args.safetyPregateOutput.risk_band === "high"
+        ? "high"
+        : "medium",
+      evidence,
+      recommended_next_focus:
+        "Assess immediate danger, means proximity, whether the user is alone, and human or emergency support.",
+    },
+    risk_score: safetyActivationRiskScore(args.safetyPregateOutput.risk_band),
+  });
 }
 
 export function withActiveSafetyFlowCaution<
@@ -64,7 +147,7 @@ export function withActiveSafetyFlowCaution<
     ],
     layer_contributions: {
       ...output.layer_contributions,
-      heuristic: true,
+      active_flow_caution: true,
     },
     allow_side_effects: false,
   };
@@ -116,10 +199,24 @@ export function applySafetyCrisisExitStateIfNeeded(args: {
 }): Record<string, unknown> | null {
   if (
     args.selectedSkillId !== "safety_crisis" ||
-    args.skillOutput?.status !== "exit" ||
-    args.skillOutput.state_patch?.phase !== "resolved"
+    args.skillOutput?.status !== "exit"
   ) return null;
+  const visibleTaskKind = String(
+    (args.skillOutput.state_patch?.visible_task as any)?.kind ?? "",
+  );
+  const resolved = args.skillOutput.state_patch?.phase === "resolved";
+  const stopLocalNoHandoff = visibleTaskKind === "stop_or_cancel";
+  if (!resolved && !stopLocalNoHandoff) return null;
   const next = { ...args.tempMemory };
+  const exitMemo = args.skillOutput.state_patch?.exit_memo ??
+    args.workingState.exit_memo ?? null;
+  if (resolved && exitMemo && typeof exitMemo === "object") {
+    next.__last_safety_crisis_exit_memo = {
+      ...(exitMemo as Record<string, unknown>),
+      at: args.now,
+      note_information: (exitMemo as any).note_information ?? null,
+    };
+  }
   next.__last_safety_crisis_state = {
     ...args.previous,
     skill_id: args.selectedSkillId,
@@ -129,9 +226,8 @@ export function applySafetyCrisisExitStateIfNeeded(args: {
     resolved_at: args.now,
     working_state: {
       ...args.workingState,
-      phase: "resolved",
-      exit_memo: args.skillOutput.state_patch?.exit_memo ??
-        args.workingState.exit_memo ?? null,
+      phase: resolved ? "resolved" : args.workingState.phase,
+      exit_memo: exitMemo,
     },
   };
   delete next.__active_skill_state;
@@ -184,7 +280,7 @@ export function suppressToolSignalsForSafetyRoute(args: {
       ...args.turnFrame,
       tool_skill_intents: [],
       direct_effects: [],
-      tool_skill_opportunity: EMPTY_TOOL_SKILL_OPPORTUNITY,
+      flow_opportunity: null,
     },
     changed: true,
   };

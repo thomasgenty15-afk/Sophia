@@ -117,10 +117,9 @@ Implementation attendue :
    - En mode inline, permettre aux flows parents d'appeler product_help sans perdre leur etat.
    - Ne pas remplacer le parent owner par product_help.
 
-6. Legacy cleanup
-   - Le renderer product_help existant ne doit plus etre le chemin nominal.
-   - Les fonctions legacy peuvent rester comme fallback/guard temporaire, mais pas comme reponse principale si visible_agent reussit.
-   - legacyProductHelpHeuristicIntake doit rester hors chemin nominal.
+6. Runtime cleanup
+   - Le visible agent product_help est le chemin nominal.
+   - Aucun chemin legacy ne doit rester exporte ou appele.
    - Aucun nouveau fallback lexical.
 
 Tests unitaires attendus :
@@ -182,4 +181,3 @@ Definition of done :
 - Tests unitaires passent.
 - Un rapport QA court documente les runs et les traces.
 ```
-

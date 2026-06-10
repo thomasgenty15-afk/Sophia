@@ -1,13 +1,4 @@
 import type { OneShotReminderIntent } from "./contract.ts";
-import {
-  extractReminderInstruction,
-  isDegenerateReminderInstruction,
-} from "./instruction_parser.ts";
-import { normalizeOneShotReminderText } from "./route_guards.ts";
-import {
-  extractTargetHHMMFromMessage,
-  hasRecurringCadenceHint,
-} from "./time_parser.ts";
 import type { ParsedReminderRequest } from "./time_parser.ts";
 
 export type OneShotReminderRecurrenceKind =
@@ -45,34 +36,6 @@ export type OneShotReminderStructuredIntake = {
   parse_source?: string;
 };
 
-function inferInstructionSource(
-  message: string,
-  instruction: string | null,
-): OneShotReminderInstructionSource | null {
-  if (!instruction) return null;
-  if (/\btexte exact\b/i.test(message)) return "exact_text";
-  if (/:/.test(message)) return "colon";
-  if (/\b(de|pour)\s+/i.test(message)) return "reminder_clause";
-  return "ai_fallback";
-}
-
-function inferTargetReference(
-  normalizedText: string,
-): OneShotReminderTargetReference {
-  if (/\b\d{1,2}\s*h(?:\s*\d{2})?|\d{1,2}:\d{2}\b/.test(normalizedText)) {
-    return "exact_time";
-  }
-  if (
-    /\b(dernier|precedent|celui la|celui ci|celui que tu viens)\b/.test(
-      normalizedText,
-    )
-  ) return "last_reminder";
-  if (/\b(tous|toutes|mes rappels|les rappels|tout)\b/.test(normalizedText)) {
-    return "all_pending";
-  }
-  return "ambiguous";
-}
-
 function effectIntent(effectTypes: string[]): OneShotReminderIntent | null {
   const create = effectTypes.includes("create_one_shot_reminder");
   const cancel = effectTypes.includes("cancel_one_shot_reminder");
@@ -81,13 +44,6 @@ function effectIntent(effectTypes: string[]): OneShotReminderIntent | null {
   if (create) return "create";
   if (cancel) return "cancel";
   return null;
-}
-
-function extractTimeExpression(message: string): string | null {
-  const text = String(message ?? "");
-  const match = text.match(/\b\d{1,2}\s*h\s*\d{0,2}\b/i) ??
-    text.match(/\b\d{1,2}:\d{2}\b/);
-  return match?.[0]?.replace(/\s+/g, "") ?? extractTargetHHMMFromMessage(text);
 }
 
 export function buildOneShotReminderIntake(args: {
@@ -99,14 +55,14 @@ export function buildOneShotReminderIntake(args: {
   directEffectsToRun?: string[];
 }): OneShotReminderStructuredIntake {
   const message = String(args.message ?? "");
-  const text = normalizeOneShotReminderText(message);
-  const timeExpression = extractTimeExpression(message);
-  const targetReference = inferTargetReference(text);
+  const timeExpression =
+    String(args.parsed?.parseDetails?.local_time_hhmm ?? "").trim() || null;
+  const targetReference: OneShotReminderTargetReference = timeExpression
+    ? "exact_time"
+    : "ambiguous";
   const directIntent = effectIntent(args.directEffectsToRun ?? []);
-  const directCreateIntent = directIntent === "create" ||
-    directIntent === "replace";
 
-  if (!text) {
+  if (!message.trim()) {
     return {
       detected: false,
       intent: "off_topic",
@@ -121,24 +77,6 @@ export function buildOneShotReminderIntake(args: {
       target_local_labels: [],
       constraints: [],
       reason_code: "empty_message",
-    };
-  }
-
-  if (directCreateIntent && hasRecurringCadenceHint(message)) {
-    return {
-      detected: true,
-      intent: "ignore",
-      recurrence_kind: "recurring",
-      time_expression: timeExpression,
-      scheduled_for: args.parsed?.scheduledFor ?? null,
-      local_label: args.localLabel ?? null,
-      instruction: null,
-      instruction_source: null,
-      target_reference: targetReference,
-      target_reminder_ids: args.targetReminderIds ?? [],
-      target_local_labels: args.targetLocalLabels ?? [],
-      constraints: [{ kind: "one_shot_only", evidence: [message] }],
-      reason_code: "recurring_cadence_handoff",
     };
   }
 
@@ -162,12 +100,9 @@ export function buildOneShotReminderIntake(args: {
 
   const intent = directIntent;
   const rawInstruction = intent === "create" || intent === "replace"
-    ? args.parsed?.reminderInstruction ?? extractReminderInstruction(message)
+    ? args.parsed?.reminderInstruction ?? null
     : null;
-  const instruction = rawInstruction &&
-      !isDegenerateReminderInstruction(rawInstruction)
-    ? rawInstruction
-    : rawInstruction;
+  const instruction = rawInstruction;
 
   return {
     detected: true,
@@ -177,7 +112,7 @@ export function buildOneShotReminderIntake(args: {
     scheduled_for: args.parsed?.scheduledFor ?? null,
     local_label: args.localLabel ?? null,
     instruction,
-    instruction_source: inferInstructionSource(message, instruction),
+    instruction_source: instruction ? "ai_fallback" : null,
     target_reference: targetReference,
     target_reminder_ids: args.targetReminderIds ?? [],
     target_local_labels: args.targetLocalLabels ?? [],

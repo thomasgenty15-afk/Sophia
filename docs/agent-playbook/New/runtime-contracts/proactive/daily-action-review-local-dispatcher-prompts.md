@@ -25,13 +25,32 @@ Route non visible :
   reanalyser le meme message.
 - `safety_preempt` laisse la pipeline safety reprendre.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, and inline product/status roundtrips if enabled. Use
+`source_flow_id="daily_action_review_v1"` and copy the catalog presentation.
+
+Do not produce it for `user_stopped`, `repeat_current_question`,
+`recap_daily_state`, local completion, or local refusal when no new dispatcher
+is called. Those are local stop/defer/ack actions and global must not run on
+the same turn.
+
+Choose `target_dispatcher` as `global` for explicit other tool/product/status
+or topic change when not inline, `safety_crisis` for safety, and
+`product_help`/`status_recap` for inline info. The handoff context must include
+daily targets, collected item updates, missing slots, current review state, and
+committed effects if any.
+
 ## Dispatcher Output Contract
 
 Le dispatcher local retourne uniquement ce JSON :
 
 ```json
 {
-  "flow_action": "answer_review|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|recap_daily_state|repeat_current_question|user_stopped|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|revise|recap_daily_state|repeat_current_question|user_stopped|stop_local_no_handoff|cancel_flow|defer_flow|inline_product_help|inline_status_recap|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "target_resolution": {
@@ -65,7 +84,39 @@ Le dispatcher local retourne uniquement ce JSON :
   },
   "visible_task": {
     "kind": "clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|recap_daily_state|repeat_question|stop_close|commit_success|commit_failed|exit_or_cancel|safety",
-    "instruction": "string"
+    "instruction": "string",
+    "conversation_context": {
+      "state_summary": "string",
+      "user_words": [],
+      "field_or_stage": "string|null",
+      "known_values": {},
+      "missing_or_weak_values": [],
+      "selected_candidate": {},
+      "handoff_data": {},
+      "tone_constraints": [],
+      "do_not_say": [],
+      "context_summary": "string|null",
+      "evidence_used": []
+    }
+  },
+  "note_information": {
+    "source_flow_id": "daily_action_review_v1",
+    "source_flow_presentation": "string",
+    "source_flow_state_summary": "string",
+    "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request",
+    "target_dispatcher": "global|safety_crisis|product_help|status_recap|prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|other_local",
+    "handoff_context_for_next_dispatcher": "string",
+    "target_local_dispatcher_hint": "string|null",
+    "user_words": [],
+    "structured_context": {},
+    "risk_score": 0,
+    "no_chat_mutation": {
+      "db_write_committed": false,
+      "potion_session_created": false,
+      "scheduled_checkin_created": false,
+      "recurring_reminder_created": false,
+      "executable_confirmation_generated": false
+    }
   },
   "exit_memo": {
     "needed": true,
@@ -94,8 +145,11 @@ Le dispatcher local retourne uniquement ce JSON :
 
 Rules :
 
-- `exit_memo.needed=true` only for `exit_to_global_dispatcher` or
-  `safety_preempt`.
+- `exit_memo.needed=true` only for
+  `exit_to_global_dispatcher`, `handoff_to_local_flow`,
+  `inline_product_help`, `inline_status_recap`, or `safety_preempt`.
+- `note_information` is null for continuation and stop local; it is mandatory
+  for every dispatcher transition.
 - `item_updates` keys must be known `occurrence_id` values from targets.
 - If two targets exist and the answer is ambiguous, return
   `clarify_which_action`.
@@ -172,16 +226,25 @@ Ce n'est pas un status_recap DB global.
 9. repeat_current_question
 Le user demande de redire la question daily courante.
 
-10. user_stopped
+10. user_stopped / stop_local_no_handoff / cancel_flow / defer_flow
 Le user demande d'arreter le daily, dit pas maintenant, ou refuse la collecte
 sans nouveau sujet.
 
 11. exit_to_global_dispatcher
-Le user demande autre chose : carte, potion, rappel, preference, status global,
-product help, changement de plan, coaching general.
+Le user change clairement de sujet vers coaching general ou une demande qui
+doit etre reanalysee par le global.
 Tu dois fournir un exit_memo utile pour la seconde analyse globale.
 
-12. safety_preempt
+12. inline_product_help / inline_status_recap
+Le user pose une question produit ou demande un statut temporaire, sans
+abandonner necessairement le daily.
+
+13. handoff_to_local_flow
+Le user cible clairement un autre flow local autorise par ce contrat :
+prepare_attack_card, prepare_defense_card, select_state_potion ou
+update_coach_preferences.
+
+14. safety_preempt
 Signal safety. Fournis un exit_memo reason=safety.
 
 Regles :
@@ -202,9 +265,231 @@ Regles :
 - Ne dis jamais que quelque chose est note ou enregistre.
 - Le commit sera decide uniquement par le reducer/executor.
 
+Field Completion Rules :
+
+- `flow_action` est la decision principale du tour courant. Elle doit refleter
+  le message actuel, pas seulement l'etat precedent. Utilise les actions daily
+  pour continuer, les actions stop pour arret local, `exit_to_global_dispatcher`
+  pour nouveau sujet global clair, `handoff_to_local_flow` pour autre flow local
+  clair, les actions inline pour product/status temporaire, et
+  `safety_preempt` pour safety.
+- `confidence` vaut `high` si l'intention et les targets sont claires,
+  `medium` si probable mais incomplete, `low` si clarification ou prudence est
+  necessaire.
+- `risk_score` reste utile au flow : `0` sans risque. Ne fabrique pas de
+  safety. Une vraie safety doit declencher `safety_preempt`.
+- `target_resolution` indique seulement quelles occurrences daily sont
+  resolues par le message. `resolved_occurrence_ids` ne contient que des ids de
+  targets. `ambiguous=true` si le user parle d'une action sans dire laquelle.
+- `item_updates` est l'etat metier local propose au reducer. Ne cree une entree
+  que pour un `occurrence_id` connu. Utilise `update_mode=none` ou omets
+  l'entree si rien n'est stabilise. Ne transforme jamais une hypothese en fait.
+- `item_updates.outcome` vaut `completed`, `partial` ou `missed` seulement si le
+  message le supporte. Sinon `unclear` ou `null` avec `missing_slots`.
+- `reason_category` et `reason_text` restent `none/null` pour completed sauf
+  contexte donne par le user. Pour partial ou missed, ne les remplis que si la
+  raison est dite ou clairement exploitable.
+- `still_relevant` vaut `true` ou `false` seulement si le user l'indique ou si
+  c'est evident dans son message ; sinon `unknown`.
+- `evidence_text`, `matched_user_text` et `evidence` citent des indices
+  semantiques reels. Pas de pseudo-preuves.
+- `daily_intent` classe le message dans le vocabulaire local :
+  `daily_answer`, `daily_clarification`, `daily_correction`, `daily_recap`,
+  `stop`, `off_topic`, `explicit_tool_request`, `safety` ou `unclear`.
+- `state_updates.status_hint` aide le reducer : `collecting` si le daily
+  continue, `needs_clarification` si un slot manque, `complete` si les updates
+  suffisent, `stopped` pour arret local, `blocked` pour safety/transition qui
+  bloque le daily.
+- `visible_task.kind` choisit le stage visible exact. Evite un stage generique.
+  En stop/cancel/defer utilise `stop_close`. En exit/handoff/inline utilise
+  `exit_or_cancel`. En safety utilise `safety`.
+- `visible_task.instruction` est une consigne courte pour le prompt visible,
+  jamais une reponse visible construite par le dispatcher.
+- `visible_task.conversation_context` est le seul contexte utilisable par
+  l'agent visible : valeurs connues, incertitudes, contraintes de ton, limites
+  et evidence utile. Pas de DB brute, memoire brute ou `note_information` brute.
+- `note_information` est `null` pour continuation daily et stop local. Elle est
+  obligatoire pour `exit_to_global_dispatcher`, `handoff_to_local_flow`,
+  `inline_product_help`, `inline_status_recap` et `safety_preempt`.
+- `exit_memo.needed=false` pour continuation et stop local. Il vaut `true` pour
+  exit, handoff, inline et safety, avec l'etat daily acquis, les slots non
+  resolus et les contraintes no-chat-mutation.
+
+Transition rules :
+
+- `stop_local_no_handoff`, `cancel_flow` ou `defer_flow` : arret ou report du
+  daily sans nouveau sujet clair. Pas de dispatcher global sur le meme tour.
+- `exit_to_global_dispatcher` : nouveau sujet global clair. `note_information`
+  obligatoire, cible `global`.
+- `safety_preempt` : safety prioritaire. `note_information` obligatoire, cible
+  `safety_crisis`, aucune continuation daily.
+- `handoff_to_local_flow` : seulement vers un flow local autorise par ce
+  contrat. `note_information` obligatoire.
+- `inline_product_help` / `inline_status_recap` : question temporaire
+  product/status. `note_information` obligatoire et le daily garde son etat.
+- Anti-faux-positif : si le user veut continuer le daily mais manque de detail,
+  clarifie au lieu de sortir.
+
+Exemples JSON non visibles :
+
+```json
+{
+  "flow_action": "answer_review",
+  "confidence": "high",
+  "risk_score": 0,
+  "target_resolution": {
+    "resolved_occurrence_ids": ["occ-1"],
+    "ambiguous": false,
+    "why": "Single target and user reports doing it."
+  },
+  "item_updates": {
+    "occ-1": {
+      "update_mode": "set",
+      "outcome": "completed",
+      "reason_category": "none",
+      "reason_text": null,
+      "still_relevant": true,
+      "evidence_text": "je l ai fait 20 minutes",
+      "matched_user_text": "Oui, je l ai fait 20 minutes.",
+      "confidence": "high",
+      "missing_slots": []
+    }
+  },
+  "daily_intent": {
+    "kind": "daily_answer",
+    "summary": "User completed the selected action."
+  },
+  "state_updates": {
+    "status_hint": "complete",
+    "turn_count_increment": 1,
+    "close_after_visible": false
+  },
+  "visible_task": {
+    "kind": "commit_success",
+    "instruction": "Let reducer/executor handle commit before visible confirmation.",
+    "conversation_context": {
+      "state_summary": "Selected action appears completed.",
+      "user_words": ["Oui, je l ai fait 20 minutes."],
+      "field_or_stage": "commit_success",
+      "known_values": { "occurrence_id": "occ-1", "outcome": "completed" },
+      "missing_or_weak_values": [],
+      "selected_candidate": { "occurrence_id": "occ-1" },
+      "handoff_data": null,
+      "tone_constraints": ["short"],
+      "do_not_say": ["noted before commit"],
+      "context_summary": "Daily answer complete for one target.",
+      "evidence_used": ["je l ai fait 20 minutes"]
+    }
+  },
+  "note_information": null,
+  "exit_memo": {
+    "needed": false,
+    "reason": "none",
+    "user_intent_summary": null,
+    "local_flow_context": {
+      "skill_id": "daily_action_review_v1",
+      "targets": [],
+      "current_daily_state": "complete",
+      "collected_updates_summary": "completed occ-1",
+      "missing_slots": [],
+      "committed_effects": []
+    },
+    "handoff_hint_for_global_dispatcher": {
+      "likely_intent": "unknown",
+      "why": null,
+      "constraints": []
+    }
+  },
+  "evidence": ["single target completed"]
+}
+```
+
+```json
+{
+  "flow_action": "safety_preempt",
+  "confidence": "high",
+  "risk_score": 8,
+  "target_resolution": {
+    "resolved_occurrence_ids": [],
+    "ambiguous": false,
+    "why": "Safety concern overrides daily collection."
+  },
+  "item_updates": {},
+  "daily_intent": {
+    "kind": "safety",
+    "summary": "User signals immediate self-harm risk."
+  },
+  "state_updates": {
+    "status_hint": "blocked",
+    "turn_count_increment": 1,
+    "close_after_visible": true
+  },
+  "visible_task": {
+    "kind": "safety",
+    "instruction": "Do not continue daily; hand off to safety.",
+    "conversation_context": {
+      "state_summary": "Safety preempts daily review.",
+      "user_words": ["je risque de me faire du mal"],
+      "field_or_stage": "safety",
+      "known_values": {},
+      "missing_or_weak_values": [],
+      "selected_candidate": null,
+      "handoff_data": { "target_dispatcher": "safety_crisis" },
+      "tone_constraints": ["calm", "direct"],
+      "do_not_say": ["daily recap", "commit"],
+      "context_summary": "Daily paused because safety owns the next turn.",
+      "evidence_used": ["je risque de me faire du mal"]
+    }
+  },
+  "note_information": {
+    "source_flow_id": "daily_action_review_v1",
+    "source_flow_presentation": "Daily review collects evidence for targeted actions.",
+    "source_flow_state_summary": "Daily interrupted by safety signal before commit.",
+    "handoff_reason": "safety",
+    "target_dispatcher": "safety_crisis",
+    "handoff_context_for_next_dispatcher": "Safety owns next turn; daily review did not commit anything.",
+    "target_local_dispatcher_hint": "Safety owns the next turn; daily_action_review must not continue or commit.",
+    "user_words": ["je risque de me faire du mal"],
+    "structured_context": {
+      "source_flow": "daily_action_review_v1",
+      "committed_effects": []
+    },
+    "risk_score": 8,
+    "no_chat_mutation": {
+      "db_write_committed": false,
+      "potion_session_created": false,
+      "scheduled_checkin_created": false,
+      "recurring_reminder_created": false,
+      "executable_confirmation_generated": false
+    }
+  },
+  "exit_memo": {
+    "needed": true,
+    "reason": "safety",
+    "user_intent_summary": "User signals immediate self-harm risk.",
+    "local_flow_context": {
+      "skill_id": "daily_action_review_v1",
+      "targets": [],
+      "current_daily_state": "blocked",
+      "collected_updates_summary": null,
+      "missing_slots": [],
+      "committed_effects": []
+    },
+    "handoff_hint_for_global_dispatcher": {
+      "likely_intent": "unknown",
+      "why": "Safety dispatcher must own the next turn.",
+      "constraints": [
+        "Daily has not mutated anything unless committed_effects is non-empty."
+      ]
+    }
+  },
+  "evidence": ["self-harm risk words"]
+}
+```
+
 Sortie JSON :
 {
-  "flow_action": "answer_review|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|recap_daily_state|repeat_current_question|user_stopped|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|revise|recap_daily_state|repeat_current_question|user_stopped|stop_local_no_handoff|cancel_flow|defer_flow|inline_product_help|inline_status_recap|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "target_resolution": {
@@ -238,7 +523,39 @@ Sortie JSON :
   },
   "visible_task": {
     "kind": "clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|recap_daily_state|repeat_question|stop_close|commit_success|commit_failed|exit_or_cancel|safety",
-    "instruction": "string"
+    "instruction": "string",
+    "conversation_context": {
+      "state_summary": "string",
+      "user_words": [],
+      "field_or_stage": "string|null",
+      "known_values": {},
+      "missing_or_weak_values": [],
+      "selected_candidate": {},
+      "handoff_data": {},
+      "tone_constraints": [],
+      "do_not_say": [],
+      "context_summary": "string|null",
+      "evidence_used": []
+    }
+  },
+  "note_information": {
+    "source_flow_id": "daily_action_review_v1",
+    "source_flow_presentation": "string",
+    "source_flow_state_summary": "string",
+    "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request",
+    "target_dispatcher": "global|safety_crisis|product_help|status_recap|prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|other_local",
+    "handoff_context_for_next_dispatcher": "string",
+    "target_local_dispatcher_hint": "string|null",
+    "user_words": [],
+    "structured_context": {},
+    "risk_score": 0,
+    "no_chat_mutation": {
+      "db_write_committed": false,
+      "potion_session_created": false,
+      "scheduled_checkin_created": false,
+      "recurring_reminder_created": false,
+      "executable_confirmation_generated": false
+    }
   },
   "exit_memo": {
     "needed": true,
@@ -615,4 +932,3 @@ Checks interdits :
 - Success wording requires committed effects.
 - Commit failure does not mark pending done.
 - No card/potion/tool suggestion during collection.
-

@@ -8,6 +8,6 @@ export async function loadSafetyCrisisContext(input: LoadSkillContextInput) {
     include_plan: false,
     include_product: false,
     allow_sensitive: false,
-    allow_safety_memory: true,
+    allow_safety_memory: false,
   });
 }

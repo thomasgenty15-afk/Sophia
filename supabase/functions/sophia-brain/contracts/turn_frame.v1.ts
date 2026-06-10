@@ -1,3 +1,5 @@
+import type { NoteInformation } from "./note_information.v1.ts";
+
 export type ConfidenceBand = "low" | "medium" | "high" | "critical";
 export type Explicitness = "explicit" | "implied" | "weak";
 export type Ambiguity =
@@ -14,58 +16,12 @@ export type DirectEffectType =
   | "create_one_shot_reminder"
   | "track_progress_plan_item";
 
-export type ToolSkillOpportunityType =
-  | "attack_card"
-  | "defense_card"
-  | "plan_adjustment"
-  | "portion"
-  | "state_potion"
-  | "self_reminder"
-  | "coach_preferences"
-  | "none";
-
-export type ToolSkillOpportunity = {
-  type: ToolSkillOpportunityType;
-  operation_type:
-    | "prepare_attack_card"
-    | "prepare_defense_card"
-    | "adjust_plan_item"
-    | "select_state_potion"
-    | "create_recurring_reminder"
-    | "update_coach_preferences"
-    | null;
-  surface_id:
-    | "attack_card"
-    | "defense_card"
-    | "plan_item.reduce"
-    | "plan_item.clarify"
-    | "potion.state"
-    | "dashboard.reminders"
-    | "dashboard.preferences"
-    | null;
-  confidence_band: Exclude<ConfidenceBand, "critical">;
-  should_offer: boolean;
-  prop_reason: string | null;
-  source_span: string | null;
-  target_hint: string | null;
-  target_status: "identified" | "ambiguous" | "missing" | "none";
-  suggested_question_intent:
-    | "offer_attack_card"
-    | "offer_defense_card"
-    | "offer_plan_adjustment"
-    | "offer_portion"
-    | "offer_state_potion"
-    | "offer_self_reminder"
-    | "offer_coach_preferences"
-    | null;
-  offer_timing: "now" | "after_current_pending" | "weekly" | "never";
-  must_not_execute: true;
-};
-
 export type FlowOpportunity = {
   opportunity_id: string;
+  target_kind: "skill" | "tool_skill" | "direct_effect";
   target_flow:
     | "status_recap"
+    | "product_help"
     | "update_coach_preferences"
     | "emotional_repair"
     | "demotivation_repair"
@@ -89,6 +45,7 @@ export type DispatcherMemoryTargetType =
   | "action"
   | "level"
   | "entity"
+  | "runtime_snapshot"
   | "domain_key"
   | "domain_prefix";
 
@@ -253,9 +210,9 @@ export type TurnFrame = {
       | "none";
   }>;
 
-  tool_skill_opportunity: ToolSkillOpportunity;
-
   flow_opportunity?: FlowOpportunity | null;
+
+  note_information?: NoteInformation | null;
 
   skill_signals: {
     entry?: Record<

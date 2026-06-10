@@ -2,8 +2,9 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import type { MorningNudgePayloadV2 } from "./morning_nudge_contract.ts";
 import {
+  buildPostMorningNudgeLocalHandoffNote,
   createPostMorningNudgeActiveState,
-  LAST_POST_MORNING_NUDGE_EXIT_MEMO_KEY,
+  LAST_POST_MORNING_NUDGE_NOTE_INFORMATION_KEY,
   normalizePostMorningNudgeSuppressedActionDispatcherOutput,
   POST_MORNING_NUDGE_TEMP_MEMORY_KEY,
   type PostMorningNudgeSuppressedActionDispatcherOutput,
@@ -56,10 +57,32 @@ function decision(args: {
       "main_need"
     ]
   >;
-  likely_intent?: PostMorningNudgeSuppressedActionDispatcherOutput[
-    "exit_memo"
-  ]["handoff_hint_for_global_dispatcher"]["likely_intent"];
+  likely_intent?:
+    | "prepare_attack_card"
+    | "prepare_defense_card"
+    | "select_state_potion"
+    | "update_coach_preferences"
+    | "product_help"
+    | "normal_coaching"
+    | "unknown";
 }): PostMorningNudgeSuppressedActionDispatcherOutput {
+  const state = activeState();
+  const noteInformation = args.flow_action === "exit_to_global_dispatcher" ||
+      args.flow_action === "safety_preempt"
+    ? buildPostMorningNudgeLocalHandoffNote({
+      state,
+      reason: args.flow_action === "safety_preempt"
+        ? "safety"
+        : "explicit_tool_request",
+      userIntentSummary: args.flow_action === "safety_preempt"
+        ? "User has a safety signal."
+        : "User asks for another tool.",
+      likelyIntent: args.likely_intent ?? "unknown",
+      why: args.flow_action === "safety_preempt"
+        ? "Safety preemption selected by local dispatcher."
+        : "Explicit handoff selected by local dispatcher.",
+    }).note_information
+    : null;
   const root = {
     flow_action: args.flow_action,
     confidence: "high",
@@ -87,51 +110,28 @@ function decision(args: {
     visible_task: {
       kind: args.visible_kind,
       instruction: "stage specific suppressed visible prompt",
-      data: {
-        suppressed_action_titles: ["Marcher 10 min"],
-        target_action_titles: ["Marcher 10 min"],
-        suppression_reason: "high_emotional_load",
-        main_need: args.main_need ?? null,
-        minimal_save_candidate: null,
-        reopen_step_candidate: null,
+      conversation_context: {
+        known_values: {
+          suppressed_action_titles: ["Marcher 10 min"],
+          target_action_titles: ["Marcher 10 min"],
+          suppression_reason: "high_emotional_load",
+          main_need: args.main_need ?? null,
+          minimal_save_candidate: args.visible_kind === "offer_minimal_save"
+            ? "Marcher deux minutes, sans viser plus"
+            : null,
+          reopen_step_candidate: args.visible_kind === "reopen_action_gently"
+            ? "Sortir juste prendre l'air deux minutes"
+            : null,
+        },
+        evidence_used: ["test dispatcher output"],
       },
     },
-    exit_memo: {
-      needed: args.flow_action === "exit_to_global_dispatcher" ||
-        args.flow_action === "safety_preempt",
-      reason: args.flow_action === "exit_to_global_dispatcher"
-        ? "explicit_tool_request"
-        : args.flow_action === "safety_preempt"
-        ? "safety"
-        : "none",
-      user_intent_summary: args.flow_action === "exit_to_global_dispatcher"
-        ? "User asks for another tool."
-        : null,
-      local_flow_context: {
-        skill_id: "post_morning_nudge",
-        flow_kind: "suppressed_action",
-        source_nudge_summary: "nudge_kind=suppressed_action_nudge",
-        target_action_titles: ["Marcher 10 min"],
-        suppressed_action_titles: ["Marcher 10 min"],
-        suppression_reason: "high_emotional_load",
-        last_local_assessment: null,
-      },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: args.likely_intent ?? "unknown",
-        why: args.flow_action === "exit_to_global_dispatcher"
-          ? "Explicit tool request."
-          : null,
-        constraints: [
-          "Do not treat this as post_morning_nudge continuation unless selected again.",
-          "Remember that the source nudge intentionally suppressed an action instead of pushing it.",
-        ],
-      },
-    },
+    note_information: noteInformation,
     evidence: ["test dispatcher output"],
   };
   return normalizePostMorningNudgeSuppressedActionDispatcherOutput(
     root,
-    activeState(),
+    state,
   );
 }
 
@@ -321,9 +321,9 @@ Deno.test("post morning nudge suppressed defense card request exits to global", 
   assertEquals(runtime?.content, "");
   assertEquals(
     ((runtime?.nextTempMemory as any)[
-      LAST_POST_MORNING_NUDGE_EXIT_MEMO_KEY
+      LAST_POST_MORNING_NUDGE_NOTE_INFORMATION_KEY
     ] as any)
-      ?.handoff_hint_for_global_dispatcher?.likely_intent,
+      ?.recommended_next_focus,
     "prepare_defense_card",
   );
 });
@@ -344,8 +344,8 @@ Deno.test("post morning nudge suppressed attack card request exits to global", a
     "post_morning_nudge_local_exit_to_global_dispatcher",
   );
   assertEquals(
-    ((runtime?.toolSkillRun as any)?.exit_memo as any)
-      ?.handoff_hint_for_global_dispatcher?.likely_intent,
+    ((runtime?.toolSkillRun as any)?.local_handoff_note as any)
+      ?.recommended_next_focus,
     "prepare_attack_card",
   );
 });
@@ -389,6 +389,34 @@ Deno.test("post morning nudge suppressed local exit enables global second pass",
     true,
   );
   assertEquals((runtime?.toolSkillRun as any)?.ai_call_count, 1);
+});
+
+Deno.test("post morning nudge suppressed safety preempt routes with safety note", async () => {
+  const runtime = await runSuppressedScenario({
+    userMessage: "je ne suis pas en securite",
+    output: decision({
+      flow_action: "safety_preempt",
+      visible_kind: "safety",
+      status: "safety",
+      main_need: "support",
+    }),
+  });
+
+  assertEquals(runtime?.content, "");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.reason_code,
+    "post_morning_nudge_safety_preempt",
+  );
+  assertEquals(
+    ((runtime?.toolSkillRun as any)?.note_information as any)
+      ?.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.runtime_trace?.[0]
+      ?.global_dispatcher_skipped_due_post_morning_nudge,
+    true,
+  );
 });
 
 Deno.test("post morning nudge suppressed max turns closes local flow", () => {

@@ -1,6 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  appendAgendaPlatformHandoffFollowup,
+  appendOperationFollowup,
+  ensureActiveConversationSkillStateBeforePersist,
   routeDecisionForOperationTrace,
 } from "./operation_runtime_response_handler.ts";
 
@@ -30,80 +31,97 @@ Deno.test("operation runtime trace route uses executed tool skill handler", () =
   assertEquals(traced.reason_code, "active_handoff_turn_unclear");
 });
 
-Deno.test("operation response appends agenda platform handoff after atomic reminder effect", () => {
-  const content = appendAgendaPlatformHandoffFollowup({
-    content: "C'est programmé pour mercredi 03 juin à 15:28.",
+Deno.test("operation runtime persist guard restores active emotional_repair on local continue", () => {
+  const result = ensureActiveConversationSkillStateBeforePersist({
+    tempMemory: {
+      __conversation_risk_history: [0],
+    },
+    activeSkillState: {
+      skill_id: "emotional_repair",
+      status: "active",
+      turn_count: 2,
+      working_state: {
+        emotional_repair_local_state: {
+          stage: "concrete_phrase",
+        },
+      },
+    },
     operationRuntime: {
-      toolExecution: "success",
-      executedTools: ["create_one_shot_reminder"],
-    },
-    routeDecision: {
-      route_version: "v1",
-      response_owner: "tool_skill",
-      selected_handler: "create_one_shot_reminder",
-      reason_code: "central_arbitrator_one_shot_reminder_structured_effect",
-      direct_effects_to_run: ["create_one_shot_reminder"],
-      blocked_paths: [],
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-    },
-    turnAgendaSummary: {
-      task_count: 2,
-      owners: ["create_one_shot_reminder", "attack_card_handoff"],
-      operation_types: ["create_one_shot_reminder", "prepare_attack_card"],
-      constraints: {},
-      tasks: [{
-        task_id: "direct:create_one_shot_reminder:0",
-        kind: "effect",
-        owner: "create_one_shot_reminder",
-        operation_type: "create_one_shot_reminder",
-        intent: "create",
-        source: "dispatcher",
-        status: "pending",
-        reason_code: null,
-      }, {
-        task_id: "dispatcher:prepare_attack_card:0",
-        kind: "platform_handoff",
-        owner: "attack_card_handoff",
-        operation_type: "prepare_attack_card",
-        intent: "create",
-        source: "dispatcher",
-        status: "proposed",
-        reason_code: "complex_operation_redirect_to_platform",
-      }],
+      toolSkillRun: {
+        skill_id: "emotional_repair",
+        mode: "conversation_skill_local_flow",
+        status: "continue",
+      },
     },
   });
 
+  assertEquals(result.restored, true);
+  assertEquals(result.reasonCode, "local_flow_continue_missing_active_state");
   assertEquals(
-    content,
-    "C'est programmé pour mercredi 03 juin à 15:28.\n\nMaintenant, pour la carte d'attaque, c'est pour quelle action ?",
+    result.tempMemory.__active_skill_state.skill_id,
+    "emotional_repair",
+  );
+  assertEquals(result.tempMemory.__active_skill_state.status, "active");
+  assertEquals(
+    result.tempMemory.__active_skill_state.working_state
+      .emotional_repair_local_state.stage,
+    "concrete_phrase",
   );
 });
 
+Deno.test("operation runtime persist guard does not restore completed local flow", () => {
+  const result = ensureActiveConversationSkillStateBeforePersist({
+    tempMemory: {},
+    activeSkillState: {
+      skill_id: "emotional_repair",
+      status: "active",
+    },
+    operationRuntime: {
+      toolSkillRun: {
+        skill_id: "emotional_repair",
+        mode: "conversation_skill_local_flow",
+        status: "complete",
+      },
+    },
+  });
+
+  assertEquals(result.restored, false);
+  assertEquals(result.reasonCode, null);
+  assertEquals(result.tempMemory.__active_skill_state, undefined);
+});
+
+Deno.test("operation runtime persist guard does not overwrite different active skill", () => {
+  const result = ensureActiveConversationSkillStateBeforePersist({
+    tempMemory: {
+      __active_skill_state: {
+        skill_id: "product_help",
+        status: "active",
+      },
+    },
+    activeSkillState: {
+      skill_id: "emotional_repair",
+      status: "active",
+    },
+    operationRuntime: {
+      toolSkillRun: {
+        skill_id: "emotional_repair",
+        mode: "conversation_skill_local_flow",
+        status: "continue",
+      },
+    },
+  });
+
+  assertEquals(result.restored, false);
+  assertEquals(result.reasonCode, "local_flow_continue_different_active_state");
+  assertEquals(result.tempMemory.__active_skill_state.skill_id, "product_help");
+});
+
 Deno.test("operation response does not append handoff when operation failed", () => {
-  const content = appendAgendaPlatformHandoffFollowup({
+  const content = appendOperationFollowup({
     content: "Je n'ai pas réussi à programmer ce rappel.",
     operationRuntime: {
       toolExecution: "failed",
       executedTools: [],
-    },
-    routeDecision: null,
-    turnAgendaSummary: {
-      task_count: 1,
-      owners: ["attack_card_handoff"],
-      operation_types: ["prepare_attack_card"],
-      constraints: {},
-      tasks: [{
-        task_id: "dispatcher:prepare_attack_card:0",
-        kind: "platform_handoff",
-        owner: "attack_card_handoff",
-        operation_type: "prepare_attack_card",
-        intent: "create",
-        source: "dispatcher",
-        status: "proposed",
-        reason_code: "complex_operation_redirect_to_platform",
-      }],
     },
   });
 
@@ -111,38 +129,11 @@ Deno.test("operation response does not append handoff when operation failed", ()
 });
 
 Deno.test("operation response keeps uncovered same-turn suffix after atomic effect", () => {
-  const content = appendAgendaPlatformHandoffFollowup({
+  const content = appendOperationFollowup({
     content: "C'est programmé pour mercredi 03 juin à 15:28.",
     operationRuntime: {
       toolExecution: "success",
       executedTools: ["create_one_shot_reminder"],
-    },
-    routeDecision: {
-      route_version: "v1",
-      response_owner: "tool_skill",
-      selected_handler: "create_one_shot_reminder",
-      reason_code: "central_arbitrator_one_shot_reminder_structured_effect",
-      direct_effects_to_run: ["create_one_shot_reminder"],
-      blocked_paths: [],
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-    },
-    turnAgendaSummary: {
-      task_count: 1,
-      owners: ["create_one_shot_reminder"],
-      operation_types: ["create_one_shot_reminder"],
-      constraints: {},
-      tasks: [{
-        task_id: "direct:create_one_shot_reminder:0",
-        kind: "effect",
-        owner: "create_one_shot_reminder",
-        operation_type: "create_one_shot_reminder",
-        intent: "create",
-        source: "dispatcher",
-        status: "pending",
-        reason_code: null,
-      }],
     },
     userMessage:
       "J'aimerais que tu me rappelles dans 10 minutes de prendre mes médicaments, et là tout de suite j'aimerais qu'on crée une carte d'attaque",

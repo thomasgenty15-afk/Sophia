@@ -4,12 +4,18 @@ import type { LoadSkillContextInput } from "../_shared/context.ts";
 import { emptySafetySignal } from "./contract.ts";
 import { loadSafetyCrisisContext } from "./context_loader.ts";
 import {
+  dispatcherSystemPrompt,
   normalizeSafetyCrisisLocalDispatcherOutput,
   setSafetyCrisisLocalDispatcherForTest,
 } from "./local_dispatcher.ts";
 import { reduceSafetyCrisis } from "./reducer.ts";
 import { runSafetyCrisisSkill } from "./skill.ts";
 import { setSafetyCrisisVisibleAgentForTest } from "./visible_agent.ts";
+import {
+  applySafetyCrisisExitStateIfNeeded,
+  buildSafetyCrisisActivationNoteInformation,
+  shouldSkipGlobalDispatcherForSafetyLocalTurn,
+} from "../../router/safety_crisis_runtime.ts";
 
 function turnFrame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {
@@ -20,20 +26,6 @@ function turnFrame(patch: Partial<TurnFrame> = {}): TurnFrame {
     safety: { risk_band: "medium", reason_codes: [], evidence: [] },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -139,6 +131,165 @@ Deno.test("safety_crisis local dispatcher normalizes null facts and blocks tooli
   );
 });
 
+Deno.test("safety_crisis local dispatcher prompt documents real field completion rules", () => {
+  const prompt = dispatcherSystemPrompt();
+
+  assert(prompt.includes("Field Completion Rules:"));
+  assert(prompt.includes("- flow_action:"));
+  assert(prompt.includes("- confidence:"));
+  assert(prompt.includes("- risk_score:"));
+  assert(prompt.includes("- safety_signals:"));
+  assert(prompt.includes("- user_state_summary:"));
+  assert(prompt.includes("- product_tool_boundary:"));
+  assert(prompt.includes("- exit_request:"));
+  assert(prompt.includes("- state_hints:"));
+  assert(prompt.includes("- note_information:"));
+  assert(prompt.includes("- no_tooling:"));
+  assert(prompt.includes("- visible_task.kind:"));
+  assert(prompt.includes("- visible_task.conversation_context:"));
+  assert(prompt.includes("- exit_memo et response_contract:"));
+  assert(prompt.includes("- evidence:"));
+  assert(prompt.includes("Transition Rules:"));
+  assert(prompt.includes("stop_local_no_handoff"));
+  assert(prompt.includes("exit_to_global_dispatcher"));
+  assert(prompt.includes("safety_escalate"));
+  assert(prompt.includes("Aucun handoff local autre que safety"));
+  assert(prompt.includes("N'invente pas handoff_to_local_flow"));
+  assertEquals(
+    (prompt.match(/EXAMPLE_JSON_/g) ?? []).length,
+    2,
+  );
+});
+
+Deno.test("safety_crisis local dispatcher contract supports required transition actions without generic handoff", () => {
+  const normal = dispatcherOutput({
+    flow_action: "provide_means_status",
+    risk_score: 6,
+    safety_signals: {
+      immediate_danger: false,
+      has_means_nearby: false,
+      means_moved_away: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "medium",
+    },
+    user_state_summary: {
+      paraphrase: "moyens eloignes",
+      current_need: "contact_human",
+      what_changed_since_previous_turn: "moyens eloignes",
+    },
+    evidence: ["moyens eloignes"],
+  });
+  assertEquals(normal.flow_action, "provide_means_status");
+  assertEquals(normal.safety_signals.means_moved_away, true);
+  assertEquals(normal.product_tool_boundary.attempted, false);
+
+  const stop = dispatcherOutput({
+    flow_action: "stop_local_no_handoff",
+    confidence: "medium",
+    risk_score: 2,
+    safety_signals: {
+      immediate_danger: false,
+      has_means_nearby: false,
+      uncertainty: "medium",
+    },
+    evidence: ["demande d'arret sans nouveau sujet"],
+  });
+  assertEquals(stop.flow_action, "stop_local_no_handoff");
+  assertEquals(stop.exit_request.requested, false);
+
+  const exitGlobal = dispatcherOutput({
+    flow_action: "exit_to_global_dispatcher",
+    confidence: "medium",
+    risk_score: 2,
+    safety_signals: {
+      immediate_danger: false,
+      has_means_nearby: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    },
+    exit_request: {
+      requested: true,
+      why_user_thinks_safe:
+        "pas de danger immediat, pas de moyens proches, avec quelqu'un",
+      missing_resolution_facts: [],
+    },
+    evidence: ["nouveau sujet avec faits safety solides"],
+  });
+  assertEquals(exitGlobal.flow_action, "exit_to_global_dispatcher");
+  assertEquals(exitGlobal.exit_request.requested, true);
+
+  const safety = dispatcherOutput({
+    flow_action: "safety_escalate",
+    confidence: "high",
+    risk_score: 10,
+    safety_signals: {
+      suicidal_ideation: true,
+      self_harm_intent: true,
+      immediate_danger: true,
+      has_means_nearby: true,
+      user_currently_alone: true,
+      uncertainty: "low",
+    },
+    evidence: ["danger immediat", "moyens proches"],
+  });
+  assertEquals(safety.flow_action, "safety_escalate");
+  assertEquals(safety.risk_score, 10);
+  assertEquals(safety.safety_signals.immediate_danger, true);
+
+  const unknownHandoff = dispatcherOutput({
+    flow_action: "handoff_to_local_flow",
+  });
+  assertEquals(unknownHandoff.flow_action, "answer_safety_check");
+});
+
+Deno.test("safety_crisis local dispatcher preserves product/tool constraint and avoids false exit", () => {
+  const boundary = dispatcherOutput({
+    flow_action: "product_or_tool_attempt",
+    product_tool_boundary: {
+      attempted: true,
+      attempt_kind: "tool_creation",
+      defer_reason: "user asks for a reminder while safety is active",
+    },
+    safety_signals: {
+      immediate_danger: false,
+      user_currently_alone: true,
+      uncertainty: "medium",
+    },
+    evidence: ["demande de rappel pendant safety"],
+  });
+  assertEquals(boundary.product_tool_boundary.attempted, true);
+  assertEquals(boundary.product_tool_boundary.attempt_kind, "tool_creation");
+  assertEquals(
+    boundary.product_tool_boundary.defer_reason,
+    "user asks for a reminder while safety is active",
+  );
+  assertEquals(boundary.no_tooling.operation_suggestion_created, false);
+
+  const continueLocal = dispatcherOutput({
+    flow_action: "answer_safety_check",
+    confidence: "high",
+    risk_score: 5,
+    safety_signals: {
+      immediate_danger: false,
+      has_means_nearby: null,
+      user_currently_alone: null,
+      uncertainty: "medium",
+    },
+    exit_request: {
+      requested: false,
+      why_user_thinks_safe: null,
+      missing_resolution_facts: ["means_safe", "human_support_available"],
+    },
+    evidence: ["user wants to keep checking safety"],
+  });
+  assertEquals(continueLocal.flow_action, "answer_safety_check");
+  assertEquals(continueLocal.exit_request.requested, false);
+});
+
 Deno.test("safety_crisis reducer escalates immediate danger and means nearby alone", () => {
   const immediate = reduceSafetyCrisis({
     previousState: {},
@@ -214,6 +365,57 @@ Deno.test("safety_crisis reducer requires exit_check facts before resolved exit"
   assertEquals(resolved.phase, "resolved");
   assertEquals(resolved.visibleTask.kind, "resolved_exit");
   assertEquals(resolved.exitMemo?.reason, "resolved");
+  assertEquals(
+    resolved.exitMemo?.note_information.target_dispatcher,
+    "global",
+  );
+  assertEquals(
+    resolved.exitMemo?.note_information.structured_context.source_flow,
+    "safety_crisis",
+  );
+  assertEquals(
+    resolved.exitMemo?.note_information.structured_context
+      .recommended_next_focus,
+    "Reanalyze the next user message normally; do not resume product or tool work automatically.",
+  );
+  assertEquals(
+    resolved.visibleTask.conversation_context.known_values.immediate_danger,
+    false,
+  );
+  assertEquals(
+    resolved.visibleTask.conversation_context.safety_resources
+      .emergency_numbers,
+    "15 ou 112",
+  );
+});
+
+Deno.test("safety_crisis reducer provides visible-agent-safe conversation_context", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "acute_grounding",
+      last_assistant_safety_step: "safety_step=acute_grounding",
+    },
+    sourceRiskBand: "high",
+    signals: emptySafetySignal({
+      immediate_danger: true,
+      has_means_nearby: true,
+      user_currently_alone: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "safety_escalate",
+      risk_score: 9,
+      evidence: ["user says they may act now"],
+    }),
+    currentUserMessage: "je risque de passer a l'acte",
+  });
+
+  const context = reduced.visibleTask.conversation_context;
+  assertEquals(reduced.visibleTask.kind, "safety_escalation");
+  assertEquals(context.user_words[0], "je risque de passer a l'acte");
+  assertEquals(context.known_values.has_means_nearby, true);
+  assertEquals(context.safety_resources.must_include_emergency_numbers, true);
+  assertEquals(context.selected_candidate, {});
 });
 
 Deno.test("safety_crisis skill defers product or tool attempts with no effects", async () => {
@@ -271,6 +473,13 @@ Deno.test("safety_crisis skill defers product or tool attempts with no effects",
       (output.state_patch?.visible_task as any)?.kind,
       "product_tool_boundary",
     );
+    assertEquals(
+      (output.state_patch?.visible_task as any)?.conversation_context
+        ?.handoff_data?.deferred_product_or_tool_request,
+      "user asks for a regulation product during safety",
+    );
+    assertEquals((output.diagnosis as any)?.visible_agent_ok, true);
+    assertEquals((output.diagnosis as any)?.visible_fallback_used, false);
     assertEquals(output.operation_suggestions?.length, 0);
     assertEquals(output.effects?.requested.length, 0);
     assertEquals(output.effects?.allowed.length, 0);
@@ -280,4 +489,230 @@ Deno.test("safety_crisis skill defers product or tool attempts with no effects",
     setSafetyCrisisLocalDispatcherForTest(null);
     setSafetyCrisisVisibleAgentForTest(null);
   }
+});
+
+Deno.test("safety_crisis first activation note is consumed by local dispatcher and filtered into conversation_context", async () => {
+  const rawUserMessage = "je risque de me faire du mal maintenant";
+  const note = buildSafetyCrisisActivationNoteInformation({
+    userMessage: rawUserMessage,
+    sourceMessageId: "message-first-safety",
+    requestId: "request-first-safety",
+    safetyPregateOutput: {
+      detected: true,
+      risk_band: "high",
+      reason_codes: ["explicit_suicidal_thoughts"],
+      evidence: ["pregate evidence"],
+      allow_side_effects: false,
+      layer_contributions: {},
+    } as any,
+  });
+  let dispatcherSawInboundNote = false;
+  try {
+    setSafetyCrisisLocalDispatcherForTest(async (input) => {
+      dispatcherSawInboundNote =
+        input.note_information_inbound?.target_dispatcher ===
+          "safety_crisis";
+      assertEquals(
+        input.note_information_inbound?.structured_context
+          ?.target_dispatcher,
+        "safety_crisis",
+      );
+      return dispatcherOutput({
+        flow_action: "answer_safety_check",
+        safety_signals: {
+          suicidal_ideation: true,
+          immediate_danger: true,
+          uncertainty: "medium",
+        },
+      });
+    });
+    setSafetyCrisisVisibleAgentForTest(async (input) => {
+      const summary = input.visible_task.conversation_context.handoff_data
+        .inbound_note_summary;
+      assert(summary);
+      assert(summary.includes("source=global"));
+      assert(summary.includes("reason=safety"));
+      assert(!summary.includes(rawUserMessage));
+      assert(!summary.includes("user_words"));
+      assert(!summary.includes("structured_context"));
+      return "Tu es en danger immediat la maintenant ? Si oui, appelle le 15 ou 112, ou le 3114.";
+    });
+    const context = await loadSafetyCrisisContext(contextInput({
+      turn_frame: turnFrame({
+        note_information: note,
+        safety: {
+          risk_band: "high",
+          reason_codes: ["explicit_suicidal_thoughts"],
+          evidence: ["pregate evidence"],
+        },
+      }),
+    }));
+    const output = await runSafetyCrisisSkill({
+      user_message: rawUserMessage,
+      context,
+    });
+
+    assertEquals(dispatcherSawInboundNote, true);
+    assertEquals((output.diagnosis as any)?.visible_agent_ok, true);
+    assertEquals(
+      (output.state_patch?.visible_task as any)?.conversation_context
+        ?.handoff_data?.inbound_note_summary.includes(rawUserMessage),
+      false,
+    );
+  } finally {
+    setSafetyCrisisLocalDispatcherForTest(null);
+    setSafetyCrisisVisibleAgentForTest(null);
+  }
+});
+
+Deno.test("safety_crisis visible generation failure does not use deterministic visible message", async () => {
+  try {
+    setSafetyCrisisLocalDispatcherForTest(async () =>
+      dispatcherOutput({
+        flow_action: "answer_safety_check",
+        safety_signals: {
+          immediate_danger: true,
+          uncertainty: "medium",
+        },
+      })
+    );
+    setSafetyCrisisVisibleAgentForTest(async () => null);
+    const context = await loadSafetyCrisisContext(contextInput({
+      turn_frame: turnFrame({
+        safety: {
+          risk_band: "high",
+          reason_codes: ["self_harm_risk"],
+          evidence: ["test"],
+        },
+      }),
+    }));
+    const output = await runSafetyCrisisSkill({
+      user_message: "je ne suis pas en securite",
+      context,
+    });
+    assertEquals((output.diagnosis as any)?.visible_agent_ok, false);
+    assertEquals((output.diagnosis as any)?.visible_fallback_used, false);
+    assertEquals((output.diagnosis as any)?.visible_generation_failed, true);
+    assertEquals(output.reply, "");
+  } finally {
+    setSafetyCrisisLocalDispatcherForTest(null);
+    setSafetyCrisisVisibleAgentForTest(null);
+  }
+});
+
+Deno.test("safety_crisis runtime skips global dispatcher while safety owns the turn", () => {
+  assertEquals(
+    shouldSkipGlobalDispatcherForSafetyLocalTurn({
+      activeSkillState: {
+        skill_id: "safety_crisis",
+        status: "active",
+        working_state: { phase: "acute_grounding" },
+      },
+      safetyPregateOutput: { risk_band: "low", reason_codes: [] },
+    }),
+    true,
+  );
+  assertEquals(
+    shouldSkipGlobalDispatcherForSafetyLocalTurn({
+      activeSkillState: null,
+      safetyPregateOutput: { risk_band: "high", reason_codes: [] },
+    }),
+    true,
+  );
+  assertEquals(
+    shouldSkipGlobalDispatcherForSafetyLocalTurn({
+      activeSkillState: null,
+      safetyPregateOutput: { risk_band: "low", reason_codes: [] },
+    }),
+    false,
+  );
+});
+
+Deno.test("safety_crisis first activation note_information carries doctrine fields", () => {
+  const note = buildSafetyCrisisActivationNoteInformation({
+    userMessage: "je risque de me faire du mal maintenant",
+    sourceMessageId: "message-first-safety",
+    requestId: "request-first-safety",
+    safetyPregateOutput: {
+      detected: true,
+      risk_band: "high",
+      reason_codes: ["explicit_suicidal_thoughts"],
+      evidence: ["safety pregate evidence"],
+      allow_side_effects: false,
+      layer_contributions: {},
+    } as any,
+  });
+
+  assertEquals(note.source_flow_id, "global");
+  assertEquals(note.target_dispatcher, "safety_crisis");
+  assertEquals(note.handoff_reason, "safety");
+  assertEquals(note.risk_score, 8);
+  assertEquals(note.structured_context.source_flow, "global");
+  assertEquals(note.structured_context.target_dispatcher, "safety_crisis");
+  assertEquals(note.structured_context.handoff_reason, "safety");
+  assertEquals(
+    note.structured_context.user_message_summary,
+    "je risque de me faire du mal maintenant",
+  );
+  assertEquals(
+    (note.structured_context.collected_state as any).first_activation,
+    true,
+  );
+  assertEquals(note.structured_context.unresolved_questions, [
+    "immediate_danger_absent",
+    "means_safe",
+    "human_support_available",
+  ]);
+  assertEquals(
+    note.structured_context.recommended_next_focus,
+    "Assess immediate danger, means proximity, whether the user is alone, and human or emergency support.",
+  );
+});
+
+Deno.test("safety_crisis resolved exit stores note_information for next dispatcher", () => {
+  const now = "2026-06-09T00:00:00.000Z";
+  const reduction = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      consecutive_deescalated_turns: 1,
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      has_means_nearby: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_deescalation_evidence",
+    }),
+    currentUserMessage: "je suis avec ma cousine et loin des medicaments",
+  });
+  const next = applySafetyCrisisExitStateIfNeeded({
+    tempMemory: {},
+    selectedSkillId: "safety_crisis",
+    skillOutput: {
+      skill_id: "safety_crisis",
+      status: "exit",
+      response_intent: "deescalate_and_exit",
+      reply: "ok",
+      state_patch: reduction.statePatch,
+    } as any,
+    previous: {
+      skill_id: "safety_crisis",
+      status: "active",
+      working_state: {},
+    },
+    workingState: reduction.statePatch as any,
+    now,
+  });
+  assertEquals(
+    (next?.__last_safety_crisis_exit_memo as any)?.note_information
+      ?.target_dispatcher,
+    "global",
+  );
+  assertEquals((next as any)?.__active_skill_state, undefined);
 });

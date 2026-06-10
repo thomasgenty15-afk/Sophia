@@ -218,21 +218,9 @@ function budgetClassFromRow(row: ProactiveCheckinRow): ProactiveBudgetClass {
   return "light";
 }
 
-const DECLINE_PATTERNS = [
-  /\bstop\b/i,
-  /\bplus tard\b/i,
-  /\bpas maintenant\b/i,
-  /\bpas aujourd[' ]hui\b/i,
-  /\bpas ce soir\b/i,
-  /\bpas le moment\b/i,
-  /\bpas trop envie\b/i,
-  /\bon verra\b/i,
-  /\bon verra plus tard\b/i,
-  /\blaisse[- ]?moi\b/i,
-];
-
 function messageLooksLikeDecline(text: string): boolean {
-  return DECLINE_PATTERNS.some((pattern) => pattern.test(text));
+  void text;
+  return false;
 }
 
 function median(values: number[]): number | null {

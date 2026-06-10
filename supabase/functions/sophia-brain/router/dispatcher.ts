@@ -73,38 +73,3 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
   dashboard_recurring_reminder_intent: { detected: false },
   defense_card_win: { detected: false },
 };
-
-export async function analyzeSignalsV2(
-  input: {
-    userMessage?: string;
-    lastAssistantMessage?: string;
-    last5Messages?: Array<{ role: string; content: string }>;
-    signalHistory?: unknown[];
-    activeMachine?: string | null;
-    stateSnapshot?: Record<string, unknown> | null;
-  },
-  _opts?: { requestId?: string },
-): Promise<{ signals: DispatcherSignals }> {
-  const text = String(input?.userMessage ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-  const safetyDetected =
-    /\b(suicide|me suicider|mourir|me faire du mal|j'en peux plus|jen peux plus)\b/
-      .test(text);
-  const explicitStop = /\b(stop|arrete|arrête|pause|laisse tomber)\b/.test(
-    text,
-  );
-  return {
-    signals: {
-      ...DEFAULT_SIGNALS,
-      safety: safetyDetected
-        ? { level: "SENTRY", confidence: 0.85 }
-        : DEFAULT_SIGNALS.safety,
-      interrupt: explicitStop
-        ? { kind: "EXPLICIT_STOP", confidence: 0.8 }
-        : DEFAULT_SIGNALS.interrupt,
-      risk_score: safetyDetected ? 8 : 0,
-    },
-  };
-}

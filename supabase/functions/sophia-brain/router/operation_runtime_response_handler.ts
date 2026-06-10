@@ -22,7 +22,6 @@ import {
 import { persistEffectLedgerForTurn } from "./effect_ledger_persistence.ts";
 import { logConversationTurn } from "../observability/trace_logger.ts";
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
-import type { TurnAgendaSummary } from "./turn_agenda.ts";
 import {
   DEFAULT_DISPATCHER_MEMORY_PLAN,
   isCheckupActive,
@@ -87,23 +86,6 @@ function operationRuntimeSucceededWithChatEffect(
   );
 }
 
-function platformHandoffQuestion(operationType: string): string | null {
-  switch (operationType) {
-    case "prepare_attack_card":
-      return "Maintenant, pour la carte d'attaque, c'est pour quelle action ?";
-    case "prepare_defense_card":
-      return "Maintenant, pour la carte de défense, c'est pour quel moment de risque ?";
-    case "adjust_plan_item":
-      return "Maintenant, pour l'ajustement du plan, tu veux changer quoi en priorité ?";
-    case "select_state_potion":
-      return "Maintenant, pour la potion, tu veux viser quel état ?";
-    case "create_recurring_reminder":
-      return "Maintenant, pour le rappel récurrent, tu veux quel rythme ?";
-    default:
-      return null;
-  }
-}
-
 function uncoveredDirectEffectSuffix(args: {
   turnFrame: TurnFrame | null;
   userMessage: string;
@@ -148,14 +130,12 @@ function appendUncoveredMessageFollowup(args: {
   return `${content}\n\nJe garde aussi la suite : « ${suffix} ». Tu veux qu'on la traite maintenant ?`;
 }
 
-export function appendAgendaPlatformHandoffFollowup(args: {
+export function appendOperationFollowup(args: {
   content: string;
   operationRuntime: Pick<
     OperationRuntimeResult,
     "toolExecution" | "executedTools"
   >;
-  routeDecision: RouteDecision | null;
-  turnAgendaSummary: TurnAgendaSummary | null;
   turnFrame?: TurnFrame | null;
   userMessage?: string;
 }): string {
@@ -168,18 +148,7 @@ export function appendAgendaPlatformHandoffFollowup(args: {
   ) {
     return content;
   }
-  const selectedHandler = String(args.routeDecision?.selected_handler ?? "")
-    .trim();
-  const handoffTask = args.turnAgendaSummary?.tasks.find((task) => {
-    const operation = String(task.operation_type ?? "").trim();
-    return task.kind === "platform_handoff" &&
-      operation &&
-      operation !== selectedHandler &&
-      task.status !== "blocked" &&
-      task.status !== "cancelled" &&
-      task.status !== "superseded";
-  });
-  if (!handoffTask && args.turnFrame && args.userMessage) {
+  if (args.turnFrame && args.userMessage) {
     return appendUncoveredMessageFollowup({
       content,
       operationRuntime: args.operationRuntime,
@@ -187,11 +156,108 @@ export function appendAgendaPlatformHandoffFollowup(args: {
       userMessage: args.userMessage,
     });
   }
-  const question = platformHandoffQuestion(
-    String(handoffTask?.operation_type ?? ""),
-  );
-  if (!question || content.includes(question)) return content;
-  return `${content}\n\n${question}`;
+  return content;
+}
+
+const STATEFUL_CONVERSATION_LOCAL_SKILLS = new Set([
+  "emotional_repair",
+  "demotivation_repair",
+  "product_help",
+  "safety_crisis",
+  "status_recap",
+]);
+
+function activeConversationSkillId(tempMemory: unknown): string {
+  const record = tempMemory && typeof tempMemory === "object"
+    ? tempMemory as Record<string, unknown>
+    : {};
+  const active = (record.__active_skill_state ?? record.active_skill_state) as
+    | Record<string, unknown>
+    | undefined;
+  return String(active?.skill_id ?? "").trim();
+}
+
+function activeSkillStateForRestore(args: {
+  activeSkillState: unknown;
+  skillId: string;
+}): Record<string, unknown> | null {
+  const previous = args.activeSkillState && typeof args.activeSkillState ===
+      "object"
+    ? args.activeSkillState as Record<string, unknown>
+    : null;
+  if (previous && String(previous.skill_id ?? "").trim() === args.skillId) {
+    return previous;
+  }
+  return {
+    version: 1,
+    skill_id: args.skillId,
+    status: "active",
+    turn_count: 0,
+    started_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    working_state: {},
+  };
+}
+
+export function ensureActiveConversationSkillStateBeforePersist(args: {
+  tempMemory: unknown;
+  activeSkillState: unknown;
+  operationRuntime: Pick<OperationRuntimeResult, "toolSkillRun">;
+}): {
+  tempMemory: any;
+  restored: boolean;
+  reasonCode: string | null;
+  skillId: string | null;
+} {
+  const toolSkillRun = args.operationRuntime.toolSkillRun ?? {};
+  const mode = String((toolSkillRun as any).mode ?? "").trim();
+  const status = String((toolSkillRun as any).status ?? "").trim();
+  const skillId = String((toolSkillRun as any).skill_id ?? "").trim();
+  const isConversationLocalFlow = mode === "conversation_skill_local_flow" ||
+    mode === "local_safety_flow";
+  if (
+    !isConversationLocalFlow ||
+    status !== "continue" ||
+    !STATEFUL_CONVERSATION_LOCAL_SKILLS.has(skillId)
+  ) {
+    return {
+      tempMemory: args.tempMemory ?? {},
+      restored: false,
+      reasonCode: null,
+      skillId: skillId || null,
+    };
+  }
+
+  const currentActiveSkillId = activeConversationSkillId(args.tempMemory);
+  if (currentActiveSkillId) {
+    return {
+      tempMemory: args.tempMemory ?? {},
+      restored: false,
+      reasonCode: currentActiveSkillId === skillId
+        ? null
+        : "local_flow_continue_different_active_state",
+      skillId,
+    };
+  }
+
+  const restored = activeSkillStateForRestore({
+    activeSkillState: args.activeSkillState,
+    skillId,
+  });
+  const next = { ...((args.tempMemory ?? {}) as Record<string, unknown>) };
+  next.__active_skill_state = {
+    ...restored,
+    skill_id: skillId,
+    status: "active",
+    updated_at: new Date().toISOString(),
+  };
+  delete next.active_skill_state;
+  return {
+    tempMemory: next,
+    restored: true,
+    reasonCode: "local_flow_continue_missing_active_state",
+    skillId,
+  };
 }
 
 function envBool(name: string, fallback: boolean): boolean {
@@ -244,7 +310,6 @@ export async function handleOperationRuntimeResponse(args: {
   effectLedger: EffectLedger;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  turnAgendaSummary: TurnAgendaSummary | null;
   safetyPregateOutput: SafetyPregateOutput;
   weeklyReviewStateForTurn: unknown;
   dispatcherSignals: DispatcherSignals;
@@ -272,7 +337,6 @@ export async function handleOperationRuntimeResponse(args: {
     effectLedger,
     turnFrame,
     routeDecision,
-    turnAgendaSummary,
     safetyPregateOutput,
     weeklyReviewStateForTurn,
     dispatcherSignals,
@@ -298,6 +362,34 @@ export async function handleOperationRuntimeResponse(args: {
   const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
   const nextLastInteraction = new Date().toISOString();
   let nextTempMemory = operationRuntime.nextTempMemory ?? {};
+  const activeSkillStateGuard = ensureActiveConversationSkillStateBeforePersist(
+    {
+      tempMemory: nextTempMemory,
+      activeSkillState,
+      operationRuntime,
+    },
+  );
+  nextTempMemory = activeSkillStateGuard.tempMemory;
+  if (activeSkillStateGuard.reasonCode) {
+    await trace(
+      activeSkillStateGuard.restored
+        ? "brain:active_conversation_skill_state_restored_before_persist"
+        : "brain:active_conversation_skill_state_persist_conflict",
+      "routing",
+      {
+        skill_id: activeSkillStateGuard.skillId,
+        reason_code: activeSkillStateGuard.reasonCode,
+        restored: activeSkillStateGuard.restored,
+        operation_runtime_status: String(
+          operationRuntime.toolSkillRun?.status ?? "",
+        ) || null,
+        operation_runtime_mode: String(
+          operationRuntime.toolSkillRun?.mode ?? "",
+        ) || null,
+      },
+      activeSkillStateGuard.restored ? "warn" : "error",
+    );
+  }
   const weeklyReviewStateAfterOperation = weeklyReviewStateForTurn ??
     weeklyAdaptiveReviewStateForTurn({
       activeSkillState,
@@ -314,16 +406,14 @@ export async function handleOperationRuntimeResponse(args: {
   const weeklyReturnMessage = operationRuntime.toolExecution === "success" &&
       operationRuntime.executedTools.includes("adjust_plan_item") &&
       weeklyReviewStateAfterOperation
-    ? weeklyReturnAfterAdjustmentMessage(userMessage)
+    ? weeklyReturnAfterAdjustmentMessage({ userMessage })
     : null;
   const rawOperationRuntimeContentBeforeAgenda = weeklyReturnMessage
     ? `${operationRuntime.content}\n\n${weeklyReturnMessage}`
     : operationRuntime.content;
-  const rawOperationRuntimeContent = appendAgendaPlatformHandoffFollowup({
+  const rawOperationRuntimeContent = appendOperationFollowup({
     content: rawOperationRuntimeContentBeforeAgenda,
     operationRuntime,
-    routeDecision,
-    turnAgendaSummary,
     turnFrame,
     userMessage,
   });
@@ -432,7 +522,6 @@ export async function handleOperationRuntimeResponse(args: {
     ? {
       turn_frame: turnFrame,
       route_decision: traceRouteDecision,
-      turn_agenda_summary: turnAgendaSummary,
       tool_skill_run: {
         selected_handler: traceRouteDecision.selected_handler ?? null,
         reason_code: traceRouteDecision.reason_code,
@@ -460,7 +549,6 @@ export async function handleOperationRuntimeResponse(args: {
             "dispatcher_v2_prompt_2026_05_s12",
           model_used: dispatcherV2Stats[0]?.model_name ?? null,
           memory_plan: turnFrame?.memory_plan ?? DEFAULT_DISPATCHER_MEMORY_PLAN,
-          turn_agenda_summary: turnAgendaSummary,
         },
         turn_frame: turnFrame,
         route_decision: traceRouteDecision,

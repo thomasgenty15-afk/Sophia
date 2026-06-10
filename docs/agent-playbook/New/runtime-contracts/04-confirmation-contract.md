@@ -34,7 +34,7 @@ Ce domaine depend de :
   `decideConfirmation(...)` accepte encore des snapshots partiels
   (`pending`, `active_operation`, `agenda_tasks`,
   `turn_frame_confirmation`) plutot qu'un objet `UserTurnSnapshot` complet.
-- `TurnAgenda` pour distinguer `effect`, `platform_handoff`,
+- `local reducer contract` pour distinguer `effect`, `platform_handoff`,
   `clarification`, `status`, `memory`, `repair` et `reply`.
 - `Active Handoff Arbitration` pour que les suites d'un handoff actif soient
   interpretees comme `repeat_handoff`, `revise_handoff`, `apply_attempt`,
@@ -353,5 +353,5 @@ Tests handoff attendus :
 | Date | Decision | Statut | Reference |
 | --- | --- | --- | --- |
 | 2026-05-29 | ConfirmationContract devient le vocabulaire commun, pas un executor global. | Active | `15-chantiers-log.md` J24 |
-| 2026-05-30 | Le contrat runtime confirmation documente explicitement ses dependances UserTurnSnapshot, TurnAgenda, EffectLedger et les reducers L5 proprietaires. | Active | Mise a jour runtime-contracts confirmation |
+| 2026-05-30 | Le contrat runtime confirmation documente explicitement ses dependances UserTurnSnapshot, local reducer contract, EffectLedger et les reducers L5 proprietaires. | Active | Mise a jour runtime-contracts confirmation |
 | 2026-06-01 | Les complex tools V1 ne consomment plus une confirmation comme approval executable; `ok vas-y` devient `apply_attempt` non-mutant. | Active | Architecture handoff V1 |

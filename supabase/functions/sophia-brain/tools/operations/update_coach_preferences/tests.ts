@@ -8,6 +8,7 @@ import type {
 } from "./contract.ts";
 import {
   createCoachPreferenceLocalFlowState,
+  dispatcherSystemPrompt,
   reduceCoachPreferenceLocalDispatcherOutput,
 } from "./local_flow.ts";
 import { loadCoachPreferenceRuntimePolicy } from "./runtime_policy.ts";
@@ -15,9 +16,13 @@ import { maybeRunUpdateCoachPreferencesOperation } from "./router.ts";
 import { buildCoachPreferencesStatusReply } from "./status.ts";
 
 function baseDecision(
-  patch: Partial<CoachPreferenceLocalDispatcherOutput> = {},
+  patch: Partial<Omit<CoachPreferenceLocalDispatcherOutput, "visible_task">> & {
+    visible_task?: Partial<
+      CoachPreferenceLocalDispatcherOutput["visible_task"]
+    >;
+  } = {},
 ): CoachPreferenceLocalDispatcherOutput {
-  return {
+  const base: CoachPreferenceLocalDispatcherOutput = {
     flow_action: "write_preferences",
     confidence: "high",
     risk_score: 0,
@@ -41,6 +46,37 @@ function baseDecision(
     visible_task: {
       kind: "preference_saved",
       instruction: "Confirmer seulement après commit.",
+      conversation_context: {
+        state_summary: "préférence coach durable claire",
+        user_words: [],
+        field_or_stage: "done",
+        known_values: {
+          current_preferences: [],
+          proposed_updates: [],
+          committed_updates: [],
+        },
+        missing_or_weak_values: [],
+        selected_candidate: {},
+        unsupported_parts: [],
+        write_result: {
+          committed: false,
+          preference_keys: [],
+          blocked_reason: null,
+        },
+        inline_tool_result: {
+          skill_id: null,
+          summary: null,
+        },
+        tone_constraints: [],
+        do_not_say: [
+          "Ne pas dire que c'est enregistré si committed=false.",
+        ],
+        context_summary: "Confirmer seulement après commit.",
+        evidence_used: ["test"],
+      },
+    },
+    note_information: {
+      needed: false,
     },
     exit_memo: {
       needed: false,
@@ -49,7 +85,17 @@ function baseDecision(
       handoff_hint_for_global_dispatcher: null,
     },
     evidence: ["test"],
+  };
+  return {
+    ...base,
     ...patch,
+    visible_task: {
+      ...base.visible_task,
+      ...(patch.visible_task ?? {}),
+      conversation_context: patch.visible_task?.conversation_context ??
+        base.visible_task.conversation_context,
+    },
+    note_information: patch.note_information ?? base.note_information,
   };
 }
 
@@ -165,6 +211,55 @@ Deno.test("reducer blocks proposed, ambiguous, unsupported, punctual, invalid an
   assertEquals(proposed.status, "proposed");
   assertEquals(proposed.write_updates, []);
 
+  const partialLockedWrite = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: null,
+    output: baseDecision({
+      flow_action: "write_preferences",
+      preference_intent: {
+        kind: "durable_supported",
+        durability: "durable",
+        support_status: "supported",
+        summary: "Réglage supporté avec une condition de portée non stockable.",
+      },
+      preference_updates: [{
+        ...(baseDecision().preference_updates[0]),
+        status: "locked",
+        needs_user_confirmation: false,
+      }],
+      unsupported_parts: ["application uniquement quand le user bloque"],
+      visible_task: {
+        kind: "preference_saved",
+        instruction: "Ne devrait pas écrire directement.",
+      },
+    }),
+  });
+  assertEquals(partialLockedWrite.status, "proposed");
+  assertEquals(
+    partialLockedWrite.reason_code,
+    "update_coach_preferences_partial_mapping_requires_confirmation",
+  );
+  assertEquals(partialLockedWrite.write_updates, []);
+  assertEquals(partialLockedWrite.visible_task, "confirm_supported_mapping");
+  assertEquals(
+    partialLockedWrite.local_state?.proposed_updates[0]?.status,
+    "proposed",
+  );
+  assertEquals(
+    partialLockedWrite.local_state?.proposed_updates[0]
+      ?.needs_user_confirmation,
+    true,
+  );
+  assertEquals(
+    partialLockedWrite.conversation_context.unsupported_parts,
+    ["application uniquement quand le user bloque"],
+  );
+  assertEquals(
+    partialLockedWrite.conversation_context.missing_or_weak_values.includes(
+      "confirmation",
+    ),
+    true,
+  );
+
   for (
     const output of [
       baseDecision({
@@ -238,6 +333,50 @@ Deno.test("confirmation of active proposal becomes write-ready without parsing t
   assertEquals(reduced.status, "write_ready");
   assertEquals(reduced.write_updates[0].status, "locked");
   assertEquals(reduced.write_updates[0].needs_user_confirmation, false);
+
+  const resolvedConditionalScope = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "confirm_proposed_mapping",
+      preference_intent: {
+        kind: "durable_supported",
+        durability: "durable",
+        support_status: "supported",
+        summary:
+          "Le user confirme que la proposition devient un réglage général durable.",
+      },
+      preference_updates: [],
+      unsupported_parts: [
+        "ancienne condition non stockable résolue en général",
+      ],
+      missing_decisions: [],
+    }),
+  });
+  assertEquals(resolvedConditionalScope.status, "write_ready");
+  assertEquals(resolvedConditionalScope.write_updates[0].status, "locked");
+
+  const stillConditionalScope = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "confirm_proposed_mapping",
+      preference_intent: {
+        kind: "durable_unsupported",
+        durability: "durable",
+        support_status: "partial",
+        summary:
+          "Le user confirme seulement la condition non stockable, pas un réglage général.",
+      },
+      preference_updates: [],
+      unsupported_parts: ["application seulement quand le user bloque"],
+      missing_decisions: ["confirmation"],
+    }),
+  });
+  assertEquals(stillConditionalScope.status, "proposed");
+  assertEquals(stillConditionalScope.write_updates, []);
+  assertEquals(
+    stillConditionalScope.reason_code,
+    "update_coach_preferences_partial_mapping_requires_confirmation",
+  );
 });
 
 Deno.test("direct clear write commits user_profile_facts and emits committed effect", async () => {
@@ -265,7 +404,9 @@ Deno.test("direct clear write commits user_profile_facts and emits committed eff
     sourceMessageId: "m1",
     requestId: "op1",
     runLocalDispatcher: () => Promise.resolve(baseDecision()),
-    runVisibleAgent: visibleAgent("C'est noté : je poserai moins de questions."),
+    runVisibleAgent: visibleAgent(
+      "C'est noté : je poserai moins de questions.",
+    ),
   });
   assertEquals(runtime?.toolExecution, "success");
   assertEquals(runtime?.executedTools, ["update_coach_preferences"]);
@@ -389,7 +530,9 @@ Deno.test("proposed mapping writes only after local confirmation", async () => {
           instruction: "Demander confirmation.",
         },
       })),
-    runVisibleAgent: visibleAgent("Je peux le traduire par moins de questions."),
+    runVisibleAgent: visibleAgent(
+      "Je peux le traduire par moins de questions.",
+    ),
   });
   assertEquals(first?.toolExecution, "none");
   assertEquals(firstSupabase.state.wrote, false);
@@ -487,7 +630,10 @@ Deno.test("status question inside coach preference flow delegates to status_reca
   assertEquals(runtime?.executedTools, []);
   assertEquals(supabase.state.wrote, false);
   assertEquals(runtime?.content, "Status recap DB-grounded: ton = direct.");
-  assertEquals((runtime?.toolSkillRun as any)?.subskill_run.skill_id, "status_recap");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.subskill_run.skill_id,
+    "status_recap",
+  );
   assertEquals(
     (runtime?.nextTempMemory as any).__coach_preference_flow_state_v1
       .subskill_history[0].skill_id,
@@ -551,7 +697,10 @@ Deno.test("preference explanation inside coach preference flow delegates to prod
     runtime?.content,
     "Product help: les préférences coach couvrent le ton, le challenge et les questions.",
   );
-  assertEquals((runtime?.toolSkillRun as any)?.subskill_run.skill_id, "product_help");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.subskill_run.skill_id,
+    "product_help",
+  );
   assertEquals(
     (runtime?.nextTempMemory as any).__coach_preference_flow_state_v1
       .subskill_history[0].skill_id,
@@ -586,4 +735,225 @@ Deno.test("status helper and runtime policy still read existing preferences", as
       line.includes("ton très direct")
     ),
   );
+});
+
+Deno.test("local exit, safety and stop actions follow note_information doctrine", () => {
+  const exitReduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: createCoachPreferenceLocalFlowState({
+      status: "collecting",
+      currentStage: "setting",
+    }),
+    output: baseDecision({
+      flow_action: "exit_to_global_dispatcher",
+      preference_intent: {
+        kind: "topic_change",
+        durability: "not_applicable",
+        support_status: "not_applicable",
+        summary: "Nouveau sujet clair hors préférences coach.",
+      },
+      preference_updates: [],
+      visible_task: {
+        kind: "exit_ack",
+        instruction: "Sortir vers global.",
+      },
+    }),
+  });
+  assertEquals(exitReduced.exit_to_global_dispatcher, true);
+  assertEquals(exitReduced.note_information?.target_dispatcher, "global");
+  assertEquals(
+    exitReduced.note_information?.source_flow_id,
+    "update_coach_preferences",
+  );
+
+  const safetyReduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: createCoachPreferenceLocalFlowState({
+      status: "collecting",
+      currentStage: "setting",
+    }),
+    output: baseDecision({
+      flow_action: "safety_preempt",
+      risk_score: 10,
+      preference_intent: {
+        kind: "safety",
+        durability: "not_applicable",
+        support_status: "not_applicable",
+        summary: "Safety préempte.",
+      },
+      preference_updates: [],
+      visible_task: {
+        kind: "safety_transition",
+        instruction: "Passer à safety.",
+      },
+    }),
+  });
+  assertEquals(safetyReduced.safety_preempt, true);
+  assertEquals(
+    safetyReduced.note_information?.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(safetyReduced.exit_to_global_dispatcher, false);
+
+  const stopReduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: createCoachPreferenceLocalFlowState({
+      status: "proposed",
+      currentStage: "confirmation",
+      proposedUpdates: [baseDecision().preference_updates[0]],
+    }),
+    output: baseDecision({
+      flow_action: "stop_local_no_handoff",
+      preference_intent: {
+        kind: "cancel",
+        durability: "not_applicable",
+        support_status: "not_applicable",
+        summary: "Stop local sans nouveau sujet.",
+      },
+      preference_updates: [],
+      visible_task: {
+        kind: "stop_or_cancel",
+        instruction: "Ack local court.",
+      },
+    }),
+  });
+  assertEquals(stopReduced.status, "cancelled");
+  assertEquals(stopReduced.exit_to_global_dispatcher, false);
+  assertEquals(stopReduced.note_information, null);
+});
+
+Deno.test("local dispatcher prompt explains real field completion rules", () => {
+  const prompt = dispatcherSystemPrompt();
+  assert(prompt.includes("Field Completion Rules:"));
+  assert(prompt.includes("- flow_action: décision principale du tour courant"));
+  assert(prompt.includes("- confidence: high si l'intention"));
+  assert(prompt.includes("- risk_score: score numérique local de risque"));
+  assert(prompt.includes("- preference_intent: état métier local du tour"));
+  assert(prompt.includes("- preference_updates: liste uniquement"));
+  assert(prompt.includes("- unsupported_parts: parties de la demande"));
+  assert(prompt.includes("- missing_decisions: mets durability"));
+  assert(prompt.includes("- visible_task.kind: stage visible exact"));
+  assert(prompt.includes("- visible_task.conversation_context: seul contexte"));
+  assert(prompt.includes("- note_information: {needed:false}"));
+  assert(prompt.includes("- exit_memo: présent seulement"));
+  assert(prompt.includes("- safety: remplir quand risk_score"));
+  assert(
+    prompt.includes("- evidence: indices sémantiques réellement utilisés"),
+  );
+  assert(prompt.includes("Transition Rules:"));
+  assert(prompt.includes("stop_local_no_handoff/cancel_flow"));
+  assert(prompt.includes("exit_to_global_dispatcher"));
+  assert(prompt.includes("safety_preempt"));
+  assert(prompt.includes("handoff_to_local_flow"));
+  assert(prompt.includes("Anti-faux-positif"));
+  assert(prompt.includes("status_question"));
+  assert(prompt.includes("explain_preferences"));
+  assert(prompt.includes("Ne transmets jamais DB brute"));
+  assert(prompt.includes("write_result.committed=false avant commit"));
+  assertEquals(prompt.match(/Example JSON \d/g)?.length, 2);
+});
+
+Deno.test("runtime passes only conversation_context to visible agent and records inbound note", async () => {
+  const supabase = fakeCoachSupabase();
+  let visibleInput: any = null;
+  const runtime = await maybeRunUpdateCoachPreferencesOperation({
+    supabase,
+    userId: "u1",
+    userMessage: "Dorénavant, réponds plus direct.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: {
+      turn_id: "turn-note",
+      source_message_id: "m-note",
+      user_id: "u1",
+      channel: "web",
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      direct_effects: [],
+      tool_skill_intents: [{
+        operation_type: "update_coach_preferences",
+        confidence_band: "high",
+        explicitness: "explicit",
+        target_status: "identified",
+        reason_codes: ["test"],
+        evidence: ["test"],
+      } as any],
+      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+      memory_plan: {
+        context_need: "minimal",
+        memory_mode: "none",
+        context_budget_tier: "tiny",
+        targets: [],
+        retrieval_policy: "semantic_only",
+      },
+    } as any,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "test_global_selected_update_coach_preferences",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    sourceMessageId: "m-note",
+    requestId: "op-note",
+    runLocalDispatcher: (input) => {
+      assertEquals(
+        input.note_information_inbound?.target_dispatcher,
+        "update_coach_preferences",
+      );
+      assertEquals(input.micro_memory_context?.items, []);
+      return Promise.resolve(baseDecision({
+        preference_updates: [{
+          key: "coach.tone",
+          value: "direct",
+          status: "locked",
+          user_facing_label: "Ton",
+          user_facing_value: "Direct",
+          reason: "Demande explicite durable.",
+          needs_user_confirmation: false,
+        }],
+      }));
+    },
+    runVisibleAgent: (input) => {
+      visibleInput = input;
+      return Promise.resolve("C'est noté.");
+    },
+  });
+  assertEquals(runtime?.toolExecution, "success");
+  assertEquals(visibleInput.stage, "preference_saved");
+  assertEquals(visibleInput.local_state, undefined);
+  assertEquals(visibleInput.current_preferences, undefined);
+  assertEquals(visibleInput.conversation_context.write_result.committed, true);
+  const traceEvents = ((runtime?.toolSkillRun as any)?.runtime_trace ?? []).map(
+    (
+      entry: any,
+    ) => entry.event,
+  );
+  assert(traceEvents.includes("note_information_consumed"));
+  assert(traceEvents.includes("conversation_context_created"));
+});
+
+Deno.test("legacy update_coach_preferences files are removed from the local flow", async () => {
+  const legacyFiles = [
+    "executor.ts",
+    "generator.ts",
+    "intake.ts",
+    "renderer.ts",
+    "slot_filler.ts",
+    "test_helpers.ts",
+    "workflow.ts",
+  ];
+  for (const file of legacyFiles) {
+    let exists = true;
+    try {
+      await Deno.stat(
+        new URL(`./${file}`, import.meta.url),
+      );
+    } catch {
+      exists = false;
+    }
+    assertEquals(exists, false, `${file} should be removed`);
+  }
 });

@@ -65,8 +65,8 @@ Deno.test("buildUserTurnSnapshot captures active flows and explicit constraints"
     timezone: "Europe/Paris",
     turn_frame: turnFrame(),
     route_decision: routeDecision({
-      selected_handler: "status_only_no_mutation_check",
-      reason_code: "status_only_request_blocks_tool_start",
+      selected_handler: "status_recap",
+      reason_code: "status_recap_request_blocks_tool_start",
       blocked_paths: [{
         path: "tool_skill_flow",
         reason_code: "explicit_no_tool_request_blocks_tool_start",

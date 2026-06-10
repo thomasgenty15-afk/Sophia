@@ -318,7 +318,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - executed_tools: `[]`
 - durable_effect: aucun nouveau side effect
@@ -352,7 +352,7 @@
 - Tours 3-5: `prepare_defense_card` prend bien la priorité sur l'intention d'attaque précédente. La carte créée correspond à la demande.
 - Tour 7: `product_help` prend bien la priorité et ne déclenche aucun outil.
 - Tours 8-9: `update_coach_preferences` prend bien la priorité sur les autres flows. La confirmation exécute le bon tool.
-- Tour 15: `status_only_request_blocks_tool_start` empêche correctement tout nouveau tool pendant le récapitulatif.
+- Tour 15: `status_recap_request_blocks_tool_start` empêche correctement tout nouveau tool pendant le récapitulatif.
 
 **Skills / Operations / Tools**
 - `prepare_defense_card`: OK. Slot collection, draft, confirmation et création sont alignés.

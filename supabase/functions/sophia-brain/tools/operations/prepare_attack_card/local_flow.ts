@@ -4,6 +4,11 @@ import {
 } from "../../../../_shared/gemini.ts";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
+import {
+  createNoteInformation,
+  type NoteInformation,
+  type NoteInformationTargetDispatcher,
+} from "../../../contracts/note_information.v1.ts";
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 import type {
   AttackCardHandoffDraft,
@@ -23,6 +28,9 @@ export type PrepareAttackCardLocalStage =
   | "exit";
 
 export type PrepareAttackCardLocalFlowAction =
+  | "continue_local"
+  | "missing_info"
+  | "confirm_candidate"
   | "answer_current_field"
   | "confirm_proposed_field"
   | "choose_technique"
@@ -30,13 +38,20 @@ export type PrepareAttackCardLocalFlowAction =
   | "revise_current_field"
   | "revise_technique"
   | "revise_target"
+  | "revise"
   | "get_info_product"
   | "get_info_db"
+  | "inline_product"
+  | "inline_status"
   | "handoff_ready"
   | "repeat_handoff"
   | "platform_destination_followup"
+  | "destination_followup"
   | "apply_attempt"
+  | "stop_local_no_handoff"
   | "cancel_flow"
+  | "defer_flow"
+  | "handoff_to_local_flow"
   | "exit_to_global_dispatcher"
   | "safety_preempt";
 
@@ -52,9 +67,50 @@ export type PrepareAttackCardVisibleTaskKind =
   | "destination_short"
   | "apply_attempt"
   | "repeat_handoff"
+  | "inline_tool_return"
+  | "stop_or_cancel"
+  | "exit_ack"
   | "exit_or_cancel"
   | "safety"
+  | "safety_transition"
   | "none";
+
+export type PrepareAttackCardConversationContext = {
+  state_summary: string;
+  user_words: string[];
+  field_or_stage: string | null;
+  known_values: {
+    target: PrepareAttackCardTargetState;
+    blocker: PrepareAttackCardBlockerState;
+    technique: PrepareAttackCardTechniqueState;
+    current_field: PrepareAttackCardPlatformFieldState | null;
+    activation_keyword: PrepareAttackCardActivationKeywordState;
+  };
+  missing_or_weak_values: string[];
+  selected_candidate: Record<string, unknown>;
+  handoff_data: {
+    operation_name: "prepare_attack_card";
+    surface_label: "Cartes d'attaque";
+    platform_destination: string;
+    platform_steps: string[];
+    flow_kind: AttackCardPlatformFlowKind | null;
+    technique_label: string | null;
+    target_value: string | null;
+    blocker_value: string | null;
+    locked_fields: Array<{
+      field_id: string;
+      field_label: string;
+      field_value: string;
+    }>;
+    missing_fields: string[];
+    activation_keyword: string | null;
+    no_chat_mutation: true;
+  };
+  tone_constraints: string[];
+  do_not_say: string[];
+  context_summary: string | null;
+  evidence_used: string[];
+};
 
 export type PrepareAttackCardRiskAssessment = {
   risk_score: number;
@@ -170,18 +226,7 @@ export type PrepareAttackCardLocalDispatcherOutput = {
   };
   visible_task: {
     kind: PrepareAttackCardVisibleTaskKind;
-    required_data: {
-      operation_name: "prepare_attack_card";
-      surface_label: "Cartes d'attaque";
-      platform_destination: string;
-      technique_label: string | null;
-      current_field_id: string | null;
-      locked_fields: Array<{
-        field_id: string;
-        field_label: string;
-        field_value: string;
-      }>;
-    };
+    conversation_context?: Partial<PrepareAttackCardConversationContext> | null;
   };
   subskill_call: {
     needed: boolean;
@@ -195,10 +240,11 @@ export type PrepareAttackCardLocalDispatcherOutput = {
     flow_summary: string | null;
     handoff_hint_for_global_dispatcher: string | null;
   };
+  note_information: NoteInformation | null;
   no_chat_mutation: {
     attack_card_created: false;
-    pending_confirmation_created: false;
-    confirmation_token_created: false;
+    chat_side_effect_committed: false;
+    platform_write_committed: false;
     db_write_committed: false;
   };
   risk_assessment: PrepareAttackCardRiskAssessment;
@@ -214,6 +260,13 @@ export type PrepareAttackCardLocalDispatcherInput = {
   local_state: PrepareAttackCardLocalState | null;
   route_decision: RouteDecision | null;
   turn_frame: TurnFrame | null;
+  note_information_inbound?: Record<string, unknown> | null;
+  db_context_pack?: Record<string, unknown> | null;
+  micro_memory_context?: Record<string, unknown> | null;
+  platform_context?: Record<string, unknown> | null;
+  parent_flow_context?: Record<string, unknown> | null;
+  risk_context?: Record<string, unknown> | null;
+  available_inline_tools?: string[];
   plan_snapshot?: unknown;
   last_handoff?: AttackCardHandoffDraft | null;
 };
@@ -236,7 +289,12 @@ export type PrepareAttackCardReducerResult = {
   local_state: PrepareAttackCardLocalState | null;
   draft: AttackCardHandoffDraft | null;
   visible_task: PrepareAttackCardVisibleTaskKind;
+  visible_task_context: PrepareAttackCardConversationContext;
+  note_information: NoteInformation | null;
   exit_to_global_dispatcher: boolean;
+  stop_local_no_handoff: boolean;
+  handoff_to_local_flow: boolean;
+  target_dispatcher: NoteInformationTargetDispatcher | null;
   get_info_product: boolean;
   get_info_db: boolean;
   subskill_context: Record<string, unknown> | null;
@@ -358,9 +416,8 @@ export const ATTACK_CARD_PLATFORM_FIELD_DEFINITIONS: Record<
 const TECHNIQUE_KEYS = Object.keys(
   ATTACK_CARD_TECHNIQUE_LABELS,
 ) as AttackCardTechniqueKey[];
-const PLATFORM_DESTINATION =
-  getHandoffTargetForOperation("prepare_attack_card")
-    ?.user_facing_destination ?? "dans la section Cartes d'attaque";
+const PLATFORM_DESTINATION = getHandoffTargetForOperation("prepare_attack_card")
+  ?.user_facing_destination ?? "dans la section Cartes d'attaque";
 const PLATFORM_STEPS =
   getHandoffTargetForOperation("prepare_attack_card")?.platform_steps ?? [
     "Ouvre la section Cartes d'attaque.",
@@ -373,9 +430,12 @@ function stringValue(value: unknown): string | null {
   return text || null;
 }
 
-function stringArray(value: unknown): string[] {
+function stringArray(value: unknown, max = 8): string[] {
   return Array.isArray(value)
-    ? value.map((item) => String(item ?? "").trim()).filter(Boolean).slice(0, 8)
+    ? value.map((item) => String(item ?? "").trim()).filter(Boolean).slice(
+      0,
+      max,
+    )
     : [];
 }
 
@@ -416,8 +476,9 @@ function platformFieldId(
   const raw = String(value ?? "").trim();
   if (!selectedTechnique) return null;
   return ATTACK_CARD_PLATFORM_FIELD_DEFINITIONS[selectedTechnique].some((
-    field,
-  ) => field.field_id === raw)
+      field,
+    ) => field.field_id === raw
+    )
     ? raw as AttackCardPlatformFieldId
     : null;
 }
@@ -453,6 +514,9 @@ function riskAssessment(value: unknown): PrepareAttackCardRiskAssessment {
 function flowAction(value: unknown): PrepareAttackCardLocalFlowAction {
   const raw = String(value ?? "").trim();
   return [
+      "continue_local",
+      "missing_info",
+      "confirm_candidate",
       "answer_current_field",
       "confirm_proposed_field",
       "choose_technique",
@@ -460,13 +524,20 @@ function flowAction(value: unknown): PrepareAttackCardLocalFlowAction {
       "revise_current_field",
       "revise_technique",
       "revise_target",
+      "revise",
       "get_info_product",
       "get_info_db",
+      "inline_product",
+      "inline_status",
       "handoff_ready",
       "repeat_handoff",
       "platform_destination_followup",
+      "destination_followup",
       "apply_attempt",
+      "stop_local_no_handoff",
       "cancel_flow",
+      "defer_flow",
+      "handoff_to_local_flow",
       "exit_to_global_dispatcher",
       "safety_preempt",
     ].includes(raw)
@@ -488,8 +559,12 @@ function visibleTaskKind(value: unknown): PrepareAttackCardVisibleTaskKind {
       "destination_short",
       "apply_attempt",
       "repeat_handoff",
+      "inline_tool_return",
+      "stop_or_cancel",
+      "exit_ack",
       "exit_or_cancel",
       "safety",
+      "safety_transition",
       "none",
     ].includes(raw)
     ? raw as PrepareAttackCardVisibleTaskKind
@@ -586,7 +661,9 @@ function blockerState(raw: unknown): PrepareAttackCardBlockerState {
   };
 }
 
-function techniqueOption(raw: unknown): PrepareAttackCardTechniqueOption | null {
+function techniqueOption(
+  raw: unknown,
+): PrepareAttackCardTechniqueOption | null {
   const root = raw && typeof raw === "object" && !Array.isArray(raw)
     ? raw as any
     : {};
@@ -687,6 +764,101 @@ function activationKeywordState(
   };
 }
 
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function normalizeTargetDispatcher(
+  value: unknown,
+  fallback: NoteInformationTargetDispatcher,
+): NoteInformationTargetDispatcher {
+  const raw = String(value ?? "").trim();
+  return [
+      "global",
+      "safety_crisis",
+      "clarification",
+      "create_one_shot_reminder",
+      "create_recurring_reminder",
+      "prepare_attack_card",
+      "prepare_defense_card",
+      "adjust_plan_item",
+      "select_state_potion",
+      "track_progress_plan_item",
+      "update_coach_preferences",
+      "emotional_repair",
+      "demotivation_repair",
+      "product_help",
+      "status_recap",
+      "weekly_adaptive_review_v1",
+      "verification_opportunities",
+      "other_local",
+    ].includes(raw)
+    ? raw as NoteInformationTargetDispatcher
+    : fallback;
+}
+
+function normalizeDispatcherNoteInformation(args: {
+  raw: unknown;
+  outputRoot: Record<string, unknown>;
+  targetDispatcher: NoteInformationTargetDispatcher;
+  fallbackStateSummary: string;
+  fallbackContext: Record<string, unknown>;
+  riskScore: number;
+}): NoteInformation | null {
+  const raw = recordValue(args.raw);
+  const needed = raw.needed === true ||
+    args.outputRoot.flow_action === "exit_to_global_dispatcher" ||
+    args.outputRoot.flow_action === "safety_preempt" ||
+    args.outputRoot.flow_action === "handoff_to_local_flow";
+  if (!needed && Object.keys(raw).length === 0) return null;
+  const collectedState = recordValue(raw.collected_state);
+  const structuredContext = {
+    ...args.fallbackContext,
+    ...(Object.keys(collectedState).length
+      ? { collected_state: collectedState }
+      : {}),
+    unresolved_questions: stringArray(raw.unresolved_questions, 6),
+    confidence: confidence(raw.confidence),
+    evidence: stringArray(raw.evidence, 6),
+    recommended_next_focus: stringValue(raw.recommended_next_focus),
+  };
+  return createNoteInformation({
+    source_flow_id: stringValue(raw.source_flow) || "prepare_attack_card",
+    source_flow_state_summary: stringValue(raw.active_flow_summary) ||
+      args.fallbackStateSummary,
+    handoff_reason: args.targetDispatcher === "safety_crisis"
+      ? "safety"
+      : args.targetDispatcher === "global"
+      ? "topic_change"
+      : args.targetDispatcher === "product_help" ||
+          args.targetDispatcher === "status_recap"
+      ? "inline_tool"
+      : "bridge",
+    target_dispatcher: normalizeTargetDispatcher(
+      raw.target_dispatcher,
+      args.targetDispatcher,
+    ),
+    handoff_context_for_next_dispatcher:
+      stringValue(raw.handoff_context_for_next_dispatcher) ||
+      stringValue(raw.user_message_summary) ||
+      JSON.stringify(structuredContext),
+    target_local_dispatcher_hint: stringValue(raw.recommended_next_focus) ||
+      null,
+    user_words: stringArray(raw.user_words, 4),
+    structured_context: structuredContext,
+    risk_score: args.riskScore,
+    no_chat_mutation: {
+      db_write_committed: false,
+      executable_confirmation_generated: false,
+      potion_session_created: false,
+      recurring_reminder_created: false,
+      scheduled_checkin_created: false,
+    },
+  });
+}
+
 function initialFieldStates(
   technique: AttackCardTechniqueKey | null,
 ): Record<string, PrepareAttackCardPlatformFieldState> {
@@ -775,7 +947,8 @@ export function createInitialPrepareAttackCardLocalState(
   for (const input of draft?.platform_handoff?.inputs ?? []) {
     const fieldId = platformFieldId(input.field_id, technique);
     if (!fieldId || !fields[fieldId]) continue;
-    const value = stringValue(input.value) ?? stringValue(input.suggested_answer);
+    const value = stringValue(input.value) ??
+      stringValue(input.suggested_answer);
     if (!value) continue;
     fields[fieldId] = {
       ...fields[fieldId],
@@ -852,8 +1025,10 @@ export function createInitialPrepareAttackCardLocalState(
     current_field_id: null,
     last_visible_task: null,
     last_handoff_delivered: Boolean(draft),
-    subskill_history: Array.isArray((args.activeState as any)?.local_state
-        ?.subskill_history)
+    subskill_history: Array.isArray(
+        (args.activeState as any)?.local_state
+          ?.subskill_history,
+      )
       ? (args.activeState as any).local_state.subskill_history.slice(-8)
       : [],
   };
@@ -865,6 +1040,8 @@ export function normalizePrepareAttackCardLocalDispatcherOutput(
 ): PrepareAttackCardLocalDispatcherOutput {
   const root = parseJsonObject(raw);
   const normalizedTechnique = techniqueState(root.technique_state);
+  const normalizedTarget = targetState(root.target_state);
+  const normalizedBlocker = blockerState(root.blocker_state);
   const selectedTechnique = normalizedTechnique.technique_key;
   const fields = Array.isArray(root.platform_field_states)
     ? root.platform_field_states.flatMap((item) => {
@@ -875,29 +1052,55 @@ export function normalizePrepareAttackCardLocalDispatcherOutput(
   const risk = riskAssessment(root.risk_assessment);
   const action = flowAction(root.flow_action);
   const task = visibleTaskKind((root.visible_task as any)?.kind);
-  const lockedFields = Array.isArray(
-      (root.visible_task as any)?.required_data?.locked_fields,
-    )
-    ? (root.visible_task as any).required_data.locked_fields.flatMap((
-      item: any,
-    ) => {
-      const fieldId = String(item?.field_id ?? "").trim();
-      const value = stringValue(item?.field_value);
-      if (!fieldId || !value) return [];
-      return [{
-        field_id: fieldId,
-        field_label: String(item?.field_label ?? fieldId).trim(),
-        field_value: value,
-      }];
-    })
-    : [];
+  const targetDispatcher: NoteInformationTargetDispatcher =
+    action === "safety_preempt"
+      ? "safety_crisis"
+      : action === "get_info_product" || action === "inline_product"
+      ? "product_help"
+      : action === "get_info_db" || action === "inline_status"
+      ? "status_recap"
+      : action === "handoff_to_local_flow"
+      ? normalizeTargetDispatcher(
+        (root.note_information as any)?.target_dispatcher,
+        "other_local",
+      )
+      : "global";
+  const fallbackNoteContext = {
+    source_flow: "prepare_attack_card",
+    flow_action: action,
+    visible_task_kind: task,
+    target_state: normalizedTarget,
+    blocker_state: normalizedBlocker,
+    technique_state: normalizedTechnique,
+    platform_field_states: fields,
+    activation_keyword_state: activationKeywordState(
+      root.activation_keyword_state,
+      selectedTechnique,
+    ),
+    no_chat_mutation: true,
+  };
+  const fallbackStateSummary = [
+    normalizedTarget.locked_value || normalizedTarget.candidate_value
+      ? `target=${
+        normalizedTarget.locked_value ?? normalizedTarget.candidate_value
+      }`
+      : "target=missing",
+    normalizedBlocker.locked_value || normalizedBlocker.candidate_value
+      ? `blocker=${
+        normalizedBlocker.locked_value ?? normalizedBlocker.candidate_value
+      }`
+      : "blocker=missing",
+    normalizedTechnique.technique_label
+      ? `technique=${normalizedTechnique.technique_label}`
+      : "technique=missing",
+  ].join("; ");
   return {
     flow_action: action,
     confidence: confidence(root.confidence),
     stage: localStage(root.stage),
     flow_kind: flowKind(root.flow_kind),
-    target_state: targetState(root.target_state),
-    blocker_state: blockerState(root.blocker_state),
+    target_state: normalizedTarget,
+    blocker_state: normalizedBlocker,
     technique_state: normalizedTechnique,
     platform_field_states: fields,
     activation_keyword_state: activationKeywordState(
@@ -923,16 +1126,9 @@ export function normalizePrepareAttackCardLocalDispatcherOutput(
     },
     visible_task: {
       kind: task,
-      required_data: {
-        operation_name: "prepare_attack_card",
-        surface_label: "Cartes d'attaque",
-        platform_destination: PLATFORM_DESTINATION,
-        technique_label: normalizedTechnique.technique_label,
-        current_field_id: stringValue(
-          (root.visible_task as any)?.required_data?.current_field_id,
-        ),
-        locked_fields: lockedFields,
-      },
+      conversation_context: recordValue(
+        (root.visible_task as any)?.conversation_context,
+      ),
     },
     subskill_call: {
       needed: (root.subskill_call as any)?.needed === true,
@@ -942,12 +1138,12 @@ export function normalizePrepareAttackCardLocalDispatcherOutput(
         ? (root.subskill_call as any).skill_id
         : null,
       reason: stringValue((root.subskill_call as any)?.reason),
-      context_for_subskill:
-        (root.subskill_call as any)?.context_for_subskill &&
-          typeof (root.subskill_call as any).context_for_subskill === "object" &&
+      context_for_subskill: (root.subskill_call as any)?.context_for_subskill &&
+          typeof (root.subskill_call as any).context_for_subskill ===
+            "object" &&
           !Array.isArray((root.subskill_call as any).context_for_subskill)
-          ? (root.subskill_call as any).context_for_subskill
-          : {},
+        ? (root.subskill_call as any).context_for_subskill
+        : {},
     },
     exit_memo: {
       needed: (root.exit_memo as any)?.needed === true,
@@ -966,10 +1162,18 @@ export function normalizePrepareAttackCardLocalDispatcherOutput(
     },
     no_chat_mutation: {
       attack_card_created: false,
-      pending_confirmation_created: false,
-      confirmation_token_created: false,
+      chat_side_effect_committed: false,
+      platform_write_committed: false,
       db_write_committed: false,
     },
+    note_information: normalizeDispatcherNoteInformation({
+      raw: root.note_information,
+      outputRoot: root,
+      targetDispatcher,
+      fallbackStateSummary,
+      fallbackContext: fallbackNoteContext,
+      riskScore: risk.risk_score,
+    }),
     risk_assessment: action === "safety_preempt" && risk.safety_preempt !== true
       ? {
         risk_score: Math.max(risk.risk_score, 8),
@@ -1068,6 +1272,232 @@ function lockedFields(state: PrepareAttackCardLocalState) {
   });
 }
 
+function missingFields(state: PrepareAttackCardLocalState): string[] {
+  const missing: string[] = [];
+  if (state.target_state.status !== "locked") missing.push("target");
+  if (state.blocker_state.status !== "locked") missing.push("blocker");
+  if (state.technique_state.status !== "locked") missing.push("technique");
+  for (const fieldId of state.platform_field_order) {
+    const field = state.platform_field_states[fieldId];
+    if (field?.status !== "locked" || !field.locked_value) {
+      missing.push(fieldId);
+    }
+  }
+  return missing;
+}
+
+function stateSummaryForConversation(
+  state: PrepareAttackCardLocalState,
+): string {
+  const target = state.target_state.locked_value ??
+    state.target_state.candidate_value;
+  const blocker = state.blocker_state.locked_value ??
+    state.blocker_state.candidate_value;
+  const technique = state.technique_state.technique_label;
+  return [
+    target ? `Cible: ${target}` : "Cible non verrouillee",
+    blocker ? `Piege: ${blocker}` : "Piege non verrouille",
+    technique ? `Technique: ${technique}` : "Technique non verrouillee",
+  ].join(" | ");
+}
+
+function buildPrepareAttackCardConversationContext(args: {
+  state: PrepareAttackCardLocalState;
+  visibleTask: PrepareAttackCardVisibleTaskKind;
+  output: PrepareAttackCardLocalDispatcherOutput;
+  currentFieldId: AttackCardPlatformFieldId | null;
+  draft: AttackCardHandoffDraft | null;
+}): PrepareAttackCardConversationContext {
+  const currentField = args.currentFieldId
+    ? args.state.platform_field_states[args.currentFieldId] ?? null
+    : null;
+  const locked = lockedFields(args.state);
+  const missing = missingFields(args.state);
+  const incomingContext = recordValue(
+    args.output.visible_task.conversation_context,
+  );
+  const selectedCandidate = recordValue(incomingContext.selected_candidate);
+  const canExposePlatformHandoff = [
+    "handoff_ready",
+    "revision_done",
+    "destination_short",
+    "apply_attempt",
+    "repeat_handoff",
+  ].includes(args.visibleTask);
+  const revisionField = currentField?.previous_value
+    ? currentField
+    : args.state.platform_field_order.map((fieldId) =>
+      args.state.platform_field_states[fieldId]
+    ).find((field) => Boolean(field?.previous_value)) ??
+      null;
+  return {
+    state_summary: stringValue(incomingContext.state_summary) ??
+      stateSummaryForConversation(args.state),
+    user_words: stringArray(incomingContext.user_words, 4),
+    field_or_stage: stringValue(incomingContext.field_or_stage) ??
+      args.currentFieldId ?? args.visibleTask,
+    known_values: {
+      target: args.state.target_state,
+      blocker: args.state.blocker_state,
+      technique: args.state.technique_state,
+      current_field: currentField,
+      activation_keyword: args.state.activation_keyword_state,
+    },
+    missing_or_weak_values: stringArray(
+        incomingContext.missing_or_weak_values,
+        8,
+      ).length
+      ? stringArray(incomingContext.missing_or_weak_values, 8)
+      : missing,
+    selected_candidate: {
+      ...selectedCandidate,
+      previous_value: selectedCandidate.previous_value ??
+        revisionField?.previous_value ?? null,
+    },
+    handoff_data: {
+      operation_name: "prepare_attack_card",
+      surface_label: "Cartes d'attaque",
+      platform_destination: canExposePlatformHandoff
+        ? args.state.platform_destination
+        : "",
+      platform_steps: canExposePlatformHandoff ? PLATFORM_STEPS : [],
+      flow_kind: args.state.flow_kind,
+      technique_label: args.state.technique_state.technique_label,
+      target_value: args.state.target_state.locked_value ??
+        args.state.target_state.candidate_value,
+      blocker_value: args.state.blocker_state.locked_value ??
+        args.state.blocker_state.candidate_value,
+      locked_fields: locked,
+      missing_fields: missing,
+      activation_keyword: args.state.activation_keyword_state.locked_value,
+      no_chat_mutation: true,
+    },
+    tone_constraints: stringArray(incomingContext.tone_constraints, 6),
+    do_not_say: [
+      "c'est cree",
+      "je l'ai creee",
+      "je l'ai ajoutee",
+      "c'est active",
+      "dis oui et je la cree",
+      ...stringArray(incomingContext.do_not_say, 8),
+    ],
+    context_summary: stringValue(incomingContext.context_summary) ??
+      (args.draft
+        ? "Tous les champs necessaires sont prets pour le handoff plateforme."
+        : null),
+    evidence_used: stringArray(incomingContext.evidence_used, 8).length
+      ? stringArray(incomingContext.evidence_used, 8)
+      : args.output.evidence,
+  };
+}
+
+function emptyConversationContext(args: {
+  previous: PrepareAttackCardLocalState;
+  output: PrepareAttackCardLocalDispatcherOutput;
+  visibleTask: PrepareAttackCardVisibleTaskKind;
+}): PrepareAttackCardConversationContext {
+  return buildPrepareAttackCardConversationContext({
+    state: args.previous,
+    visibleTask: args.visibleTask,
+    output: args.output,
+    currentFieldId: args.previous.current_field_id,
+    draft: null,
+  });
+}
+
+function targetDispatcherForFlowAction(
+  output: PrepareAttackCardLocalDispatcherOutput,
+): NoteInformationTargetDispatcher | null {
+  switch (output.flow_action) {
+    case "exit_to_global_dispatcher":
+      return "global";
+    case "safety_preempt":
+      return "safety_crisis";
+    case "get_info_product":
+    case "inline_product":
+      return "product_help";
+    case "get_info_db":
+    case "inline_status":
+      return "status_recap";
+    case "handoff_to_local_flow":
+      return output.note_information?.target_dispatcher ?? "other_local";
+    default:
+      return null;
+  }
+}
+
+function noteInformationForFlowAction(args: {
+  output: PrepareAttackCardLocalDispatcherOutput;
+  state: PrepareAttackCardLocalState;
+  context: PrepareAttackCardConversationContext;
+}): NoteInformation | null {
+  const targetDispatcher = targetDispatcherForFlowAction(args.output);
+  if (!targetDispatcher) return null;
+  if (args.output.note_information) return args.output.note_information;
+  return createNoteInformation({
+    source_flow_id: "prepare_attack_card",
+    source_flow_state_summary: args.context.state_summary,
+    handoff_reason: targetDispatcher === "safety_crisis"
+      ? "safety"
+      : targetDispatcher === "global"
+      ? "topic_change"
+      : targetDispatcher === "product_help" ||
+          targetDispatcher === "status_recap"
+      ? "inline_tool"
+      : "bridge",
+    target_dispatcher: targetDispatcher,
+    handoff_context_for_next_dispatcher: JSON.stringify({
+      source_flow: "prepare_attack_card",
+      flow_action: args.output.flow_action,
+      active_flow_summary: args.context.state_summary,
+      collected_state: {
+        target: args.state.target_state,
+        blocker: args.state.blocker_state,
+        technique: args.state.technique_state,
+        locked_fields: args.context.handoff_data.locked_fields,
+        missing_fields: args.context.handoff_data.missing_fields,
+      },
+      unresolved_questions: args.context.missing_or_weak_values,
+      evidence: args.output.evidence,
+      recommended_next_focus: targetDispatcher === "global"
+        ? "Reprendre la nouvelle intention utilisateur sans relancer la carte d'attaque sauf demande explicite."
+        : targetDispatcher === "safety_crisis"
+        ? "Prioriser la prise en charge safety; ignorer la carte sauf contexte utile."
+        : "Traiter la demande cible en conservant le flow prepare_attack_card comme parent.",
+    }),
+    target_local_dispatcher_hint: targetDispatcher === "global"
+      ? null
+      : targetDispatcher === "safety_crisis"
+      ? "Safety owns the next turn; use attack card state only as background."
+      : "Use this as source context, then produce your own conversation_context.",
+    user_words: args.context.user_words,
+    structured_context: {
+      source_flow: "prepare_attack_card",
+      target_dispatcher: targetDispatcher,
+      flow_action: args.output.flow_action,
+      active_flow_summary: args.context.state_summary,
+      collected_state: {
+        target: args.state.target_state,
+        blocker: args.state.blocker_state,
+        technique: args.state.technique_state,
+        locked_fields: args.context.handoff_data.locked_fields,
+        missing_fields: args.context.handoff_data.missing_fields,
+      },
+      unresolved_questions: args.context.missing_or_weak_values,
+      confidence: args.output.confidence,
+      evidence: args.output.evidence,
+    },
+    risk_score: args.output.risk_assessment.risk_score,
+    no_chat_mutation: {
+      db_write_committed: false,
+      executable_confirmation_generated: false,
+      potion_session_created: false,
+      recurring_reminder_created: false,
+      scheduled_checkin_created: false,
+    },
+  });
+}
+
 function draftFromState(
   state: PrepareAttackCardLocalState,
 ): AttackCardHandoffDraft | null {
@@ -1090,8 +1520,8 @@ function draftFromState(
     blocker_summary: state.blocker_state.locked_value ?? "",
     recommendation: {
       technique_label: ATTACK_CARD_TECHNIQUE_LABELS[technique],
-      why_this_technique:
-        state.technique_state.why_status ?? "Technique choisie dans le flow local.",
+      why_this_technique: state.technique_state.why_status ??
+        "Technique choisie dans le flow local.",
       card_draft_summary: "",
       preserve: [],
       avoid: [],
@@ -1214,26 +1644,57 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
     subskill_context: null as Record<string, unknown> | null,
   };
   if (output.flow_action === "exit_to_global_dispatcher") {
+    const context = emptyConversationContext({
+      previous,
+      output,
+      visibleTask: "exit_ack",
+    });
+    const note = noteInformationForFlowAction({
+      output,
+      state: previous,
+      context,
+    });
     return {
       status: "topic_change",
       reason_code: "prepare_attack_card_local_exit_to_global_dispatcher",
       local_state: null,
       draft: null,
-      visible_task: "exit_or_cancel",
+      visible_task: "exit_ack",
+      visible_task_context: context,
+      note_information: note,
       exit_to_global_dispatcher: true,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: note?.target_dispatcher ?? "global",
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
     };
   }
-  if (output.flow_action === "cancel_flow") {
+  if (
+    output.flow_action === "cancel_flow" ||
+    output.flow_action === "stop_local_no_handoff" ||
+    output.flow_action === "defer_flow"
+  ) {
+    const context = emptyConversationContext({
+      previous,
+      output,
+      visibleTask: "stop_or_cancel",
+    });
     return {
       status: "cancelled",
-      reason_code: "prepare_attack_card_local_cancelled",
+      reason_code: output.flow_action === "cancel_flow"
+        ? "prepare_attack_card_local_cancelled"
+        : "prepare_attack_card_local_stopped_no_handoff",
       local_state: null,
       draft: null,
-      visible_task: "exit_or_cancel",
+      visible_task: "stop_or_cancel",
+      visible_task_context: context,
+      note_information: null,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: true,
+      handoff_to_local_flow: false,
+      target_dispatcher: null,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
@@ -1274,14 +1735,35 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
     { ...reduced, current_field_id: currentFieldId },
     visibleTask,
   );
-  if (output.flow_action === "get_info_product") {
+  const draft = draftFromState(state);
+  const context = buildPrepareAttackCardConversationContext({
+    state,
+    visibleTask,
+    output,
+    currentFieldId,
+    draft,
+  });
+  const noteInformation = noteInformationForFlowAction({
+    output,
+    state,
+    context,
+  });
+  if (
+    output.flow_action === "get_info_product" ||
+    output.flow_action === "inline_product"
+  ) {
     return {
       status: "collecting",
       reason_code: "prepare_attack_card_get_info_product",
       local_state: withVisibleTask(state, "none"),
-      draft: draftFromState(state),
+      draft,
       visible_task: "none",
+      visible_task_context: context,
+      note_information: noteInformation,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: "product_help",
       get_info_product: true,
       get_info_db: false,
       subskill_context: output.subskill_call.context_for_subskill,
@@ -1289,14 +1771,22 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       blocked_effects: [],
     };
   }
-  if (output.flow_action === "get_info_db") {
+  if (
+    output.flow_action === "get_info_db" ||
+    output.flow_action === "inline_status"
+  ) {
     return {
       status: "collecting",
       reason_code: "prepare_attack_card_get_info_db",
       local_state: withVisibleTask(state, "none"),
-      draft: draftFromState(state),
+      draft,
       visible_task: "none",
+      visible_task_context: context,
+      note_information: noteInformation,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: "status_recap",
       get_info_product: false,
       get_info_db: true,
       subskill_context: output.subskill_call.context_for_subskill,
@@ -1304,15 +1794,37 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       blocked_effects: [],
     };
   }
-  const draft = draftFromState(state);
+  if (output.flow_action === "handoff_to_local_flow") {
+    return {
+      status: "topic_change",
+      reason_code: "prepare_attack_card_handoff_to_local_flow",
+      local_state: null,
+      draft: null,
+      visible_task: "none",
+      visible_task_context: context,
+      note_information: noteInformation,
+      exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: true,
+      target_dispatcher: noteInformation?.target_dispatcher ?? "other_local",
+      ...toolFlags,
+      risk_assessment: output.risk_assessment,
+      blocked_effects: [],
+    };
+  }
   if (output.flow_action === "safety_preempt") {
     return {
       status: "blocked",
       reason_code: "prepare_attack_card_local_safety_preempt",
       local_state: state,
       draft: null,
-      visible_task: "safety",
+      visible_task: "safety_transition",
+      visible_task_context: context,
+      note_information: noteInformation,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: "safety_crisis",
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
@@ -1325,7 +1837,18 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       local_state: state,
       draft,
       visible_task: "apply_attempt",
+      visible_task_context: buildPrepareAttackCardConversationContext({
+        state,
+        visibleTask: "apply_attempt",
+        output,
+        currentFieldId,
+        draft,
+      }),
+      note_information: null,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: null,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [{
@@ -1341,20 +1864,45 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       local_state: state,
       draft,
       visible_task: "repeat_handoff",
+      visible_task_context: buildPrepareAttackCardConversationContext({
+        state,
+        visibleTask: "repeat_handoff",
+        output,
+        currentFieldId,
+        draft,
+      }),
+      note_information: null,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: null,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
     };
   }
-  if (output.flow_action === "platform_destination_followup") {
+  if (
+    output.flow_action === "platform_destination_followup" ||
+    output.flow_action === "destination_followup"
+  ) {
     return {
       status: "handoff_delivered",
       reason_code: "destination_short",
       local_state: state,
       draft,
       visible_task: "destination_short",
+      visible_task_context: buildPrepareAttackCardConversationContext({
+        state,
+        visibleTask: "destination_short",
+        output,
+        currentFieldId,
+        draft,
+      }),
+      note_information: null,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: null,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
@@ -1367,7 +1915,12 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       local_state: state,
       draft,
       visible_task: visibleTask,
+      visible_task_context: context,
+      note_information: null,
       exit_to_global_dispatcher: false,
+      stop_local_no_handoff: false,
+      handoff_to_local_flow: false,
+      target_dispatcher: null,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
@@ -1384,14 +1937,19 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
     local_state: state,
     draft: null,
     visible_task: visibleTask,
+    visible_task_context: context,
+    note_information: null,
     exit_to_global_dispatcher: false,
+    stop_local_no_handoff: false,
+    handoff_to_local_flow: false,
+    target_dispatcher: null,
     ...toolFlags,
     risk_assessment: output.risk_assessment,
     blocked_effects: [],
   };
 }
 
-function dispatcherSystemPrompt(): string {
+export function dispatcherSystemPrompt(): string {
   return [
     "Tu es le dispatcher local structure du flow prepare_attack_card.",
     "Tu ne reponds jamais directement au user. Tu retournes uniquement un JSON valide.",
@@ -1399,14 +1957,47 @@ function dispatcherSystemPrompt(): string {
     "Mission: aider le user a preparer une carte d'attaque a reprendre dans la plateforme. Le chat ne cree jamais la carte.",
     "Tu es l'unique decideur metier du flow actif: cible, piege, technique, champs plateforme, revision, repeat, destination, apply_attempt et sortie.",
     "Aucune regex metier, aucun mot-cle isole, aucune creation DB, aucun pending executable, aucun token de confirmation, aucun effet durable.",
-    "Ne choisis pas Mot de bascule pour un simple demarrage d'action sauf demande explicite du user.",
-    "Si une valeur est plausible mais non donnee explicitement, mets status=proposed et needs_user_confirmation=true.",
+    "",
+    "Field Completion Rules:",
+    "- flow_action: decision principale du tour courant. Choisis-la depuis le message actuel + l'etat actif, pas seulement depuis l'etat precedent. Utilise continue_local/missing_info/confirm_candidate/answer_current_field/confirm_proposed_field/choose_technique/confirm_technique_proposal pour avancer localement; revise_current_field/revise_technique/revise_target/revise pour corriger; repeat_handoff pour repeter les valeurs pretes; platform_destination_followup ou destination_followup pour une question courte de destination; apply_attempt si le user demande creer/lancer/ajouter depuis le chat; stop_local_no_handoff/cancel_flow/defer_flow si le user arrete sans nouveau sujet clair; exit_to_global_dispatcher si un nouveau sujet clair doit etre reanalyse par global; handoff_to_local_flow si le user bascule explicitement vers un autre flow local autorise; safety_preempt pour safety. Erreur a eviter: continuer le flow carte quand le user demande clairement autre chose.",
+    "- confidence: high si intention et prochaine action sont claires; medium si probable mais une valeur reste a confirmer; low si clarification/prudence necessaire. Le reducer ne doit pas recevoir high pour une hypothese fragile.",
+    "- stage: etape interne actuelle. target_intake pour cible, blocker_intake pour piege/friction, technique_selection pour technique, platform_field_intake pour champs plateforme, handoff_ready quand toutes les valeurs requises sont locked, handoff_delivered apres livraison, exit pour stop/exit/safety. Il aide les traces et le visible stage; ne l'utilise pas pour masquer une incoherence d'etat.",
+    "- flow_kind: free_attack_card si carte libre; plan_action_cards si cible reliee clairement a une action/plan id existant; adjust_existing_attack_card seulement si le user corrige une carte existante; null si inconnu. Ne fabrique pas de plan_item_id.",
+    "- target_state: cible/action de la carte. status=missing si aucune action; ambiguous si plusieurs cibles ou reference vague; proposed si cible probable a confirmer; locked seulement si le user l'a donnee/validee clairement. kind=plan_item uniquement avec id fiable; personal_action sinon; unknown si domaine incertain. candidate_value pour une proposition; locked_value uniquement pour une valeur stabilisee. needs_user_confirmation=true avec proposed/ambiguous. Influence: target non locked -> ask_target ou confirm_target_candidate.",
+    "- blocker_state: piege, excuse, friction ou moment ou l'action deraille. missing si absent; proposed si inference plausible; locked si user l'a donne/valide. blocker_type decrit la nature, sans forcer. Ne transforme pas un contexte vague en fait. Influence: target locked + blocker non locked -> ask_blocker.",
+    "- technique_state: technique choisie ou a proposer. status=missing si aucune technique ni option; ambiguous si plusieurs techniques pertinentes ou demande incoherente; proposed si tu proposes une technique; locked si label exact demande/valide ou proposition confirmee. technique_key doit etre une cle exacte; technique_label le label exact. candidate_options max 3 options utiles. explicitly_requested=true seulement si le user demande vraiment la technique. fit_warning si la technique forcee semble incoherente. Ne choisis pas pre_engagement/Mot de bascule pour un simple demarrage d'action sauf demande explicite de mot de bascule, craquage, rupture, esquive ou validation user. Influence: technique non locked -> ask_or_confirm_technique.",
+    "- platform_field_states: champs specifiques a la technique. Ne remplis que les field_id autorises pour technique_key. status=missing si absent; proposed si deduit mais pas valide; locked si donne/valide clairement. candidate_value pour proposition; locked_value pour valeur finale; previous_value pour revision. Un champ vague reste proposed/missing. Influence: le reducer calcule current_field_id et demande ask_platform_field ou confirm_platform_field_proposal.",
+    "- activation_keyword_state: seulement pour pre_engagement. not_applicable pour toutes les autres techniques. Pour pre_engagement, missing/proposed/locked seulement si le user donne, demande ou valide un mot d'activation. Ne rends jamais activation_keyword obligatoire hors demande explicite.",
+    "- revision: is_revision=true si le user corrige/remplace cible, piege, technique, champ plateforme ou activation keyword. revision_target exact; field_id seulement pour platform_field; replacement_value avec la nouvelle valeur; replaces_previous_value=true si elle remplace une valeur locked/proposed. Laisser false/null hors correction. Influence: le reducer remplace la valeur principale et visible_task.kind peut devenir revision_done.",
+    "- visible_task.kind: stage visible exact, jamais generique. ask_target si cible absente; confirm_target_candidate si cible probable; ask_blocker si piege a obtenir/confirmer; ask_or_confirm_technique si technique a choisir/confirmer; ask_platform_field si champ manquant; confirm_platform_field_proposal si champ propose; handoff_ready quand tout est locked; revision_done apres correction; destination_short pour question de destination; apply_attempt pour demande de creation chat; repeat_handoff pour repetition; inline_tool_return seulement apres retour inline; stop_or_cancel pour stop local; exit_ack pour exit global; safety_transition pour safety; none pour inline/handoff sans message visible local. Erreur a eviter: utiliser handoff_ready ou donner destination avant champs requis locked.",
+    "- visible_task.conversation_context: seul contexte que l'agent visible peut utiliser. Filtre-le: state_summary, user_words, field_or_stage, known_values, missing_or_weak_values, selected_candidate, handoff_data, tone_constraints, do_not_say, context_summary, evidence_used. Pas de DB brute, pas de memoire brute, pas de note_information brute. Pendant ask_target/confirm_target_candidate/ask_blocker/ask_or_confirm_technique/ask_platform_field/confirm_platform_field_proposal, handoff_data.platform_steps doit rester vide et ne doit pas encourager a aller dans la plateforme; reserve platform_steps aux stages handoff_ready, repeat_handoff, destination_short et apply_attempt. Inclure contraintes user et limites de ton dans tone_constraints/do_not_say.",
+    "- subskill_call: inline product/status temporaire, pas changement definitif de flow. needed=true seulement pour get_info_product/get_info_db/inline_product/inline_status. skill_id=product_help pour question produit; status_recap pour objets existants/DB. context_for_subskill doit contenir active_flow='prepare_attack_card', question_to_answer, active_flow_context compact (target_state, blocker_state, technique_state, current_field_id, flow_kind) et preserve_active_flow=true. Laisser needed=false, skill_id=null et context_for_subskill={} sinon. Influence: le router appelle l'inline tool puis revient au parent flow.",
+    "- exit_memo: memo compact pour quitter ce flow. needed=true si exit_to_global_dispatcher, cancel_flow/defer_flow avec contexte utile, ou safety_preempt. reason=topic_change pour nouveau sujet clair; cancelled pour abandon; safety pour safety; none sinon. flow_summary resume l'etat acquis; handoff_hint_for_global_dispatcher explique quoi reanalyser si global reprend. Ne l'utilise pas comme message visible.",
+    "- note_information: obligatoire pour tout changement de dispatcher: premiere activation entrante est dans l'input, sortie vers global, safety_crisis, product/status inline si bridge, ou handoff_to_local_flow. Remplis source_flow='prepare_attack_card', target_dispatcher, handoff_reason, user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus. Elle est consommee par le dispatcher cible et jamais transmise brute au prompt visible. Laisser null si le flow continue localement sans inline ni transition.",
+    "- no_chat_mutation: garde-fou fixe. Toujours attack_card_created=false, chat_side_effect_committed=false, platform_write_committed=false, db_write_committed=false. Si le user demande creation, garde ces champs false et flow_action=apply_attempt.",
+    "- risk_assessment: risk_score 0-10 utile au flow; risk_band none/low/medium/high/critical; safety_preempt=true seulement pour safety reelle. Ne fabrique pas de safety. Si safety reelle: flow_action=safety_preempt, visible_task.kind=safety_transition, note_information.target_dispatcher=safety_crisis, reason_codes courts.",
+    "- evidence: indices semantiques vraiment utilises pour la decision. Cite de courts fragments ou resumes observables du message/contexte. Pas de pseudo-preuves, pas d'explication inventee.",
+    "",
+    "Transition Rules:",
+    "- stop_local_no_handoff/cancel_flow/defer_flow: user arrete ou reporte la carte sans nouveau sujet clair. visible_task.kind=stop_or_cancel, pas de global dispatcher, note_information=null, pas d'outil.",
+    "- exit_to_global_dispatcher: nouveau sujet clair. visible_task.kind=exit_ack ou none selon router, note_information obligatoire target_dispatcher=global, exit_memo.reason=topic_change.",
+    "- safety_preempt: safety prioritaire. note_information obligatoire target_dispatcher=safety_crisis, visible_task.kind=safety_transition, pas de global normal.",
+    "- handoff_to_local_flow: seulement si le contrat cible est clair (prepare_defense_card, select_state_potion, product_help, status_recap ou other_local). note_information obligatoire; ne l'invente pas pour une simple question dans le flow.",
+    "- get_info_product/get_info_db: inline roundtrip; subskill_call obligatoire; preserve active flow.",
+    "",
+    "Example JSON 1 - continuation normale:",
+    "{\"flow_action\":\"confirm_proposed_field\",\"confidence\":\"high\",\"stage\":\"platform_field_intake\",\"flow_kind\":\"free_attack_card\",\"target_state\":{\"status\":\"locked\",\"kind\":\"personal_action\",\"plan_item_id\":null,\"candidate_value\":null,\"locked_value\":\"footing du soir\",\"needs_user_confirmation\":false,\"why_status\":\"user confirmed\"},\"blocker_state\":{\"status\":\"locked\",\"blocker_type\":\"procrastination\",\"candidate_value\":null,\"locked_value\":\"ce sera plus sérieux demain\",\"needs_user_confirmation\":false,\"why_status\":\"user confirmed\"},\"technique_state\":{\"status\":\"locked\",\"technique_key\":\"texte_recadrage\",\"technique_label\":\"Le texte magique\",\"explicitly_requested\":false,\"candidate_options\":[],\"fit_warning\":null,\"needs_user_confirmation\":false,\"why_status\":\"proposal confirmed\"},\"platform_field_states\":[{\"field_id\":\"negotiated_action\",\"technique_key\":\"texte_recadrage\",\"field_label\":\"Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?\",\"status\":\"locked\",\"candidate_value\":\"footing du soir\",\"locked_value\":\"footing du soir\",\"previous_value\":null,\"needs_user_confirmation\":false,\"why_status\":\"confirmed\"},{\"field_id\":\"recurring_excuse\",\"technique_key\":\"texte_recadrage\",\"field_label\":\"Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?\",\"status\":\"proposed\",\"candidate_value\":\"ce sera plus sérieux demain\",\"locked_value\":null,\"previous_value\":null,\"needs_user_confirmation\":true,\"why_status\":\"from user words\"}],\"activation_keyword_state\":{\"status\":\"not_applicable\",\"candidate_value\":null,\"locked_value\":null,\"needs_user_confirmation\":false,\"why_status\":\"not pre_engagement\"},\"revision\":{\"is_revision\":false,\"revision_target\":null,\"field_id\":null,\"replacement_value\":null,\"replaces_previous_value\":false},\"visible_task\":{\"kind\":\"confirm_platform_field_proposal\",\"conversation_context\":{\"state_summary\":\"Cible et technique verrouillees; excuse a confirmer.\",\"user_words\":[\"ce sera plus sérieux demain\"],\"field_or_stage\":\"recurring_excuse\",\"known_values\":{},\"missing_or_weak_values\":[\"recurring_excuse\"],\"selected_candidate\":{\"field_id\":\"recurring_excuse\",\"candidate_value\":\"ce sera plus sérieux demain\"},\"handoff_data\":{\"operation_name\":\"prepare_attack_card\",\"surface_label\":\"Cartes d'attaque\",\"platform_destination\":\"dans la section Cartes d'attaque\",\"platform_steps\":[],\"flow_kind\":\"free_attack_card\",\"technique_label\":\"Le texte magique\",\"target_value\":\"footing du soir\",\"blocker_value\":\"ce sera plus sérieux demain\",\"locked_fields\":[],\"missing_fields\":[\"recurring_excuse\",\"desired_reframe_state\"],\"activation_keyword\":null,\"no_chat_mutation\":true},\"tone_constraints\":[],\"do_not_say\":[\"c'est cree\"],\"context_summary\":\"Confirmer l'excuse recurrente.\",\"evidence_used\":[\"ce sera plus sérieux demain\"]}},\"subskill_call\":{\"needed\":false,\"skill_id\":null,\"reason\":null,\"context_for_subskill\":{}},\"exit_memo\":{\"needed\":false,\"reason\":\"none\",\"flow_summary\":null,\"handoff_hint_for_global_dispatcher\":null},\"note_information\":null,\"no_chat_mutation\":{\"attack_card_created\":false,\"chat_side_effect_committed\":false,\"platform_write_committed\":false,\"db_write_committed\":false},\"risk_assessment\":{\"risk_score\":0,\"risk_band\":\"none\",\"safety_preempt\":false,\"reason_codes\":[]},\"evidence\":[\"user confirms technique and excuse candidate\"]}",
+    "Example JSON 2 - transition critique exit global:",
+    "{\"flow_action\":\"exit_to_global_dispatcher\",\"confidence\":\"high\",\"stage\":\"exit\",\"flow_kind\":\"free_attack_card\",\"target_state\":{\"status\":\"locked\",\"kind\":\"personal_action\",\"plan_item_id\":null,\"candidate_value\":null,\"locked_value\":\"footing du soir\",\"needs_user_confirmation\":false,\"why_status\":\"previously locked\"},\"blocker_state\":{\"status\":\"locked\",\"blocker_type\":\"procrastination\",\"candidate_value\":null,\"locked_value\":\"ce sera plus sérieux demain\",\"needs_user_confirmation\":false,\"why_status\":\"previously locked\"},\"technique_state\":{\"status\":\"locked\",\"technique_key\":\"texte_recadrage\",\"technique_label\":\"Le texte magique\",\"explicitly_requested\":false,\"candidate_options\":[],\"fit_warning\":null,\"needs_user_confirmation\":false,\"why_status\":\"previously locked\"},\"platform_field_states\":[],\"activation_keyword_state\":{\"status\":\"not_applicable\",\"candidate_value\":null,\"locked_value\":null,\"needs_user_confirmation\":false,\"why_status\":\"not pre_engagement\"},\"revision\":{\"is_revision\":false,\"revision_target\":null,\"field_id\":null,\"replacement_value\":null,\"replaces_previous_value\":false},\"visible_task\":{\"kind\":\"exit_ack\",\"conversation_context\":{\"state_summary\":\"User leaves attack card flow for evening prioritization.\",\"user_words\":[\"aide-moi plutôt à prioriser\"],\"field_or_stage\":\"exit\",\"known_values\":{},\"missing_or_weak_values\":[],\"selected_candidate\":{},\"handoff_data\":{\"operation_name\":\"prepare_attack_card\",\"surface_label\":\"Cartes d'attaque\",\"platform_destination\":\"dans la section Cartes d'attaque\",\"platform_steps\":[],\"flow_kind\":\"free_attack_card\",\"technique_label\":\"Le texte magique\",\"target_value\":\"footing du soir\",\"blocker_value\":\"ce sera plus sérieux demain\",\"locked_fields\":[],\"missing_fields\":[],\"activation_keyword\":null,\"no_chat_mutation\":true},\"tone_constraints\":[\"acknowledge short\"],\"do_not_say\":[\"c'est cree\"],\"context_summary\":\"Stop card flow and let global reanalyse prioritization.\",\"evidence_used\":[\"laisse tomber la carte\",\"prioriser ce que je fais ce soir\"]}},\"subskill_call\":{\"needed\":false,\"skill_id\":null,\"reason\":null,\"context_for_subskill\":{}},\"exit_memo\":{\"needed\":true,\"reason\":\"topic_change\",\"flow_summary\":\"Attack card partly prepared for footing du soir.\",\"handoff_hint_for_global_dispatcher\":\"Reanalyse current user message as evening prioritization, not attack card.\"},\"note_information\":{\"needed\":true,\"source_flow\":\"prepare_attack_card\",\"target_dispatcher\":\"global\",\"handoff_reason\":\"topic_change\",\"user_message_summary\":\"User stops card flow and asks to prioritize tonight.\",\"active_flow_summary\":\"Attack card flow was active for footing du soir.\",\"collected_state\":{\"target\":\"footing du soir\",\"technique\":\"texte_recadrage\"},\"unresolved_questions\":[],\"confidence\":\"high\",\"evidence\":[\"laisse tomber la carte\",\"prioriser\"],\"recommended_next_focus\":\"prioritization\"},\"no_chat_mutation\":{\"attack_card_created\":false,\"chat_side_effect_committed\":false,\"platform_write_committed\":false,\"db_write_committed\":false},\"risk_assessment\":{\"risk_score\":0,\"risk_band\":\"none\",\"safety_preempt\":false,\"reason_codes\":[]},\"evidence\":[\"clear topic change from card to prioritization\"]}",
+    "",
+    "Stage coherence:",
+    "target non locked -> ask_target ou confirm_target_candidate; target locked + blocker non locked -> ask_blocker; target+blocker locked + technique non locked -> ask_or_confirm_technique; target+blocker+technique locked + champ courant manquant/proposed -> ask_platform_field ou confirm_platform_field_proposal; n'utilise jamais ask_target quand target et blocker sont deja locked.",
     "Si tous les champs requis sont locked, retourne visible_task.kind=handoff_ready.",
-    "Cohérence stage/état obligatoire: target non locked -> ask_target ou confirm_target_candidate; target locked + blocker non locked -> ask_blocker; target+blocker locked + technique non locked -> ask_or_confirm_technique; target+blocker+technique locked + champ courant manquant/proposed -> ask_platform_field ou confirm_platform_field_proposal; n'utilise jamais ask_target quand target et blocker sont déjà locked.",
+    "Si une valeur est plausible mais non donnee explicitement, mets status=proposed et needs_user_confirmation=true.",
     "Si le user demande de creer/lancer/ajouter depuis le chat, retourne apply_attempt.",
     "Si le user pose une question produit pendant ce flow (c'est quoi, comment ça marche, où est-ce, différence entre cartes/techniques), retourne flow_action=get_info_product, visible_task.kind=none, subskill_call.skill_id=product_help.",
     "Si le user pose une question sur ses objets existants ou l'état DB pendant ce flow (cartes d'attaque actives, cartes libres déjà créées, ce qui existe déjà), retourne flow_action=get_info_db, visible_task.kind=none, subskill_call.skill_id=status_recap.",
-    "Pour get_info_product/get_info_db, remplis subskill_call.context_for_subskill avec active_flow='prepare_attack_card', question_to_answer reformulée, active_flow_context utile (target_state, blocker_state, technique_state, current_field_id, flow_kind).",
+    "Pour get_info_product/get_info_db, remplis subskill_call.context_for_subskill avec active_flow='prepare_attack_card', question_to_answer reformulée, active_flow_context utile (target_state, blocker_state, technique_state, current_field_id, flow_kind), preserve_active_flow=true.",
     "Techniques exactes: texte_recadrage / Le texte magique; mantra_force / Mantra de force; ancre_visuelle / Ancre visuelle; visualisation_matinale / Meditation de 5 minutes; preparer_terrain / Preparer le terrain; pre_engagement / Mot de bascule.",
     "Champs: texte_recadrage = negotiated_action, recurring_excuse, desired_reframe_state; mantra_force = effort_target, importance_reason, mantra_tone; ancre_visuelle = commitment_to_keep_alive, anchor_location, visual_phrase; visualisation_matinale = visualized_action, morning_window, helpful_sensations; preparer_terrain = action_to_simplify, prep_in_advance, ready_environment; pre_engagement = risk_situation, protected_value. activation_keyword est optionnel et seulement pour pre_engagement si le user le donne, le demande ou le valide.",
     "Retourne uniquement le JSON strict conforme au schema fourni.",
@@ -1422,6 +2013,16 @@ export async function runPrepareAttackCardLocalDispatcher(
     recent_messages: input.recent_messages,
     active_attack_card_state: input.active_state,
     local_state: input.local_state,
+    note_information_inbound: input.note_information_inbound ?? null,
+    db_context_pack: input.db_context_pack ?? null,
+    micro_memory_context: input.micro_memory_context ?? null,
+    platform_context: input.platform_context ?? null,
+    parent_flow_context: input.parent_flow_context ?? null,
+    risk_context: input.risk_context ?? null,
+    available_inline_tools: input.available_inline_tools ?? [
+      "product_help",
+      "status_recap",
+    ],
     route_decision_context_only: input.route_decision,
     turn_frame_context_only: input.turn_frame,
     plan_snapshot: input.plan_snapshot ?? null,
@@ -1431,7 +2032,7 @@ export async function runPrepareAttackCardLocalDispatcher(
     platform_fields_by_technique: ATTACK_CARD_PLATFORM_FIELD_DEFINITIONS,
     required_json_shape: {
       flow_action:
-        "answer_current_field|confirm_proposed_field|choose_technique|confirm_technique_proposal|revise_current_field|revise_technique|revise_target|get_info_product|get_info_db|handoff_ready|repeat_handoff|platform_destination_followup|apply_attempt|cancel_flow|exit_to_global_dispatcher|safety_preempt",
+        "continue_local|missing_info|confirm_candidate|answer_current_field|confirm_proposed_field|choose_technique|confirm_technique_proposal|revise_current_field|revise_technique|revise_target|revise|get_info_product|get_info_db|inline_product|inline_status|handoff_ready|repeat_handoff|platform_destination_followup|destination_followup|apply_attempt|stop_local_no_handoff|cancel_flow|defer_flow|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
       confidence: "low|medium|high",
       stage:
         "target_intake|blocker_intake|technique_selection|platform_field_intake|handoff_ready|handoff_delivered|exit",
@@ -1443,7 +2044,27 @@ export async function runPrepareAttackCardLocalDispatcher(
       platform_field_states: "array",
       activation_keyword_state: "object",
       revision: "object",
-      visible_task: "object",
+      visible_task: {
+        kind:
+          "ask_target|confirm_target_candidate|ask_blocker|ask_or_confirm_technique|ask_platform_field|confirm_platform_field_proposal|handoff_ready|revision_done|destination_short|apply_attempt|repeat_handoff|inline_tool_return|stop_or_cancel|exit_ack|exit_or_cancel|safety|safety_transition|none",
+        conversation_context:
+          "object filtered for visible prompt only; no raw DB pack or raw memory",
+      },
+      note_information: {
+        needed: "boolean",
+        source_flow: "prepare_attack_card",
+        target_dispatcher:
+          "global|safety_crisis|product_help|status_recap|prepare_defense_card|select_state_potion|other_local|null",
+        handoff_reason:
+          "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|null",
+        user_message_summary: "string|null",
+        active_flow_summary: "string|null",
+        collected_state: "object",
+        unresolved_questions: "array",
+        confidence: "low|medium|high",
+        evidence: "array",
+        recommended_next_focus: "string|null",
+      },
       subskill_call: {
         needed: "boolean",
         skill_id: "product_help|status_recap|null",

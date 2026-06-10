@@ -20,13 +20,3 @@ export function buildAdjustPlanConfirmationDecision(args: {
     request_id: args.request_id ?? null,
   });
 }
-
-// Temporary bridge for legacy callers that still gate some weekly adjust-plan
-// confirmations before the structured draft_validation intake has run.
-export function legacyAdjustPlanApproveReview(
-  approved: boolean,
-): { decision: "approve" | "unclear"; confidence: "medium" | "low" } {
-  return approved
-    ? { decision: "approve", confidence: "medium" }
-    : { decision: "unclear", confidence: "low" };
-}

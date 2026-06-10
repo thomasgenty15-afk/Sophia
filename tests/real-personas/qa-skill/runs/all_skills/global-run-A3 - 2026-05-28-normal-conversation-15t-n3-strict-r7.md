@@ -65,7 +65,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `none`
 - skill_entry_ids: `["product_help"]`
 - executed_tools: `[]`
@@ -309,7 +309,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - executed_tools: `[]`
 - durable_effect: aucun nouveau side effect
@@ -343,7 +343,7 @@
 
 **Routage**
 - Tour 1: `attack_card_cancelled_to_conversation` et `opportunity=none` sont corrects.
-- Tour 3: product help est détecté dans `skill_entry_ids`, mais `status_only_request_blocks_tool_start` prend le dessus. C'est le principal échec système restant.
+- Tour 3: product help est détecté dans `skill_entry_ids`, mais `status_recap_request_blocks_tool_start` prend le dessus. C'est le principal échec système restant.
 - Tours 5-8: `prepare_defense_card` fonctionne, même si le tour 6 porte une trace incohérente `response_owner=product_help` pendant un flow de défense.
 - Tours 9-10: `update_coach_preferences` est prioritaire et exécute correctement.
 - Tours 11-13: `prepare_attack_card` crée correctement la carte après confirmation, mais ne respecte pas la contrainte `une seule proposition`.

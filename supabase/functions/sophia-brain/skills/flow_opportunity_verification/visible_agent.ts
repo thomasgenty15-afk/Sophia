@@ -2,8 +2,12 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
+import {
+  VISIBLE_OUTPUT_STYLE_RULES,
+  visibleOutputStyleIssues,
+} from "../../router/response_style_policy.ts";
 import type {
-  FlowOpportunityLocalState,
+  FlowOpportunityConversationContext,
   FlowOpportunityVisibleTaskKind,
 } from "./contract.ts";
 
@@ -11,10 +15,7 @@ export type FlowOpportunityVisibleAgentInput = {
   user_id: string;
   request_id?: string | null;
   stage: FlowOpportunityVisibleTaskKind;
-  user_message: string;
-  recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
-  local_state: FlowOpportunityLocalState | null;
-  dispatcher_instruction?: string | null;
+  conversation_context: FlowOpportunityConversationContext;
 };
 
 export type FlowOpportunityVisibleAgent = (
@@ -47,27 +48,27 @@ function stageInstruction(stage: FlowOpportunityVisibleTaskKind): string {
       return "Propose une aide de remobilisation courte, sans moraliser.";
     case "reanchor_offer_after_product_help":
       return "Rappelle sobrement l'offre initiale apres l'explication produit.";
-    case "accept_and_launch_status_recap":
+    case "handoff_status_recap_ready":
       return "Transition minimale vers status_recap; ne rends pas le status toi-meme.";
-    case "accept_and_launch_target_flow":
+    case "handoff_target_flow_ready":
       return "Transition minimale vers le flow cible; ne promets pas d'effet final.";
     case "decline_ack":
       return "Confirme sans insister que l'opportunite n'est pas lancee.";
-    case "repeat_offer":
+    case "repeat_current_state":
       return "Repete l'offre initiale sans changer de flow.";
     case "revise_focus_question":
       return "Pose une seule question ou confirme le nouveau focus.";
     case "correct_target_flow_ack":
       return "Acte la correction sans executer l'effet final.";
-    case "unsupported_inside_flow":
+    case "blocked_or_unsupported":
       return "Explique sobrement que la demande inline n'est pas couverte.";
-    case "stale_or_already_answered":
+    case "complete_or_stale":
       return "Cloture sans relancer l'opportunite.";
-    case "cancel_or_exit":
+    case "stop_or_cancel":
       return "Confirme la sortie ou l'annulation, sans nouvelle proposition.";
-    case "handoff_to_global":
+    case "exit_ack":
       return "Message tres court ou vide si le meme message sera reprocess.";
-    case "safety":
+    case "safety_transition":
       return "Ne propose rien; transition minimale vers safety.";
     case "offer_target_flow_generic":
       return "Propose le flow cible sans inventer ses capacites.";
@@ -76,59 +77,20 @@ function stageInstruction(stage: FlowOpportunityVisibleTaskKind): string {
   }
 }
 
-function fallbackVisibleMessage(
-  input: FlowOpportunityVisibleAgentInput,
-): string {
-  const target = input.local_state?.target_flow ?? "ce point";
-  switch (input.stage) {
-    case "offer_status_recap":
-      return "Tu veux que je te fasse un rappel rapide de ce qui est actif ?";
-    case "offer_preference_update":
-      return "Tu veux qu'on regarde si ça mérite un ajustement de tes préférences coach ?";
-    case "offer_emotional_repair":
-      return "Tu veux qu'on prenne ça par un petit point émotionnel plutôt que de pousser l'action ?";
-    case "offer_demotivation_repair":
-      return "Tu veux qu'on fasse un mini-reset pour retrouver un peu d'élan ?";
-    case "reanchor_offer_after_product_help":
-      return "Du coup, tu veux que je reprenne l'offre initiale maintenant ?";
-    case "accept_and_launch_status_recap":
-      return "Ok, je te fais le rappel.";
-    case "accept_and_launch_target_flow":
-      return "Ok, je bascule sur ça.";
-    case "decline_ack":
-      return "Ok, je ne lance pas ça.";
-    case "repeat_offer":
-      return `Je te proposais de lancer ${target}. Tu veux qu'on le fasse ?`;
-    case "revise_focus_question":
-      return "Tu veux que je le fasse sur quel focus exactement ?";
-    case "correct_target_flow_ack":
-      return "Ok, je change de direction.";
-    case "unsupported_inside_flow":
-      return "Je ne peux pas traiter ça dans cette vérification.";
-    case "stale_or_already_answered":
-      return "Ok, je laisse cette proposition de côté.";
-    case "cancel_or_exit":
-      return "Ok, on sort de cette proposition.";
-    case "safety":
-      return "Je mets cette proposition de côté.";
-    case "handoff_to_global":
-    case "none":
-      return "";
-    case "offer_target_flow_generic":
-      return `Tu veux que je lance ${target} ?`;
-  }
-}
-
 function visibleSystemPrompt(input: FlowOpportunityVisibleAgentInput): string {
+  const stage = input.stage;
   return [
-    "Tu es l'agent visible du flow flow_opportunity_verification.",
-    "Tu écris uniquement le prochain message visible de Sophia.",
+    `Tu es l'agent conversationnel local stage-specific: ${stage}.`,
+    "Tu écris uniquement le prochain message visible de Sophia pour ce stage.",
     "Tu ne routes pas, tu ne choisis pas le flow, tu ne valides pas de mutation.",
+    "Tu utilises uniquement visible_task.conversation_context. Aucun autre contexte n'est disponible.",
     "N'affirme jamais qu'une preference, carte, potion, rappel ou plan a ete modifie sans commit du flow cible.",
     "Ne mentionne jamais JSON, dispatcher, reducer, DB, table, prompt ou outil interne.",
     "Ne rends pas product_help; si product_help est appele, sa reponse visible appartient a product_help.",
     "Ne rends pas status_recap; le flow status_recap rendra les faits DB-grounded.",
-    stageInstruction(input.stage),
+    VISIBLE_OUTPUT_STYLE_RULES,
+    stageInstruction(stage),
+    "Style: court, naturel, une seule question maximum si une question est necessaire.",
     'Retourne uniquement un JSON strict: {"message":"..."}.',
   ].join("\n");
 }
@@ -136,16 +98,16 @@ function visibleSystemPrompt(input: FlowOpportunityVisibleAgentInput): string {
 export async function runFlowOpportunityVisibleAgent(
   input: FlowOpportunityVisibleAgentInput,
 ): Promise<string | null> {
-  if (input.stage === "none" || input.stage === "handoff_to_global") {
+  if (input.stage === "none" || input.stage === "exit_ack") {
     return "";
   }
   const userPrompt = JSON.stringify({
     task: "write_flow_opportunity_visible_message",
     stage: input.stage,
-    current_user_message: input.user_message,
-    recent_messages: input.recent_messages,
-    local_state: input.local_state,
-    dispatcher_instruction: input.dispatcher_instruction ?? null,
+    visible_task: {
+      kind: input.stage,
+      conversation_context: input.conversation_context,
+    },
     hard_constraints: {
       toolExecution: "none",
       executedTools: [],
@@ -176,9 +138,12 @@ export async function runFlowOpportunityVisibleAgent(
         maxRetries: 1,
       },
     );
-    return parseVisibleMessage(raw) ?? fallbackVisibleMessage(input);
+    const message = parseVisibleMessage(raw);
+    return message && visibleOutputStyleIssues(message).length === 0
+      ? message
+      : null;
   } catch (error) {
     console.warn("[FlowOpportunityVerification] visible agent failed", error);
-    return fallbackVisibleMessage(input);
+    return null;
   }
 }

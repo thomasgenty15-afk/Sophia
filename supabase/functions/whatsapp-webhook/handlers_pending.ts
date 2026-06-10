@@ -19,9 +19,6 @@ import {
   updateUserState,
 } from "../sophia-brain/state-manager.ts";
 import {
-  ACTION_EVENING_DONE_ID,
-  ACTION_EVENING_MISSED_ID,
-  ACTION_EVENING_PARTIAL_ID,
   ACTION_EVENING_REVIEW_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
 import {
@@ -32,15 +29,11 @@ import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 import {
   DAILY_ACTION_REVIEW_SOURCE,
   type DailyActionAppliedOutcome,
-  type DailyActionOutcome,
-  type DailyActionReviewSkillResult,
   type DailyActionReviewTarget,
-  dayLabel,
   isAppliedDailyOutcome,
   isHabitDimension,
   nextDayAfter,
   occurrenceStatusForDailyOutcome,
-  runDailyActionReviewFollowupSkill,
   stateFromUnknown,
 } from "../_shared/daily_action_review.ts";
 import {
@@ -49,15 +42,10 @@ import {
   runDailyActionReviewLocalFlow,
   runDailyActionReviewVisibleAgent,
 } from "../_shared/daily_action_review/local_flow.ts";
-import { buildDailyReviewEffectPlan } from "../_shared/daily_action_review/effects.ts";
 import {
   dailyReviewEffectsFullyCommitted,
   executeDailyReviewEffectPlan,
 } from "../_shared/daily_action_review/executor.ts";
-import {
-  dailyReviewFinalMessageRequiresCommit,
-  renderDailyReviewCommitFailureMessage,
-} from "../_shared/daily_action_review/renderer.ts";
 
 type DailyOccurrenceOutcomeApplyResult = {
   status: string;
@@ -142,24 +130,6 @@ function nextDateYmd(localDate: string): string {
   return date.toISOString().slice(0, 10);
 }
 
-function eveningReviewDecisionFromActionId(actionIdRaw: unknown):
-  | { occurrenceStatus: "done"; entryOutcome: "completed" }
-  | { occurrenceStatus: "partial"; entryOutcome: "partial" }
-  | { occurrenceStatus: "missed"; entryOutcome: "missed" }
-  | null {
-  const actionId = String(actionIdRaw ?? "").trim();
-  if (actionId === ACTION_EVENING_DONE_ID) {
-    return { occurrenceStatus: "done", entryOutcome: "completed" };
-  }
-  if (actionId === ACTION_EVENING_PARTIAL_ID) {
-    return { occurrenceStatus: "partial", entryOutcome: "partial" };
-  }
-  if (actionId === ACTION_EVENING_MISSED_ID) {
-    return { occurrenceStatus: "missed", entryOutcome: "missed" };
-  }
-  return null;
-}
-
 function entryKindForEveningReview(target: any, outcome: string) {
   if (outcome === "missed") return "skip";
   if (outcome === "partial") return "partial";
@@ -177,156 +147,246 @@ function isMissionTarget(target: DailyActionReviewTarget): boolean {
   return dimension === "missions" || kind === "mission" || kind === "task";
 }
 
-function isClarificationTarget(target: DailyActionReviewTarget): boolean {
-  const dimension = String(target?.dimension ?? "").trim();
-  const kind = String(target?.kind ?? "").trim();
-  return dimension === "clarifications" || kind === "clarification";
-}
-
-function actionTypeForDailyTarget(
-  target: DailyActionReviewTarget,
-): "habit" | "mission" | "clarification" {
-  if (isHabitDimension(target.dimension)) return "habit";
-  if (isClarificationTarget(target)) return "clarification";
-  return "mission";
-}
-
-function buildClarificationPartialFollowup(
-  parsed: DailyActionReviewSkillResult,
-  targets: DailyActionReviewTarget[],
-): DailyActionReviewSkillResult | null {
-  const partialClarifications = targets.filter((target) =>
-    isClarificationTarget(target) &&
-    parsed.state.items[target.occurrence_id]?.outcome === "partial"
-  );
-  if (partialClarifications.length === 0) return null;
-
-  const nextTargets = partialClarifications.slice(0, 2);
-  const nextTargetIds = nextTargets.map((target) => target.occurrence_id);
-  for (const target of partialClarifications) {
-    const item = parsed.state.items[target.occurrence_id];
-    if (!item) continue;
-    item.outcome = "unclear";
-    item.reason_category = null;
-    item.still_relevant = "unknown";
-    item.missing_slots = ["outcome"];
-  }
-
-  const labels = nextTargets.map((target) => `« ${target.title} »`);
-  const subject = labels.length === 1
-    ? labels[0]
-    : `${labels.slice(0, -1).join(", ")} et ${labels[labels.length - 1]}`;
-  const message = labels.length === 1
-    ? `Pour ${subject}, je ne veux pas le noter à moitié : tu veux que je le compte fait ou pas fait ?`
-    : `Pour ${subject}, je ne veux pas les noter à moitié : tu veux que je les compte faits ou pas faits ?`;
-
-  parsed.state.status = "needs_clarification";
-  parsed.state.should_apply_effects = false;
-  parsed.state.effect_plan = { allowed: false, effects: [] };
-  parsed.state.stop_reason = null;
-  parsed.state.current_focus_occurrence_ids = nextTargetIds;
-  parsed.state.next_question_targets = nextTargetIds;
-  parsed.state.remaining_occurrence_ids = [
-    ...new Set([
-      ...nextTargetIds,
-      ...parsed.state.remaining_occurrence_ids.filter((id) =>
-        !nextTargetIds.includes(id)
-      ),
-    ]),
-  ];
-  parsed.state.next_question = message;
-  parsed.state.generated_user_message = message;
+function buildDailyActionReviewDbContextPack(params: {
+  pending: any;
+  payload: Record<string, unknown>;
+  targets: DailyActionReviewTarget[];
+  localDate: string;
+  timezone: string;
+}): Record<string, unknown> {
   return {
-    ...parsed,
-    missingOccurrenceIds: parsed.state.remaining_occurrence_ids,
-    nextQuestion: message,
-    generatedUserMessage: message,
-    shouldApplyEffects: false,
+    source: "whatsapp_pending_actions.payload",
+    freshness: "current_pending",
+    confidence: "high",
+    pending_action_id: String(params.pending?.id ?? "").trim(),
+    scheduled_checkin_id:
+      String(params.pending?.scheduled_checkin_id ?? "").trim() || null,
+    local_date: params.localDate,
+    timezone: params.timezone,
+    chat_capability: "daily_action_review",
+    event_context: params.payload?.event_context ?? null,
+    targets: params.targets.map((target) => ({
+      occurrence_id: target.occurrence_id,
+      plan_id: target.plan_id,
+      plan_item_id: target.plan_item_id,
+      title: target.title,
+      dimension: target.dimension ?? null,
+      kind: target.kind ?? null,
+      tracking_type: target.tracking_type ?? null,
+      planned_day: target.planned_day ?? null,
+      week_start_date: target.week_start_date ?? null,
+      reviewed_local_date: (target as any).reviewed_local_date ?? null,
+      source: "pending_payload",
+      confidence: "high",
+    })),
+    review_state_source: "pending_payload.review_state",
+    evidence: ["pending daily_action_review selected before global routing"],
   };
 }
 
-function buildDailyActionReviewMissingQuestion(
-  parsed: DailyActionReviewSkillResult,
-  targets: DailyActionReviewTarget[],
-): string {
-  const targetById = new Map(targets.map((target) => [
-    target.occurrence_id,
-    target,
-  ]));
-  const missingStillRelevantTargets = parsed.missingOccurrenceIds
-    .map((id) => targetById.get(id))
-    .filter((target): target is DailyActionReviewTarget => Boolean(target))
-    .filter((target) => {
-      const item = parsed.state.items[target.occurrence_id];
-      return item?.outcome === "missed" &&
-        item.missing_slots.includes("still_relevant");
-    });
-  if (missingStillRelevantTargets.length === 1) {
-    return `Tu veux qu'on reporte « ${
-      missingStillRelevantTargets[0].title
-    } » à demain ?`;
+function buildDailyActionReviewActivationNoteInformation(params: {
+  pending: any;
+  payload: Record<string, unknown>;
+  targets: DailyActionReviewTarget[];
+  localDate: string;
+  timezone: string;
+}): Record<string, unknown> {
+  const existing = params.payload?.initial_note_information;
+  if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+    return existing as Record<string, unknown>;
   }
-  if (missingStillRelevantTargets.length > 1) {
-    const titles = missingStillRelevantTargets.map((target) =>
-      `« ${target.title} »`
-    ).join(" et ");
-    return `Tu veux qu'on reporte ${titles} à demain ?`;
-  }
-
-  const missingOutcomeTargets = parsed.missingOccurrenceIds
-    .map((id) => targetById.get(id))
-    .filter((target): target is DailyActionReviewTarget => Boolean(target));
-  if (missingOutcomeTargets.length === 1) {
-    return `Pour « ${
-      missingOutcomeTargets[0].title
-    } », tu veux que je le compte fait ou pas fait ?`;
-  }
-  if (missingOutcomeTargets.length > 1) {
-    const titles = missingOutcomeTargets.slice(0, 2).map((target) =>
-      `« ${target.title} »`
-    ).join(" et ");
-    return `Pour ${titles}, tu veux que je les compte faits ou pas faits ?`;
-  }
-
-  return "Il me manque juste une info pour noter correctement le check. Tu peux me dire ce qui s'est passé ?";
+  const alreadyResolvedTargets = Array.isArray(
+      params.payload?.already_resolved_targets,
+    )
+    ? params.payload.already_resolved_targets as Array<Record<string, unknown>>
+    : [];
+  return {
+    source_flow_id: "process_checkins.action_evening_review_v2",
+    source_flow: "process_checkins",
+    source_flow_presentation:
+      "Evening system event opened the daily action review for selected planned actions.",
+    source_flow_state_summary:
+      "Daily action review pending action is active and waiting for the user's outcome evidence.",
+    handoff_reason: "bridge",
+    target_dispatcher: "daily_action_review_v1",
+    handoff_context_for_next_dispatcher:
+      "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher.",
+    target_local_dispatcher_hint: "daily_action_review_v1",
+    user_message_summary: null,
+    active_flow_summary:
+      "System opened daily review for the selected action targets.",
+    collected_state: {
+      pending_action_id: cleanText(params.pending?.id) || null,
+      scheduled_checkin_id: cleanText(params.pending?.scheduled_checkin_id) ||
+        null,
+      event_context: params.payload?.event_context ?? null,
+      local_date: params.localDate,
+      week_start_date: cleanText(params.payload?.week_start_date) || null,
+      timezone: params.timezone,
+      target_occurrence_ids: params.targets.map((target) =>
+        target.occurrence_id
+      ),
+      target_titles: params.targets.map((target) => target.title),
+      already_resolved_occurrence_ids: alreadyResolvedTargets.map((target) =>
+        cleanText(target?.occurrence_id)
+      ).filter(Boolean),
+    },
+    unresolved_questions: [
+      "Which selected actions were completed, partial, or missed today.",
+      "If partial or missed, the evidence/reason needed by the reducer.",
+    ],
+    confidence: "high",
+    evidence: [
+      "event_context=action_evening_review_v2",
+      "pending payload selected the daily_action_review targets",
+    ],
+    recommended_next_focus:
+      "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+    structured_context: {
+      source_flow: "process_checkins",
+      pending_action_kind: "scheduled_checkin",
+      chat_capability: "daily_action_review",
+      event_context: params.payload?.event_context ?? null,
+      targets: params.targets.map((target) => ({
+        occurrence_id: target.occurrence_id,
+        plan_item_id: target.plan_item_id,
+        title: target.title,
+        kind: target.kind ?? null,
+        dimension: target.dimension ?? null,
+      })),
+    },
+    risk_score: 0,
+    no_chat_mutation: {
+      db_write_committed: false,
+      potion_session_created: false,
+      scheduled_checkin_created: false,
+      recurring_reminder_created: false,
+      executable_confirmation_generated: false,
+    },
+  };
 }
 
-function buildDailyActionReviewFallbackFinalMessage(params: {
-  parsed: DailyActionReviewSkillResult;
+function buildDailyActionReviewMicroMemoryContext(params: {
+  payload: Record<string, unknown>;
   targets: DailyActionReviewTarget[];
-  rescheduleByOccurrenceId: Map<string, string | null>;
-  continuationPlanItemByOccurrenceId: Map<string, string | null>;
-  continuationPlannedDayByOccurrenceId: Map<string, string | null>;
-}): string {
-  const lines = params.targets.flatMap((target) => {
-    const state = params.parsed.state.items[target.occurrence_id];
-    if (!isAppliedDailyOutcome(state?.outcome)) return [];
-    const label = state.outcome === "completed"
-      ? "fait"
-      : state.outcome === "partial" && isHabitDimension(target.dimension)
-      ? "partiellement fait, compté comme OK"
-      : state.outcome === "partial" && isMissionTarget(target)
-      ? "1ère partie faite"
-      : state.outcome === "partial"
-      ? "partiellement fait"
-      : "pas fait";
-    const rescheduledTo = params.rescheduleByOccurrenceId.get(
-      target.occurrence_id,
-    );
-    const continuationPlannedDay = params.continuationPlannedDayByOccurrenceId
-      .get(target.occurrence_id);
-    const hasContinuation = Boolean(
-      params.continuationPlanItemByOccurrenceId.get(target.occurrence_id),
-    );
-    const suffix = rescheduledTo
-      ? `, reporté à ${dayLabel(rescheduledTo)}`
-      : hasContinuation && continuationPlannedDay
-      ? `, suite prévue ${dayLabel(continuationPlannedDay)}`
-      : "";
-    return [`- ${target.title}: ${label}${suffix}`];
+}): Record<string, unknown> {
+  const intelligence = params.payload?.action_intelligence_by_occurrence_id ??
+    (params.payload?.review_state as any)?.action_intelligence_by_occurrence_id;
+  const root = intelligence && typeof intelligence === "object" &&
+      !Array.isArray(intelligence)
+    ? intelligence as Record<string, unknown>
+    : {};
+  const items = params.targets.flatMap((target) => {
+    const value = root[target.occurrence_id];
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    return [{
+      summary: JSON.stringify(value).slice(0, 600),
+      source: "action_memory",
+      linked_object: {
+        type: "plan_item",
+        id: target.plan_item_id,
+        label: target.title,
+      },
+      freshness: "recent",
+      confidence: "medium",
+      evidence: [`action intelligence for occurrence ${target.occurrence_id}`],
+      sensitivity: "normal",
+    }];
+  }).slice(0, 4);
+  return {
+    items,
+    exclusions: [
+      "No raw global memory dump.",
+      "No safety memory loaded by daily_action_review.",
+    ],
+    budget: {
+      max_items: 4,
+      reason:
+        "Only action-linked daily context can help classify the current review answer.",
+    },
+  };
+}
+
+function buildDailyActionReviewSafetyActiveState(params: {
+  nowIso: string;
+  summary: string | null;
+  riskScore: number;
+  noteInformation: unknown;
+}): Record<string, unknown> {
+  return {
+    skill_id: "safety_crisis",
+    status: "active",
+    mode: "local_safety_flow",
+    turn_count: 0,
+    max_turns: 8,
+    created_at: params.nowIso,
+    updated_at: params.nowIso,
+    working_state: {
+      phase: "entry",
+      risk_band: params.riskScore >= 8 ? "high" : "medium",
+      trigger_summary: params.summary ??
+        "Safety signal detected by daily_action_review local dispatcher.",
+      last_user_safety_signal: params.summary ?? null,
+      source_note_information: params.noteInformation ?? null,
+    },
+  };
+}
+
+function dailyVisibleKindForCurrentState(
+  parsed: { state: any },
+): Parameters<typeof runDailyActionReviewVisibleAgent>[0]["kind"] {
+  const items = Object.values(parsed.state.items ?? {}) as any[];
+  if (
+    items.some((item) =>
+      item?.outcome === "missed" &&
+      Array.isArray(item?.missing_slots) &&
+      item.missing_slots.includes("still_relevant")
+    )
+  ) return "clarify_still_relevant";
+  if (
+    items.some((item) =>
+      item?.outcome === "partial" &&
+      Array.isArray(item?.missing_slots) &&
+      item.missing_slots.includes("completion_level")
+    )
+  ) return "clarify_completion_level";
+  if (
+    items.some((item) =>
+      (item?.outcome === "partial" || item?.outcome === "missed") &&
+      Array.isArray(item?.missing_slots) &&
+      item.missing_slots.includes("reason")
+    )
+  ) return "clarify_reason";
+  return "clarify_outcome";
+}
+
+async function requireDailyVisibleMessage(params: {
+  kind: Parameters<typeof runDailyActionReviewVisibleAgent>[0]["kind"];
+  targets: DailyActionReviewTarget[];
+  state: any;
+  dispatcherOutput?:
+    | DailyActionReviewLocalFlowResult["dispatcherOutput"]
+    | null;
+  committedEffects?: any[];
+  failedEffects?: any[];
+  currentDailyQuestion?: string | null;
+  requestId: string;
+  userId: string;
+  errorCode: string;
+}): Promise<string> {
+  const visible = await runDailyActionReviewVisibleAgent({
+    kind: params.kind,
+    targets: params.targets,
+    state: params.state,
+    dispatcherOutput: params.dispatcherOutput ?? null,
+    committedEffects: params.committedEffects as any,
+    failedEffects: params.failedEffects as any,
+    currentDailyQuestion: params.currentDailyQuestion ?? null,
+    requestId: params.requestId,
+    userId: params.userId,
   });
-  if (lines.length === 0) return "C'est noté pour ce soir.";
-  return ["C'est noté pour ce soir :", ...lines].join("\n");
+  if (!visible) throw new Error(params.errorCode);
+  return visible;
 }
 
 function asPlanItemEntryKind(value: string):
@@ -426,320 +486,6 @@ function normalizeDailyTargets(value: unknown): DailyActionReviewTarget[] {
         null,
     }];
   });
-}
-
-function isDailyReviewRecapRequest(text: string): boolean {
-  const t = String(text ?? "").trim().toLowerCase();
-  if (!t) return false;
-  return (
-    /\b(récap|recap|bilan|résumé|resume|retenu|noté|gardé|enregistré)\b/
-      .test(t) ||
-    /\bce qu['’]?on vient de faire\b/.test(t) ||
-    /\b(tu\s+as|t['’]?as|vous avez)\s+(mis|marqué|marque)\s+quoi\b/.test(t) ||
-    /\b(qu['’]?est-ce que|ce que)\s+(tu\s+as|t['’]?as|vous avez)\s+(mis|marqué|marque)\b/
-      .test(t) ||
-    /\bréussite nickel\b|\breussite nickel\b/.test(t) ||
-    /\b(transformé|transforme)\s+.*\b(réussite|reussite|fait|validé|valide)\b/
-      .test(t) ||
-    (/\b(report|reporté|reporte|reportée|reportee|demain)\b/.test(t) &&
-      /\b(rien|aucun|pas|vérifier|verifier|d['’]?accord|accord)\b/.test(t)) ||
-    /\bqu['’]?est-ce que tu as (retenu|noté|note|gardé|garde|enregistré|enregistre)\b/
-      .test(t) ||
-    /\btu as (retenu|noté|note|gardé|garde|enregistré|enregistre) quoi\b/
-      .test(t)
-  );
-}
-
-function dailyOutcomeLabel(outcome: unknown): string {
-  const raw = String(outcome ?? "").trim();
-  if (raw === "completed") return "fait";
-  if (raw === "partial") return "partiellement fait";
-  if (raw === "missed") return "pas fait";
-  return "non clarifié";
-}
-
-function isDailyReportCheck(text: string): boolean {
-  const t = String(text ?? "").trim().toLowerCase();
-  return /\b(report|reporté|reporte|reportée|reportee|demain)\b/.test(t);
-}
-
-function buildDailyReviewRecapMessage(
-  payload: any,
-  inboundText = "",
-): string | null {
-  const targets = normalizeDailyTargets(payload?.targets);
-  const state = stateFromUnknown(payload?.review_state, targets);
-  const lines = targets.flatMap((target) => {
-    const item = state.items[target.occurrence_id];
-    if (!item) return [];
-    const label = dailyOutcomeLabel(item.outcome);
-    const detail = String(item.reason_text ?? "").trim();
-    const reason = String(item.reason_category ?? "").trim();
-    const suffix = detail
-      ? ` (${detail})`
-      : reason && !["none", "unclear"].includes(reason)
-      ? ` (${reason})`
-      : "";
-    return [`- ${target.title} : ${label}${suffix}`];
-  });
-  if (lines.length === 0) return null;
-  const hasMissedStillRelevant = Object.values(state.items ?? {}).some((
-    item: any,
-  ) => item?.outcome === "missed" && item?.still_relevant === true);
-  const reportLine = isDailyReportCheck(inboundText) && !hasMissedStillRelevant
-    ? ["Je n'ai noté aucun report à demain dans ce bilan."]
-    : [];
-  return [
-    "Voilà ce que j'ai noté pour le bilan qu'on vient de faire :",
-    ...lines,
-    ...reportLine,
-    "Je ne change rien d'autre dans ton plan.",
-  ].join("\n");
-}
-
-async function buildDailyReviewFollowupContext(params: {
-  admin: any;
-  userId: string;
-  pending: any;
-}) {
-  const payload = params.pending?.payload ?? {};
-  const targets = normalizeDailyTargets(payload?.targets);
-  const alreadyResolvedTargets = normalizeDailyTargets(
-    payload?.already_resolved_targets,
-  );
-  const state = stateFromUnknown(payload?.review_state, targets);
-  const allTargets = [...targets, ...alreadyResolvedTargets];
-  const planItemIds = [
-    ...new Set(
-      allTargets.map((target) => target.plan_item_id).filter(Boolean),
-    ),
-  ];
-  const entries = planItemIds.length > 0
-    ? (await params.admin
-      .from("user_plan_item_entries")
-      .select(
-        "id,plan_item_id,outcome,entry_kind,value_text,metadata,created_at,effective_at",
-      )
-      .eq("user_id", params.userId)
-      .in("plan_item_id", planItemIds)
-      .order("created_at", { ascending: false })
-      .limit(40)).data ?? []
-    : [];
-  const entryByPlanItemId = new Map<string, any>();
-  for (const entry of entries) {
-    const planItemId = String(entry?.plan_item_id ?? "").trim();
-    if (!planItemId || entryByPlanItemId.has(planItemId)) continue;
-    entryByPlanItemId.set(planItemId, entry);
-  }
-
-  const continuationIds = [
-    ...new Set(
-      entries.map((entry: any) =>
-        String(entry?.metadata?.continuation_plan_item_id ?? "").trim()
-      ).filter(Boolean),
-    ),
-  ];
-  const continuationItems = continuationIds.length > 0
-    ? (await params.admin
-      .from("user_plan_items")
-      .select(
-        "id,title,dimension,kind,status,payload,defense_card_id,attack_card_id",
-      )
-      .eq("user_id", params.userId)
-      .in("id", continuationIds)).data ?? []
-    : [];
-  const continuationOccurrences = continuationIds.length > 0
-    ? (await params.admin
-      .from("user_habit_week_occurrences")
-      .select("id,plan_item_id,planned_day,status,week_start_date")
-      .eq("user_id", params.userId)
-      .in("plan_item_id", continuationIds)).data ?? []
-    : [];
-  const defenseCards = continuationIds.length > 0
-    ? (await params.admin
-      .from("user_defense_cards")
-      .select("id,plan_item_id,metadata")
-      .eq("user_id", params.userId)
-      .in("plan_item_id", continuationIds)).data ?? []
-    : [];
-  const attackCards = continuationIds.length > 0
-    ? (await params.admin
-      .from("user_attack_cards")
-      .select("id,plan_item_id,metadata")
-      .eq("user_id", params.userId)
-      .in("plan_item_id", continuationIds)).data ?? []
-    : [];
-  const continuationById = new Map(
-    continuationItems.map((item: any) => [String(item.id), item]),
-  );
-  const continuationOccurrenceByPlanItemId = new Map(
-    continuationOccurrences.map((occurrence: any) => [
-      String(occurrence.plan_item_id),
-      occurrence,
-    ]),
-  );
-  const defenseCountByPlanItemId = new Map<string, number>();
-  for (const card of defenseCards) {
-    const key = String(card?.plan_item_id ?? "").trim();
-    if (!key) continue;
-    defenseCountByPlanItemId.set(
-      key,
-      (defenseCountByPlanItemId.get(key) ?? 0) + 1,
-    );
-  }
-  const attackCountByPlanItemId = new Map<string, number>();
-  for (const card of attackCards) {
-    const key = String(card?.plan_item_id ?? "").trim();
-    if (!key) continue;
-    attackCountByPlanItemId.set(
-      key,
-      (attackCountByPlanItemId.get(key) ?? 0) + 1,
-    );
-  }
-
-  function actionContext(
-    target: DailyActionReviewTarget,
-    source: "reviewed" | "already_resolved",
-  ) {
-    const item = state.items[target.occurrence_id];
-    const entry = entryByPlanItemId.get(target.plan_item_id);
-    const continuationId = String(
-      entry?.metadata?.continuation_plan_item_id ?? "",
-    ).trim();
-    const continuation = continuationId
-      ? continuationById.get(continuationId) as any
-      : null;
-    const continuationOccurrence = continuationId
-      ? continuationOccurrenceByPlanItemId.get(continuationId) as any
-      : null;
-    const outcome = source === "already_resolved"
-      ? String(
-        (target as any)?.resolved_status ?? entry?.outcome ?? "completed",
-      )
-      : String(item?.outcome ?? entry?.outcome ?? "unknown");
-    return {
-      source,
-      title: target.title,
-      plan_id: target.plan_id,
-      plan_label: target.plan_label ?? null,
-      plan_item_id: target.plan_item_id,
-      occurrence_id: target.occurrence_id,
-      action_type: source === "already_resolved"
-        ? actionTypeForDailyTarget(target)
-        : item?.action_type ?? actionTypeForDailyTarget(target),
-      outcome,
-      human_label: dailyOutcomeLabel(outcome),
-      reason_text: String(
-        item?.reason_text ?? entry?.metadata?.reason_text ?? "",
-      ).trim() || null,
-      daily_decision: String(entry?.metadata?.daily_decision ?? "").trim() ||
-        null,
-      entry_kind: String(entry?.entry_kind ?? "").trim() || null,
-      continuation: continuation
-        ? {
-          title: String(continuation.title ?? "").trim(),
-          plan_item_id: continuationId,
-          occurrence_id: String(
-            entry?.metadata?.continuation_occurrence_id ??
-              continuationOccurrence?.id ?? "",
-          ).trim() || null,
-          planned_day: String(
-            entry?.metadata?.continuation_planned_day ??
-              continuationOccurrence?.planned_day ?? "",
-          ).trim() || null,
-          planned_day_label: dayLabel(
-            String(
-              entry?.metadata?.continuation_planned_day ??
-                continuationOccurrence?.planned_day ?? "",
-            ).trim(),
-          ),
-          defense_cards_duplicated:
-            defenseCountByPlanItemId.get(continuationId) ??
-              0,
-          attack_cards_duplicated:
-            attackCountByPlanItemId.get(continuationId) ??
-              0,
-        }
-        : null,
-    };
-  }
-
-  return {
-    source: DAILY_ACTION_REVIEW_SOURCE,
-    pending_action_id: String(params.pending?.id ?? "").trim(),
-    scheduled_checkin_id:
-      String(params.pending?.scheduled_checkin_id ?? "").trim() || null,
-    processed_at: params.pending?.processed_at ?? null,
-    local_date: String(payload?.local_date ?? "").trim() || null,
-    actions: [
-      ...alreadyResolvedTargets.map((target) =>
-        actionContext(target, "already_resolved")
-      ),
-      ...targets.map((target) => actionContext(target, "reviewed")),
-    ],
-  };
-}
-
-async function maybeHandleRecentDailyReviewRecap(params: {
-  admin: any;
-  userId: string;
-  fromE164: string;
-  requestId: string;
-  inboundText: string;
-}) {
-  const sinceIso = new Date(Date.now() - 20 * 60 * 1000).toISOString();
-  const { data, error } = await params.admin
-    .from("whatsapp_pending_actions")
-    .select("id,scheduled_checkin_id,status,payload,processed_at,created_at")
-    .eq("user_id", params.userId)
-    .eq("kind", "scheduled_checkin")
-    .eq("status", "done")
-    .filter(
-      "payload->>event_context",
-      "eq",
-      ACTION_EVENING_REVIEW_EVENT_CONTEXT,
-    )
-    .gte("processed_at", sinceIso)
-    .order("processed_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return false;
-  const dailyContext = await buildDailyReviewFollowupContext({
-    admin: params.admin,
-    userId: params.userId,
-    pending: data,
-  });
-  const recentMessages = await params.admin
-    .from("chat_messages")
-    .select("role,content,created_at")
-    .eq("user_id", params.userId)
-    .eq("scope", "whatsapp")
-    .order("created_at", { ascending: false })
-    .limit(8);
-  const result = await runDailyActionReviewFollowupSkill({
-    text: params.inboundText,
-    dailyContext,
-    recentMessages: ((recentMessages.data ?? []) as any[])
-      .reverse()
-      .map((message) => ({
-        role: String(message.role ?? ""),
-        content: String(message.content ?? ""),
-      })),
-    requestId: params.requestId,
-    userId: params.userId,
-  });
-  const txt = result.generatedUserMessage;
-  if (!result.shouldHandle || !txt) return false;
-  await sendDailyActionReviewAssistantMessage({
-    admin: params.admin,
-    requestId: params.requestId,
-    userId: params.userId,
-    fromE164: params.fromE164,
-    body: txt,
-    source: "daily_action_review_recap",
-  });
-  return true;
 }
 
 async function sendDailyActionReviewAssistantMessage(params: {
@@ -1307,9 +1053,9 @@ async function handleActionEveningReviewReply(params: {
   inboundText?: string | null;
   inboundChatMessageId?: string | null;
 }) {
-  const decision = eveningReviewDecisionFromActionId(params.actionId);
-  const inboundText = String(params.inboundText ?? "").trim();
-  if (!decision && !inboundText) return false;
+  const inboundText = String(params.inboundText ?? "").trim() ||
+    String(params.actionId ?? "").trim();
+  if (!inboundText) return false;
 
   const pending = await fetchLatestActionEveningReviewPending(
     params.admin,
@@ -1333,79 +1079,74 @@ async function handleActionEveningReviewReply(params: {
   const nowIso = new Date().toISOString();
   const localDate = String(payload?.local_date ?? "").trim() ||
     nowIso.slice(0, 10);
+  const timezone = String(payload?.timezone ?? "").trim() || "Europe/Paris";
   const effectiveAt = `${localDate}T12:00:00.000Z`;
   const dayStartIso = `${localDate}T00:00:00.000Z`;
   const dayEndIso = `${nextDateYmd(localDate)}T00:00:00.000Z`;
 
-  let parsed: DailyActionReviewSkillResult | DailyActionReviewLocalFlowResult =
-    decision
-    ? (() => {
-      const state = stateFromUnknown(payload?.review_state, effectiveTargets);
-      for (const target of effectiveTargets) {
-        const item = state.items[target.occurrence_id];
-        if (!item) continue;
-        item.outcome = decision.entryOutcome as DailyActionOutcome;
-        item.reason_category = decision.entryOutcome === "completed"
-          ? "none"
-          : "unclear";
-        item.reason_text = null;
-        item.still_relevant = "unknown";
-        item.evidence_text = String(params.actionId ?? "").trim();
-        item.matched_user_text = String(params.actionId ?? "").trim();
-        item.confidence = "high";
-        item.missing_slots = decision.entryOutcome === "missed"
-          ? ["still_relevant"]
-          : [];
-      }
-      const missingOccurrenceIds = effectiveTargets
-        .filter((target) =>
-          (state.items[target.occurrence_id]?.missing_slots ?? []).length > 0
-        )
-        .map((target) => target.occurrence_id);
-      state.status = missingOccurrenceIds.length > 0
-        ? "needs_clarification"
-        : "complete";
-      state.effect_plan = buildDailyReviewEffectPlan(state, effectiveTargets);
-      state.should_apply_effects = missingOccurrenceIds.length === 0 &&
-        state.effect_plan.allowed;
-      state.stop_reason = missingOccurrenceIds.length === 0
-        ? "all_required_slots_filled"
-        : null;
-      state.next_question = null;
-      state.next_question_targets = missingOccurrenceIds.slice(0, 2);
-      state.remaining_occurrence_ids = missingOccurrenceIds;
-      return {
-        state,
-        missingOccurrenceIds,
-        stillRelevantByOccurrenceId: Object.fromEntries(
-          effectiveTargets.map((target) => [target.occurrence_id, null]),
-        ) as Record<string, boolean | null>,
-        nextQuestion: null,
-        generatedUserMessage: state.generated_user_message,
-        shouldApplyEffects: state.should_apply_effects,
-      };
-    })()
-    : await runDailyActionReviewLocalFlow({
+  const parsed: DailyActionReviewLocalFlowResult =
+    await runDailyActionReviewLocalFlow({
       text: inboundText,
       targets: effectiveTargets,
       previousState: payload?.review_state,
+      noteInformationInbound: buildDailyActionReviewActivationNoteInformation(
+        {
+          pending,
+          payload,
+          targets: effectiveTargets,
+          localDate,
+          timezone,
+        },
+      ),
+      dbContextPack: buildDailyActionReviewDbContextPack({
+        pending,
+        payload,
+        targets: effectiveTargets,
+        localDate,
+        timezone,
+      }),
+      microMemoryContext: buildDailyActionReviewMicroMemoryContext({
+        payload,
+        targets: effectiveTargets,
+      }),
+      platformContext: {
+        channel: "whatsapp",
+        scope: "whatsapp",
+        user_id: params.userId,
+        action_id: params.actionId ?? null,
+      },
       requestId: params.requestId,
       userId: params.userId,
     });
   if ("exitToGlobalDispatcher" in parsed && parsed.exitToGlobalDispatcher) {
     const nowForExit = new Date().toISOString();
     const state = await getUserState(params.admin, params.userId, "whatsapp");
-    const tempMemory = state.temp_memory && typeof state.temp_memory === "object"
-      ? state.temp_memory
-      : {};
+    const tempMemory =
+      state.temp_memory && typeof state.temp_memory === "object"
+        ? state.temp_memory
+        : {};
+    const exitMemo = buildDailyActionReviewLastExitMemo({
+      output: parsed.dispatcherOutput,
+      at: nowForExit,
+    });
+    const safetyPreempt =
+      parsed.dispatcherOutput.flow_action === "safety_preempt";
     await updateUserState(params.admin, params.userId, "whatsapp", {
       temp_memory: {
         ...tempMemory,
-        __last_daily_action_review_exit_memo:
-          buildDailyActionReviewLastExitMemo({
-            output: parsed.dispatcherOutput,
-            at: nowForExit,
-          }),
+        __last_daily_action_review_exit_memo: exitMemo,
+        ...(safetyPreempt
+          ? {
+            __active_skill_state: buildDailyActionReviewSafetyActiveState({
+              nowIso: nowForExit,
+              summary: parsed.dispatcherOutput.daily_intent.summary ||
+                parsed.dispatcherOutput.exit_memo.user_intent_summary,
+              riskScore: parsed.dispatcherOutput.risk_score,
+              noteInformation: parsed.dispatcherOutput.note_information ??
+                parsed.dispatcherOutput.exit_memo.note_information ?? null,
+            }),
+          }
+          : {}),
       },
     });
     await params.admin
@@ -1417,14 +1158,15 @@ async function handleActionEveningReviewReply(params: {
           chat_capability: "daily_action_review",
           review_state: parsed.state,
           last_user_text: inboundText,
+          local_flow_transfer: parsed.dispatcherOutput.flow_action,
           last_local_exit_memo: parsed.dispatcherOutput.exit_memo,
+          last_note_information: parsed.dispatcherOutput.note_information ??
+            parsed.dispatcherOutput.exit_memo.note_information ?? null,
         },
       })
       .eq("id", pending.id);
     return false;
   }
-  parsed = buildClarificationPartialFollowup(parsed, effectiveTargets) ??
-    parsed;
   await markDailyActionReviewStructuredExtraction({
     admin: params.admin,
     userId: params.userId,
@@ -1435,8 +1177,19 @@ async function handleActionEveningReviewReply(params: {
   });
 
   if (parsed.state.status === "stopped") {
+    const stoppedLocalParsed = "dispatcherOutput" in parsed
+      ? parsed as DailyActionReviewLocalFlowResult
+      : null;
     const txt = parsed.generatedUserMessage ||
-      "D'accord, je ne note rien pour ce daily.";
+      await requireDailyVisibleMessage({
+        kind: "stop_close",
+        targets: effectiveTargets,
+        state: parsed.state,
+        dispatcherOutput: stoppedLocalParsed?.dispatcherOutput ?? null,
+        requestId: params.requestId,
+        userId: params.userId,
+        errorCode: "daily_action_review_stop_visible_empty",
+      });
     await params.admin
       .from("whatsapp_pending_actions")
       .update({
@@ -1463,8 +1216,21 @@ async function handleActionEveningReviewReply(params: {
   }
 
   if (!parsed.shouldApplyEffects || !parsed.state.effect_plan.allowed) {
+    const clarificationLocalParsed = "dispatcherOutput" in parsed
+      ? parsed as DailyActionReviewLocalFlowResult
+      : null;
     const txt = parsed.generatedUserMessage ||
-      buildDailyActionReviewMissingQuestion(parsed, effectiveTargets);
+      await requireDailyVisibleMessage({
+        kind: clarificationLocalParsed?.dispatcherOutput.visible_task.kind ??
+          dailyVisibleKindForCurrentState(parsed),
+        targets: effectiveTargets,
+        state: parsed.state,
+        dispatcherOutput: clarificationLocalParsed?.dispatcherOutput ?? null,
+        currentDailyQuestion: parsed.state.next_question,
+        requestId: params.requestId,
+        userId: params.userId,
+        errorCode: "daily_action_review_clarification_visible_empty",
+      });
     if (parsed.state.status === "needs_clarification") {
       parsed.state.next_question = parsed.state.next_question || txt;
     }
@@ -1614,10 +1380,10 @@ async function handleActionEveningReviewReply(params: {
         effective_at: effectiveAt,
         metadata: {
           source: DAILY_ACTION_REVIEW_SOURCE,
-          legacy_source: "action_evening_review_v2",
+          source_event_context: "action_evening_review_v2",
           channel: "whatsapp",
           action_id: String(params.actionId ?? "").trim() || null,
-          outcome_source: decision ? "interactive_button" : "free_text",
+          outcome_source: params.actionId ? "interactive_button" : "free_text",
           pending_action_id: pending.id,
           scheduled_checkin_id: pending.scheduled_checkin_id ?? null,
           local_date: localDate,
@@ -1695,24 +1461,22 @@ async function handleActionEveningReviewReply(params: {
     const failedLocalParsed = "dispatcherOutput" in parsed
       ? parsed as DailyActionReviewLocalFlowResult
       : null;
-    const failedVisible = failedLocalParsed
-      ? await runDailyActionReviewVisibleAgent({
-        kind: "commit_failed",
-        targets: effectiveTargets,
-        state: parsed.state,
-        dispatcherOutput: failedLocalParsed.dispatcherOutput,
-        committedEffects: dailyEffectsResult.committed_effects,
-        failedEffects: dailyEffectsResult.failed_effects,
-        requestId: params.requestId,
-        userId: params.userId,
-      })
-      : null;
+    const failedVisible = await requireDailyVisibleMessage({
+      kind: "commit_failed",
+      targets: effectiveTargets,
+      state: parsed.state,
+      dispatcherOutput: failedLocalParsed?.dispatcherOutput ?? null,
+      committedEffects: dailyEffectsResult.committed_effects,
+      failedEffects: dailyEffectsResult.failed_effects,
+      requestId: params.requestId,
+      userId: params.userId,
+      errorCode: "daily_action_review_commit_failed_visible_empty",
+    });
     const failedState = {
       ...parsed.state,
       status: "needs_clarification" as const,
       should_apply_effects: false,
-      generated_user_message: failedVisible ||
-        renderDailyReviewCommitFailureMessage(dailyEffectsResult),
+      generated_user_message: failedVisible,
     };
     await params.admin
       .from("whatsapp_pending_actions")
@@ -1792,34 +1556,20 @@ async function handleActionEveningReviewReply(params: {
     );
   }
 
-  const fallbackFinalMessage = buildDailyActionReviewFallbackFinalMessage({
-    parsed,
-    targets: effectiveTargets,
-    rescheduleByOccurrenceId,
-    continuationPlanItemByOccurrenceId,
-    continuationPlannedDayByOccurrenceId,
-  });
   const successLocalParsed = "dispatcherOutput" in parsed
     ? parsed as DailyActionReviewLocalFlowResult
     : null;
-  const commitSuccessVisible = successLocalParsed
-    ? await runDailyActionReviewVisibleAgent({
-      kind: "commit_success",
-      targets: effectiveTargets,
-      state: completedState,
-      dispatcherOutput: successLocalParsed.dispatcherOutput,
-      committedEffects: dailyEffectsResult.committed_effects,
-      failedEffects: dailyEffectsResult.failed_effects,
-      requestId: params.requestId,
-      userId: params.userId,
-    })
-    : null;
-  const txt = dailyReviewFinalMessageRequiresCommit({
-    message: commitSuccessVisible || parsed.generatedUserMessage ||
-      fallbackFinalMessage,
-    effect_plan: parsed.state.effect_plan,
-    result: dailyEffectsResult,
-  }) ?? fallbackFinalMessage;
+  const txt = await requireDailyVisibleMessage({
+    kind: "commit_success",
+    targets: effectiveTargets,
+    state: completedState,
+    dispatcherOutput: successLocalParsed?.dispatcherOutput ?? null,
+    committedEffects: dailyEffectsResult.committed_effects,
+    failedEffects: dailyEffectsResult.failed_effects,
+    requestId: params.requestId,
+    userId: params.userId,
+    errorCode: "daily_action_review_commit_success_visible_empty",
+  });
   await sendDailyActionReviewAssistantMessage({
     admin: params.admin,
     requestId: params.requestId,
@@ -1887,15 +1637,6 @@ export async function handlePendingActions(params: {
   inboundChatMessageId?: string | null;
 }) {
   const { admin, userId, fromE164, requestId } = params;
-  const handledRecentDailyRecap = await maybeHandleRecentDailyReviewRecap({
-    admin,
-    userId,
-    fromE164,
-    requestId,
-    inboundText: params.inboundText,
-  });
-  if (handledRecentDailyRecap) return true;
-
   const handledActionEveningReview = await handleActionEveningReviewReply({
     admin,
     userId,

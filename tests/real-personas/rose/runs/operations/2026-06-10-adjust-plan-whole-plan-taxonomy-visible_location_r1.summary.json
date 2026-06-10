@@ -1,0 +1,948 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux ajuster mon plan : cette semaine ma routine du soir me prend trop d'énergie. Je veux la réduire à une version 5 minutes, sans supprimer le rituel.",
+    "assistant": "C'est tout à fait compréhensible de vouloir alléger votre routine si elle vous demande trop d'énergie en ce moment. Pour cette semaine, l'idée est de passer à une version de 5 minutes pour votre sas de décompression afin de préserver votre rituel sans vous épuiser. Pour reprendre cette proposition, rendez-vous sur la plateforme dans l'onglet Plan : sous votre niveau actif, vous trouverez l'option « Ajuster mon plan » où vous pourrez saisir « 5 minutes ».",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "draft_delivered",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "la routine prend trop d'énergie cette semaine",
+        "suggested_platform_input": "5 minutes",
+        "preserve": [
+          "le rituel"
+        ],
+        "avoid": [
+          "supprimer le rituel"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_blocker_summary": "la routine prend trop d'énergie cette semaine",
+          "suggested_platform_input": "5 minutes",
+          "preserve": [
+            "le rituel"
+          ],
+          "avoid": [
+            "supprimer le rituel"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "start",
+        "reply": "C'est tout à fait compréhensible de vouloir alléger votre routine si elle vous demande trop d'énergie en ce moment. Pour cette semaine, l'idée est de passer à une version de 5 minutes pour votre sas de décompression afin de préserver votre rituel sans vous épuiser. Pour reprendre cette proposition, rendez-vous sur la plateforme dans l'onglet Plan : sous votre niveau actif, vous trouverez l'option « Ajuster mon plan » où vous pourrez saisir « 5 minutes ».",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "prepare_plan_handoff",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "handoff_delivered",
+        "stage": "handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "la routine prend trop d'énergie cette semaine",
+          "requested_change": "réduire à une version 5 minutes",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel"
+          ],
+          "avoid": [
+            "supprimer le rituel"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "delivered",
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la durée du sas de décompression du soir à 5 minutes pour cette semaine, tout en conservant le rituel.",
+          "grouped_by_plan": [],
+          "previous_value": "45 à 60 minutes",
+          "revised_value": "5 minutes"
+        },
+        "last_visible_task": "plan_handoff_ready",
+        "last_handoff_summary": "5 minutes",
+        "turn_count": 1,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "plan_handoff_ready"
+      },
+      "conversation_context": {
+        "state_summary": "Le user souhaite réduire la durée de son sas de décompression du soir à 5 minutes pour cette semaine car cela lui demande trop d'énergie.",
+        "user_words": [
+          "routine du soir",
+          "trop d'énergie",
+          "version 5 minutes",
+          "sans supprimer"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "la routine prend trop d'énergie cette semaine",
+            "requested_change": "réduire à une version 5 minutes",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine"
+            ],
+            "preserve": [
+              "le rituel"
+            ],
+            "avoid": [
+              "supprimer le rituel"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel"
+          ],
+          "avoid": [
+            "supprimer le rituel"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "5 minutes",
+          "grouped_by_plan": [],
+          "previous_value": "45 à 60 minutes",
+          "revised_value": "5 minutes"
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le plan a été modifié.",
+          "Ne dis pas que l'ajustement est enregistré.",
+          "Ne dis pas que c'est fait."
+        ],
+        "context_summary": "Proposition d'ajustement temporaire pour alléger la charge mentale du soir.",
+        "evidence_used": [
+          "routine du soir",
+          "version 5 minutes",
+          "trop d'énergie",
+          "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+          "routine du soir",
+          "5 minutes",
+          "trop d'énergie"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "plan_handoff_ready",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, précise plutôt : garder le déclencheur après le dîner, faire trois respirations, puis écrire une seule ligne dans le carnet. Et je veux éviter toute nouvelle règle autour du téléphone.",
+    "assistant": "Pour que ton sas de décompression soit plus précis et sans contrainte sur le téléphone, voici la nouvelle version à reprendre : \"Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.\" Tu peux effectuer ce changement dans ton Plan, sous le niveau actif, en choisissant \"Ajuster mon plan\". Est-ce que cela te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_revise_plan_handoff",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "draft_delivered",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+        "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+        "preserve": [
+          "le rituel",
+          "le déclencheur après le dîner"
+        ],
+        "avoid": [
+          "supprimer le rituel",
+          "toute nouvelle règle autour du téléphone"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_local_revise_plan_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_blocker_summary": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+          "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+          "preserve": [
+            "le rituel",
+            "le déclencheur après le dîner"
+          ],
+          "avoid": [
+            "supprimer le rituel",
+            "toute nouvelle règle autour du téléphone"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "revise",
+        "reply": "Pour que ton sas de décompression soit plus précis et sans contrainte sur le téléphone, voici la nouvelle version à reprendre : \"Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.\" Tu peux effectuer ce changement dans ton Plan, sous le niveau actif, en choisissant \"Ajuster mon plan\". Est-ce que cela te convient ?",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_revise_plan_handoff"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "revise_plan_handoff",
+      "local_flow_state": {
+        "mode": "platform_handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "stage": "handoff",
+        "status": "revising",
+        "skill_id": "adjust_plan_item",
+        "turn_count": 2,
+        "operation_type": "adjust_plan_item",
+        "adjustment_need": {
+          "reason_change": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+          "requested_change": "garder le déclencheur après le dîner, faire trois respirations, puis écrire une seule ligne dans le carnet",
+          "change_kind": "replace",
+          "constraints": [
+            "cette semaine",
+            "après le dîner"
+          ],
+          "preserve": [
+            "le rituel",
+            "le déclencheur après le dîner"
+          ],
+          "avoid": [
+            "supprimer le rituel",
+            "toute nouvelle règle autour du téléphone"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "revised",
+          "destination": "Plan",
+          "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression du soir à 5 minutes pour cette semaine, tout en conservant le rituel.",
+          "revised_value": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+        },
+        "subskill_history": [],
+        "last_visible_task": "revise_plan_handoff",
+        "last_handoff_summary": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+      },
+      "visible_task": {
+        "kind": "revise_plan_handoff"
+      },
+      "conversation_context": {
+        "state_summary": "Le user précise la version à reprendre dans Plan en gardant le déclencheur après le dîner et en retirant toute nouvelle règle sur le téléphone.",
+        "user_words": [
+          "garder le déclencheur après le dîner",
+          "trois respirations",
+          "écrire une seule ligne dans le carnet",
+          "éviter toute nouvelle règle autour du téléphone"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+            "requested_change": "garder le déclencheur après le dîner, faire trois respirations, puis écrire une seule ligne dans le carnet",
+            "change_kind": "replace",
+            "constraints": [
+              "cette semaine",
+              "après le dîner"
+            ],
+            "preserve": [
+              "le rituel",
+              "le déclencheur après le dîner"
+            ],
+            "avoid": [
+              "supprimer le rituel",
+              "toute nouvelle règle autour du téléphone"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine",
+            "après le dîner"
+          ],
+          "preserve": [
+            "le rituel",
+            "le déclencheur après le dîner"
+          ],
+          "avoid": [
+            "supprimer le rituel",
+            "toute nouvelle règle autour du téléphone"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_id": null,
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression du soir à 5 minutes pour cette semaine, tout en conservant le rituel.",
+          "revised_value": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est appliqué, modifié ou sauvegardé.",
+          "Ne présente pas cela comme déjà fait dans l'outil."
+        ],
+        "context_summary": "Correction d'une proposition non-mutante à reprendre dans Plan.",
+        "evidence_used": [
+          "garder le déclencheur après le dîner",
+          "trois respirations",
+          "écrire une seule ligne dans le carnet",
+          "éviter toute nouvelle règle autour du téléphone",
+          "garder le déclencheur après le dîner",
+          "trois respirations",
+          "écrire une seule ligne dans le carnet",
+          "éviter toute nouvelle règle autour du téléphone"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "revise_plan_handoff",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, fais-le directement dans mon plan maintenant.",
+    "assistant": "Je ne peux pas modifier ton plan directement depuis notre discussion, mais tu peux le faire très facilement sur la plateforme. Pour rendre ton habitude plus précise et éviter d'ajouter une contrainte sur l'usage du téléphone, rends-toi dans l'onglet Plan. Sous ton niveau actif \"Casser l'automatisme du soir\", tu trouveras l'option Ajuster mon plan. C'est là que tu pourras indiquer la nouvelle consigne : après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_apply_attempt_no_chat_mutation",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "apply_attempt",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+        "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+        "preserve": [
+          "le rituel",
+          "le déclencheur après le dîner"
+        ],
+        "avoid": [
+          "supprimer le rituel",
+          "toute nouvelle règle autour du téléphone"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "adjust_plan_item",
+          "reason_code": "chat_plan_mutation_disabled_platform_handoff"
+        }
+      ],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_apply_attempt_no_chat_mutation",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_blocker_summary": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+          "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+          "preserve": [
+            "le rituel",
+            "le déclencheur après le dîner"
+          ],
+          "avoid": [
+            "supprimer le rituel",
+            "toute nouvelle règle autour du téléphone"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "approve",
+        "reply": "Je ne peux pas modifier ton plan directement depuis notre discussion, mais tu peux le faire très facilement sur la plateforme. Pour rendre ton habitude plus précise et éviter d'ajouter une contrainte sur l'usage du téléphone, rends-toi dans l'onglet Plan. Sous ton niveau actif \"Casser l'automatisme du soir\", tu trouveras l'option Ajuster mon plan. C'est là que tu pourras indiquer la nouvelle consigne : après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_apply_attempt_no_chat_mutation"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "apply_attempt",
+      "local_flow_state": {
+        "mode": "platform_handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+          "needs_scope_clarification": false
+        },
+        "stage": "handoff",
+        "status": "apply_attempt",
+        "skill_id": "adjust_plan_item",
+        "turn_count": 3,
+        "operation_type": "adjust_plan_item",
+        "adjustment_need": {
+          "reason_change": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+          "requested_change": "garder le déclencheur après le dîner, faire trois respirations, puis écrire une seule ligne dans le carnet",
+          "change_kind": "replace",
+          "constraints": [
+            "cette semaine",
+            "après le dîner"
+          ],
+          "preserve": [
+            "le rituel",
+            "le déclencheur après le dîner"
+          ],
+          "avoid": [
+            "supprimer le rituel",
+            "toute nouvelle règle autour du téléphone"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "apply_attempt",
+          "destination": "Plan",
+          "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression du soir à 5 minutes pour cette semaine, tout en conservant le rituel.",
+          "revised_value": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+        },
+        "subskill_history": [],
+        "last_visible_task": "apply_attempt",
+        "last_handoff_summary": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+      },
+      "visible_task": {
+        "kind": "apply_attempt"
+      },
+      "conversation_context": {
+        "state_summary": "Le user demande d'appliquer l'ajustement directement depuis le chat.",
+        "user_words": [
+          "fais-le directement dans mon plan maintenant"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+            "requested_change": "garder le déclencheur après le dîner, faire trois respirations, puis écrire une seule ligne dans le carnet",
+            "change_kind": "replace",
+            "constraints": [
+              "cette semaine",
+              "après le dîner"
+            ],
+            "preserve": [
+              "le rituel",
+              "le déclencheur après le dîner"
+            ],
+            "avoid": [
+              "supprimer le rituel",
+              "toute nouvelle règle autour du téléphone"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine",
+            "après le dîner"
+          ],
+          "preserve": [
+            "le rituel",
+            "le déclencheur après le dîner"
+          ],
+          "avoid": [
+            "supprimer le rituel",
+            "toute nouvelle règle autour du téléphone"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "level_id": "phase-1",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "plan_id": null,
+          "plan_title": null,
+          "level_title": "Casser l'automatisme du soir",
+          "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression du soir à 5 minutes pour cette semaine, tout en conservant le rituel.",
+          "revised_value": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est appliqué, modifié, sauvegardé ou disponible.",
+          "Ne dis pas que tu as fait la modification."
+        ],
+        "context_summary": "Le user veut une exécution immédiate que le chat ne permet pas.",
+        "evidence_used": [
+          "fais-le directement",
+          "maintenant",
+          "fais-le directement",
+          "maintenant"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "apply_attempt",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Non stop, laisse tomber l'ajustement pour maintenant.",
+    "assistant": "C'est entendu, on laisse tomber l'ajustement pour le moment.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_cancelled",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "cancelled",
+      "operation_id": null,
+      "input_draft": {
+        "mode": "platform_handoff",
+        "avoid": [
+          "supprimer le rituel",
+          "toute nouvelle règle autour du téléphone"
+        ],
+        "preserve": [
+          "le rituel",
+          "le déclencheur après le dîner"
+        ],
+        "destination": {
+          "instruction": "Reprendre cette proposition dans la surface Plan.",
+          "product_area": "Plan"
+        },
+        "operation_type": "adjust_plan_item",
+        "missing_clarity": [],
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+        "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "skill_result": {
+        "handled": true,
+        "status": "cancelled",
+        "user_intent": "cancel",
+        "reply": "C'est entendu, on laisse tomber l'ajustement pour le moment.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_cancelled"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "cancel_flow",
+      "local_flow_state": null,
+      "visible_task": {
+        "kind": "cancel_close"
+      },
+      "conversation_context": {
+        "state_summary": "Le user souhaite arrêter l'ajustement du plan pour le moment.",
+        "user_words": [
+          "Non stop",
+          "laisse tomber l'ajustement"
+        ],
+        "field_or_stage": "closing",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "plan_id": null,
+            "level_id": "phase-1",
+            "confidence": "high",
+            "plan_title": null,
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "avoid": [
+              "supprimer le rituel",
+              "toute nouvelle règle autour du téléphone"
+            ],
+            "missing": [],
+            "preserve": [
+              "le rituel",
+              "le déclencheur après le dîner"
+            ],
+            "change_kind": "replace",
+            "constraints": [
+              "cette semaine",
+              "après le dîner"
+            ],
+            "reason_change": "la version initiale doit être plus précise et éviter d'ajouter une contrainte sur le téléphone",
+            "requested_change": "garder le déclencheur après le dîner, faire trois respirations, puis écrire une seule ligne dans le carnet"
+          },
+          "constraints": [
+            "cette semaine",
+            "après le dîner"
+          ],
+          "preserve": [
+            "le rituel",
+            "le déclencheur après le dîner"
+          ],
+          "avoid": [
+            "supprimer le rituel",
+            "toute nouvelle règle autour du téléphone"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Habitude : Faire un sas de décompression (sans fumer)",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": "Réduire la durée du sas de décompression du soir à 5 minutes pour cette semaine, tout en conservant le rituel.",
+          "revised_value": "Après le dîner, faire trois respirations puis écrire une seule ligne dans le carnet, sans ajouter de nouvelle règle autour du téléphone."
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est appliqué, modifié ou sauvegardé.",
+          "Ne propose pas de nouvelle action."
+        ],
+        "context_summary": "Le user abandonne la proposition d'ajustement.",
+        "evidence_used": [
+          "Non stop",
+          "laisse tomber l'ajustement",
+          "Non stop",
+          "laisse tomber l'ajustement"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "cancel_close",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1-t04",
+    "trace_error": null
+  }
+]

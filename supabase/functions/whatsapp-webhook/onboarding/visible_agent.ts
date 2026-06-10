@@ -1,20 +1,14 @@
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import type {
-  WhatsAppOnboardingPlanProjection,
-  WhatsAppOnboardingPreferenceUpdate,
+  WhatsAppOnboardingConversationContext,
   WhatsAppOnboardingReducerResult,
-  WhatsAppOnboardingState,
 } from "./contract.ts";
 
 export type WhatsAppOnboardingVisibleInput = {
   requestId: string;
   userId: string;
-  userMessage: string;
-  whatsappState: WhatsAppOnboardingState;
   reduced: WhatsAppOnboardingReducerResult;
-  planProjection: WhatsAppOnboardingPlanProjection;
-  preferenceWrites: WhatsAppOnboardingPreferenceUpdate[];
-  decisionRequiredData: Record<string, unknown>;
+  conversationContext: WhatsAppOnboardingConversationContext;
 };
 
 function stageInstruction(input: WhatsAppOnboardingVisibleInput): string {
@@ -23,6 +17,8 @@ function stageInstruction(input: WhatsAppOnboardingVisibleInput): string {
       return "Plan wait: explique calmement que Sophia attend encore la finalisation ou synchronisation du plan; propose une seule prochaine action simple; ne parle pas de preferences.";
     case "plan_ready_resume_preferences":
       return "Plan ready resume preferences: accuse reception que le plan est pret, puis pose une seule question de ton: est-ce que le user prefere une Sophia douce, directe, ou un mix.";
+    case "ask_tone":
+      return "Ask tone: pose uniquement la question de preference de ton, avec options douces/directes/mix en formulation naturelle; ne traite aucune autre preference.";
     case "preference_saved_next_challenge":
       return "Preference saved next challenge: dis brievement que la preference de ton est notee pour la suite, puis demande comment challenger quand le user decroche: leger, equilibre, ou plus direct.";
     case "preference_saved_next_questions":
@@ -37,18 +33,25 @@ function stageInstruction(input: WhatsAppOnboardingVisibleInput): string {
       return "Complete to plan: cloture l'onboarding et commence par le plan avec un resume user-facing propre, sans metadata interne; termine par une seule question utile pour demarrer.";
     case "blocked_exit_before_plan_ready":
       return "Blocked exit before plan ready: reduis la pression, reconnais le ras-le-bol ou l'incertitude, mais explique que le plan reste le seul point incompressible; propose une action simple liee au plan.";
+    case "stop_after_plan_ready":
+      return "Stop local after plan ready: accuse reception que le user veut arreter les questions; ne pose aucune question; ne lance pas le global; dis seulement que le plan est pret et qu'on pourra reprendre quand elle voudra.";
+    case "progress_attempt_blocked":
+      return "Progress attempt blocked: explique sobrement que ce tour reste dans l'onboarding WhatsApp et qu'aucune progression de plan n'a ete loggee; ramene a la question courante en une seule phrase.";
+    case "inline_product_return":
+      return "Inline product return: reponds tres court a la question produit avec le contexte fourni, puis reprends la question onboarding courante sans ouvrir un autre flow.";
+    case "inline_status_return":
+      return "Inline status return: reponds tres court au statut demande avec le contexte fourni, puis reprends la question onboarding courante sans ouvrir un autre flow.";
     case "repeat_question":
       return "Repeat question: reformule plus simplement la question onboarding courante, sans catalogue et sans pression.";
     case "technical_blocked":
       return "Technical blocked: indique sobrement qu'un blocage technique empeche d'avancer et propose une prochaine action sure; ne fabrique pas de succes.";
-    case "frustration_exit_after_plan_ready":
     case "complete_to_global":
       return "Exit: reconnais brievement la demande et laisse le sujet demande reprendre; ne repose pas de question onboarding.";
     case "safety":
       return "Safety: ne produis pas de coaching onboarding; laisse la pipeline safety reprendre.";
-    default:
-      return "Write a short, natural WhatsApp onboarding message.";
   }
+  const exhaustive: never = input.reduced.visible_task;
+  return `Technical blocked: unexpected visible task ${exhaustive}.`;
 }
 
 export async function runWhatsAppOnboardingVisibleAgent(
@@ -69,14 +72,10 @@ export async function runWhatsAppOnboardingVisibleAgent(
   ].join("\n");
   const userPrompt = JSON.stringify({
     task: "write_whatsapp_onboarding_visible_message",
-    visible_task: input.reduced.visible_task,
-    reason_code: input.reduced.reason_code,
-    user_message: input.userMessage,
-    whatsapp_state: input.whatsappState,
-    plan_projection: input.planProjection,
-    preference_writes: input.preferenceWrites,
-    decision_required_data: input.decisionRequiredData,
-    exit_memo: input.reduced.exit_memo,
+    visible_task: {
+      kind: input.reduced.visible_task,
+      conversation_context: input.conversationContext,
+    },
     constraints: {
       no_plan_progress_log: true,
       no_platform_handoff_for_saved_preference: true,

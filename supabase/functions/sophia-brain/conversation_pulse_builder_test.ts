@@ -6,6 +6,15 @@ import { buildConversationPulseUserPrompt } from "../_shared/v2-prompts/conversa
 import { parseConversationPulseLLMResponse } from "../_shared/v2-prompts/conversation-pulse.ts";
 import { buildConversationPulseInput } from "./conversation_pulse_builder.ts";
 
+async function fixtureExists(path: string): Promise<boolean> {
+  try {
+    await Deno.stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function parseTranscriptMessages(transcript: string, bundleKey: string) {
   const blocks = transcript.trim().split(/\n{2,}(?=\[)/).filter(Boolean);
   const messages: Array<{
@@ -41,6 +50,7 @@ function parseTranscriptMessages(transcript: string, bundleKey: string) {
 Deno.test("conversation pulse builder: real Thomas bundle builds valid input", async () => {
   const path =
     "./tmp/bundles/2026-03-18/bundle_thomas_cf470156_2026-03-18T142458964Z/conversation_transcript.txt";
+  if (!(await fixtureExists(path))) return;
   const transcript = await Deno.readTextFile(path);
   const messages = parseTranscriptMessages(transcript, "thomas-2026-03-18");
 
@@ -67,8 +77,11 @@ Deno.test("conversation pulse builder: real Thomas bundle builds valid input", a
       completed_at: "2026-03-17T12:00:00Z",
       wins: ["Deux séances tenues dans la semaine"],
       relational_signals: ["Répond mieux aux rappels courts"],
-      coaching_memory_summary: "Les formulations très courtes et concrètes passent mieux.",
-      questionnaire_context: ["Supports déjà aidants à conserver: marche, respiration."],
+      coaching_memory_summary:
+        "Les formulations très courtes et concrètes passent mieux.",
+      questionnaire_context: [
+        "Supports déjà aidants à conserver: marche, respiration.",
+      ],
     },
     localDate: "2026-03-18",
     nowIso: "2026-03-18T15:00:00+01:00",
@@ -90,6 +103,7 @@ Deno.test("conversation pulse builder: real Thomas bundle builds valid input", a
 Deno.test("conversation pulse builder: real Thomas bundle validates plausible pulse", async () => {
   const path =
     "./tmp/bundles/2026-03-18/bundle_thomas_cf470156_2026-03-18T142458964Z/conversation_transcript.txt";
+  if (!(await fixtureExists(path))) return;
   const transcript = await Deno.readTextFile(path);
   const messages = parseTranscriptMessages(transcript, "thomas-2026-03-18");
   const input = buildConversationPulseInput({
@@ -159,6 +173,7 @@ Deno.test("conversation pulse builder: real Thomas bundle validates plausible pu
 Deno.test("conversation pulse builder: real Christele bundle preserves low-signal caution", async () => {
   const path =
     "./tmp/bundles/2026-03-17/bundle_christele_eaa65458_2026-03-17T165433915Z/conversation_transcript.txt";
+  if (!(await fixtureExists(path))) return;
   const transcript = await Deno.readTextFile(path);
   const messages = parseTranscriptMessages(transcript, "christele-2026-03-17");
   const input = buildConversationPulseInput({

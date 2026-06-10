@@ -57,16 +57,14 @@ export function dispatcherSignalsFromTurnFrame(args: {
   turnFrame: TurnFrame | null;
   userMessage: string;
 }): DispatcherSignals {
-  const text = String(args.userMessage ?? "").toLowerCase();
+  void args.userMessage;
   const turnFrame = args.turnFrame;
   const riskBand = turnFrame?.safety.risk_band ?? "none";
   const researchSignal = turnFrame?.needs_research;
   return {
     ...DEFAULT_SIGNALS,
     safety: DEFAULT_SIGNALS.safety,
-    interrupt: /\b(stop|arr[êe]te|pause|pas maintenant)\b/.test(text)
-      ? { kind: "EXPLICIT_STOP", confidence: 0.8 }
-      : DEFAULT_SIGNALS.interrupt,
+    interrupt: DEFAULT_SIGNALS.interrupt,
     risk_score: riskScoreFromBand(riskBand),
     needs_research: researchSignal?.detected || researchSignal?.value === true
       ? researchSignal
@@ -218,19 +216,6 @@ export function isCheckupActive(state: any): boolean {
   const status = String(inv.status ?? "");
   return Boolean(status) && status !== "post_checkup" &&
     status !== "post_checkup_done";
-}
-
-export function resolveBinaryConsentLite(text: unknown): "yes" | "no" | null {
-  const t = String(text ?? "").trim().toLowerCase();
-  if (!t) return null;
-  const yes =
-    /\b(oui|ouais|ok|okay|d'accord|dac|vas[- ]?y|go|yep|yes|on reprend|reprenons)\b/i
-      .test(t);
-  const no =
-    /\b(non|nope|nan|pas maintenant|plus tard|laisse|stop|on laisse|on verra)\b/i
-      .test(t);
-  if (yes === no) return null;
-  return yes ? "yes" : "no";
 }
 
 export function parseInvestigationStartedMs(state: any): number {

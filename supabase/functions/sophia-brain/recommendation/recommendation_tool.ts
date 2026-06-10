@@ -186,7 +186,7 @@ function hasProductHelpSignal(input: RecommendationToolInput): boolean {
     input.turn_frame.skill_signals.entry?.product_help?.detected === true;
 }
 
-function heuristicRecommendation(
+function structuredRecommendation(
   input: RecommendationToolInput,
   surfaces: ProductSurfaceDefinition[],
 ): ProductRecommendation {
@@ -196,14 +196,15 @@ function heuristicRecommendation(
     return defer(input, "no_recommendation_opportunity");
   }
   const constraints = new Set(need?.constraints ?? []);
-  const text = JSON.stringify({ diagnosis, need }).toLowerCase();
   if (
     need?.urgency === "high" ||
-    constraints.has("high_emotion") ||
-    /emotion.*high|honte.*high|panic|panique/.test(text)
+    constraints.has("high_emotion")
   ) {
     const potion = surfaceById(surfaces, "potion.state");
     if (!potion) return defer(input, "state_surface_unavailable");
+    const stateKind = diagnosis?.emotion_kind === "shame_guilt"
+      ? "shame_guilt"
+      : "stress_pressure";
     return {
       recommendation_id: recommendationId(input),
       decision: "recommend_operation",
@@ -212,11 +213,11 @@ function heuristicRecommendation(
       operation_type: "select_state_potion",
       operation_input: {
         state: {
-          kind: /honte|shame/.test(text) ? "shame_guilt" : "stress_pressure",
+          kind: stateKind,
           intensity: "high",
           evidence: [input.skill_output?.reply ?? "state_regulation"],
         },
-        potion_type: /honte|shame/.test(text) ? "guerison" : "apaisement",
+        potion_type: stateKind === "shame_guilt" ? "guerison" : "apaisement",
         evidence: [input.skill_output?.reply ?? "state_regulation"],
       },
       confidence: 0.82,
@@ -367,9 +368,9 @@ export async function runRecommendationTool(
       model_name: modelName,
     });
     recommendation = parseLlmRecommendation(raw, input) ??
-      heuristicRecommendation(input, surfaces);
+      structuredRecommendation(input, surfaces);
   } else {
-    recommendation = heuristicRecommendation(input, surfaces);
+    recommendation = structuredRecommendation(input, surfaces);
   }
 
   if (
@@ -382,7 +383,7 @@ export async function runRecommendationTool(
     );
     recommendation = surfaces.length === 0
       ? defer(input, "recommended_surface_in_cooldown_or_declined")
-      : heuristicRecommendation(input, surfaces);
+      : structuredRecommendation(input, surfaces);
   }
   input.on_stats?.({
     latency_ms: Date.now() - started,

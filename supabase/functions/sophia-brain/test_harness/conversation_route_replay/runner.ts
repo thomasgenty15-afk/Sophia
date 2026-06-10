@@ -64,7 +64,7 @@ function makeBaseTurnFrame(
   fixture: ReplayFixture,
   safety: SafetyPregateOutput,
 ): TurnFrame {
-  return {
+  const frame = {
     turn_id: `${fixture.fixture_id}:turn`,
     source_message_id: `${fixture.fixture_id}:message`,
     user_id: "route-replay-user",
@@ -103,6 +103,7 @@ function makeBaseTurnFrame(
       plan_confidence: 0.7,
     },
   };
+  return frame as unknown as TurnFrame;
 }
 
 export async function mockDispatcher(

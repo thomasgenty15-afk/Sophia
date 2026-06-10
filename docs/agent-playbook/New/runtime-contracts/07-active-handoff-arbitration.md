@@ -46,7 +46,7 @@ TurnFrame produced
     métier.
 - `router/user_turn_snapshot.ts`
   - inclut le snapshot du handoff actif.
-- `router/turn_agenda.ts`
+- `router/local_reducer.ts`
   - représente la suite comme `platform_handoff` ou `clarification`.
 - `clarification_tool`
   - est appelé quand la policy ne sait pas distinguer continuité et nouvelle
@@ -67,7 +67,7 @@ TurnFrame produced
   - `no_chat_mutation=true` ;
 - `TurnFrame` structuré ;
 - `RouteDecision` éventuelle ;
-- `TurnAgenda` / snapshot si disponibles ;
+- `local reducer contract` / snapshot si disponibles ;
 - historique récent compact.
 
 ## Outputs

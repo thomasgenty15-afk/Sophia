@@ -38,6 +38,7 @@ import {
   writeRepairMode,
 } from "./repair_mode_engine.ts";
 import type {
+  MorningNudgeAnchor,
   MorningNudgeCoachIntent,
   MorningNudgeKind,
   MorningNudgePayloadV2,
@@ -45,6 +46,11 @@ import type {
   PostMorningNudgeFlowKind,
 } from "./morning_nudge_contract.ts";
 import { flowKindForMorningNudgeKind } from "./morning_nudge_contract.ts";
+import {
+  DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
+  loadLatestConversationPulseV2,
+  WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
+} from "./conversation_pulse_builder.ts";
 
 export const MORNING_ACTIVE_ACTIONS_EVENT_CONTEXT =
   "morning_active_actions_nudge";
@@ -448,6 +454,7 @@ export interface MorningNudgePlanV2 {
   suppressed_plan_item_ids?: string[];
   suppressed_plan_item_titles?: string[];
   suppression_reason?: MorningNudgeSuppressionReason;
+  morning_anchor?: MorningNudgeAnchor;
   instruction?: string;
   event_grounding?: string;
   fallback_text?: string;
@@ -485,6 +492,137 @@ function hasSupportSignalWithoutItems(input: MorningNudgeV2Input): boolean {
     m.dimensions.emotional_load.level === "high" ||
     m.dimensions.emotional_load.level === "medium" ||
     Boolean(input.conversationPulse?.signals?.upcoming_event);
+}
+
+function emptyMorningNudgeAnchor(): MorningNudgeAnchor {
+  return {
+    kind: "none",
+    label: null,
+    specificity: "none",
+    confidence: "low",
+    sensitivity: "normal",
+    user_consent_signal: "unknown",
+    visible_hint: null,
+    do_not_mention: [],
+    evidence_refs: { message_ids: [], event_ids: [] },
+  };
+}
+
+function pulseEvidenceRefs(
+  pulse: ConversationPulse | null,
+): MorningNudgeAnchor["evidence_refs"] {
+  return {
+    message_ids: Array.isArray(pulse?.evidence_refs?.message_ids)
+      ? pulse.evidence_refs.message_ids.map((id) => cleanText(id)).filter(
+        Boolean,
+      ).slice(0, 5)
+      : [],
+    event_ids: Array.isArray(pulse?.evidence_refs?.event_ids)
+      ? pulse.evidence_refs.event_ids.map((id) => cleanText(id)).filter(
+        Boolean,
+      ).slice(0, 3)
+      : [],
+  };
+}
+
+function firstPulseEmotionalTopic(
+  pulse: ConversationPulse | null,
+): string | null {
+  const candidates = [
+    ...(pulse?.highlights?.unresolved_tensions ?? []),
+    ...(pulse?.highlights?.friction_points ?? []),
+    pulse?.signals?.top_blocker ?? null,
+  ];
+  for (const candidate of candidates) {
+    const text = cleanText(candidate).slice(0, 160);
+    if (text) return text;
+  }
+  return null;
+}
+
+export function buildMorningNudgeAnchorV2(
+  input: MorningNudgeV2Input,
+): MorningNudgeAnchor {
+  const pulse = input.conversationPulse;
+  const evidenceRefs = pulseEvidenceRefs(pulse);
+  const emotionalLevel = input.momentumV2.dimensions.emotional_load.level;
+  const relationalOpenness = pulse?.tone?.relational_openness ?? "fragile";
+  const proactiveRisk = pulse?.signals?.proactive_risk ?? "medium";
+  const trajectoryConfidence = pulse?.trajectory?.confidence ??
+    input.momentumV2.assessment.confidence;
+  const upcomingEvent = cleanText(pulse?.signals?.upcoming_event);
+
+  if (upcomingEvent) {
+    const canBeExplicit = proactiveRisk === "low" &&
+      relationalOpenness !== "closed";
+    return {
+      kind: "upcoming_event",
+      label: upcomingEvent.slice(0, 160),
+      specificity: canBeExplicit ? "explicit" : "soft",
+      confidence: trajectoryConfidence,
+      sensitivity: "normal",
+      user_consent_signal: canBeExplicit ? "implied_ok" : "unknown",
+      visible_hint: canBeExplicit
+        ? `Tu peux mentionner calmement l'evenement proche: "${
+          upcomingEvent.slice(0, 120)
+        }".`
+        : "Fais seulement reference a un moment qui approche, sans detail si ce n'est pas necessaire.",
+      do_not_mention: [
+        "Ne transforme pas l'evenement en pression de performance.",
+        "Ne propose pas de plan detaille non demande.",
+      ],
+      evidence_refs: evidenceRefs,
+    };
+  }
+
+  const emotionalTopic = firstPulseEmotionalTopic(pulse);
+  const shouldAnchorEmotion = Boolean(emotionalTopic) &&
+    (emotionalLevel === "high" || emotionalLevel === "medium" ||
+      pulse?.signals?.likely_need === "support");
+  if (shouldAnchorEmotion) {
+    const shouldAvoidDetail = proactiveRisk === "high" ||
+      relationalOpenness === "closed" ||
+      input.momentumV2.current_state === "pause_consentie";
+    return {
+      kind: "recent_emotional_thread",
+      label: emotionalTopic,
+      specificity: shouldAvoidDetail ? "vague" : "soft",
+      confidence: trajectoryConfidence,
+      sensitivity: "sensitive",
+      user_consent_signal: shouldAvoidDetail ? "avoid" : "unknown",
+      visible_hint: shouldAvoidDetail
+        ? "Garde une presence generale. Ne rappelle pas le sujet recent."
+        : "Tu peux reconnaitre de facon voilee que quelque chose prenait de la place recemment, sans nommer le detail.",
+      do_not_mention: [
+        "Ne cite pas le topic emotionnel brut.",
+        "Ne nomme pas de personne.",
+        "Ne diagnostique pas.",
+        "Ne parle pas de crise sauf safety explicite.",
+      ],
+      evidence_refs: evidenceRefs,
+    };
+  }
+
+  const topBlocker = cleanText(input.momentumV2.assessment.top_blocker);
+  if (topBlocker) {
+    return {
+      kind: "plan_blocker",
+      label: topBlocker.slice(0, 160),
+      specificity: "soft",
+      confidence: input.momentumV2.assessment.confidence,
+      sensitivity: "normal",
+      user_consent_signal: "implied_ok",
+      visible_hint:
+        "Tu peux tenir compte du blocage principal sans faire de reproche ni demander un compte rendu.",
+      do_not_mention: [
+        "Ne dis pas que le user a echoue.",
+        "Ne propose pas de modifier le plan depuis le message.",
+      ],
+      evidence_refs: evidenceRefs,
+    };
+  }
+
+  return emptyMorningNudgeAnchor();
 }
 
 function heartbeatCelebrationTitle(
@@ -552,39 +690,18 @@ async function loadFreshConversationPulseForMorning(args: {
   transformationId: string | null;
   nowIso: string;
 }): Promise<{ snapshotId: string | null; pulse: ConversationPulse | null }> {
-  const freshnessMs = 12 * 60 * 60 * 1000;
-  let query = args.supabase
-    .from("system_runtime_snapshots")
-    .select("id,payload,created_at")
-    .eq("user_id", args.userId)
-    .eq("snapshot_type", "conversation_pulse")
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (args.cycleId) query = query.eq("cycle_id", args.cycleId);
-  if (args.transformationId) {
-    query = query.eq("transformation_id", args.transformationId);
-  }
-
-  const { data, error } = await query.maybeSingle();
-  if (error) throw error;
-  if (!data) return { snapshotId: null, pulse: null };
-
-  const createdAtMs = parseIsoMsLocal((data as any)?.created_at);
-  const nowMs = parseIsoMsLocal(args.nowIso);
-  if (!createdAtMs || (nowMs > 0 && nowMs - createdAtMs > freshnessMs)) {
-    return { snapshotId: null, pulse: null };
-  }
-
-  const payload = (data as any)?.payload;
-  if (!payload || typeof payload !== "object") {
-    return { snapshotId: null, pulse: null };
-  }
-
-  return {
-    snapshotId: cleanText((data as any)?.id) || null,
-    pulse: payload as ConversationPulse,
-  };
+  return await loadLatestConversationPulseV2({
+    supabase: args.supabase,
+    userId: args.userId,
+    cycleId: args.cycleId,
+    transformationId: args.transformationId,
+    nowIso: args.nowIso,
+    snapshotTypes: [
+      DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
+      WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
+    ],
+    freshnessMs: 36 * 60 * 60 * 1000,
+  });
 }
 
 async function loadRecentVictoriesForMorning(args: {
@@ -1033,6 +1150,7 @@ function buildGroundingV2(args: {
   recentVictory: string | null;
   planDeepWhy: string | null;
   phaseContext?: CurrentPhaseRuntimeContext | null;
+  morningAnchor: MorningNudgeAnchor;
 }): string {
   const lines = [
     `event=morning_nudge_v2`,
@@ -1053,6 +1171,21 @@ function buildGroundingV2(args: {
     args.upcomingEvent ? `upcoming_event=${args.upcomingEvent}` : null,
     args.recentVictory ? `recent_victory=${args.recentVictory}` : null,
     args.planDeepWhy ? `deep_why=${args.planDeepWhy}` : null,
+    `morning_anchor.kind=${args.morningAnchor.kind}`,
+    `morning_anchor.specificity=${args.morningAnchor.specificity}`,
+    `morning_anchor.sensitivity=${args.morningAnchor.sensitivity}`,
+    args.morningAnchor.visible_hint
+      ? `morning_anchor.visible_hint=${args.morningAnchor.visible_hint}`
+      : null,
+    args.morningAnchor.kind !== "recent_emotional_thread" &&
+      args.morningAnchor.label
+      ? `morning_anchor.label=${args.morningAnchor.label}`
+      : null,
+    args.morningAnchor.do_not_mention.length > 0
+      ? `morning_anchor.do_not_mention=${
+        args.morningAnchor.do_not_mention.join(" | ")
+      }`
+      : null,
     args.phaseContext?.current_phase_title
       ? `current_phase=${args.phaseContext.current_phase_title}`
       : null,
@@ -1165,6 +1298,54 @@ function buildPostureContent(
       return _exhaustive;
     }
   }
+}
+
+function applyMorningAnchorToContent(args: {
+  posture: MorningNudgePosture;
+  content: PostureContent;
+  anchor: MorningNudgeAnchor;
+}): PostureContent {
+  if (args.anchor.kind === "none") return args.content;
+
+  const doNotMention = args.anchor.do_not_mention.length > 0
+    ? ` Limites: ${args.anchor.do_not_mention.join(" ")}`
+    : "";
+  const anchorInstruction = args.anchor.visible_hint
+    ? ` Ancrage morning_anchor: ${args.anchor.visible_hint}${doNotMention}`
+    : doNotMention
+    ? ` Ancrage morning_anchor.${doNotMention}`
+    : "";
+
+  if (!anchorInstruction) return args.content;
+
+  if (
+    args.anchor.kind === "recent_emotional_thread" &&
+    args.anchor.specificity === "soft" &&
+    (args.posture === "support_softly" ||
+      args.posture === "protective_pause")
+  ) {
+    return {
+      ...args.content,
+      instruction: `${args.content.instruction}${anchorInstruction}`,
+      fallback_text:
+        "Je garde en tete que quelque chose prenait de la place recemment. Ce matin, pas besoin de forcer: juste un peu de douceur pour commencer.",
+    };
+  }
+
+  if (
+    args.anchor.kind === "recent_emotional_thread" &&
+    args.anchor.specificity === "vague"
+  ) {
+    return {
+      ...args.content,
+      instruction: `${args.content.instruction}${anchorInstruction}`,
+    };
+  }
+
+  return {
+    ...args.content,
+    instruction: `${args.content.instruction}${anchorInstruction}`,
+  };
 }
 
 function suppressionReasonForPosture(
@@ -1292,6 +1473,7 @@ export function buildMorningNudgePayloadV2(args: {
     suppressed_action_ids: args.plan.suppressed_plan_item_ids ?? [],
     suppressed_action_titles: args.plan.suppressed_plan_item_titles ?? [],
     suppression_reason: args.plan.suppression_reason ?? null,
+    morning_anchor: args.plan.morning_anchor ?? emptyMorningNudgeAnchor(),
     source_reason: args.plan.reason,
     source_grounding: args.plan.event_grounding ?? null,
     sent_at: cleanText(args.sentAtIso) || new Date().toISOString(),
@@ -1349,13 +1531,18 @@ export function buildMorningNudgePlanV2(
   const phaseCelebration = heartbeatCelebrationTitle(input.phaseContext);
   const topVictory = phaseCelebration ?? freshVictories[0]?.title ?? null;
 
-  const content = buildPostureContent(
+  const morningAnchor = buildMorningNudgeAnchorV2(input);
+  const content = applyMorningAnchorToContent({
     posture,
-    todayTitles,
-    upcomingEvent,
-    topVictory,
-    phaseCelebration,
-  );
+    anchor: morningAnchor,
+    content: buildPostureContent(
+      posture,
+      todayTitles,
+      upcomingEvent,
+      topVictory,
+      phaseCelebration,
+    ),
+  });
   const nudgeClassification = classifyMorningNudgeV2({
     input,
     posture,
@@ -1374,6 +1561,7 @@ export function buildMorningNudgePlanV2(
     recentVictory: topVictory,
     planDeepWhy: input.planDeepWhy,
     phaseContext: input.phaseContext,
+    morningAnchor,
   });
 
   return {
@@ -1386,6 +1574,7 @@ export function buildMorningNudgePlanV2(
     target_plan_item_ids: primaryPlanItems.map((item) => item.id),
     target_plan_item_titles: primaryPlanItems.map((item) => item.title),
     ...nudgeClassification,
+    morning_anchor: morningAnchor,
     instruction: content.instruction,
     fallback_text: content.fallback_text,
     event_grounding: grounding,

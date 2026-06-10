@@ -5,7 +5,7 @@ import type {
   AdjustPlanSkillResult,
   AdjustPlanUserIntent,
 } from "./contract.ts";
-import type { PlanAdjustmentDraftV1 } from "./generator.ts";
+import type { PlanAdjustmentDraftV1 } from "./contract.ts";
 
 type RuntimeAdapterInput = {
   content: string;

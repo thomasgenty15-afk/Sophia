@@ -1,9 +1,10 @@
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
-import type {
-  ToolSkillOpportunity,
-  TurnFrame,
-} from "../contracts/turn_frame.v1.ts";
+import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { ConversationSkillOutput } from "../contracts/skill_output.v1.ts";
+import {
+  createNoteInformation,
+  normalizeNoteInformation,
+} from "../contracts/note_information.v1.ts";
 import type { ProductRecommendation } from "../recommendation/recommendation_types.ts";
 import { loadProductSurfaceRegistry } from "../product_surface_registry/registry.ts";
 import { runRecommendationTool } from "../recommendation/recommendation_tool.ts";
@@ -14,7 +15,6 @@ import { runProductHelpSkill } from "../skills/product_help/skill.ts";
 import { runSafetyCrisisSkill } from "../skills/safety_crisis/skill.ts";
 import {
   renderRecommendationToolVisibleReply,
-  renderToolSkillOpportunityOfferText,
 } from "../tools/operations/_shared/recommendation_renderer.ts";
 import {
   buildAttackCardRecommendationOperationInput,
@@ -52,12 +52,15 @@ export type RecommendationRuntimeForTurn = {
 function buildSkillContextForRecommendation(args: {
   skillId: string;
   userId: string;
+  userMessage: string;
+  routeDecision?: RouteDecision | null;
   turnFrame: TurnFrame | null;
   recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
   activeSkillState: unknown;
   planItemSnapshot: unknown[] | null | undefined;
   productSurfaces: unknown[];
 }) {
+  const inboundNote = initialActivationNoteInformation(args);
   return {
     skill_id: args.skillId,
     user_id: args.userId,
@@ -73,7 +76,57 @@ function buildSkillContextForRecommendation(args: {
       : [],
     product_surfaces: args.productSurfaces as Array<Record<string, unknown>>,
     exclusions: [],
+    note_information: inboundNote,
   } as any;
+}
+
+function initialActivationNoteInformation(args: {
+  skillId: string;
+  userMessage: string;
+  routeDecision?: RouteDecision | null;
+  turnFrame: TurnFrame | null;
+  activeSkillState: unknown;
+}) {
+  if (args.activeSkillState) return null;
+  if (
+    args.routeDecision?.response_owner !== "conversation_handler" ||
+    args.routeDecision.selected_handler !== args.skillId
+  ) return null;
+  const raw = args.turnFrame?.note_information ?? null;
+  if (raw) {
+    return normalizeNoteInformation(raw, {
+      source_flow_id: "global_dispatcher",
+      source_flow_state_summary: `Premiere activation de ${args.skillId}.`,
+      handoff_reason: "explicit_user_request",
+      target_dispatcher: args.skillId as any,
+      handoff_context_for_next_dispatcher: args.userMessage,
+      structured_context: {
+        user_message_summary: args.userMessage.slice(0, 240),
+        route_reason: args.routeDecision.reason_code,
+      },
+      risk_score: 0,
+    });
+  }
+  return createNoteInformation({
+    source_flow_id: "global_dispatcher",
+    source_flow_state_summary: `Premiere activation de ${args.skillId}.`,
+    handoff_reason: "explicit_user_request",
+    target_dispatcher: args.skillId as any,
+    handoff_context_for_next_dispatcher: JSON.stringify({
+      user_message_summary: args.userMessage.slice(0, 240),
+      route_reason: args.routeDecision.reason_code,
+      selected_handler: args.routeDecision.selected_handler,
+    }),
+    target_local_dispatcher_hint:
+      "Treat this as initial ownership context, not as a visible message.",
+    user_words: [args.userMessage.slice(0, 240)],
+    structured_context: {
+      user_message_summary: args.userMessage.slice(0, 240),
+      route_reason: args.routeDecision.reason_code,
+      selected_handler: args.routeDecision.selected_handler,
+    },
+    risk_score: 0,
+  });
 }
 
 const CONVERSATION_EXPLICIT_CONSTRAINTS = [
@@ -120,6 +173,7 @@ export async function runConversationSkillForRecommendation(args: {
   productSurfaces: unknown[];
   explicitConstraints?: string[];
   activeSkillStateOverride?: unknown;
+  routeDecision?: RouteDecision | null;
 }): Promise<ConversationSkillOutput | null> {
   const context = buildSkillContextForRecommendation({
     ...args,
@@ -179,8 +233,7 @@ export async function prepareRecommendationRuntimeForTurn(args: {
 
   if (
     args.turnFrame &&
-    (selectedSkillForRecommendation ||
-      args.turnFrame.tool_skill_opportunity?.should_offer)
+    selectedSkillForRecommendation
   ) {
     try {
       const registry = await loadProductSurfaceRegistry();
@@ -208,6 +261,7 @@ export async function prepareRecommendationRuntimeForTurn(args: {
           productSurfaces: registry.surfaces,
           explicitConstraints: conversationExplicitConstraints(args.tempMemory),
           activeSkillStateOverride: inlineParentState,
+          routeDecision: args.routeDecision,
         })
         : null;
       if (selectedSkillForRecommendation === "safety_crisis") {
@@ -321,59 +375,6 @@ export async function prepareRecommendationRuntimeForTurn(args: {
           suggestionResolution.recommendation ? "info" : "debug",
         );
       }
-      if (
-        !suppressOperationRecommendationForVerification &&
-        args.turnFrame?.tool_skill_opportunity?.should_offer &&
-        !args.routeDecision?.blocked_paths.some((blocked) =>
-          blocked.path === "tool_skill_opportunity" &&
-          blocked.reason_code === "active_flow_blocks_tool_opportunity"
-        )
-      ) {
-        const opportunitySurfaceLabel =
-          args.turnFrame.tool_skill_opportunity.surface_id
-            ? registry.by_id.get(
-              args.turnFrame.tool_skill_opportunity.surface_id,
-            )
-              ?.label ?? null
-            : null;
-        const opportunityRecommendation =
-          buildRecommendationFromToolSkillOpportunity({
-            turnFrame: args.turnFrame,
-            surfaceLabel: opportunitySurfaceLabel,
-            planItemSnapshot: args.planItemSnapshot,
-            requestId: args.requestId,
-          });
-        if (
-          operationOpportunityShouldOverrideRecommendation({
-            opportunity: args.turnFrame.tool_skill_opportunity,
-            recommendation: recommendationToolRun,
-            opportunityRecommendation,
-          })
-        ) {
-          recommendationToolRun = opportunityRecommendation;
-          recommendationSurfaceLabel = opportunitySurfaceLabel;
-          recommendationToolAddon = [
-            buildToolSkillOpportunityAddon({
-              turnFrame: args.turnFrame,
-              recommendation: recommendationToolRun,
-              surfaceLabel: recommendationSurfaceLabel,
-            }),
-            buildRecommendationToolAddon({
-              recommendation: recommendationToolRun,
-              skillOutput: recommendationSkillOutput,
-              selectedSkillId: "tool_skill_opportunity_offer",
-              surfaceLabel: recommendationSurfaceLabel,
-            }),
-          ].filter((value): value is string =>
-            typeof value === "string" && value.trim().length > 0
-          ).join("\n\n");
-        }
-        await args.trace("brain:tool_skill_opportunity_resolved", "routing", {
-          opportunity: args.turnFrame.tool_skill_opportunity,
-          recommendation: recommendationToolRun,
-          opportunity_recommendation: opportunityRecommendation,
-        }, opportunityRecommendation ? "info" : "debug");
-      }
     } catch (error) {
       recommendationToolStats = {
         error: error instanceof Error ? error.message : String(error),
@@ -396,24 +397,17 @@ export async function prepareRecommendationRuntimeForTurn(args: {
 }
 
 export function normalizeRecommendationText(value: unknown): string {
-  return String(value ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "")
-    .replace(/[’‘`´]/g, "'")
-    .toLowerCase();
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function surfaceLabelSelfQuotePattern(surfaceLabel: string): RegExp {
-  const escaped = escapeRegExp(surfaceLabel).replace(/['’]/g, "['’]");
-  return new RegExp(`${escaped}\\s*["“”]${escaped}["“”]`, "i");
+  return String(value ?? "")
+    .toLowerCase()
+    .split("’").join("'")
+    .split("‘").join("'")
+    .split("`").join("'")
+    .split("´").join("'");
 }
 
 function userExplicitlyAsksForTool(text: string): boolean {
-  const normalized = normalizeRecommendationText(text);
-  return /\b(outil|outil sophia|truc|methode|aide simple|le plus simple|propose-moi|propose moi|a utiliser|utiliser ce soir|qu[' ]?est-ce que je peux utiliser)\b/
-    .test(normalized);
+  void text;
+  return false;
 }
 
 export function shouldRunRecommendationTool(args: {
@@ -425,13 +419,10 @@ export function shouldRunRecommendationTool(args: {
   if ((args.skillOutput?.operation_suggestions ?? []).length > 0) {
     return false;
   }
-  if (
-    args.skillOutput?.recommendation_need?.needed &&
-    userExplicitlyAsksForTool(args.userMessage)
-  ) return true;
+  if (args.skillOutput?.recommendation_need?.needed) return true;
   if (args.turnFrame.skill_signals.entry?.product_help?.detected) return true;
-  return Boolean(args.skillOutput) &&
-    userExplicitlyAsksForTool(args.userMessage);
+  void args.userMessage;
+  return false;
 }
 
 export function buildRecommendationToolAddon(args: {
@@ -475,230 +466,12 @@ export function buildRecommendationToolAddon(args: {
   ].filter(Boolean).join("\n");
 }
 
-function operationOpportunityLevel(
-  opportunity: ToolSkillOpportunity,
-): ProductRecommendation["presentation_level"] {
-  if (opportunity.confidence_band === "high") return 2;
-  if (opportunity.confidence_band === "medium") return 1;
-  return 0;
-}
-
-function operationOpportunityOfferText(args: {
-  opportunity: ToolSkillOpportunity;
-  surfaceLabel: string | null;
-}): string {
-  return renderToolSkillOpportunityOfferText({
-    opportunityType: args.opportunity.type,
-    targetHint: args.opportunity.target_hint,
-    surfaceLabel: args.surfaceLabel,
-  });
-}
-
-function buildOperationInputFromOpportunity(args: {
-  opportunity: ToolSkillOpportunity;
-  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
-}): Record<string, unknown> | null {
-  const opportunity = args.opportunity;
-  const targetHint = String(opportunity.target_hint ?? "").trim();
-  const targetItem = targetHint
-    ? (args.planItemSnapshot ?? []).find((item) =>
-      normalizeRecommendationText(item.title) ===
-        normalizeRecommendationText(targetHint) ||
-      normalizeRecommendationText(targetHint).includes(
-        normalizeRecommendationText(item.title),
-      ) ||
-      normalizeRecommendationText(item.title).includes(
-        normalizeRecommendationText(targetHint),
-      )
-    ) ?? null
-    : null;
-  const planTarget = targetItem
-    ? {
-      kind: "plan_item",
-      plan_item_id: targetItem.id,
-      title: targetItem.title,
-    }
-    : targetHint
-    ? {
-      kind: "personal_action",
-      title: targetHint,
-    }
-    : null;
-
-  if (opportunity.type === "attack_card") {
-    return {
-      target: planTarget,
-      blocker: {
-        type: "friction",
-        reason: opportunity.prop_reason,
-        source_span: opportunity.source_span,
-      },
-      desired_attack_angle: "preparer_terrain",
-    };
-  }
-  if (opportunity.type === "defense_card") {
-    return {
-      attachment: planTarget,
-      risk_situation: {
-        label: opportunity.source_span ?? opportunity.prop_reason ??
-          "risque récurrent",
-      },
-    };
-  }
-  if (
-    opportunity.type === "portion" || opportunity.type === "plan_adjustment"
-  ) {
-    return {
-      target: planTarget,
-      scope: planTarget,
-      adjustment_type: opportunity.surface_id === "plan_item.clarify"
-        ? "clarify"
-        : "reduce",
-      reason: opportunity.prop_reason,
-    };
-  }
-  if (opportunity.type === "self_reminder") {
-    return {
-      message_hint: opportunity.source_span ?? targetHint,
-      reason: opportunity.prop_reason,
-    };
-  }
-  if (opportunity.type === "state_potion") {
-    const source = normalizeRecommendationText(
-      `${opportunity.source_span ?? ""} ${opportunity.prop_reason ?? ""}`,
-    );
-    const state = /honte|culpabil/.test(source)
-      ? "shame_guilt"
-      : /stress|pression|angoisse|panique/.test(source)
-      ? "stress_pressure"
-      : /flou|confus|surcharge/.test(source)
-      ? "confusion_overload"
-      : /peur|evite|evitement/.test(source)
-      ? "fear_avoidance"
-      : /nul|incapable|dur avec moi/.test(source)
-      ? "self_harshness"
-      : /decroche|decrochage/.test(source)
-      ? "decrochage"
-      : null;
-    return state
-      ? { state, source_span: opportunity.source_span ?? null }
-      : { source_span: opportunity.source_span ?? null };
-  }
-  return null;
-}
-
 function recommendationTargetTitle(
   recommendation: ProductRecommendation | null,
 ): string | null {
   const input = recommendation?.operation_input;
   if (!input || typeof input !== "object") return null;
   return planItemTitleFromOperationInput(input);
-}
-
-export function operationOpportunityShouldOverrideRecommendation(args: {
-  opportunity: ToolSkillOpportunity | null;
-  recommendation: ProductRecommendation | null;
-  opportunityRecommendation: ProductRecommendation | null;
-}): boolean {
-  const opportunity = args.opportunity;
-  const recommendation = args.recommendation;
-  const opportunityRecommendation = args.opportunityRecommendation;
-  if (!opportunity || !opportunityRecommendation) return false;
-  if (
-    !opportunity.should_offer ||
-    opportunity.confidence_band !== "high" ||
-    opportunity.offer_timing !== "now" ||
-    !opportunity.operation_type
-  ) return false;
-  if (!recommendation) return true;
-  if (opportunity.target_status !== "identified") return false;
-  if (recommendation.operation_type !== opportunity.operation_type) {
-    return false;
-  }
-  const opportunityTarget = normalizeRecommendationText(
-    recommendationTargetTitle(opportunityRecommendation) ??
-      opportunity.target_hint ?? "",
-  );
-  if (!opportunityTarget) return true;
-  const recommendationTarget = normalizeRecommendationText(
-    recommendationTargetTitle(recommendation) ?? "",
-  );
-  return !recommendationTarget || recommendationTarget !== opportunityTarget;
-}
-
-export function buildRecommendationFromToolSkillOpportunity(args: {
-  turnFrame: TurnFrame | null;
-  surfaceLabel: string | null;
-  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
-  requestId?: string | null;
-}): ProductRecommendation | null {
-  const opportunity = args.turnFrame?.tool_skill_opportunity ?? null;
-  if (
-    !opportunity ||
-    opportunity.type === "none" ||
-    !opportunity.should_offer ||
-    opportunity.confidence_band !== "high" ||
-    !opportunity.operation_type ||
-    !opportunity.surface_id ||
-    opportunity.offer_timing !== "now"
-  ) return null;
-  const operationInput = buildOperationInputFromOpportunity({
-    opportunity,
-    planItemSnapshot: args.planItemSnapshot,
-  });
-  return {
-    recommendation_id: `dispatcher_opportunity:${opportunity.type}:${
-      args.requestId ?? args.turnFrame?.turn_id ?? "local"
-    }`,
-    decision: "recommend_operation",
-    surface_id: opportunity.surface_id,
-    executor_tool_id: opportunity.operation_type,
-    operation_type: opportunity.operation_type,
-    operation_input: operationInput,
-    confidence: opportunity.confidence_band === "high" ? 0.86 : 0.72,
-    timing: "now",
-    presentation_level: operationOpportunityLevel(opportunity),
-    cta_style: "soft",
-    requires_consent: true,
-    reason: opportunity.prop_reason ??
-      `dispatcher_tool_skill_opportunity:${opportunity.type}`,
-    user_facing_offer: operationOpportunityOfferText({
-      opportunity,
-      surfaceLabel: args.surfaceLabel,
-    }),
-    alternatives: [],
-    do_not_recommend: [],
-  };
-}
-
-export function buildToolSkillOpportunityAddon(args: {
-  turnFrame: TurnFrame | null;
-  recommendation: ProductRecommendation | null;
-  surfaceLabel: string | null;
-}): string | null {
-  const opportunity = args.turnFrame?.tool_skill_opportunity ?? null;
-  const recommendation = args.recommendation;
-  if (!opportunity || !recommendation) return null;
-  const offer = String(recommendation.user_facing_offer ?? "").trim();
-  return [
-    "=== ADDON OPERATION OPPORTUNITY OFFER ===",
-    `type: ${opportunity.type}`,
-    `surface_label: ${args.surfaceLabel ?? "none"}`,
-    `operation_type: ${recommendation.operation_type ?? "none"}`,
-    `prop_reason: ${opportunity.prop_reason ?? "none"}`,
-    `source_span: ${opportunity.source_span ?? "none"}`,
-    `target_hint: ${opportunity.target_hint ?? "none"}`,
-    offer ? `suggested_offer: ${offer}` : null,
-    "",
-    "CONSIGNE:",
-    "- Reponds d'abord au besoin principal du user; ne remplace pas la reponse par une vente d'outil.",
-    "- Si tu proposes l'opportunite, fais-le en une seule question optionnelle et courte.",
-    "- Ne lance aucune operation maintenant. Demande l'accord explicite.",
-    "- Si le user veut juste que ce soit note, accepte et ne pousse pas l'outil.",
-    "- Ne dis jamais les champs techniques type, surface_id, operation_type ou prop_reason.",
-    "- Regle produit cartes: ne dis jamais qu'une carte d'attaque peut etre modifiee librement. Une carte Mot de bascule permet seulement de remplacer le mot; si le contexte, la technique ou le contenu ne convient plus, propose d'en preparer une nouvelle version apres confirmation.",
-    "=== FIN ADDON OPERATION OPPORTUNITY OFFER ===",
-  ].filter(Boolean).join("\n");
 }
 
 export function directConversationSkillReplyOverride(args: {
@@ -729,15 +502,12 @@ export function enforceRecommendationToolVisibleReply(args: {
   const response = String(args.responseContent ?? "").trim();
   const recommendation = args.recommendation;
   const surfaceLabel = String(args.surfaceLabel ?? "").trim();
-  const fromDispatcherOpportunity = String(
-    recommendation?.recommendation_id ?? "",
-  ).startsWith("dispatcher_opportunity:");
   const explicitToolAsk = userExplicitlyAsksForTool(args.userMessage);
   if (
     !recommendation ||
     recommendation.decision !== "recommend_operation" ||
     !surfaceLabel ||
-    (!explicitToolAsk && !fromDispatcherOpportunity)
+    !explicitToolAsk
   ) {
     return response;
   }
@@ -759,42 +529,16 @@ export function enforceRecommendationToolVisibleReply(args: {
   const resolvedTargetTitle = planItemTitleFromOperationInput(
     resolvedOperationInput,
   );
-  const selfQuotedLabel = surfaceLabelSelfQuotePattern(surfaceLabel);
-  const resolvedResponse = resolvedTargetTitle && selfQuotedLabel.test(response)
-    ? response.replace(
-      selfQuotedLabel,
-      `${surfaceLabel} pour "${resolvedTargetTitle}"`,
-    )
-    : response;
+  const resolvedResponse = response;
 
   const normalizedResponse = normalizeRecommendationText(response);
   const normalizedLabel = normalizeRecommendationText(surfaceLabel);
   if (normalizedResponse.includes(normalizedLabel)) return resolvedResponse;
 
-  if (
-    fromDispatcherOpportunity && !explicitToolAsk &&
-    recommendation.operation_type === "select_state_potion"
-  ) {
-    return resolvedResponse;
-  }
-
-  if (fromDispatcherOpportunity && !explicitToolAsk) {
-    return renderRecommendationToolVisibleReply({
-      responseContent: resolvedResponse,
-      surfaceLabel,
-      operationType: recommendation.operation_type,
-      fromDispatcherOpportunity,
-      explicitToolAsk,
-      resolvedTargetTitle,
-    });
-  }
-
   const offer = String(recommendation.user_facing_offer ?? "").trim();
   const naturalOffer = offer
     ? offer
-      .replace(/\balleger\b/gi, "alléger")
-      .replace(/\belan\b/gi, "élan")
-      .replace(/[.!?…]+$/u, "")
+      .trim()
     : null;
   if (recommendation.operation_type === "prepare_attack_card") {
     const attackOperationInput = buildAttackCardRecommendationOperationInput({
@@ -807,7 +551,6 @@ export function enforceRecommendationToolVisibleReply(args: {
       responseContent: resolvedResponse,
       surfaceLabel,
       operationType: recommendation.operation_type,
-      fromDispatcherOpportunity,
       explicitToolAsk,
       resolvedTargetTitle: targetTitle,
       naturalOffer,
@@ -826,7 +569,6 @@ export function enforceRecommendationToolVisibleReply(args: {
     responseContent: resolvedResponse,
     surfaceLabel,
     operationType: recommendation.operation_type,
-    fromDispatcherOpportunity,
     explicitToolAsk,
     resolvedTargetTitle: targetTitle,
     naturalOffer,

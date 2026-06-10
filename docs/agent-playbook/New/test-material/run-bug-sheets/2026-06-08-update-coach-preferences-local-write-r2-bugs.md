@@ -68,7 +68,7 @@
   - `committed_effects=[]`
   - `toolSkillRun.selected_handler=status_recap` attendu mais absent
 - Correction attendue:
-  - Router les questions sur états réels actifs vers `status_recap` / `status_only_no_mutation_check`: préférences coach actives, actions actives, cartes attaque/défense, potions, rappels/statuts déjà supportés.
+  - Router les questions sur états réels actifs vers `status_recap` / `status_recap`: préférences coach actives, actions actives, cartes attaque/défense, potions, rappels/statuts déjà supportés.
   - Garder `status_recap` read-only et DB-grounded.
   - Ne pas ajouter de regex métier dans `run.ts`; corriger la source amont dispatcher / skill signal / contrat de routing.
   - Ne pas masquer les commandes mutatives: "je veux changer mes préférences" doit rester éligible à `update_coach_preferences`, pas à `status_recap`.

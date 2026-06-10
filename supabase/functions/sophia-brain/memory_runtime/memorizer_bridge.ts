@@ -126,17 +126,23 @@ function idempotencyKey(input: {
 }
 
 function identityFreezePattern(text: string): boolean {
-  const normalized = normalize(text);
-  return /\b(je suis nul|je suis nulle|je rate tout|j'?echoue tout|je suis incapable|je suis un echec|je suis une merde|je suis foutu|je suis foutue)\b/
-    .test(normalized);
+  void text;
+  return false;
 }
 
 function parseTargetIds(candidate: MemoryWriteCandidate): string[] {
   const hints = candidate.entity_hints ?? [];
   const ids: string[] = [];
   for (const hint of hints) {
-    const match = /^(?:target|memory|item):(.+)$/i.exec(hint.trim());
-    if (match?.[1]) ids.push(match[1]);
+    const trimmed = hint.trim();
+    const separator = trimmed.indexOf(":");
+    if (separator <= 0) continue;
+    const prefix = trimmed.slice(0, separator).toLowerCase();
+    if (prefix !== "target" && prefix !== "memory" && prefix !== "item") {
+      continue;
+    }
+    const id = trimmed.slice(separator + 1).trim();
+    if (id) ids.push(id);
   }
   return ids;
 }

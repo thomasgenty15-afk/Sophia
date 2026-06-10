@@ -35,6 +35,29 @@ export type MorningNudgeSuppressionReason =
   | "no_items"
   | null;
 
+export type MorningNudgeAnchor = {
+  kind:
+    | "recent_emotional_thread"
+    | "upcoming_event"
+    | "plan_blocker"
+    | "none";
+  label: string | null;
+  specificity: "none" | "vague" | "soft" | "explicit";
+  confidence: "low" | "medium" | "high";
+  sensitivity: "normal" | "sensitive" | "safety";
+  user_consent_signal:
+    | "explicit_followup_ok"
+    | "implied_ok"
+    | "unknown"
+    | "avoid";
+  visible_hint: string | null;
+  do_not_mention: string[];
+  evidence_refs: {
+    message_ids: string[];
+    event_ids: string[];
+  };
+};
+
 export type MorningNudgePayloadV2 = {
   event_context: "morning_nudge_v2";
   nudge_kind: MorningNudgeKind;
@@ -57,6 +80,7 @@ export type MorningNudgePayloadV2 = {
   suppressed_action_ids: string[];
   suppressed_action_titles: string[];
   suppression_reason: MorningNudgeSuppressionReason;
+  morning_anchor?: MorningNudgeAnchor;
   source_reason: string;
   source_grounding: string | null;
   sent_at: string;

@@ -90,14 +90,9 @@ export function normalizeChatText(
     }
     // Drop code fences and obvious tool invocations.
     if (l.startsWith("```")) continue;
-    if (/^print\s*\(/i.test(l)) continue;
-    if (/default_api\./i.test(l)) continue;
-    if (
-      /(track_progress|create_simple_action|create_framework|log_action_execution|break_down_action)\s*\(/i
-        .test(l)
-    ) {
-      continue;
-    }
+    const lowerLine = l.toLowerCase();
+    if (lowerLine.startsWith("print(")) continue;
+    if (lowerLine.includes("default_api.")) continue;
     cleaned.push(line);
   }
 
@@ -114,24 +109,7 @@ export function extractHiddenFilRougeNote(
   text: unknown,
 ): { visibleText: string; note: string | null; marker: string | null } {
   const raw = String(text ?? "");
-  for (const marker of FIL_ROUGE_MARKERS) {
-    const pattern = new RegExp(
-      `(?:\\n|\\r\\n)?<!--\\s*${marker}\\s*:\\s*([\\s\\S]*?)\\s*-->\\s*(?:</final>\\s*)?$`,
-      "i",
-    );
-    const match = raw.match(pattern);
-    if (!match) continue;
-    const note = String(match[1] ?? "").trim().replace(/\s+/g, " ").slice(
-      0,
-      500,
-    );
-    const visibleText = raw.replace(pattern, "").trimEnd();
-    return {
-      visibleText,
-      note: note || null,
-      marker,
-    };
-  }
+  void FIL_ROUGE_MARKERS;
   return {
     visibleText: raw,
     note: null,

@@ -1,0 +1,1804 @@
+[
+  {
+    "scenario": "action",
+    "turn": 1,
+    "request_id": "post-morning-nudge-local-r2-action-t1",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "post-morning-nudge-local-r2-action-t1",
+      "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+      "channel": "web",
+      "scope": "post-morning-nudge-local-r2-action",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est parti pour les chaussures alors. Bonne marche, profite bien de ces 10 minutes !",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "post-morning-nudge-local-r2-action-t1",
+            "source_message_id": "75b140da-3dc0-42bd-81f8-27564fcad382",
+            "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "post_morning_nudge.action_dispatcher",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_post_morning_nudge_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_post_morning_nudge_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "post_morning_nudge.action_dispatcher",
+            "reason_code": "post_morning_nudge_action_local_dispatcher",
+            "skill_id": "post_morning_nudge",
+            "flow_kind": "action",
+            "status": "closed",
+            "post_morning_nudge.action_dispatcher_called": true,
+            "flow_action": "quick_close_ready",
+            "flow_action_category": "complete_flow",
+            "confidence": "high",
+            "risk_score": 0,
+            "visible_task": {
+              "kind": "quick_close",
+              "instruction": "",
+              "conversation_context": {
+                "state_summary": "action followup; status=active; turn=0/3.",
+                "source_nudge_summary": "nudge_kind=action_nudge; posture=focus_today; titles=Marcher 10 min",
+                "flow_kind": "action",
+                "user_words": [],
+                "field_or_stage": "quick_close",
+                "known_values": {
+                  "target_action_titles": [
+                    "Marcher 10 min"
+                  ],
+                  "target_item_titles": [
+                    "Marcher 10 min"
+                  ],
+                  "suppressed_action_titles": [],
+                  "suppression_reason": null,
+                  "main_friction": null,
+                  "next_step_candidate": "mettre mes chaussures",
+                  "scope_reduction_candidate": null,
+                  "main_need": null,
+                  "minimal_save_candidate": null,
+                  "reopen_step_candidate": null,
+                  "main_emotion_or_context": null,
+                  "soft_next_step_candidate": null,
+                  "reactivation_candidate": null,
+                  "coach_intent": "motivate_action",
+                  "action_readiness": "ready",
+                  "emotional_load": "low",
+                  "support_need": null
+                },
+                "missing_or_weak_values": [],
+                "selected_candidate": {},
+                "handoff_data": {},
+                "tone_constraints": [
+                  "short",
+                  "natural",
+                  "no pressure",
+                  "one visible move only"
+                ],
+                "do_not_say": [
+                  "Do not claim that a card, potion, reminder, preference, action, checkin, or plan patch was created."
+                ],
+                "context_summary": "nudge_kind=action_nudge; posture=focus_today; titles=Marcher 10 min; visible_task=quick_close",
+                "evidence_used": [
+                  "User explicitly agrees to start ('Oui, je peux commencer')",
+                  "User identifies a micro-step ('en mettant mes chaussures')",
+                  "No friction or blockers mentioned",
+                  "High readiness for the target action 'Marcher 10 min'"
+                ]
+              }
+            },
+            "db_context_pack": {
+              "source": "morning_nudge_v2_payload",
+              "freshness": "current_active_flow",
+              "confidence": "high",
+              "status": "bridge_provided",
+              "flow_kind": "action",
+              "source_nudge_summary": "nudge_kind=action_nudge; posture=focus_today; titles=Marcher 10 min",
+              "target_action_titles": [
+                "Marcher 10 min"
+              ],
+              "target_item_titles": [
+                "Marcher 10 min"
+              ],
+              "suppressed_action_titles": [],
+              "suppression_reason": null,
+              "posture": "focus_today",
+              "coach_intent": "motivate_action",
+              "evidence": [
+                "active_state.source_nudge",
+                "nudge_kind=action_nudge",
+                "intended_followup_flow=action"
+              ]
+            },
+            "micro_memory_context": {
+              "items": [],
+              "exclusions": [
+                "No raw memory dump.",
+                "No safety memory unless safety_preempt is selected.",
+                "No global emotional profile."
+              ],
+              "budget": {
+                "max_items": 0,
+                "reason": "The source morning nudge payload is the authoritative context for action and suppressed-action followups."
+              }
+            },
+            "local_assessment": {
+              "action_readiness": "ready",
+              "motivation_need": "none",
+              "emotional_load": "low",
+              "user_wants_conversation": false,
+              "target_action_reference": "Marcher 10 min",
+              "main_friction": null,
+              "next_step_candidate": "mettre mes chaussures",
+              "scope_reduction_candidate": null
+            },
+            "state_updates": {
+              "status": "closing",
+              "turn_count_increment": 1,
+              "close_after_visible": true
+            },
+            "close_after_visible": true,
+            "note_information": null,
+            "local_handoff_note": null,
+            "no_chat_mutation": true,
+            "no_durable_mutation": {
+              "action_created": false,
+              "card_created": false,
+              "potion_created": false,
+              "reminder_created": false,
+              "scheduled_checkin_created": false,
+              "preference_written": false,
+              "plan_patch_written": false
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "ai_call_count": 2,
+            "runtime_trace": [
+              {
+                "component": "post_morning_nudge.action_dispatcher",
+                "event": "quick_close_ready",
+                "post_morning_nudge.flow_kind": "action",
+                "flow_action": "quick_close_ready",
+                "flow_action_category": "complete_flow",
+                "visible_task.kind": "quick_close",
+                "local_assessment.action_readiness": "ready",
+                "local_assessment.motivation_need": "none",
+                "state_updates.status": "closing",
+                "close_after_visible": true,
+                "global_dispatcher_skipped_due_post_morning_nudge": true,
+                "exit_to_global_dispatcher": false,
+                "safety_preempt": false,
+                "target_dispatcher": null,
+                "handoff_reason": null,
+                "note_information": null,
+                "has_note_information": false,
+                "activation_note_information_consumed": true,
+                "db_context_pack_loaded": true,
+                "micro_memory_items": 0
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "post-morning-nudge-local-r2-action-t1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "post-morning-nudge-local-r2-action-t1",
+          "source_message_id": "75b140da-3dc0-42bd-81f8-27564fcad382",
+          "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "post_morning_nudge.action_dispatcher",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_post_morning_nudge_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_post_morning_nudge_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "post_morning_nudge.action_dispatcher",
+          "reason_code": "post_morning_nudge_action_local_dispatcher",
+          "skill_id": "post_morning_nudge",
+          "flow_kind": "action",
+          "status": "closed",
+          "post_morning_nudge.action_dispatcher_called": true,
+          "flow_action": "quick_close_ready",
+          "flow_action_category": "complete_flow",
+          "confidence": "high",
+          "risk_score": 0,
+          "visible_task": {
+            "kind": "quick_close",
+            "instruction": "",
+            "conversation_context": {
+              "state_summary": "action followup; status=active; turn=0/3.",
+              "source_nudge_summary": "nudge_kind=action_nudge; posture=focus_today; titles=Marcher 10 min",
+              "flow_kind": "action",
+              "user_words": [],
+              "field_or_stage": "quick_close",
+              "known_values": {
+                "target_action_titles": [
+                  "Marcher 10 min"
+                ],
+                "target_item_titles": [
+                  "Marcher 10 min"
+                ],
+                "suppressed_action_titles": [],
+                "suppression_reason": null,
+                "main_friction": null,
+                "next_step_candidate": "mettre mes chaussures",
+                "scope_reduction_candidate": null,
+                "main_need": null,
+                "minimal_save_candidate": null,
+                "reopen_step_candidate": null,
+                "main_emotion_or_context": null,
+                "soft_next_step_candidate": null,
+                "reactivation_candidate": null,
+                "coach_intent": "motivate_action",
+                "action_readiness": "ready",
+                "emotional_load": "low",
+                "support_need": null
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {},
+              "handoff_data": {},
+              "tone_constraints": [
+                "short",
+                "natural",
+                "no pressure",
+                "one visible move only"
+              ],
+              "do_not_say": [
+                "Do not claim that a card, potion, reminder, preference, action, checkin, or plan patch was created."
+              ],
+              "context_summary": "nudge_kind=action_nudge; posture=focus_today; titles=Marcher 10 min; visible_task=quick_close",
+              "evidence_used": [
+                "User explicitly agrees to start ('Oui, je peux commencer')",
+                "User identifies a micro-step ('en mettant mes chaussures')",
+                "No friction or blockers mentioned",
+                "High readiness for the target action 'Marcher 10 min'"
+              ]
+            }
+          },
+          "db_context_pack": {
+            "source": "morning_nudge_v2_payload",
+            "freshness": "current_active_flow",
+            "confidence": "high",
+            "status": "bridge_provided",
+            "flow_kind": "action",
+            "source_nudge_summary": "nudge_kind=action_nudge; posture=focus_today; titles=Marcher 10 min",
+            "target_action_titles": [
+              "Marcher 10 min"
+            ],
+            "target_item_titles": [
+              "Marcher 10 min"
+            ],
+            "suppressed_action_titles": [],
+            "suppression_reason": null,
+            "posture": "focus_today",
+            "coach_intent": "motivate_action",
+            "evidence": [
+              "active_state.source_nudge",
+              "nudge_kind=action_nudge",
+              "intended_followup_flow=action"
+            ]
+          },
+          "micro_memory_context": {
+            "items": [],
+            "exclusions": [
+              "No raw memory dump.",
+              "No safety memory unless safety_preempt is selected.",
+              "No global emotional profile."
+            ],
+            "budget": {
+              "max_items": 0,
+              "reason": "The source morning nudge payload is the authoritative context for action and suppressed-action followups."
+            }
+          },
+          "local_assessment": {
+            "action_readiness": "ready",
+            "motivation_need": "none",
+            "emotional_load": "low",
+            "user_wants_conversation": false,
+            "target_action_reference": "Marcher 10 min",
+            "main_friction": null,
+            "next_step_candidate": "mettre mes chaussures",
+            "scope_reduction_candidate": null
+          },
+          "state_updates": {
+            "status": "closing",
+            "turn_count_increment": 1,
+            "close_after_visible": true
+          },
+          "close_after_visible": true,
+          "note_information": null,
+          "local_handoff_note": null,
+          "no_chat_mutation": true,
+          "no_durable_mutation": {
+            "action_created": false,
+            "card_created": false,
+            "potion_created": false,
+            "reminder_created": false,
+            "scheduled_checkin_created": false,
+            "preference_written": false,
+            "plan_patch_written": false
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "ai_call_count": 2,
+          "runtime_trace": [
+            {
+              "component": "post_morning_nudge.action_dispatcher",
+              "event": "quick_close_ready",
+              "post_morning_nudge.flow_kind": "action",
+              "flow_action": "quick_close_ready",
+              "flow_action_category": "complete_flow",
+              "visible_task.kind": "quick_close",
+              "local_assessment.action_readiness": "ready",
+              "local_assessment.motivation_need": "none",
+              "state_updates.status": "closing",
+              "close_after_visible": true,
+              "global_dispatcher_skipped_due_post_morning_nudge": true,
+              "exit_to_global_dispatcher": false,
+              "safety_preempt": false,
+              "target_dispatcher": null,
+              "handoff_reason": null,
+              "note_information": null,
+              "has_note_information": false,
+              "activation_note_information_consumed": true,
+              "db_context_pack_loaded": true,
+              "micro_memory_items": 0
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "post-morning-nudge-local-r2-action-t1",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "scenario": "suppressed_action",
+    "turn": 1,
+    "request_id": "post-morning-nudge-local-r2-suppressed_action-t1",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "post-morning-nudge-local-r2-suppressed_action-t1",
+      "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+      "channel": "web",
+      "scope": "post-morning-nudge-local-r2-suppressed",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est entendu, on ne fait rien aujourd'hui. Prends le temps de souffler.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "post-morning-nudge-local-r2-suppressed_action-t1",
+            "source_message_id": "6ec2ba84-5966-4ba4-886b-7ed5bdd6061f",
+            "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "post_morning_nudge.suppressed_action_dispatcher",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_post_morning_nudge_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_post_morning_nudge_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": null,
+          "tool_skill_run": {
+            "selected_handler": "post_morning_nudge.suppressed_action_dispatcher",
+            "reason_code": "post_morning_nudge_suppressed_action_local_dispatcher",
+            "skill_id": "post_morning_nudge",
+            "flow_kind": "suppressed_action",
+            "status": "closed",
+            "post_morning_nudge.suppressed_action_dispatcher_called": true,
+            "flow_action": "confirm_no_action_today",
+            "flow_action_category": "stop_local_no_handoff",
+            "confidence": "high",
+            "risk_score": 0,
+            "visible_task": {
+              "kind": "confirm_no_action_today",
+              "instruction": "",
+              "conversation_context": {
+                "state_summary": "suppressed_action followup; status=active; turn=0/3.",
+                "source_nudge_summary": "nudge_kind=suppressed_action_nudge; posture=support_softly; titles=Ranger 5 min | Ranger 5 min",
+                "flow_kind": "suppressed_action",
+                "user_words": [],
+                "field_or_stage": "confirm_no_action_today",
+                "known_values": {
+                  "target_action_titles": [
+                    "Ranger 5 min"
+                  ],
+                  "target_item_titles": [
+                    "Ranger 5 min"
+                  ],
+                  "suppressed_action_titles": [
+                    "Ranger 5 min"
+                  ],
+                  "suppression_reason": "high_emotional_load",
+                  "main_friction": null,
+                  "next_step_candidate": null,
+                  "scope_reduction_candidate": null,
+                  "main_need": "rest",
+                  "minimal_save_candidate": null,
+                  "reopen_step_candidate": null,
+                  "main_emotion_or_context": null,
+                  "soft_next_step_candidate": null,
+                  "reactivation_candidate": null,
+                  "coach_intent": "protect_emotion",
+                  "action_readiness": "not_today",
+                  "emotional_load": "high",
+                  "support_need": null
+                },
+                "missing_or_weak_values": [],
+                "selected_candidate": {},
+                "handoff_data": {},
+                "tone_constraints": [
+                  "short",
+                  "natural",
+                  "no pressure",
+                  "one visible move only"
+                ],
+                "do_not_say": [
+                  "Do not claim that a card, potion, reminder, preference, action, checkin, or plan patch was created.",
+                  "Do not claim the plan was modified, postponed, or lightened."
+                ],
+                "context_summary": "nudge_kind=suppressed_action_nudge; posture=support_softly; titles=Ranger 5 min | Ranger 5 min; visible_task=confirm_no_action_today",
+                "evidence_used": [
+                  "User explicitly confirms the choice to not push any action today.",
+                  "User message 'ne rien pousser' aligns perfectly with the suppressed_action_nudge intent.",
+                  "No further intervention or minimal version is requested."
+                ]
+              }
+            },
+            "db_context_pack": {
+              "source": "morning_nudge_v2_payload",
+              "freshness": "current_active_flow",
+              "confidence": "high",
+              "status": "bridge_provided",
+              "flow_kind": "suppressed_action",
+              "source_nudge_summary": "nudge_kind=suppressed_action_nudge; posture=support_softly; titles=Ranger 5 min | Ranger 5 min",
+              "target_action_titles": [
+                "Ranger 5 min"
+              ],
+              "target_item_titles": [
+                "Ranger 5 min"
+              ],
+              "suppressed_action_titles": [
+                "Ranger 5 min"
+              ],
+              "suppression_reason": "high_emotional_load",
+              "posture": "support_softly",
+              "coach_intent": "protect_emotion",
+              "evidence": [
+                "active_state.source_nudge",
+                "nudge_kind=suppressed_action_nudge",
+                "intended_followup_flow=suppressed_action"
+              ]
+            },
+            "micro_memory_context": {
+              "items": [],
+              "exclusions": [
+                "No raw memory dump.",
+                "No safety memory unless safety_preempt is selected.",
+                "No global emotional profile."
+              ],
+              "budget": {
+                "max_items": 0,
+                "reason": "The source morning nudge payload is the authoritative context for action and suppressed-action followups."
+              }
+            },
+            "local_assessment": {
+              "action_readiness": "not_today",
+              "motivation_need": "none",
+              "emotional_load": "high",
+              "user_wants_conversation": false,
+              "suppression_still_valid": true,
+              "target_action_reference": "Ranger 5 min",
+              "main_need": "rest",
+              "minimal_save_candidate": null,
+              "reopen_step_candidate": null
+            },
+            "state_updates": {
+              "status": "closing",
+              "turn_count_increment": 1,
+              "close_after_visible": true
+            },
+            "close_after_visible": true,
+            "note_information": null,
+            "local_handoff_note": null,
+            "no_chat_mutation": true,
+            "no_durable_mutation": {
+              "action_created": false,
+              "card_created": false,
+              "potion_created": false,
+              "reminder_created": false,
+              "scheduled_checkin_created": false,
+              "preference_written": false,
+              "plan_patch_written": false
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "ai_call_count": 2,
+            "runtime_trace": [
+              {
+                "component": "post_morning_nudge.suppressed_action_dispatcher",
+                "event": "confirm_no_action_today",
+                "post_morning_nudge.flow_kind": "suppressed_action",
+                "flow_action": "confirm_no_action_today",
+                "flow_action_category": "stop_local_no_handoff",
+                "visible_task.kind": "confirm_no_action_today",
+                "local_assessment.action_readiness": "not_today",
+                "local_assessment.suppression_still_valid": true,
+                "local_assessment.main_need": "rest",
+                "state_updates.status": "closing",
+                "close_after_visible": true,
+                "global_dispatcher_skipped_due_post_morning_nudge": true,
+                "exit_to_global_dispatcher": false,
+                "safety_preempt": false,
+                "target_dispatcher": null,
+                "handoff_reason": null,
+                "note_information": null,
+                "has_note_information": false,
+                "activation_note_information_consumed": true,
+                "db_context_pack_loaded": true,
+                "micro_memory_items": 0
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "post-morning-nudge-local-r2-suppressed_action-t1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "post-morning-nudge-local-r2-suppressed_action-t1",
+          "source_message_id": "6ec2ba84-5966-4ba4-886b-7ed5bdd6061f",
+          "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "post_morning_nudge.suppressed_action_dispatcher",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_post_morning_nudge_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_post_morning_nudge_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "post_morning_nudge.suppressed_action_dispatcher",
+          "reason_code": "post_morning_nudge_suppressed_action_local_dispatcher",
+          "skill_id": "post_morning_nudge",
+          "flow_kind": "suppressed_action",
+          "status": "closed",
+          "post_morning_nudge.suppressed_action_dispatcher_called": true,
+          "flow_action": "confirm_no_action_today",
+          "flow_action_category": "stop_local_no_handoff",
+          "confidence": "high",
+          "risk_score": 0,
+          "visible_task": {
+            "kind": "confirm_no_action_today",
+            "instruction": "",
+            "conversation_context": {
+              "state_summary": "suppressed_action followup; status=active; turn=0/3.",
+              "source_nudge_summary": "nudge_kind=suppressed_action_nudge; posture=support_softly; titles=Ranger 5 min | Ranger 5 min",
+              "flow_kind": "suppressed_action",
+              "user_words": [],
+              "field_or_stage": "confirm_no_action_today",
+              "known_values": {
+                "target_action_titles": [
+                  "Ranger 5 min"
+                ],
+                "target_item_titles": [
+                  "Ranger 5 min"
+                ],
+                "suppressed_action_titles": [
+                  "Ranger 5 min"
+                ],
+                "suppression_reason": "high_emotional_load",
+                "main_friction": null,
+                "next_step_candidate": null,
+                "scope_reduction_candidate": null,
+                "main_need": "rest",
+                "minimal_save_candidate": null,
+                "reopen_step_candidate": null,
+                "main_emotion_or_context": null,
+                "soft_next_step_candidate": null,
+                "reactivation_candidate": null,
+                "coach_intent": "protect_emotion",
+                "action_readiness": "not_today",
+                "emotional_load": "high",
+                "support_need": null
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {},
+              "handoff_data": {},
+              "tone_constraints": [
+                "short",
+                "natural",
+                "no pressure",
+                "one visible move only"
+              ],
+              "do_not_say": [
+                "Do not claim that a card, potion, reminder, preference, action, checkin, or plan patch was created.",
+                "Do not claim the plan was modified, postponed, or lightened."
+              ],
+              "context_summary": "nudge_kind=suppressed_action_nudge; posture=support_softly; titles=Ranger 5 min | Ranger 5 min; visible_task=confirm_no_action_today",
+              "evidence_used": [
+                "User explicitly confirms the choice to not push any action today.",
+                "User message 'ne rien pousser' aligns perfectly with the suppressed_action_nudge intent.",
+                "No further intervention or minimal version is requested."
+              ]
+            }
+          },
+          "db_context_pack": {
+            "source": "morning_nudge_v2_payload",
+            "freshness": "current_active_flow",
+            "confidence": "high",
+            "status": "bridge_provided",
+            "flow_kind": "suppressed_action",
+            "source_nudge_summary": "nudge_kind=suppressed_action_nudge; posture=support_softly; titles=Ranger 5 min | Ranger 5 min",
+            "target_action_titles": [
+              "Ranger 5 min"
+            ],
+            "target_item_titles": [
+              "Ranger 5 min"
+            ],
+            "suppressed_action_titles": [
+              "Ranger 5 min"
+            ],
+            "suppression_reason": "high_emotional_load",
+            "posture": "support_softly",
+            "coach_intent": "protect_emotion",
+            "evidence": [
+              "active_state.source_nudge",
+              "nudge_kind=suppressed_action_nudge",
+              "intended_followup_flow=suppressed_action"
+            ]
+          },
+          "micro_memory_context": {
+            "items": [],
+            "exclusions": [
+              "No raw memory dump.",
+              "No safety memory unless safety_preempt is selected.",
+              "No global emotional profile."
+            ],
+            "budget": {
+              "max_items": 0,
+              "reason": "The source morning nudge payload is the authoritative context for action and suppressed-action followups."
+            }
+          },
+          "local_assessment": {
+            "action_readiness": "not_today",
+            "motivation_need": "none",
+            "emotional_load": "high",
+            "user_wants_conversation": false,
+            "suppression_still_valid": true,
+            "target_action_reference": "Ranger 5 min",
+            "main_need": "rest",
+            "minimal_save_candidate": null,
+            "reopen_step_candidate": null
+          },
+          "state_updates": {
+            "status": "closing",
+            "turn_count_increment": 1,
+            "close_after_visible": true
+          },
+          "close_after_visible": true,
+          "note_information": null,
+          "local_handoff_note": null,
+          "no_chat_mutation": true,
+          "no_durable_mutation": {
+            "action_created": false,
+            "card_created": false,
+            "potion_created": false,
+            "reminder_created": false,
+            "scheduled_checkin_created": false,
+            "preference_written": false,
+            "plan_patch_written": false
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "ai_call_count": 2,
+          "runtime_trace": [
+            {
+              "component": "post_morning_nudge.suppressed_action_dispatcher",
+              "event": "confirm_no_action_today",
+              "post_morning_nudge.flow_kind": "suppressed_action",
+              "flow_action": "confirm_no_action_today",
+              "flow_action_category": "stop_local_no_handoff",
+              "visible_task.kind": "confirm_no_action_today",
+              "local_assessment.action_readiness": "not_today",
+              "local_assessment.suppression_still_valid": true,
+              "local_assessment.main_need": "rest",
+              "state_updates.status": "closing",
+              "close_after_visible": true,
+              "global_dispatcher_skipped_due_post_morning_nudge": true,
+              "exit_to_global_dispatcher": false,
+              "safety_preempt": false,
+              "target_dispatcher": null,
+              "handoff_reason": null,
+              "note_information": null,
+              "has_note_information": false,
+              "activation_note_information_consumed": true,
+              "db_context_pack_loaded": true,
+              "micro_memory_items": 0
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "post-morning-nudge-local-r2-suppressed_action-t1",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "scenario": "emotional_presence_exit",
+    "turn": 1,
+    "request_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1",
+      "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+      "channel": "web",
+      "scope": "post-morning-nudge-local-r2-emotional",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est une excellente idée de vouloir poser les choses à plat. Selon toi, qu'est-ce qui a fini par créer ce décalage entre tes actions quotidiennes et la raison profonde qui te poussait à suivre ce plan au départ ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1",
+            "source_message_id": "eff5b000-40eb-41dd-acd5-99b786f80e24",
+            "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "select_state_potion",
+                "explicitness": "explicit",
+                "target_hint": "potion de clarte",
+                "operation_input": {
+                  "potion_type": {
+                    "status": "identified",
+                    "value": "clarte",
+                    "confidence": "high",
+                    "evidence": [
+                      "je veux une potion de clarte"
+                    ]
+                  },
+                  "intent_context": "poser ca proprement"
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "source_flow_presentation": "Global dispatcher selected a tool_skill_intent for potion activation.",
+              "source_flow_state_summary": "signal=tool_skill_intent; target=select_state_potion; potion_type=clarte; confidence=high",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "select_state_potion",
+              "handoff_context_for_next_dispatcher": "User explicitly asks for a clarity potion ('potion de clarte') to organize thoughts ('poser ca proprement'). This follows a topic change from a morning nudge. Route directly to potion activation flow.",
+              "target_local_dispatcher_hint": "Run the local dispatcher for select_state_potion with potion_type='clarte'.",
+              "user_words": [
+                "Finalement je veux une potion de clarte pour poser ca proprement."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents[0]",
+                "target_kind": "tool_skill",
+                "target_flow": "select_state_potion",
+                "confidence_band": "high",
+                "evidence": [
+                  "je veux une potion de clarte"
+                ]
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "besoin de clarte et organisation des pensees",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "select_state_potion.clarte"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "state_potion_handoff"
+            ],
+            "operation_types": [
+              "select_state_potion"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "dispatcher:select_state_potion:0",
+                "kind": "platform_handoff",
+                "owner": "state_potion_handoff",
+                "operation_type": "select_state_potion",
+                "intent": "create",
+                "source": "dispatcher",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.clarte",
+            "reason_code": "clarte_field_missing",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.clarte",
+                "event": "active_clarte_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": null
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "note_information_created",
+                "source_flow": "select_state_potion",
+                "target_dispatcher": "other_local",
+                "target_local_dispatcher_hint": "select_state_potion.clarte",
+                "handoff_reason": "clarification_resolved"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.clarte",
+                "flow_action": "answer_current_field",
+                "confidence": "high",
+                "selected_potion": "clarte",
+                "visible_task": "ask_deeper",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.clarte",
+                "status": "clarifying",
+                "reason_code": "clarte_field_missing",
+                "visible_task": "ask_deeper",
+                "field_status": "missing",
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.clarte",
+                "visible_task": "ask_deeper",
+                "field_or_stage": "plan_meaning_loss_reason"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "clarte_task",
+                "clarte_visible_task": "ask_deeper",
+                "potion_subskill_visible_task": null,
+                "handoff_status": "clarifying",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "clarte_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "clarte_task"
+              }
+            ],
+            "note_information": {
+              "source_flow_id": "select_state_potion",
+              "source_flow_presentation": "Helps recommend a state potion or support option and redirects to the Etat-Potions surface. It never launches or schedules a potion.",
+              "source_flow_state_summary": "Potion de clarté | tache visible=ask_deeper | aucun champ verrouillé",
+              "handoff_reason": "clarification_resolved",
+              "target_dispatcher": "other_local",
+              "handoff_context_for_next_dispatcher": "Potion de clarté | tache visible=ask_deeper | aucun champ verrouillé",
+              "target_local_dispatcher_hint": "select_state_potion.clarte",
+              "user_words": [
+                "Finalement je veux une potion de clarte pour poser ca proprement."
+              ],
+              "structured_context": {
+                "selected_potion": {
+                  "potion_type": "clarte",
+                  "potion_name": "Potion de clarté"
+                },
+                "collected_fields": {},
+                "unresolved_questions": [
+                  {
+                    "field_id": "plan_meaning_loss_reason",
+                    "field_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+                    "reason": "champ plateforme pas encore verrouillé",
+                    "followup_question": null
+                  }
+                ],
+                "handoff_data": {
+                  "potion_name": "Potion de clarté",
+                  "platform_destination": "section État / Potions",
+                  "fields": [
+                    {
+                      "field_id": "plan_meaning_loss_reason",
+                      "field_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+                      "status": "missing",
+                      "value": null,
+                      "candidate_value": null,
+                      "locked_value": null,
+                      "option_value": null,
+                      "option_label": null,
+                      "needs_user_confirmation": false,
+                      "detail_sufficiency": null
+                    }
+                  ]
+                },
+                "evidence_used": [
+                  "local_dispatcher_activation"
+                ]
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "clarte_field_missing",
+              "no_chat_mutation": true,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 1,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1:agenda:proposed:dispatcher:select_state_potion:0",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "state_potion_handoff",
+                "status": "proposed",
+                "reason_code": "complex_operation_redirect_to_platform",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "dispatcher:select_state_potion:0",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "potion de clarte"
+                  ],
+                  "user_goal_summary": "potion de clarte",
+                  "recommended_next_step": "open_platform_surface"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.clarte",
+                "status": "delivered",
+                "reason_code": "clarte_field_missing",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1",
+          "source_message_id": "eff5b000-40eb-41dd-acd5-99b786f80e24",
+          "user_id": "5800ae2f-c436-4563-94ad-e6840d64a06a",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [
+            {
+              "operation_type": "select_state_potion",
+              "explicitness": "explicit",
+              "target_hint": "potion de clarte",
+              "operation_input": {
+                "potion_type": {
+                  "status": "identified",
+                  "value": "clarte",
+                  "confidence": "high",
+                  "evidence": [
+                    "je veux une potion de clarte"
+                  ]
+                },
+                "intent_context": "poser ca proprement"
+              },
+              "confidence_band": "high",
+              "ambiguity": "none",
+              "user_intent": "create"
+            }
+          ],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "source_flow_presentation": "Global dispatcher selected a tool_skill_intent for potion activation.",
+            "source_flow_state_summary": "signal=tool_skill_intent; target=select_state_potion; potion_type=clarte; confidence=high",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "select_state_potion",
+            "handoff_context_for_next_dispatcher": "User explicitly asks for a clarity potion ('potion de clarte') to organize thoughts ('poser ca proprement'). This follows a topic change from a morning nudge. Route directly to potion activation flow.",
+            "target_local_dispatcher_hint": "Run the local dispatcher for select_state_potion with potion_type='clarte'.",
+            "user_words": [
+              "Finalement je veux une potion de clarte pour poser ca proprement."
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents[0]",
+              "target_kind": "tool_skill",
+              "target_flow": "select_state_potion",
+              "confidence_band": "high",
+              "evidence": [
+                "je veux une potion de clarte"
+              ]
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "besoin de clarte et organisation des pensees",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "tool_skill_intent_start",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "select_state_potion.clarte"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "state_potion_handoff"
+          ],
+          "operation_types": [
+            "select_state_potion"
+          ],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "dispatcher:select_state_potion:0",
+              "kind": "platform_handoff",
+              "owner": "state_potion_handoff",
+              "operation_type": "select_state_potion",
+              "intent": "create",
+              "source": "dispatcher",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion.clarte",
+          "reason_code": "clarte_field_missing",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "clarifying",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "select_state_potion.clarte",
+              "event": "active_clarte_turn_start",
+              "global_dispatcher_available": false,
+              "previous_status": null
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "note_information_created",
+              "source_flow": "select_state_potion",
+              "target_dispatcher": "other_local",
+              "target_local_dispatcher_hint": "select_state_potion.clarte",
+              "handoff_reason": "clarification_resolved"
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "decision",
+              "flow": "select_state_potion.clarte",
+              "flow_action": "answer_current_field",
+              "confidence": "high",
+              "selected_potion": "clarte",
+              "visible_task": "ask_deeper",
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "exit_reason": null
+            },
+            {
+              "component": "local_reducer",
+              "event": "reduced",
+              "flow": "select_state_potion.clarte",
+              "status": "clarifying",
+              "reason_code": "clarte_field_missing",
+              "visible_task": "ask_deeper",
+              "field_status": "missing",
+              "exit_to_global_dispatcher": false
+            },
+            {
+              "component": "local_reducer",
+              "event": "conversation_context_built",
+              "flow": "select_state_potion.clarte",
+              "visible_task": "ask_deeper",
+              "field_or_stage": "plan_meaning_loss_reason"
+            },
+            {
+              "component": "visible_stage",
+              "event": "start",
+              "stage": "clarte_task",
+              "clarte_visible_task": "ask_deeper",
+              "potion_subskill_visible_task": null,
+              "handoff_status": "clarifying",
+              "conversation_context_provided": true
+            },
+            {
+              "component": "visible_agent",
+              "stage": "clarte_task",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "visible_stage",
+              "event": "complete",
+              "stage": "clarte_task"
+            }
+          ],
+          "note_information": {
+            "source_flow_id": "select_state_potion",
+            "source_flow_presentation": "Helps recommend a state potion or support option and redirects to the Etat-Potions surface. It never launches or schedules a potion.",
+            "source_flow_state_summary": "Potion de clarté | tache visible=ask_deeper | aucun champ verrouillé",
+            "handoff_reason": "clarification_resolved",
+            "target_dispatcher": "other_local",
+            "handoff_context_for_next_dispatcher": "Potion de clarté | tache visible=ask_deeper | aucun champ verrouillé",
+            "target_local_dispatcher_hint": "select_state_potion.clarte",
+            "user_words": [
+              "Finalement je veux une potion de clarte pour poser ca proprement."
+            ],
+            "structured_context": {
+              "selected_potion": {
+                "potion_type": "clarte",
+                "potion_name": "Potion de clarté"
+              },
+              "collected_fields": {},
+              "unresolved_questions": [
+                {
+                  "field_id": "plan_meaning_loss_reason",
+                  "field_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+                  "reason": "champ plateforme pas encore verrouillé",
+                  "followup_question": null
+                }
+              ],
+              "handoff_data": {
+                "potion_name": "Potion de clarté",
+                "platform_destination": "section État / Potions",
+                "fields": [
+                  {
+                    "field_id": "plan_meaning_loss_reason",
+                    "field_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+                    "status": "missing",
+                    "value": null,
+                    "candidate_value": null,
+                    "locked_value": null,
+                    "option_value": null,
+                    "option_label": null,
+                    "needs_user_confirmation": false,
+                    "detail_sufficiency": null
+                  }
+                ]
+              },
+              "evidence_used": [
+                "local_dispatcher_activation"
+              ]
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "handoff": {
+            "target": "state_potions"
+          },
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "clarte_field_missing",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 1,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1:agenda:proposed:dispatcher:select_state_potion:0",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "state_potion_handoff",
+              "status": "proposed",
+              "reason_code": "complex_operation_redirect_to_platform",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "dispatcher:select_state_potion:0",
+                "source": "dispatcher",
+                "evidence": [
+                  "explicit",
+                  "high",
+                  "potion de clarte"
+                ],
+                "user_goal_summary": "potion de clarte",
+                "recommended_next_step": "open_platform_surface"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            },
+            {
+              "effect_id": "post-morning-nudge-local-r2-emotional_presence_exit-t1:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion.clarte",
+              "status": "delivered",
+              "reason_code": "clarte_field_missing",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "clarifying",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

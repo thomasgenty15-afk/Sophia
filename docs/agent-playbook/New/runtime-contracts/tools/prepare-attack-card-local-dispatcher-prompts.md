@@ -52,6 +52,27 @@ Le chat doit :
 - L'agent visible ne remplit jamais de champ et ne decide jamais la technique.
 - `apply_attempt` est non-mutant et redirige vers la plateforme.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, handoff to another local dispatcher, and inline
+product/status roundtrips. Use `source_flow_id="prepare_attack_card"` and copy
+the catalog presentation.
+
+Do not produce it for `cancel_flow`, `apply_attempt`, `repeat_handoff`,
+`platform_destination_followup`, or local revisions when no new dispatcher is
+called. Those are local stops/continuations and must not invoke global on the
+same turn.
+
+Choose `target_dispatcher` as `global` for out-of-flow requests,
+`safety_crisis` for safety, `product_help` or `status_recap` for inline info,
+and `select_state_potion`/`other_local` when a supported direct bridge is
+explicit. The handoff context must include target action, blocker,
+chosen/proposed technique, locked fields, current stage, and no-card-created
+status.
+
 ## Techniques Et Champs Plateforme
 
 Techniques autorisees :

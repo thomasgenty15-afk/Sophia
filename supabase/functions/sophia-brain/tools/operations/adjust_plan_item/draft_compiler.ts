@@ -4,7 +4,7 @@
  * Validates the AI's structured intent (post slot-filler) against the
  * AllowedAdjustmentSet produced by the candidate builder.
  *
- * The compiler is deterministic. It does not interpret the user message.
+ * The compiler is structural. It does not interpret the user message.
  * It only checks that what the AI proposed is allowed by the matrix and
  * the explicit signals.
  *

@@ -128,6 +128,8 @@ function flowAction(value: unknown): StatePotionSubskillFlowAction {
       "platform_destination_followup",
       "apply_attempt",
       "repeat_handoff",
+      "stop_local_no_handoff",
+      "handoff_to_local_flow",
       "cancel_flow",
       "exit_to_global_dispatcher",
       "safety_preempt",
@@ -529,21 +531,7 @@ export function normalizeStatePotionSubskillDispatcherOutput(
     revision: revisionState(root.revision),
     visible_task: {
       kind: visibleTaskKind((root.visible_task as any)?.kind),
-      required_data: {
-        potion_name: visiblePotionLabel(potionType),
-        platform_destination: "section État / Potions",
-        fields: Array.isArray((root.visible_task as any)?.required_data?.fields)
-          ? (root.visible_task as any).required_data.fields.map((
-            item: any,
-          ) => ({
-            field_id: String(item?.field_id ?? "").trim(),
-            field_label: String(item?.field_label ?? "").trim(),
-            field_value: stringValue(item?.field_value),
-            option_value: stringValue(item?.option_value),
-            option_label: stringValue(item?.option_label),
-          })).filter((item: any) => item.field_id)
-          : [],
-      },
+      conversation_context: undefined,
     },
     subskill_call: {
       needed: (root.subskill_call as any)?.needed === true,
@@ -940,10 +928,15 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
     };
   }
 
-  if (decision.flow_action === "cancel_flow") {
+  if (
+    decision.flow_action === "cancel_flow" ||
+    decision.flow_action === "stop_local_no_handoff"
+  ) {
     return {
       status: "cancelled",
-      reason_code: `${previous.selected_potion}_flow_cancelled`,
+      reason_code: decision.flow_action === "stop_local_no_handoff"
+        ? `${previous.selected_potion}_flow_stopped_local_no_handoff`
+        : `${previous.selected_potion}_flow_cancelled`,
       potion_subskill_state: null,
       draft: draftFromState(previous),
       visible_task: "exit",
@@ -953,11 +946,16 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
     };
   }
 
-  if (decision.flow_action === "exit_to_global_dispatcher") {
+  if (
+    decision.flow_action === "exit_to_global_dispatcher" ||
+    decision.flow_action === "handoff_to_local_flow"
+  ) {
     const next = withVisibleTask(previous, "exit");
     return {
       status: "topic_change",
-      reason_code: `${previous.selected_potion}_flow_topic_change`,
+      reason_code: decision.flow_action === "handoff_to_local_flow"
+        ? `${previous.selected_potion}_flow_handoff_to_local_flow`
+        : `${previous.selected_potion}_flow_topic_change`,
       potion_subskill_state: next,
       draft: draftFromState(next),
       visible_task: "exit",
@@ -1214,6 +1212,13 @@ function dispatcherSystemPrompt(
   potionType: StatePotionLocalSubskillType,
 ): string {
   const subskill = STATE_POTION_LOCAL_SUBSKILLS[potionType];
+  const exampleFieldId = subskill.required_question_ids[0] ?? null;
+  const exampleQuestion = exampleFieldId
+    ? statePotionQuestion(potionType, exampleFieldId)
+    : null;
+  const exampleInputType = exampleQuestion?.input_type === "single_select"
+    ? "single_select"
+    : "free_text";
   return [
     `Tu es le dispatcher local structuré du sous-flow ${
       visiblePotionLabel(potionType)
@@ -1225,8 +1230,8 @@ function dispatcherSystemPrompt(
     "Ne crée aucune session potion, aucun rappel récurrent, aucun scheduled_checkin, aucune confirmation exécutable.",
     "Le chat aide à préparer quoi saisir dans la plateforme, puis donne le chemin État / Potions.",
     "",
-    "Actions possibles: answer_current_field, confirm_proposed_field, revise_current_field, get_info_product, get_info_db, platform_destination_followup, apply_attempt, repeat_handoff, cancel_flow, exit_to_global_dispatcher, safety_preempt.",
-    "Priorité des actions: safety_preempt, apply_attempt, cancel_flow, exit_to_global_dispatcher, get_info_product, get_info_db, revise_current_field, confirm_proposed_field, answer_current_field, platform_destination_followup, repeat_handoff.",
+    "Actions possibles: answer_current_field, confirm_proposed_field, revise_current_field, get_info_product, get_info_db, platform_destination_followup, apply_attempt, repeat_handoff, stop_local_no_handoff, handoff_to_local_flow, cancel_flow, exit_to_global_dispatcher, safety_preempt.",
+    "Priorité des actions: safety_preempt, apply_attempt, stop_local_no_handoff, cancel_flow, handoff_to_local_flow, exit_to_global_dispatcher, get_info_product, get_info_db, revise_current_field, confirm_proposed_field, answer_current_field, platform_destination_followup, repeat_handoff.",
     "Si le user pose une question produit pendant ce flow (c'est quoi une potion, comment ça marche, où est-ce, limites), retourne flow_action=get_info_product, visible_task.kind=none, subskill_call.skill_id=product_help.",
     "Si le user pose une question sur ses potions/sessions existantes ou l'état DB pendant ce flow, retourne flow_action=get_info_db, visible_task.kind=none, subskill_call.skill_id=status_recap.",
     `Pour get_info_product/get_info_db, remplis subskill_call.context_for_subskill avec active_flow='select_state_potion.${potionType}', question_to_answer reformulée, active_flow_context utile (selected_potion, field_states, current_field_id, platform_destination).`,
@@ -1257,7 +1262,157 @@ function dispatcherSystemPrompt(
     "Une révision explicite remplace la valeur principale du champ concerné.",
     "Si le user demande de lancer/créer/activer depuis le chat, flow_action=apply_attempt.",
     "Si le user demande seulement où le faire dans la plateforme, sans donner ni corriger de valeur de champ, flow_action=platform_destination_followup.",
+    "Si le user veut seulement arrêter ou laisser tomber cette potion sans nouveau sujet clair, flow_action=stop_local_no_handoff. Le dispatcher global ne doit pas reprendre sur ce même tour.",
+    "Si le user demande explicitement un autre flow local, flow_action=handoff_to_local_flow et exit_memo.needed=true avec un résumé exploitable.",
+    "Si le user annule explicitement l'objet potion en cours, flow_action=cancel_flow.",
+    "Si le user change clairement de sujet, flow_action=exit_to_global_dispatcher et exit_memo.needed=true.",
     "Renseigne toujours risk_assessment. Si safety_preempt, risk_assessment.safety_preempt=true et risk_score élevé.",
+    "",
+    "Field Completion Rules:",
+    "- flow_action: decision principale du tour courant. answer_current_field pour une reponse a un champ; confirm_proposed_field pour validation d'une candidate; revise_current_field pour correction; get_info_product/get_info_db pour inline tools; platform_destination_followup, apply_attempt ou repeat_handoff quand le handoff/destination est demande; stop_local_no_handoff pour arret local simple; cancel_flow pour annulation de la potion; exit_to_global_dispatcher pour nouveau sujet clair; handoff_to_local_flow pour autre flow local explicite; safety_preempt pour safety reelle.",
+    "- confidence: high si l'intention et les champs impactes sont clairs; medium si probable mais incomplet; low si une clarification prudente est necessaire.",
+    `- selected_potion: toujours ${potionType}. Ne jamais re-router vers une autre potion dans ce dispatcher.`,
+    "- current_field_id: champ actuellement traite apres interpretation. Utilise l'id du champ courant ou corrige; null si tous les champs requis sont complets ou si le tour est un stop/exit/safety/apply sans champ a traiter.",
+    "- field_states: tableau des champs modifies ou confirmes sur ce tour. Un message peut remplir plusieurs champs si le user les donne clairement. Conserve les champs non modifies via l'etat precedent; ne les repete pas inutilement. Chaque field_id/field_label/input_type doit correspondre au catalogue de cette potion.",
+    "- field_states.status: missing si la reponse reste vague ou hors champ; proposed si la valeur est plausible mais a valider; locked si elle est directement copiable ou si l'option single_select est clairement choisie. Ne verrouille jamais par deduction globale.",
+    "- candidate_value/locked_value/previous_value: candidate_value seulement pour proposed; locked_value seulement pour locked ou validation explicite; previous_value seulement en revision. Pour single_select, locked_value peut porter l'option_label lisible.",
+    "- option_value/option_label: a renseigner seulement pour input_type=single_select quand l'option canonique est identifiee ou proposee. Laisse null pour free_text.",
+    "- needs_user_confirmation: true uniquement pour proposed; false pour missing, locked, stop/exit/safety.",
+    "- why_status: justification courte du statut du champ, fondee sur evidence; ne pas inventer de profil global.",
+    "- detail_sufficiency: obligatoire pour les free_text. status=sufficient si objet/situation/moment et ce qui pese sont assez concrets; needs_more_detail si copiable mais trop pauvre; unknown pour single_select ou absence de valeur. followup_question uniquement si needs_more_detail et followup_asked=false; followup_answered=true quand le user a repondu au creusement unique.",
+    "- revision: is_revision=true seulement si le user corrige/remplace/affine une valeur. field_id vise le champ corrige; replacement_value porte la nouvelle valeur textuelle; option_value/option_label seulement pour correction single_select; replaces_previous_value=true si remplacement clair.",
+    "- visible_task.kind: stage visible exact. ask_deeper pour champ manquant ou detail_sufficiency needs_more_detail; confirm_proposal pour proposed; handoff_ready si tous les champs requis sont locked/sufficient; revision_done apres correction; destination_short pour destination seule; apply_attempt pour demande de creation chat; repeat_handoff pour repetition; exit pour stop/cancel/exit/handoff; safety pour safety_preempt; none pour inline product/status.",
+    "- visible_task.conversation_context: optionnel dans ce JSON; le reducer produit le contexte visible final. Si renseigne, il doit etre visible-agent-safe: valeurs connues, incertitudes, contraintes de ton, limites, evidence courte; jamais DB brute, memoire brute ou note_information brute.",
+    "- subskill_call: needed=true seulement pour get_info_product/get_info_db. skill_id=product_help ou status_recap, reason court, context_for_subskill limite au flow actif, question reformulee, selected_potion, field_states, current_field_id et platform_destination utiles. Sinon needed=false, skill_id=null.",
+    "- exit_memo: needed=true pour exit_to_global_dispatcher, handoff_to_local_flow, cancel_flow et safety_preempt. reason=topic_change, cancelled ou safety; flow_summary resume le sous-flow; collected_value contient la meilleure valeur collectee si utile; handoff_hint_for_global_dispatcher explique le prochain dispatcher. Pour stop_local_no_handoff, needed=false.",
+    "- note_information: champ optionnel du contrat. Ne construis pas une note complete ici; le reducer la cree depuis exit_memo pour les transitions. Laisse absent ou needed=false sauf contexte explicite.",
+    "- no_chat_mutation: toujours false pour potion_session_created, recurring_reminder_created, scheduled_checkin_created, executable_confirmation_generated. apply_attempt reste non-mutant.",
+    "- risk_assessment/risk_score: score 0..10 du risque du tour. N'invente pas de safety; si safety reelle, flow_action=safety_preempt, safety_preempt=true, risk_score haut et reason_codes courts.",
+    "- evidence: indices semantiques reels utilises pour les decisions et champs. Pas de pseudo-preuves, pas de copie longue, pas de mot-cle isole hors contexte.",
+    "",
+    "Transition Rules:",
+    "- stop_local_no_handoff: arret local, visible_task.kind=exit, exit_memo.needed=false, pas de dispatcher global.",
+    "- exit_to_global_dispatcher: nouveau sujet clair, visible_task.kind=exit, exit_memo.needed=true, note_information creee par le reducer.",
+    "- safety_preempt: prioritaire, visible_task.kind=safety, exit_memo.needed=true, handoff safety via note_information.",
+    "- handoff_to_local_flow: seulement si un autre flow local est explicitement vise, avec exit_memo exploitable.",
+    "",
+    "Exemples JSON non visibles (2 seulement):",
+    JSON.stringify({
+      flow_action: "answer_current_field",
+      confidence: "high",
+      selected_potion: potionType,
+      current_field_id: exampleFieldId,
+      field_states: exampleFieldId
+        ? [{
+          field_id: exampleFieldId,
+          field_label: exampleQuestion?.label ?? exampleFieldId,
+          input_type: exampleInputType,
+          status: "locked",
+          candidate_value: null,
+          locked_value: exampleInputType === "single_select"
+            ? "Dur"
+            : "une situation concrete donnee par le user",
+          option_value: exampleInputType === "single_select"
+            ? "dur"
+            : null,
+          option_label: exampleInputType === "single_select"
+            ? "Dur"
+            : null,
+          previous_value: null,
+          needs_user_confirmation: false,
+          why_status: "valeur explicitement fournie",
+          detail_sufficiency: {
+            status: exampleInputType === "free_text"
+              ? "sufficient"
+              : "unknown",
+            reason: exampleInputType === "free_text"
+              ? "situation suffisamment concrete"
+              : null,
+            followup_question: null,
+            followup_asked: false,
+            followup_answered: false,
+            evidence: ["mots du user"],
+          },
+        }]
+        : [],
+      revision: {
+        is_revision: false,
+        field_id: null,
+        replacement_value: null,
+        option_value: null,
+        option_label: null,
+        replaces_previous_value: false,
+      },
+      visible_task: { kind: "ask_deeper", conversation_context: null },
+      subskill_call: {
+        needed: false,
+        skill_id: null,
+        reason: null,
+        context_for_subskill: {},
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        flow_summary: null,
+        collected_value: null,
+        handoff_hint_for_global_dispatcher: null,
+      },
+      no_chat_mutation: {
+        potion_session_created: false,
+        recurring_reminder_created: false,
+        scheduled_checkin_created: false,
+        executable_confirmation_generated: false,
+      },
+      risk_assessment: {
+        risk_score: 0,
+        risk_band: "none",
+        safety_preempt: false,
+        reason_codes: [],
+      },
+      evidence: ["reponse au champ courant"],
+    }),
+    JSON.stringify({
+      flow_action: "stop_local_no_handoff",
+      confidence: "high",
+      selected_potion: potionType,
+      current_field_id: null,
+      field_states: [],
+      revision: {
+        is_revision: false,
+        field_id: null,
+        replacement_value: null,
+        option_value: null,
+        option_label: null,
+        replaces_previous_value: false,
+      },
+      visible_task: { kind: "exit", conversation_context: null },
+      subskill_call: {
+        needed: false,
+        skill_id: null,
+        reason: null,
+        context_for_subskill: {},
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        flow_summary: null,
+        collected_value: null,
+        handoff_hint_for_global_dispatcher: null,
+      },
+      no_chat_mutation: {
+        potion_session_created: false,
+        recurring_reminder_created: false,
+        scheduled_checkin_created: false,
+        executable_confirmation_generated: false,
+      },
+      risk_assessment: {
+        risk_score: 0,
+        risk_band: "none",
+        safety_preempt: false,
+        reason_codes: [],
+      },
+      evidence: ["arret local sans nouveau sujet"],
+    }),
   ].join("\n");
 }
 
@@ -1282,7 +1437,7 @@ export function createStatePotionSubskillLocalDispatcher(
       task: `dispatch_select_state_potion_${potionType}_flow`,
       required_json_shape: {
         flow_action:
-          "answer_current_field|confirm_proposed_field|revise_current_field|get_info_product|get_info_db|platform_destination_followup|apply_attempt|repeat_handoff|cancel_flow|exit_to_global_dispatcher|safety_preempt",
+          "answer_current_field|confirm_proposed_field|revise_current_field|get_info_product|get_info_db|platform_destination_followup|apply_attempt|repeat_handoff|stop_local_no_handoff|handoff_to_local_flow|cancel_flow|exit_to_global_dispatcher|safety_preempt",
         confidence: "low|medium|high",
         selected_potion: potionType,
         current_field_id: "string|null",
@@ -1318,17 +1473,7 @@ export function createStatePotionSubskillLocalDispatcher(
         visible_task: {
           kind:
             "ask_deeper|confirm_proposal|handoff_ready|revision_done|destination_short|apply_attempt|repeat_handoff|exit|safety|none",
-          required_data: {
-            potion_name: visiblePotionLabel(potionType),
-            platform_destination: "section État / Potions",
-            fields: [{
-              field_id: "string",
-              field_label: "string",
-              field_value: "string|null",
-              option_value: "string|null",
-              option_label: "string|null",
-            }],
-          },
+          conversation_context: "object|null",
         },
         subskill_call: {
           needed: "boolean",

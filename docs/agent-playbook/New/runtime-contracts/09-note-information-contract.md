@@ -199,7 +199,7 @@ Il ne doit pas contenir :
 | Source flow | Target dispatcher | Note required | Stop local | Category |
 | --- | --- | --- | --- | --- |
 | any active local flow | global | yes | yes | `exit_to_global_dispatcher` |
-| any active non-safety flow | safety_crisis | yes | yes/suspend | `safety_preempt` |
+| any active non-safety flow | safety_crisis | yes | yes | `safety_preempt` |
 | any active local flow with inline product question | product_help | yes | no | `inline_tool_roundtrip` |
 | any active local flow with inline DB/status question | status_recap | yes | no | `inline_tool_roundtrip` |
 | any active local flow | none | no | yes | `stop_local_no_handoff` |
@@ -208,9 +208,9 @@ Il ne doit pas contenir :
 | `select_state_potion` | potion subskill | no | no | internal specialized exception |
 | `safety_crisis` resolved exit | global | yes | yes | `exit_to_global_dispatcher` |
 | `product_help` standalone | global | yes | yes | `exit_to_global_dispatcher` |
-| `product_help` inline | parent flow | yes on return summary | no | `inline_tool_roundtrip` |
+| `product_help` inline | parent flow | yes | no | `inline_tool_roundtrip` |
 | `status_recap` standalone | global | yes | yes | `exit_to_global_dispatcher` |
-| `status_recap` inline | parent flow | yes on return summary | no | `inline_tool_roundtrip` |
+| `status_recap` inline | parent flow | yes | no | `inline_tool_roundtrip` |
 | `flow_opportunity_verification` | target local dispatcher | yes | yes | `handoff_to_local_dispatcher` |
 | `flow_opportunity_verification` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
 | `daily_action_review_v1` | global | yes | yes | `exit_to_global_dispatcher` |
@@ -222,13 +222,16 @@ Il ne doit pas contenir :
 | `adjust_plan_item` | global | yes | yes | `exit_to_global_dispatcher` |
 | `adjust_plan_item` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
 | `prepare_attack_card` | global | yes | yes | `exit_to_global_dispatcher` |
-| `prepare_attack_card` | product_help/status_recap/select_state_potion | yes | no/yes by target | inline or local handoff |
+| `prepare_attack_card` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
+| `prepare_attack_card` | select_state_potion | yes | yes | `handoff_to_local_dispatcher` |
 | `prepare_defense_card` | global | yes | yes | `exit_to_global_dispatcher` |
 | `prepare_defense_card` | prepare_attack_card/select_state_potion | yes | yes | `handoff_to_local_dispatcher` |
-| `create_recurring_reminder` | global/safety/product_help/status_recap | yes | by target | exit, safety, or inline |
+| `create_recurring_reminder` | global/safety_crisis | yes | yes | exit or safety |
+| `create_recurring_reminder` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
 | `create_recurring_reminder` | one_shot_reminder | yes | yes | local/direct-effect boundary |
-| `update_coach_preferences` | global/safety/product_help/status_recap | yes | by target | exit, safety, or inline |
-| `whatsapp_onboarding` | global | yes only when exit allowed | yes | `exit_to_global_dispatcher` |
+| `update_coach_preferences` | global/safety_crisis | yes | yes | exit or safety |
+| `update_coach_preferences` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
+| `whatsapp_onboarding` | global | yes | yes | `exit_to_global_dispatcher` when contract allows exit |
 
 ## Flow-Specific Context Requirements
 

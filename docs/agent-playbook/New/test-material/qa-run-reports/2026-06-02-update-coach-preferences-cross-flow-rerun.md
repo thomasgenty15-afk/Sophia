@@ -111,7 +111,7 @@
 **Trace courte**
 - response_owner: tool_skill
 - selected_handler: status_recap
-- route_reason: status_only_request_blocks_tool_start
+- route_reason: status_recap_request_blocks_tool_start
 - operation: status_recap / answered
 - pending_confirmation: null
 - executed_tools: []

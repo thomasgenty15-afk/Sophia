@@ -1,5 +1,5 @@
 import type { AdjustPlanHandoffDraft } from "./contract.ts";
-import type { PlanAdjustmentDraftV1 } from "./generator.ts";
+import type { PlanAdjustmentDraftV1 } from "./contract.ts";
 
 function text(value: unknown, fallback = ""): string {
   const normalized = String(value ?? "").replace(/\s+/g, " ").trim();
@@ -40,7 +40,7 @@ export function buildAdjustPlanPlatformInputDraft(args: {
   );
   return {
     operation_type: "adjust_plan_item",
-    mode: "platform_input_coaching",
+    mode: "platform_handoff",
     no_chat_mutation: true,
     executable_from_chat: false,
     user_blocker_summary: text(

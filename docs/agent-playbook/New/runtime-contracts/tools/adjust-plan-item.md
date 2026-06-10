@@ -30,7 +30,7 @@ Ce domaine depend de :
 - `UserTurnSnapshot` / `TurnFrame` / `RouteDecision` pour detecter
   l'opportunite `adjust_plan_item` sans trancher le scope metier a la place du
   skill ;
-- `TurnAgenda` pour representer une tache `platform_handoff`, pas un effet
+- `local reducer contract` pour representer une tache `platform_handoff`, pas un effet
   durable executable ;
 - `EffectLedger` pour tracer le handoff avec `no_chat_mutation=true`,
   `committed_effects=[]` et `executedTools=[]` ;
@@ -307,7 +307,7 @@ J'ai ajuste ta semaine.
 Le dispatcher peut detecter :
 
 ```txt
-tool_skill_opportunity.operation_type = "adjust_plan_item"
+flow_opportunity.operation_type = "adjust_plan_item"
 ```
 
 Il ne doit pas choisir :
@@ -336,7 +336,7 @@ global avec un `exit_memo` produit par le dispatcher local.
 
 ## Integration Points
 
-- `TurnAgenda` transforme `adjust_plan_item` en `platform_handoff`.
+- `local reducer contract` transforme `adjust_plan_item` en `platform_handoff`.
 - `active_skill_state` / état local maintient le flow actif.
 - `clarification_tool` peut exister en amont avant l'entrée dans le flow, mais
   ne doit pas relire le message comme second décideur quand `adjust_plan_item`
@@ -376,8 +376,8 @@ global avec un `exit_memo` produit par le dispatcher local.
 - Créer une pending confirmation exécutable.
 - Transformer `ok vas-y` en application.
 - Faire porter le scope métier final au dispatcher global.
-- Ajouter une regex métier dans `run.ts`, TurnAgenda ou handoff arbitration.
-- Ajouter une regex métier dans `run.ts`, TurnAgenda, handoff arbitration,
+- Ajouter une regex métier dans `run.ts`, local reducer contract ou handoff arbitration.
+- Ajouter une regex métier dans `run.ts`, local reducer contract, handoff arbitration,
   reducer ou visible agent.
 - Dire "j'ai modifié", "c'est appliqué" ou équivalent.
 - Réintroduire un renderer déterministe comme chemin nominal.

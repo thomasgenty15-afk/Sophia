@@ -84,7 +84,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `answered`
 - executed_tools: []
 - durable_effect: none
@@ -320,7 +320,7 @@
 **Routage**
 - Tours 1-2: green. `attack_card_cancelled_to_conversation`, aucun outil execute.
 - Tour 3: green. `create_one_shot_reminder` execute, DB correcte.
-- Tour 4: red. `status_only_request_blocks_tool_start` capture encore une demande product help rappel.
+- Tour 4: red. `status_recap_request_blocks_tool_start` capture encore une demande product help rappel.
 - Tour 5: red. `prepare_attack_card` retourne `fallback_dashboard` avec `executed_tools=[prepare_attack_card]` mais aucun durable effect.
 - Tour 9: red. `central_arbitrator_explicit_no_status_request` existe, mais le rendu visible reste status.
 - Tours 13-14: red. `explicit_no_tool_request_blocks_tool_start` puis `immediate_mode_request_not_state_potion` bloquent les side effects mais produisent `ask_question`.

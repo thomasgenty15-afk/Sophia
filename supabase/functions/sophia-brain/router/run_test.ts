@@ -1,29 +1,21 @@
 import {
   attachPendingRecommendationOperation,
-  buildRecommendationFromToolSkillOpportunity,
+  buildSafetyLocalOwnershipFrame,
   computeStreakFromEntries,
   currentTurnConversationSkillOverrideForOrientation,
   currentTurnSupportsOrientationToolResolution,
-  deterministicStaleBilanDecision,
   effectiveResponseOwnerForOperationRuntime,
   mapMomentumStateV2ToCoachingContext,
   maybeRunAdjustPlanItemOperation,
-  renderAdjustPlanDraftDetails,
   resolveAgentChatModel,
   resolveCoachingTargetPlanItem,
   resolveOrientationClarificationConversationSkillHandler,
   resolveOrientationClarificationToolSkillHandler,
   shouldBypassOrientationClarificationForExplicitToolRoute,
+  shouldDeferConversationRiskFlowExitToLocalDispatcher,
 } from "./run.ts";
 import { isExplicitPendingApplyConfirmation } from "../skills/weekly_review/runtime.ts";
-import { writePlanAdjustmentPatch } from "../tools/operations/adjust_plan_item/materializer.ts";
 import { resolveWeeklyForgottenProgressCandidate } from "../tools/operations/adjust_plan_item/weekly_bridge.ts";
-import { runPrepareAttackCardAiIntake } from "../tools/operations/prepare_attack_card/ai_intake.ts";
-import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
-import {
-  createAttackCardDraftStub,
-  createAttackCardIntakeStub,
-} from "../test_helpers/ai_stubs.ts";
 import { logPlanItemProgressV2 } from "../tools/always_on/track_progress_plan_item/db.ts";
 import { getGlobalAiModel } from "../../_shared/gemini.ts";
 import { writeMomentumStateV2 } from "../momentum_state.ts";
@@ -52,21 +44,6 @@ function assertStringIncludes(actual: string, expected: string, msg?: string) {
       }`,
     );
   }
-}
-
-function maybeRunPrepareAttackCardOperationRunIntakeStub(args: {
-  input: Parameters<typeof runPrepareAttackCardAiIntake>[0];
-  planItemId: string;
-  title: string;
-}) {
-  return runPrepareAttackCardAiIntake({
-    ...args.input,
-    slot_filler: createAttackCardIntakeStub({
-      planItemId: args.planItemId,
-      title: args.title,
-    }),
-    draft_generator: createAttackCardDraftStub(),
-  });
 }
 
 function orientationTurnFrame(patch: Record<string, unknown> = {}): any {
@@ -104,27 +81,6 @@ function orientationTurnFrame(patch: Record<string, unknown> = {}): any {
     ...patch,
   };
 }
-
-Deno.test("deterministicStaleBilanDecision: resumes stale bilan on explicit resume", () => {
-  assertEquals(
-    deterministicStaleBilanDecision("ok on reprend"),
-    "resume_bilan",
-  );
-});
-
-Deno.test("deterministicStaleBilanDecision: stops for today on defer language", () => {
-  assertEquals(
-    deterministicStaleBilanDecision("pas maintenant, on voit demain"),
-    "stop_for_today",
-  );
-});
-
-Deno.test("deterministicStaleBilanDecision: leaves unrelated topic unresolved for fallback", () => {
-  assertEquals(
-    deterministicStaleBilanDecision("au fait j'ai une question sur mon plan"),
-    null,
-  );
-});
 
 Deno.test("isExplicitPendingApplyConfirmation blocks detail requests before validation", () => {
   assertEquals(
@@ -203,7 +159,7 @@ Deno.test("explicit central tool routes bypass orientation clarification", () =>
         targets: [],
         retrieval_policy: "taxonomy_first",
       },
-    },
+    } as any,
   });
 
   assertEquals(bypass, true);
@@ -259,10 +215,139 @@ Deno.test("ambiguous tool routes can still enter orientation clarification", () 
         targets: [],
         retrieval_policy: "taxonomy_first",
       },
-    },
+    } as any,
   });
 
   assertEquals(bypass, false);
+});
+
+Deno.test("safety active ownership builds direct local frame without global routing", () => {
+  const result = buildSafetyLocalOwnershipFrame({
+    turnId: "turn-safety-direct",
+    sourceMessageId: "message-safety-direct",
+    userId: "user-safety-direct",
+    channel: "whatsapp",
+    activeSkillState: {
+      skill_id: "safety_crisis",
+      status: "active",
+      working_state: { phase: "support_contact" },
+    },
+    safetyPregateOutput: {
+      detected: true,
+      risk_band: "medium",
+      reason_codes: ["active_safety_flow_caution"],
+      evidence: ["active safety context"],
+      allow_side_effects: false,
+      layer_contributions: {},
+    } as any,
+    conversationRiskHistory: [1, 2],
+    userMessage: "ok",
+    requestId: "request-safety-direct",
+  });
+
+  assertEquals(result.routeDecision.response_owner, "safety");
+  assertEquals(result.routeDecision.selected_handler, "safety_crisis");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "safety_local_flow_owns_turn",
+  );
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
+  assertEquals(
+    result.routeDecision.blocked_paths.map((path) => path.path).sort(),
+    ["global_dispatcher", "global_router"],
+  );
+  assertEquals(result.turnFrame.tool_skill_intents, []);
+  assertEquals(result.turnFrame.direct_effects, []);
+  assertEquals(result.turnFrame.note_information, null);
+  assertEquals(result.noteInformationCreated, false);
+});
+
+Deno.test("safety first activation direct local frame carries activation note", () => {
+  const result = buildSafetyLocalOwnershipFrame({
+    turnId: "turn-safety-first",
+    sourceMessageId: "message-safety-first",
+    userId: "user-safety-first",
+    channel: "web",
+    activeSkillState: null,
+    safetyPregateOutput: {
+      detected: true,
+      risk_band: "high",
+      reason_codes: ["explicit_suicidal_thoughts"],
+      evidence: ["pregate evidence"],
+      allow_side_effects: false,
+      layer_contributions: {},
+    } as any,
+    conversationRiskHistory: [],
+    userMessage: "je risque de me faire du mal",
+    requestId: "request-safety-first",
+  });
+
+  assertEquals(result.noteInformationCreated, true);
+  assertEquals(
+    result.turnFrame.note_information?.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(result.turnFrame.note_information?.handoff_reason, "safety");
+  assertEquals(result.routeDecision.response_owner, "safety");
+  assertEquals(result.routeDecision.selected_handler, "safety_crisis");
+});
+
+Deno.test("conversation risk flow exit is deferred to active emotional repair dispatcher", () => {
+  const defer = shouldDeferConversationRiskFlowExitToLocalDispatcher({
+    activeSkillState: {
+      skill_id: "emotional_repair",
+      status: "active",
+      working_state: {
+        summary: "emotional repair active",
+      },
+    },
+    conversationRisk: {
+      score: 9,
+      threshold: 8,
+      should_exit_flows: true,
+      reason_codes: ["topic_change"],
+      previous_scores: [0],
+      matrix: [],
+      context_summary: null,
+      flow_exit_context: {
+        interrupted_flow_type: "conversation_skill",
+        restart_scope: "same_message",
+        active_conversation_skill_id: "emotional_repair",
+        active_tool_skill_type: null,
+        known_slots: null,
+        pending_confirmation: null,
+        last_user_message: "je change de sujet",
+      },
+    } as any,
+  });
+
+  assertEquals(defer, true);
+});
+
+Deno.test("conversation risk flow exit can clear when no local dispatcher is active", () => {
+  const defer = shouldDeferConversationRiskFlowExitToLocalDispatcher({
+    activeSkillState: null,
+    conversationRisk: {
+      score: 9,
+      threshold: 8,
+      should_exit_flows: true,
+      reason_codes: ["topic_change"],
+      previous_scores: [0],
+      matrix: [],
+      context_summary: null,
+      flow_exit_context: {
+        interrupted_flow_type: "none",
+        restart_scope: "same_message",
+        active_conversation_skill_id: null,
+        active_tool_skill_type: null,
+        known_slots: null,
+        pending_confirmation: null,
+        last_user_message: "je change de sujet",
+      },
+    } as any,
+  });
+
+  assertEquals(defer, false);
 });
 
 Deno.test("competing attack and defense card routes do not bypass orientation clarification", () => {
@@ -321,7 +406,7 @@ Deno.test("competing attack and defense card routes do not bypass orientation cl
         targets: [],
         retrieval_policy: "taxonomy_first",
       },
-    },
+    } as any,
   });
 
   assertEquals(bypass, false);
@@ -556,52 +641,6 @@ Deno.test("resolveWeeklyForgottenProgressCandidate: refuses ambiguous weekly cor
   assertEquals(candidate.reason_code, "missing_or_ambiguous_action");
 });
 
-Deno.test("renderAdjustPlanDraftDetails includes broader changed and preserved examples", () => {
-  const content = renderAdjustPlanDraftDetails({
-    draft: {
-      draft: {
-        adjust_plan_result: {
-          applied_change: {
-            changed_items: [
-              {
-                title: "Faire le choix du brut",
-                before: "6 jours par semaine",
-                after: "3 jours par semaine",
-                reason: "Réduire la pression.",
-              },
-              {
-                title: "Préparer tes alternatives d'avance",
-                before: "Plusieurs options.",
-                after: "Une option simple.",
-                reason: "Réduire la logistique.",
-              },
-              {
-                title: "Faire le point sur le signal de pause",
-                before: "Bilan complet.",
-                after: "Bilan court avec une seule question.",
-                reason: "Garder l'apprentissage sans alourdir.",
-              },
-            ],
-            preserved_items: [{
-              title: "Cartographier les moments de tension",
-              reason: "Cette observation reste utile.",
-            }],
-          },
-        },
-      },
-    },
-  }, { preferExamples: true });
-
-  assertStringIncludes(
-    content ?? "",
-    "Faire le point sur le signal de pause",
-  );
-  assertStringIncludes(
-    content ?? "",
-    "Cartographier les moments de tension",
-  );
-});
-
 Deno.test("resolveAgentChatModel: explicit override wins", () => {
   const selected = resolveAgentChatModel({
     effectiveMode: "companion",
@@ -711,168 +750,6 @@ Deno.test("resolveAgentChatModel: low-confidence memory plan falls back to curre
   );
   assertEquals(selected.source, "companion_default");
   assertEquals(selected.tier, "default");
-});
-
-Deno.test("attack card opportunity keeps identified target through recommendation consent", async () => {
-  const turnFrame: any = {
-    turn_id: "turn-attack-opportunity",
-    source_message_id: "msg-1",
-    user_id: "u1",
-    channel: "whatsapp",
-    safety: { risk_band: "none", reason_codes: [], evidence: [] },
-    direct_effects: [],
-    tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "attack_card",
-      operation_type: "prepare_attack_card",
-      surface_id: "attack_card",
-      confidence_band: "high",
-      should_offer: true,
-      prop_reason:
-        "user completed the action but mentions recurring startup friction",
-      source_span: "j'ai tourné autour pendant 45 minutes avant de commencer",
-      target_hint: "Envoyer le dossier",
-      target_status: "identified",
-      suggested_question_intent: "offer_attack_card",
-      offer_timing: "now",
-      must_not_execute: true,
-    },
-    skill_signals: {},
-    memory_plan: {
-      context_need: "minimal",
-      memory_mode: "light",
-      context_budget_tier: "small",
-      targets: [],
-      retrieval_policy: "semantic_first",
-    },
-  };
-  const planItemSnapshot = [{
-    id: "dossier",
-    title: "Envoyer le dossier",
-    status: "active",
-    item_type: "task",
-    dimension: "missions",
-    streak_current: 0,
-    last_entry_at: null,
-  }] as any;
-  const recommendation = buildRecommendationFromToolSkillOpportunity({
-    turnFrame,
-    surfaceLabel: "Carte d'attaque",
-    planItemSnapshot,
-    requestId: "req-1",
-  });
-  const tempMemory = attachPendingRecommendationOperation({
-    tempMemory: {},
-    recommendation,
-    surfaceLabel: "Carte d'attaque",
-    planItemSnapshot,
-    requestId: "req-1",
-  });
-  assertEquals(
-    tempMemory.__pending_recommendation_operation.operation_input.target
-      .plan_item_id,
-    "dossier",
-  );
-
-  const result = await maybeRunPrepareAttackCardOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage: "oui",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    tempMemory,
-    turnFrame: {
-      ...turnFrame,
-      confirmation_response: { kind: "yes", confidence_band: "high" },
-    },
-    routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-2",
-    requestId: "req-2",
-    planSnapshot: { items: planItemSnapshot },
-    runIntake: (input) =>
-      maybeRunPrepareAttackCardOperationRunIntakeStub({
-        input,
-        planItemId: "dossier",
-        title: "Envoyer le dossier",
-      }),
-  });
-
-  assertEquals(result?.toolSkillRun?.status, "pending_confirmation");
-  assertEquals(result?.toolExecution, "blocked");
-  assertEquals((result?.toolSkillRun as any)?.committed_effects ?? [], []);
-  assertEquals(
-    (result?.nextTempMemory.__pending_tool_skill_confirmation as any)?.target
-      ?.plan_item_id,
-    "dossier",
-  );
-  assertEquals(
-    (result?.nextTempMemory.__active_tool_skill_intake as any)?.missing_slots,
-    undefined,
-  );
-  assertStringIncludes(
-    result?.content ?? "",
-    "Confirme explicitement si tu veux que je crée cette carte d'attaque.",
-  );
-});
-
-Deno.test("tool skill opportunity recommendation requires high confidence and immediate timing", () => {
-  const baseTurnFrame: any = {
-    turn_id: "turn-medium-opportunity",
-    source_message_id: "msg-1",
-    user_id: "u1",
-    channel: "whatsapp",
-    safety: { risk_band: "none", reason_codes: [], evidence: [] },
-    direct_effects: [],
-    tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "attack_card",
-      operation_type: "prepare_attack_card",
-      surface_id: "attack_card",
-      confidence_band: "medium",
-      should_offer: true,
-      prop_reason: "medium signal should not interrupt the conversation",
-      source_span: "démarrage un peu flou",
-      target_hint: "Envoyer le dossier",
-      target_status: "identified",
-      suggested_question_intent: "offer_attack_card",
-      offer_timing: "now",
-      must_not_execute: true,
-    },
-    skill_signals: {},
-    memory_plan: {
-      context_need: "minimal",
-      memory_mode: "light",
-      context_budget_tier: "small",
-      targets: [],
-      retrieval_policy: "semantic_first",
-    },
-  };
-
-  assertEquals(
-    buildRecommendationFromToolSkillOpportunity({
-      turnFrame: baseTurnFrame,
-      surfaceLabel: "Carte d'attaque",
-      requestId: "req-1",
-    }),
-    null,
-  );
-
-  assertEquals(
-    buildRecommendationFromToolSkillOpportunity({
-      turnFrame: {
-        ...baseTurnFrame,
-        tool_skill_opportunity: {
-          ...baseTurnFrame.tool_skill_opportunity,
-          confidence_band: "high",
-          offer_timing: "after_current_pending",
-        },
-      },
-      surfaceLabel: "Carte d'attaque",
-      requestId: "req-1",
-    }),
-    null,
-  );
 });
 
 Deno.test("adjust plan routing: ambivalent reflection does not start adjustment intake", async () => {
@@ -2007,420 +1884,4 @@ Deno.test("logPlanItemProgressV2: writes V2 plan item entry and emits event", as
     state.system_runtime_snapshots[0].payload.plan_item_id,
     "item-1",
   );
-});
-
-Deno.test("writePlanAdjustmentPatch: materializes level frequency changes into structured fields", async () => {
-  const habit = basePlanItem({
-    id: "habit-1",
-    title: "Partager un point positif",
-    dimension: "habits",
-    kind: "habit",
-    description: "une phrase simple, sans chercher à faire joli",
-    cadence_label: "3 jours / semaine",
-    target_reps: 3,
-    time_of_day: "evening",
-  });
-  const task = basePlanItem({
-    id: "task-1",
-    title: "Convenir d'un signal de pause",
-    dimension: "missions",
-    kind: "task",
-    description: "Ancienne discussion longue",
-    cadence_label: null,
-    target_reps: null,
-    time_of_day: "anytime",
-  });
-  const { client, state } = createTrackingSupabaseMock({
-    user_cycles: [],
-    user_transformations: [],
-    user_plans_v2: [],
-    user_plan_items: [habit, task],
-    user_plan_item_entries: [],
-    user_metrics: [],
-    system_runtime_snapshots: [],
-  });
-  await writePlanAdjustmentPatch({
-    supabase: client as any,
-    userId: "u1",
-    operationInput: {
-      scope: {
-        kind: "current_level",
-      },
-    },
-    operationId: "op-1",
-    requestId: "req-1",
-    sourceMessageId: "msg-1",
-    draft: {
-      operation_type: "adjust_plan_item",
-      output_schema: "plan_adjustment_draft_v1",
-      confirmation_actions: ["yes", "no"],
-      confirmation_message: "Confirmer ?",
-      execution_message: "C'est fait.",
-      draft: {
-        title: "Ajustement - niveau",
-        scope_label: "Niveau courant",
-        adjustment_type: "reduce_load" as any,
-        execution_strategy: "level_adjustment",
-        proposed_change: "Alléger le niveau",
-        why_it_helps: "Moins de charge.",
-        confidence: "medium",
-        decision_basis: {
-          user_problem: "Trop chargé.",
-          inferred_need: "Alléger.",
-          confidence: "medium",
-          evidence: [],
-          uncertainty: [],
-          must_preserve: [],
-        },
-        change_rationale: {
-          why_this_change: "Moins de charge.",
-          expected_mechanism: "Moins de friction.",
-          success_condition: "Action faisable.",
-        },
-        ack_summary: {
-          changed: [],
-          unchanged: [],
-          why_it_helps: "Moins de charge.",
-          confidence: "medium",
-        },
-        patch: {
-          scope_kind: "current_level",
-          level_adjustment: "reduce_load",
-        },
-        allowed_patch_fields: ["scope_kind", "level_adjustment"],
-        adjust_plan_result: {
-          scope: "level",
-          applied_change: {
-            summary: "Alléger deux actions.",
-            changed_items: [
-              {
-                id: "habit-1",
-                kind: "habit",
-                capability: "change_action_frequency",
-                title: "Partager un point positif",
-                before: "3 jours / semaine",
-                after:
-                  "2 jours / semaine, une phrase neutre, quand ça se présente naturellement, sans créneau imposé",
-                reason: "Réduire la charge.",
-              },
-              {
-                id: "task-1",
-                kind: "action",
-                capability: "modify_existing_action",
-                title: "Convenir d'un signal de pause",
-                before: "Ancienne discussion longue",
-                after:
-                  "choisir un mot ou un geste simple en 5 minutes, moment libre sans créneau",
-                reason: "Simplifier la mission.",
-              },
-            ],
-            preserved_items: [],
-          },
-          boundaries: {
-            affected_scope: "niveau actuel uniquement",
-            explicitly_not_affected: ["objectif global"],
-            global_plan_impact: "none",
-            explanation: "Le reste ne change pas.",
-          },
-          rationale: {
-            user_problem: "Trop chargé.",
-            why_this_change: "Moins de charge.",
-            expected_effect: "Plus faisable.",
-            confidence: "medium",
-            missing_info: [],
-          },
-          user_message_brief: "J'ai allégé le niveau.",
-          user_message_detailed: "J'ai allégé le niveau.",
-        },
-      },
-    },
-  });
-
-  const updatedHabit = state.user_plan_items.find((item) =>
-    item.id === "habit-1"
-  );
-  assertEquals(updatedHabit.target_reps, 2);
-  assertEquals(updatedHabit.cadence_label, "2 jours / semaine");
-  assertEquals(updatedHabit.description, "une phrase neutre");
-  assertEquals(updatedHabit.time_of_day, "anytime");
-
-  const updatedTask = state.user_plan_items.find((item) =>
-    item.id === "task-1"
-  );
-  assertEquals(
-    updatedTask.description,
-    "choisir un mot ou un geste simple en 5 minutes, moment libre sans créneau",
-  );
-  assertEquals(updatedTask.time_of_day, "anytime");
-  assertEquals(state.system_runtime_snapshots.length, 1);
-  assertEquals(
-    state.system_runtime_snapshots[0].payload.materialized_plan_item_ids,
-    ["habit-1", "task-1"],
-  );
-});
-
-Deno.test("writePlanAdjustmentPatch: materializes broad pause with V2 item status", async () => {
-  const habit = basePlanItem({
-    id: "habit-1",
-    title: "Partager un point positif",
-    dimension: "habits",
-    kind: "habit",
-    cadence_label: "3 jours / semaine",
-    target_reps: 3,
-  });
-  const task = basePlanItem({
-    id: "task-1",
-    title: "Faire le point sur le signal de pause",
-    dimension: "missions",
-    kind: "task",
-    status: "pending",
-    description: "Bilan initial.",
-  });
-  const { client, state } = createTrackingSupabaseMock({
-    user_cycles: [],
-    user_transformations: [],
-    user_plans_v2: [],
-    user_plan_items: [habit, task],
-    user_plan_item_entries: [],
-    user_metrics: [],
-    system_runtime_snapshots: [],
-  });
-  const regenerationCalls: unknown[] = [];
-
-  const result = await writePlanAdjustmentPatch({
-    supabase: client as any,
-    userId: "u1",
-    operationInput: {
-      scope: { kind: "whole_plan" },
-    },
-    operationId: "op-pause",
-    requestId: "req-pause",
-    sourceMessageId: "msg-pause",
-    regenerateAdjustedPlan: async (input) => {
-      regenerationCalls.push(input);
-      return {
-        plan_id: "adjusted-plan-1",
-        roadmap_changed: true,
-      };
-    },
-    draft: {
-      operation_type: "adjust_plan_item",
-      output_schema: "plan_adjustment_draft_v1",
-      confirmation_actions: ["yes", "no"],
-      confirmation_message: "Confirmer ?",
-      execution_message: "C'est fait.",
-      draft: {
-        title: "Ajustement - plan",
-        scope_label: "Plan global",
-        adjustment_type: "reduce" as any,
-        execution_strategy: "whole_plan_adjustment",
-        proposed_change: "Alléger le plan",
-        why_it_helps: "Moins de charge.",
-        confidence: "medium",
-        decision_basis: {
-          user_problem: "Trop chargé.",
-          inferred_need: "Alléger.",
-          confidence: "medium",
-          evidence: [],
-          uncertainty: [],
-          must_preserve: [],
-        },
-        change_rationale: {
-          why_this_change: "Moins de charge.",
-          expected_mechanism: "Moins de friction.",
-          success_condition: "Plan faisable.",
-        },
-        ack_summary: {
-          changed: [],
-          unchanged: [],
-          why_it_helps: "Moins de charge.",
-          confidence: "medium",
-        },
-        patch: {
-          scope_kind: "whole_plan",
-          plan_adjustment: "reduce_global_load",
-        },
-        allowed_patch_fields: ["scope_kind", "plan_adjustment"],
-        adjust_plan_result: {
-          scope: "whole_plan",
-          applied_change: {
-            summary: "Alléger deux éléments.",
-            changed_items: [
-              {
-                id: "habit-1",
-                kind: "habit",
-                capability: "change_action_frequency",
-                title: "Partager un point positif",
-                before: "3 jours / semaine",
-                after: "2 jours / semaine sans horaire fixe",
-                reason: "Réduire la charge.",
-              },
-              {
-                id: "task-1",
-                kind: "action",
-                capability: "pause_action",
-                title: "Faire le point sur le signal de pause",
-                before: "Bilan initial.",
-                after: "Décalé après deux semaines.",
-                reason: "Alléger le plan immédiat.",
-              },
-            ],
-            preserved_items: [],
-          },
-          boundaries: {
-            affected_scope: "plan global",
-            explicitly_not_affected: ["objectif global"],
-            global_plan_impact: "indirect",
-            explanation: "Le fond ne change pas.",
-          },
-          rationale: {
-            user_problem: "Trop chargé.",
-            why_this_change: "Moins de charge.",
-            expected_effect: "Plus faisable.",
-            confidence: "medium",
-            missing_info: [],
-          },
-          user_message_brief: "J'ai allégé le plan.",
-          user_message_detailed: "J'ai allégé le plan.",
-        },
-      },
-    },
-  });
-
-  const updatedHabit = state.user_plan_items.find((item) =>
-    item.id === "habit-1"
-  );
-  assertEquals(updatedHabit.target_reps, 2);
-  assertEquals(updatedHabit.time_of_day, "anytime");
-
-  const updatedTask = state.user_plan_items.find((item) =>
-    item.id === "task-1"
-  );
-  assertEquals(updatedTask.status, "in_maintenance");
-  assertEquals(regenerationCalls.length, 1);
-  assertEquals((regenerationCalls[0] as any).transformationId, "transfo-1");
-  assertEquals((regenerationCalls[0] as any).scopeKind, "whole_plan");
-  assertEquals(result.adjusted_plan_id, "adjusted-plan-1");
-  assertEquals(result.roadmap_changed, true);
-  assertEquals(state.system_runtime_snapshots.length, 1);
-  assertEquals(
-    state.system_runtime_snapshots[0].payload.adjusted_plan_id,
-    "adjusted-plan-1",
-  );
-});
-
-Deno.test("writePlanAdjustmentPatch: materializes action frequency timing and instruction", async () => {
-  const habit = basePlanItem({
-    id: "habit-1",
-    title: "Partager un point positif",
-    dimension: "habits",
-    kind: "habit",
-    description: "une phrase simple, sans chercher à faire joli",
-    cadence_label: "3 jours / semaine",
-    target_reps: 3,
-    time_of_day: "evening",
-  });
-  const { client, state } = createTrackingSupabaseMock({
-    user_cycles: [],
-    user_transformations: [],
-    user_plans_v2: [],
-    user_plan_items: [habit],
-    user_plan_item_entries: [],
-    user_metrics: [],
-    system_runtime_snapshots: [],
-  });
-
-  await writePlanAdjustmentPatch({
-    supabase: client as any,
-    userId: "u1",
-    operationInput: {
-      scope: {
-        kind: "specific_plan_item",
-        plan_item_id: "habit-1",
-      },
-    },
-    operationId: "op-action",
-    requestId: "req-action",
-    sourceMessageId: "msg-action",
-    draft: {
-      operation_type: "adjust_plan_item",
-      output_schema: "plan_adjustment_draft_v1",
-      confirmation_actions: ["yes", "no"],
-      confirmation_message: "Confirmer ?",
-      execution_message: "C'est fait.",
-      draft: {
-        title: "Ajustement - action",
-        scope_label: "Partager un point positif",
-        adjustment_type: "reduce" as any,
-        execution_strategy: "patch_existing",
-        proposed_change:
-          "Passer l'action à 2 jours / semaine, phrase neutre, sans créneau fixe.",
-        why_it_helps: "Moins de charge.",
-        confidence: "medium",
-        decision_basis: {
-          user_problem: "Trop chargé.",
-          inferred_need: "Alléger.",
-          confidence: "medium",
-          evidence: [],
-          uncertainty: [],
-          must_preserve: [],
-        },
-        change_rationale: {
-          why_this_change: "Moins de charge.",
-          expected_mechanism: "Moins de friction.",
-          success_condition: "Action faisable.",
-        },
-        ack_summary: {
-          changed: [],
-          unchanged: [],
-          why_it_helps: "Moins de charge.",
-          confidence: "medium",
-        },
-        patch: {
-          target_reps: 2,
-          cadence_label: "2 jours / semaine",
-        },
-        allowed_patch_fields: ["target_reps", "cadence_label"],
-        adjust_plan_result: {
-          scope: "action",
-          applied_change: {
-            summary: "Alléger l'action.",
-            changed_items: [{
-              id: "habit-1",
-              kind: "habit",
-              capability: "change_action_frequency",
-              title: "Partager un point positif",
-              before: "3 jours / semaine, le soir",
-              after: "2 jours / semaine, phrase neutre, sans créneau fixe",
-              reason: "Réduire la charge.",
-            }],
-            preserved_items: [],
-          },
-          boundaries: {
-            affected_scope: "action ciblée uniquement",
-            explicitly_not_affected: ["reste du plan"],
-            global_plan_impact: "none",
-            explanation: "Le reste ne change pas.",
-          },
-          rationale: {
-            user_problem: "Trop chargé.",
-            why_this_change: "Moins de charge.",
-            expected_effect: "Plus faisable.",
-            confidence: "medium",
-            missing_info: [],
-          },
-          user_message_brief: "Action allégée.",
-          user_message_detailed: "Action allégée.",
-        },
-      },
-    },
-  });
-
-  const updatedHabit = state.user_plan_items.find((item) =>
-    item.id === "habit-1"
-  );
-  assertEquals(updatedHabit.target_reps, 2);
-  assertEquals(updatedHabit.cadence_label, "2 jours / semaine");
-  assertEquals(updatedHabit.description, "phrase neutre");
-  assertEquals(updatedHabit.time_of_day, "anytime");
 });

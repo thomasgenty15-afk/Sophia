@@ -9,6 +9,12 @@ import { runProductHelpSkill } from "../../skills/product_help/skill.ts";
 import { maybeRunStatusRecapRuntime } from "../../skills/status_recap/runtime.ts";
 import type { StatusRecapLocalDispatcher } from "../../skills/status_recap/local_flow.ts";
 import type { StatusRecapObjectType } from "../../skills/status_recap/contract.ts";
+import {
+  createNoteInformation,
+  noteInformationForTrace,
+  type NoteInformation,
+  type NoteInformationTargetDispatcher,
+} from "../../contracts/note_information.v1.ts";
 
 export type InlineInfoToolContext = {
   active_flow: string;
@@ -16,6 +22,7 @@ export type InlineInfoToolContext = {
   question_to_answer: string;
   active_flow_context: Record<string, unknown>;
   dispatcher_context?: Record<string, unknown> | null;
+  note_information?: NoteInformation | null;
 };
 
 export type InlineInfoToolResult = {
@@ -59,20 +66,6 @@ function minimalTurnFrame(args: {
     },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
     skill_signals: { entry: {}, lifecycle: {}, exit: {} },
     memory_plan: {
       context_need: "minimal",
@@ -82,6 +75,42 @@ function minimalTurnFrame(args: {
       retrieval_policy: "semantic_only",
     },
   };
+}
+
+function noteForInlineInfo(
+  context: InlineInfoToolContext,
+  targetDispatcher: Extract<
+    NoteInformationTargetDispatcher,
+    "product_help" | "status_recap"
+  >,
+): NoteInformation {
+  if (context.note_information) return context.note_information;
+  return createNoteInformation({
+    source_flow_id: context.active_flow,
+    source_flow_state_summary: String(
+      context.active_flow_status ?? "active",
+    ),
+    handoff_reason: "inline_tool",
+    target_dispatcher: targetDispatcher,
+    handoff_context_for_next_dispatcher: JSON.stringify({
+      active_flow: context.active_flow,
+      active_flow_status: context.active_flow_status ?? null,
+      question_to_answer: context.question_to_answer,
+      active_flow_context: context.active_flow_context,
+      dispatcher_context: context.dispatcher_context ?? null,
+      preserve_active_flow: true,
+    }),
+    target_local_dispatcher_hint:
+      "Answer only the inline information question, then return to the parent flow without changing parent slots.",
+    structured_context: {
+      active_flow: context.active_flow,
+      active_flow_status: context.active_flow_status ?? null,
+      question_to_answer: context.question_to_answer,
+      active_flow_context: context.active_flow_context,
+      dispatcher_context: context.dispatcher_context ?? null,
+      preserve_active_flow: true,
+    },
+  });
 }
 
 function statusRecapDispatcherForInlineInfo(args: {
@@ -147,7 +176,18 @@ export async function runInlineGetInfoProductTool(args: {
   history?: unknown;
   turnFrame: TurnFrame | null;
   context: InlineInfoToolContext;
+  requestId?: string | null;
 }): Promise<InlineInfoToolResult> {
+  const noteInformation = noteForInlineInfo(args.context, "product_help");
+  const contextWithNote: InlineInfoToolContext = {
+    ...args.context,
+    note_information: noteInformation,
+  };
+  console.info("[InlineInfo] note_information_created", {
+    ...noteInformationForTrace(noteInformation),
+    transition_tag: "local_inline_tool_with_note",
+    request_id: args.requestId ?? null,
+  });
   const activeSkillWorkingState = {
     skill_id: args.context.active_flow,
     status: args.context.active_flow_status ?? "active",
@@ -157,6 +197,7 @@ export async function runInlineGetInfoProductTool(args: {
       active_flow_context: args.context.active_flow_context,
       question_to_answer: args.context.question_to_answer,
       dispatcher_context: args.context.dispatcher_context ?? null,
+      note_information: noteInformation,
       preserve_active_flow: true,
     },
   };
@@ -184,7 +225,7 @@ export async function runInlineGetInfoProductTool(args: {
     .trim();
   return {
     content,
-    context: args.context,
+    context: contextWithNote,
     subskillRun: {
       skill_id: "product_help",
       selected_handler: "product_help",
@@ -193,16 +234,19 @@ export async function runInlineGetInfoProductTool(args: {
       operation_suggestions: output.operation_suggestions ?? [],
       effects: output.effects ?? null,
       active_flow_context: activeSkillWorkingState.working_state,
+      note_information: noteInformation,
     },
     runtimeTrace: [{
       component: args.context.active_flow,
       event: "get_info_product_called",
       preserve_active_flow: true,
-      context: args.context,
+      note_information: noteInformation,
+      context: contextWithNote,
     }, {
       component: args.context.active_flow,
       event: "get_info_product_returned_to_flow",
       preserve_active_flow: true,
+      note_information: noteInformation,
     }],
   };
 }
@@ -220,6 +264,16 @@ export async function runInlineGetInfoDbTool(args: {
   objectTypes: StatusRecapObjectType[];
   context: InlineInfoToolContext;
 }): Promise<InlineInfoToolResult> {
+  const noteInformation = noteForInlineInfo(args.context, "status_recap");
+  const contextWithNote: InlineInfoToolContext = {
+    ...args.context,
+    note_information: noteInformation,
+  };
+  console.info("[InlineInfo] note_information_created", {
+    ...noteInformationForTrace(noteInformation),
+    transition_tag: "local_inline_tool_with_note",
+    request_id: args.requestId ?? null,
+  });
   const statusRuntime = await maybeRunStatusRecapRuntime({
     supabase: args.supabase,
     userId: args.userId,
@@ -233,14 +287,14 @@ export async function runInlineGetInfoDbTool(args: {
     requestId: args.requestId ?? null,
     runLocalDispatcher: statusRecapDispatcherForInlineInfo({
       objectTypes: args.objectTypes,
-      context: args.context,
+      context: contextWithNote,
     }),
   });
   const content = String(statusRuntime?.content ?? "").trim();
   return {
     content,
     additionalContents: statusRuntime?.additionalContents,
-    context: args.context,
+    context: contextWithNote,
     subskillRun: {
       skill_id: "status_recap",
       selected_handler: statusRuntime?.toolSkillRun?.selected_handler ??
@@ -248,18 +302,21 @@ export async function runInlineGetInfoDbTool(args: {
       toolExecution: statusRuntime?.toolExecution ?? "none",
       executedTools: statusRuntime?.executedTools ?? [],
       reason_code: statusRuntime?.toolSkillRun?.reason_code ?? null,
-      active_flow_context: args.context,
+      active_flow_context: contextWithNote,
+      note_information: noteInformation,
     },
     runtimeTrace: [{
       component: args.context.active_flow,
       event: "get_info_db_called",
       preserve_active_flow: true,
       target_objects: args.objectTypes,
-      context: args.context,
+      note_information: noteInformation,
+      context: contextWithNote,
     }, {
       component: args.context.active_flow,
       event: "get_info_db_returned_to_flow",
       preserve_active_flow: true,
+      note_information: noteInformation,
     }],
   };
 }

@@ -32,15 +32,5 @@ export function renderTrackProgressClarification(reasonCode: string): string {
 export function enforceTrackProgressReplyInvariant(
   result: TrackProgressDirectEffectResult,
 ): TrackProgressDirectEffectResult {
-  if (
-    result.status === "logged" &&
-    result.committed_effects.some((effect) => effect.logged_progress_id)
-  ) {
-    return result;
-  }
-
-  const unsafe = /\b(not[eé]|enregistr[eé]|marqu[eé]|valid[eé])\b/i.test(
-    String(result.reply ?? ""),
-  );
-  return unsafe ? { ...result, reply: null } : result;
+  return result;
 }

@@ -1,3 +1,4 @@
+import type { NoteInformation } from "../../../contracts/note_information.v1.ts";
 import type { SelectStatePotionIntakeState } from "./intake.ts";
 
 export type SelectStatePotionUserIntent =
@@ -64,6 +65,8 @@ export type ClarteFlowAction =
   | "platform_destination_followup"
   | "apply_attempt"
   | "repeat_handoff"
+  | "stop_local_no_handoff"
+  | "handoff_to_local_flow"
   | "cancel_flow"
   | "exit_to_global_dispatcher"
   | "safety_preempt";
@@ -91,6 +94,8 @@ export type StatePotionSubskillFlowAction =
   | "platform_destination_followup"
   | "apply_attempt"
   | "repeat_handoff"
+  | "stop_local_no_handoff"
+  | "handoff_to_local_flow"
   | "cancel_flow"
   | "exit_to_global_dispatcher"
   | "safety_preempt";
@@ -104,6 +109,45 @@ export type StatePotionSubskillFieldDetailSufficiency = {
   followup_asked: boolean;
   followup_answered: boolean;
   evidence: string[];
+};
+
+export type StatePotionVisibleFieldContext = {
+  field_id: string;
+  field_label: string;
+  status: "missing" | "proposed" | "locked";
+  value: string | null;
+  candidate_value: string | null;
+  locked_value: string | null;
+  option_value: string | null;
+  option_label: string | null;
+  needs_user_confirmation: boolean;
+  detail_sufficiency?: StatePotionSubskillFieldDetailSufficiency | null;
+};
+
+export type StatePotionConversationContext = {
+  state_summary: string;
+  user_words: string[];
+  field_or_stage: string | null;
+  known_values: Record<string, string>;
+  missing_or_weak_values: Array<{
+    field_id: string;
+    field_label: string;
+    reason: string;
+    followup_question?: string | null;
+  }>;
+  selected_candidate: {
+    potion_type: StatePotionSubskillPotionType | null;
+    potion_name: string | null;
+  };
+  handoff_data: {
+    potion_name: string | null;
+    platform_destination: string;
+    fields: StatePotionVisibleFieldContext[];
+  };
+  tone_constraints: string[];
+  do_not_say: string[];
+  context_summary: string | null;
+  evidence_used: string[];
 };
 
 export type StatePotionSubskillVisibleTaskKind =
@@ -210,17 +254,7 @@ export type StatePotionSubskillDispatcherOutput = {
   revision: StatePotionSubskillRevisionState;
   visible_task: {
     kind: StatePotionSubskillVisibleTaskKind;
-    required_data: {
-      potion_name: string;
-      platform_destination: "section État / Potions";
-      fields: Array<{
-        field_id: string;
-        field_label: string;
-        field_value: string | null;
-        option_value: string | null;
-        option_label: string | null;
-      }>;
-    };
+    conversation_context?: StatePotionConversationContext;
   };
   subskill_call?: {
     needed: boolean;
@@ -234,6 +268,10 @@ export type StatePotionSubskillDispatcherOutput = {
     flow_summary: string | null;
     collected_value: string | null;
     handoff_hint_for_global_dispatcher: string | null;
+  };
+  note_information?: {
+    needed: boolean;
+    value: NoteInformation | null;
   };
   no_chat_mutation: {
     potion_session_created: false;
@@ -268,13 +306,7 @@ export type ClarteDispatcherOutput = {
   revision: ClarteRevisionState;
   visible_task: {
     kind: ClarteVisibleTaskKind;
-    required_data: {
-      potion_name: "Potion de clarté";
-      field_label:
-        "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?";
-      field_value: string | null;
-      platform_destination: "section État / Potions";
-    };
+    conversation_context?: StatePotionConversationContext;
   };
   subskill_call?: {
     needed: boolean;
@@ -288,6 +320,10 @@ export type ClarteDispatcherOutput = {
     flow_summary: string | null;
     collected_value: string | null;
     handoff_hint_for_global_dispatcher: string | null;
+  };
+  note_information?: {
+    needed: boolean;
+    value: NoteInformation | null;
   };
   no_chat_mutation: {
     potion_session_created: false;

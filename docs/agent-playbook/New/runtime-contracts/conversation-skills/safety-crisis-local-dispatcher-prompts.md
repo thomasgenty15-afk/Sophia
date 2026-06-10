@@ -90,6 +90,21 @@ Rules :
 - `no_tooling.*` must all be false.
 - No regex, no keyword routing, no visible message.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Inbound safety pickup from a non-safety local flow must receive
+`note_information` with `target_dispatcher="safety_crisis"`. The local
+dispatcher may use it only as background context; it must not lower risk or
+route from the note.
+
+The safety dispatcher itself does not call product/status/tool inline. If the
+reducer later resolves safety and immediately transfers to global, the resolved
+exit must carry `note_information` with `source_flow_id="safety_crisis"` and
+`target_dispatcher="global"`. If safety closes locally and waits for the next
+user turn, that is `stop_local_no_handoff` and no same-turn global call occurs.
+
 ## Prompt 01 - Local Dispatcher
 
 ```txt
@@ -416,4 +431,3 @@ Regles :
 
 Retourne uniquement le message visible.
 ```
-

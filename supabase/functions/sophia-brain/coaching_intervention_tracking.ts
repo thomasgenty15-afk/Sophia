@@ -42,45 +42,6 @@ const PENDING_KEY = "__coaching_intervention_pending";
 const MAX_HISTORY = 24;
 const PENDING_EXPIRY_HOURS = 96;
 
-const OUTCOME_PATTERNS = {
-  not_tried: [
-    /\bj[' ]?ai pas test[eé]\b/i,
-    /\bpas test[eé]\b/i,
-    /\bpas essay[eé]\b/i,
-    /\bj[' ]?ai oubli[eé]\b/i,
-    /\bje ne l[' ]?ai pas fait\b/i,
-  ],
-  tried_not_helpful: [
-    /\bca n[' ]?a pas aid[eé]\b/i,
-    /\bça n[' ]?a pas aid[eé]\b/i,
-    /\bca n[' ]?a pas march[eé]\b/i,
-    /\bça n[' ]?a pas march[eé]\b/i,
-    /\bpas utile\b/i,
-    /\bj[' ]?ai quand m[eê]me fum[eé]\b/i,
-    /\bj[' ]?ai essay[eé].*pas march[eé]\b/i,
-  ],
-  tried_helpful: [
-    /\bca m[' ]?a aid[eé]\b/i,
-    /\bça m[' ]?a aid[eé]\b/i,
-    /\bca a aid[eé]\b/i,
-    /\bça a aid[eé]\b/i,
-    /\bca a march[eé]\b/i,
-    /\bça a march[eé]\b/i,
-    /\bun peu aid[eé]\b/i,
-    /\bj[' ]?ai test[eé]\b/i,
-    /\bj[' ]?ai essay[eé]\b/i,
-  ],
-  behavior_changed: [
-    /\bj[' ]?ai r[eé]ussi\b/i,
-    /\bje n[' ]?ai pas fum[eé]\b/i,
-    /\bj[' ]?ai tenu\b/i,
-    /\bj[' ]?ai fait la t[aâ]che\b/i,
-    /\bj[' ]?ai fait l[' ]?appel\b/i,
-    /\bj[' ]?ai commenc[eé]\b/i,
-    /\bj[' ]?ai avanc[eé]\b/i,
-  ],
-} as const;
-
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -222,84 +183,12 @@ export function buildTechniqueHistoryForSelector(
   return entries.slice(-16);
 }
 
-function classifyOutcomeHeuristically(
-  message: string,
-): CoachingInterventionFollowUpDecision {
-  const text = String(message ?? "").trim();
-  if (!text) return { decision: "ignore" };
-  const normalized = text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-  if (OUTCOME_PATTERNS.behavior_changed.some((pattern) => pattern.test(text))) {
-    return {
-      decision: "resolve",
-      outcome: "behavior_changed",
-      helpful: true,
-      reason: "heuristic_behavior_changed",
-    };
-  }
-  if (
-    normalized.includes("j'ai commence") ||
-    normalized.includes("j'ai finalement commence") ||
-    normalized.includes("j'ai reussi") ||
-    normalized.includes("je n'ai pas fume")
-  ) {
-    return {
-      decision: "resolve",
-      outcome: "behavior_changed",
-      helpful: true,
-      reason: "heuristic_normalized_behavior_changed",
-    };
-  }
-  if (OUTCOME_PATTERNS.tried_not_helpful.some((pattern) => pattern.test(text))) {
-    return {
-      decision: "resolve",
-      outcome: "tried_not_helpful",
-      helpful: false,
-      reason: "heuristic_tried_not_helpful",
-    };
-  }
-  if (OUTCOME_PATTERNS.not_tried.some((pattern) => pattern.test(text))) {
-    return {
-      decision: "resolve",
-      outcome: "not_tried",
-      helpful: false,
-      reason: "heuristic_not_tried",
-    };
-  }
-  if (OUTCOME_PATTERNS.tried_helpful.some((pattern) => pattern.test(text))) {
-    return {
-      decision: "resolve",
-      outcome: "tried_helpful",
-      helpful: true,
-      reason: "heuristic_tried_helpful",
-    };
-  }
-  if (
-    normalized.includes("j'ai teste") &&
-    (normalized.includes("ca m'a aide") || normalized.includes("ca a aide"))
-  ) {
-    return {
-      decision: "resolve",
-      outcome: "tried_helpful",
-      helpful: true,
-      reason: "heuristic_normalized_tried_helpful",
-    };
-  }
-  return { decision: "ignore" };
-}
-
 export async function classifyCoachingInterventionFollowUp(args: {
   pending: CoachingInterventionPendingState;
   userMessage: string;
   history: any[];
   meta?: { requestId?: string; forceRealAi?: boolean; model?: string; userId?: string };
 }): Promise<CoachingInterventionFollowUpDecision> {
-  const heuristic = classifyOutcomeHeuristically(args.userMessage);
-  if (heuristic.decision === "resolve") return heuristic;
-
   const message = String(args.userMessage ?? "").trim();
   if (!message) return { decision: "ignore" };
 

@@ -241,7 +241,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: `null`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - direct_effects: `[]`
 - executed_tools: `[]`
@@ -371,7 +371,7 @@
 - La preference coach du tour 6 est correctement prise par `tool_skill` + `update_coach_preferences`; `product_help` apparait encore dans `skill_entry_ids`, mais ne capture plus l'intention.
 - Le rappel du tour 4 s'execute correctement, mais reste route via `conversation_handler` / `execution_breakdown` et `active_conversation_skill_continue`. L'effet durable est bon, mais le owner systeme n'est pas ideal.
 - Le tour 8 est contenu-correct, mais route encore `product_help` pour une question de memoire conversationnelle. C'est un warning de synchronicite: la reponse est utile, le owner ne correspond pas au besoin.
-- Les tours no-tool utilisent des raisons de routage protectrices (`status_only_request_blocks_tool_start`, `central_arbitrator_status_exact_priority`) et aucun outil n'est execute.
+- Les tours no-tool utilisent des raisons de routage protectrices (`status_recap_request_blocks_tool_start`, `central_arbitrator_status_exact_priority`) et aucun outil n'est execute.
 
 **Skills / Operations / Tools**
 - `prepare_attack_card`: slots suffisants, execution bloquee au tour 2, creation reussie au tour 3. Durable verifie: carte `Action Nora`, technique `ancre_visuelle`, contenu attendu.

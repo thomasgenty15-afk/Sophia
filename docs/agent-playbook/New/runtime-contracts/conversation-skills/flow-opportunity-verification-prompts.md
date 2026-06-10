@@ -45,6 +45,27 @@ Ce document decrit :
     choisir ni lancer le flow final ;
   - flow cible : gere son propre metier apres lancement.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, `launch_target_flow`, `get_info_product`, and `get_info_db`.
+Use `source_flow_id="flow_opportunity_verification"` and copy the catalog
+presentation.
+
+Do not produce it for `decline_opportunity`, `cancel_flow`,
+`stale_or_already_answered`, `repeat_offer`, or local explanation when no new
+dispatcher is called. Those are local stop/continue actions and global must not
+run on the same turn.
+
+Choose `target_dispatcher` as the accepted target flow for
+`launch_target_flow`, `product_help` or `status_recap` for inline info,
+`safety_crisis` for safety, and `global` for a clear topic change or direct
+command that the verification flow should not own. The handoff context must
+include opportunity id, target flow, target context, confirmation anchor, inline
+subskill history, and whether the same user message should be reprocessed.
+
 ## Distinction Direct Route / Opportunity
 
 Demandes explicites :

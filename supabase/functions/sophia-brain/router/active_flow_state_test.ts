@@ -24,10 +24,14 @@ Deno.test("active_flow_state exposes canonical tempMemory key families", () => {
     "__pending_tool_skill_confirmation",
     "pending_tool_skill_confirmation",
   ]);
+  assertEquals(ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeClarificationState, [
+    "__clarification_flow_state",
+  ]);
 });
 
 Deno.test("active_flow_state reads legacy and canonical pending keys", () => {
   const state = readActiveFlowState({
+    __clarification_flow_state: { skill_id: "clarification" },
     active_tool_skill_intake: { operation_type: "prepare_attack_card" },
     __pending_tool_skill_confirmation: { operation_type: "adjust_plan_item" },
     active_skill_state: { skill_id: "weekly_adaptive_review_v1" },
@@ -35,6 +39,10 @@ Deno.test("active_flow_state reads legacy and canonical pending keys", () => {
       operation_type: "prepare_defense_card",
     },
   });
+  assertEquals(
+    (state.activeClarificationState as any).skill_id,
+    "clarification",
+  );
   assertEquals(
     (state.activeToolSkillIntake as any).operation_type,
     "prepare_attack_card",
@@ -206,6 +214,10 @@ Deno.test("active_flow_state exposes last local flow exit context", () => {
       reason: "topic_change",
       flow_summary: "carte d'attaque mise de côté",
       handoff_hint_for_global_dispatcher: "prioriser la soirée",
+      note_information: {
+        source_flow_id: "prepare_attack_card",
+        target_dispatcher: "global",
+      },
       at: "2026-06-08T10:00:00.000Z",
     },
     __last_select_state_potion_exit_memo: {
@@ -221,22 +233,46 @@ Deno.test("active_flow_state exposes last local flow exit context", () => {
     context?.handoff_hint_for_global_dispatcher,
     "prioriser la soirée",
   );
+  assertEquals(
+    (context?.note_information as any)?.source_flow_id,
+    "prepare_attack_card",
+  );
+  assertEquals((context?.note_information as any)?.target_dispatcher, "global");
 });
 
-Deno.test("active_flow_state compacts post morning nudge exit memo for dispatcher", () => {
+Deno.test("active_flow_state exposes whatsapp onboarding exit memo", () => {
   const context = buildLastLocalFlowExitContext({
-    __last_post_morning_nudge_exit_memo: {
+    __last_whatsapp_onboarding_exit_memo: {
+      reason: "topic_change",
+      flow_summary: "WhatsApp onboarding stopped after plan was ready.",
+      handoff_hint_for_global_dispatcher: "prioriser",
+      note_information: {
+        source_flow_id: "whatsapp_onboarding",
+        target_dispatcher: "global",
+      },
+      at: "2026-06-08T10:02:00.000Z",
+    },
+  });
+  assertEquals(context?.operation_type, "whatsapp_onboarding");
+  assertEquals(context?.reason, "topic_change");
+  assertEquals(context?.handoff_hint_for_global_dispatcher, "prioriser");
+  assertEquals(
+    (context?.note_information as any)?.source_flow_id,
+    "whatsapp_onboarding",
+  );
+});
+
+Deno.test("active_flow_state compacts post morning nudge note for dispatcher", () => {
+  const context = buildLastLocalFlowExitContext({
+    __last_post_morning_nudge_note_information: {
       reason: "explicit_tool_request",
-      user_intent_summary: "User asks for a defense card.",
-      local_flow_context: {
+      user_message_summary: "User asks for a defense card.",
+      collected_state: {
         skill_id: "post_morning_nudge",
         flow_kind: "action",
         source_nudge_summary: "nudge_kind=action_nudge",
       },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: "prepare_defense_card",
-        why: "explicit handoff",
-      },
+      recommended_next_focus: "prepare_defense_card",
       at: "2026-06-08T10:01:00.000Z",
     },
   });
@@ -246,7 +282,7 @@ Deno.test("active_flow_state compacts post morning nudge exit memo for dispatche
   assertEquals(context?.flow_summary, "User asks for a defense card.");
   assertEquals(
     context?.handoff_hint_for_global_dispatcher,
-    "prepare_defense_card: explicit handoff",
+    "prepare_defense_card: explicit_tool_request",
   );
 });
 
@@ -254,9 +290,15 @@ Deno.test("active_flow_state clears last local flow exit context keys", () => {
   assertEquals(
     clearLastLocalFlowExitContext({
       __last_prepare_attack_card_exit_memo: { reason: "topic_change" },
+      __last_whatsapp_onboarding_exit_memo: { reason: "topic_change" },
       __last_prepare_defense_card_exit_memo: { reason: "cancelled" },
       __last_select_state_potion_exit_memo: { reason: "safety" },
-      __last_post_morning_nudge_exit_memo: { reason: "explicit_tool_request" },
+      __last_post_morning_nudge_note_information: {
+        reason: "explicit_tool_request",
+      },
+      __last_flow_opportunity_verification_exit_memo: {
+        reason: "topic_change",
+      },
       keep: true,
     }),
     { keep: true },

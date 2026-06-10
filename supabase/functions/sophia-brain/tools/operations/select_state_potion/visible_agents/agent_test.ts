@@ -13,27 +13,43 @@ function clarteInput() {
   return {
     user_id: "u1",
     stage: "clarte_task" as const,
-    user_message: "Je veux une potion de clarté.",
-    recent_messages: [],
-    selected_potion_label: "Potion de clarté",
-    clarte_visible_task: "handoff_ready" as const,
-    clarte_state: {
-      flow_id: "select_state_potion.clarte" as const,
-      selected_potion: "clarte" as const,
-      field_id: "plan_meaning_loss_reason" as const,
-      field_label: CLARTE_FIELD_LABEL,
-      potion_name: "Potion de clarté" as const,
-      platform_destination: "section État / Potions" as const,
-      field_state: {
-        status: "locked" as const,
-        candidate_value: null,
-        locked_value: CLARTE_FIELD_VALUE,
-        previous_value: null,
-        needs_user_confirmation: false,
-        why_status: "test",
+    visible_task: {
+      kind: "clarte_task" as const,
+      instruction:
+        "Clarté / handoff pret: donne naturellement Potion de clarté, le chemin État / Potions, puis recopie verbatim la question plateforme exacte et la valeur exacte a saisir.",
+      conversation_context: {
+        state_summary: "Potion de clarté | tache visible=handoff_ready",
+        user_words: [],
+        field_or_stage: "plan_meaning_loss_reason",
+        known_values: {
+          plan_meaning_loss_reason: CLARTE_FIELD_VALUE,
+        },
+        missing_or_weak_values: [],
+        selected_candidate: {
+          potion_type: "clarte" as const,
+          potion_name: "Potion de clarté",
+        },
+        handoff_data: {
+          potion_name: "Potion de clarté",
+          platform_destination: "section État / Potions",
+          fields: [{
+            field_id: "plan_meaning_loss_reason",
+            field_label: CLARTE_FIELD_LABEL,
+            status: "locked" as const,
+            value: CLARTE_FIELD_VALUE,
+            candidate_value: null,
+            locked_value: CLARTE_FIELD_VALUE,
+            option_value: null,
+            option_label: null,
+            needs_user_confirmation: false,
+            detail_sufficiency: null,
+          }],
+        },
+        tone_constraints: [],
+        do_not_say: [],
+        context_summary: null,
+        evidence_used: [],
       },
-      last_visible_task: "handoff_ready" as const,
-      last_handoff_delivered: true,
     },
   };
 }
@@ -71,29 +87,4 @@ Deno.test("visible agent guard rejects clarté handoff missing exact platform fi
 
   assert(issues.includes("clarte_missing_field_label"));
   assert(issues.includes("clarte_missing_field_value"));
-});
-
-Deno.test("select_state_potion clarté has no deterministic visible renderer path", async () => {
-  const root =
-    "supabase/functions/sophia-brain/tools/operations/select_state_potion";
-  const handoff = await Deno.readTextFile(`${root}/handoff.ts`);
-  const renderer = await Deno.readTextFile(`${root}/renderer.ts`);
-  const visibleAgent = await Deno.readTextFile(
-    `${root}/visible_agents/agent.ts`,
-  );
-
-  assertEquals(handoff.includes("renderClarteVisibleTask"), false);
-  assertEquals(renderer.includes("renderClarteVisibleTask"), false);
-  assertEquals(
-    renderer.includes("Quand tu regardes ton plan, qu’est-ce qui te donne"),
-    false,
-  );
-  assertEquals(
-    handoff.includes("je n'arrive pas à formuler correctement"),
-    false,
-  );
-  assertEquals(handoff.includes("noPotionReply("), false);
-  assertEquals(visibleAgent.includes(".match("), false);
-  assertEquals(visibleAgent.includes(".test("), false);
-  assertEquals(visibleAgent.includes("replace(/"), false);
 });

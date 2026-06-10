@@ -40,7 +40,7 @@ Ce domaine dépend de :
 
 - `UserTurnSnapshot` / `TurnFrame` / `RouteDecision` pour détecter
   l'opportunité recurring sans parser localement dans `run.ts` ;
-- `TurnAgenda` pour représenter `create_recurring_reminder` comme
+- `local reducer contract` pour représenter `create_recurring_reminder` comme
   `platform_handoff`, pas comme effet durable ;
 - `clarification_tool` pour les ambiguïtés one-shot vs recurring, timing,
   contenu, scope et handoff readiness ;
@@ -207,7 +207,7 @@ Le résultat ne contient jamais `executed` pour `create_recurring_reminder`.
   chemin nominal V1.
 - `run.ts` contient encore des arbitrages globaux d'interruption
   one-shot/status/coach/recap autour des flows actifs. Ils doivent migrer vers
-  `UserTurnSnapshot` + `TurnAgenda` + `handoff_flow_arbitration`.
+  `UserTurnSnapshot` + `local reducer contract` + `handoff_flow_arbitration`.
 
 ## Required Tests
 

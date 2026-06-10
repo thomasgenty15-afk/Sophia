@@ -30,7 +30,7 @@
 - response_owner: `tool_skill`
 - selected_handler: `execution_breakdown`
 - route_reason: `skill_entry_signal`
-- tool_skill_runtime: `status_only_no_mutation_check`
+- tool_skill_runtime: `status_recap`
 - durable_effect: aucun
 
 **Observation**

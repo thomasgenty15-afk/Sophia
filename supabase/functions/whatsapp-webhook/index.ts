@@ -35,7 +35,6 @@ import {
 } from "./handlers_optin_bilan.ts";
 import { handleWrongNumber } from "./handlers_wrong_number.ts";
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts";
-import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
 const LINK_PROMPT_COOLDOWN_MS = Number.parseInt(
   (Deno.env.get("WHATSAPP_LINK_PROMPT_COOLDOWN_MS") ?? "").trim() ||
@@ -105,27 +104,6 @@ function decodeJwtAlg(jwt) {
   } catch {
     return "parse_failed";
   }
-}
-async function analyzeSignalsForWhatsApp(text, requestId) {
-  const raw = (text ?? "").trim();
-  const result = await analyzeSignalsV2({
-    userMessage: raw,
-    lastAssistantMessage: "",
-    last5Messages: [
-      {
-        role: "user",
-        content: raw,
-      },
-    ],
-    signalHistory: [],
-    activeMachine: null,
-    stateSnapshot: {
-      current_mode: "companion",
-    },
-  }, {
-    requestId,
-  });
-  return result.signals;
 }
 function base64Url(bytes) {
   const s = btoa(String.fromCharCode(...bytes));

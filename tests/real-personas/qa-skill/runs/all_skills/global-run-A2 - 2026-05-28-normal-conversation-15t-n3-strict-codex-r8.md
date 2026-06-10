@@ -90,7 +90,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `answered`
 - memory_plan: `none`
 - executed_tools: []
@@ -324,7 +324,7 @@
 **Routage**
 - Tours 1-2: routage correct vers `normal_reply`, `route_reason=attack_card_cancelled_to_conversation`, aucun tool execute.
 - Tour 3: routage correct vers `tool_skill` et `create_one_shot_reminder`; effet durable exact en DB.
-- Tour 4: mauvais comportement systeme. Le routeur traite la demande produit comme `status_only_request_blocks_tool_start` et repond avec un statut global, pas avec `product_help`.
+- Tour 4: mauvais comportement systeme. Le routeur traite la demande produit comme `status_recap_request_blocks_tool_start` et repond avec un statut global, pas avec `product_help`.
 - Tours 5-6: le routeur choisit bien `prepare_attack_card`, mais le skill/tool ne finalise aucun draft durable ni confirmation utile.
 - Tour 7: `route_reason=central_arbitrator_explicit_no_status_request`, mais la reponse reste un statut systeme. Le signal deterministe detecte la contrainte, puis la couche reponse la viole.
 - Tour 10: `conversation_handler` + `emotional_repair` correct; aucun side effect.

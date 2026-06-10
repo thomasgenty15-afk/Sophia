@@ -204,68 +204,6 @@ const SEVENTY_TWO_HOURS_MS = 72 * 60 * 60 * 1000;
 const MAX_BLOCKER_ACTIONS = 8;
 const MAX_BLOCKER_HISTORY = 10;
 
-const MINIMAL_REPLY_PATTERNS = [
-  /^(ok|okay|oui|non|merci|top|super|parfait|d'accord|dac|ça marche|ca marche|c'est bon|cool)$/i,
-  /^(👍|🙏|❤️|ok merci|merci beaucoup)$/i,
-];
-
-const ACCEPT_PATTERNS = [
-  /\boui\b/i,
-  /\bvas[- ]?y\b/i,
-  /\bgo\b/i,
-  /\bc[' ]est bon\b/i,
-  /\bon peut reprendre\b/i,
-  /\bon reprend\b/i,
-];
-
-const CLOSED_CONSENT_PATTERNS = [
-  /\bstop\b/i,
-  /\barr[eê]te\b/i,
-  /\bpas maintenant\b/i,
-  /\blaisse[- ]?moi\b/i,
-  /\bon verra plus tard\b/i,
-  /\bpas ce soir\b/i,
-  /\bpas aujourd[' ]hui\b/i,
-  /\bon reprend plus tard\b/i,
-  /\bj'ai besoin d'une pause\b/i,
-];
-
-const FRAGILE_CONSENT_PATTERNS = [
-  /\bplus tard\b/i,
-  /\bbof\b/i,
-  /\bpas trop envie\b/i,
-  /\bon change de sujet\b/i,
-  /\bpas le moment\b/i,
-  /\bon verra\b/i,
-];
-
-const HIGH_EMOTIONAL_PATTERNS = [
-  /\bj[' ]?en peux plus\b/i,
-  /\bje craque\b/i,
-  /\bje vais craquer\b/i,
-  /\bau bout\b/i,
-  /\bsubmerg[eé]\b/i,
-  /\bangoisse\b/i,
-  /\bpanique\b/i,
-  /\bburn ?out\b/i,
-  /\btr[eè]s dur\b/i,
-  /\btrop dur\b/i,
-  /\bje n[' ]arrive plus\b/i,
-  /\bje suis [kq]o\b/i,
-];
-
-const MEDIUM_EMOTIONAL_PATTERNS = [
-  /\bfatigu[eé]\b/i,
-  /\bfatigue\b/i,
-  /\bstress\b/i,
-  /\bsurcharge\b/i,
-  /\bd[eé]bord[eé]\b/i,
-  /\bcompliqu[eé]\b/i,
-  /\bpas l[' ]?[eé]nergie\b/i,
-  /\bcharg[eé]\b/i,
-  /\bcrev[eé]\b/i,
-];
-
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -301,9 +239,21 @@ function pruneTimedArray<T extends { at: string }>(
 function firstNumber(raw: unknown): number | null {
   const text = String(raw ?? "").trim().replace(",", ".");
   if (!text) return null;
-  const match = text.match(/-?\d+(?:\.\d+)?/);
-  if (!match) return null;
-  const n = Number(match[0]);
+  const chars = [...text];
+  let buffer = "";
+  let started = false;
+  for (const char of chars) {
+    const numeric = (char >= "0" && char <= "9") || char === "." ||
+      (char === "-" && !started);
+    if (numeric) {
+      buffer += char;
+      started = true;
+      continue;
+    }
+    if (started) break;
+  }
+  if (!buffer || buffer === "-" || buffer === ".") return null;
+  const n = Number(buffer);
   return Number.isFinite(n) ? n : null;
 }
 
@@ -332,45 +282,7 @@ function shortExcerpt(input: unknown, max = 180): string | undefined {
 function classifyBlockerCategory(
   input: unknown,
 ): MomentumBlockerCategory | null {
-  const text = normalizeText(input);
-  if (!text) return null;
-  if (
-    /pas le temps|manque de temps|trop de choses|emploi du temps|trop charge|pas eu le temps/
-      .test(
-        text,
-      )
-  ) return "time";
-  if (
-    /fatigu|epuis|creve|pas l energie|trop ko|plus d energie/.test(text)
-  ) return "energy";
-  if (/oubli|j oublie|oublie/.test(text)) return "forgetfulness";
-  if (
-    /pas clair|flou|je sais pas quoi|je ne sais pas quoi|pas compris|confus/
-      .test(text)
-  ) {
-    return "clarity";
-  }
-  if (
-    /trop gros|trop long|trop ambitieux|trop dur|trop lourd|trop grand/.test(
-      text,
-    )
-  ) {
-    return "size";
-  }
-  if (/motivation|pas envie|flemme|envie zero|pas motive/.test(text)) {
-    return "motivation";
-  }
-  if (/stress|angoiss|peur|anxiet|pression|submerge|panique/.test(text)) {
-    return "emotion";
-  }
-  if (
-    /boulot|travail|enfants|famille|imprevu|deplacement|contexte/.test(text)
-  ) {
-    return "context";
-  }
-  if (
-    /parce que|car |bloqu|galer|coince|difficile|dur|compliqu/.test(text)
-  ) return "other";
+  void input;
   return null;
 }
 
@@ -497,13 +409,7 @@ function extractRouterBlockerObservation(args: {
       "",
   ).trim();
   const category = classifyBlockerCategory(message);
-  const looksLikeReason = Boolean(
-    category ||
-      /parce que|car |bloqu|galer|coince|pas reussi|pas réussi|j arrive pas|j'arrive pas/
-        .test(
-          normalizeText(message),
-        ),
-  );
+  const looksLikeReason = Boolean(category);
   if (!isBreakdown && statusHint !== "missed" && statusHint !== "partial") {
     return null;
   }
@@ -987,9 +893,6 @@ function writeDisabledV1MomentumState(
 export function detectReplyQuality(userMessage: string): ReplyQuality {
   const text = String(userMessage ?? "").trim();
   if (!text) return "minimal";
-  if (MINIMAL_REPLY_PATTERNS.some((pattern) => pattern.test(text))) {
-    return "minimal";
-  }
   if (text.length <= 12) return "minimal";
   if (text.length <= 40) return "brief";
   return "substantive";
@@ -1003,26 +906,7 @@ function detectQuickEmotionalLoad(
     return { level: "high", reason: "dispatcher_safety_override" };
   }
 
-  const normalized = normalizeText(userMessage);
-  if (!normalized) return { level: "low", reason: "no_signal" };
-
-  const highHits =
-    HIGH_EMOTIONAL_PATTERNS.filter((pattern) => pattern.test(normalized))
-      .length;
-  const mediumHits =
-    MEDIUM_EMOTIONAL_PATTERNS.filter((pattern) => pattern.test(normalized))
-      .length;
-  if (highHits >= 1 || mediumHits >= 2) {
-    return {
-      level: highHits >= 1 ? "high" : "medium",
-      reason: highHits >= 1
-        ? "strong_emotional_turn"
-        : "multiple_medium_emotional_markers",
-    };
-  }
-  if (mediumHits >= 1) {
-    return { level: "medium", reason: "medium_emotional_marker" };
-  }
+  void userMessage;
   return { level: "low", reason: "no_emotional_marker" };
 }
 
@@ -1034,7 +918,7 @@ function detectConsentSignal(
   reason: string;
   eventKind?: ConsentEventKind;
 } {
-  const text = String(userMessage ?? "").trim();
+  void userMessage;
   if (
     String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "EXPLICIT_STOP"
   ) {
@@ -1044,25 +928,10 @@ function detectConsentSignal(
       eventKind: "explicit_stop",
     };
   }
-  if (CLOSED_CONSENT_PATTERNS.some((pattern) => pattern.test(text))) {
-    return {
-      level: "closed",
-      reason: "explicit_pause_phrase",
-      eventKind: "explicit_stop",
-    };
-  }
-  if (ACCEPT_PATTERNS.some((pattern) => pattern.test(text))) {
-    return {
-      level: "open",
-      reason: "explicit_accept_phrase",
-      eventKind: "accept",
-    };
-  }
   if (
     String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "BORED" ||
     String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "SWITCH_TOPIC" ||
-    String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "DIGRESSION" ||
-    FRAGILE_CONSENT_PATTERNS.some((pattern) => pattern.test(text))
+    String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "DIGRESSION"
   ) {
     return {
       level: "fragile",

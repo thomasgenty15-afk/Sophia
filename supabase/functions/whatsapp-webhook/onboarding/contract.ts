@@ -1,3 +1,5 @@
+import type { NoteInformation } from "../../sophia-brain/contracts/note_information.v1.ts";
+
 export type WhatsAppOnboardingPlanStatus =
   | "not_started"
   | "generating"
@@ -25,9 +27,13 @@ export type WhatsAppOnboardingFlowAction =
   | "answer_plan_feedback"
   | "answer_topic_choice"
   | "repeat_current_question"
-  | "frustration_exit_after_plan_ready"
+  | "progress_attempt_during_onboarding"
   | "blocked_exit_before_plan_ready"
+  | "stop_local_no_handoff"
   | "complete_onboarding"
+  | "get_info_product"
+  | "get_info_db"
+  | "handoff_to_local_flow"
   | "exit_to_global_dispatcher"
   | "safety_preempt"
   | "technical_blocked";
@@ -44,7 +50,10 @@ export type WhatsAppOnboardingVisibleTaskKind =
   | "complete_to_plan"
   | "complete_to_global"
   | "blocked_exit_before_plan_ready"
-  | "frustration_exit_after_plan_ready"
+  | "stop_after_plan_ready"
+  | "progress_attempt_blocked"
+  | "inline_product_return"
+  | "inline_status_return"
   | "repeat_question"
   | "technical_blocked"
   | "safety";
@@ -63,6 +72,31 @@ export type WhatsAppOnboardingPreferenceUpdate = {
   notes: string | null;
   needs_user_confirmation: boolean;
   why_status: string;
+};
+
+export type WhatsAppOnboardingConversationContext = {
+  state_summary: string;
+  user_words: string[];
+  stage: string;
+  plan: {
+    status: WhatsAppOnboardingPlanStatus;
+    title: string | null;
+    summary: string | null;
+    first_items: string[];
+  };
+  preference: {
+    key: WhatsAppOnboardingPreferenceKey | null;
+    label: string | null;
+    value_label: string | null;
+    notes: string | null;
+  };
+  missing_or_weak_values: string[];
+  feedback_summary: string | null;
+  topic_choice_summary: string | null;
+  inline_tool_summary: string | null;
+  tone_constraints: string[];
+  do_not_say: string[];
+  evidence_used: string[];
 };
 
 export type WhatsAppOnboardingPlanProjection = {
@@ -108,7 +142,13 @@ export type WhatsAppOnboardingLocalDecision = {
     | "technical";
   preference_updates: WhatsAppOnboardingPreferenceUpdate[];
   plan_feedback: {
-    status: "missing" | "positive" | "negative" | "mixed" | "skipped" | "unclear";
+    status:
+      | "missing"
+      | "positive"
+      | "negative"
+      | "mixed"
+      | "skipped"
+      | "unclear";
     summary: string | null;
     needs_followup: boolean;
   };
@@ -119,8 +159,9 @@ export type WhatsAppOnboardingLocalDecision = {
   };
   visible_task: {
     kind: WhatsAppOnboardingVisibleTaskKind;
-    required_data: Record<string, unknown>;
+    conversation_context: WhatsAppOnboardingConversationContext;
   };
+  note_information: NoteInformation | null;
   exit_memo_request: {
     needed: boolean;
     exit_reason: WhatsAppOnboardingExitMemo["reason"];
@@ -163,6 +204,9 @@ export type WhatsAppOnboardingReducerInput = {
 export type WhatsAppOnboardingReducerResult = {
   status:
     | "owned"
+    | "stop_local_no_handoff"
+    | "inline_tool"
+    | "handoff_to_local_flow"
     | "exit_to_global_dispatcher"
     | "safety_preempt"
     | "technical_blocked";
@@ -175,8 +219,10 @@ export type WhatsAppOnboardingReducerResult = {
     | "not_done"
     | "completed"
     | "skipped_after_plan_ready"
-    | "deferred_after_plan_ready";
+    | "deferred_after_plan_ready"
+    | "stopped_after_plan_ready";
   exit_memo: WhatsAppOnboardingExitMemo | null;
+  note_information: NoteInformation | null;
   allow_global_dispatcher: boolean;
   allow_track_progress_plan_item: boolean;
   blocked_effects: Array<{ type: string; reason_code: string }>;

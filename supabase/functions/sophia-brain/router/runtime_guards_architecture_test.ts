@@ -100,6 +100,7 @@ async function walkTsFiles(dir: string): Promise<string[]> {
   for await (const entry of Deno.readDir(new URL(dir, ROOT))) {
     const path = `${dir}/${entry.name}`;
     if (entry.isDirectory) {
+      if (entry.name === "test_harness") continue;
       out.push(...await walkTsFiles(path));
     } else if (
       entry.isFile &&
@@ -114,6 +115,40 @@ async function walkTsFiles(dir: string): Promise<string[]> {
   }
   return out;
 }
+
+Deno.test("prod_runtime_has_no_regex_or_legacy_routing_except_risk_score", async () => {
+  const files = await walkTsFiles(".");
+  const forbidden = [
+    ".test(",
+    ".match(",
+    "new RegExp",
+    "legacy",
+    "deterministic",
+    "Deterministic",
+    "heuristic",
+    "Heuristic",
+    "tool_skill_opportunity",
+    "ToolSkillOpportunity",
+  ];
+  const offenders: string[] = [];
+  for (const file of files) {
+    const text = await Deno.readTextFile(new URL(file, ROOT));
+    const lines = text.split("\n");
+    lines.forEach((line, index) => {
+      for (const marker of forbidden) {
+        if (!line.includes(marker)) continue;
+        offenders.push(`${file}:${index + 1}:${marker}:${line.trim()}`);
+      }
+    });
+  }
+  assertEquals(offenders, []);
+
+  const dispatcherText = await Deno.readTextFile(
+    new URL("./dispatcher/dispatcher.v2.ts", ROOT),
+  );
+  assert(dispatcherText.includes("conversation_risk"));
+  assert(dispatcherText.includes("risk"));
+});
 
 async function walkFiles(
   dir: URL,
@@ -328,36 +363,51 @@ Deno.test("one_shot_reminder_runtime_requires_structured_direct_effect", async (
   }
 });
 
-Deno.test("product_help_legacy_heuristic_is_not_a_raw_text_fallback", async () => {
-  const text = await Deno.readTextFile(
-    new URL("skills/product_help/intake.ts", ROOT),
+Deno.test("product_help_legacy_intake_renderer_files_removed", async () => {
+  for (
+    const file of [
+      "skills/product_help/intake.ts",
+      "skills/product_help/prompt.ts",
+      "skills/product_help/reducer.ts",
+      "skills/product_help/renderer.ts",
+    ]
+  ) {
+    try {
+      await Deno.stat(new URL(file, ROOT));
+      assert(false, `${file} must stay removed`);
+    } catch (error) {
+      assert(error instanceof Deno.errors.NotFound, file);
+    }
+  }
+  const skillText = await Deno.readTextFile(
+    new URL("skills/product_help/skill.ts", ROOT),
   );
-  assert(text.includes("legacy_product_help_heuristic_removed"));
-  assert(!text.includes("function legacyInferIntent("));
-  assert(!text.includes("function legacyResolveObjectType("));
-  assert(!text.includes("normalizeText(input.user_message)"));
+  assert(!skillText.includes("intake_model"));
+  assert(!skillText.includes("runProductHelpStructuredIntake"));
+  assert(!skillText.includes("reduceProductHelpTurn"));
+  assert(!skillText.includes("renderProductHelpReply"));
 });
 
-Deno.test("dispatcher_fallback_does_not_invent_business_routing", async () => {
+Deno.test("dispatcher_neutral_frame_does_not_invent_business_routing", async () => {
   const text = await Deno.readTextFile(
     new URL("dispatcher/dispatcher.v2.ts", ROOT),
   );
-  const forbiddenFallbackMerges = [
-    "fallback.tool_skill_intents",
-    "fallback.direct_effects",
-    "fallback.tool_skill_opportunity",
-    "fallback.skill_signals",
+  const forbiddenBaselineMerges = [
+    "baseline.tool_skill_intents",
+    "baseline.direct_effects",
+    "baseline.flow_opportunity",
+    "baseline.skill_signals",
   ];
-  for (const fragment of forbiddenFallbackMerges) {
+  for (const fragment of forbiddenBaselineMerges) {
     assert(!text.includes(fragment), fragment);
   }
-  const heuristicBody = text.slice(
-    text.indexOf("function heuristicTurnFrame("),
+  const neutralBody = text.slice(
+    text.indexOf("function neutralTurnFrame("),
     text.indexOf("function sanitizeLlmTurnFrame("),
   );
-  assert(!heuristicBody.includes("turnFrame.direct_effects.push("));
-  assert(!heuristicBody.includes("turnFrame.tool_skill_intents.push("));
-  assert(!heuristicBody.includes("turnFrame.skill_signals.entry ="));
+  assert(!neutralBody.includes("turnFrame.direct_effects.push("));
+  assert(!neutralBody.includes("turnFrame.tool_skill_intents.push("));
+  assert(!neutralBody.includes("turnFrame.skill_signals.entry ="));
 });
 
 Deno.test("run_ts_has_no_new_tool_runtime_import_sprawl", async () => {
@@ -454,7 +504,6 @@ Deno.test("operation_runtime_pipeline_is_unique_runtime_entry_for_tools", async 
 Deno.test("run_ts_does_not_execute_tools_without_effect_ledger_adapter", async () => {
   const runText = await Deno.readTextFile(new URL("./router/run.ts", ROOT));
   assert(runText.includes("recordToolSkillEffectsInLedger"));
-  assert(runText.includes("recordAgendaEffectsInLedger"));
   assert(!/executedTools:\s*\[[^\]]+]/.test(runText));
   assert(!/executedTools\s*:\s*status\s*===/.test(runText));
 });

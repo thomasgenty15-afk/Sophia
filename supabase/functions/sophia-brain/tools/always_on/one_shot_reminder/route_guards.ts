@@ -13,7 +13,7 @@ export function oneShotReminderStatusBlocksToolFlow(args: {
   explicitProductHelp: boolean;
   activeCardDrafting: boolean;
   explicitOperationCommand: boolean;
-  statusOnlyNoMutation: boolean;
+  statusRecapReadOnly: boolean;
 }): { blocked: boolean; reason_code: string } {
   if (args.routeIsProductHelp) {
     return { blocked: false, reason_code: "product_help_route" };
@@ -27,19 +27,19 @@ export function oneShotReminderStatusBlocksToolFlow(args: {
   if (args.explicitOperationCommand) {
     return { blocked: false, reason_code: "explicit_operation_command" };
   }
-  if (args.statusOnlyNoMutation) {
+  if (args.statusRecapReadOnly) {
     return {
       blocked: true,
-      reason_code: "status_only_request_blocks_tool_start",
+      reason_code: "status_recap_request_blocks_tool_start",
     };
   }
-  return { blocked: false, reason_code: "not_status_only" };
+  return { blocked: false, reason_code: "not_status_recap" };
 }
 
 export function oneShotReminderDirectEffectBlockForNonMutationContext(
   args: {
     routeIsProductHelp: boolean;
-    statusOnlyNoMutation: boolean;
+    statusRecapReadOnly: boolean;
     recapOnly: boolean;
   },
 ): { blocked: boolean; reason_code: string } {
@@ -49,7 +49,7 @@ export function oneShotReminderDirectEffectBlockForNonMutationContext(
       reason_code: "product_help_blocks_one_shot_direct_effect",
     };
   }
-  if (args.statusOnlyNoMutation || args.recapOnly) {
+  if (args.statusRecapReadOnly || args.recapOnly) {
     return {
       blocked: true,
       reason_code: "non_mutation_context_blocks_one_shot_direct_effect",

@@ -47,7 +47,6 @@ function activeOperationType(input: TurnIntentArbitrationInput): string {
   const active = input.activeOperationIntake ??
     input.tempMemory?.__adjust_plan_handoff_state ??
     input.tempMemory?.__recurring_reminder_handoff_state ??
-    input.tempMemory?.__coach_preference_handoff_state_v1 ??
     input.tempMemory?.__active_attack_card_handoff ??
     input.tempMemory?.__active_tool_skill_intake ??
     input.tempMemory?.active_tool_skill_intake ??
@@ -87,30 +86,12 @@ function routeAlreadyOwnsProductHelp(routeDecision: RouteDecision): boolean {
 }
 
 function routeAlreadyOwnsStatusRead(routeDecision: RouteDecision): boolean {
-  return routeDecision.selected_handler === "status_only_no_mutation_check" ||
-    routeDecision.reason_code.includes("status_only") ||
+  return routeDecision.selected_handler === "status_recap" ||
     routeDecision.reason_code.includes("status_recap");
 }
 
 function blockedPath(path: string, reasonCode: string) {
   return { path, reason_code: reasonCode };
-}
-
-function noneOpportunity(): TurnFrame["tool_skill_opportunity"] {
-  return {
-    type: "none",
-    operation_type: null,
-    surface_id: null,
-    confidence_band: "low",
-    should_offer: false,
-    prop_reason: null,
-    source_span: null,
-    target_hint: null,
-    target_status: "none",
-    suggested_question_intent: null,
-    offer_timing: "never",
-    must_not_execute: true,
-  };
 }
 
 function clearToolFlowMemory(tempMemory: any, targets: ClearFlowTarget[]): any {
@@ -141,7 +122,6 @@ function clearToolSkillFlowEntries(
   delete next.__pending_recommendation_operation;
   delete next.__adjust_plan_handoff_state;
   delete next.__recurring_reminder_handoff_state;
-  delete next.__coach_preference_handoff_state_v1;
   delete next.__active_attack_card_handoff;
   return next;
 }
@@ -149,7 +129,7 @@ function clearToolSkillFlowEntries(
 function productHelpSignalIsHigh(turnFrame: TurnFrame): boolean {
   const signal = turnFrame.skill_signals.entry?.product_help;
   return signal?.detected === true && confidenceRank(signal.confidence_band) >=
-    confidenceRank("high");
+      confidenceRank("high");
 }
 
 function hasRunnableDirectEffect(
@@ -189,7 +169,9 @@ function hasCompetingAttackAndDefenseCardIntents(
   );
 }
 
-function hasStructuredMutationSignal(input: TurnIntentArbitrationInput): boolean {
+function hasStructuredMutationSignal(
+  input: TurnIntentArbitrationInput,
+): boolean {
   return hasRunnableDirectEffect(input) ||
     input.turnFrame.tool_skill_intents.some((intent) =>
       intent.user_intent !== "explain_only" &&
@@ -220,7 +202,7 @@ function rewriteForProductHelp(
       ...input.turnFrame,
       direct_effects: [],
       tool_skill_intents: [],
-      tool_skill_opportunity: noneOpportunity(),
+      flow_opportunity: null,
     },
     routeDecision: {
       ...input.routeDecision,
@@ -249,7 +231,7 @@ function rewriteForClarification(
     turnFrame: {
       ...input.turnFrame,
       direct_effects: [],
-      tool_skill_opportunity: noneOpportunity(),
+      flow_opportunity: null,
     },
     routeDecision: {
       ...input.routeDecision,
@@ -279,7 +261,7 @@ function rewriteForToolIntent(
     turnFrame: {
       ...input.turnFrame,
       direct_effects: [],
-      tool_skill_opportunity: noneOpportunity(),
+      flow_opportunity: null,
     },
     routeDecision: {
       ...input.routeDecision,
@@ -290,7 +272,7 @@ function rewriteForToolIntent(
       blocked_paths: [
         ...input.routeDecision.blocked_paths,
         blockedPath("product_help", reasonCode),
-        blockedPath("status_only", reasonCode),
+        blockedPath("status_recap", reasonCode),
       ],
     },
   };
@@ -320,9 +302,9 @@ function rewriteForNormalReply(args: {
       tool_skill_intents: args.input.turnFrame.tool_skill_intents.filter((
         intent,
       ) => !removeToolIntents.has(intent.operation_type)),
-      tool_skill_opportunity: removeToolIntents.size > 0
-        ? noneOpportunity()
-        : args.input.turnFrame.tool_skill_opportunity,
+      flow_opportunity: removeToolIntents.size > 0
+        ? null
+        : args.input.turnFrame.flow_opportunity ?? null,
     },
     routeDecision: {
       ...args.input.routeDecision,
@@ -358,7 +340,7 @@ function rewriteForOneShotReminder(
         intent.operation_type !== "prepare_defense_card" &&
         intent.operation_type !== "adjust_plan_item"
       ),
-      tool_skill_opportunity: noneOpportunity(),
+      flow_opportunity: null,
     },
     routeDecision: {
       ...input.routeDecision,

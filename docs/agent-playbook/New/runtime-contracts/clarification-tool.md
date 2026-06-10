@@ -125,7 +125,7 @@ depuis :
 
 - `direct_effects`;
 - `tool_skill_intents`;
-- `tool_skill_opportunity`;
+- `flow_opportunity`;
 - `skill_signals.entry`.
 
 Il ne relit pas le message brut pour inventer une intention et ne remplit pas

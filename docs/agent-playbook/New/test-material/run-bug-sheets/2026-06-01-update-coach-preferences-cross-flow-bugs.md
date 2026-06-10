@@ -25,9 +25,9 @@ runs `qa-coach-pref-crossflow-1780348629248` et
 - Tours: 4
 - Famille: `BF-ROUTE-03` - Product/status/tool mal priorises
 - Domaine owner: central arbitration / status guard
-- Source amont: `status_only_request_blocks_tool_start`
+- Source amont: `status_recap_request_blocks_tool_start`
 - Symptome visible: une demande de rappel recurrent est traitee comme statut: "Je ne l'ai pas enregistre."
-- Preuve systeme: `selected_handler=status_recap`, `route_reason=status_only_request_blocks_tool_start`, aucun `create_recurring_reminder`.
+- Preuve systeme: `selected_handler=status_recap`, `route_reason=status_recap_request_blocks_tool_start`, aucun `create_recurring_reminder`.
 - Correction attendue: une intention explicite `create_recurring_reminder` doit battre le status guard quand le message demande de mettre en place/programmer un rappel.
 - Statut: fixed
 - Fix reference: `turn_intent_arbitrator.ts` + `turn_intent_arbitrator.test.ts`

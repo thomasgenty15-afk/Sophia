@@ -16,10 +16,11 @@ collecte. Les données validées servent ensuite au weekly et aux autres skills.
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
-- `TurnAgenda` pour distinguer reply/effects/status/memory/repair ;
+- `local reducer contract` pour distinguer reply/effects/status/memory/repair ;
 - `Confirmation Contract` pour interpréter approve/reject/revise/explain ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
-- le contrat local de X pour l'intake, le reducer, les effets et le renderer.
+- le contrat local de X pour le dispatcher, le reducer, les effets et les
+  prompts conversationnels stage-specific.
 
 Dans le code actuel, le daily n'est pas encore routé comme un skill complet
 dans `supabase/functions/sophia-brain/skills/*`. Son équivalent opérationnel de
@@ -32,7 +33,7 @@ snapshot est le pending WhatsApp :
   les `targets`, le `review_state`, le texte utilisateur et les messages
   récents avant d'appeler l'intake daily.
 
-La séparation `TurnAgenda` est appliquée localement par le contrat daily :
+La séparation `local reducer contract` est appliquée localement par le contrat daily :
 
 - `supabase/functions/_shared/daily_action_review/contract.ts` porte
   `DailyReviewIntent`, `DailyReviewDecision`, `DailyReviewEffectPlan`,
@@ -44,8 +45,10 @@ La séparation `TurnAgenda` est appliquée localement par le contrat daily :
   effets autorisés sans écrire ;
 - `supabase/functions/_shared/daily_action_review/executor.ts` transforme le
   plan autorisé en `committed_effects` / `failed_effects`;
-- `supabase/functions/_shared/daily_action_review/renderer.ts` interdit le
-  wording "noté/enregistré" quand le ledger ne prouve aucun commit.
+- `supabase/functions/_shared/daily_action_review/local_flow.ts` possède le
+  dispatcher local, le reducer bridge, `visible_task.conversation_context`, les
+  prompts conversationnels stage-specific et les transitions avec
+  `note_information`.
 
 Le `Confirmation Contract` global ne doit pas être réimplémenté par des regex
 dans le daily. Les réponses "oui/non", corrections, recap, stop, off-topic et
@@ -60,7 +63,7 @@ L'`EffectLedger` est l'invariant fort du domaine :
 DailyReviewDecision.effect_plan
   -> executeDailyReviewEffectPlan(...)
   -> DailyReviewEffectsResult.committed_effects / failed_effects
-  -> dailyReviewFinalMessageRequiresCommit(...)
+  -> visible_task.kind=commit_success seulement si commit complet
 ```
 
 Un daily ne peut donc pas répondre "C'est noté" ni marquer le pending comme
@@ -79,7 +82,7 @@ process-checkins opening
   -> executor
   -> DB writer adapter
   -> committed_effects ledger
-  -> deterministic final renderer
+  -> stage-specific visible prompt from conversation_context
   -> weekly evidence
 ```
 
@@ -107,12 +110,11 @@ process-checkins opening
 - `supabase/functions/_shared/daily_action_review/executor.ts` possède
   `executeDailyReviewEffectPlan` et `dailyReviewEffectsFullyCommitted`. Il
   orchestre les writes injectés et produit le ledger de commit.
-- `supabase/functions/_shared/daily_action_review/renderer.ts` possède
-  `dailyReviewFinalMessageRequiresCommit` et
-  `renderDailyReviewCommitFailureMessage`.
+- `supabase/functions/_shared/daily_action_review/local_flow.ts` possède le
+  dispatcher local, la construction de `conversation_context`, les prompts
+  visibles stage-specific et les `note_information` de handoff.
 - `supabase/functions/_shared/daily_action_review.ts` reste la façade
-  temporaire : `runDailyActionReviewSkill`,
-  `runDailyActionReviewFollowupSkill`, `buildInitialDailyActionReviewState`,
+  temporaire : types/state helpers, `buildInitialDailyActionReviewState`,
   `buildDailyActionReviewInstruction`,
   `buildDailyActionReviewActionIntelligence` et
   `buildDailyActionReviewOpeningPlan`.
@@ -151,7 +153,8 @@ process-checkins opening
 - evidence weekly-ready : `outcome`, `reason_category`, `reason_text`,
   `still_relevant`, `evidence_text`, `confidence`,
   `source: "daily_action_review_v1"`;
-- message final déterministe aligné sur le ledger.
+- message visible stage-specific produit seulement depuis
+  `visible_task.conversation_context`.
 
 ## Responsabilités De X
 
@@ -197,8 +200,8 @@ process-checkins opening
   d'écriture ; seul `committed_effects` prouve le commit.
 - Idempotence : une entrée existante vérifiée le même jour est représentée
   explicitement comme commit idempotent avec `entry_id`, sans duplicate insert.
-- Renderer : pas de "noté/enregistré/c'est fait" si
-  `committed_effects.length === 0`.
+- Visible prompt : pas de "noté/enregistré/c'est fait" si
+  `conversation_context.known_values.committed_effects` ne prouve pas le commit.
 
 ## Integration Points
 
@@ -221,7 +224,7 @@ process-checkins opening
   mis à jour ensemble ;
 - améliorer le selector sans dépasser la limite par défaut de deux actions ;
 - enrichir `DailyReviewEffectsResult` avec un statut explicite, tant que le
-  renderer continue à exiger une preuve de commit ;
+  runtime n'appelle pas `commit_success` sans preuve de commit ;
 - migrer progressivement l'adapter DB de `handlers_pending.ts` vers un module
   dédié si l'API garde `effect_plan -> executor -> committed_effects`.
 
@@ -240,15 +243,12 @@ process-checkins opening
 - `supabase/functions/_shared/daily_action_review.ts` reste une façade
   temporaire parce que le daily n'est pas encore déplacé dans
   `sophia-brain/skills/*`. Elle est acceptable tant qu'elle délègue aux modules
-  contract/selector/opening/intake/reducer/effects/executor/renderer.
+  contract/selector/opening/intake/reducer/effects/executor/local_flow.
 - `supabase/functions/whatsapp-webhook/handlers_pending.ts` garde encore la
   logique DB concrète (`applyDailyOccurrenceOutcome`, insert
   `user_plan_item_entries`, update pending). Cette exception protège le
   lifecycle WhatsApp existant. Elle pourra être supprimée quand l'executor daily
   possédera un adapter DB versionné et testé.
-- Les messages de clarification/fallback courts restent dans le handler pending
-  pour préserver le flow existant si l'IA échoue. Ils ne peuvent pas appliquer
-  d'effet ni utiliser du wording de commit.
 - `process-checkins/index.ts` utilise encore une génération dynamique
   d'ouverture, mais elle est bornée par `buildDailyActionReviewInstruction` et
   par la vérification de couverture des targets.
@@ -260,7 +260,7 @@ process-checkins opening
   reason, missed needs still relevant, ambiguous action no effect, correction,
   recap no write, user stopped, safety, off-topic, executor no-write,
   successful commit, writer failure, partial success, idempotent existing entry,
-  final done language requires commit.
+  local dispatcher stop/safety/visible-context isolation.
 - `supabase/functions/_shared/v2-daily-bilan-decider_test.ts` :
   supportive distress, repeated blocker, progress mode, silence/reactivation,
   overload suppressing progress push, no active items suppress.
@@ -269,7 +269,7 @@ process-checkins opening
 - `supabase/functions/_shared/weekly_review_test.ts` :
   weekly handoff stays compatible with daily evidence.
 - Checks ciblés :
-  `deno check supabase/functions/_shared/daily_action_review.ts supabase/functions/_shared/daily_action_review/contract.ts supabase/functions/_shared/daily_action_review/effects.ts supabase/functions/_shared/daily_action_review/executor.ts supabase/functions/_shared/daily_action_review/renderer.ts supabase/functions/whatsapp-webhook/handlers_pending.ts`.
+  `deno check supabase/functions/_shared/daily_action_review.ts supabase/functions/_shared/daily_action_review/contract.ts supabase/functions/_shared/daily_action_review/effects.ts supabase/functions/_shared/daily_action_review/executor.ts supabase/functions/_shared/daily_action_review/local_flow.ts supabase/functions/whatsapp-webhook/handlers_pending.ts`.
 
 ## Suivi Des Décisions Architecturales
 
@@ -277,5 +277,5 @@ process-checkins opening
 | --- | --- | --- | --- |
 | 2026-05-29 | Daily = collecteur de preuve léger, pas coach complet. | Actif | J11 |
 | 2026-05-30 | `run.ts` ne possède plus le daily ni le parsing weekly oublié ; le handoff weekly vit dans `adjust_plan_item/weekly_bridge.ts` et `weekly_review/*`. | Actif | J16 |
-| 2026-05-30 | Le daily suit `effect_plan -> executor -> committed_effects -> renderer` ; "noté" exige commit ou idempotence vérifiée. | Actif | J17 |
+| 2026-05-30 | Le daily suit `effect_plan -> executor -> committed_effects -> prompt visible stage-specific` ; "noté" exige commit ou idempotence vérifiée. | Actif | J17 |
 | 2026-05-30 | Le runtime contract daily devient la source de vérité opérationnelle pour les responsabilités, invariants et fallbacks legacy du domaine. | Actif | J48 |

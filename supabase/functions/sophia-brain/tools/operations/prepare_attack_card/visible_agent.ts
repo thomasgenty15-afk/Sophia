@@ -2,20 +2,26 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-import type { AttackCardHandoffDraft } from "./contract.ts";
+import {
+  VISIBLE_OUTPUT_STYLE_RULES,
+  visibleOutputStyleIssues,
+} from "../../../router/response_style_policy.ts";
 import type {
-  PrepareAttackCardLocalState,
+  PrepareAttackCardConversationContext,
   PrepareAttackCardVisibleTaskKind,
 } from "./local_flow.ts";
+
+export type PrepareAttackCardVisibleTaskForAgent = {
+  kind: PrepareAttackCardVisibleTaskKind;
+  instruction?: string | null;
+  conversation_context: PrepareAttackCardConversationContext;
+};
 
 export type PrepareAttackCardVisibleAgentInput = {
   user_id: string;
   request_id?: string | null;
   stage: PrepareAttackCardVisibleTaskKind;
-  user_message: string;
-  recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
-  local_state: PrepareAttackCardLocalState | null;
-  draft: AttackCardHandoffDraft | null;
+  visible_task: PrepareAttackCardVisibleTaskForAgent;
   validation_errors_to_fix?: string[];
   trace_event?: (event: Record<string, unknown>) => void;
 };
@@ -101,30 +107,25 @@ function normalizeForGuard(value: string): string {
     .toLowerCase();
 }
 
-function lockedFields(input: PrepareAttackCardVisibleAgentInput) {
-  return input.local_state?.platform_field_order.flatMap((fieldId) => {
-    const field = input.local_state?.platform_field_states[fieldId];
-    return field?.locked_value
-      ? [{
-        field_id: field.field_id,
-        field_label: field.field_label,
-        field_value: field.locked_value,
-      }]
-      : [];
-  }) ?? [];
+function conversationContext(
+  input: PrepareAttackCardVisibleAgentInput,
+): PrepareAttackCardConversationContext {
+  return input.visible_task.conversation_context;
 }
 
 function isRevisionContext(input: PrepareAttackCardVisibleAgentInput): boolean {
-  return Boolean(input.local_state?.platform_field_order.some((fieldId) =>
-    input.local_state?.platform_field_states[fieldId]?.previous_value
-  ));
+  const context = conversationContext(input);
+  return Boolean(
+    context.known_values.current_field?.previous_value ||
+      context.selected_candidate.previous_value,
+  );
 }
 
 export function prepareAttackCardVisibleContractIssues(
   message: string,
   input: PrepareAttackCardVisibleAgentInput,
 ): string[] {
-  const issues: string[] = [];
+  const issues: string[] = visibleOutputStyleIssues(message);
   const normalized = normalizeForGuard(message);
   if (!message.trim()) issues.push("empty_message");
   for (const claim of FORBIDDEN_CREATION_CLAIMS) {
@@ -139,54 +140,13 @@ export function prepareAttackCardVisibleContractIssues(
       }
     }
   }
-  const mentionedWrongTechnique = EXACT_TECHNIQUE_LABELS.filter((label) =>
-    normalized.includes(normalizeForGuard(label))
-  ).filter((label) =>
-    label !== input.local_state?.technique_state.technique_label
-  );
-  if (mentionedWrongTechnique.length > 0) {
-    issues.push("wrong_technique_label");
-  }
-  const requiresPlatformData = [
-    "handoff_ready",
-    "revision_done",
-    "destination_short",
-    "apply_attempt",
-    "repeat_handoff",
-  ].includes(input.stage);
-  if (requiresPlatformData) {
-    if (
-      !normalized.includes(normalizeForGuard("Cartes d'attaque")) &&
-      !normalized.includes(normalizeForGuard("Cartes d’attaque"))
-    ) {
-      issues.push("missing_platform_destination");
-    }
-    const techniqueLabel = input.local_state?.technique_state.technique_label;
-    if (techniqueLabel && !message.includes(techniqueLabel)) {
-      issues.push("missing_technique_label");
-    }
-    for (const field of lockedFields(input)) {
-      if (!message.includes(field.field_label)) {
-        issues.push(`missing_field_label:${field.field_id}`);
-      }
-      if (!message.includes(field.field_value)) {
-        issues.push(`missing_field_value:${field.field_id}`);
-      }
-    }
-    const keyword = input.local_state?.activation_keyword_state.locked_value;
-    if (keyword && !message.includes(keyword)) {
-      issues.push("missing_activation_keyword");
-    }
-  }
   if (input.stage === "apply_attempt") {
-    const mentionsChatBoundary =
-      normalized.includes("depuis le chat") ||
+    const mentionsChatBoundary = normalized.includes("depuis le chat") ||
       normalized.includes("dans le chat") ||
       normalized.includes("depuis cette conversation") ||
       normalized.includes("dans cette conversation") ||
       normalized.includes("ici");
-    const statesNoCreation =
-      normalized.includes("ne cree pas") ||
+    const statesNoCreation = normalized.includes("ne cree pas") ||
       normalized.includes("ne peux pas creer") ||
       normalized.includes("ne peux pas l'ajouter") ||
       normalized.includes("ne peux pas l'enregistrer") ||
@@ -205,11 +165,11 @@ function visibleTaskInstruction(
 ): string {
   switch (task) {
     case "ask_target":
-      return "Cible manquante ou ambiguë: pose une seule question naturelle pour comprendre quelle action, habitude, effort ou situation la carte doit aider à attaquer.";
+      return "Cible manquante ou ambiguë: pose une seule question naturelle pour comprendre quelle action, habitude, effort ou situation la carte doit aider à attaquer. Ne mentionne pas de destination plateforme ni de brouillon.";
     case "confirm_target_candidate":
-      return "Cible candidate: demande si c'est bien cette cible, sans verrouiller autre chose et en laissant une correction facile.";
+      return "Cible candidate: demande si c'est bien cette cible, sans verrouiller autre chose et en laissant une correction facile. Ne mentionne pas de destination plateforme ni de brouillon.";
     case "ask_blocker":
-      return "Piège manquant: pose une seule question naturelle sur ce qui fait dérailler le user au moment d'agir.";
+      return "Piège manquant: pose une seule question naturelle sur ce qui fait dérailler le user au moment d'agir. Ne mentionne pas de destination plateforme ni de brouillon.";
     case "ask_or_confirm_technique":
       return "Technique: fais choisir ou confirmer la technique utile, uniquement avec les labels exacts fournis par l'état.";
     case "ask_platform_field":
@@ -226,28 +186,41 @@ function visibleTaskInstruction(
       return "Tentative de création: dis explicitement que Sophia ne crée pas la carte depuis le chat, puis donne Cartes d'attaque et les données exactes à saisir.";
     case "repeat_handoff":
       return "Répétition: redis quoi saisir dans la plateforme sans refaire une longue justification.";
+    case "inline_tool_return":
+      return "Retour inline: formule une transition courte après la réponse produit/statut, en gardant le flow parent intact.";
+    case "stop_or_cancel":
+      return "Stop local: confirme brièvement que la carte est mise de côté, sans question finale et sans relancer le flow.";
+    case "exit_ack":
+      return "Exit: si un message source est nécessaire, fais une transition très courte; sinon le dispatcher cible reprendra.";
     case "exit_or_cancel":
       return "Sortie: confirme brièvement la mise de côté ou accompagne la sortie, sans forcer la carte.";
     case "safety":
       return "Safety: ne pousse pas vers une carte d'attaque et laisse la prise en charge safety reprendre.";
+    case "safety_transition":
+      return "Safety transition: message minimal, pas de coaching carte; la prise en charge safety doit reprendre.";
     case "none":
       throw new Error("prepare_attack_card_visible_stage_none_unreachable");
   }
 }
 
-function visibleSystemPrompt(input: PrepareAttackCardVisibleAgentInput): string {
+export function visibleSystemPrompt(
+  input: PrepareAttackCardVisibleAgentInput,
+): string {
+  const stageSpecificPrompt = visibleTaskInstruction(input.stage);
   return [
-    "Tu es l'agent conversationnel visible du flow prepare_attack_card.",
-    "Tu écris uniquement le prochain message visible de Sophia.",
+    `Tu es le prompt conversationnel stage-specific prepare_attack_card.visible.${input.stage}.`,
+    "Tu écris uniquement le prochain message visible de Sophia pour ce stage.",
     "Tu ne décides rien, tu ne remplis aucun champ, tu ne routes pas et tu ne corriges pas l'état.",
-    "Tu reçois un état structuré déjà décidé par le dispatcher local et le reducer.",
+    "Tu reçois uniquement visible_task.conversation_context, déjà filtré par le dispatcher local et le reducer.",
+    "N'utilise aucune connaissance DB, mémoire brute, historique brut ou état local non présent dans conversation_context.",
     "Tu dois formuler naturellement, sans template fixe, sans renderer déterministe et sans modèle répétitif.",
     "Le chat ne crée jamais de carte d'attaque. Ne prétends jamais avoir créé, ajouté, activé, sauvegardé ou lancé une carte.",
     "Après une révision, ne prétends jamais avoir pris en compte, noté, gardé, mémorisé, enregistré ou sauvegardé la nouvelle formulation; donne seulement la formulation actuelle à recopier.",
     "N'invente jamais de technique. Labels autorisés uniquement: Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain, Mot de bascule.",
+    VISIBLE_OUTPUT_STYLE_RULES,
     "Si le stage demande une question, pose une seule vraie question naturelle.",
-    "Si le stage demande un handoff, recopie les labels plateforme et valeurs exactes fournis dans l'état; tu peux écrire autour, mais pas les paraphraser ni les omettre.",
-    visibleTaskInstruction(input.stage),
+    "Si le stage demande un handoff, recopie les labels plateforme et valeurs exactes fournis dans conversation_context.handoff_data; tu peux écrire autour, mais pas les paraphraser ni les omettre.",
+    stageSpecificPrompt,
     'Retourne uniquement un JSON strict: {"message":"..."}.',
   ].join("\n");
 }
@@ -256,22 +229,11 @@ async function generateVisibleMessage(
   input: PrepareAttackCardVisibleAgentInput,
   retryIssues: string[] = [],
 ): Promise<string | null> {
-  const currentField = input.local_state?.current_field_id
-    ? input.local_state.platform_field_states[input.local_state.current_field_id]
-    : null;
+  const context = conversationContext(input);
   const userPrompt = JSON.stringify({
     task: "write_prepare_attack_card_visible_message",
     stage: input.stage,
-    current_user_message: input.user_message,
-    recent_messages: input.recent_messages,
-    local_state: input.local_state,
-    target: input.local_state?.target_state ?? null,
-    blocker: input.local_state?.blocker_state ?? null,
-    technique: input.local_state?.technique_state ?? null,
-    current_field_id: input.local_state?.current_field_id ?? null,
-    current_field: currentField,
-    locked_fields: lockedFields(input),
-    draft: input.draft,
+    conversation_context: context,
     hard_constraints: {
       no_chat_mutation: true,
       platform_destination: "Cartes d'attaque",
@@ -282,6 +244,7 @@ async function generateVisibleMessage(
       validation_errors_to_fix: retryIssues.length > 0
         ? retryIssues
         : input.validation_errors_to_fix ?? [],
+      visible_agent_may_only_use_conversation_context: true,
     },
     required_json_shape: {
       message: "string",
@@ -317,7 +280,10 @@ export async function runPrepareAttackCardVisibleAgent(
   input: PrepareAttackCardVisibleAgentInput,
 ): Promise<string | null> {
   const first = await generateVisibleMessage(input);
-  const firstIssues = prepareAttackCardVisibleContractIssues(first ?? "", input);
+  const firstIssues = prepareAttackCardVisibleContractIssues(
+    first ?? "",
+    input,
+  );
   input.trace_event?.({
     component: "visible_agent",
     stage: input.stage,

@@ -39,7 +39,7 @@ Ce domaine dépend de :
 
 - `UserTurnSnapshot` / `TurnFrame` : fournit les intentions tool détectées et
   empêche un status de capturer un tour explicitement mutatif.
-- `TurnAgenda` : le status est une tâche de lecture, pas une tâche d'effet. Il
+- `local reducer contract` : le status est une tâche de lecture, pas une tâche d'effet. Il
   ne doit pas prendre la place d'un `effect_task` explicite.
 - `Confirmation Contract` : un "ok" ou une validation courte ne doit jamais être
   interprété par `status_recap`. Les confirmations appartiennent au pending flow
@@ -91,7 +91,7 @@ d'existence.
 ## Inputs
 
 - `userMessage`.
-- `RouteDecision` : signal `status_only_no_mutation_check`, reason code
+- `RouteDecision` : signal `status_recap`, reason code
   status/recap, et exclusion product_help/safety/tool skill.
 - `TurnFrame` : `tool_skill_intents` bloque le status si une opération explicite
   est détectée.
@@ -203,7 +203,7 @@ committer un effet :
 Conditions de suppression :
 
 - le dispatcher produit un signal structuré fiable pour `status_recap`;
-- `TurnAgenda` distingue explicitement `status_task` et `effect_task`;
+- `local reducer contract` distingue explicitement `status_task` et `effect_task`;
 - les tests anti-préemption product_help/tool/safety restent verts;
 - `human_recap_no_db` est correctement routé vers un skill conversationnel sans
   panneau status.

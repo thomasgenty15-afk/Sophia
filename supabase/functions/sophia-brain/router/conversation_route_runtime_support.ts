@@ -2,6 +2,11 @@ import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { ConversationSkillOutput } from "../contracts/skill_output.v1.ts";
 import {
+  normalizeNoteInformation,
+  type NoteInformation,
+  noteInformationForTrace,
+} from "../contracts/note_information.v1.ts";
+import {
   clearActiveToolFlow,
   clearPendingToolConfirmation,
   readActiveFlowState,
@@ -32,6 +37,13 @@ function clearDeprecatedConversationSkillState(tempMemory: any): any {
   return next;
 }
 
+function activeConversationSkillId(tempMemory: any): string | null {
+  const active = tempMemory?.__active_skill_state ??
+    tempMemory?.active_skill_state;
+  const skillId = String(active?.skill_id ?? "").trim();
+  return skillId || null;
+}
+
 type ConversationPotionBridgeSource =
   | "emotional_repair"
   | "demotivation_repair";
@@ -48,7 +60,7 @@ function conversationPotionHandoffPatch(
     | "courage"
     | "rappel";
   potion_bridge_context: Record<string, unknown>;
-  note_information?: Record<string, unknown> | null;
+  note_information?: NoteInformation | null;
 } | null {
   const patch = skillOutput?.state_patch;
   const patchRecord = patch && typeof patch === "object"
@@ -77,17 +89,35 @@ function conversationPotionHandoffPatch(
   if (!context || typeof context !== "object" || Array.isArray(context)) {
     return null;
   }
+  const rawNote = (handoff as any).note_information ??
+    (context as any).note_information ??
+    ((handoff as any).information_note &&
+        typeof (handoff as any).information_note === "object"
+      ? (handoff as any).information_note
+      : null);
+  const noteInformation = rawNote
+    ? normalizeNoteInformation(rawNote, {
+      source_flow_id: source_flow,
+      source_flow_state_summary: String(
+        (context as any).origin_turn_summary ??
+          (context as any).demotivation_episode?.summary ??
+          (context as any).emotional_episode?.summary ??
+          "Conversation repair bridge to select_state_potion.",
+      ),
+      handoff_reason: "bridge",
+      target_dispatcher: "select_state_potion",
+      handoff_context_for_next_dispatcher: JSON.stringify(context),
+      target_local_dispatcher_hint:
+        "Use the origin bridge context as candidates and do not make the user repeat the episode.",
+      structured_context: context as Record<string, unknown>,
+      risk_score: 0,
+    })
+    : null;
   return {
     source_flow,
     selected_potion: selected,
     potion_bridge_context: context as Record<string, unknown>,
-    note_information: (handoff as any).note_information &&
-        typeof (handoff as any).note_information === "object"
-      ? (handoff as any).note_information as Record<string, unknown>
-      : (handoff as any).information_note &&
-          typeof (handoff as any).information_note === "object"
-      ? (handoff as any).information_note as Record<string, unknown>
-      : null,
+    note_information: noteInformation,
   };
 }
 
@@ -127,6 +157,7 @@ function startSelectStatePotionFromConversationBridge(args: {
       information_note: handoff.note_information ?? null,
       no_chat_mutation: true,
     },
+    note_information: handoff.note_information ?? null,
     origin_bridge_context: handoff.potion_bridge_context,
     intake_state: null,
     clarte_state: clarteState,
@@ -147,6 +178,12 @@ function startSelectStatePotionFromConversationBridge(args: {
     at: now,
     no_chat_mutation: true,
   };
+  if (handoff.note_information) {
+    console.info("[ConversationRoute] note_information_consumed", {
+      ...noteInformationForTrace(handoff.note_information),
+      transition_tag: "local_to_local_bridge_with_note",
+    });
+  }
   return next;
 }
 
@@ -204,32 +241,9 @@ export function buildRecentConversationContinuityAddon(args: {
   userMessage: string;
   history: any[];
 }): string | null {
-  const text = normalizeRouteText(args.userMessage);
-  const needsContinuity =
-    /\b(tu te souviens|recap|recapitule|resume|resumer|ce que j ai fait|ce qui est prevu|piege|garde en tete|on s arrete|on stoppe)\b/
-      .test(text);
-  if (!needsContinuity) return null;
-  const recent = (args.history ?? [])
-    .filter((entry) =>
-      entry && typeof entry === "object" &&
-      (entry.role === "user" || entry.role === "assistant") &&
-      String(entry.content ?? "").trim().length > 0
-    )
-    .slice(-14)
-    .map((entry) => {
-      const role = entry.role === "assistant" ? "Sophia" : "User";
-      const content = String(entry.content ?? "").replace(/\s+/g, " ").trim()
-        .slice(0, 260);
-      return `- ${role}: ${content}`;
-    });
-  if (recent.length === 0) return null;
-  return [
-    "=== CONTINUITE CONVERSATION RECENTE ===",
-    "Le user demande un souvenir, un recap ou une continuité immédiate. Utilise ces tours récents; ne dis pas que tu n'as pas le contexte sous les yeux.",
-    "Si un rappel vient d'être programmé dans l'historique, tu peux le citer comme prévu. Si le piège de travail est mentionné, tu peux le reformuler.",
-    ...recent,
-    "=== FIN CONTINUITE CONVERSATION RECENTE ===",
-  ].join("\n");
+  void args.userMessage;
+  void args.history;
+  return null;
 }
 
 export function persistConversationSkillRoute(
@@ -343,6 +357,14 @@ export function persistConversationSkillRoute(
       ? skillOutput.state_patch as Record<string, unknown>
       : {};
     if (selected === "product_help") {
+      const activeSkillId = activeConversationSkillId(next);
+      if (
+        activeSkillId &&
+        activeSkillId !== "product_help" &&
+        arbitration?.decision !== "inline_answer_then_resume"
+      ) {
+        return next;
+      }
       const productLocalState = patch.product_help_local_state;
       const productExitMemo = patch.product_help_exit_memo;
       if (productExitMemo && typeof productExitMemo === "object") {
@@ -355,6 +377,8 @@ export function persistConversationSkillRoute(
       if (
         !productLocalState ||
         productStatus === "closing" ||
+        productStatus === "stopped" ||
+        productStatus === "handoff" ||
         productStatus === "exit_to_global" ||
         productStatus === "safety"
       ) {
@@ -368,6 +392,29 @@ export function persistConversationSkillRoute(
         selected === "demotivation_repair") &&
       skillOutput?.status === "handoff"
     ) {
+      const safetyHandoff = selected === "emotional_repair"
+        ? patch.emotional_repair_safety_handoff
+        : patch.demotivation_repair_safety_handoff;
+      if (safetyHandoff && typeof safetyHandoff === "object") {
+        next.__active_skill_state = {
+          version: 1,
+          skill_id: "safety_crisis",
+          status: "active",
+          previous_skill_id: selected,
+          turn_count: 0,
+          started_at: now,
+          updated_at: now,
+          working_state: {
+            note_information:
+              (safetyHandoff as Record<string, unknown>).note_information ??
+                null,
+            source_flow: selected,
+            no_chat_mutation: true,
+          },
+        };
+        delete next.active_skill_state;
+        return next;
+      }
       const potionHandoffTempMemory =
         startSelectStatePotionFromConversationBridge(
           {
@@ -376,6 +423,24 @@ export function persistConversationSkillRoute(
           },
         );
       if (potionHandoffTempMemory) return potionHandoffTempMemory;
+    }
+    if (
+      (selected === "emotional_repair" ||
+        selected === "demotivation_repair") &&
+      (skillOutput?.status === "complete" || skillOutput?.status === "exit")
+    ) {
+      const nextMemo = selected === "emotional_repair"
+        ? patch.emotional_repair_exit_memo
+        : patch.demotivation_repair_exit_memo;
+      if (nextMemo && typeof nextMemo === "object") {
+        next[`__last_${selected}_exit_memo`] = {
+          ...(nextMemo as Record<string, unknown>),
+          at: now,
+        };
+      }
+      delete next.__active_skill_state;
+      delete next.active_skill_state;
+      return next;
     }
     const workingState = {
       ...(previous.working_state && typeof previous.working_state === "object"
@@ -451,6 +516,7 @@ export function persistConversationSkillRoute(
     routeDecision?.response_owner === "product_help" &&
     arbitration?.decision !== "inline_answer_then_resume"
   ) {
+    if (activeConversationSkillId(next)) return next;
     delete next.__active_skill_state;
     delete next.active_skill_state;
   }

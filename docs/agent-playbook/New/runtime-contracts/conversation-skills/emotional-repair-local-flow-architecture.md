@@ -112,6 +112,13 @@ an explicit local exit memo. In that fallback, the global dispatcher must treat
 the structured `potion_bridge_context` as the source of truth and must not
 re-route from the confirmation text alone.
 
+Every confirmed transfer from `emotional_repair` to another dispatcher requires
+`note_information` from `09-note-information-contract.md`. This includes
+`handoff_to_potion_flow`, `exit_to_global_dispatcher`, and `safety_preempt`.
+Local support actions such as `soft_presence`, `regulation_without_potion`,
+`repeat_last_repair`, `cancel_flow` without a new topic, or a local close do not
+produce a note and must not call global on the same turn.
+
 ## Potion Bridge Scope
 
 Allowed potion bridges :
@@ -188,6 +195,25 @@ Target subskill fields :
 {
   "origin_flow": "emotional_repair",
   "origin_flow_status": "stabilized|bridge_consented",
+  "note_information": {
+    "source_flow_id": "emotional_repair",
+    "source_flow_presentation": "Repairs shame, guilt, anxiety, self-attack, relational tension, or acute emotional pressure. It can bridge to limited state potions after consent.",
+    "source_flow_state_summary": "string",
+    "handoff_reason": "bridge",
+    "target_dispatcher": "select_state_potion",
+    "handoff_context_for_next_dispatcher": "string",
+    "target_local_dispatcher_hint": "Enter the selected potion flow, consume candidates as candidates, and do not make the user repeat the emotional episode wholesale.",
+    "user_words": ["string"],
+    "structured_context": {},
+    "risk_score": 0,
+    "no_chat_mutation": {
+      "db_write_committed": false,
+      "potion_session_created": false,
+      "scheduled_checkin_created": false,
+      "recurring_reminder_created": false,
+      "executable_confirmation_generated": false
+    }
+  },
   "origin_turn_summary": "string",
   "repair_intent": "acute_self_attack|shame_or_guilt|anxiety_or_panic|relational_repair|asks_concrete_phrase|unclear",
   "context_domain": "relationship|work|body|plan_execution|unknown",
@@ -281,6 +307,10 @@ When `emotional_repair` is active :
 - `emotional_repair.local_dispatcher` owns followups ;
 - product/tool/potion transitions happen only through structured local actions ;
 - safety can still interrupt above all flows.
+- `exit_to_global_dispatcher`, `safety_preempt`, and
+  `handoff_to_potion_flow` require `note_information` ;
+- `stop_local_no_handoff` actions close or defer locally with a visible
+  acknowledgement and no global reroute.
 
 When a bridge to potion is consented :
 
@@ -300,4 +330,3 @@ When a bridge to potion is consented :
 - No plan/card/priority shortcut unless user explicitly asks after emotion has lowered.
 - No identity-freeze memory persistence by default.
 - No business regex, no keyword classifier, no deterministic visible renderer in the nominal path.
-

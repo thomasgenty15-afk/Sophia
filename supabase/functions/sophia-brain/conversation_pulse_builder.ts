@@ -15,7 +15,10 @@ import {
 } from "../_shared/v2-prompts/conversation-pulse.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
-import type { ConversationPulse } from "../_shared/v2-types.ts";
+import type {
+  ConversationPulse,
+  ConversationPulseKind,
+} from "../_shared/v2-types.ts";
 import { checkAndUnlockPrinciples } from "../_shared/v2-unlock-principles.ts";
 import { extractConversationPulseHandoffSummary } from "./transformation_handoff.ts";
 
@@ -23,6 +26,17 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const SEVENTY_TWO_HOURS_MS = 72 * 60 * 60 * 1000;
 const FRESHNESS_HOURS = 12;
 const DEFAULT_MESSAGE_LIMIT = 80;
+export const WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE =
+  "watcher_conversation_pulse_v2";
+export const DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE =
+  "daily_conversation_pulse_v2";
+export const WEEKLY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE =
+  "weekly_conversation_pulse_v2";
+export const CONVERSATION_PULSE_V2_SNAPSHOT_TYPES = [
+  DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
+  WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
+  WEEKLY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
+] as const;
 
 type RuntimeRefs = {
   cycleId: string | null;
@@ -64,6 +78,11 @@ export type BuildConversationPulseArgs = {
   forceRefresh?: boolean;
   model?: string;
   source?: string;
+  pulseKind?: ConversationPulseKind;
+  windowStartIso?: string;
+  windowEndIso?: string;
+  timezone?: string | null;
+  scope?: string | null;
 };
 
 function parseIsoMs(value: unknown): number | null {
@@ -86,6 +105,38 @@ function compactText(value: unknown, maxLen = 160): string {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
   if (!text) return "";
   return text.length <= maxLen ? text : `${text.slice(0, maxLen - 1).trim()}…`;
+}
+
+function snapshotTypeForPulseKind(kind: ConversationPulseKind): string {
+  if (kind === "daily") return DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE;
+  if (kind === "weekly") return WEEKLY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE;
+  return WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE;
+}
+
+function addConversationPulseV2Envelope(args: {
+  pulse: ConversationPulse;
+  pulseKind: ConversationPulseKind;
+  generatedAt: string;
+  windowStartIso: string;
+  windowEndIso: string;
+  timezone: string;
+  sourcePulseIds?: string[];
+}): ConversationPulse {
+  return {
+    ...args.pulse,
+    version: 2,
+    pulse_kind: args.pulseKind,
+    generated_at: args.generatedAt,
+    window: {
+      start: args.windowStartIso,
+      end: args.windowEndIso,
+      timezone: args.timezone,
+      source_pulse_ids: args.sourcePulseIds ?? [],
+    },
+    emotional_anchors: Array.isArray(args.pulse.emotional_anchors)
+      ? args.pulse.emotional_anchors.slice(0, 2)
+      : [],
+  };
 }
 
 function eventDateLabel(row: EventMemoryRow): string {
@@ -135,6 +186,12 @@ function uniqueByKey<T>(items: T[], getKey: (item: T) => string): T[] {
     output.push(item);
   }
   return output;
+}
+
+function uniqueStrings(items: string[]): string[] {
+  return [
+    ...new Set(items.map((item) => String(item ?? "").trim()).filter(Boolean)),
+  ];
 }
 
 export function buildConversationPulseInput(args: {
@@ -219,12 +276,13 @@ async function loadFreshConversationPulse(args: {
   userId: string;
   runtime: RuntimeRefs;
   nowIso: string;
+  pulseKind: ConversationPulseKind;
 }): Promise<{ snapshotId: string | null; pulse: ConversationPulse | null }> {
   let query = args.supabase
     .from("system_runtime_snapshots")
     .select("id, payload, created_at")
     .eq("user_id", args.userId)
-    .eq("snapshot_type", "conversation_pulse")
+    .eq("snapshot_type", snapshotTypeForPulseKind(args.pulseKind))
     .order("created_at", { ascending: false })
     .limit(1);
 
@@ -263,20 +321,30 @@ async function loadRecentMessages(args: {
   supabase: SupabaseClient;
   userId: string;
   nowIso: string;
+  sinceIso?: string | null;
+  scope?: string | null;
 }): Promise<ConversationMessage[]> {
-  const sinceIso = new Date(
+  const sinceIso = String(args.sinceIso ?? "").trim() || new Date(
     (parseIsoMs(args.nowIso) ?? Date.now()) - SEVEN_DAYS_MS,
   ).toISOString();
 
-  const { data, error } = await args.supabase
+  let query = args.supabase
     .from("chat_messages")
     .select("id, role, content, created_at")
     .eq("user_id", args.userId)
-    .in("scope", ["whatsapp", "web"] as any)
     .in("role", ["user", "assistant"] as any)
     .gte("created_at", sinceIso)
     .order("created_at", { ascending: false })
     .limit(DEFAULT_MESSAGE_LIMIT);
+
+  const scope = String(args.scope ?? "").trim();
+  if (scope) {
+    query = query.eq("scope", scope);
+  } else {
+    query = query.in("scope", ["whatsapp", "web"] as any);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 
@@ -386,6 +454,7 @@ async function insertConversationPulseSnapshot(args: {
   userId: string;
   runtime: RuntimeRefs;
   pulse: ConversationPulse;
+  pulseKind: ConversationPulseKind;
 }): Promise<string> {
   const { data, error } = await args.supabase
     .from("system_runtime_snapshots")
@@ -393,7 +462,7 @@ async function insertConversationPulseSnapshot(args: {
       user_id: args.userId,
       cycle_id: args.runtime.cycleId,
       transformation_id: args.runtime.transformationId,
-      snapshot_type: "conversation_pulse",
+      snapshot_type: snapshotTypeForPulseKind(args.pulseKind),
       payload: args.pulse,
     } as any)
     .select("id")
@@ -449,6 +518,7 @@ export async function buildConversationPulse(
   args: BuildConversationPulseArgs,
 ): Promise<BuildConversationPulseResult> {
   const nowIso = args.nowIso ?? new Date().toISOString();
+  const pulseKind = args.pulseKind ?? "watcher_4h";
   const runtime = await loadRuntimeRefs(args.supabase, args.userId);
 
   if (!args.forceRefresh) {
@@ -457,6 +527,7 @@ export async function buildConversationPulse(
       userId: args.userId,
       runtime,
       nowIso,
+      pulseKind,
     });
     if (fresh.pulse) {
       return {
@@ -477,11 +548,15 @@ export async function buildConversationPulse(
     eventMemories,
     recentTransformationHandoff,
   ] = await Promise.all([
-    loadUserTimezone(args.supabase, args.userId),
+    args.timezone
+      ? Promise.resolve(String(args.timezone).trim() || DEFAULT_TIMEZONE)
+      : loadUserTimezone(args.supabase, args.userId),
     loadRecentMessages({
       supabase: args.supabase,
       userId: args.userId,
       nowIso,
+      sinceIso: args.windowStartIso,
+      scope: args.scope,
     }),
     loadRecentBilans({
       supabase: args.supabase,
@@ -529,11 +604,23 @@ export async function buildConversationPulse(
     ? raw
     : JSON.stringify((raw as any)?.args ?? raw);
   const validation = parseConversationPulseLLMResponse(rawText, input, nowIso);
+  const windowStartIso = String(args.windowStartIso ?? "").trim() ||
+    new Date((parseIsoMs(nowIso) ?? Date.now()) - SEVEN_DAYS_MS).toISOString();
+  const windowEndIso = String(args.windowEndIso ?? "").trim() || nowIso;
+  const pulse = addConversationPulseV2Envelope({
+    pulse: validation.pulse,
+    pulseKind,
+    generatedAt: nowIso,
+    windowStartIso,
+    windowEndIso,
+    timezone,
+  });
   const snapshotId = await insertConversationPulseSnapshot({
     supabase: args.supabase,
     userId: args.userId,
     runtime,
-    pulse: validation.pulse,
+    pulse,
+    pulseKind,
   });
 
   await tryLogConversationPulseGenerated({
@@ -541,7 +628,7 @@ export async function buildConversationPulse(
     userId: args.userId,
     runtime,
     snapshotId,
-    pulse: validation.pulse,
+    pulse,
   });
 
   if (runtime.transformationId) {
@@ -549,7 +636,7 @@ export async function buildConversationPulse(
       args.supabase,
       args.userId,
       runtime.transformationId,
-      { type: "conversation_pulse_generated", pulse: validation.pulse },
+      { type: "conversation_pulse_generated", pulse },
     ).catch((err) =>
       console.warn(
         "[conversation_pulse_builder] principle unlock check failed:",
@@ -559,11 +646,178 @@ export async function buildConversationPulse(
   }
 
   return {
-    pulse: validation.pulse,
+    pulse,
     snapshotId,
     fromCache: false,
     runtime,
     input,
-    validation,
+    validation: validation.valid
+      ? { valid: true, pulse }
+      : { valid: false, pulse, violations: validation.violations },
   };
+}
+
+export async function buildWatcherConversationPulse(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  requestId?: string;
+  nowIso: string;
+  windowStartIso: string;
+  timezone?: string | null;
+  scope?: string | null;
+}): Promise<BuildConversationPulseResult | null> {
+  const result = await buildConversationPulse({
+    supabase: args.supabase,
+    userId: args.userId,
+    requestId: args.requestId,
+    nowIso: args.nowIso,
+    forceRefresh: true,
+    source: "watcher_conversation_pulse_v2",
+    pulseKind: "watcher_4h",
+    windowStartIso: args.windowStartIso,
+    windowEndIso: args.nowIso,
+    timezone: args.timezone,
+    scope: args.scope,
+  });
+  return result;
+}
+
+export async function loadLatestConversationPulseV2(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  cycleId?: string | null;
+  transformationId?: string | null;
+  snapshotTypes?: string[];
+  nowIso?: string;
+  freshnessMs?: number | null;
+}): Promise<{ snapshotId: string | null; pulse: ConversationPulse | null }> {
+  let query = args.supabase
+    .from("system_runtime_snapshots")
+    .select("id,payload,created_at,snapshot_type")
+    .eq("user_id", args.userId)
+    .in(
+      "snapshot_type",
+      (args.snapshotTypes?.length
+        ? args.snapshotTypes
+        : [...CONVERSATION_PULSE_V2_SNAPSHOT_TYPES]) as any,
+    )
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (args.cycleId) query = query.eq("cycle_id", args.cycleId);
+  if (args.transformationId) {
+    query = query.eq("transformation_id", args.transformationId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  if (!data) return { snapshotId: null, pulse: null };
+
+  const createdAtMs = parseIsoMs((data as any)?.created_at);
+  const nowMs = parseIsoMs(args.nowIso ?? new Date().toISOString()) ??
+    Date.now();
+  const freshnessMs = args.freshnessMs ?? null;
+  if (
+    freshnessMs != null &&
+    (createdAtMs == null || nowMs - createdAtMs > freshnessMs)
+  ) {
+    return { snapshotId: null, pulse: null };
+  }
+
+  const payload = (data as any)?.payload;
+  if (!payload || typeof payload !== "object") {
+    return { snapshotId: null, pulse: null };
+  }
+  return {
+    snapshotId: String((data as any)?.id ?? "").trim() || null,
+    pulse: payload as ConversationPulse,
+  };
+}
+
+export async function buildDailyConversationPulse(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  requestId?: string;
+  nowIso?: string;
+  timezone?: string | null;
+}): Promise<{ snapshotId: string | null; pulse: ConversationPulse | null }> {
+  const nowIso = args.nowIso ?? new Date().toISOString();
+  const timezone = String(args.timezone ?? "").trim() ||
+    await loadUserTimezone(args.supabase, args.userId);
+  const day = localDateInTimezone(timezone, nowIso);
+  const windowStartIso = new Date(`${day}T00:00:00.000`).toISOString();
+  const windowEndIso = new Date(`${day}T23:59:59.999`).toISOString();
+  const runtime = await loadRuntimeRefs(args.supabase, args.userId);
+
+  let query = args.supabase
+    .from("system_runtime_snapshots")
+    .select("id,payload,created_at")
+    .eq("user_id", args.userId)
+    .eq("snapshot_type", WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE)
+    .gte("created_at", windowStartIso)
+    .lte("created_at", windowEndIso)
+    .order("created_at", { ascending: true })
+    .limit(8);
+  if (runtime.cycleId) query = query.eq("cycle_id", runtime.cycleId);
+  if (runtime.transformationId) {
+    query = query.eq("transformation_id", runtime.transformationId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  const rows = ((data ?? []) as Array<Record<string, unknown>>)
+    .map((row) => ({
+      id: String(row.id ?? "").trim(),
+      pulse: row.payload as ConversationPulse,
+    }))
+    .filter((row) => row.id && row.pulse && typeof row.pulse === "object");
+  if (rows.length === 0) return { snapshotId: null, pulse: null };
+
+  const latest = rows[rows.length - 1].pulse;
+  const sourcePulseIds = rows.map((row) => row.id);
+  const pulse = addConversationPulseV2Envelope({
+    pulse: {
+      ...latest,
+      trajectory: {
+        ...latest.trajectory,
+        summary: rows.map((row) =>
+          compactText(row.pulse.trajectory.summary, 90)
+        )
+          .filter(Boolean)
+          .slice(-3)
+          .join(" "),
+      },
+      highlights: {
+        wins: uniqueStrings(rows.flatMap((row) => row.pulse.highlights.wins))
+          .slice(-3),
+        friction_points: uniqueStrings(
+          rows.flatMap((row) => row.pulse.highlights.friction_points),
+        ).slice(-3),
+        support_that_helped: uniqueStrings(
+          rows.flatMap((row) => row.pulse.highlights.support_that_helped),
+        ).slice(-3),
+        unresolved_tensions: uniqueStrings(
+          rows.flatMap((row) => row.pulse.highlights.unresolved_tensions),
+        ).slice(-3),
+      },
+      emotional_anchors: rows.flatMap((row) =>
+        row.pulse.emotional_anchors ?? []
+      )
+        .slice(-2),
+    },
+    pulseKind: "daily",
+    generatedAt: nowIso,
+    windowStartIso,
+    windowEndIso,
+    timezone,
+    sourcePulseIds,
+  });
+  const snapshotId = await insertConversationPulseSnapshot({
+    supabase: args.supabase,
+    userId: args.userId,
+    runtime,
+    pulse,
+    pulseKind: "daily",
+  });
+  return { snapshotId, pulse };
 }

@@ -1,8 +1,8 @@
 import type {
+  AttackCardDraftV1,
   AttackCardHandoffDraft,
   AttackCardHandoffStatus,
 } from "./contract.ts";
-import type { AttackCardDraftV1 } from "./generator.ts";
 import type { PrepareAttackCardLocalState } from "./local_flow.ts";
 
 export type AttackCardHandoffState = {

@@ -133,30 +133,9 @@ function hasExplicitCardUpdateConsent(
   message: string,
   history: any[],
 ): boolean {
-  const current = String(message ?? "").toLowerCase();
-  const currentHasConsent = [
-    /\bajoute\b/,
-    /\brajoute\b/,
-    /\bnote\b/,
-    /\binscris\b/,
-    /\bmet(?:s)?\b.*\bcarte\b/,
-    /\bajoute\b.*\bcarte\b/,
-    /\boui\b.*\bajoute\b/,
-    /\boui\b.*\bcarte\b/,
-  ].some((pattern) => pattern.test(current));
-  if (currentHasConsent) return true;
-
-  const recentAssistant = history
-    .slice(-4)
-    .reverse()
-    .find((entry: any) => entry?.role === "assistant");
-  const assistantText = String(recentAssistant?.content ?? "").toLowerCase();
-  const userConfirmed = /\b(oui|ok|vas[- ]?y|fais[- ]?le|go)\b/.test(current);
-  const assistantAskedToAdd = /\b(ajouter|note[rz]?|mettre).*\bcarte\b/.test(
-    assistantText,
-  );
-
-  return userConfirmed && assistantAskedToAdd;
+  void message;
+  void history;
+  return false;
 }
 
 async function loadDefenseCard(

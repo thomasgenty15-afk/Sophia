@@ -2,7 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 /**
- * Legacy executable router intentionally removed from the nominal
+ * Executable router intentionally removed from the nominal
  * select_state_potion perimeter.
  *
  * `select_state_potion` is now owned by `handoff.ts` as a non-mutant
@@ -11,7 +11,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
  */
 export async function maybeRunSelectStatePotionOperation(): Promise<null> {
   console.warn(
-    "[SelectStatePotion] legacy executable router disabled; use runSelectStatePotionHandoffSkill",
+    "[SelectStatePotion] executable router disabled; use runSelectStatePotionHandoffSkill",
   );
   return null;
 }

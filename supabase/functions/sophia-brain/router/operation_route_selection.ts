@@ -5,10 +5,6 @@ import {
   readActiveFlowState,
 } from "./active_flow_state.ts";
 import { isPendingAttackCardRecommendationOperation } from "../tools/operations/prepare_attack_card/run_support.ts";
-import {
-  isPendingAdjustPlanItemRecommendationOperation,
-  loadAdjustPlanFrameFromTempMemory,
-} from "../tools/operations/adjust_plan_item/state.ts";
 
 export function operationRouteIsSelected(args: {
   operationType: string;
@@ -16,12 +12,6 @@ export function operationRouteIsSelected(args: {
   turnFrame: TurnFrame | null;
   tempMemory: any;
 }): boolean {
-  if (
-    args.operationType === "adjust_plan_item" &&
-    loadAdjustPlanFrameFromTempMemory(args.tempMemory).pending_draft_review
-  ) {
-    return true;
-  }
   const activeFlow = readActiveFlowState(args.tempMemory);
   const pending = activeFlow.pendingToolSkillConfirmation;
   const pendingType = pendingOperationType(pending);
@@ -36,10 +26,6 @@ export function operationRouteIsSelected(args: {
     return false;
   }
   if (activeOperationType === args.operationType) return true;
-  if (
-    args.operationType === "adjust_plan_item" &&
-    isPendingAdjustPlanItemRecommendationOperation(pendingRecommendation)
-  ) return true;
   if (
     args.operationType === "prepare_attack_card" &&
     isPendingAttackCardRecommendationOperation(pendingRecommendation)

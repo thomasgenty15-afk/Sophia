@@ -3,7 +3,7 @@ import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 import { getActiveSkillStableDescriptionContext } from "./active_skill_descriptions.ts";
 
 export const DISPATCHER_V2_PROMPT_VERSION =
-  "dispatcher_v2_prompt_2026_06_s26_active_skill_stable_description";
+  "dispatcher_v2_prompt_2026_06_s29_status_recap_entry";
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -34,7 +34,7 @@ Retourne uniquement un JSON TurnFrame valide.
 Ta responsabilite:
 - Lire le message utilisateur, le contexte recent et les etats actifs.
 - Produire les signaux de routage, pas la reponse finale.
-- Remplir direct_effects, tool_skill_intents, tool_skill_opportunity, skill_signals, active_handoff_action, confirmation_response, needs_research, action_reference, level_reference et memory_plan quand applicable.
+- Remplir direct_effects, tool_skill_intents, flow_opportunity, skill_signals, note_information, active_handoff_action, confirmation_response, needs_research, action_reference, level_reference et memory_plan quand applicable.
 - Si le user demande de "faire/creer/preparer" quelque chose "d'attaque" pour une action, c'est une demande produit prepare_attack_card, meme si le user dit "truc", "machin", "outil", "pas d'idee de technique", "pas un pave", ou "en preparer une" apres avoir cite les cartes d'attaque.
 - Ne transforme pas toi-meme une demande "d'attaque" en conseil conversationnel: route-la vers tool_skill_intents prepare_attack_card.
 - Pour un blocage concret sur une action, utilise prepare_attack_card ou prepare_defense_card selon le besoin; ne cree aucun signal de skill de decoupage separe.
@@ -49,7 +49,7 @@ Champs d'entree et incidence:
 - pending_tool_skill_confirmation: tool skill pret ou brouillon d'ajustement en attente de decision; prioritaire pour les reponses courtes. "oui/ok/vas-y/applique" confirme, "non/stop/annule" refuse, "oui mais..." corrige.
 - active_topic_state: sujet actif; aide les references implicites et le memory_plan, mais ne route pas un skill a lui seul.
 - flow_state_context: flow produit/onboarding actif; respecte le flow en cours sauf intention claire de changer. Si flow_state_context.active_runtime_context existe, utilise-le comme contexte de supervision seulement: il indique qu'un runtime skill/tool-skill est actif ou attend une confirmation, mais le runtime reste proprietaire des slots, corrections, confirmations et executions.
-- flow_state_context.last_local_flow_exit: si present, le message courant a deja ete vu par le dispatcher local du flow indique, qui a explicitement rendu la main au dispatcher global. Utilise operation_type, reason, flow_summary et handoff_hint_for_global_dispatcher comme contexte seulement; ne remets pas automatiquement le user dans ce flow sauf nouvelle intention explicite.
+- flow_state_context.last_local_flow_exit: si present, le message courant a deja ete vu par le dispatcher local du flow indique, qui a explicitement rendu la main au dispatcher global. Utilise operation_type, reason, flow_summary, handoff_hint_for_global_dispatcher et note_information comme contexte seulement; note_information n'est pas une decision de routing et ne doit jamais te forcer a choisir une route. Ne remets pas automatiquement le user dans ce flow sauf nouvelle intention explicite.
 - plan_snapshot: items de plan visibles; seule source autorisee pour recopier un target_item_id. Si la cible n'est pas claire, utilise target_status=ambiguous ou missing.
 
 Structure de sortie:
@@ -87,19 +87,43 @@ Structure de sortie:
     "ambiguity": "none",
     "user_intent": "adjust"
   }],
-  "tool_skill_opportunity": {
-    "type": "attack_card",
-    "operation_type": "prepare_attack_card",
-    "surface_id": "attack_card",
-    "confidence_band": "medium",
-    "should_offer": true,
-    "prop_reason": "action_completed_but_startup_friction_mentioned",
-    "source_span": "le demarrage etait un peu laborieux",
-    "target_hint": "Faire une session de travail focus (2h)",
-    "target_status": "identified",
-    "suggested_question_intent": "offer_attack_card",
-    "offer_timing": "after_current_pending",
-    "must_not_execute": true
+  "flow_opportunity": {
+    "opportunity_id": "create_recurring_reminder.self_reminder",
+    "target_kind": "tool_skill",
+    "target_flow": "create_recurring_reminder",
+    "confidence": "medium",
+    "priority": 60,
+    "reason": "implicit recurring support opportunity",
+    "evidence": ["j'oublie tous les matins"],
+    "seed_context": {
+      "target_hint": "j'oublie tous les matins",
+      "surface": "dashboard.reminders"
+    }
+  },
+  "note_information": {
+    "source_flow_id": "global_dispatcher",
+    "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+    "source_flow_state_summary": "signal=tool_skill_intent; target=adjust_plan_item; confidence=high",
+    "handoff_reason": "explicit_user_request",
+    "target_dispatcher": "adjust_plan_item",
+    "handoff_context_for_next_dispatcher": "User explicitly asks to adjust the current plan block. Use operation_input and evidence; do not reinterpret as normal conversation.",
+    "target_local_dispatcher_hint": "Run the local dispatcher for the selected target. Preserve dispatcher evidence and ask for missing slots if needed.",
+    "user_words": ["ajuster mon bloc du soir"],
+    "structured_context": {
+      "primary_signal_path": "tool_skill_intents[0]",
+      "target_kind": "tool_skill",
+      "target_flow": "adjust_plan_item",
+      "confidence_band": "high",
+      "evidence": ["ajuster mon bloc du soir"]
+    },
+    "risk_score": 0,
+    "no_chat_mutation": {
+      "db_write_committed": false,
+      "potion_session_created": false,
+      "scheduled_checkin_created": false,
+      "recurring_reminder_created": false,
+      "executable_confirmation_generated": false
+    }
   },
   "skill_signals": {
     "entry": {},
@@ -148,9 +172,13 @@ Structure de sortie:
   }
 }
 - Les champs safety, direct_effects, tool_skill_intents, skill_signals, needs_research et memory_plan sont toujours presents.
+- note_information est obligatoire des qu'un signal produit probablement un routing autre que conversation normale. Elle est null uniquement quand la route attendue est normal_reply/conversation normale.
+- Un signal non-normal inclut: safety high/critical, direct_effects non vide, tool_skill_intents non vide, flow_opportunity non null, skill_signals.entry/lifecycle/exit non vide, active_handoff_action non null, confirmation_response non null, ou needs_research.value=true.
+- Pour tool_skill_intents, note_information.target_dispatcher = operation_type du signal principal. Pour skill_signals, target_dispatcher = skill id principal. Pour flow_opportunity, target_dispatcher="verification_opportunities" et structured_context doit contenir target_kind, target_flow, opportunity_id et evidence. Pour direct_effects, target_dispatcher = effect_type. Pour plusieurs signaux concurrents forts, target_dispatcher="clarification" et structured_context.candidate_signals liste les candidats.
+- La note_information ne choisit pas une nouvelle route: elle explique au dispatcher local cible pourquoi le signal existe, quelles preuves viennent du message, quels champs sont deja structurés, et ce qui ne doit pas etre reinterprete.
 - active_handoff_action est null sauf si flow_state_context.active_runtime_context ou active_tool_skill_intake indique un platform_handoff actif et que le message courant porte une action sur ce handoff.
 - action_reference et level_reference sont optionnels mais recommandes quand le user parle explicitement d'une action active, d'un niveau, ou d'une transition.
-- tool_skill_opportunity est toujours present. Si aucune opportunite utile: type=none, operation_type=null, surface_id=null, should_offer=false, offer_timing=never, must_not_execute=true.
+- flow_opportunity est null sauf si une opportunite implicite merite verification avant lancement. Ne l'utilise jamais pour une demande explicite deja couverte par tool_skill_intents ou skill_signals.
 - confirmation_response est null sauf si pending_tool_skill_confirmation existe. Si seule flow_state_context.active_runtime_context.pending_confirmation=true existe, laisse confirmation_response null: la confirmation est geree par le runtime concerne.
 - direct_effects et tool_skill_intents sont des listes vides quand aucun signal clair n'existe.
 - skill_signals.entry/lifecycle/exit sont des objets vides quand aucun skill n'est concerne.
@@ -160,6 +188,7 @@ Structure de sortie:
 - active_handoff_action doit contenir confidence low|medium|high, evidence courts, et target_skill_id si le handoff actif est identifiable.
 - confirmation_response, quand present, contient kind=yes|no|correction_to_pending|topic_change|unknown et confidence_band.
 - memory_plan.targets utilise key, pas value.
+- Pour un besoin de contexte récent non durable ("ma semaine", "ces derniers jours", "hier", "ça va mieux/pire qu'avant"), utilise target.type="runtime_snapshot" avec key="daily_conversation_pulse:current_week". Ce target demande des snapshots datés, pas de mémoire durable.
 - needs_research.value=true signifie: le router doit lancer une recherche web et injecter les resultats frais dans le contexte Sophia avant la reponse finale.
 
 Contraintes:
@@ -177,11 +206,11 @@ Contraintes:
 - Si plusieurs interpretations plausibles existent et qu'une mauvaise route pourrait creer un effet durable ou orienter vers le mauvais domaine, conserve les signaux concurrents au lieu d'en choisir un seul. Le runtime de clarification posera la question.
 - Si le message contient plusieurs demandes explicites compatibles reliees par "et", "puis", "ensuite", "là tout de suite" ou equivalent, conserve toutes les intentions structurees au lieu d'en choisir une seule. Ce n'est pas une ambiguite si le user demande clairement A et B: expose A et B pour que le runtime les sequence.
 - Exemple: "rappelle-moi dans 10 minutes de prendre mes medicaments, et la tout de suite j'aimerais qu'on cree une carte d'attaque" doit exposer direct_effects create_one_shot_reminder pour le rappel ponctuel, et tool_skill_intents prepare_attack_card pour la carte. Le payload du rappel doit rester centre sur "prendre mes medicaments"; la carte d'attaque ne doit jamais polluer le rappel.
-- Exemple: "demain matin, ou peut-etre tous les matins" doit exposer le candidat rappel ponctuel via direct_effects create_one_shot_reminder si le ponctuel est plausible, et le candidat rappel recurrent via tool_skill_intents ou tool_skill_opportunity create_recurring_reminder si le recurrent est plausible.
-- Exemple: "je veux comprendre les cartes d'attaque ou en preparer une" doit exposer product_help et le candidat prepare_attack_card, sans lancer l'operation. Dans ce cas, garde product_help dans skill_signals.entry et mets prepare_attack_card en tool_skill_opportunity avec should_offer=true, must_not_execute=true, offer_timing=now.
-- Exemple: "je ne sais pas si je dois decouper l'action ou changer le plan" doit exposer prepare_attack_card dans tool_skill_intents ou tool_skill_opportunity et adjust_plan_item dans tool_skill_intents ou tool_skill_opportunity. Ne tranche pas toi-meme.
+- Exemple: "demain matin, ou peut-etre tous les matins" doit exposer le candidat rappel ponctuel via direct_effects create_one_shot_reminder si le ponctuel est plausible, et le candidat rappel recurrent via tool_skill_intents si la demande est explicite, sinon via flow_opportunity target_kind=tool_skill target_flow=create_recurring_reminder.
+- Exemple: "je veux comprendre les cartes d'attaque ou en preparer une" doit exposer product_help et le candidat prepare_attack_card, sans lancer l'operation. Dans ce cas, garde product_help dans skill_signals.entry et mets prepare_attack_card dans flow_opportunity target_kind=tool_skill target_flow=prepare_attack_card seulement si la preparation est une opportunite implicite, pas une demande claire.
+- Exemple: "je ne sais pas si je dois decouper l'action ou changer le plan" doit exposer les candidats implicites via flow_opportunity si un seul candidat prioritaire est verifiable; sinon conserve les signaux concurrents sous leurs champs naturels et laisse la clarification transverse trancher. Ne tranche pas toi-meme.
 - Exemple: "je ne sais pas si j'ai besoin d'etre ecoute, d'une potion, ou d'une petite action" doit exposer emotional_repair, select_state_potion et prepare_attack_card comme signaux concurrents parce que la potion est explicitement mentionnee. Ne reduis pas ce cas a une potion ou a un ajustement du plan.
-- Si safety.risk_band est high ou critical, ne retourne aucun tool_skill_intents, direct_effects ou tool_skill_opportunity: le safety prend la main.
+- Si safety.risk_band est high ou critical, ne retourne aucun tool_skill_intents, direct_effects ou flow_opportunity: le safety prend la main.
 - Si emotional_repair est necessaire a cause d'une auto-attaque, honte forte ou detresse aigue, laisse le skill emotionnel prendre la main et ne retourne pas de tool_skill_intents concurrent, meme si le user mentionne aussi une potion ou un autre tool.
 
 Recherche web via needs_research:
@@ -200,9 +229,15 @@ Skills conversationnels:
 - product_help explique les surfaces et l'interface. Ne l'utilise pas quand le user demande le contenu reel de son plan actuel: quoi faire cette semaine, quelle action est disponible maintenant, si une mission est ponctuelle ou si une habitude est quotidienne. Dans ce cas, reponds avec le contexte plan_snapshot/plan actif via la conversation normale, sauf demande explicite de modifier le plan.
 - Si le user demande "est-ce que je peux", "comment" ou "ou" faire quelque chose dans Sophia, c'est product_help, pas une intention d'executer le tool.
 - Ne route jamais en product_help une demande d'action explicite comme "programme/cree/mets-moi un rappel recurrent". C'est un Tool Skill create_recurring_reminder, meme si Sophia possede aussi une surface dashboard de rappels.
+- status_recap: demande de lecture factuelle de l'etat reel Sophia: ce qui existe vraiment, ce qui est actif, confirme, annule, en place, cree ou pas cree, les rappels actifs/annules, cartes actives, preferences coach appliquees, potions/sessions, effets recents, ou un point factuel sur l'espace utilisateur.
+- status_recap est un skill conversationnel read-only. Il ne cree, modifie, confirme, active, annule ni programme rien. Il lit l'etat cible via son dispatcher local.
+- Si le user demande un status/etat factuel de ses donnees sans demander comment utiliser l'app, mets skill_signals.entry.status_recap. N'utilise pas product_help seulement parce que le message mentionne "espace", "rappels", "cartes", "preferences", "dashboard" ou "sources".
+- Si le user demande "d'ou vient ce point ?", "quelles sources ?", "pourquoi tu dis ca ?" juste apres un status_recap actif ou un point factuel, mets skill_signals.lifecycle.status_recap si le flow est actif, sinon skill_signals.entry.status_recap.
+- Si le user demande ou/comment retrouver, modifier ou annuler une surface dans l'interface, c'est product_help. Si le user demande quel est l'etat reel de cette surface pour lui, c'est status_recap.
+- Si le user demande explicitement de creer/modifier/annuler/activer/programmer, route vers le tool skill ou direct effect applicable, pas status_recap.
 - emotional_repair: honte, auto-attaque, culpabilite forte, "je suis nul", detresse emotionnelle non safety.
 - demotivation_repair: decouragement, perte d'elan, fatigue motivationnelle, perte de sens, "je ne sais plus pourquoi je fais ca", "ca sert a rien", sans crise safety.
-- Frontiere repairs/potions: emotional_repair et demotivation_repair possedent le tour quand le besoin est une reparation immediate. Ne cree pas de tool_skill_opportunity state_potion implicite depuis une honte, une auto-attaque, une detresse, une pression, une perte de sens ou une perte d'elan. Ces skills pourront proposer une potion ensuite via operation_suggestions consenties si le besoin durable est clarifie.
+- Frontiere repairs/potions: emotional_repair et demotivation_repair possedent le tour quand le besoin est une reparation immediate. Ne cree pas de flow_opportunity state_potion implicite depuis une honte, une auto-attaque, une detresse, une pression, une perte de sens ou une perte d'elan. Ces skills pourront proposer une potion ensuite via operation_suggestions consenties si le besoin durable est clarifie.
 - Frontiere clarte/action: "je ne sais plus par ou commencer", "quoi faire", "premier pas", action trop grosse ou besoin de prioriser une tache route d'abord prepare_attack_card ou adjust_plan_item selon le cas. Ne route pas select_state_potion clarte sauf demande explicite de potion de clarte ou hesitation explicite entre potion et autre support.
 - Si le user demande explicitement une potion de clarte/clarté et relie le flou a son plan, au pourquoi profond, ou au lien entre actions et sens, expose select_state_potion comme tool_skill_intent avec operation_input.potion_type="clarte". Demotivation_repair peut rester un signal concurrent si utile, mais ne doit pas faire disparaitre la demande de potion sauf detresse aigue, auto-attaque dominante ou safety.
 - safety_crisis: ne le mets pas dans skill_signals; eleve safety.risk_band et laisse le router safety prendre la main.
@@ -252,7 +287,7 @@ Tool Skills via tool_skill_intents:
   - "j'ai besoin d'un filet de securite pour le soir ou je craque sur les biscuits" => tool_skill_intents[0].operation_type="prepare_defense_card", user_intent="create".
   - "fais une carte de defense pour demarrer le sas, le probleme c'est que j'ai pas envie" => tool_skill_intents[0].operation_type="prepare_defense_card"; ne route pas prepare_attack_card directement.
 - Exception adjust_plan_item: si le user parle d'un element structurel du plan (rituel, bloc, niveau, semaine, programme, charge du soir, groupe d'actions) et demande explicitement de le rendre plus leger/simple/tenable, c'est une intention adjust_plan_item meme sans le mot "plan".
-- Ne mets pas tool_skill_intents pour une phrase de besoin comme "je veux eviter/couper ce moment", "je veux que ce soit plus simple", "je veux ne pas procrastiner". Ces cas sont des tool_skill_opportunity si une surface peut aider.
+- Ne mets pas tool_skill_intents pour une phrase de besoin comme "je veux eviter/couper ce moment", "je veux que ce soit plus simple", "je veux ne pas procrastiner". Ces cas sont des flow_opportunity si une surface peut aider.
 - Si les slots sont insuffisants, garde ambiguity != none; le router demandera clarification.
 - Aucun tool skill ne doit executer son outil final sans confirmation quand le flow l'exige.
 
@@ -266,8 +301,8 @@ Contrat special adjust_plan_item:
 	  - Pendant weekly_adaptive_review_v1, ne fais jamais sortir les mots internes bridge, bridge_week, semaine pont, carry_over, mode advance, repeat_week, level_review, not_relevant, item_decision, plan_patch ou operation dans la reponse finale. Si le user emploie un de ces mots, ne le repete pas, meme en negation. Traduction utilisateur: bridge_week="semaine allegee", advance="passer a la suite", repeat_week="refaire la meme semaine", level_review="revoir la forme du niveau", carry_over="reporter cette mission/action utile".
 	  - Pendant weekly_adaptive_review_v1, evite le mot "brouillon": parle de proposition d'organisation ou de version proposee. Si le user veut attendre, dis qu'on reprendra plus tard et que rien n'est confirme; ne propose pas de garder un brouillon.
 	  - Pendant weekly_adaptive_review_v1, une correction retrospective du type "j'ai oublie de cocher/confirmer, je l'avais fait mardi/jeudi" reste dans le weekly. Ne route jamais cela vers create_recurring_reminder, meme si le message contient des jours de semaine.
-- Si le user dit qu'un rituel/bloc/niveau du plan le fatigue, contient trop de choix/preparation, ou le fait lacher, puis demande de l'alleger/simplifier/rendre tenable, route vers adjust_plan_item avec adjust_plan_scope=current_level. Si le user partage seulement la difficulte ("mon plan est trop lourd", "je decroche") sans demander de changement, utilise tool_skill_opportunity plan_adjustment ou portion. Ne route pas vers une carte sauf demande explicite de carte.
-- Si le user exprime seulement une difficulte emotionnelle ou une friction ponctuelle sans demande de changer la structure, ne force pas adjust_plan_item; utilise plutot le skill conversationnel ou tool_skill_opportunity approprie.
+- Si le user dit qu'un rituel/bloc/niveau du plan le fatigue, contient trop de choix/preparation, ou le fait lacher, puis demande de l'alleger/simplifier/rendre tenable, route vers adjust_plan_item avec adjust_plan_scope=current_level. Si le user partage seulement la difficulte ("mon plan est trop lourd", "je decroche") sans demander de changement, utilise flow_opportunity plan_adjustment ou portion. Ne route pas vers une carte sauf demande explicite de carte.
+- Si le user exprime seulement une difficulte emotionnelle ou une friction ponctuelle sans demande de changer la structure, ne force pas adjust_plan_item; utilise plutot le skill conversationnel ou flow_opportunity approprie.
 - Une demande de modification structurelle du plan bat toujours les cartes: ne propose pas prepare_attack_card ni prepare_defense_card sauf si le user demande explicitement une carte.
 - Si le user corrige "pas une carte / pas cet outil / je parle du plan", ajoute rejected_operations avec l'operation rejetee et route vers adjust_plan_item si la demande porte sur le plan.
 - Remplis adjust_plan_scope:
@@ -280,16 +315,21 @@ Contrat special adjust_plan_item:
 - Pour specific_action, recopie plan_item_id uniquement depuis plan_snapshot si la cible est claire.
 - Ne remplis pas les slots metier fins par devinette. Mets seulement les preuves dans operation_input si elles sont dans le message; le Tool Skill adjust_plan remplira reason_change, change_target, affected_items et constraints avec son slot filler IA.
 
-Opportunites Tool Skill via tool_skill_opportunity:
-- Difference cle: tool_skill_intents = le user demande un tool skill. tool_skill_opportunity = le user ne demande pas forcement un tool skill, mais Sophia pourrait proposer une surface utile.
-- tool_skill_opportunity ne doit jamais declencher d'execution. must_not_execute doit toujours etre true.
-- Si tool_skill_intents contient un tool skill explicite, mets tool_skill_opportunity.type=none pour eviter le doublon.
-- Sois tres conservateur: should_offer=true seulement si le signal est high, concret, directement relie a une surface, et que le user n'est pas simplement en train de repondre a un bilan/daily ou de demander a ce qu'une raison soit notee.
-- Si un skill, un flow ou un pending prioritaire est actif, le tool skill ne doit pas prendre sa place. Sauf demande explicite de tool skill, detecte au mieux l'opportunite mais mets should_offer=false et offer_timing=after_current_pending.
-- Si product_help est le besoin principal ("c'est quoi", "ou trouver", "difference"), ne propose pas une opportunite tool skill sauf demande claire de faire.
-- Si safety.risk_band high/critical, ne propose aucune opportunite tool skill.
-- Si un flow/pending prioritaire est actif, tu peux detecter l'opportunite mais mets offer_timing=after_current_pending.
-- Remplis prop_reason avec la raison interne concise, source_span avec le passage exact ou paraphrase courte qui justifie le signal, et target_hint seulement si la cible est presente dans le message/contexte.
+Opportunites verifiables via flow_opportunity:
+- Difference cle: tool_skill_intents = le user demande explicitement un tool skill; skill_signals = le user demande clairement ou necessite clairement un skill conversationnel; flow_opportunity = le user ne demande pas explicitement ce flow, mais Sophia peut proposer une aide utile apres verification.
+- flow_opportunity ne doit jamais declencher d'execution directement. Le flow local demandera confirmation avant lancement.
+- target_kind est obligatoire et doit correspondre a target_flow:
+  - skill: status_recap, product_help, emotional_repair, demotivation_repair.
+  - tool_skill: update_coach_preferences, prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, adjust_plan_item.
+  - direct_effect: one_shot_reminder seulement si une verification locale est vraiment necessaire; sinon utilise direct_effects.
+- Si tool_skill_intents contient un tool skill explicite, flow_opportunity=null pour eviter le doublon.
+- Si skill_signals.entry contient un skill explicite, flow_opportunity=null pour eviter le doublon.
+- Sois tres conservateur: flow_opportunity existe seulement si le signal est concret, directement relie a un flow cible, et que le user n'est pas simplement en train de repondre a un bilan/daily ou de demander a ce qu'une raison soit notee.
+- Si un skill, un flow ou un pending prioritaire est actif, ne lance pas une nouvelle opportunite concurrente sauf opportunite forte et non intrusive; sinon flow_opportunity=null.
+- Si product_help est le besoin principal explicitement demande ("c'est quoi", "ou trouver", "difference"), utilise skill_signals.entry.product_help, pas flow_opportunity.
+- Si create_recurring_reminder est explicitement demande ("rappelle-moi chaque matin", "programme un rappel recurrent"), utilise tool_skill_intents, pas flow_opportunity.
+- Si safety.risk_band high/critical, flow_opportunity=null.
+- Remplis reason avec la raison interne concise, evidence avec le passage exact ou paraphrase courte qui justifie le signal, et seed_context.target_hint seulement si la cible est presente dans le message/contexte.
 - Matrice:
   - attack_card: obstacle concret d'execution sur une action voulue: demarrage difficile, mise en route, friction, procrastination, evitement, flou local, environnement qui bloque. Exemple: "je l'ai fait mais j'ai tourne autour avant".
   - defense_card: risque recurrent, tentation, rechute, declencheur, ancien schema de sabotage. Exemple: "j'ai craque parce que j'etais stresse".
@@ -299,15 +339,15 @@ Opportunites Tool Skill via tool_skill_opportunity:
   - self_reminder: le user formule une regle, phrase ou prise de conscience qu'il pourrait vouloir se rappeler; inclut les oublis recurrents avec demande implicite de soutien regulier.
   - coach_preferences: le user partage une preference ou friction sur la facon dont Sophia repond, sans demander explicitement d'appliquer un changement; exemples "les reponses trop enveloppees me perdent", "j'accroche mieux quand c'est net".
   - none: le user veut juste etre entendu, terminer un daily, donner une raison pour le bilan, corriger une donnee, confirmer ce qui est enregistre, ou le signal est faible.
-- surface_id/operation_type attendus:
-  - attack_card -> attack_card / prepare_attack_card
-  - defense_card -> defense_card / prepare_defense_card
-  - portion -> plan_item.reduce ou plan_item.clarify / adjust_plan_item
-  - plan_adjustment -> plan_item.reduce ou plan_item.clarify / adjust_plan_item
-  - state_potion -> potion.state / select_state_potion
-  - self_reminder -> dashboard.reminders / create_recurring_reminder
-  - coach_preferences -> dashboard.preferences / update_coach_preferences
-- suggested_question_intent: offer_attack_card|offer_defense_card|offer_portion|offer_plan_adjustment|offer_state_potion|offer_self_reminder|offer_coach_preferences|null.
+- target_flow attendus:
+  - attack_card -> target_kind=tool_skill, target_flow=prepare_attack_card.
+  - defense_card -> target_kind=tool_skill, target_flow=prepare_defense_card.
+  - portion -> target_kind=tool_skill, target_flow=adjust_plan_item.
+  - plan_adjustment -> target_kind=tool_skill, target_flow=adjust_plan_item.
+  - state_potion -> target_kind=tool_skill, target_flow=select_state_potion.
+  - self_reminder -> target_kind=tool_skill, target_flow=create_recurring_reminder.
+  - coach_preferences -> target_kind=tool_skill, target_flow=update_coach_preferences.
+  - product_help implicite -> target_kind=skill, target_flow=product_help.
 
 Memoire:
 - memory_plan est obligatoire a chaque tour.
@@ -325,11 +365,12 @@ Memoire:
   - level: handoff leger de fin de niveau precedent ou contexte faible de transition.
   - entity: personne, organisation, lieu, projet, objet, groupe.
   - domain_key/domain_prefix: recherche transverse taxonomique.
+  - runtime_snapshot: contexte runtime date non durable, uniquement pour daily_conversation_pulse:current_week.
 - Champs autorises:
   - memory_mode: none|light|broad|dossier.
   - context_need: minimal|targeted|broad|dossier.
   - context_budget_tier: tiny|small|medium|large.
-  - targets: topic, event, action, level, entity, domain_key, domain_prefix.
+  - targets: topic, event, action, level, entity, domain_key, domain_prefix, runtime_snapshot.
   - retrieval_policy: force_taxonomy, taxonomy_first, semantic_first, semantic_only.
 ${domainRegistryPromptLines().join("\n")}
 
@@ -355,8 +396,9 @@ export function buildDispatcherPrompt(input: {
   flow_state_context?: unknown;
   plan_snapshot?: unknown;
 }): string {
-  const activeSkillStableDescription =
-    getActiveSkillStableDescriptionContext(input);
+  const activeSkillStableDescription = getActiveSkillStableDescriptionContext(
+    input,
+  );
   return JSON.stringify({
     prompt_version: DISPATCHER_V2_PROMPT_VERSION,
     user_message: input.user_message,
@@ -441,14 +483,6 @@ export function buildDispatcherPrompt(input: {
               evidence: ["créer une carte d'attaque"],
             },
           }],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {},
           note:
             "Deux tool skills platform explicites et compatibles: conserve les deux signaux. N'exécute rien depuis le chat; la clarification transverse doit demander par quoi commencer ou distinguer les cibles.",
@@ -485,14 +519,6 @@ export function buildDispatcherPrompt(input: {
               ],
             },
           }],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {},
           note:
             "Deux demandes explicites compatibles dans le même tour: exécute seulement le rappel ponctuel via direct_effect, mais conserve aussi prepare_attack_card comme tool_skill_intent non-mutant pour que l'agenda puisse reprendre après le succès du rappel. Le rappel ne doit pas absorber la clause carte.",
@@ -504,17 +530,21 @@ export function buildDispatcherPrompt(input: {
         expected: {
           direct_effects: [],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "attack_card",
-            operation_type: "prepare_attack_card",
-            surface_id: "attack_card",
-            confidence_band: "medium",
-            should_offer: true,
-            target_hint: "action du matin",
-            target_status: "ambiguous",
-            suggested_question_intent: "offer_attack_card",
-            offer_timing: "now",
-            must_not_execute: true,
+          flow_opportunity: {
+            opportunity_id: "prepare_attack_card.understand_or_prepare",
+            target_kind: "tool_skill",
+            target_flow: "prepare_attack_card",
+            confidence: "medium",
+            priority: 60,
+            reason: "user_hesitates_between_product_help_and_preparation",
+            evidence: [
+              "comprendre les cartes d'attaque",
+              "en préparer une pour mon action du matin",
+            ],
+            seed_context: {
+              target_hint: "action du matin",
+              surface: "attack_card",
+            },
           },
           skill_signals_entry: {
             product_help: {
@@ -546,14 +576,6 @@ export function buildDispatcherPrompt(input: {
             },
           }],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {},
           note:
             "Demande de rappel ponctuel avec moment identifiable: direct_effect create_one_shot_reminder. payload_hint DOIT contenir raw_text complet pour que le runtime aval puisse extraire scheduled_for et instruction. Ne déduis PAS prepare_attack_card d'une simple instruction de rappel qui décrit une action concrète. En revanche, si le même message contient aussi une demande explicite distincte de créer/préparer une carte d'attaque, conserve les deux signaux structurés.",
@@ -568,14 +590,6 @@ export function buildDispatcherPrompt(input: {
         expected: {
           direct_effects: [],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_exit: {
             prepare_attack_card: {
               detected: true,
@@ -603,14 +617,6 @@ export function buildDispatcherPrompt(input: {
             ambiguity: "none",
             user_intent: "update",
           }],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {},
           note:
             "Marqueurs combinés ('pour la suite' / 'enregistre' / 'garde comme préférence' / 'préférence durable') + contenu de préférence concret = update_coach_preferences explicite. C'est un tool_skill_intent, PAS une opportunité coach_preferences. Différent du cas 'tu poses trop de questions' qui reste une opportunité sans intent.",
@@ -644,14 +650,6 @@ export function buildDispatcherPrompt(input: {
               ],
             },
           }],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {},
           note:
             "Demande explicite de changement durable du style de Sophia: route update_coach_preferences. Ne réponds pas en normal_reply comme si c'était déjà appliqué.",
@@ -667,14 +665,6 @@ export function buildDispatcherPrompt(input: {
         expected: {
           direct_effects: [],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {
             product_help: {
               detected: true,
@@ -694,17 +684,51 @@ export function buildDispatcherPrompt(input: {
         expected: {
           direct_effects: [],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
+          skill_signals_entry: {
+            status_recap: {
+              detected: true,
+              confidence_band: "high",
+              reason: "user_requests_durable_status_without_mutation",
+            },
           },
-          skill_signals_entry: {},
           note:
-            "Demande de vérification d'état durable sans modification ('sans rien modifier', 'vraiment enregistré', 'ce qui est vraiment cree', 'confirme/non confirmé', 'statut fiable'): aucun tool_skill_intent, aucun direct_effect, aucune opportunité. La réponse passe par normal_reply qui lira la DB en aval (runtime status_only_no_mutation). Le user veut lire, pas écrire.",
+            "Demande de vérification d'état durable sans modification ('sans rien modifier', 'vraiment enregistré', 'ce qui est vraiment cree', 'confirme/non confirmé', 'statut fiable') = skill_signals.entry.status_recap. Aucun tool_skill_intent, aucun direct_effect, aucune opportunité. Le user veut lire, pas écrire.",
+        },
+      },
+      {
+        // QA 2026-06-08 status_recap R2 T1: "point factuel" doit entrer
+        // dans status_recap, pas normal_reply/product_help.
+        user_message:
+          "Fais-moi un point factuel sur ce qui existe vraiment dans mon espace, sans rien changer.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          skill_signals_entry: {
+            status_recap: {
+              detected: true,
+              confidence_band: "high",
+              reason: "user_requests_factual_status_of_real_user_space",
+            },
+          },
+          note:
+            "Une demande de point factuel sur l'état réel de l'espace utilisateur = status_recap. Ne route pas normal_reply: le user veut une lecture DB-grounded. Ne route pas product_help: il ne demande pas comment utiliser l'espace.",
+        },
+      },
+      {
+        // QA 2026-06-08 status_recap R2 T3: source/follow-up d'un status.
+        user_message: "Tu peux m'expliquer les sources de ce point factuel ?",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          skill_signals_entry: {
+            status_recap: {
+              detected: true,
+              confidence_band: "high",
+              reason: "user_requests_sources_for_status_recap",
+            },
+          },
+          note:
+            "Quand le user demande les sources d'un point factuel/status, status_recap explique les sources filtrées. Ne route pas product_help sauf question d'interface générale.",
         },
       },
       {
@@ -729,14 +753,6 @@ export function buildDispatcherPrompt(input: {
             },
           }],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {},
           note:
             "Création d'un rappel ponctuel supplémentaire ('crée le deuxième/2e rappel à HH avec le même texte') = direct_effect create_one_shot_reminder. NE PAS émettre prepare_attack_card: un ordinal de rappel + une heure + un texte de message n'est pas une carte d'attaque, même si l'instruction décrit une action concrète.",
@@ -752,17 +768,15 @@ export function buildDispatcherPrompt(input: {
         expected: {
           direct_effects: [],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
+          skill_signals_entry: {
+            status_recap: {
+              detected: true,
+              confidence_band: "high",
+              reason: "user_requests_durable_status_without_mutation",
+            },
           },
-          skill_signals_entry: {},
           note:
-            "Question d'état durable, MÊME quand elle contient 'quelle préférence coach est appliquée'. Marqueurs de lecture: 'sans rien modifier' + interrogatifs 'quelle/quels'. NE PAS émettre update_coach_preferences: demander QUELLE préférence est active n'est pas demander de la CHANGER. Aucun intent ni effet; normal_reply lit la DB en aval (status_only_no_mutation).",
+            "Question d'état durable, MÊME quand elle contient 'quelle préférence coach est appliquée'. Marqueurs de lecture: 'sans rien modifier' + interrogatifs 'quelle/quels'. NE PAS émettre update_coach_preferences: demander QUELLE préférence est active n'est pas demander de la CHANGER. Route via skill_signals.entry.status_recap.",
         },
       },
       {
@@ -776,14 +790,6 @@ export function buildDispatcherPrompt(input: {
         expected: {
           direct_effects: [],
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            operation_type: null,
-            surface_id: null,
-            should_offer: false,
-            offer_timing: "never",
-            must_not_execute: true,
-          },
           skill_signals_entry: {},
           note:
             "'Ajoute / note / retiens un repère conversationnel' (un aide-mémoire sur le comportement du USER, ex: 'carnet bleu fermé = deux phrases à Léa') = mémoire durable personnelle, captée par l'extraction durable en aval. NE PAS émettre update_coach_preferences: cet outil ne concerne QUE le style/ton/exigence de SOPHIA, pas les repères personnels du user. Route normal_reply.",

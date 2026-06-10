@@ -4,11 +4,7 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { executedToolsForStatus } from "../../router/effect_ledger_adapter.ts";
-import { renderAttackCardFailedReply } from "./prepare_attack_card/renderer.ts";
-import { renderDefenseCardExecuted } from "./prepare_defense_card/renderer.ts";
 import { renderRecurringReminderExecuted } from "./create_recurring_reminder/renderer.ts";
-import { renderSelectStatePotionSkillResult } from "./select_state_potion/renderer.ts";
-import { renderCoachPreferencesExecuted } from "./update_coach_preferences/renderer.ts";
 
 Deno.test("tool skill invariant: executedTools is empty unless execution succeeded", () => {
   assertEquals(executedToolsForStatus("failed", ["prepare_attack_card"]), []);
@@ -31,29 +27,6 @@ Deno.test("tool skill invariant: executedTools is empty unless execution succeed
 });
 
 Deno.test("tool skill invariant: renderers do not claim durable success without committed effects", () => {
-  const attackFailed = renderAttackCardFailedReply();
-  assertEquals(attackFailed.includes("C'est fait"), false);
-
-  const defenseWithoutCommit = renderDefenseCardExecuted({
-    draft: {
-      operation_type: "prepare_defense_card",
-      output_schema: "defense_card_draft_v1",
-      draft: {
-        title: "Carte defense",
-        risk_situation: "le soir",
-        defense_response: "poser le telephone",
-        interruption_phrase: "pause",
-        replacement_action: "respirer",
-        support_message: "reste simple",
-      },
-      confirmation_message: "Créer ?",
-      confirmation_actions: ["yes", "no"],
-    } as any,
-    committedEffects: [],
-  });
-  assertStringIncludes(defenseWithoutCommit, "pas de confirmation DB");
-  assertEquals(defenseWithoutCommit.includes("C'est fait"), false);
-
   const recurringWithoutCommit = renderRecurringReminderExecuted({
     draft: {
       operation_type: "create_recurring_reminder",
@@ -75,43 +48,53 @@ Deno.test("tool skill invariant: renderers do not claim durable success without 
   assertStringIncludes(recurringWithoutCommit, "DB ne l'a pas confirmé");
   assertEquals(recurringWithoutCommit.includes("C'est fait"), false);
 
-  const potionWithoutCommit = renderSelectStatePotionSkillResult({
-    handled: true,
-    status: "executed",
-    user_intent: "activate",
-    constraints: [],
-    reply: "Potion activée.",
-    requested_effects: [],
-    allowed_effects: [],
-    blocked_effects: [],
-    committed_effects: [],
-    effect_ledger: {
-      requested_effects: [],
-      allowed_effects: [],
-      blocked_effects: [],
-      committed_effects: [],
-    },
-    debug: { reason_code: "test", evidence: [] },
-  });
-  assertStringIncludes(potionWithoutCommit, "pas de confirmation DB");
-  assertEquals(potionWithoutCommit.includes("Potion activée."), false);
-  assertEquals(potionWithoutCommit.includes("C'est fait"), false);
+});
 
-  const coachWithoutCommit = renderCoachPreferencesExecuted({
-    draft: {
-      operation_type: "update_coach_preferences",
-      output_schema: "coach_preferences_patch_draft_v1",
-      draft: {
-        patch: { "coach.tone": "direct" },
-        summary: "ton direct",
+Deno.test("tool skill invariant: prepare_defense_card has no deterministic renderer", async () => {
+  await Deno.stat(
+    new URL("./prepare_defense_card/renderer.ts", import.meta.url),
+  )
+    .then(
+      () => {
+        throw new Error("prepare_defense_card_renderer_should_not_exist");
       },
-      confirmation_message: "Appliquer ?",
-      confirmation_actions: ["yes", "no"],
-    },
-    committedEffects: [],
-  });
-  assertStringIncludes(coachWithoutCommit, "DB ne l'a pas confirmé");
-  assertEquals(coachWithoutCommit.includes("C'est fait"), false);
+      () => undefined,
+    );
+});
+
+Deno.test("tool skill invariant: prepare_attack_card has no deterministic renderer", async () => {
+  const moduleNames: string[] = [];
+  for await (
+    const entry of Deno.readDir(
+      new URL("./prepare_attack_card", import.meta.url),
+    )
+  ) {
+    if (entry.isFile && entry.name.endsWith(".ts")) {
+      moduleNames.push(entry.name);
+    }
+  }
+  assertEquals(moduleNames.sort(), [
+    "contract.ts",
+    "local_flow.ts",
+    "local_flow_test.ts",
+    "platform_fields.ts",
+    "router.ts",
+    "run_support.ts",
+    "state.ts",
+    "visible_agent.ts",
+  ]);
+});
+
+Deno.test("tool skill invariant: update_coach_preferences has no deterministic renderer", async () => {
+  await Deno.stat(
+    new URL("./update_coach_preferences/renderer.ts", import.meta.url),
+  )
+    .then(
+      () => {
+        throw new Error("update_coach_preferences_renderer_should_not_exist");
+      },
+      () => undefined,
+    );
 });
 
 Deno.test("tool skill invariant: migrated operation contracts are importable", async () => {
@@ -135,34 +118,30 @@ Deno.test("tool skill architecture: migrated operations expose expected modules"
     "select_state_potion",
     "update_coach_preferences",
   ];
-  const knownHybridTools = [{
-    name: "prepare_attack_card",
-    reason:
-      "Legacy migration predates the standard intake.ts/effects.ts split but exposes contract/router/executor/renderer.",
-    removal_criteria:
-      "Add standard intake.ts and effects.ts or document the replacement contract in the operation module.",
-  }, {
-    name: "prepare_defense_card",
-    reason:
-      "Legacy migration predates the standard intake.ts/effects.ts split but exposes contract/router/executor/renderer.",
-    removal_criteria:
-      "Add standard intake.ts and effects.ts or document the replacement contract in the operation module.",
-  }];
-  const hybrid = new Set(knownHybridTools.map((tool) => tool.name));
-  assert(
-    knownHybridTools.every((tool) => tool.reason && tool.removal_criteria),
-  );
-
   for (const operation of operations) {
-    for (
-      const file of ["contract.ts", "router.ts", "executor.ts", "renderer.ts"]
-    ) {
+    const files = operation === "prepare_attack_card"
+      ? ["contract.ts", "router.ts", "local_flow.ts", "visible_agent.ts"]
+      : operation === "adjust_plan_item"
+      ? ["contract.ts", "router.ts", "local_flow.ts", "visible_agent.ts"]
+      : operation === "select_state_potion"
+      ? ["contract.ts", "router.ts", "handoff.ts", "visible_agents/agent.ts"]
+      : operation === "prepare_defense_card" ||
+          operation === "update_coach_preferences"
+      ? ["contract.ts", "router.ts", "local_flow.ts", "visible_agent.ts"]
+      : ["contract.ts", "router.ts", "executor.ts", "renderer.ts"];
+    for (const file of files) {
       const stat = await Deno.stat(
         new URL(`./${operation}/${file}`, import.meta.url),
       );
       assert(stat.isFile, `${operation}/${file}`);
     }
-    if (!hybrid.has(operation)) {
+    if (
+      operation !== "prepare_attack_card" &&
+      operation !== "adjust_plan_item" &&
+      operation !== "select_state_potion" &&
+      operation !== "prepare_defense_card" &&
+      operation !== "update_coach_preferences"
+    ) {
       const intake = await Deno.stat(
         new URL(`./${operation}/intake.ts`, import.meta.url),
       );

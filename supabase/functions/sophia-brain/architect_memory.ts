@@ -51,33 +51,6 @@ function compactText(value: unknown, maxLen = 800): string {
   return text.length <= maxLen ? text : `${text.slice(0, maxLen - 1).trim()}…`;
 }
 
-function normalizeText(value: unknown): string {
-  return String(value ?? "")
-    .toLowerCase()
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ");
-}
-
-function tokenize(value: unknown): Set<string> {
-  return new Set(
-    normalizeText(value)
-      .split(/\s+/)
-      .map((part) => part.trim())
-      .filter((part) => part.length >= 3),
-  );
-}
-
-function jaccard(a: Set<string>, b: Set<string>): number {
-  if (a.size === 0 || b.size === 0) return 0;
-  let inter = 0;
-  for (const v of a) if (b.has(v)) inter++;
-  const union = a.size + b.size - inter;
-  return union > 0 ? inter / union : 0;
-}
-
 function stripFence(text: string): string {
   return String(text ?? "")
     .replace(/^```json\s*/i, "")
@@ -133,10 +106,15 @@ function extractStructuredText(value: unknown): string {
 }
 
 export function deriveWeekNumFromModuleId(moduleId: string): number | null {
-  const moduleMatch = String(moduleId ?? "").match(/^a(\d+)_/);
-  if (moduleMatch) return Number(moduleMatch[1]);
-  const weekMatch = String(moduleId ?? "").match(/^week_(\d+)$/);
-  if (weekMatch) return Number(weekMatch[1]);
+  const raw = String(moduleId ?? "").trim();
+  const suffix = raw.startsWith("a")
+    ? raw.slice(1).split("_")[0]
+    : raw.startsWith("week_")
+    ? raw.slice("week_".length)
+    : "";
+  if (suffix && [...suffix].every((char) => char >= "0" && char <= "9")) {
+    return Number(suffix);
+  }
   return null;
 }
 
@@ -171,31 +149,8 @@ export function classifyArchitectUpdateKind(
   oldText: string,
   newText: string,
 ): ArchitectUpdateKind {
-  const previous = normalizeText(oldText);
-  const current = normalizeText(newText);
-  if (!previous) return "creation";
-  if (!current || previous === current) return "precision";
-  if (current.includes(previous) && current.length >= previous.length + 24) {
-    return "precision";
-  }
-
-  const overlap = jaccard(tokenize(previous), tokenize(current));
-  const negationChanged =
-    /\b(ne|pas|jamais|plus|aucun|rien)\b/.test(previous) !==
-      /\b(ne|pas|jamais|plus|aucun|rien)\b/.test(current);
-  if (negationChanged && overlap >= 0.2) return "contradiction";
-  if (overlap < 0.16) return "contradiction";
-  if (overlap >= 0.58) return "precision";
-  return "correction";
-}
-
-function isTrivialReformulation(oldText: string, newText: string): boolean {
-  const previous = normalizeText(oldText);
-  const current = normalizeText(newText);
-  if (!previous || !current) return false;
-  if (previous === current) return true;
-  const overlap = jaccard(tokenize(previous), tokenize(current));
-  return overlap >= 0.92;
+  void newText;
+  return String(oldText ?? "").trim() ? "correction" : "creation";
 }
 
 function buildArchitectProvenance(params: {
@@ -284,25 +239,11 @@ async function detectIdentityShiftFromArchitectChange(params: {
     };
   }
 
-  const fallbackHeuristic = (): IdentityShiftDecision => {
-    const overlap = jaccard(tokenize(params.oldText), tokenize(params.newText));
-    const strongPrimaryMemoryDelta =
-      params.memoryCounts.globalMemoriesCreated +
-        params.memoryCounts.globalMemoriesUpdated +
-        params.memoryCounts.topicsCreated +
-        params.memoryCounts.topicsEnriched >
-      0;
-    const shouldUpdate =
-      strongPrimaryMemoryDelta &&
-      params.updateKind === "contradiction" &&
-      params.newText.length >= 120 &&
-      overlap <= 0.45;
+  const neutralIdentityShiftDecision = (): IdentityShiftDecision => {
     return {
-      shouldUpdate,
-      confidence: shouldUpdate ? 0.62 : 0.28,
-      reason: shouldUpdate
-        ? "fallback_heuristic_contradiction"
-        : "fallback_heuristic_no_shift",
+      shouldUpdate: false,
+      confidence: 0,
+      reason: "identity_shift_ai_unavailable",
     };
   };
 
@@ -359,7 +300,7 @@ Réponds en JSON strict:
       },
     );
     const parsed = typeof raw === "string" ? extractJsonObject(raw) : null;
-    if (!parsed) return fallbackHeuristic();
+    if (!parsed) return neutralIdentityShiftDecision();
     return {
       shouldUpdate: Boolean(parsed.should_update_core_identity),
       confidence: Math.max(
@@ -369,7 +310,7 @@ Réponds en JSON strict:
       reason: compactText(parsed.reason, 220) || "identity_shift_decision",
     };
   } catch {
-    return fallbackHeuristic();
+    return neutralIdentityShiftDecision();
   }
 }
 
@@ -429,35 +370,6 @@ export async function ingestArchitectMemorySource(params: {
       processed: false,
       skipped: true,
       reason: "content_too_short",
-      topicsCreated: 0,
-      topicsEnriched: 0,
-      topicsNoop: 0,
-      eventsCreated: 0,
-      eventsUpdated: 0,
-      eventsNoop: 0,
-      globalMemoriesCreated: 0,
-      globalMemoriesUpdated: 0,
-      globalMemoriesNoop: 0,
-      globalMemoriesPendingCompaction: 0,
-      identityUpdated: false,
-      provenance: null,
-    };
-    await emitIngestionEvent({
-      source_type: kind,
-      table_name: tableName,
-      module_id: moduleId,
-      reason: result.reason,
-      skipped: result.skipped,
-      processed: result.processed,
-    });
-    return result;
-  }
-
-  if (oldText && isTrivialReformulation(oldText, newText)) {
-    const result = {
-      processed: false,
-      skipped: true,
-      reason: "trivial_reformulation",
       topicsCreated: 0,
       topicsEnriched: 0,
       topicsNoop: 0,

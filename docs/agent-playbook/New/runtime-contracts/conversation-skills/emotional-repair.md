@@ -30,7 +30,7 @@ par défaut. Il ne commit jamais un effet durable.
 Ce domaine dépend de:
 
 - `UserTurnSnapshot` pour lire l'état complet du tour;
-- `TurnAgenda` pour distinguer reply/effects/status/memory/repair;
+- `local reducer contract` pour distinguer reply/effects/status/memory/repair;
 - `Confirmation Contract` pour garantir qu'un handoff complexe n'est pas une
   confirmation exécutable;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé;
@@ -46,7 +46,7 @@ prépare dans `buildSkillContextForRecommendation`, sous forme de `SkillContext`
 conversationnels et les éléments de contexte déjà admis par le dispatcher. Il ne
 relit pas la base de données pour comprendre le tour.
 
-`TurnAgenda` reste une responsabilité du runtime global: il décide quel type de
+`local reducer contract` reste une responsabilité du runtime global: il décide quel type de
 travail est ouvert pour le tour (`reply`, `effect`, `status`, `memory`,
 `repair`). `emotional_repair` ne modifie pas cette agenda. Quand il est appelé,
 il possède uniquement la réponse de réparation émotionnelle et les suggestions
@@ -316,7 +316,7 @@ remplacées par le contrat local, le reducer et les validations.
 Deux limites transitionnelles restent documentées:
 
 - le runtime passe encore un `SkillContext` dérivé plutôt qu'un
-  `UserTurnSnapshot`/`TurnAgenda` unique et typé de bout en bout;
+  `UserTurnSnapshot`/`local reducer contract` unique et typé de bout en bout;
 - `routers/routers.ts` conserve l'arbitrage global `emotion_dominates` pour
   protéger la réponse conversationnelle contre un tool skill concurrent.
 

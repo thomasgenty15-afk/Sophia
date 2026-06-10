@@ -173,7 +173,7 @@
 
 **Trace courte**
 - T14: normal_reply, no tool.
-- T15: normal_reply, route_reason `status_only_request_blocks_tool_start`, no tool.
+- T15: normal_reply, route_reason `status_recap_request_blocks_tool_start`, no tool.
 
 ## 3. Analyse De Fluidite Humaine
 
@@ -201,7 +201,7 @@
 - `pending_defense_card_confirmation_priority` priorise bien la confirmation au tour 4.
 - `immediate_mode_request_not_state_potion` bloque la potion au tour 7.
 - `local_memory_reformulation_not_recurring_reminder` bloque le rappel recurrent au tour 11.
-- `status_only_request_blocks_tool_start` bloque toute mutation au tour 15.
+- `status_recap_request_blocks_tool_start` bloque toute mutation au tour 15.
 
 **Skills / Operations / Tools**
 - `prepare_defense_card`: pending puis execution apres oui explicite uniquement.

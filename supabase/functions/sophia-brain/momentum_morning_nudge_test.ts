@@ -6,6 +6,7 @@ import {
 
 import {
   buildMomentumMorningPlan,
+  buildMorningNudgeAnchorV2,
   buildMorningNudgePayloadV2,
   buildMorningNudgePlanV2,
   type LastNudgeInfo,
@@ -341,6 +342,147 @@ Deno.test("V2 morning nudge: soutien_emotionnel + high emotional → protective_
   );
 });
 
+Deno.test("V2 morning nudge: emotional pulse creates soft anchor without exposing raw topic", () => {
+  const pulse: ConversationPulse = {
+    version: 1,
+    generated_at: NOW_ISO,
+    window_days: 7,
+    last_72h_weight: 0.8,
+    tone: {
+      dominant: "strained",
+      emotional_load: "high",
+      relational_openness: "open",
+    },
+    trajectory: {
+      direction: "down",
+      confidence: "high",
+      summary: "La fin de journee etait tendue.",
+    },
+    highlights: {
+      wins: [],
+      friction_points: ["la discussion avec son frere"],
+      support_that_helped: [],
+      unresolved_tensions: ["la discussion avec son frere"],
+    },
+    signals: {
+      top_blocker: null,
+      likely_need: "support",
+      upcoming_event: null,
+      proactive_risk: "low",
+    },
+    evidence_refs: {
+      message_ids: ["msg-1", "msg-2", "msg-3"],
+      event_ids: [],
+    },
+  };
+  const input = makeV2Input({
+    conversationPulse: pulse,
+    momentumV2: makeStoredMomentumV2({
+      current_state: "soutien_emotionnel",
+      dimensions: {
+        engagement: { level: "medium" },
+        execution_traction: { level: "flat" },
+        emotional_load: { level: "high" },
+        consent: { level: "open" },
+        plan_fit: { level: "uncertain" },
+        load_balance: { level: "balanced" },
+      },
+    }),
+  });
+
+  const anchor = buildMorningNudgeAnchorV2(input);
+  const plan = buildMorningNudgePlanV2(input);
+
+  assertEquals(anchor.kind, "recent_emotional_thread");
+  assertEquals(anchor.label, "la discussion avec son frere");
+  assertEquals(anchor.specificity, "soft");
+  assertEquals(anchor.sensitivity, "sensitive");
+  assertEquals(plan.morning_anchor?.kind, "recent_emotional_thread");
+  assertStringIncludes(
+    String(plan.instruction ?? ""),
+    "sans nommer le detail",
+  );
+  assertStringIncludes(
+    String(plan.fallback_text ?? ""),
+    "quelque chose prenait de la place recemment",
+  );
+  assertEquals(
+    String(plan.event_grounding ?? "").includes(
+      "la discussion avec son frere",
+    ),
+    false,
+  );
+  assertEquals(
+    String(plan.fallback_text ?? "").includes(
+      "la discussion avec son frere",
+    ),
+    false,
+  );
+});
+
+Deno.test("V2 morning nudge: high proactive risk keeps emotional anchor vague", () => {
+  const pulse: ConversationPulse = {
+    version: 1,
+    generated_at: NOW_ISO,
+    window_days: 7,
+    last_72h_weight: 0.8,
+    tone: {
+      dominant: "closed",
+      emotional_load: "high",
+      relational_openness: "closed",
+    },
+    trajectory: {
+      direction: "down",
+      confidence: "medium",
+      summary: "La personne semble fermee.",
+    },
+    highlights: {
+      wins: [],
+      friction_points: ["un sujet familial sensible"],
+      support_that_helped: [],
+      unresolved_tensions: ["un sujet familial sensible"],
+    },
+    signals: {
+      top_blocker: null,
+      likely_need: "support",
+      upcoming_event: null,
+      proactive_risk: "high",
+    },
+    evidence_refs: {
+      message_ids: ["msg-1", "msg-2", "msg-3"],
+      event_ids: [],
+    },
+  };
+  const input = makeV2Input({
+    conversationPulse: pulse,
+    momentumV2: makeStoredMomentumV2({
+      current_state: "soutien_emotionnel",
+      dimensions: {
+        engagement: { level: "low" },
+        execution_traction: { level: "flat" },
+        emotional_load: { level: "high" },
+        consent: { level: "open" },
+        plan_fit: { level: "uncertain" },
+        load_balance: { level: "balanced" },
+      },
+    }),
+  });
+
+  const plan = buildMorningNudgePlanV2(input);
+
+  assertEquals(plan.morning_anchor?.kind, "recent_emotional_thread");
+  assertEquals(plan.morning_anchor?.specificity, "vague");
+  assertEquals(plan.morning_anchor?.user_consent_signal, "avoid");
+  assertStringIncludes(
+    String(plan.instruction ?? ""),
+    "Ne rappelle pas le sujet recent",
+  );
+  assertEquals(
+    String(plan.fallback_text ?? "").includes("un sujet familial sensible"),
+    false,
+  );
+});
+
 // ── Test 3: medium emotional → support_softly ───────────────────────────────
 
 Deno.test("V2 morning nudge: medium emotional load → support_softly", () => {
@@ -408,6 +550,9 @@ Deno.test("V2 morning nudge: upcoming_event in pulse → pre_event_grounding", (
   assertEquals(plan.posture, "pre_event_grounding");
   assertEquals(plan.nudge_kind, "action_nudge");
   assertEquals(plan.intended_followup_flow, "action");
+  assertEquals(plan.morning_anchor?.kind, "upcoming_event");
+  assertEquals(plan.morning_anchor?.specificity, "explicit");
+  assertEquals(plan.morning_anchor?.label, "Entretien d'embauche vendredi");
   assertStringIncludes(
     String(plan.fallback_text ?? ""),
     "Entretien d'embauche vendredi",
@@ -845,5 +990,6 @@ Deno.test("V2 morning nudge payload is canonical and not V1 nominal", () => {
   assertEquals(payload?.opens_local_flow, true);
   assertEquals(payload?.intended_followup_flow, "action");
   assertEquals(payload?.target_item_titles, ["Marcher 10 min"]);
+  assertEquals(payload?.morning_anchor?.kind, "none");
   assertEquals(payload?.sent_at, NOW_ISO);
 });

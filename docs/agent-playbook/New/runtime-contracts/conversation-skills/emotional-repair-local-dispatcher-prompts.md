@@ -116,6 +116,28 @@ Rules :
   bridge cases.
 - `safety_preempt` wins over all repair/potion logic.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `confirm_potion_bridge` when
+`potion_bridge.status=confirmed_handoff`, for `exit_to_global_dispatcher`, and
+for `safety_preempt`. Use `source_flow_id="emotional_repair"` and copy
+`source_flow_presentation` from `flow-presentation-catalog.md`.
+
+Do not produce it for local support/close actions such as `soft_presence`,
+`regulation_without_potion`, `repeat_last_repair`, or `cancel_flow` when no new
+topic or handoff exists. Those are `stop_local_no_handoff`: the reducer chooses
+a local `visible_task`, closes or defers the state, and global is not called on
+the same turn.
+
+Choose `target_dispatcher` as `select_state_potion` for the consented potion
+bridge, `global` for a clear topic change or explicit out-of-flow request, and
+`safety_crisis` for safety preemption. Write
+`handoff_context_for_next_dispatcher` with the repair summary, emotional
+dominance, consent status, selected potion, prefill candidates, weak/missing
+context, and no-chat-mutation status.
+
 ## Prompt 01 - Local Dispatcher
 
 ```txt
@@ -414,4 +436,3 @@ Regles :
 
 Retourne uniquement le message visible.
 ```
-

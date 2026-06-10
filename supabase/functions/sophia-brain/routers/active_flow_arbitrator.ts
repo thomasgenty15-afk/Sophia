@@ -91,26 +91,13 @@ function highConversationEntrySkill(turnFrame: TurnFrame): string | null {
   return null;
 }
 
-function hasToolOpportunity(turnFrame: TurnFrame): boolean {
-  const opportunity = turnFrame.tool_skill_opportunity;
-  return Boolean(
-    opportunity &&
-      opportunity.type !== "none" &&
-      opportunity.operation_type &&
-      (opportunity.should_offer ||
-        opportunity.offer_timing === "after_current_pending"),
-  );
-}
-
 function blockedToolOpportunityIfActive(
   turnFrame: TurnFrame,
   activeOwner: ActiveFlowOwner,
 ): Array<{ path: string; reason_code: string }> {
-  if (activeOwner === "none" || !hasToolOpportunity(turnFrame)) return [];
-  return [{
-    path: "tool_skill_opportunity",
-    reason_code: "active_flow_blocks_tool_opportunity",
-  }];
+  void turnFrame;
+  void activeOwner;
+  return [];
 }
 
 export function runActiveFlowArbitrator(input: {
@@ -295,7 +282,7 @@ export function runActiveFlowArbitrator(input: {
       selected_handler: activeToolOperation ?? input.tool_skill.operation_type,
       resume_policy: "none",
       reason_code: opportunityBlocks.length > 0
-        ? "active_flow_defers_tool_skill_opportunity"
+        ? "active_flow_defers_flow_opportunity"
         : "active_tool_skill_continue",
       blocked_paths: opportunityBlocks,
     };
@@ -372,7 +359,7 @@ export function runActiveFlowArbitrator(input: {
         input.skill.selected_skill_id,
       resume_policy: "none",
       reason_code: opportunityBlocks.length > 0
-        ? "active_flow_defers_tool_skill_opportunity"
+        ? "active_flow_defers_flow_opportunity"
         : "active_conversation_skill_continue",
       blocked_paths: opportunityBlocks,
     };

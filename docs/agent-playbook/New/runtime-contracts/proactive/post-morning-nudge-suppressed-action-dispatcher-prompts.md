@@ -32,6 +32,26 @@ Routes non visibles :
 - `exit_to_global_dispatcher` ne produit pas de message local si le global doit
   reanalyser le meme message. Le local doit fournir un `exit_memo`.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, and inline product/status roundtrips if enabled. Use
+`source_flow_id="post_morning_nudge.suppressed_action"` and copy the catalog
+presentation.
+
+Do not produce it for `protective_close`, `confirm_no_action_today`,
+`negative_nudge_feedback`, `cancel_flow`, or other local close/support actions
+when no new dispatcher is called. Those are `stop_local_no_handoff` actions and
+global must not run on the same turn.
+
+Choose `target_dispatcher` as `global` for an explicit other tool, product,
+status, preference, new goal, or topic change when not inline, and
+`safety_crisis` for safety. The handoff context must include source nudge
+summary, suppressed actions, suppression reason, last local assessment, and the
+protection constraint.
+
 ## Mission Du Flow
 
 Le flow `post_morning_nudge.suppressed_action` sert a preserver le choix du
@@ -632,4 +652,3 @@ Checks interdits :
 - Global dispatcher does not run while local suppressed action flow is active.
 - Global dispatcher runs only after `exit_to_global_dispatcher`.
 - No durable effect is created by this flow.
-

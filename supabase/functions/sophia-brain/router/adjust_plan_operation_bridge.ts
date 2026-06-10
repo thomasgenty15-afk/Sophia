@@ -9,7 +9,6 @@ import {
 import {
   maybeRunAdjustPlanItemOperation as maybeRunAdjustPlanItemOperationInSkill,
 } from "../tools/operations/adjust_plan_item/router.ts";
-import { isPendingAdjustPlanItemRecommendationOperation } from "../tools/operations/adjust_plan_item/state.ts";
 import {
   isCopyForwardWeeklyRequest,
   isExplicitPendingApplyConfirmation,
@@ -199,7 +198,6 @@ export async function maybeRunAdjustPlanItemOperation(args: {
       isAdjustPlanRevisionIntent,
       operationRouteIsSelected,
       isVagueWholePlanWeeklyAdjustmentRequest,
-      isPendingAdjustPlanItemRecommendationOperation,
       isBroaderPlanAdjustmentInput,
       hasStrongToolSkillIntent,
       readLastResolvedPlanItem,

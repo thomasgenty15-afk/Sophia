@@ -7,7 +7,7 @@
 - Persona: utilisateur QA dédié `qa-normal-global_run_A3_20260528_strict_r3-1779979241714@example.com`, user id `0532eeb8-9c34-483b-8699-8d5643f82192`.
 - Objectif: vérifier si les corrections après A3 r2 ont corrigé le refus d'attaque card et stabilisé les effets durables.
 - Trajectoire: surcharge légère -> refus attaque/A-B -> risque Slack/Nora -> carte de défense -> rappel ponctuel -> product help rappel -> préférence coach -> carte d'attaque -> soutien émotionnel -> recap statut.
-- Surfaces visées: `execution_breakdown`, `prepare_defense_card`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_only_no_mutation_check`, mémoire/préférences.
+- Surfaces visées: `execution_breakdown`, `prepare_defense_card`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_recap`, mémoire/préférences.
 - Cadre IA réel: Supabase local, endpoint local `test-send-message`, `force_full_ai=true`, pas de fallback déterministe, pas de replay pré-scripté. Chaque message utilisateur a été choisi après lecture de la réponse Sophia et de la trace courte précédente.
 - Validité QA: valide. 15 tours complets, `http_status=200` partout, aucune réponse vide, aucun abort. Vérification DB: 30 `chat_messages` pour 15 tours, scope/persona isolé.
 - Note environnement: les logs serveur montrent des requêtes concurrentes d'autres run ids (`A2`, `A4`, `A5`) pendant la fenêtre. Elles n'ont pas écrit dans le `user_id` A3 r3 vérifié; le transcript et les effets durables A3 r3 restent isolés.
@@ -316,7 +316,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: `null`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - executed_tools: `[]`
 - tool_execution: `none`

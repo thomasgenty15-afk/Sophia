@@ -1,0 +1,3142 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+    "auth_method": "refresh_token",
+    "user": "Je suis en train de lâcher mon plan. Je fais encore deux trois gestes, mais honnêtement je ne sens plus le lien avec ce que je voulais construire, donc j'avance en pilote automatique.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+      "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est épuisant d'avancer quand on a l'impression que les gestes n'ont plus de résonance et que le pilote automatique a pris les commandes. Ce sentiment de déconnexion n'est pas un manque de force, c'est le signe que le lien entre tes efforts quotidiens et ta direction initiale s'est distendu.\n\nÀ quel moment as-tu eu l'impression que ce que tu fais chaque jour a cessé de nourrir ton projet de départ ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+            "source_message_id": "05d4cc08-ea78-4a81-afa3-429285eae1b2",
+            "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": {
+              "opportunity_id": "adjust_plan_item.plan_adjustment",
+              "target_kind": "tool_skill",
+              "target_flow": "adjust_plan_item",
+              "confidence": "high",
+              "priority": 70,
+              "reason": "user_reports_loss_of_meaning_and_detachment_from_plan",
+              "evidence": [
+                "Je suis en train de lâcher mon plan",
+                "je ne sens plus le lien avec ce que je voulais construire",
+                "j'avance en pilote automatique"
+              ],
+              "seed_context": {
+                "target_hint": "whole_plan",
+                "surface": "plan_management"
+              }
+            },
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "source_flow_presentation": "Global dispatcher identified a loss of motivation and a structural detachment from the plan.",
+              "source_flow_state_summary": "signal=skill_entry; target=demotivation_repair; opportunity=adjust_plan_item; confidence=high",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "demotivation_repair",
+              "handoff_context_for_next_dispatcher": "User expresses a loss of connection with their plan and is acting on autopilot. Prioritize demotivation repair to reconnect with the 'why' before offering the plan adjustment opportunity.",
+              "target_local_dispatcher_hint": "Run demotivation_repair. If the user confirms the need to change the structure, bridge to adjust_plan_item.",
+              "user_words": [
+                "lâcher mon plan",
+                "ne sens plus le lien",
+                "pilote automatique"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.demotivation_repair",
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "je ne sens plus le lien avec ce que je voulais construire",
+                  "j'avance en pilote automatique"
+                ]
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "skill_signals": {
+              "entry": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_expresses_loss_of_meaning_and_autopilot_execution"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": "current plan structure and goals",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.motivation",
+                  "query_hint": "previous patterns of autopilot or loss of meaning",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "objectifs.transformation",
+                  "query_hint": "initial vision and construction goals",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "demotivation_repair"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "demotivation_repair"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "demotivation_repair",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "skill_entry_signal"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "continue",
+              "response_intent": "restore_meaning",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est épuisant d'avancer quand on a l'impression que les gestes n'ont plus de résonance et que le pilote automatique a pris les commandes. Ce sentiment de déconnexion n'est pas un manque de force, c'est le signe que le lien entre tes efforts quotidiens et ta direction initiale s'est distendu.\n\nÀ quel moment as-tu eu l'impression que ce que tu fais chaque jour a cessé de nourrir ton projet de départ ?",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "restore_meaning",
+                "visible_task": "restore_meaning",
+                "potion_bridge_status": "candidate",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_local_continue",
+                "evidence": [
+                  "Le user exprime explicitement une perte de lien avec son intention initiale ('ne sens plus le lien') et un mode de fonctionnement mécanique ('pilote automatique')."
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "no_potion",
+                  "no_tool",
+                  "do_not_moralize",
+                  "one_question_max"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": {
+                  "skill_id": "demotivation_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "none",
+                    "summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                    "user_words": [
+                      "lâcher mon plan",
+                      "ne sens plus le lien",
+                      "pilote automatique"
+                    ],
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "last_visible_task": "restore_meaning",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-09T20:59:09.700Z",
+                  "updated_at": "2026-06-09T20:59:09.700Z"
+                },
+                "demotivation_repair_visible_task": {
+                  "kind": "restore_meaning",
+                  "conversation_context": {
+                    "state_summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                    "user_words": [
+                      "lâcher mon plan",
+                      "ne sens plus le lien",
+                      "pilote automatique"
+                    ],
+                    "field_or_stage": "restore_meaning",
+                    "known_values": {
+                      "intent": "loss_of_meaning",
+                      "phase": "restore_meaning",
+                      "motivation_state": "loss_of_meaning",
+                      "action_readiness": "none",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": true
+                    },
+                    "missing_or_weak_values": [
+                      "Validation conversationnelle du diagnostic de perte de sens"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "meaning_reconnection",
+                      "durable_need_summary": "Besoin de retrouver le lien entre les actions quotidiennes et la vision long terme."
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "energy_preserving",
+                      "no_potion",
+                      "no_tool",
+                      "do_not_moralize",
+                      "one_question_max"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de potion.",
+                      "Ne propose pas d'outil."
+                    ],
+                    "context_summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                    "evidence_used": [
+                      "Le user exprime explicitement une perte de lien avec son intention initiale ('ne sens plus le lien') et un mode de fonctionnement mécanique ('pilote automatique')."
+                    ],
+                    "db_context_summary": null,
+                    "memory_context_summary": null,
+                    "max_questions": 0
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+          "source_message_id": "05d4cc08-ea78-4a81-afa3-429285eae1b2",
+          "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": {
+            "opportunity_id": "adjust_plan_item.plan_adjustment",
+            "target_kind": "tool_skill",
+            "target_flow": "adjust_plan_item",
+            "confidence": "high",
+            "priority": 70,
+            "reason": "user_reports_loss_of_meaning_and_detachment_from_plan",
+            "evidence": [
+              "Je suis en train de lâcher mon plan",
+              "je ne sens plus le lien avec ce que je voulais construire",
+              "j'avance en pilote automatique"
+            ],
+            "seed_context": {
+              "target_hint": "whole_plan",
+              "surface": "plan_management"
+            }
+          },
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "source_flow_presentation": "Global dispatcher identified a loss of motivation and a structural detachment from the plan.",
+            "source_flow_state_summary": "signal=skill_entry; target=demotivation_repair; opportunity=adjust_plan_item; confidence=high",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "demotivation_repair",
+            "handoff_context_for_next_dispatcher": "User expresses a loss of connection with their plan and is acting on autopilot. Prioritize demotivation repair to reconnect with the 'why' before offering the plan adjustment opportunity.",
+            "target_local_dispatcher_hint": "Run demotivation_repair. If the user confirms the need to change the structure, bridge to adjust_plan_item.",
+            "user_words": [
+              "lâcher mon plan",
+              "ne sens plus le lien",
+              "pilote automatique"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.demotivation_repair",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "je ne sens plus le lien avec ce que je voulais construire",
+                "j'avance en pilote automatique"
+              ]
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "skill_signals": {
+            "entry": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_expresses_loss_of_meaning_and_autopilot_execution"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": "current plan structure and goals",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.motivation",
+                "query_hint": "previous patterns of autopilot or loss of meaning",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "objectifs.transformation",
+                "query_hint": "initial vision and construction goals",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "demotivation_repair"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "demotivation_repair"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "demotivation_repair",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "skill_entry_signal"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "continue",
+            "response_intent": "restore_meaning",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est épuisant d'avancer quand on a l'impression que les gestes n'ont plus de résonance et que le pilote automatique a pris les commandes. Ce sentiment de déconnexion n'est pas un manque de force, c'est le signe que le lien entre tes efforts quotidiens et ta direction initiale s'est distendu.\n\nÀ quel moment as-tu eu l'impression que ce que tu fais chaque jour a cessé de nourrir ton projet de départ ?",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "restore_meaning",
+              "visible_task": "restore_meaning",
+              "potion_bridge_status": "candidate",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_local_continue",
+              "evidence": [
+                "Le user exprime explicitement une perte de lien avec son intention initiale ('ne sens plus le lien') et un mode de fonctionnement mécanique ('pilote automatique')."
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "no_potion",
+                "no_tool",
+                "do_not_moralize",
+                "one_question_max"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": {
+                "skill_id": "demotivation_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "loss_of_meaning",
+                  "phase": "restore_meaning",
+                  "motivation_state": "loss_of_meaning",
+                  "action_readiness": "none",
+                  "summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                  "user_words": [
+                    "lâcher mon plan",
+                    "ne sens plus le lien",
+                    "pilote automatique"
+                  ],
+                  "identity_freeze_risk": false,
+                  "motivation_source_diagnosed": true
+                },
+                "last_visible_task": "restore_meaning",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-09T20:59:09.700Z",
+                "updated_at": "2026-06-09T20:59:09.700Z"
+              },
+              "demotivation_repair_visible_task": {
+                "kind": "restore_meaning",
+                "conversation_context": {
+                  "state_summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                  "user_words": [
+                    "lâcher mon plan",
+                    "ne sens plus le lien",
+                    "pilote automatique"
+                  ],
+                  "field_or_stage": "restore_meaning",
+                  "known_values": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "none",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "missing_or_weak_values": [
+                    "Validation conversationnelle du diagnostic de perte de sens"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": "meaning_reconnection",
+                    "durable_need_summary": "Besoin de retrouver le lien entre les actions quotidiennes et la vision long terme."
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "energy_preserving",
+                    "no_potion",
+                    "no_tool",
+                    "do_not_moralize",
+                    "one_question_max"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de potion.",
+                    "Ne propose pas d'outil."
+                  ],
+                  "context_summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial.",
+                  "evidence_used": [
+                    "Le user exprime explicitement une perte de lien avec son intention initiale ('ne sens plus le lien') et un mode de fonctionnement mécanique ('pilote automatique')."
+                  ],
+                  "db_context_summary": null,
+                  "memory_context_summary": null,
+                  "max_questions": 0
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Le user exprime une déconnexion profonde avec le sens de son plan, agissant par automatisme sans ressentir le lien avec l'objectif initial."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+    "auth_method": "refresh_token",
+    "user": "Je crois que ça a décroché quand mes actions sont devenues juste une liste à vider. Au départ c'était pour retrouver de la marge et arrêter de subir, mais là je coche des choses sans sentir que ça me rend plus libre.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+      "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est épuisant de vider une liste de tâches sans jamais sentir que cela allège vraiment ton quotidien ou te redonne de l'air. Quand l'action devient purement mécanique, on finit par oublier pourquoi on a commencé tout ça : pour arrêter de subir et retrouver une vraie liberté de mouvement.\n\nParmi les actions que tu enchaînes en ce moment, laquelle te semble avoir le moins de rapport avec cette sensation de marge que tu voulais initialement créer ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+            "source_message_id": "f005a434-7b20-485a-90d1-b7539605c4e7",
+            "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": {
+              "opportunity_id": "adjust_plan_item.plan_adjustment",
+              "target_kind": "tool_skill",
+              "target_flow": "adjust_plan_item",
+              "confidence": "medium",
+              "priority": 50,
+              "reason": "user_describes_plan_as_meaningless_list_to_empty",
+              "evidence": [
+                "mes actions sont devenues juste une liste à vider",
+                "je coche des choses sans sentir que ça me rend plus libre"
+              ],
+              "seed_context": {
+                "target_hint": "current_level",
+                "surface": "plan_management"
+              }
+            },
+            "note_information": null,
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_responds_to_meaning_reconnection_prompt"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.motivation",
+                  "query_hint": "perte de sens et pilote automatique",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": "structure du plan actuel",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_conversation_skill_continue",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "conversation_skill",
+              "selected_owner": "conversation_skill",
+              "resume_policy": "none",
+              "reason_code": "active_conversation_skill_continue"
+            },
+            "selected_handler": "demotivation_repair"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "demotivation_repair"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "demotivation_repair",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "active_conversation_skill_continue"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "active_conversation_skill_continue",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "continue",
+              "response_intent": "restore_meaning",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est épuisant de vider une liste de tâches sans jamais sentir que cela allège vraiment ton quotidien ou te redonne de l'air. Quand l'action devient purement mécanique, on finit par oublier pourquoi on a commencé tout ça : pour arrêter de subir et retrouver une vraie liberté de mouvement.\n\nParmi les actions que tu enchaînes en ce moment, laquelle te semble avoir le moins de rapport avec cette sensation de marge que tu voulais initialement créer ?",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "restore_meaning",
+                "visible_task": "restore_meaning",
+                "potion_bridge_status": "not_applicable",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_local_continue",
+                "evidence": [
+                  "actions devenues une liste à vider",
+                  "retrouver de la marge",
+                  "arrêter de subir",
+                  "sans sentir que ça me rend plus libre"
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "do_not_moralize"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": {
+                  "skill_id": "demotivation_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "none",
+                    "summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                    "user_words": [
+                      "une liste à vider",
+                      "retrouver de la marge",
+                      "arrêter de subir",
+                      "plus libre"
+                    ],
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "last_visible_task": "restore_meaning",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                  "turn_count": 2,
+                  "max_turns": 6,
+                  "created_at": "2026-06-09T20:59:09.700Z",
+                  "updated_at": "2026-06-09T21:00:30.149Z"
+                },
+                "demotivation_repair_visible_task": {
+                  "kind": "restore_meaning",
+                  "conversation_context": {
+                    "state_summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                    "user_words": [
+                      "une liste à vider",
+                      "retrouver de la marge",
+                      "arrêter de subir",
+                      "plus libre"
+                    ],
+                    "field_or_stage": "restore_meaning",
+                    "known_values": {
+                      "intent": "loss_of_meaning",
+                      "phase": "restore_meaning",
+                      "motivation_state": "loss_of_meaning",
+                      "action_readiness": "none",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": true
+                    },
+                    "missing_or_weak_values": [
+                      "meaning_anchor_precise"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": null,
+                      "durable_need_summary": null
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "energy_preserving",
+                      "do_not_moralize"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message."
+                    ],
+                    "context_summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                    "evidence_used": [
+                      "actions devenues une liste à vider",
+                      "retrouver de la marge",
+                      "arrêter de subir",
+                      "sans sentir que ça me rend plus libre"
+                    ],
+                    "db_context_summary": "Aucun contexte plan exploitable supplémentaire.",
+                    "memory_context_summary": "Mémoire proche utilisée seulement pour relier la perte de sens au plan actif.",
+                    "max_questions": 1
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+          "source_message_id": "f005a434-7b20-485a-90d1-b7539605c4e7",
+          "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": {
+            "opportunity_id": "adjust_plan_item.plan_adjustment",
+            "target_kind": "tool_skill",
+            "target_flow": "adjust_plan_item",
+            "confidence": "medium",
+            "priority": 50,
+            "reason": "user_describes_plan_as_meaningless_list_to_empty",
+            "evidence": [
+              "mes actions sont devenues juste une liste à vider",
+              "je coche des choses sans sentir que ça me rend plus libre"
+            ],
+            "seed_context": {
+              "target_hint": "current_level",
+              "surface": "plan_management"
+            }
+          },
+          "note_information": null,
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_responds_to_meaning_reconnection_prompt"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.motivation",
+                "query_hint": "perte de sens et pilote automatique",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": "structure du plan actuel",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "active_conversation_skill_continue",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "conversation_skill",
+            "selected_owner": "conversation_skill",
+            "resume_policy": "none",
+            "reason_code": "active_conversation_skill_continue"
+          },
+          "selected_handler": "demotivation_repair"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "demotivation_repair"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "demotivation_repair",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "active_conversation_skill_continue"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "active_conversation_skill_continue",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "continue",
+            "response_intent": "restore_meaning",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est épuisant de vider une liste de tâches sans jamais sentir que cela allège vraiment ton quotidien ou te redonne de l'air. Quand l'action devient purement mécanique, on finit par oublier pourquoi on a commencé tout ça : pour arrêter de subir et retrouver une vraie liberté de mouvement.\n\nParmi les actions que tu enchaînes en ce moment, laquelle te semble avoir le moins de rapport avec cette sensation de marge que tu voulais initialement créer ?",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "restore_meaning",
+              "visible_task": "restore_meaning",
+              "potion_bridge_status": "not_applicable",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_local_continue",
+              "evidence": [
+                "actions devenues une liste à vider",
+                "retrouver de la marge",
+                "arrêter de subir",
+                "sans sentir que ça me rend plus libre"
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "do_not_moralize"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": {
+                "skill_id": "demotivation_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "loss_of_meaning",
+                  "phase": "restore_meaning",
+                  "motivation_state": "loss_of_meaning",
+                  "action_readiness": "none",
+                  "summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                  "user_words": [
+                    "une liste à vider",
+                    "retrouver de la marge",
+                    "arrêter de subir",
+                    "plus libre"
+                  ],
+                  "identity_freeze_risk": false,
+                  "motivation_source_diagnosed": true
+                },
+                "last_visible_task": "restore_meaning",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                "turn_count": 2,
+                "max_turns": 6,
+                "created_at": "2026-06-09T20:59:09.700Z",
+                "updated_at": "2026-06-09T21:00:30.149Z"
+              },
+              "demotivation_repair_visible_task": {
+                "kind": "restore_meaning",
+                "conversation_context": {
+                  "state_summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                  "user_words": [
+                    "une liste à vider",
+                    "retrouver de la marge",
+                    "arrêter de subir",
+                    "plus libre"
+                  ],
+                  "field_or_stage": "restore_meaning",
+                  "known_values": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "none",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "missing_or_weak_values": [
+                    "meaning_anchor_precise"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": null,
+                    "durable_need_summary": null
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "energy_preserving",
+                    "do_not_moralize"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message."
+                  ],
+                  "context_summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée.",
+                  "evidence_used": [
+                    "actions devenues une liste à vider",
+                    "retrouver de la marge",
+                    "arrêter de subir",
+                    "sans sentir que ça me rend plus libre"
+                  ],
+                  "db_context_summary": "Aucun contexte plan exploitable supplémentaire.",
+                  "memory_context_summary": "Mémoire proche utilisée seulement pour relier la perte de sens au plan actif.",
+                  "max_questions": 1
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Le user décrit une perte du lien entre ses actions et le sens initial du plan: il coche des tâches sans retrouver la sensation de liberté et de marge recherchée."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+    "auth_method": "refresh_token",
+    "user": "C'est surtout le bilan du soir. Je le fais parce qu'il est dans le plan, mais il est devenu administratif. Ce dont j'aurais besoin, c'est de retrouver en une phrase pourquoi ce bilan sert ma liberté, sinon je vais finir par le laisser tomber.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+      "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Quand un rituel devient purement administratif, il cesse de nourrir ton projet et finit par peser. Pour que ce bilan redevienne un levier de ta liberté, qu'est-ce qu'il te permet de mettre à l'abri ou de décider concrètement pour la suite ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+            "source_message_id": "41423e7a-f023-4a5a-bd80-fae1f68895e2",
+            "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_conversation_skill_continue",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "conversation_skill",
+              "selected_owner": "conversation_skill",
+              "resume_policy": "none",
+              "reason_code": "active_conversation_skill_continue"
+            },
+            "selected_handler": "demotivation_repair"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "demotivation_repair"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "demotivation_repair",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "active_conversation_skill_continue"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "active_conversation_skill_continue",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "continue",
+              "response_intent": "restore_meaning",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Quand un rituel devient purement administratif, il cesse de nourrir ton projet et finit par peser. Pour que ce bilan redevienne un levier de ta liberté, qu'est-ce qu'il te permet de mettre à l'abri ou de décider concrètement pour la suite ?",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "restore_meaning",
+                "visible_task": "restore_meaning",
+                "potion_bridge_status": "candidate",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_local_continue",
+                "evidence": [
+                  "Le user demande explicitement de l'aide pour 'retrouver en une phrase pourquoi ce bilan sert ma liberté'.",
+                  "La source de la démotivation est localisée sur une tâche précise (bilan du soir) et un sentiment (administratif vs liberté).",
+                  "Le risque de décrochage est mentionné ('finir par le laisser tomber')."
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "do_not_moralize",
+                  "one_question_max",
+                  "short_reply",
+                  "prefer_smallest_action"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": {
+                  "skill_id": "demotivation_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "hypothetical",
+                    "summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                    "user_words": [
+                      "bilan du soir",
+                      "administratif",
+                      "sert ma liberté",
+                      "laisser tomber"
+                    ],
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "last_visible_task": "restore_meaning",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                  "turn_count": 3,
+                  "max_turns": 6,
+                  "created_at": "2026-06-09T20:59:09.700Z",
+                  "updated_at": "2026-06-09T21:01:13.152Z"
+                },
+                "demotivation_repair_visible_task": {
+                  "kind": "restore_meaning",
+                  "conversation_context": {
+                    "state_summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                    "user_words": [
+                      "bilan du soir",
+                      "administratif",
+                      "sert ma liberté",
+                      "laisser tomber"
+                    ],
+                    "field_or_stage": "restore_meaning",
+                    "known_values": {
+                      "intent": "loss_of_meaning",
+                      "phase": "restore_meaning",
+                      "motivation_state": "loss_of_meaning",
+                      "action_readiness": "hypothetical",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": true
+                    },
+                    "missing_or_weak_values": [
+                      "Validation de la phrase de reconnexion au sens"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "meaning_reconnection",
+                      "durable_need_summary": "Besoin de transformer une tâche administrative en un levier de liberté perçu."
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "soft_direct",
+                      "do_not_moralize",
+                      "one_question_max",
+                      "short_reply",
+                      "prefer_smallest_action"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message."
+                    ],
+                    "context_summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                    "evidence_used": [
+                      "Le user demande explicitement de l'aide pour 'retrouver en une phrase pourquoi ce bilan sert ma liberté'.",
+                      "La source de la démotivation est localisée sur une tâche précise (bilan du soir) et un sentiment (administratif vs liberté).",
+                      "Le risque de décrochage est mentionné ('finir par le laisser tomber')."
+                    ],
+                    "db_context_summary": null,
+                    "memory_context_summary": null,
+                    "max_questions": 0
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+          "source_message_id": "41423e7a-f023-4a5a-bd80-fae1f68895e2",
+          "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0
+            ],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "active_conversation_skill_continue",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "conversation_skill",
+            "selected_owner": "conversation_skill",
+            "resume_policy": "none",
+            "reason_code": "active_conversation_skill_continue"
+          },
+          "selected_handler": "demotivation_repair"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "demotivation_repair"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "demotivation_repair",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "active_conversation_skill_continue"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "active_conversation_skill_continue",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "continue",
+            "response_intent": "restore_meaning",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "Quand un rituel devient purement administratif, il cesse de nourrir ton projet et finit par peser. Pour que ce bilan redevienne un levier de ta liberté, qu'est-ce qu'il te permet de mettre à l'abri ou de décider concrètement pour la suite ?",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "restore_meaning",
+              "visible_task": "restore_meaning",
+              "potion_bridge_status": "candidate",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_local_continue",
+              "evidence": [
+                "Le user demande explicitement de l'aide pour 'retrouver en une phrase pourquoi ce bilan sert ma liberté'.",
+                "La source de la démotivation est localisée sur une tâche précise (bilan du soir) et un sentiment (administratif vs liberté).",
+                "Le risque de décrochage est mentionné ('finir par le laisser tomber')."
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "do_not_moralize",
+                "one_question_max",
+                "short_reply",
+                "prefer_smallest_action"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": {
+                "skill_id": "demotivation_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "loss_of_meaning",
+                  "phase": "restore_meaning",
+                  "motivation_state": "loss_of_meaning",
+                  "action_readiness": "hypothetical",
+                  "summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                  "user_words": [
+                    "bilan du soir",
+                    "administratif",
+                    "sert ma liberté",
+                    "laisser tomber"
+                  ],
+                  "identity_freeze_risk": false,
+                  "motivation_source_diagnosed": true
+                },
+                "last_visible_task": "restore_meaning",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                "turn_count": 3,
+                "max_turns": 6,
+                "created_at": "2026-06-09T20:59:09.700Z",
+                "updated_at": "2026-06-09T21:01:13.152Z"
+              },
+              "demotivation_repair_visible_task": {
+                "kind": "restore_meaning",
+                "conversation_context": {
+                  "state_summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                  "user_words": [
+                    "bilan du soir",
+                    "administratif",
+                    "sert ma liberté",
+                    "laisser tomber"
+                  ],
+                  "field_or_stage": "restore_meaning",
+                  "known_values": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "hypothetical",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "missing_or_weak_values": [
+                    "Validation de la phrase de reconnexion au sens"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": "meaning_reconnection",
+                    "durable_need_summary": "Besoin de transformer une tâche administrative en un levier de liberté perçu."
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "soft_direct",
+                    "do_not_moralize",
+                    "one_question_max",
+                    "short_reply",
+                    "prefer_smallest_action"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message."
+                  ],
+                  "context_summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner.",
+                  "evidence_used": [
+                    "Le user demande explicitement de l'aide pour 'retrouver en une phrase pourquoi ce bilan sert ma liberté'.",
+                    "La source de la démotivation est localisée sur une tâche précise (bilan du soir) et un sentiment (administratif vs liberté).",
+                    "Le risque de décrochage est mentionné ('finir par le laisser tomber')."
+                  ],
+                  "db_context_summary": null,
+                  "memory_context_summary": null,
+                  "max_questions": 0
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Le user identifie le bilan du soir comme une tâche devenue purement administrative et cherche à reconnecter cette action à son objectif de liberté pour ne pas l'abandonner."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+    "auth_method": "refresh_token",
+    "user": "Il me permet de voir ce que je peux reprendre en main demain au lieu de laisser la journée m'avaler. Si je le formule comme ça, le bilan n'est plus une corvée, c'est un petit moment pour récupérer du pouvoir de décision.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+      "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est exactement ça : transformer ce moment en un espace de décision pour ne plus laisser la journée vous « avaler », mais bien reprendre la main sur demain.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+            "source_message_id": "4feb082c-edf3-41fa-82f5-2bc052c3fca6",
+            "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0,
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "source_flow_presentation": "Global dispatcher identified a continuation of the active demotivation_repair skill.",
+              "source_flow_state_summary": "signal=skill_lifecycle; target=demotivation_repair; confidence=high",
+              "handoff_reason": "skill_continuation",
+              "target_dispatcher": "demotivation_repair",
+              "handoff_context_for_next_dispatcher": "The user has successfully reconnected the 'bilan du soir' to their core value of 'freedom' and 'decision power'. They are validating the meaning restoration phase. Continue the repair flow to solidify this or bridge to action if they are ready.",
+              "target_local_dispatcher_hint": "Continue the demotivation_repair runtime. The user is no longer in 'administrative' mode but in 'decision power' mode.",
+              "user_words": [
+                "récupérer du pouvoir de décision",
+                "plus une corvée",
+                "voir ce que je peux reprendre en main"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.lifecycle.demotivation_repair",
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "confidence_band": "high"
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_validates_meaning_reconnection_and_continues_repair_flow"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "bilan_du_soir",
+                  "query_hint": "bilan du soir patterns and meaning",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.motivation",
+                  "query_hint": "meaning reconnection",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "low",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_conversation_skill_continue",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "conversation_skill",
+              "selected_owner": "conversation_skill",
+              "resume_policy": "none",
+              "reason_code": "active_conversation_skill_continue"
+            },
+            "selected_handler": "demotivation_repair"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "demotivation_repair"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "demotivation_repair",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "active_conversation_skill_continue"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "active_conversation_skill_continue",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "continue",
+              "response_intent": "restore_meaning",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est exactement ça : transformer ce moment en un espace de décision pour ne plus laisser la journée vous « avaler », mais bien reprendre la main sur demain.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "answer_repair",
+                "visible_task": "repeat_repair",
+                "potion_bridge_status": "not_applicable",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_local_continue",
+                "evidence": [
+                  "reformulation explicite du sens du bilan",
+                  "objectif de reprise de pouvoir de décision"
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "do_not_moralize",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": {
+                  "skill_id": "demotivation_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "hypothetical",
+                    "summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                    "user_words": [
+                      "reprendre en main demain",
+                      "laisser la journée m'avaler",
+                      "un petit moment pour récupérer du pouvoir de décision"
+                    ],
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "last_visible_task": "repeat_repair",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                  "turn_count": 4,
+                  "max_turns": 6,
+                  "created_at": "2026-06-09T20:59:09.700Z",
+                  "updated_at": "2026-06-09T21:02:27.547Z"
+                },
+                "demotivation_repair_visible_task": {
+                  "kind": "repeat_repair",
+                  "conversation_context": {
+                    "state_summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                    "user_words": [
+                      "reprendre en main demain",
+                      "laisser la journée m'avaler",
+                      "un petit moment pour récupérer du pouvoir de décision"
+                    ],
+                    "field_or_stage": "repeat_repair",
+                    "known_values": {
+                      "intent": "loss_of_meaning",
+                      "phase": "restore_meaning",
+                      "motivation_state": "loss_of_meaning",
+                      "action_readiness": "hypothetical",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": true
+                    },
+                    "missing_or_weak_values": [],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": null,
+                      "durable_need_summary": null
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "energy_preserving",
+                      "do_not_moralize",
+                      "short_reply"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message."
+                    ],
+                    "context_summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                    "evidence_used": [
+                      "reformulation explicite du sens du bilan",
+                      "objectif de reprise de pouvoir de décision"
+                    ],
+                    "db_context_summary": null,
+                    "memory_context_summary": null,
+                    "max_questions": 0
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+          "source_message_id": "4feb082c-edf3-41fa-82f5-2bc052c3fca6",
+          "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0,
+              0
+            ],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "source_flow_presentation": "Global dispatcher identified a continuation of the active demotivation_repair skill.",
+            "source_flow_state_summary": "signal=skill_lifecycle; target=demotivation_repair; confidence=high",
+            "handoff_reason": "skill_continuation",
+            "target_dispatcher": "demotivation_repair",
+            "handoff_context_for_next_dispatcher": "The user has successfully reconnected the 'bilan du soir' to their core value of 'freedom' and 'decision power'. They are validating the meaning restoration phase. Continue the repair flow to solidify this or bridge to action if they are ready.",
+            "target_local_dispatcher_hint": "Continue the demotivation_repair runtime. The user is no longer in 'administrative' mode but in 'decision power' mode.",
+            "user_words": [
+              "récupérer du pouvoir de décision",
+              "plus une corvée",
+              "voir ce que je peux reprendre en main"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.lifecycle.demotivation_repair",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "confidence_band": "high"
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_validates_meaning_reconnection_and_continues_repair_flow"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "action",
+                "key": "bilan_du_soir",
+                "query_hint": "bilan du soir patterns and meaning",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.motivation",
+                "query_hint": "meaning reconnection",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "low",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "active_conversation_skill_continue",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "conversation_skill",
+            "selected_owner": "conversation_skill",
+            "resume_policy": "none",
+            "reason_code": "active_conversation_skill_continue"
+          },
+          "selected_handler": "demotivation_repair"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "demotivation_repair"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "demotivation_repair",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "active_conversation_skill_continue"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "active_conversation_skill_continue",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "continue",
+            "response_intent": "restore_meaning",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est exactement ça : transformer ce moment en un espace de décision pour ne plus laisser la journée vous « avaler », mais bien reprendre la main sur demain.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "answer_repair",
+              "visible_task": "repeat_repair",
+              "potion_bridge_status": "not_applicable",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_local_continue",
+              "evidence": [
+                "reformulation explicite du sens du bilan",
+                "objectif de reprise de pouvoir de décision"
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "do_not_moralize",
+                "short_reply"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": {
+                "skill_id": "demotivation_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "loss_of_meaning",
+                  "phase": "restore_meaning",
+                  "motivation_state": "loss_of_meaning",
+                  "action_readiness": "hypothetical",
+                  "summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                  "user_words": [
+                    "reprendre en main demain",
+                    "laisser la journée m'avaler",
+                    "un petit moment pour récupérer du pouvoir de décision"
+                  ],
+                  "identity_freeze_risk": false,
+                  "motivation_source_diagnosed": true
+                },
+                "last_visible_task": "repeat_repair",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                "turn_count": 4,
+                "max_turns": 6,
+                "created_at": "2026-06-09T20:59:09.700Z",
+                "updated_at": "2026-06-09T21:02:27.547Z"
+              },
+              "demotivation_repair_visible_task": {
+                "kind": "repeat_repair",
+                "conversation_context": {
+                  "state_summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                  "user_words": [
+                    "reprendre en main demain",
+                    "laisser la journée m'avaler",
+                    "un petit moment pour récupérer du pouvoir de décision"
+                  ],
+                  "field_or_stage": "repeat_repair",
+                  "known_values": {
+                    "intent": "loss_of_meaning",
+                    "phase": "restore_meaning",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "hypothetical",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "missing_or_weak_values": [],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": null,
+                    "durable_need_summary": null
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "energy_preserving",
+                    "do_not_moralize",
+                    "short_reply"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message."
+                  ],
+                  "context_summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté.",
+                  "evidence_used": [
+                    "reformulation explicite du sens du bilan",
+                    "objectif de reprise de pouvoir de décision"
+                  ],
+                  "db_context_summary": null,
+                  "memory_context_summary": null,
+                  "max_questions": 0
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Le user reformule le bilan du soir comme un moyen de reprendre du pouvoir de décision demain, ce qui restaure le lien avec sa liberté."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+    "auth_method": "refresh_token",
+    "user": "Ok, on s'arrête là pour maintenant. Je veux juste garder cette phrase, pas ouvrir autre chose.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+      "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est entendu. L'essentiel est d'avoir identifié que ce bilan est avant tout l'expression de ton pouvoir de décision. Je te laisse avec cette perspective pour tes prochaines soirées.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+            "source_message_id": "c9da7201-e5f3-4409-b26c-a853414854a3",
+            "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "source_flow_presentation": "Global dispatcher detected a request to stop the current conversational skill while preserving the current insight.",
+              "source_flow_state_summary": "signal=skill_lifecycle; target=demotivation_repair; confidence=high",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "demotivation_repair",
+              "handoff_context_for_next_dispatcher": "User explicitly asks to stop here and keep the current phrase/insight. Do not open new topics or tools. Conclude the demotivation_repair session gracefully.",
+              "target_local_dispatcher_hint": "Run the local dispatcher for demotivation_repair to handle the closing turn.",
+              "user_words": [
+                "on s'arrête là pour maintenant",
+                "garder cette phrase",
+                "pas ouvrir autre chose"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.lifecycle.demotivation_repair",
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "on s'arrête là pour maintenant",
+                  "pas ouvrir autre chose"
+                ]
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_wants_to_conclude_repair_session_with_current_insight"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "bilan_du_soir",
+                  "query_hint": "sens du bilan du soir liberté",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.motivation",
+                  "query_hint": "perte de sens et liberté",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "low",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_conversation_skill_continue",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "conversation_skill",
+              "selected_owner": "conversation_skill",
+              "resume_policy": "none",
+              "reason_code": "active_conversation_skill_continue"
+            },
+            "selected_handler": "demotivation_repair"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "demotivation_repair"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "demotivation_repair",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "active_conversation_skill_continue"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "demotivation_repair",
+            "reason_code": "active_conversation_skill_continue",
+            "output": {
+              "skill_id": "demotivation_repair",
+              "status": "complete",
+              "response_intent": "stop_local_no_handoff",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est entendu. L'essentiel est d'avoir identifié que ce bilan est avant tout l'expression de ton pouvoir de décision. Je te laisse avec cette perspective pour tes prochaines soirées.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "complete_flow",
+                "visible_task": "exit_or_cancel",
+                "potion_bridge_status": "blocked",
+                "selected_potion": null,
+                "reason_code": "demotivation_repair_stop_local_no_handoff",
+                "evidence": [
+                  "Demande explicite d'arrêt : 'on s'arrête là'",
+                  "Refus explicite d'outils : 'pas ouvrir autre chose'",
+                  "Validation du résultat : 'garder cette phrase'"
+                ],
+                "note_information": null
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "no_potion",
+                  "no_tool",
+                  "no_questions",
+                  "short_reply",
+                  "do_not_moralize"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "demotivation_repair_local_state": null,
+                "demotivation_repair_visible_task": {
+                  "kind": "exit_or_cancel",
+                  "conversation_context": {
+                    "state_summary": "Le user a réussi à redonner du sens à son bilan du soir (pouvoir de décision) et souhaite s'arrêter là sans explorer d'autres outils.",
+                    "user_words": [
+                      "on s'arrête là",
+                      "garder cette phrase",
+                      "pas ouvrir autre chose"
+                    ],
+                    "field_or_stage": "exit_or_cancel",
+                    "known_values": {
+                      "intent": "loss_of_meaning",
+                      "phase": "exit",
+                      "motivation_state": "loss_of_meaning",
+                      "action_readiness": "ready",
+                      "identity_freeze_risk": false,
+                      "motivation_source_diagnosed": true
+                    },
+                    "missing_or_weak_values": [],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": null,
+                      "durable_need_summary": null
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "grounded",
+                      "no_potion",
+                      "no_tool",
+                      "no_questions",
+                      "short_reply",
+                      "do_not_moralize"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne traite jamais la demotivation comme de la paresse.",
+                      "Ne dis jamais Potion rappel.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de potion.",
+                      "Ne propose pas d'outil."
+                    ],
+                    "context_summary": "Le user a réussi à redonner du sens à son bilan du soir (pouvoir de décision) et souhaite s'arrêter là sans explorer d'autres outils.",
+                    "evidence_used": [
+                      "Demande explicite d'arrêt : 'on s'arrête là'",
+                      "Refus explicite d'outils : 'pas ouvrir autre chose'",
+                      "Validation du résultat : 'garder cette phrase'"
+                    ],
+                    "db_context_summary": null,
+                    "memory_context_summary": null,
+                    "max_questions": 0
+                  }
+                },
+                "demotivation_repair_inline_note": null,
+                "demotivation_repair_potion_handoff": null,
+                "summary": "Le user a réussi à redonner du sens à son bilan du soir (pouvoir de décision) et souhaite s'arrêter là sans explorer d'autres outils."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+          "source_message_id": "c9da7201-e5f3-4409-b26c-a853414854a3",
+          "user_id": "5939d357-9f74-4473-8a42-005a39ad574d",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "source_flow_presentation": "Global dispatcher detected a request to stop the current conversational skill while preserving the current insight.",
+            "source_flow_state_summary": "signal=skill_lifecycle; target=demotivation_repair; confidence=high",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "demotivation_repair",
+            "handoff_context_for_next_dispatcher": "User explicitly asks to stop here and keep the current phrase/insight. Do not open new topics or tools. Conclude the demotivation_repair session gracefully.",
+            "target_local_dispatcher_hint": "Run the local dispatcher for demotivation_repair to handle the closing turn.",
+            "user_words": [
+              "on s'arrête là pour maintenant",
+              "garder cette phrase",
+              "pas ouvrir autre chose"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.lifecycle.demotivation_repair",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "on s'arrête là pour maintenant",
+                "pas ouvrir autre chose"
+              ]
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_wants_to_conclude_repair_session_with_current_insight"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "action",
+                "key": "bilan_du_soir",
+                "query_hint": "sens du bilan du soir liberté",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.motivation",
+                "query_hint": "perte de sens et liberté",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "low",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "active_conversation_skill_continue",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "conversation_skill",
+            "selected_owner": "conversation_skill",
+            "resume_policy": "none",
+            "reason_code": "active_conversation_skill_continue"
+          },
+          "selected_handler": "demotivation_repair"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "demotivation_repair"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "demotivation_repair",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "active_conversation_skill_continue"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "demotivation_repair",
+          "reason_code": "active_conversation_skill_continue",
+          "output": {
+            "skill_id": "demotivation_repair",
+            "status": "complete",
+            "response_intent": "stop_local_no_handoff",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est entendu. L'essentiel est d'avoir identifié que ce bilan est avant tout l'expression de ton pouvoir de décision. Je te laisse avec cette perspective pour tes prochaines soirées.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "complete_flow",
+              "visible_task": "exit_or_cancel",
+              "potion_bridge_status": "blocked",
+              "selected_potion": null,
+              "reason_code": "demotivation_repair_stop_local_no_handoff",
+              "evidence": [
+                "Demande explicite d'arrêt : 'on s'arrête là'",
+                "Refus explicite d'outils : 'pas ouvrir autre chose'",
+                "Validation du résultat : 'garder cette phrase'"
+              ],
+              "note_information": null
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "no_potion",
+                "no_tool",
+                "no_questions",
+                "short_reply",
+                "do_not_moralize"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "demotivation_repair_local_state": null,
+              "demotivation_repair_visible_task": {
+                "kind": "exit_or_cancel",
+                "conversation_context": {
+                  "state_summary": "Le user a réussi à redonner du sens à son bilan du soir (pouvoir de décision) et souhaite s'arrêter là sans explorer d'autres outils.",
+                  "user_words": [
+                    "on s'arrête là",
+                    "garder cette phrase",
+                    "pas ouvrir autre chose"
+                  ],
+                  "field_or_stage": "exit_or_cancel",
+                  "known_values": {
+                    "intent": "loss_of_meaning",
+                    "phase": "exit",
+                    "motivation_state": "loss_of_meaning",
+                    "action_readiness": "ready",
+                    "identity_freeze_risk": false,
+                    "motivation_source_diagnosed": true
+                  },
+                  "missing_or_weak_values": [],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": null,
+                    "durable_need_summary": null
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "grounded",
+                    "no_potion",
+                    "no_tool",
+                    "no_questions",
+                    "short_reply",
+                    "do_not_moralize"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne traite jamais la demotivation comme de la paresse.",
+                    "Ne dis jamais Potion rappel.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de potion.",
+                    "Ne propose pas d'outil."
+                  ],
+                  "context_summary": "Le user a réussi à redonner du sens à son bilan du soir (pouvoir de décision) et souhaite s'arrêter là sans explorer d'autres outils.",
+                  "evidence_used": [
+                    "Demande explicite d'arrêt : 'on s'arrête là'",
+                    "Refus explicite d'outils : 'pas ouvrir autre chose'",
+                    "Validation du résultat : 'garder cette phrase'"
+                  ],
+                  "db_context_summary": null,
+                  "memory_context_summary": null,
+                  "max_questions": 0
+                }
+              },
+              "demotivation_repair_inline_note": null,
+              "demotivation_repair_potion_handoff": null,
+              "summary": "Le user a réussi à redonner du sens à son bilan du soir (pouvoir de décision) et souhaite s'arrêter là sans explorer d'autres outils."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  }
+]

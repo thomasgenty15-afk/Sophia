@@ -302,7 +302,7 @@
 **Trace courte**
 - http_status: 200
 - response_owner: `normal_reply`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - executed_tools: []
 - durable_effect: none
 - issue: récap dit “Carte de défense” absente alors que la carte créée est une carte d'attaque
@@ -344,7 +344,7 @@
 - `product_help`: correct au tour 8, mais reste collé au rappel au tour 9.
 - `update_coach_preferences`: se déclenche à tort au tour 10 sur un repère conversationnel; fonctionne ensuite sur la vraie préférence mais perd le scope précis.
 - `emotional_repair`: correctement sélectionné au tour 14, mais génère une proposition produit non demandée.
-- `status_only_request_blocks_tool_start`: protège bien le tour 15 contre un nouveau tool, mais le récap est incomplet/inexact côté type de carte.
+- `status_recap_request_blocks_tool_start`: protège bien le tour 15 contre un nouveau tool, mais le récap est incomplet/inexact côté type de carte.
 
 **Skills / Operations / Tools**
 - `prepare_attack_card`: green. DB confirmée: 1 `user_attack_cards` active, titre `Réponse éclair à Clara`, technique `Préparer le terrain`.

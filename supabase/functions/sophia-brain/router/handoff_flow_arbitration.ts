@@ -7,7 +7,6 @@ export type ActiveHandoffOperation =
   | "prepare_defense_card"
   | "select_state_potion"
   | "create_recurring_reminder"
-  | "update_coach_preferences"
   | string;
 
 export type HandoffContinuationIntent =
@@ -87,7 +86,6 @@ const PLATFORM_HANDOFF_OPERATIONS = new Set([
   "prepare_defense_card",
   "select_state_potion",
   "create_recurring_reminder",
-  "update_coach_preferences",
 ]);
 
 const CHAT_EXECUTABLE_INTERRUPTS = new Set([
@@ -193,8 +191,8 @@ function explicitCompetingToolIntent(
 function statusRecapInterrupt(input: HandoffArbitrationInput): boolean {
   const route = input.route_decision;
   if (
-    route?.selected_handler === "status_only_no_mutation_check" ||
-    route?.reason_code.includes("status_only")
+    route?.selected_handler === "status_recap" ||
+    route?.reason_code.includes("status_recap")
   ) return true;
   const statusSignal = input.turn_frame.skill_signals.entry?.status_recap;
   return Boolean(
@@ -234,8 +232,7 @@ function sameOperationContinuation(input: HandoffArbitrationInput): boolean {
   return input.turn_frame.tool_skill_intents.some((intent) =>
     intent.operation_type === activeOperation &&
     intent.confidence_band !== "low"
-  ) ||
-    input.turn_frame.tool_skill_opportunity.operation_type === activeOperation;
+  );
 }
 
 export function extractActiveHandoffStateSnapshot(
@@ -283,7 +280,6 @@ export function extractActiveHandoffFromTempMemory(
     memory.__adjust_plan_handoff_state,
     memory.__active_attack_card_handoff,
     memory.__recurring_reminder_handoff_state,
-    memory.__coach_preference_handoff_state_v1,
     memory.__active_tool_skill_intake,
     memory.active_tool_skill_intake,
   ];

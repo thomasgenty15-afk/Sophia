@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
-import { readClarificationState } from "../clarification/state.ts";
+import { readClarificationLocalState } from "../clarification/state.ts";
 import {
   maybeStartActiveSkillClarification,
   maybeStartDispatcherClarification,
@@ -27,20 +27,6 @@ function frame(): TurnFrame {
       ambiguity: "none",
       user_intent: "create",
     }],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
     skill_signals: {},
     memory_plan: {
       context_need: "minimal",
@@ -52,17 +38,104 @@ function frame(): TurnFrame {
   };
 }
 
+function localDispatcherJson(args: {
+  flow_action?:
+    | "ask_disambiguation"
+    | "resolved_to_candidate"
+    | "get_info_product";
+  confidence?: "low" | "medium" | "high";
+  selected_candidate_id?: string | null;
+  question?: string | null;
+  user_words?: string[];
+}) {
+  const flowAction = args.flow_action ?? "ask_disambiguation";
+  const selected = args.selected_candidate_id ?? null;
+  const userWords = args.user_words ?? ["message ambigu"];
+  return {
+    flow_action: flowAction,
+    confidence: args.confidence ?? "medium",
+    risk_score: 0,
+    clarification_state: {
+      clarification_id: "clar-test",
+      status: flowAction === "resolved_to_candidate" ? "resolved" : "asking",
+      source_dispatcher: "global",
+      source_flow_id: null,
+      ambiguity_kind: "intent",
+      ambiguity_axes: ["intent"],
+      conflict_summary: "Sophia hesite entre plusieurs directions plausibles.",
+      selected_candidate_id: selected,
+      selected_candidate_label: null,
+      why_selected_or_not: "test dispatcher output",
+      user_words: userWords,
+      turn_count: 0,
+    },
+    inline_info: {
+      requested: flowAction === "get_info_product",
+      kind: flowAction === "get_info_product" ? "product" : null,
+      question_to_answer: flowAction === "get_info_product"
+        ? args.question ?? userWords[0] ?? null
+        : null,
+      resume_clarification_goal: null,
+    },
+    visible_task: {
+      kind: flowAction === "resolved_to_candidate"
+        ? "resolved_transition"
+        : flowAction === "get_info_product"
+        ? "inline_info_return"
+        : "ask_choice",
+      conversation_context: {
+        question_goal: "clarifier la direction utile",
+        conflict_summary:
+          "Sophia hesite entre plusieurs directions plausibles.",
+        candidate_labels: [],
+        selected_candidate_label: null,
+        known_references: [],
+        best_reference_guess: null,
+        missing_decision: null,
+        question_constraints: {
+          max_questions: 1,
+          should_confirm_guess: false,
+          should_offer_options: true,
+          must_not_list_all_references: true,
+          must_not_explain_internals: true,
+        },
+        question: args.question ?? null,
+        user_words: userWords,
+        evidence_used: ["test"],
+        do_not_say: ["dispatcher", "candidate_id", "note_information"],
+        tone_constraints: ["whatsapp", "court", "tutoiement"],
+      },
+    },
+    note_information: {
+      needed: flowAction !== "ask_disambiguation",
+      source_flow_id: "clarification",
+      source_flow_presentation: "clarification",
+      handoff_reason: flowAction === "get_info_product"
+        ? "inline_tool"
+        : flowAction === "resolved_to_candidate"
+        ? "clarification_resolved"
+        : "none",
+      target_dispatcher: flowAction === "get_info_product"
+        ? "product_help"
+        : null,
+      handoff_context_for_next_dispatcher: null,
+      target_local_dispatcher_hint: null,
+      structured_context: {},
+    },
+    evidence: ["test"],
+  };
+}
+
 Deno.test("clarification_arbitrator: output ask route vers orientation_clarification", async () => {
   const result = await maybeStartDispatcherClarification({
     turnFrame: frame(),
     userMessage: "message ambigu",
     recentMessages: [],
     tempMemory: {},
-    llmRunner: async () => ({
-      status: "ask",
-      confidence: "medium",
-      question: "Tu veux plutôt un rappel ponctuel ou récurrent ?",
-    }),
+    llmRunner: async () =>
+      localDispatcherJson({
+        question: "Tu veux plutôt un rappel ponctuel ou récurrent ?",
+      }),
   });
 
   assertEquals(result.status, "ask");
@@ -79,8 +152,29 @@ Deno.test("clarification_arbitrator: output ask route vers orientation_clarifica
   assertEquals(result.turnFrame.direct_effects, []);
   assertEquals(result.turnFrame.tool_skill_intents, []);
   assertEquals(
-    readClarificationState(result.tempMemory)?.no_chat_mutation,
+    readClarificationLocalState(result.tempMemory)?.no_chat_mutation,
     true,
+  );
+});
+
+Deno.test("clarification_arbitrator: fallback visible ne reprend pas le vouvoiement", async () => {
+  const result = await maybeStartDispatcherClarification({
+    turnFrame: frame(),
+    userMessage: "message ambigu",
+    recentMessages: [],
+    tempMemory: {},
+    llmRunner: async () =>
+      localDispatcherJson({
+        question: "Souhaitez-vous préparer votre carte ?",
+      }),
+    visibleAgent: async () => null,
+  });
+
+  assertEquals(result.status, "ask");
+  if (result.status !== "ask") throw new Error("expected ask");
+  assertEquals(
+    result.visibleQuestion,
+    "Tu peux préciser ce que tu veux choisir ?",
   );
 });
 
@@ -115,12 +209,15 @@ Deno.test("clarification_arbitrator: attack + defense card intents demandent cla
         request.candidates.map((candidate: { id: string }) => candidate.id),
         ["prepare_defense_card", "prepare_attack_card"],
       );
-      return {
-        status: "ask",
-        confidence: "medium",
+      assertEquals(
+        request.db_context_pack.version,
+        "clarification_context_pack_v1",
+      );
+      assertEquals(request.micro_memory_context.budget.max_items, 0);
+      return localDispatcherJson({
         question:
           "Tu veux commencer par la carte de défense ou la carte d'attaque ?",
-      };
+      });
     },
   });
 
@@ -162,11 +259,10 @@ Deno.test("clarification_arbitrator: clarification supprime les exécutables mai
     userMessage: "message ambigu",
     recentMessages: [],
     tempMemory: {},
-    llmRunner: async () => ({
-      status: "ask",
-      confidence: "medium",
-      question: "Tu veux plutôt un rappel ponctuel ou récurrent ?",
-    }),
+    llmRunner: async () =>
+      localDispatcherJson({
+        question: "Tu veux plutôt un rappel ponctuel ou récurrent ?",
+      }),
   });
 
   assertEquals(result.status, "ask");
@@ -190,21 +286,13 @@ Deno.test("clarification_arbitrator: clarification supprime les exécutables mai
 Deno.test("clarification_arbitrator: skill actif possède la clarification interne", async () => {
   const turnFrame = frame();
   turnFrame.direct_effects = [];
-  turnFrame.tool_skill_intents = [];
-  turnFrame.tool_skill_opportunity = {
-    type: "plan_adjustment",
+  turnFrame.tool_skill_intents = [{
     operation_type: "adjust_plan_item",
-    surface_id: "plan_item.reduce",
+    explicitness: "explicit",
     confidence_band: "high",
-    should_offer: true,
-    prop_reason: "structured_adjust_plan",
-    source_span: null,
-    target_hint: null,
-    target_status: "identified",
-    suggested_question_intent: "offer_plan_adjustment",
-    offer_timing: "now",
-    must_not_execute: true,
-  };
+    ambiguity: "target_ambiguous",
+    user_intent: "adjust",
+  }];
   turnFrame.skill_signals = {
     entry: {
       product_help: {
@@ -224,11 +312,10 @@ Deno.test("clarification_arbitrator: skill actif possède la clarification inter
     userMessage: "message ambigu dans le flow actif",
     recentMessages: [],
     tempMemory: {},
-    llmRunner: async () => ({
-      status: "ask",
-      confidence: "medium",
-      question: "Tu veux plutôt rester sur le soutien ou ajuster le plan ?",
-    }),
+    llmRunner: async () =>
+      localDispatcherJson({
+        question: "Tu veux plutôt rester sur le soutien ou ajuster le plan ?",
+      }),
   });
 
   assertEquals(result.status, "ask");
@@ -238,13 +325,13 @@ Deno.test("clarification_arbitrator: skill actif possède la clarification inter
     "orientation_clarification",
   );
   assertEquals(
-    readClarificationState(result.tempMemory)?.owner,
+    readClarificationLocalState(result.tempMemory)?.source_flow_id,
     "emotional_repair",
   );
   assertEquals(
-    readClarificationState(result.tempMemory)?.candidates.map((candidate) =>
-      candidate.id
-    ),
+    readClarificationLocalState(result.tempMemory)?.candidate_signals.map((
+      candidate,
+    ) => candidate.candidate_id),
     ["emotional_repair", "adjust_plan_item"],
   );
 });
@@ -274,12 +361,10 @@ Deno.test("clarification_arbitrator: demotivation actif peut demander une clarif
           "adjust_plan_item",
         ],
       );
-      return {
-        status: "ask",
-        confidence: "medium",
+      return localDispatcherJson({
         question:
           "Qu'est-ce qui pèse le plus : le sens, la fatigue, l'action trop grosse ou le plan ?",
-      };
+      });
     },
   });
 
@@ -290,11 +375,11 @@ Deno.test("clarification_arbitrator: demotivation actif peut demander une clarif
     "orientation_clarification",
   );
   assertEquals(
-    readClarificationState(result.tempMemory)?.owner,
+    readClarificationLocalState(result.tempMemory)?.source_flow_id,
     "demotivation_repair",
   );
   assertEquals(
-    readClarificationState(result.tempMemory)?.no_chat_mutation,
+    readClarificationLocalState(result.tempMemory)?.no_chat_mutation,
     true,
   );
 });
@@ -313,11 +398,12 @@ Deno.test("clarification_arbitrator: résolution interne demotivation revient au
     userMessage: "c'est surtout la fatigue",
     recentMessages: [],
     tempMemory: {},
-    llmRunner: async () => ({
-      status: "resolved",
-      selected_candidate_id: "demotivation_fatigue",
-      confidence: "high",
-    }),
+    llmRunner: async () =>
+      localDispatcherJson({
+        flow_action: "resolved_to_candidate",
+        selected_candidate_id: "demotivation_fatigue",
+        confidence: "high",
+      }),
   });
 
   assertEquals(result.status, "resolved");
@@ -328,7 +414,7 @@ Deno.test("clarification_arbitrator: résolution interne demotivation revient au
       ?.clarified_internal_candidate_id,
     "demotivation_fatigue",
   );
-  assertEquals(readClarificationState(result.tempMemory), null);
+  assertEquals(readClarificationLocalState(result.tempMemory), null);
   assertEquals(result.turnFrame.direct_effects, []);
   assertEquals(result.turnFrame.tool_skill_intents, []);
 });
@@ -347,11 +433,10 @@ Deno.test("clarification_arbitrator: weekly actif peut clarifier recap ou ajuste
     userMessage: "j'hésite entre récap et ajuster",
     recentMessages: [],
     tempMemory: {},
-    llmRunner: async () => ({
-      status: "ask",
-      confidence: "medium",
-      question: "Tu veux un récap clair ou préparer un ajustement du plan ?",
-    }),
+    llmRunner: async () =>
+      localDispatcherJson({
+        question: "Tu veux un récap clair ou préparer un ajustement du plan ?",
+      }),
   });
 
   assertEquals(result.status, "ask");
@@ -361,7 +446,7 @@ Deno.test("clarification_arbitrator: weekly actif peut clarifier recap ou ajuste
     "orientation_clarification",
   );
   assertEquals(
-    readClarificationState(result.tempMemory)?.owner,
+    readClarificationLocalState(result.tempMemory)?.source_flow_id,
     "weekly_adaptive_review_v1",
   );
   assertEquals(result.routeDecision.direct_effects_to_run, []);
@@ -390,11 +475,12 @@ Deno.test("clarification_arbitrator: output resolved ne crée aucun effet imméd
     userMessage: "message ambigu",
     recentMessages: [],
     tempMemory: {},
-    llmRunner: async () => ({
-      status: "resolved",
-      selected_candidate_id: "create_recurring_reminder",
-      confidence: "high",
-    }),
+    llmRunner: async () =>
+      localDispatcherJson({
+        flow_action: "resolved_to_candidate",
+        selected_candidate_id: "create_recurring_reminder",
+        confidence: "high",
+      }),
   });
 
   assertEquals(result.status, "resolved");
@@ -405,7 +491,47 @@ Deno.test("clarification_arbitrator: output resolved ne crée aucun effet imméd
   );
   assertEquals(result.turnFrame.direct_effects, []);
   assertEquals(result.turnFrame.tool_skill_intents, []);
-  assertEquals(readClarificationState(result.tempMemory), null);
+  assertEquals(readClarificationLocalState(result.tempMemory), null);
+});
+
+Deno.test("clarification_arbitrator: get_info_product appelle inline et garde clarification active", async () => {
+  let called = false;
+  const result = await maybeStartDispatcherClarification({
+    turnFrame: frame(),
+    userMessage: "c'est quoi un rappel récurrent ?",
+    recentMessages: [],
+    tempMemory: {},
+    llmRunner: async () =>
+      localDispatcherJson({
+        flow_action: "get_info_product",
+        question: "c'est quoi un rappel récurrent ?",
+        user_words: ["c'est quoi un rappel récurrent ?"],
+      }),
+    runInlineGetInfoProduct: async (args) => {
+      called = true;
+      assertEquals(args.context.active_flow, "clarification");
+      return {
+        content: "Un rappel récurrent revient selon un rythme.",
+        context: args.context,
+        subskillRun: { skill_id: "product_help" },
+        runtimeTrace: [{ event: "inline_product_called" }],
+      };
+    },
+  });
+
+  assertEquals(called, true);
+  assertEquals(result.status, "ask");
+  if (result.status !== "ask") throw new Error("expected ask");
+  assertEquals(
+    result.visibleQuestion,
+    "Un rappel récurrent revient selon un rythme.",
+  );
+  assertEquals(
+    readClarificationLocalState(result.tempMemory)?.skill_id,
+    "clarification",
+  );
+  assertEquals(result.turnFrame.direct_effects, []);
+  assertEquals(result.turnFrame.tool_skill_intents, []);
 });
 
 Deno.test("clarification_arbitrator: aucun appel LLM sous safety critique", async () => {

@@ -2750,6 +2750,69 @@ Deno.serve(async (req) => {
             continue;
           }
 
+          const initialDailyReviewNoteInformation = {
+            source_flow_id: "process_checkins.action_evening_review_v2",
+            source_flow: "process_checkins",
+            source_flow_presentation:
+              "Evening system event opened the daily action review for selected planned actions.",
+            source_flow_state_summary:
+              "Daily action review pending action is active and waiting for the user's outcome evidence.",
+            handoff_reason: "bridge",
+            target_dispatcher: "daily_action_review_v1",
+            handoff_context_for_next_dispatcher:
+              "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher.",
+            target_local_dispatcher_hint: "daily_action_review_v1",
+            user_message_summary: null,
+            active_flow_summary:
+              "System opened daily review for the selected action targets.",
+            collected_state: {
+              scheduled_checkin_id: checkin.id,
+              event_context: checkin.event_context,
+              local_date: cleanText(payload?.local_date),
+              week_start_date: cleanText(payload?.week_start_date),
+              timezone: userTimezone,
+              target_occurrence_ids: targets.map((target) =>
+                target.occurrence_id
+              ),
+              target_titles: targets.map((target) => target.title),
+              already_resolved_occurrence_ids: alreadyResolvedTargets.map((
+                target,
+              ) => target.occurrence_id),
+            },
+            unresolved_questions: [
+              "Which selected actions were completed, partial, or missed today.",
+              "If partial or missed, the evidence/reason needed by the reducer.",
+            ],
+            confidence: "high",
+            evidence: [
+              "event_context=action_evening_review_v2",
+              "process-checkins selected and persisted daily review targets",
+            ],
+            recommended_next_focus:
+              "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
+            structured_context: {
+              source_flow: "process_checkins",
+              pending_action_kind: "scheduled_checkin",
+              chat_capability: "daily_action_review",
+              event_context: checkin.event_context,
+              targets: targets.map((target) => ({
+                occurrence_id: target.occurrence_id,
+                plan_item_id: target.plan_item_id,
+                title: target.title,
+                kind: target.kind ?? null,
+                dimension: target.dimension ?? null,
+              })),
+            },
+            risk_score: 0,
+            no_chat_mutation: {
+              db_write_committed: false,
+              potion_session_created: false,
+              scheduled_checkin_created: false,
+              recurring_reminder_created: false,
+              executable_confirmation_generated: false,
+            },
+          };
+
           const { error: pendErr } = await supabaseAdmin
             .from("whatsapp_pending_actions")
             .insert({
@@ -2766,6 +2829,7 @@ Deno.serve(async (req) => {
                 occurrence_ids: targets.map((target) => target.occurrence_id),
                 targets,
                 already_resolved_targets: alreadyResolvedTargets,
+                initial_note_information: initialDailyReviewNoteInformation,
                 review_state: openingPlan?.initial_skill_state ?? null,
                 asked_occurrence_ids: openingPlan?.asked_occurrence_ids ?? [],
                 not_yet_asked_occurrence_ids:

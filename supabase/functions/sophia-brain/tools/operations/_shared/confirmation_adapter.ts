@@ -13,11 +13,11 @@ import { blocksToolSkills } from "../../../safety/safety_thresholds.ts";
 export type ToolConfirmationDecision = ConfirmationDecision & {
   executable: boolean;
   source: "turn_frame" | "local_review" | "missing";
-  legacy_local_review_used: boolean;
+  local_review_used: boolean;
   blocked_by: string[];
 };
 
-type LegacyConfirmationKind =
+type ConfirmationKind =
   | "yes"
   | "no"
   | "correction_to_pending"
@@ -75,9 +75,9 @@ function reviewFromConfirmationKind(
   }
 }
 
-function reviewFromLegacyLocal(value: unknown): SkillConfirmationReview | null {
+function reviewFromLocal(value: unknown): SkillConfirmationReview | null {
   if (typeof value === "string") {
-    const kind = value as LegacyConfirmationKind;
+    const kind = value as ConfirmationKind;
     return reviewFromConfirmationKind(kind, "medium");
   }
   return normalizeSkillConfirmationReview(value);
@@ -120,7 +120,7 @@ function noToolRequested(turnFrame: TurnFrame | null | undefined): boolean {
 function withBlocks(
   decision: ConfirmationDecision,
   source: ToolConfirmationDecision["source"],
-  legacyLocalReviewUsed: boolean,
+  localReviewUsed: boolean,
   blockedBy: string[],
 ): ToolConfirmationDecision {
   const executable = blockedBy.length === 0 &&
@@ -130,7 +130,7 @@ function withBlocks(
     executable,
     should_execute: executable,
     source,
-    legacy_local_review_used: legacyLocalReviewUsed,
+    local_review_used: localReviewUsed,
     blocked_by: blockedBy,
   };
 }
@@ -154,7 +154,7 @@ export function buildToolConfirmationDecision(args: {
     args.turn_frame?.confirmation_response?.kind,
     args.turn_frame?.confirmation_response?.confidence_band,
   );
-  const localReview = reviewFromLegacyLocal(args.local_review);
+  const localReview = reviewFromLocal(args.local_review);
   const review = turnReview ?? localReview;
   const source = turnReview
     ? "turn_frame"

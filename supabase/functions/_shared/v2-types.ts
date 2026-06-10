@@ -1530,11 +1530,30 @@ export type PlanContentV3 = {
   metadata: Record<string, unknown>;
 };
 
+export type ConversationPulseKind = "watcher_4h" | "daily" | "weekly";
+
+export type ConversationPulseEmotionalAnchor = {
+  topic_summary: string;
+  intensity: "low" | "medium" | "high";
+  recency: "same_window" | "same_day" | "recent_week";
+  grounding: string;
+  use_in_proactive: boolean;
+  specificity: "none" | "soft_reference" | "explicit_reference";
+  caution: string | null;
+};
+
 export type ConversationPulse = {
-  version: 1;
+  version: 1 | 2;
+  pulse_kind?: ConversationPulseKind;
   generated_at: string;
-  window_days: 7;
-  last_72h_weight: number;
+  window_days?: 7;
+  last_72h_weight?: number;
+  window?: {
+    start: string;
+    end: string;
+    timezone: string;
+    source_pulse_ids: string[];
+  };
   tone: {
     dominant: "steady" | "hopeful" | "mixed" | "strained" | "closed";
     emotional_load: "low" | "medium" | "high";
@@ -1551,6 +1570,7 @@ export type ConversationPulse = {
     support_that_helped: string[];
     unresolved_tensions: string[];
   };
+  emotional_anchors?: ConversationPulseEmotionalAnchor[];
   signals: {
     top_blocker: string | null;
     likely_need: "push" | "simplify" | "support" | "silence" | "repair";

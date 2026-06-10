@@ -5,3 +5,4 @@ export type * from "./memory_write_candidate.v1.ts";
 export type * from "./operation_draft_request.v1.ts";
 export type * from "./skill_output.v1.ts";
 export type * from "./direct_effect_gate.v1.ts";
+export type * from "./note_information.v1.ts";

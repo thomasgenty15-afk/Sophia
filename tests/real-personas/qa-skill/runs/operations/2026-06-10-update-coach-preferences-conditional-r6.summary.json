@@ -1,0 +1,265 @@
+[
+  {
+    "turn": 1,
+    "request_id": "22372add-2b3c-4c9d-9081-7c89ce7cd2a7",
+    "ok": true,
+    "user_message": "Pour la suite, sois plus direct et pose-moi moins de questions quand je bloque.",
+    "sophia": "Est-ce que tu confirmes vouloir que j'adopte un ton plus direct et que je diminue la fréquence de mes questions pour la suite ?",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "selected_handler": "update_coach_preferences",
+      "reason_code": "update_coach_preferences_partial_mapping_requires_confirmation",
+      "operation_type": "update_coach_preferences",
+      "status": "proposed",
+      "flow_action": "write_preferences",
+      "visible_task_kind": "confirm_supported_mapping",
+      "write_attempted": false,
+      "write_committed": false,
+      "write_blocked_reason": null,
+      "committed_effects": [],
+      "preference_updates": [
+        {
+          "key": "coach.tone",
+          "value": "direct",
+          "status": "locked",
+          "user_facing_label": "Ton",
+          "user_facing_value": "Direct",
+          "reason": "Demande explicite d'être plus direct.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "sois plus direct"
+          ]
+        },
+        {
+          "key": "coach.question_tendency",
+          "value": "low",
+          "status": "locked",
+          "user_facing_label": "Questions",
+          "user_facing_value": "Peu de questions",
+          "reason": "Demande explicite de poser moins de questions.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "pose-moi moins de questions"
+          ]
+        }
+      ],
+      "conversation_context": {
+        "unsupported_parts": [
+          "quand je bloque"
+        ],
+        "missing_or_weak_values": [
+          "confirmation"
+        ],
+        "proposed_updates": [
+          {
+            "key": "coach.tone",
+            "value": "direct",
+            "status": "proposed",
+            "user_facing_label": "Ton",
+            "user_facing_value": "Direct",
+            "reason": "Demande explicite d'être plus direct.",
+            "needs_user_confirmation": true,
+            "source": "user_message",
+            "confidence": "high",
+            "evidence": [
+              "sois plus direct"
+            ]
+          },
+          {
+            "key": "coach.question_tendency",
+            "value": "low",
+            "status": "proposed",
+            "user_facing_label": "Questions",
+            "user_facing_value": "Peu de questions",
+            "reason": "Demande explicite de poser moins de questions.",
+            "needs_user_confirmation": true,
+            "source": "user_message",
+            "confidence": "high",
+            "evidence": [
+              "pose-moi moins de questions"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "11edd9c1-954d-4b30-9507-92b1f90552b9",
+    "ok": true,
+    "user_message": "Oui, applique-les comme réglages généraux, même si ce n’est pas seulement quand je bloque.",
+    "sophia": "Entendu. Est-ce que tu me confirmes vouloir passer à un ton direct et à moins de questions pour l'ensemble de nos échanges à venir ?",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "active_update_coach_preferences_local_dispatcher",
+    "tool_skill_run": {
+      "selected_handler": "update_coach_preferences",
+      "reason_code": "update_coach_preferences_partial_mapping_requires_confirmation",
+      "operation_type": "update_coach_preferences",
+      "status": "proposed",
+      "flow_action": "confirm_proposed_mapping",
+      "visible_task_kind": "confirm_supported_mapping",
+      "write_attempted": false,
+      "write_committed": false,
+      "write_blocked_reason": null,
+      "committed_effects": [],
+      "preference_updates": [
+        {
+          "key": "coach.tone",
+          "value": "direct",
+          "status": "locked",
+          "user_facing_label": "Ton",
+          "user_facing_value": "Direct",
+          "reason": "Confirmation explicite pour un usage durable et général.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "Oui",
+            "applique-les comme réglages généraux"
+          ]
+        },
+        {
+          "key": "coach.question_tendency",
+          "value": "low",
+          "status": "locked",
+          "user_facing_label": "Questions",
+          "user_facing_value": "Peu de questions",
+          "reason": "Confirmation explicite pour un usage durable et général.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "Oui",
+            "applique-les comme réglages généraux"
+          ]
+        }
+      ],
+      "conversation_context": {
+        "unsupported_parts": [
+          "quand je bloque"
+        ],
+        "missing_or_weak_values": [
+          "confirmation"
+        ],
+        "proposed_updates": [
+          {
+            "key": "coach.tone",
+            "value": "direct",
+            "status": "proposed",
+            "user_facing_label": "Ton",
+            "user_facing_value": "Direct",
+            "reason": "Confirmation explicite pour un usage durable et général.",
+            "needs_user_confirmation": true,
+            "source": "user_message",
+            "confidence": "high",
+            "evidence": [
+              "Oui",
+              "applique-les comme réglages généraux"
+            ]
+          },
+          {
+            "key": "coach.question_tendency",
+            "value": "low",
+            "status": "proposed",
+            "user_facing_label": "Questions",
+            "user_facing_value": "Peu de questions",
+            "reason": "Confirmation explicite pour un usage durable et général.",
+            "needs_user_confirmation": true,
+            "source": "user_message",
+            "confidence": "high",
+            "evidence": [
+              "Oui",
+              "applique-les comme réglages généraux"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "98206262-0718-4f3c-a5ba-80d222b38905",
+    "ok": true,
+    "user_message": "Oui je confirme : applique ton direct et moins de questions pour tous nos échanges à venir.",
+    "sophia": "C'est entendu. J'adopterai désormais un ton direct et je limiterai le nombre de mes questions pour la suite de nos échanges. Sur quel sujet souhaites-tu que nous poursuivions ?",
+    "tool_execution": "success",
+    "executed_tools": [
+      "update_coach_preferences"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "active_update_coach_preferences_local_dispatcher",
+    "tool_skill_run": {
+      "selected_handler": "update_coach_preferences",
+      "reason_code": "update_coach_preferences_write_ready",
+      "operation_type": "update_coach_preferences",
+      "status": "executed",
+      "flow_action": "write_preferences",
+      "visible_task_kind": "preference_saved",
+      "write_attempted": true,
+      "write_committed": true,
+      "write_blocked_reason": null,
+      "committed_effects": [
+        {
+          "type": "update_coach_preferences",
+          "operation_id": "98206262-0718-4f3c-a5ba-80d222b38905",
+          "preference_keys": [
+            "coach.tone",
+            "coach.question_tendency"
+          ],
+          "preferences_update_ids": []
+        }
+      ],
+      "preference_updates": [
+        {
+          "key": "coach.tone",
+          "value": "direct",
+          "status": "locked",
+          "user_facing_label": "Ton",
+          "user_facing_value": "Direct",
+          "reason": "Confirmation explicite pour un usage durable et général.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "Oui je confirme",
+            "applique ton direct",
+            "tous nos échanges à venir"
+          ]
+        },
+        {
+          "key": "coach.question_tendency",
+          "value": "low",
+          "status": "locked",
+          "user_facing_label": "Questions",
+          "user_facing_value": "Peu de questions",
+          "reason": "Confirmation explicite pour un usage durable et général.",
+          "needs_user_confirmation": false,
+          "source": "user_message",
+          "confidence": "high",
+          "evidence": [
+            "Oui je confirme",
+            "moins de questions",
+            "tous nos échanges à venir"
+          ]
+        }
+      ],
+      "conversation_context": {
+        "unsupported_parts": [],
+        "missing_or_weak_values": [],
+        "proposed_updates": []
+      }
+    }
+  }
+]

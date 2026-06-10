@@ -47,7 +47,7 @@ Le contrat du perimetre peut etre :
 - un conversation skill : `runtime-contracts/conversation-skills/*`
 - un flow proactif : `runtime-contracts/proactive/*`
 - un contrat transverse : `runtime-contracts/02-run-thin-orchestrator.md`,
-  `03-user-turn-snapshot-agenda.md`, `04-confirmation-contract.md` ou
+  `03-user-turn-snapshot.md`, `04-confirmation-contract.md` ou
   `05-effect-ledger.md`
 - un sujet de tests/legacy : `runtime-contracts/testing/*`
 

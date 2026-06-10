@@ -6,9 +6,11 @@ locale type `select_state_potion`, `prepare_attack_card` et
 
 ```txt
 whatsapp_webhook
-  -> load onboarding state / plan readiness / profile facts
+  -> load onboarding state / plan readiness
+  -> note_information_inbound or equivalent system activation context
   -> whatsapp_onboarding.local_dispatcher
   -> reducer d'etat structure
+  -> visible_task.conversation_context
   -> prompt visible stage-specific
   -> optional durable preference write
   -> exit_to_global_dispatcher only when contract allows it
@@ -18,15 +20,34 @@ Le dispatcher global ne doit pas fonctionner pendant un flow onboarding
 WhatsApp actif, sauf si le dispatcher local retourne explicitement
 `exit_to_global_dispatcher`.
 
-Inventaire retenu : **15 prompts au total**.
+Inventaire retenu : **18 prompts au total**.
 
 - 1 prompt dispatcher local structure.
-- 14 prompts conversationnels visibles.
+- 17 prompts conversationnels visibles.
 
 Route non visible :
 
 - `safety_preempt` ne produit pas de prompt onboarding. La pipeline safety
   reprend.
+
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for every allowed `exit_to_global_dispatcher` and
+for `safety_preempt`. Use `source_flow_id="whatsapp_onboarding"` and copy the
+catalog presentation.
+
+Do not produce it for local onboarding actions such as
+`blocked_exit_before_plan_ready`, `skip_optional_preference`,
+`repeat_current_question`, `stop_local_no_handoff`, `technical_blocked`, or
+`complete_onboarding` when no new dispatcher is called. These are local
+stop/defer/complete actions and must not call global on the same turn.
+
+Choose `target_dispatcher` as `global` only after the onboarding contract allows
+normal exits, and `safety_crisis` for safety. The handoff context must include
+plan readiness, onboarding stage, saved or skipped preferences, exit
+justification, first-topic hint if any, and no-chat-mutation status.
 
 ## Mission Du Flow
 
@@ -61,9 +82,11 @@ Le chat doit :
 - reprendre le flow preferences quand le plan devient pret ;
 - poser peu de questions, dans un ordre clair ;
 - permettre au user de refuser ou quitter les questions apres plan pret ;
+- si le plan est pret et que le user veut juste arreter les questions sans
+  nouveau sujet clair, stopper localement sans handoff ;
 - bloquer tout exit produit tant que le plan n'est pas fait ;
 - transmettre une justification d'exit au dispatcher global quand l'exit est
-  autorise ;
+  autorise par un nouveau sujet clair ;
 - rendre les preferences ecrites comme vraiment notees ;
 - sortir proprement vers le flow normal quand l'onboarding est fini.
 
@@ -230,9 +253,13 @@ Actions possibles :
 - answer_plan_feedback
 - answer_topic_choice
 - repeat_current_question
-- frustration_exit_after_plan_ready
+- progress_attempt_during_onboarding
 - blocked_exit_before_plan_ready
+- stop_local_no_handoff
 - complete_onboarding
+- get_info_product
+- get_info_db
+- handoff_to_local_flow
 - exit_to_global_dispatcher
 - safety_preempt
 - technical_blocked
@@ -241,18 +268,21 @@ Priorite des actions :
 1. safety_preempt
 2. technical_blocked
 3. blocked_exit_before_plan_ready
-4. frustration_exit_after_plan_ready
-5. exit_to_global_dispatcher
-6. complete_onboarding
-7. answer_topic_choice
-8. answer_plan_feedback
-9. skip_optional_preference
-10. answer_questions
-11. answer_challenge
-12. answer_tone
-13. plan_ready_resume_preferences
-14. repeat_current_question
-15. plan_not_ready_wait
+4. stop_local_no_handoff
+5. handoff_to_local_flow
+6. exit_to_global_dispatcher
+7. get_info_product / get_info_db
+8. progress_attempt_during_onboarding
+9. complete_onboarding
+10. answer_topic_choice
+11. answer_plan_feedback
+12. skip_optional_preference
+13. answer_questions
+14. answer_challenge
+15. answer_tone
+16. plan_ready_resume_preferences
+17. repeat_current_question
+18. plan_not_ready_wait
 
 Regles plan :
 - Si plan_status=active ou ready_pending_activation et whatsapp preferences ne
@@ -268,8 +298,11 @@ Regles plan :
   sait pas, ou qu'il veut parler d'autre chose alors que le plan n'est pas pret,
   retourne blocked_exit_before_plan_ready.
 - Si le plan est pret et que le user dit que les questions le saoulent, qu'il ne
-  sait pas, qu'il veut passer a autre chose, ou qu'il refuse la calibration,
-  retourne frustration_exit_after_plan_ready ou exit_to_global_dispatcher.
+  sait pas, ou qu'il refuse la calibration sans nouveau sujet clair, retourne
+  stop_local_no_handoff. Le reducer clear/defer l'etat local et ne lance pas le
+  global sur le meme tour.
+- Si le plan est pret et que le user apporte un nouveau sujet clair, retourne
+  exit_to_global_dispatcher avec note_information exploitable.
 
 Regles preferences :
 - Ne deduis pas une preference forte depuis une condition secondaire.
@@ -284,21 +317,26 @@ Regles preferences :
 
 Regles sortie :
 - exit_to_global_dispatcher est autorise seulement si plan_status=active ou
-  ready_pending_activation, ou si safety_preempt.
-- Pour une sortie autorisee, renseigne exit_memo_request.needed=true.
-- Pour une sortie autorisee, renseigne
+  ready_pending_activation et nouveau sujet clair.
+- safety_preempt sort vers safety_crisis avec note_information, pas vers le
+  dispatcher global normal.
+- stop_local_no_handoff ne produit aucune note_information et ne permet aucun
+  global sur le meme tour.
+- Pour une sortie autorisee vers un autre dispatcher, renseigne
+  note_information et exit_memo_request.needed=true.
+- Pour une sortie autorisee vers global, renseigne
   exit_memo_request.handoff_hint_for_global_dispatcher avec la meilleure
   intention a transmettre au dispatcher global.
-- Pour une sortie autorisee, renseigne
+- Pour une sortie autorisee vers global, renseigne
   exit_memo_request.handoff_justification_for_global_dispatcher avec une phrase
   courte expliquant pourquoi l'onboarding local rend la main.
-- Pour frustration_exit_after_plan_ready, le reducer doit pouvoir marquer
-  l'onboarding WhatsApp comme termine ou deferre afin de ne pas enfermer le user
+- Pour stop_local_no_handoff apres plan pret, le reducer doit marquer
+  l'onboarding WhatsApp comme stoppe localement afin de ne pas enfermer le user
   dans les memes questions.
 
 Sortie JSON stricte :
 {
-  "flow_action": "plan_not_ready_wait|plan_ready_resume_preferences|answer_tone|answer_challenge|answer_questions|skip_optional_preference|answer_plan_feedback|answer_topic_choice|repeat_current_question|frustration_exit_after_plan_ready|blocked_exit_before_plan_ready|complete_onboarding|exit_to_global_dispatcher|safety_preempt|technical_blocked",
+  "flow_action": "plan_not_ready_wait|plan_ready_resume_preferences|answer_tone|answer_challenge|answer_questions|skip_optional_preference|answer_plan_feedback|answer_topic_choice|repeat_current_question|progress_attempt_during_onboarding|blocked_exit_before_plan_ready|stop_local_no_handoff|complete_onboarding|get_info_product|get_info_db|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt|technical_blocked",
   "confidence": "low|medium|high",
   "stage": "plan_wait|plan_ready_resume|pref_tone|pref_challenge|pref_questions|plan_feedback|topic_choice|completed|exit|safety|technical",
   "plan_state": {
@@ -337,7 +375,7 @@ Sortie JSON stricte :
     "handoff_justification_for_global_dispatcher": "string|null"
   },
   "visible_task": {
-    "kind": "plan_wait|plan_ready_resume_preferences|ask_tone|preference_saved_next_challenge|preference_saved_next_questions|preference_skipped|ask_plan_feedback|ask_topic_choice|complete_to_plan|complete_to_global|blocked_exit_before_plan_ready|frustration_exit_after_plan_ready|repeat_question|technical_blocked|safety",
+    "kind": "plan_wait|plan_ready_resume_preferences|ask_tone|preference_saved_next_challenge|preference_saved_next_questions|preference_skipped|ask_plan_feedback|ask_topic_choice|complete_to_plan|complete_to_global|blocked_exit_before_plan_ready|stop_after_plan_ready|progress_attempt_blocked|inline_product_return|inline_status_return|repeat_question|technical_blocked|safety",
     "required_data": {
       "operation_name": "whatsapp_onboarding",
       "current_question": "string|null",
@@ -348,7 +386,44 @@ Sortie JSON stricte :
       "active_plan_summary": "string|null",
       "active_plan_items_user_facing": ["string"],
       "next_stage": "string|null"
+    },
+    "conversation_context": {
+      "state_summary": "string",
+      "user_words": ["string"],
+      "stage": "string",
+      "plan": {
+        "status": "not_started|generating|missing|ready_pending_activation|active|unknown",
+        "title": "string|null",
+        "summary": "string|null",
+        "first_items": ["string"]
+      },
+      "preference": {
+        "key": "coach.tone|coach.challenge_level|coach.question_tendency|null",
+        "label": "string|null",
+        "value_label": "string|null",
+        "notes": "string|null"
+      },
+      "missing_or_weak_values": ["string"],
+      "feedback_summary": "string|null",
+      "topic_choice_summary": "string|null",
+      "inline_tool_summary": "string|null",
+      "tone_constraints": ["string"],
+      "do_not_say": ["string"],
+      "evidence_used": ["string"]
     }
+  },
+  "note_information": {
+    "source_flow_id": "whatsapp_onboarding",
+    "source_flow_presentation": "string",
+    "source_flow_state_summary": "string",
+    "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request",
+    "target_dispatcher": "global|safety_crisis|product_help|status_recap|other_local",
+    "handoff_context_for_next_dispatcher": "string",
+    "target_local_dispatcher_hint": "string|null",
+    "user_words": ["string"],
+    "structured_context": {},
+    "risk_score": 0,
+    "no_chat_mutation": {}
   },
   "exit_memo_request": {
     "needed": false,
@@ -781,11 +856,14 @@ Il doit :
 - calculer le prochain stage visible ;
 - ecrire les preferences uniquement depuis `preference_updates.status=locked` ;
 - poser `__whatsapp_onboarding_done` quand le flow est complete ;
-- poser un mode `skipped_after_plan_ready` ou `deferred_after_plan_ready` quand
-  le user sort apres plan pret ;
+- poser un mode `stopped_after_plan_ready` sur `stop_local_no_handoff` apres
+  plan pret ;
+- poser un mode `deferred_after_plan_ready` uniquement quand un nouveau sujet
+  clair permet `exit_to_global_dispatcher` ;
 - bloquer `exit_to_global_dispatcher` si le plan n'est pas pret ;
 - bloquer `track_progress_plan_item` pendant tout state onboarding ;
 - transmettre `exit_memo` au dispatcher global avec hint et justification ;
+- transmettre `note_information` pour tout changement de dispatcher ;
 - ne jamais faire de decision par texte user.
 
 Il ne doit pas :
@@ -795,6 +873,7 @@ Il ne doit pas :
 - rendre un message visible ;
 - appeler le dispatcher global sauf via `exit_to_global_dispatcher` valide ;
 - utiliser le renderer legacy nominal.
+- appeler un guided onboarding legacy ou une inference preference regex.
 
 ## Trace Attendue
 
@@ -806,8 +885,11 @@ Ajouter des traces lisibles :
 - `whatsapp_onboarding.visible_stage.start`
 - `whatsapp_onboarding.visible_stage.complete`
 - `whatsapp_onboarding.exit_to_global_dispatcher`
+- `whatsapp_onboarding.stop_local_no_handoff`
+- `whatsapp_onboarding.handoff_to_dispatcher_with_note_information`
 - `whatsapp_onboarding.exit_blocked_before_plan_ready`
 - `whatsapp_onboarding.preference_write`
+- `whatsapp_onboarding.progress_attempt_blocked`
 - `whatsapp_onboarding.complete`
 
 Chaque trace doit exposer :
@@ -847,7 +929,8 @@ Chaque trace doit exposer :
 
 3. Modifier le webhook nominal
    - quand `whatsapp_state` est onboarding, appeler le local flow ;
-   - ne pas appeler `replyWithGuidedOnboardingBrain` dans ce chemin nominal ;
+   - supprimer `replyWithGuidedOnboardingBrain` et les branches preferences
+     regex du chemin nominal ;
    - ne pas laisser tomber vers le brain global tant que local flow owns le
      tour ;
    - si local flow retourne exit valide, ecrire exit memo puis laisser le global
@@ -910,7 +993,7 @@ Runs IA reels :
 1. Plan not ready: user says "c'est fait" too early.
 2. Plan ready: user says "c'est fait", then answers all preferences.
 3. Plan ready: user answers tone, says "je sais pas" for challenge.
-4. Plan ready: user says "tes questions me saoulent", exits to plan.
+4. Plan ready: user says "tes questions me saoulent", stop local no handoff.
 5. Plan not ready: user says "tes questions me saoulent", exit is blocked.
 6. User starts with "je veux parler d'autre chose" after plan ready.
 7. User asks to start with plan and gets clean user-facing plan summary.
@@ -929,12 +1012,16 @@ Le flow est accepte si :
 - aucun renderer visible deterministe n'est utilise ;
 - aucune regex metier n'est dans le chemin nominal ;
 - aucun progress plan item n'est logge pendant la finalisation plan ;
-- l'exit frustration est autorise apres plan pret avec justification globale ;
+- stop_local_no_handoff apres plan pret ne relance pas le global ;
+- l'exit vers global apres plan pret exige un nouveau sujet clair et une
+  note_information ;
 - l'exit frustration est bloque avant plan pret ;
 - le plan est incompressible hors safety/incident technique ;
 - les preferences persistees sont rendues comme notees ;
 - `__whatsapp_onboarding_done` est pose en completion ou defer apres plan pret ;
 - `selected_handler` reste `whatsapp_onboarding` pendant le flow local ;
+- `replyWithGuidedOnboardingBrain` et les inferers regex legacy ne sont plus
+  presents dans le handler nominal ;
 - `executedTools` reste [] sauf write preference explicitement journalise comme
   effet onboarding ;
 - `committed_effects` ne contient jamais de progress item pendant onboarding ;

@@ -287,7 +287,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - executed_tools: []
 - durable_effect: lecture DB sans mutation
 
@@ -321,7 +321,7 @@
 - T8: bon routage `explicit_one_shot_reminder_supersedes_tool_flow`, avec execution directe `create_one_shot_reminder`.
 - T11: pas de faux positif `create_recurring_reminder`; la demande reste en `normal_reply`.
 - T13: confirmation de preference execute bien `update_coach_preferences`.
-- T15: guard `status_only_request_blocks_tool_start` bloque la creation d'une nouvelle carte et lit les objets durables.
+- T15: guard `status_recap_request_blocks_tool_start` bloque la creation d'une nouvelle carte et lit les objets durables.
 
 **Skills / Operations / Tools**
 - `prepare_defense_card`: execution OK, wording draft a corriger.

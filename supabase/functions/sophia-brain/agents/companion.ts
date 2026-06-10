@@ -4,6 +4,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../_shared/gemini.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../router/response_style_policy.ts";
 declare const Deno: any;
 
 const COMPANION_PROMPT_MAX_TOKENS = 5000;
@@ -143,11 +144,8 @@ function normalizeQuestionTendency(value: unknown): QuestionTendency {
 }
 
 function parseQuestionTendencyFromContext(context: string): QuestionTendency {
-  const text = String(context ?? "");
-  const match = text.match(
-    /coach\.question_tendency\s*=\s*\{"value":"(low|normal|high)"/i,
-  );
-  return normalizeQuestionTendency(match?.[1]);
+  void context;
+  return normalizeQuestionTendency(null);
 }
 
 function readQuestionRhythmState(userState: any): CompanionQuestionRhythmState {
@@ -254,7 +252,8 @@ function buildQuestionRhythmPromptBlock(
 }
 
 function responseHasQuestion(text: string): boolean {
-  return /[?？]/.test(String(text ?? ""));
+  const value = String(text ?? "");
+  return value.includes("?") || value.includes("？");
 }
 
 function buildNextQuestionRhythmState(args: {
@@ -331,12 +330,19 @@ function renderHumanMemoryOnlyActionRecall(
     .map((line) => humanizeCompanionMemoryLine(line))
     .filter(Boolean)
     .slice(0, 3);
-  const exactLine = humanLines.find((line) =>
-    /fichier déjà prêt|minuteur|12 minutes/i.test(line)
-  );
-  const familyLine = humanLines.find((line) =>
-    /cible augmente|sous 15 minutes|intimidante/i.test(line)
-  );
+  const exactLine = humanLines.find((line) => {
+    const lower = line.toLowerCase();
+    return lower.includes("fichier deja pret") ||
+      lower.includes("fichier déjà prêt") ||
+      lower.includes("minuteur") ||
+      lower.includes("12 minutes");
+  });
+  const familyLine = humanLines.find((line) => {
+    const lower = line.toLowerCase();
+    return lower.includes("cible augmente") ||
+      lower.includes("sous 15 minutes") ||
+      lower.includes("intimidante");
+  });
   const selectedLines = [
     ...(exactLine ? [exactLine] : []),
     ...(familyLine && familyLine !== exactLine ? [familyLine] : []),
@@ -362,21 +368,8 @@ function renderMemoryOnlyActionRecallReply(args: {
   message: string;
   context: string;
 }): string | null {
-  const normalized = normalizeCompanionIntentText(args.message);
-  if (!/souvenirs?\s+memorises?\s+uniquement/.test(normalized)) return null;
-  const actionLines = String(args.context ?? "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .map((line) => {
-      const match = line.match(/^- \[([^\]]*ACTION[^\]]*)\]\s+(.+)$/);
-      return match?.[2]?.trim() ?? "";
-    })
-    .filter(Boolean)
-    .slice(0, 5);
-  if (actionLines.length === 0) return null;
-  const target = args.message.match(/\bPour\s+([^,?.]+?)(?:,|\?|\.|$)/i)?.[1]
-    ?.trim();
-  return renderHumanMemoryOnlyActionRecall(actionLines, target);
+  void args;
+  return null;
 }
 
 function buildCompanionStablePrompt(opts: {
@@ -389,6 +382,8 @@ function buildCompanionStablePrompt(opts: {
     Tu tutoies l'utilisateur. Tu écris comme un humain, naturel, direct.
     Tu n'utilises "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
     Quand tu parles de toi-même, utilise toujours la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner, expliquer ce que tu fais, ce que tu peux faire, ou ce que tu vas faire.
+
+    ${VISIBLE_OUTPUT_STYLE_RULES}
 
     POLYVALENCE ET ASSISTANCE (CRITIQUE) :
     - Tu DOIS répondre de manière utile à TOUTES les requêtes de l'utilisateur, y compris les questions techniques (ex: code PUK), de culture générale, ou les demandes de résumés de films/livres.
@@ -522,6 +517,8 @@ function buildCompanionStablePrompt(opts: {
     Tu es une "Partenaire de Vie" mais AUSSI une IA experte très capable.
     Ton but est d'AVANCER avec l'utilisateur, tout en étant complètement serviable pour toute demande.
     Quand tu parles de toi-même, utilise toujours la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner, expliquer ce que tu fais, ce que tu peux faire, ou ce que tu vas faire.
+
+    ${VISIBLE_OUTPUT_STYLE_RULES}
 
     POLYVALENCE ET ASSISTANCE (CRITIQUE) :
     - Tu DOIS répondre de manière utile à TOUTES les requêtes (y compris techniques, résumés de films, culture générale).

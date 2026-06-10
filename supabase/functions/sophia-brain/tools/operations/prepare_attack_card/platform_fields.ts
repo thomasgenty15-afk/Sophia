@@ -352,7 +352,12 @@ export function mergeAttackCardPlatformFieldPatch(
   for (const field of incoming) {
     const current = byId.get(field.field_id);
     const hasIncomingUserEvidence = field.user_evidence.length > 0 ||
-      field.evidence.some((entry) => /correction|validation|user/i.test(entry));
+      field.evidence.some((entry) => {
+        const normalized = String(entry ?? "").toLowerCase();
+        return normalized.includes("correction") ||
+          normalized.includes("validation") ||
+          normalized.includes("user");
+      });
     const hasIncomingValue = Boolean(
       String(field.locked_value ?? field.proposed_value ?? "").trim(),
     );

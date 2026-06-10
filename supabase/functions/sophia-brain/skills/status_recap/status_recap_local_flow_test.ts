@@ -1,9 +1,12 @@
 import {
   assert,
   assertEquals,
+  assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { StatusRecapLocalDispatcherOutput } from "./contract.ts";
 import {
+  dispatcherSystemPrompt,
+  normalizeStatusRecapLocalDispatcherOutput,
   STATUS_RECAP_EXIT_MEMO_KEY,
   STATUS_RECAP_FLOW_STATE_KEY,
 } from "./local_flow.ts";
@@ -149,6 +152,27 @@ function baseDecision(
   };
 }
 
+Deno.test("status_recap dispatcher prompt documents field completion rules for its real JSON contract", () => {
+  const prompt = dispatcherSystemPrompt();
+  assertStringIncludes(prompt, "Field Completion Rules:");
+  assertStringIncludes(prompt, "- flow_action:");
+  assertStringIncludes(prompt, "- status_intent.kind:");
+  assertStringIncludes(prompt, "- read_scope.requested_categories:");
+  assertStringIncludes(prompt, "- state_updates.status:");
+  assertStringIncludes(prompt, "- visible_task.kind:");
+  assertStringIncludes(prompt, "- note_information:");
+  assertStringIncludes(prompt, "- exit_memo.needed:");
+  assertStringIncludes(prompt, "- evidence:");
+  assertStringIncludes(prompt, "Transition Rules:");
+  assertStringIncludes(prompt, "stop_local_no_handoff");
+  assertStringIncludes(prompt, "exit_to_global_dispatcher");
+  assertStringIncludes(prompt, "safety_preempt");
+  assertStringIncludes(prompt, "handoff_to_local_flow");
+  assertEquals(prompt.match(/EXAMPLE_JSON_\d_/g)?.length ?? 0, 2);
+  assertEquals(prompt.includes("response_contract"), false);
+  assertEquals(prompt.includes("grounded_facts_json"), false);
+});
+
 Deno.test("status_recap active followup answers locally and keeps read-only invariants", async () => {
   let visibleStage = "";
   const runtime = await maybeRunStatusRecapRuntime({
@@ -192,8 +216,14 @@ Deno.test("status_recap active followup answers locally and keeps read-only inva
       }),
     runVisibleAgent: async (input) => {
       visibleStage = input.stage;
+      assertEquals(input.conversation_context.user_words, ["et les rappels ?"]);
+      assertEquals(input.conversation_context.constraints.read_only, true);
       assertEquals(
-        (input.grounded_facts_json.facts as any).one_shot_reminders.pending
+        input.conversation_context.constraints.no_tool_execution,
+        true,
+      );
+      assertEquals(
+        input.conversation_context.filtered_facts.one_shot_reminders.pending
           .length,
         1,
       );
@@ -250,6 +280,62 @@ Deno.test("status_recap repeat and explain sources stay local", async () => {
   }
 });
 
+Deno.test("status_recap stop_local_no_handoff closes locally without global handoff", async () => {
+  const runtime = await maybeRunStatusRecapRuntime({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    userMessage: "ok laisse tomber",
+    userTimezone: "Europe/Paris",
+    tempMemory: activeStatusTempMemory(),
+    turnFrame: null,
+    routeDecision: null,
+    activeOperationIntake: null,
+    runLocalDispatcher: async () =>
+      baseDecision({
+        flow_action: "stop_local_no_handoff",
+        confidence: "high",
+        status_intent: {
+          kind: "not_status",
+          summary: "user stops status recap",
+          requires_db_projection: false,
+          requires_effect_history: false,
+        },
+        state_updates: {
+          status: "closed",
+          turn_count_increment: 1,
+          close_after_visible: true,
+        },
+        visible_task: {
+          kind: "stop_or_cancel",
+          instruction: "acknowledge local stop only",
+        },
+      }),
+    runVisibleAgent: async (input) => {
+      assertEquals(input.stage, "stop_or_cancel");
+      assertEquals(
+        input.conversation_context.constraints.no_chat_mutation,
+        true,
+      );
+      return "D'accord, je m'arrête là.";
+    },
+  });
+  assert(runtime);
+  assertEquals(runtime.content, "D'accord, je m'arrête là.");
+  assertEquals(runtime.toolExecution, "none");
+  assertEquals(
+    (runtime.nextTempMemory as any)[STATUS_RECAP_FLOW_STATE_KEY],
+    undefined,
+  );
+  assertEquals(
+    (runtime.nextTempMemory as any)[STATUS_RECAP_EXIT_MEMO_KEY],
+    undefined,
+  );
+  assertEquals(
+    (runtime.toolSkillRun as any).reason_code,
+    "status_recap_local_stop_local_no_handoff",
+  );
+});
+
 Deno.test("status_recap exit_to_global_dispatcher stores required exit memo without local mutation", async () => {
   const runtime = await maybeRunStatusRecapRuntime({
     supabase: fakeSupabase({}),
@@ -275,7 +361,7 @@ Deno.test("status_recap exit_to_global_dispatcher stores required exit memo with
           close_after_visible: true,
         },
         visible_task: {
-          kind: "exit_or_cancel",
+          kind: "exit_ack",
           instruction: "no local message",
         },
         exit_memo: {
@@ -314,4 +400,160 @@ Deno.test("status_recap exit_to_global_dispatcher stores required exit memo with
     (runtime.toolSkillRun as any).reason_code,
     "status_recap_local_exit_to_global_dispatcher",
   );
+});
+
+Deno.test("status_recap safety_preempt creates safety note and skips visible status answer", async () => {
+  const runtime = await maybeRunStatusRecapRuntime({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    userMessage: "message safety prioritaire",
+    userTimezone: "Europe/Paris",
+    tempMemory: activeStatusTempMemory(),
+    turnFrame: null,
+    routeDecision: null,
+    activeOperationIntake: null,
+    runLocalDispatcher: async () =>
+      baseDecision({
+        flow_action: "safety_preempt",
+        confidence: "high",
+        risk_score: 8,
+        status_intent: {
+          kind: "safety",
+          summary: "safety preempts status",
+          requires_db_projection: false,
+          requires_effect_history: false,
+        },
+        state_updates: {
+          status: "safety",
+          turn_count_increment: 1,
+          close_after_visible: true,
+        },
+        visible_task: {
+          kind: "safety",
+          instruction: "safety owns next turn",
+        },
+        exit_memo: {
+          needed: true,
+          reason: "safety",
+          user_intent_summary: "safety concern",
+          local_flow_context: {
+            skill_id: "status_recap",
+            last_intent: "unclear",
+            last_target_objects: ["unknown"],
+            last_answer_summary: "rappel actif",
+            last_projection_summary: "one reminder",
+          },
+          handoff_hint_for_global_dispatcher: {
+            likely_intent: "unknown",
+            why: "Safety owns next turn.",
+            constraints: [
+              "Status recap was read-only and did not mutate anything.",
+            ],
+          },
+        },
+      }),
+    runVisibleAgent: async () => {
+      throw new Error("visible_agent_should_not_run_on_safety");
+    },
+  });
+  assert(runtime);
+  assertEquals(runtime.content, "");
+  assertEquals((runtime.toolSkillRun as any).status, "safety_preempt");
+  assertEquals(
+    (runtime.toolSkillRun as any).note_information.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(
+    (runtime.nextTempMemory as any)[STATUS_RECAP_EXIT_MEMO_KEY].reason,
+    "safety",
+  );
+});
+
+Deno.test("status_recap handoff_to_local_flow normalizes note_information for local target", () => {
+  const output = normalizeStatusRecapLocalDispatcherOutput({
+    flow_action: "handoff_to_local_flow",
+    confidence: "high",
+    risk_score: 0,
+    status_intent: {
+      kind: "not_status",
+      summary: "User asks a reminder flow to take over.",
+      requires_db_projection: false,
+      requires_effect_history: false,
+    },
+    target_objects: ["one_shot_reminder"],
+    read_scope: {
+      requested_categories: ["one_shot_reminders"],
+      include_cancelled: false,
+      include_recent_failed_or_blocked_effects: false,
+      format: "compact",
+    },
+    state_updates: {
+      status: "exit_to_global",
+      turn_count_increment: 1,
+      close_after_visible: true,
+    },
+    visible_task: {
+      kind: "exit_ack",
+      instruction: "handoff without visible status answer",
+    },
+    note_information: {
+      source_flow_id: "status_recap",
+      source_flow_state_summary: "Status recap collected reminder context.",
+      handoff_reason: "explicit_user_request",
+      target_dispatcher: "create_one_shot_reminder",
+      handoff_context_for_next_dispatcher:
+        "The user moved from status reading to reminder creation.",
+      target_local_dispatcher_hint: "Create reminder dispatcher should decide.",
+      user_words: ["crée un rappel"],
+      structured_context: {
+        source_flow: "status_recap",
+        target_dispatcher: "create_one_shot_reminder",
+        handoff_reason: "explicit_user_request",
+        user_message_summary: "create reminder",
+        active_flow_summary: "status read-only",
+        collected_state: { target_objects: ["one_shot_reminder"] },
+        unresolved_questions: [],
+        confidence: "high",
+        evidence: ["create reminder request"],
+        recommended_next_focus: "reminder creation",
+      },
+      risk_score: 0,
+      no_chat_mutation: {
+        db_write_committed: false,
+        potion_session_created: false,
+        scheduled_checkin_created: false,
+        recurring_reminder_created: false,
+        executable_confirmation_generated: false,
+      },
+    },
+    exit_memo: {
+      needed: true,
+      reason: "explicit_tool_request",
+      user_intent_summary: "create reminder",
+      local_flow_context: {
+        skill_id: "status_recap",
+        last_intent: "object_status",
+        last_target_objects: ["one_shot_reminder"],
+        last_answer_summary: "one reminder active",
+        last_projection_summary: "one reminder",
+      },
+      handoff_hint_for_global_dispatcher: {
+        likely_intent: "one_shot_reminder",
+        why: "The current user message asks for creation.",
+        constraints: [
+          "Status recap was read-only and did not mutate anything.",
+        ],
+      },
+    },
+    evidence: ["create reminder request"],
+  });
+  assertEquals(
+    output.note_information?.target_dispatcher,
+    "create_one_shot_reminder",
+  );
+  assertEquals(
+    output.note_information?.structured_context.source_flow,
+    "status_recap",
+  );
+  assertEquals(output.exit_memo.needed, true);
 });

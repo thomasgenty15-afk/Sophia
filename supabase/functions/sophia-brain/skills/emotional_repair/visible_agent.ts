@@ -2,9 +2,11 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
+import {
+  VISIBLE_OUTPUT_STYLE_RULES,
+  visibleOutputStyleIssues,
+} from "../../router/response_style_policy.ts";
 import type {
-  EmotionalRepairLocalState,
-  EmotionalRepairPotionBridgeContext,
   EmotionalRepairVisibleTask,
   EmotionalRepairVisibleTaskKind,
 } from "./contract.ts";
@@ -13,13 +15,7 @@ export type EmotionalRepairVisibleAgentInput = {
   user_id: string;
   request_id?: string | null;
   stage: EmotionalRepairVisibleTaskKind;
-  user_message: string;
-  recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
-  local_state: EmotionalRepairLocalState | null;
   visible_task: EmotionalRepairVisibleTask;
-  potion_bridge_context?: EmotionalRepairPotionBridgeContext | null;
-  constraints: string[];
-  dispatcher_evidence: string[];
 };
 
 export type EmotionalRepairVisibleAgent = (
@@ -30,9 +26,12 @@ function stagePrompt(stage: EmotionalRepairVisibleTaskKind): string {
   const common = [
     "Tu ecris le prochain message visible de Sophia dans emotional_repair.",
     "Tu ne decides pas, tu ne routes pas, tu ne remplis pas les champs potion.",
-    "Tu ecris seulement depuis l'etat structure fourni.",
+    "Tu ecris seulement depuis visible_task.conversation_context.",
+    "Tu n'utilises pas l'etat local brut, la DB brute ou la memoire brute.",
     "Retourne uniquement le message visible, sans Markdown technique.",
     "Ne promets aucun write DB, aucune creation, aucune activation, aucun rappel.",
+    "Si conversation_context.selected_candidate.potion est null, ne propose aucune potion.",
+    VISIBLE_OUTPUT_STYLE_RULES,
   ];
   switch (stage) {
     case "soft_presence":
@@ -126,13 +125,9 @@ function stagePrompt(stage: EmotionalRepairVisibleTaskKind): string {
 export const runEmotionalRepairVisibleAgent: EmotionalRepairVisibleAgent =
   async (input) => {
     const userPrompt = JSON.stringify({
-      current_user_message: input.user_message,
-      recent_messages: input.recent_messages,
-      local_state: input.local_state,
-      visible_task: input.visible_task,
-      potion_bridge_context: input.potion_bridge_context ?? null,
-      constraints: input.constraints,
-      dispatcher_evidence: input.dispatcher_evidence,
+      task: "write_emotional_repair_visible_message",
+      stage: input.stage,
+      conversation_context: input.visible_task.conversation_context,
     });
     try {
       const text = await generateWithGemini(
@@ -154,7 +149,9 @@ export const runEmotionalRepairVisibleAgent: EmotionalRepairVisibleAgent =
         },
       );
       const message = String(text ?? "").trim();
-      return message || null;
+      return message && visibleOutputStyleIssues(message).length === 0
+        ? message
+        : null;
     } catch (error) {
       console.warn("[EmotionalRepair] visible agent failed", {
         stage: input.stage,

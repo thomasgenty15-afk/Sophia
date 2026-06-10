@@ -1,3 +1,5 @@
+import type { NoteInformation } from "../../contracts/note_information.v1.ts";
+
 export type StatusRecapIntent =
   | "durable_status"
   | "object_status"
@@ -22,8 +24,10 @@ export type StatusRecapLocalFlowAction =
   | "explain_sources"
   | "no_source_status"
   | "human_recap_no_db"
+  | "stop_local_no_handoff"
   | "cancel_flow"
   | "exit_to_global_dispatcher"
+  | "handoff_to_local_flow"
   | "safety_preempt";
 
 export type StatusRecapVisibleTaskKind =
@@ -38,7 +42,8 @@ export type StatusRecapVisibleTaskKind =
   | "explain_sources"
   | "no_source"
   | "human_recap_redirect"
-  | "exit_or_cancel"
+  | "stop_or_cancel"
+  | "exit_ack"
   | "safety";
 
 export type StatusRecapObjectType =
@@ -51,16 +56,6 @@ export type StatusRecapObjectType =
   | "plan_item"
   | "memory"
   | "unknown";
-
-export type StatusRecapConstraint =
-  | "non_mutating"
-  | "db_grounded"
-  | "do_not_execute_tool"
-  | "do_not_claim_without_source"
-  | "do_not_render_product_how_to"
-  | "do_not_preempt_explicit_tool_command"
-  | "short_reply"
-  | "format_fait_prevu_fragile";
 
 export type StatusRecapProjection = {
   attack_cards: Array<{
@@ -129,24 +124,6 @@ export type StatusRecapProjection = {
   }>;
 };
 
-export type StatusRecapDecision = {
-  skill_id: "status_recap";
-  intent: StatusRecapIntent;
-  target_objects: StatusRecapObjectType[];
-  constraints: StatusRecapConstraint[];
-  projection_used: boolean;
-  missing_sources: string[];
-  response_contract: {
-    max_questions: 0 | 1;
-    format: "compact" | "fait_prevu_fragile" | "object_answer" | "recap";
-    allow_human_context_lines: boolean;
-  };
-  operation_suggestions: [];
-  reply: string;
-};
-
-export type StatusRecapDecisionDraft = Omit<StatusRecapDecision, "reply">;
-
 export type StatusRecapProjectionSummary = {
   attack_card_count: number;
   defense_card_count: number;
@@ -156,6 +133,66 @@ export type StatusRecapProjectionSummary = {
   potion_session_count: number;
   coach_preference_count: number;
   recent_effect_history_count: number;
+};
+
+export type StatusRecapDbContextPack = {
+  kind: "status_recap_db_context_pack";
+  projection_summary: StatusRecapProjectionSummary;
+  loaded_categories: Array<
+    | "attack_cards"
+    | "defense_cards"
+    | "one_shot_reminders"
+    | "recurring_reminders"
+    | "potions"
+    | "coach_preferences"
+    | "recent_effects"
+  >;
+  source_policy: {
+    read_only: true;
+    db_grounded: true;
+    micro_memory_used: false;
+  };
+};
+
+export type StatusRecapConversationContext = {
+  kind: "status_recap_conversation_context";
+  stage: StatusRecapVisibleTaskKind;
+  user_words: string[];
+  context_summary: string | null;
+  visible_instruction: string | null;
+  status_intent_summary: string;
+  requested_categories: StatusRecapLocalDispatcherOutput["read_scope"][
+    "requested_categories"
+  ];
+  target_objects: StatusRecapObjectType[];
+  include_cancelled: boolean;
+  include_recent_failed_or_blocked_effects: boolean;
+  format: "compact" | "object_answer" | "recap" | "fait_prevu_fragile";
+  projection_summary: StatusRecapProjectionSummary;
+  filtered_facts: Pick<
+    StatusRecapProjection,
+    | "attack_cards"
+    | "defense_cards"
+    | "one_shot_reminders"
+    | "recurring_reminders"
+    | "potion_sessions"
+    | "coach_preferences"
+    | "recent_effect_history"
+  >;
+  previous_answer_summary: string | null;
+  handoff_data: {
+    inbound_note_summary: string | null;
+    inbound_source_flow_id: string | null;
+    inbound_handoff_reason: string | null;
+  };
+  constraints: {
+    read_only: true;
+    no_chat_mutation: true;
+    no_tool_execution: true;
+    no_product_how_to: true;
+    no_claim_without_filtered_fact: true;
+    micro_memory_raw_available_to_visible_agent: false;
+  };
 };
 
 export type StatusRecapLocalFlowState = {
@@ -214,7 +251,9 @@ export type StatusRecapLocalDispatcherOutput = {
   visible_task: {
     kind: StatusRecapVisibleTaskKind;
     instruction: string;
+    conversation_context?: StatusRecapConversationContext;
   };
+  note_information?: NoteInformation | null;
   exit_memo: {
     needed: boolean;
     reason:
@@ -255,10 +294,10 @@ export type StatusRecapLocalDispatcherOutput = {
 
 export const STATUS_RECAP_MIGRATION_STATUS = {
   standard_target:
-    "contract -> structured_intake -> reducer -> response/effects -> renderer",
+    "local_dispatcher -> reducer -> visible_task.conversation_context -> stage_prompt",
   current_shape:
-    "contract -> DB/effect projection -> deterministic reducer -> renderer",
+    "local_dispatcher -> DB/effect projection -> reducer -> visible_task.conversation_context -> stage_prompt",
   documented_exception:
-    "none: activation and target selection must come from structured routing signals, not deterministic message guards.",
+    "none: activation and target selection must come from structured routing signals.",
   durable_effect_policy: "never_mutates",
 } as const;

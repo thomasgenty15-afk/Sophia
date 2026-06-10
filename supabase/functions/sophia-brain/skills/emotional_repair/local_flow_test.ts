@@ -1,7 +1,13 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
 import type { EmotionalRepairLocalDispatcherOutput } from "./contract.ts";
-import { reduceEmotionalRepairLocalDispatcherOutput } from "./local_flow.ts";
+import {
+  EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES,
+  EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES,
+  EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES,
+  localDispatcherSystemPrompt,
+  reduceEmotionalRepairLocalDispatcherOutput,
+} from "./local_flow.ts";
 import { runEmotionalRepairSkill } from "./skill.ts";
 import { persistConversationSkillRoute } from "../../router/conversation_route_runtime_support.ts";
 
@@ -56,12 +62,35 @@ function dispatcherOutput(
     },
     visible_task: {
       kind: "de_shame",
-      required_data: {
-        repair_summary: "Le user se punit apres un craquage.",
+      conversation_context: {
+        state_summary: "Le user se punit apres un craquage.",
         user_words: ["j'ai honte"],
-        selected_potion: null,
-        potion_label: null,
-        bridge_context_summary: null,
+        field_or_stage: "de_shame",
+        known_values: {
+          intent: "shame_or_guilt",
+          phase: "de_shame",
+          emotional_dominance: "high",
+          context_domain: "work",
+          identity_freeze_risk: true,
+          emotion_stabilized_enough_for_tool: false,
+        },
+        missing_or_weak_values: [],
+        selected_candidate: {
+          potion: null,
+          potion_label: null,
+          durable_need_kind: null,
+          durable_need_summary: null,
+        },
+        handoff_data: {
+          bridge_context_summary: null,
+          target_dispatcher: null,
+          no_chat_mutation: true,
+        },
+        tone_constraints: ["soft"],
+        do_not_say: [],
+        context_summary: "Le user se punit apres un craquage.",
+        evidence_used: ["test"],
+        max_questions: 0,
       },
     },
     exit_memo: {
@@ -145,20 +174,92 @@ function stabilizedOffer(
     },
     visible_task: {
       kind: "potion_bridge_offer",
-      required_data: {
-        repair_summary: "L'emotion est redescendue.",
+      conversation_context: {
+        state_summary: "L'emotion est redescendue.",
         user_words: ["j'ai besoin d'un truc plus doux"],
-        selected_potion,
-        potion_label: selected_potion === "amour"
-          ? "Potion d'amour"
-          : selected_potion === "guerison"
-          ? "Potion de guerison"
-          : "Potion d'apaisement",
-        bridge_context_summary: "Besoin durable stabilise.",
+        field_or_stage: "potion_bridge_offer",
+        known_values: {
+          intent: selected_potion === "apaisement"
+            ? "anxiety_or_panic"
+            : selected_potion === "guerison"
+            ? "shame_or_guilt"
+            : "acute_self_attack",
+          phase: "stabilize",
+          emotional_dominance: "low",
+          context_domain: "work",
+          identity_freeze_risk: selected_potion !== "apaisement",
+          emotion_stabilized_enough_for_tool: true,
+        },
+        missing_or_weak_values: [],
+        selected_candidate: {
+          potion: selected_potion,
+          potion_label: selected_potion === "amour"
+            ? "Potion d'amour"
+            : selected_potion === "guerison"
+            ? "Potion de guerison"
+            : "Potion d'apaisement",
+          durable_need_kind: selected_potion === "amour"
+            ? "self_kindness"
+            : selected_potion === "guerison"
+            ? "healing_after_hurt"
+            : "pressure_relief",
+          durable_need_summary: "Soutenir la suite sans auto-punition.",
+        },
+        handoff_data: {
+          bridge_context_summary: "Besoin durable stabilise.",
+          target_dispatcher: null,
+          no_chat_mutation: true,
+        },
+        tone_constraints: ["soft"],
+        do_not_say: [],
+        context_summary: "L'emotion est redescendue.",
+        evidence_used: ["test"],
+        max_questions: 1,
       },
     },
   });
 }
+
+Deno.test("emotional_repair dispatcher prompt teaches field completion and transitions", () => {
+  const prompt = localDispatcherSystemPrompt();
+
+  assert(prompt.includes("field_completion_rules"));
+  assert(prompt.includes("flow_action_rules"));
+  assert(prompt.includes("message courant est prioritaire"));
+  assert(
+    EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES.flow_action.some((
+      rule,
+    ) => rule.includes("message courant")),
+  );
+  assert(
+    EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.stop_local_no_handoff.some((
+      rule,
+    ) => rule.includes("exit_memo.needed=false")),
+  );
+  assert(
+    EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.exit_to_global_dispatcher
+      .some((rule) => rule.includes("exit_memo.needed=true")),
+  );
+});
+
+Deno.test("emotional_repair dispatcher prompt keeps exactly two decision examples", () => {
+  assertEquals(EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES.length, 2);
+  assertEquals(
+    EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[0].expected_decision
+      .flow_action,
+    "provide_concrete_phrase",
+  );
+  assertEquals(
+    EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[1].expected_decision
+      .flow_action,
+    "stop_local_no_handoff",
+  );
+  assertEquals(
+    EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[1].expected_decision
+      .exit_memo.needed,
+    false,
+  );
+});
 
 Deno.test("emotional_repair local reducer blocks potion while shame dominates", () => {
   const reduced = reduceEmotionalRepairLocalDispatcherOutput({
@@ -189,7 +290,10 @@ Deno.test("emotional_repair local reducer blocks potion while shame dominates", 
   });
 
   assertEquals(reduced.potion_bridge_context, null);
-  assertEquals(reduced.visible_task.required_data.selected_potion, null);
+  assertEquals(
+    reduced.visible_task.conversation_context.selected_candidate.potion,
+    null,
+  );
   assertEquals(reduced.reason_code, "emotional_repair_potion_bridge_blocked");
 });
 
@@ -204,6 +308,68 @@ Deno.test("emotional_repair soft_support_only blocks potion bridge", () => {
   assertEquals(reduced.potion_bridge_context, null);
   assert(reduced.constraints.includes("no_potion"));
   assert(reduced.constraints.includes("no_tool"));
+});
+
+Deno.test("emotional_repair candidate potion is not a visible consent offer", () => {
+  const reduced = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("amour"),
+      potion_bridge: {
+        ...stabilizedOffer("amour").potion_bridge,
+        status: "candidate",
+      },
+      visible_task: {
+        ...stabilizedOffer("amour").visible_task,
+        kind: "potion_bridge_offer",
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(reduced.status, "continue");
+  assertEquals(reduced.reason_code, "emotional_repair_potion_bridge_blocked");
+  assertEquals(reduced.visible_task.kind, "separate_fact_from_identity");
+  assertEquals(
+    reduced.visible_task.conversation_context.selected_candidate.potion,
+    null,
+  );
+  assert(
+    reduced.visible_task.conversation_context.do_not_say.includes(
+      "Ne propose pas de potion dans ce message.",
+    ),
+  );
+  assertEquals(reduced.local_state?.last_potion_bridge_offer, null);
+  assertEquals(reduced.blocked_effects[0]?.reason_code, "bridge_not_mature");
+});
+
+Deno.test("emotional_repair confirmation without persisted offer does not handoff", () => {
+  const reduced = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("guerison"),
+      flow_action: "confirm_potion_bridge",
+      potion_bridge: {
+        ...stabilizedOffer("guerison").potion_bridge,
+        status: "confirmed_handoff",
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(reduced.status, "continue");
+  assertEquals(reduced.reason_code, "emotional_repair_potion_bridge_blocked");
+  assertEquals(reduced.potion_bridge_context, null);
+  assertEquals(reduced.visible_task.kind, "de_shame");
+  assertEquals(
+    reduced.visible_task.conversation_context.selected_candidate.potion,
+    null,
+  );
+  assertEquals(reduced.local_state?.last_potion_bridge_offer, null);
+  assertEquals(
+    reduced.blocked_effects[0]?.reason_code,
+    "missing_previous_potion_offer",
+  );
 });
 
 Deno.test("emotional_repair no_potion clears previous bridge offer", () => {
@@ -224,12 +390,35 @@ Deno.test("emotional_repair no_potion clears previous bridge offer", () => {
         },
         visible_task: {
           kind: "soft_presence",
-          required_data: {
-            repair_summary: "Le user refuse la potion.",
+          conversation_context: {
+            state_summary: "Le user refuse la potion.",
             user_words: ["pas de potion"],
-            selected_potion: null,
-            potion_label: null,
-            bridge_context_summary: null,
+            field_or_stage: "soft_presence",
+            known_values: {
+              intent: "shame_or_guilt",
+              phase: "stabilize",
+              emotional_dominance: "low",
+              context_domain: "work",
+              identity_freeze_risk: true,
+              emotion_stabilized_enough_for_tool: true,
+            },
+            missing_or_weak_values: [],
+            selected_candidate: {
+              potion: null,
+              potion_label: null,
+              durable_need_kind: null,
+              durable_need_summary: null,
+            },
+            handoff_data: {
+              bridge_context_summary: null,
+              target_dispatcher: null,
+              no_chat_mutation: true,
+            },
+            tone_constraints: ["soft", "no_potion"],
+            do_not_say: ["Ne propose pas de potion."],
+            context_summary: "Le user refuse la potion.",
+            evidence_used: ["pas de potion"],
+            max_questions: 0,
           },
         },
       }),
@@ -287,6 +476,19 @@ Deno.test("emotional_repair confirmed bridge emits potion context without mutati
   );
   assertEquals(confirmed.potion_bridge_context?.selected_potion, "guerison");
   assertEquals(
+    confirmed.potion_bridge_context?.note_information.source_flow_id,
+    "emotional_repair",
+  );
+  assertEquals(
+    confirmed.potion_bridge_context?.note_information.target_dispatcher,
+    "select_state_potion",
+  );
+  assertEquals(
+    confirmed.potion_bridge_context?.note_information.no_chat_mutation
+      .potion_session_created,
+    false,
+  );
+  assertEquals(
     confirmed.potion_bridge_context?.prefill_candidates.recent_hurt
       ?.candidate_value,
     "le craquage d'hier",
@@ -307,6 +509,98 @@ Deno.test("emotional_repair safety preempt wins over local bridge", () => {
   assertEquals(reduced.status, "safety");
   assertEquals(reduced.potion_bridge_context, null);
   assertEquals(reduced.visible_task.kind, "safety");
+  assertEquals(
+    reduced.visible_task.conversation_context.handoff_data.target_dispatcher,
+    "safety_crisis",
+  );
+});
+
+Deno.test("emotional_repair stop_local_no_handoff closes locally without global exit", () => {
+  const reduced = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "stop_local_no_handoff",
+      exit_memo: {
+        needed: true,
+        reason: "cancelled",
+        flow_summary: "Le user arrete le flow.",
+        handoff_hint_for_global_dispatcher: null,
+        potion_bridge_context: null,
+      },
+    }),
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(reduced.status, "complete");
+  assertEquals(reduced.response_intent, "stop_local_no_handoff");
+  assertEquals(reduced.local_state, null);
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.potion_bridge_context, null);
+  assertEquals(reduced.visible_task.kind, "exit_or_cancel");
+});
+
+Deno.test("emotional_repair visible agent receives only conversation_context task data", async () => {
+  let seenInput: Record<string, unknown> | null = null;
+  const output = await runEmotionalRepairSkill({
+    user_message: "j'ai honte",
+    context: {
+      skill_id: "emotional_repair",
+      user_id: "user_test",
+      recent_messages: [{ role: "user", content: "ne pas transmettre brut" }],
+      active_skill_working_state: null,
+      turn_frame: turnFrame(),
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+    } as any,
+    local_dispatcher: async () => dispatcherOutput(),
+    visible_agent: async (input) => {
+      seenInput = input as unknown as Record<string, unknown>;
+      return "Je reste avec toi sans transformer ce moment en verdict sur toi.";
+    },
+  });
+
+  assertEquals(output.status, "continue");
+  assertEquals(
+    Object.keys(seenInput ?? {}).sort(),
+    ["request_id", "stage", "user_id", "visible_task"].sort(),
+  );
+  const visibleTask = (seenInput as Record<string, any> | null)?.visible_task;
+  assert(visibleTask?.conversation_context);
+  assertEquals((seenInput as any)?.recent_messages, undefined);
+  assertEquals((seenInput as any)?.local_state, undefined);
+});
+
+Deno.test("emotional_repair safety pregate hands off without local visible message", async () => {
+  const output = await runEmotionalRepairSkill({
+    user_message: "je risque de me faire du mal",
+    context: {
+      skill_id: "emotional_repair",
+      user_id: "user_test",
+      recent_messages: [],
+      active_skill_working_state: null,
+      turn_frame: turnFrame("high"),
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+    } as any,
+    local_dispatcher: async () => {
+      throw new Error("local_dispatcher_should_not_run_after_safety_pregate");
+    },
+    visible_agent: async () => {
+      throw new Error("visible_agent_should_not_run_on_safety_handoff");
+    },
+  });
+
+  assertEquals(output.status, "handoff");
+  assertEquals(output.reply, "");
+  assertEquals(
+    (output.state_patch?.emotional_repair_safety_handoff as any)
+      ?.note_information?.target_dispatcher,
+    "safety_crisis",
+  );
 });
 
 Deno.test("emotional_repair handoff persists select_state_potion owner directly", async () => {
@@ -372,5 +666,14 @@ Deno.test("emotional_repair handoff persists select_state_potion owner directly"
     temp.__active_tool_skill_intake?.origin_bridge_context?.information_note
       ?.context_for_next_dispatcher?.selected_potion,
     "amour",
+  );
+  assertEquals(
+    temp.__active_tool_skill_intake?.origin_bridge_context?.note_information
+      ?.target_dispatcher,
+    "select_state_potion",
+  );
+  assertEquals(
+    temp.__active_tool_skill_intake?.note_information?.source_flow_id,
+    "emotional_repair",
   );
 });

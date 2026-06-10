@@ -27,7 +27,7 @@ un `platform_handoff` avec `no_chat_mutation=true`, `executedTools=[]` et
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
-- `TurnAgenda` pour représenter `select_state_potion` comme
+- `local reducer contract` pour représenter `select_state_potion` comme
   `platform_handoff`, pas comme `effect` exécutable ;
 - `clarification_tool` pour les ambiguïtés internes : soutien émotionnel vs
   potion, apaisement vs activation, potion vs rappel/suivi, handoff prêt vs

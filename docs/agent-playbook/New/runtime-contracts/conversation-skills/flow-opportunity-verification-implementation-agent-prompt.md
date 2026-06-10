@@ -19,7 +19,7 @@ Docs a lire avant de coder :
 /Users/ahmedamara/Dev/Sophia 2/docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md
 /Users/ahmedamara/Dev/Sophia 2/docs/agent-playbook/New/runtime-contracts/01-global-runtime.md
 /Users/ahmedamara/Dev/Sophia 2/docs/agent-playbook/New/runtime-contracts/02-run-thin-orchestrator.md
-/Users/ahmedamara/Dev/Sophia 2/docs/agent-playbook/New/runtime-contracts/03-user-turn-snapshot-agenda.md
+/Users/ahmedamara/Dev/Sophia 2/docs/agent-playbook/New/runtime-contracts/03-user-turn-snapshot.md
 /Users/ahmedamara/Dev/Sophia 2/docs/agent-playbook/New/runtime-contracts/05-effect-ledger.md
 
 2. Conversation skills concernes :
@@ -49,7 +49,7 @@ Code a inspecter avant de coder :
 
 - /Users/ahmedamara/Dev/Sophia 2/supabase/functions/sophia-brain/router/run.ts
 - /Users/ahmedamara/Dev/Sophia 2/supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts
-- /Users/ahmedamara/Dev/Sophia 2/supabase/functions/sophia-brain/router/turn_agenda.ts
+- /Users/ahmedamara/Dev/Sophia 2/supabase/functions/sophia-brain/router/local_reducer.ts
 - /Users/ahmedamara/Dev/Sophia 2/supabase/functions/sophia-brain/router/turn_intent_arbitrator.ts
 - /Users/ahmedamara/Dev/Sophia 2/supabase/functions/sophia-brain/router/user_turn_snapshot.ts
 - /Users/ahmedamara/Dev/Sophia 2/supabase/functions/sophia-brain/router/recommendation_runtime_support.ts
@@ -67,7 +67,7 @@ Code a inspecter avant de coder :
 Objectif
 
 Aujourd'hui, les "opportunities" sont traitees comme des suggestions ou des
-add-ons et restent liees historiquement a `tool_skill_opportunity`. Le nouveau
+add-ons et restent liees historiquement a `flow_opportunity`. Le nouveau
 comportement attendu est plus large : les opportunities doivent devenir des
 `flow_opportunities`, parce qu'elles concernent aussi des conversation skills
 comme `status_recap`, `emotional_repair` et `demotivation_repair`.
@@ -187,7 +187,7 @@ Implementer une premiere version complete et testee pour :
 Brancher les autres target flows de facon structurelle si le code le permet,
 mais ne pas refondre tous les flows metier dans cette mission.
 
-Si un renommage complet de `tool_skill_opportunity` vers `flow_opportunity`
+Si un renommage complet de `flow_opportunity` vers `flow_opportunity`
 est trop invasif, introduire un champ canonique `flow_opportunity` avec une
 compatibilite temporaire pour les anciens champs. Documenter l'exception et
 ajouter des tests de non-regression.
@@ -196,7 +196,7 @@ Etape 1 - Cartographier l'existant
 
 Lire et documenter rapidement dans tes notes de travail :
 
-- ou `tool_skill_opportunity` est produit ;
+- ou `flow_opportunity` est produit ;
 - ou il est lu ;
 - comment il devient une recommendation visible ;
 - comment `product_help` est appele ;
@@ -827,7 +827,7 @@ Puis lancer les suites ciblees pertinentes selon les fichiers modifies :
 deno test supabase/functions/sophia-brain/skills/status_recap/status_recap.test.ts
 deno test supabase/functions/sophia-brain/skills/status_recap/status_recap_runtime_test.ts
 deno test supabase/functions/sophia-brain/skills/skills_s3.test.ts
-deno test supabase/functions/sophia-brain/router/turn_agenda.test.ts
+deno test supabase/functions/sophia-brain/router/local_reducer.test.ts
 deno test supabase/functions/sophia-brain/router/turn_intent_arbitrator.test.ts
 ```
 

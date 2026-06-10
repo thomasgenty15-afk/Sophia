@@ -59,22 +59,7 @@ export function renderRecurringReminderDraftReady(input: {
 }
 
 function cadenceForSentence(summary: string): string {
-  const trimmed = summary.trim();
-  const weekly = trimmed.match(/^chaque semaine,\s*(.+)$/i);
-  if (weekly?.[1]) {
-    const days = weekly[1].trim();
-    return days.includes(",")
-      ? `chaque semaine, les jours suivants : ${days}`
-      : `chaque semaine, le ${days}`;
-  }
-  const biweekly = trimmed.match(/^toutes les deux semaines,\s*(.+)$/i);
-  if (biweekly?.[1]) {
-    const days = biweekly[1].trim();
-    return days.includes(",")
-      ? `toutes les deux semaines, les jours suivants : ${days}`
-      : `toutes les deux semaines, le ${days}`;
-  }
-  return trimmed;
+  return summary.trim();
 }
 
 export function renderRecurringReminderPlatformHandoff(input: {

@@ -61,6 +61,7 @@ export interface LoadedContext {
   temporal?: string;
   rendezVousSummary?: string;
   weeklyRecapContext?: string;
+  dailyConversationPulseContext?: string;
   planItemIndicators?: string;
   memoryV2Payload?: string;
   identity?: string;

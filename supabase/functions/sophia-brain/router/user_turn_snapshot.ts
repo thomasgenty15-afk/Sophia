@@ -134,7 +134,7 @@ function deriveExplicitConstraints(args: {
       toolIntents.some((intent) => intent.user_intent === "explain_only"),
     status_only: explicit.status_only === true ||
       hasRouteSignal("status_only") ||
-      selectedHandler === "status_only_no_mutation_check",
+      selectedHandler === "status_recap",
     draft_only: explicit.draft_only === true ||
       hasFlowConstraint("draft_only") ||
       hasFlowConstraint("no_create"),

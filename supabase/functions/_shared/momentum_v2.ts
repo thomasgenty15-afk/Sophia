@@ -631,7 +631,10 @@ export async function loadMomentumSnapshotV2(
       .from("system_runtime_snapshots")
       .select("payload,created_at")
       .eq("user_id", params.userId)
-      .eq("snapshot_type", "conversation_pulse")
+      .in("snapshot_type", [
+        "daily_conversation_pulse_v2",
+        "watcher_conversation_pulse_v2",
+      ])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),

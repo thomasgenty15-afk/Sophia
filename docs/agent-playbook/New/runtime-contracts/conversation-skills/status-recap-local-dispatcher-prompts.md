@@ -76,6 +76,23 @@ Routes non visibles :
   reanalyser le meme message.
 - `safety_preempt` laisse la pipeline safety reprendre.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+When `status_recap` is called inline by a parent flow, the parent must provide
+`note_information` with `target_dispatcher="status_recap"`. `status_recap`
+answers read-only from DB/effect projections and returns to the parent with a
+note-compatible summary; it does not mutate parent fields.
+
+When standalone `status_recap` exits to global or safety, produce
+`note_information` with `source_flow_id="status_recap"` and the catalog
+presentation. Do not produce it for `repeat_last_status`, `narrow_scope`, or
+`cancel_flow` when no new topic exists. `target_dispatcher` is `global` for
+create/modify/cancel/product/help/normal coaching requests and `safety_crisis`
+for safety. The handoff context must include last DB intent, target objects,
+projection summary, answer summary, and the read-only/no-mutation constraint.
+
 ## Difference Avec L'Existant
 
 L'existant est :
@@ -684,4 +701,3 @@ Checks interdits :
 - Global dispatcher does not run while status_recap active.
 - Global dispatcher runs only after `exit_to_global_dispatcher`.
 - No durable effect is created by this flow.
-

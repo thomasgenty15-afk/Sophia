@@ -275,6 +275,24 @@ Deno.test("QUESTIONNAIRE_SYSTEM_PROMPT overrides existing_answers skip for the 9
   );
 });
 
+Deno.test("QUESTIONNAIRE_SYSTEM_PROMPT requires custom clarification before optimization when subject is vague", () => {
+  const requiredDirectives = [
+    "Si l'objet concret de la transformation est vague, abstrait ou non spécifié",
+    "q1 doit identifier l'objet concret de la transformation",
+    "q2 peut approfondir la forme actuelle",
+    "q3 doit rester une question d'optimisation du plan",
+    "Ne pose pas trois questions d'optimisation",
+    "Ne pose pas non plus trois questions de clarification pure",
+  ];
+
+  for (const directive of requiredDirectives) {
+    assert(
+      QUESTIONNAIRE_SYSTEM_PROMPT.includes(directive),
+      `Prompt is missing custom clarification directive: ${directive}`,
+    );
+  }
+});
+
 Deno.test("extractStructuredCalibrationFields resolves new system fields from answer IDs", () => {
   const schema = makeQuestionnaireSchema();
   const answers = makeAnswersById();

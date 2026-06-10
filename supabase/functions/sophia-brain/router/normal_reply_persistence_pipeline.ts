@@ -35,7 +35,6 @@ import { logV2Event, V2_EVENT_TYPES } from "../../_shared/v2-events.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
 import { logEdgeFunctionError } from "../../_shared/error-log.ts";
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
-import { buildConversationPulse } from "../conversation_pulse_builder.ts";
 import { clearOneShotKeys } from "./turn_context_runtime.ts";
 import { persistConversationSkillRoute } from "./conversation_route_runtime_support.ts";
 import { updateWeeklyAdaptiveReviewStateAfterConversationTurn } from "../skills/weekly_review/runtime.ts";
@@ -87,6 +86,10 @@ function envString(name: string, fallback = ""): string {
     return fallback;
   }
   return raw || fallback;
+}
+
+function hasActiveConversationSkill(activeSkillState: unknown): boolean {
+  return Boolean(String((activeSkillState as any)?.skill_id ?? "").trim());
 }
 
 export async function persistNormalReplyTurn(args: {
@@ -322,7 +325,10 @@ export async function persistNormalReplyTurn(args: {
   ) {
     mergedTempMemory = clearToolSkillFlowForDirectReminder(mergedTempMemory);
   }
-  if (conversationRiskForPersist?.should_exit_flows) {
+  if (
+    conversationRiskForPersist?.should_exit_flows &&
+    !hasActiveConversationSkill(activeSkillState)
+  ) {
     const { tempMemory: cleared } = clearMachineStateTempMemory({
       tempMemory: mergedTempMemory,
     });
@@ -700,21 +706,6 @@ export async function persistNormalReplyTurn(args: {
     });
   } catch (e) {
     console.warn("[Router] persistTurnSummaryLog failed (non-blocking):", e);
-  }
-
-  const conversationTurnCount =
-    history.filter((entry) =>
-      entry && typeof entry === "object" && entry.role === "user"
-    ).length + 1;
-  if (conversationTurnCount >= 3 && v2Runtime?.cycle) {
-    buildConversationPulse({
-      supabase,
-      userId,
-      requestId: requestId ?? undefined,
-      source: "router_end_of_turn",
-    }).catch((e) => {
-      console.warn("[Router] buildConversationPulse failed (non-blocking):", e);
-    });
   }
 
   return {

@@ -21,12 +21,13 @@ une exception legacy temporaire dans `../test-material/15-chantiers-log.md`.
 - doctrine globale : `00-architecture-doctrine.md`
 - pipeline global : `01-global-runtime.md`
 - `run.ts` orchestration : `02-run-thin-orchestrator.md`
-- intentions concurrentes : `03-user-turn-snapshot-agenda.md`
+- snapshot de tour : `03-user-turn-snapshot.md`
 - confirmations : `04-confirmation-contract.md`
 - effets, claims, "c'est fait" : `05-effect-ledger.md`
 - diagrammes système : `06-sophia-brain-runtime-diagram.md`
 - continuité des handoffs actifs : `07-active-handoff-arbitration.md`
 - destinations plateforme : `08-product-surface-registry.md`
+- note non visible entre dispatchers : `09-note-information-contract.md`
 - clarification transverse : `clarification-tool.md`
 - guards legacy ou `*ForTest` : `testing/legacy-guards.md`
 - suite centrale de tests : `testing/central-test-suite.md`
@@ -90,3 +91,4 @@ Chaque contrat de domaine doit garder ces sections :
 | 2026-06-01 | `platform_handoff` devient une catégorie runtime canonique distincte des effets durables bloqués ou échoués. | Active | J74 |
 | 2026-06-01 | Ajouter `07-active-handoff-arbitration.md` pour protéger la continuité des handoffs sans relancer l'exécution. | Active | Architecture handoff V1 |
 | 2026-06-01 | Ajouter `08-product-surface-registry.md` comme source canonique des destinations plateforme. | Active | Architecture handoff V1 |
+| 2026-06-08 | Ajouter `09-note-information-contract.md` comme contrat transverse pour tous les changements de dispatcher et les stops locaux sans handoff. | Active | Note information transverse |

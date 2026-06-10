@@ -35,7 +35,7 @@ Ils sont non-mutants et doivent être traités comme `answer_product_question`,
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
-- `TurnAgenda` pour distinguer reply/effects/status/memory/repair ;
+- `local reducer contract` pour distinguer reply/effects/status/memory/repair ;
 - `Confirmation Contract` pour interpréter approve/reject/revise/explain ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
 - le contrat local de `one_shot_reminder` pour l'intake, le reducer, les effets
@@ -50,8 +50,8 @@ Utilisation actuelle :
 - `turnFrame` sert encore surtout au `Confirmation Contract` via
   `buildToolConfirmationDecision` dans `router.ts`, pour bloquer une mutation
   quand une confirmation outil concurrente est active.
-- `TurnAgenda`/agenda block est représenté dans le contrat local par
-  `reduceOneShotReminderIntake(..., agendaBlockedReason)`. Le chemin `run.ts`
+- `local reducer contract`/agenda block est représenté dans le contrat local par
+  `reduceOneShotReminderIntake(..., globalBlockedReason)`. Le chemin `run.ts`
   ne l'alimente pas encore systématiquement : c'est une limite restante.
 - `EffectLedger` consomme les champs du résultat local :
   `requested_effects`, `allowed_effects`, `attempted_effects`,
@@ -239,7 +239,7 @@ Chemin canonique souhaité et partiellement en place :
 - `route_guards.ts` contient encore des guards regex transitionnels. Ils restent
   parce que le direct effect one-shot est always-on et doit protéger les cas
   status/product-help/no-mutation pendant la migration hors `run.ts`. Condition
-  de suppression : le dispatcher + `TurnAgenda` fournissent un intent structuré
+  de suppression : le dispatcher + `local reducer contract` fournissent un intent structuré
   fiable pour create/cancel/replace/status/product-help et les tests router
   restent verts sans ces guards.
 - `router.ts` garde encore un fast-path create/cancel direct basé sur
@@ -297,5 +297,5 @@ Cas obligatoires :
 | --- | --- | --- | --- |
 | 2026-05-30 | `one_shot_reminder_tool.ts` est une façade legacy ; la source runtime doit être `contract/intake/reducer/executor/renderer/router`. | Active, migration incomplète | J1, Jx, ce contrat |
 | 2026-05-30 | `committed_effects` est la seule preuve durable ; `attempted_effects` ne suffit jamais pour "c'est fait". | Active | EffectLedger mandatory proof |
-| 2026-05-30 | Les guards regex one-shot restants sont legacy transitionnels et doivent rester localisés dans `route_guards.ts` jusqu'à remplacement par `TurnAgenda`/intake structuré complet. | Temporaire | Legacy Exceptions |
+| 2026-05-30 | Les guards regex one-shot restants sont legacy transitionnels et doivent rester localisés dans `route_guards.ts` jusqu'à remplacement par `local reducer contract`/intake structuré complet. | Temporaire | Legacy Exceptions |
 | 2026-05-30 | `runCreateOneShotReminderV2` reste uniquement pour compatibilité DirectEffectGate/idempotence tant que le router canonique ne porte pas toute cette politique. | Temporaire | Legacy Exceptions |

@@ -327,7 +327,7 @@ Artefacts locaux:
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - executed_tools: []
 - durable_effect: aucun nouveau
 - warning: recap DB exact, mais ignore la demande de garder la version precise.
@@ -401,7 +401,7 @@ Artefacts locaux:
 - T2-T4: mauvais passage conversation -> tool pour carte d'attaque, puis echec executor. Impact systeme: surface `prepare_attack_card` non fiable. Severite: red.
 - T7-T8: aucune memoire durable malgre signal clair "Note pour plus tard" et "garde comme repere". Impact systeme: memory mismatch. Severite: red.
 - T9-T14: preference coach composite aplatie vers `coach.question_tendency`; les corrections "action d'abord" ne changent pas l'effet durable. Impact systeme: durable effect partiellement faux. Severite: red.
-- T14: `status_only_request_blocks_tool_start` produit un recap DB utile mais ignore l'instruction de garder la version precise. Impact systeme: multi-intention incomplete. Severite: yellow.
+- T14: `status_recap_request_blocks_tool_start` produit un recap DB utile mais ignore l'instruction de garder la version precise. Impact systeme: multi-intention incomplete. Severite: yellow.
 
 **Fix propose**
 - Renforcer l'arbitrage carte: "cree vraiment", "dans mes cartes", "dans Ressources" doit forcer `prepare_attack_card` et non `normal_reply`.

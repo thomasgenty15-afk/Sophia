@@ -80,7 +80,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `existing_reminder_modification_needs_explicit_reprogramming`
 - executed_tools: []
 - durable_effect: none
@@ -319,7 +319,7 @@
 **Routage**
 - Tours 1-2: green. `attack_card_cancelled_to_conversation`, aucun outil execute.
 - Tour 3: green. `create_one_shot_reminder` execute, DB correcte, reponse composee avec phrase.
-- Tours 4 et 8: red. Les demandes product help rappel routent vers `status_only_request_blocks_tool_start` / `one_shot_reminder_modification_not_adjust_plan` et `existing_reminder_modification_needs_explicit_reprogramming`.
+- Tours 4 et 8: red. Les demandes product help rappel routent vers `status_recap_request_blocks_tool_start` / `one_shot_reminder_modification_not_adjust_plan` et `existing_reminder_modification_needs_explicit_reprogramming`.
 - Tour 7: green. `product_help` carte fonctionne.
 - Tour 9: red. `normal_reply_default` + `tool_status=answered` sert le status resolver au lieu du recap/memoire humain.
 - Tours 13-14: red. `explicit_no_tool_request_blocks_tool_start` puis `immediate_mode_request_not_state_potion` bloquent les side effects mais ne produisent pas la reponse demandee.

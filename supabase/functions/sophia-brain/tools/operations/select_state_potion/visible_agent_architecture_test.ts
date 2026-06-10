@@ -105,3 +105,119 @@ Deno.test("select_state_potion architecture: legacy detail intake is not reachab
   }
   assertEquals(offenders, []);
 });
+
+Deno.test("select_state_potion architecture: legacy detail intake file and draft generation runtime are removed", async () => {
+  const legacyDetailFile =
+    "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/potion_detail_intake.ts";
+  try {
+    await Deno.stat(legacyDetailFile);
+    throw new Error("legacy_potion_detail_intake_file_still_exists");
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  }
+
+  const runtimeFiles = [
+    "supabase/functions/sophia-brain/tools/operations/select_state_potion/intake.ts",
+    "supabase/functions/sophia-brain/tools/operations/select_state_potion/handoff.ts",
+  ];
+  const offenders: string[] = [];
+  for (const file of runtimeFiles) {
+    const source = await Deno.readTextFile(file);
+    for (
+      const snippet of [
+        "draft_generation",
+        "draft_generator",
+        "draftGeneratorOverride",
+        "generatePotionSessionDraftWithAi",
+        "loadPotionBaseContext",
+      ]
+    ) {
+      if (source.includes(snippet)) offenders.push(`${file}: ${snippet}`);
+    }
+  }
+  assertEquals(offenders, []);
+});
+
+Deno.test("select_state_potion architecture: local dispatcher prompts document real JSON field rules", async () => {
+  const promptContracts = [
+    {
+      file:
+        "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/local_flow_dispatcher.ts",
+      fields: [
+        "flow_action",
+        "confidence",
+        "target_stage",
+        "slot_interpretation",
+        "field_pointer",
+        "revision_pointer",
+        "exit_memo_request",
+        "risk_assessment/risk_score",
+        "evidence",
+      ],
+    },
+    {
+      file:
+        "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/clarte_flow.ts",
+      fields: [
+        "flow_action",
+        "confidence",
+        "selected_potion",
+        "field_id",
+        "field_state",
+        "revision",
+        "visible_task.kind",
+        "visible_task.conversation_context",
+        "subskill_call",
+        "exit_memo",
+        "note_information",
+        "no_chat_mutation",
+        "risk_assessment/risk_score",
+        "evidence",
+      ],
+    },
+    {
+      file:
+        "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts",
+      fields: [
+        "flow_action",
+        "confidence",
+        "selected_potion",
+        "current_field_id",
+        "field_states",
+        "detail_sufficiency",
+        "revision",
+        "visible_task.kind",
+        "visible_task.conversation_context",
+        "subskill_call",
+        "exit_memo",
+        "note_information",
+        "no_chat_mutation",
+        "risk_assessment/risk_score",
+        "evidence",
+      ],
+    },
+  ];
+
+  for (const contract of promptContracts) {
+    const source = await Deno.readTextFile(contract.file);
+    assert(
+      source.includes("Field Completion Rules:"),
+      `${contract.file} missing Field Completion Rules`,
+    );
+    assert(
+      source.includes("Transition Rules:"),
+      `${contract.file} missing Transition Rules`,
+    );
+    assertEquals(
+      source.split("Exemples JSON non visibles (2 seulement):").length - 1,
+      1,
+      `${contract.file} must contain one two-example block`,
+    );
+    for (const field of contract.fields) {
+      assert(
+        source.includes(field),
+        `${contract.file} missing field rule for ${field}`,
+      );
+    }
+  }
+});

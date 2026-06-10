@@ -33,7 +33,7 @@ Code a etudier :
 - supabase/functions/sophia-brain/router/run.ts
 - supabase/functions/sophia-brain/router/active_flow_state.ts
 - supabase/functions/sophia-brain/router/handoff_flow_arbitration.ts
-- supabase/functions/sophia-brain/router/turn_agenda.ts
+- supabase/functions/sophia-brain/router/local_reducer.ts
 
 Objectif architecture :
 

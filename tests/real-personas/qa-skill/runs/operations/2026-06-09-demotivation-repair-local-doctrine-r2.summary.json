@@ -1,0 +1,312 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis en train de lâcher mon plan. Je fais encore deux trois gestes, mais honnêtement je ne sens plus le lien avec ce que je voulais construire, donc j'avance en pilote automatique.",
+    "assistant": "C'est épuisant d'avancer quand on a l'impression que les gestes n'ont plus de résonance et que le pilote automatique a pris les commandes. Ce sentiment de déconnexion n'est pas un manque de force, c'est le signe que le lien entre tes efforts quotidiens et ta direction initiale s'est distendu.\n\nÀ quel moment as-tu eu l'impression que ce que tu fais chaque jour a cessé de nourrir ton projet de départ ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "skill_entry_signal",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "demotivation_repair"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "demotivation_repair",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "skill_entry_signal"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que ça a décroché quand mes actions sont devenues juste une liste à vider. Au départ c'était pour retrouver de la marge et arrêter de subir, mais là je coche des choses sans sentir que ça me rend plus libre.",
+    "assistant": "C'est épuisant de vider une liste de tâches sans jamais sentir que cela allège vraiment ton quotidien ou te redonne de l'air. Quand l'action devient purement mécanique, on finit par oublier pourquoi on a commencé tout ça : pour arrêter de subir et retrouver une vraie liberté de mouvement.\n\nParmi les actions que tu enchaînes en ce moment, laquelle te semble avoir le moins de rapport avec cette sensation de marge que tu voulais initialement créer ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "active_conversation_skill_continue",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "demotivation_repair"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "demotivation_repair",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "active_conversation_skill_continue"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t02",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "C'est surtout le bilan du soir. Je le fais parce qu'il est dans le plan, mais il est devenu administratif. Ce dont j'aurais besoin, c'est de retrouver en une phrase pourquoi ce bilan sert ma liberté, sinon je vais finir par le laisser tomber.",
+    "assistant": "Quand un rituel devient purement administratif, il cesse de nourrir ton projet et finit par peser. Pour que ce bilan redevienne un levier de ta liberté, qu'est-ce qu'il te permet de mettre à l'abri ou de décider concrètement pour la suite ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "active_conversation_skill_continue",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "demotivation_repair"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "demotivation_repair",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "active_conversation_skill_continue"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t03",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Il me permet de voir ce que je peux reprendre en main demain au lieu de laisser la journée m'avaler. Si je le formule comme ça, le bilan n'est plus une corvée, c'est un petit moment pour récupérer du pouvoir de décision.",
+    "assistant": "C'est exactement ça : transformer ce moment en un espace de décision pour ne plus laisser la journée vous « avaler », mais bien reprendre la main sur demain.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "active_conversation_skill_continue",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "demotivation_repair"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "demotivation_repair",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "active_conversation_skill_continue"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t04",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, on s'arrête là pour maintenant. Je veux juste garder cette phrase, pas ouvrir autre chose.",
+    "assistant": "C'est entendu. L'essentiel est d'avoir identifié que ce bilan est avant tout l'expression de ton pouvoir de décision. Je te laisse avec cette perspective pour tes prochaines soirées.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "active_conversation_skill_continue",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "demotivation_repair"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "demotivation_repair",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "active_conversation_skill_continue"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r2-t05",
+    "trace_error": null,
+    "operation_flow_run": null
+  }
+]

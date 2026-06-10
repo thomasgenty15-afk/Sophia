@@ -5,14 +5,22 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import type { ConversationSkillOutput } from "../../../contracts/skill_output.v1.ts";
+import {
+  createNoteInformation,
+  type NoteInformation,
+  noteInformationForTrace,
+} from "../../../contracts/note_information.v1.ts";
 import { PRODUCT_SURFACE_DEFINITIONS } from "../../../product_surface_registry/surfaces_data.ts";
 import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
 import { runProductHelpSkill } from "../../../skills/product_help/skill.ts";
 import { maybeRunStatusRecapRuntime } from "../../../skills/status_recap/runtime.ts";
 import type { StatusRecapLocalDispatcher } from "../../../skills/status_recap/local_flow.ts";
 import type {
+  CoachPreferenceConversationContext,
+  CoachPreferenceDbContextPack,
   CoachPreferenceLocalDispatcherOutput,
   CoachPreferenceLocalUpdate,
+  CoachPreferenceMicroMemoryContext,
   CoachPreferenceVisibleTaskKind,
   UpdateCoachPreferencesCommittedEffect,
 } from "./contract.ts";
@@ -50,8 +58,7 @@ export type OperationRuntimeResult = {
     | "blocked"
     | "success"
     | "failed"
-    | "uncertain"
-    | "platform_handoff";
+    | "uncertain";
   executedTools: string[];
   toolSkillRun: Record<string, unknown>;
 };
@@ -109,20 +116,6 @@ function minimalTurnFrame(args: {
     },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
     skill_signals: { entry: {}, lifecycle: {}, exit: {} },
     memory_plan: {
       context_need: "minimal",
@@ -212,7 +205,7 @@ function coachPreferenceStatusDispatcher(): StatusRecapLocalDispatcher {
 async function runDefaultCoachPreferenceStatusSubskill(
   args: Parameters<StatusRecapSubskillRunner>[0],
 ): Promise<OperationRuntimeResult | null> {
-  return await maybeRunStatusRecapRuntime({
+  const runtime = await maybeRunStatusRecapRuntime({
     supabase: args.supabase,
     userId: args.userId,
     userMessage: args.userMessage,
@@ -221,11 +214,11 @@ async function runDefaultCoachPreferenceStatusSubskill(
     turnFrame: null,
     routeDecision: {
       route_version: "v1",
-      response_owner: "normal_reply",
-      selected_handler: "status_only_no_mutation_check",
+      response_owner: "conversation_handler",
+      selected_handler: "status_recap",
       blocked_paths: [],
       direct_effects_to_run: [],
-      reason_code: "status_only_no_mutation_check",
+      reason_code: "status_recap",
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
@@ -235,6 +228,21 @@ async function runDefaultCoachPreferenceStatusSubskill(
     requestId: args.requestId ?? null,
     runLocalDispatcher: coachPreferenceStatusDispatcher(),
   });
+  if (!runtime) return null;
+  return {
+    content: runtime.content,
+    additionalContents: runtime.additionalContents,
+    nextTempMemory: runtime.nextTempMemory,
+    toolExecution: runtime.toolExecution === "success"
+      ? "success"
+      : runtime.toolExecution === "failed"
+      ? "failed"
+      : runtime.toolExecution === "blocked"
+      ? "blocked"
+      : "none",
+    executedTools: runtime.executedTools,
+    toolSkillRun: runtime.toolSkillRun as Record<string, unknown>,
+  };
 }
 
 async function runDefaultCoachPreferenceProductHelpSubskill(
@@ -284,12 +292,6 @@ function routeIsSelected(args: {
 }): boolean {
   if (activeLocalFlow(args.tempMemory)) return true;
   const frame = loadCoachPreferenceFrameFromTempMemory(args.tempMemory);
-  const legacyHandoffOperation = String(
-    (frame.handoff as any)?.operation_type ??
-      (frame.handoff as any)?.skill_id ??
-      "",
-  ).trim();
-  if (legacyHandoffOperation === args.operationType) return true;
   const active = frame.active;
   const activeOperation = String(
     (active as any)?.operation_type ?? (active as any)?.skill_id ?? "",
@@ -334,39 +336,132 @@ function runtimeTraceBase(args: {
   };
 }
 
-function fallbackVisibleMessage(args: {
-  stage: CoachPreferenceVisibleTaskKind;
-  committed: boolean;
-  statusReply?: string | null;
-}): string {
-  if (args.stage === "get_info_db" && args.statusReply) {
-    return args.statusReply;
+function buildCoachPreferenceDbContextPack(args: {
+  currentPreferences: Array<{ key: string; value: string; label: string }>;
+  activeState: CoachPreferenceLocalFlowState | null;
+  committedEffects?: UpdateCoachPreferencesCommittedEffect[];
+}): CoachPreferenceDbContextPack {
+  return {
+    source: "user_profile_facts",
+    freshness: "same_turn",
+    confidence: "high",
+    preferences: args.currentPreferences.map((row) => ({
+      key: row.key,
+      value: row.value,
+      label: row.label,
+      source_type: null,
+      status: "active",
+      updated_at: null,
+      last_confirmed_at: null,
+      reason: null,
+      evidence: [`${row.key}=${row.value}`],
+    })),
+    supported_catalog: {
+      "coach.tone": ["soft", "warm_direct", "direct"],
+      "coach.challenge_level": ["low", "balanced", "high"],
+      "coach.question_tendency": ["low", "normal", "high"],
+    },
+    active_flow: args.activeState as unknown as Record<string, unknown> | null,
+    last_committed_effects: args.committedEffects ?? [],
+    product_surface_summary:
+      "Preferences coach: ton, niveau de challenge, tendance à poser des questions.",
+  };
+}
+
+function emptyCoachPreferenceMicroMemoryContext(): CoachPreferenceMicroMemoryContext {
+  return {
+    items: [],
+    exclusions: [
+      "no default memory retrieval for coach preferences",
+      "no safety memory outside safety_crisis",
+      "no raw memory in visible prompt",
+    ],
+    budget: {
+      max_items: 0,
+      reason:
+        "Current coach preferences and local flow state are enough for this closed write-skill.",
+    },
+  };
+}
+
+function buildInboundActivationNote(args: {
+  previousState: CoachPreferenceLocalFlowState | null;
+  routeDecision: RouteDecision | null;
+  turnFrame: TurnFrame | null;
+  userMessage: string;
+}): NoteInformation | null {
+  if (args.previousState?.turn_count && args.previousState.turn_count > 1) {
+    return null;
   }
-  if (args.stage === "preference_saved" && args.committed) {
-    return "C'est noté pour tes préférences coach.";
-  }
-  if (args.stage === "punctual_instruction_ack") {
-    return "Je le prends pour cette réponse seulement, sans modifier tes préférences durables.";
-  }
-  if (args.stage === "unsupported_preference") {
-    return "Je ne peux pas enregistrer cette demande comme préférence coach durable telle quelle.";
-  }
-  if (args.stage === "get_info_product") {
-    return "Les préférences coach couvrent trois réglages durables : le ton, le niveau de challenge et la tendance à poser des questions.";
-  }
-  if (args.stage === "ask_durable_vs_punctual") {
-    return "Tu veux que ce soit seulement pour maintenant, ou comme préférence durable pour la suite ?";
-  }
-  if (args.stage === "confirm_supported_mapping") {
-    return "Je peux traduire ça vers un réglage coach supporté. Tu veux que je le note comme préférence durable ?";
-  }
-  if (args.stage === "exit_or_cancel") {
-    return "Ok, je mets ce changement de préférence de côté.";
-  }
-  if (args.stage === "safety") {
-    return "Je ne modifie pas tes préférences sur ce point.";
-  }
-  return "Je ne peux pas appliquer ce changement de préférence tel quel.";
+  const selectedByGlobal =
+    args.routeDecision?.response_owner === "tool_skill" &&
+    args.routeDecision.selected_handler === "update_coach_preferences";
+  const selectedByTurnFrame = (args.turnFrame?.tool_skill_intents ?? []).some((
+    intent,
+  ) =>
+    intent.operation_type === "update_coach_preferences" &&
+    intent.confidence_band !== "low"
+  );
+  if (!selectedByGlobal && !selectedByTurnFrame) return null;
+  const structured = {
+    source_flow: "global",
+    target_flow: "update_coach_preferences",
+    route_reason: args.routeDecision?.reason_code ?? null,
+    selected_handler: args.routeDecision?.selected_handler ?? null,
+    user_message_summary: args.userMessage.slice(0, 240),
+    active_flow_summary: "Initial activation of update_coach_preferences.",
+    collected_state: {},
+    unresolved_questions: [],
+    confidence: selectedByGlobal ? "high" : "medium",
+    evidence: [
+      args.routeDecision?.reason_code ?? "tool_skill_intent_selected",
+    ].filter(Boolean),
+    recommended_next_focus:
+      "Classer la demande de préférence coach puis écrire seulement si durable, supportée, claire et locked.",
+  };
+  return createNoteInformation({
+    source_flow_id: "global",
+    source_flow_presentation:
+      "Routes the current user message to the most appropriate owner. It does not execute local flow decisions.",
+    source_flow_state_summary:
+      "Global dispatcher selected update_coach_preferences for this turn.",
+    handoff_reason: "explicit_user_request",
+    target_dispatcher: "update_coach_preferences",
+    handoff_context_for_next_dispatcher: JSON.stringify(structured),
+    target_local_dispatcher_hint:
+      "Use this as activation context only; local dispatcher must still decide fields and write eligibility.",
+    user_words: [args.userMessage],
+    structured_context: structured,
+    risk_score: 0,
+  });
+}
+
+function mergeRuntimeConversationContext(
+  base: CoachPreferenceConversationContext,
+  patch: Partial<CoachPreferenceConversationContext>,
+): CoachPreferenceConversationContext {
+  return {
+    ...base,
+    ...patch,
+    known_values: {
+      ...base.known_values,
+      ...(patch.known_values ?? {}),
+    },
+    write_result: {
+      ...base.write_result,
+      ...(patch.write_result ?? {}),
+    },
+    inline_tool_result: {
+      ...base.inline_tool_result,
+      ...(patch.inline_tool_result ?? {}),
+    },
+    do_not_say: [
+      ...base.do_not_say,
+      ...((patch.do_not_say ?? []).filter((item) =>
+        !base.do_not_say.includes(item)
+      )),
+    ].slice(0, 12),
+  };
 }
 
 async function runCoachPreferenceLocalRuntime(args: {
@@ -398,6 +493,43 @@ async function runCoachPreferenceLocalRuntime(args: {
     supabase: args.supabase,
     userId: args.userId,
   });
+  const dbContextPack = buildCoachPreferenceDbContextPack({
+    currentPreferences,
+    activeState: previousState,
+  });
+  const microMemoryContext = emptyCoachPreferenceMicroMemoryContext();
+  const inboundNoteInformation = buildInboundActivationNote({
+    previousState,
+    routeDecision: args.routeDecision,
+    turnFrame: args.turnFrame,
+    userMessage: args.userMessage,
+  });
+  runtimeTrace.push({
+    ...runtimeTraceBase({
+      event: "db_context_pack_loaded",
+      preferenceUpdates: previousState.proposed_updates,
+    }),
+    db_context_pack_source: dbContextPack.source,
+    db_context_pack_preference_keys: dbContextPack.preferences.map((row) =>
+      row.key
+    ),
+  });
+  runtimeTrace.push({
+    ...runtimeTraceBase({
+      event: "micro_memory_context_loaded",
+    }),
+    micro_memory_item_count: microMemoryContext.items.length,
+    micro_memory_budget: microMemoryContext.budget,
+  });
+  if (inboundNoteInformation) {
+    runtimeTrace.push({
+      ...runtimeTraceBase({
+        event: "note_information_consumed",
+        preferenceUpdates: previousState.proposed_updates,
+      }),
+      ...noteInformationForTrace(inboundNoteInformation),
+    });
+  }
   const dispatcher = args.dispatcher ?? runCoachPreferenceLocalDispatcher;
   const decision = await dispatcher({
     user_id: args.userId,
@@ -405,14 +537,21 @@ async function runCoachPreferenceLocalRuntime(args: {
     user_message: args.userMessage,
     recent_messages: recentMessagesFromHistory(args.history),
     active_state: previousState,
+    note_information_inbound: inboundNoteInformation,
+    db_context_pack: dbContextPack,
+    micro_memory_context: microMemoryContext,
+    platform_context: {
+      timezone: args.userTimezone,
+      channel: args.turnFrame?.channel ?? "web",
+    },
+    available_inline_tools: ["status_recap", "product_help"],
     current_preferences: currentPreferences,
     safety_risk_band: String(args.safetyPregateOutput.risk_band ?? "none"),
   });
 
   if (!decision) {
     return {
-      content:
-        "Je n'arrive pas à traiter ce changement de préférence correctement pour l'instant.",
+      content: "",
       nextTempMemory: args.tempMemory,
       toolExecution: "failed",
       executedTools: [],
@@ -455,13 +594,35 @@ async function runCoachPreferenceLocalRuntime(args: {
       : reduced.local_state?.proposed_updates ?? [],
     writeBlockedReason: reduced.blocked_effects[0]?.reason_code ?? null,
   }));
+  runtimeTrace.push({
+    ...runtimeTraceBase({
+      event: "conversation_context_created",
+      flowAction: decision.flow_action,
+      visibleTask: reduced.visible_task,
+    }),
+    conversation_context_keys: Object.keys(reduced.conversation_context),
+    conversation_context_stage: reduced.conversation_context.field_or_stage,
+  });
+  if (reduced.note_information) {
+    runtimeTrace.push({
+      ...runtimeTraceBase({
+        event: "note_information_created",
+        flowAction: decision.flow_action,
+        visibleTask: reduced.visible_task,
+      }),
+      ...noteInformationForTrace(reduced.note_information),
+    });
+  }
 
   if (reduced.exit_to_global_dispatcher) {
     const exitMemo = {
-      reason: decision.exit_memo.reason,
-      flow_summary: decision.exit_memo.flow_summary,
+      reason: decision.exit_memo?.reason ?? "topic_change",
+      flow_summary: decision.exit_memo?.flow_summary ??
+        reduced.note_information?.source_flow_state_summary ?? null,
       handoff_hint_for_global_dispatcher:
-        decision.exit_memo.handoff_hint_for_global_dispatcher,
+        decision.exit_memo?.handoff_hint_for_global_dispatcher ??
+          reduced.note_information?.handoff_context_for_next_dispatcher ?? null,
+      note_information: reduced.note_information,
       at: new Date().toISOString(),
     };
     const cleared = {
@@ -490,6 +651,54 @@ async function runCoachPreferenceLocalRuntime(args: {
         blocked_effects: [],
         pending_confirmation: null,
         exit_memo: exitMemo,
+        note_information: reduced.note_information,
+        runtime_trace: runtimeTrace,
+      },
+    };
+  }
+
+  if (reduced.safety_preempt) {
+    const nextTempMemory = {
+      ...clearCoachPreferenceFrame(args.tempMemory),
+      __last_update_coach_preferences_exit_memo: {
+        reason: "safety",
+        flow_summary: reduced.note_information?.source_flow_state_summary ??
+          decision.preference_intent.summary,
+        note_information: reduced.note_information,
+        at: new Date().toISOString(),
+      },
+    };
+    runtimeTrace.push({
+      ...runtimeTraceBase({
+        event: "safety_preempt",
+        flowAction: decision.flow_action,
+        visibleTask: reduced.visible_task,
+      }),
+      ...noteInformationForTrace(reduced.note_information),
+    });
+    return {
+      content: "",
+      nextTempMemory,
+      toolExecution: "blocked",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "update_coach_preferences",
+        operation_type: "update_coach_preferences",
+        mode: "local_write_flow",
+        status: "blocked",
+        reason_code: "update_coach_preferences_safety_preempt",
+        flow_action: decision.flow_action,
+        visible_task_kind: reduced.visible_task,
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: reduced.blocked_effects,
+        pending_confirmation: null,
+        note_information: reduced.note_information,
+        local_flow_state: null,
+        write_attempted: false,
+        write_committed: false,
+        write_blocked_reason: "safety_preempt",
         runtime_trace: runtimeTrace,
       },
     };
@@ -551,6 +760,27 @@ async function runCoachPreferenceLocalRuntime(args: {
     : reduced.visible_task === "preference_saved" && !committed
     ? "write_failed_or_blocked"
     : reduced.visible_task;
+  const runtimeConversationContext = mergeRuntimeConversationContext(
+    reduced.conversation_context,
+    {
+      known_values: {
+        ...reduced.conversation_context.known_values,
+        current_preferences: currentPreferences,
+        proposed_updates: reduced.local_state?.proposed_updates ??
+          reduced.conversation_context.known_values.proposed_updates,
+        committed_updates: committed ? reduced.write_updates : [],
+      },
+      write_result: {
+        committed,
+        preference_keys: committedEffects.flatMap((effect) =>
+          effect.preference_keys
+        ),
+        blocked_reason: writeError ?? reduced.blocked_effects[0]?.reason_code ??
+          null,
+      },
+      evidence_used: reduced.evidence,
+    },
+  );
   const baseNextLocalState = committed
     ? null
     : reduced.status === "cancelled"
@@ -559,6 +789,15 @@ async function runCoachPreferenceLocalRuntime(args: {
   if (visibleTask === "get_info_db" && !committed && !writeError) {
     const statusRunner = args.statusRecapSubskill ??
       runDefaultCoachPreferenceStatusSubskill;
+    runtimeTrace.push({
+      ...runtimeTraceBase({
+        event: "inline_tool_roundtrip",
+        flowAction: decision.flow_action,
+        visibleTask,
+      }),
+      inline_tool: "status_recap",
+      ...noteInformationForTrace(reduced.note_information),
+    });
     runtimeTrace.push(runtimeTraceBase({
       event: "get_info_db_called",
       flowAction: decision.flow_action,
@@ -611,6 +850,7 @@ async function runCoachPreferenceLocalRuntime(args: {
           blocked_effects: reduced.blocked_effects,
           pending_confirmation: null,
           local_flow_state: nextLocalState,
+          note_information: reduced.note_information,
           subskill_run: {
             skill_id: "status_recap",
             selected_handler: statusRuntime.toolSkillRun?.selected_handler ??
@@ -634,6 +874,15 @@ async function runCoachPreferenceLocalRuntime(args: {
   if (visibleTask === "get_info_product" && !committed && !writeError) {
     const productRunner = args.productHelpSubskill ??
       runDefaultCoachPreferenceProductHelpSubskill;
+    runtimeTrace.push({
+      ...runtimeTraceBase({
+        event: "inline_tool_roundtrip",
+        flowAction: decision.flow_action,
+        visibleTask,
+      }),
+      inline_tool: "product_help",
+      ...noteInformationForTrace(reduced.note_information),
+    });
     runtimeTrace.push(runtimeTraceBase({
       event: "get_info_product_called",
       flowAction: decision.flow_action,
@@ -686,6 +935,7 @@ async function runCoachPreferenceLocalRuntime(args: {
           blocked_effects: reduced.blocked_effects,
           pending_confirmation: null,
           local_flow_state: nextLocalState,
+          note_information: reduced.note_information,
           subskill_run: {
             skill_id: "product_help",
             selected_handler: "product_help",
@@ -705,13 +955,6 @@ async function runCoachPreferenceLocalRuntime(args: {
       };
     }
   }
-  const statusReply = visibleTask === "get_info_db"
-    ? await buildCoachPreferencesStatusReply({
-      supabase: args.supabase,
-      userId: args.userId,
-      fallback: "Je vérifie les préférences coach actives, sans rien modifier.",
-    })
-    : null;
   const nextLocalState = baseNextLocalState;
   const nextTempMemory = writeCoachPreferenceLocalFlowState(
     clearCoachPreferenceFrame(args.tempMemory),
@@ -722,23 +965,17 @@ async function runCoachPreferenceLocalRuntime(args: {
     user_id: args.userId,
     request_id: args.requestId ?? null,
     stage: visibleTask,
-    user_message: args.userMessage,
-    recent_messages: recentMessagesFromHistory(args.history),
-    local_state: nextLocalState,
-    current_preferences: currentPreferences,
-    write_updates: reduced.write_updates,
-    committed,
-    committed_update_ids: committedUpdateIds,
-    get_info_db_reply: statusReply,
-    dispatcher_instruction: decision.visible_task.instruction,
-    blocked_reason: writeError ?? reduced.blocked_effects[0]?.reason_code ??
-      null,
+    conversation_context: runtimeConversationContext,
   });
-  const content = visibleMessage ?? fallbackVisibleMessage({
-    stage: visibleTask,
-    committed,
-    statusReply,
-  });
+  const content = visibleMessage ?? "";
+  if (!visibleMessage) {
+    runtimeTrace.push(runtimeTraceBase({
+      event: "visible_agent_failed",
+      flowAction: decision.flow_action,
+      visibleTask,
+      writeBlockedReason: "visible_agent_failed",
+    }));
+  }
   return {
     content,
     nextTempMemory,
@@ -783,6 +1020,8 @@ async function runCoachPreferenceLocalRuntime(args: {
         : reduced.blocked_effects,
       pending_confirmation: null,
       local_flow_state: nextLocalState,
+      conversation_context: runtimeConversationContext,
+      note_information: reduced.note_information,
       write_attempted: reduced.write_updates.length > 0,
       write_committed: committed,
       write_blocked_reason: writeError,
@@ -825,6 +1064,24 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
   ) return null;
 
   if (String(args.safetyPregateOutput.risk_band ?? "none") === "critical") {
+    const safetyNote = createNoteInformation({
+      source_flow_id: "update_coach_preferences",
+      source_flow_state_summary:
+        "Critical safety pregate preempted coach preference update.",
+      handoff_reason: "safety",
+      target_dispatcher: "safety_crisis",
+      handoff_context_for_next_dispatcher:
+        "Safety pregate is critical; suspend preference update and let safety_crisis own the next response.",
+      target_local_dispatcher_hint:
+        "Safety owns the next response. Do not mutate coach preferences.",
+      user_words: [args.userMessage],
+      structured_context: {
+        source_flow: "update_coach_preferences",
+        risk_band: args.safetyPregateOutput.risk_band,
+        evidence: args.safetyPregateOutput.evidence ?? [],
+      },
+      risk_score: 10,
+    });
     const blockedOutput: CoachPreferenceLocalDispatcherOutput = {
       flow_action: "safety_preempt",
       confidence: "high",
@@ -839,14 +1096,54 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
       unsupported_parts: [],
       missing_decisions: [],
       visible_task: {
-        kind: "safety",
+        kind: "safety_transition",
         instruction: "Laisser la pipeline safety reprendre.",
+        conversation_context: {
+          state_summary: "Safety pregate preempted coach preference update.",
+          user_words: [args.userMessage],
+          field_or_stage: "done",
+          known_values: {
+            current_preferences: [],
+            proposed_updates: [],
+            committed_updates: [],
+          },
+          missing_or_weak_values: [],
+          selected_candidate: {},
+          unsupported_parts: [],
+          write_result: {
+            committed: false,
+            preference_keys: [],
+            blocked_reason: "safety_preempt",
+          },
+          inline_tool_result: {
+            skill_id: null,
+            summary: null,
+          },
+          tone_constraints: [],
+          do_not_say: [
+            "Ne pas traiter la préférence.",
+            "Ne pas produire de réponse safety complète depuis update_coach_preferences.",
+          ],
+          context_summary:
+            "Transition vers safety_crisis; pas de mutation de préférence.",
+          evidence_used: args.safetyPregateOutput.evidence ?? [],
+        },
+      },
+      note_information: {
+        needed: true,
+        ...safetyNote,
       },
       exit_memo: {
         needed: true,
         reason: "safety",
-        flow_summary: null,
-        handoff_hint_for_global_dispatcher: null,
+        flow_summary: safetyNote.source_flow_state_summary,
+        handoff_hint_for_global_dispatcher:
+          safetyNote.handoff_context_for_next_dispatcher,
+      },
+      safety: {
+        risk_band: "critical",
+        reason_codes: args.safetyPregateOutput.reason_codes ?? [],
+        should_preempt: true,
       },
       evidence: args.safetyPregateOutput.evidence ?? [],
     };

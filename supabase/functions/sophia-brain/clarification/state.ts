@@ -1,71 +1,55 @@
-import type {
-  ClarificationAmbiguityKind,
-  ClarificationCandidate,
-  ClarificationOwner,
-} from "./contract.ts";
+import type { ClarificationLocalState } from "./contract.ts";
 
-export const CLARIFICATION_STATE_KEY = "__clarification_state_v1";
-
-export type ClarificationState = {
-  skill_id: "orientation_clarification";
-  clarification_id: string;
-  owner: ClarificationOwner;
-  ambiguity_kind: ClarificationAmbiguityKind;
-  candidates: ClarificationCandidate[];
-  known_context?: Record<string, unknown>;
-  turn_count: number;
-  max_turns: number;
-  created_at: string;
-  no_chat_mutation: true;
-};
+export const CLARIFICATION_FLOW_STATE_KEY = "__clarification_flow_state";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function isCandidate(value: unknown): value is ClarificationCandidate {
+function isLocalCandidateSignal(value: unknown): boolean {
   return isRecord(value) &&
-    typeof value.id === "string" &&
-    typeof value.label === "string";
+    typeof value.candidate_id === "string" &&
+    typeof value.label === "string" &&
+    typeof value.target_dispatcher === "string" &&
+    (value.confidence === "medium" || value.confidence === "high");
 }
 
-export function isClarificationState(
+export function isClarificationLocalState(
   value: unknown,
-): value is ClarificationState {
+): value is ClarificationLocalState {
   return isRecord(value) &&
-    value.skill_id === "orientation_clarification" &&
+    value.skill_id === "clarification" &&
+    value.mode === "local_flow" &&
     typeof value.clarification_id === "string" &&
-    typeof value.owner === "string" &&
-    typeof value.ambiguity_kind === "string" &&
-    Array.isArray(value.candidates) &&
-    value.candidates.every(isCandidate) &&
+    typeof value.status === "string" &&
+    Array.isArray(value.candidate_signals) &&
+    value.candidate_signals.every(isLocalCandidateSignal) &&
     Number.isFinite(Number(value.turn_count)) &&
     Number.isFinite(Number(value.max_turns)) &&
-    typeof value.created_at === "string" &&
-    value.no_chat_mutation === true &&
-    (value.known_context === undefined || isRecord(value.known_context));
+    value.no_chat_mutation === true;
 }
 
-export function readClarificationState(
+export function readClarificationLocalState(
   tempMemory: unknown,
-): ClarificationState | null {
+): ClarificationLocalState | null {
   if (!isRecord(tempMemory)) return null;
-  const state = tempMemory[CLARIFICATION_STATE_KEY];
-  return isClarificationState(state) ? state : null;
+  const state = tempMemory[CLARIFICATION_FLOW_STATE_KEY];
+  return isClarificationLocalState(state) ? state : null;
 }
 
-export function writeClarificationState(
+export function writeClarificationLocalState(
   tempMemory: unknown,
-  state: ClarificationState,
+  state: ClarificationLocalState,
 ): Record<string, unknown> {
   const next = isRecord(tempMemory) ? { ...tempMemory } : {};
-  next[CLARIFICATION_STATE_KEY] = {
+  next[CLARIFICATION_FLOW_STATE_KEY] = {
     ...state,
-    skill_id: "orientation_clarification",
+    skill_id: "clarification",
+    mode: "local_flow",
     turn_count: Math.max(0, Number(state.turn_count ?? 0)),
-    max_turns: Math.max(1, Number(state.max_turns ?? 2)),
+    max_turns: Math.max(1, Number(state.max_turns ?? 4)),
     no_chat_mutation: true,
-  } satisfies ClarificationState;
+  } satisfies ClarificationLocalState;
   return next;
 }
 
@@ -73,6 +57,6 @@ export function clearClarificationState(
   tempMemory: unknown,
 ): Record<string, unknown> {
   const next = isRecord(tempMemory) ? { ...tempMemory } : {};
-  delete next[CLARIFICATION_STATE_KEY];
+  delete next[CLARIFICATION_FLOW_STATE_KEY];
   return next;
 }

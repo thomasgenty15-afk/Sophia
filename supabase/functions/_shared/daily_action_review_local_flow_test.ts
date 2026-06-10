@@ -1,12 +1,18 @@
-import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   buildInitialDailyActionReviewState,
   type DailyActionReviewTarget,
 } from "./daily_action_review.ts";
 import {
   buildDailyActionReviewLastExitMemo,
+  dispatcherSystemPrompt,
   runDailyActionReviewLocalFlow,
+  runDailyActionReviewVisibleAgent,
   sanitizeDailyActionReviewLocalDispatcherOutput,
+  sanitizeDailyActionReviewVisibleText,
 } from "./daily_action_review/local_flow.ts";
 
 function target(id: string, title: string): DailyActionReviewTarget {
@@ -44,6 +50,84 @@ const NO_EXIT_MEMO = {
     constraints: [],
   },
 };
+
+Deno.test("daily action review dispatcher prompt documents field completion rules for the real contract", () => {
+  const prompt = dispatcherSystemPrompt();
+
+  assertStringIncludes(prompt, "Field Completion Rules:");
+  assertStringIncludes(prompt, "- flow_action:");
+  assertStringIncludes(prompt, "- target_resolution:");
+  assertStringIncludes(prompt, "- item_updates:");
+  assertStringIncludes(prompt, "- visible_task.conversation_context:");
+  assertStringIncludes(prompt, "- note_information:");
+  assertStringIncludes(prompt, "- exit_memo:");
+  assertStringIncludes(prompt, "Transition rules:");
+  assertStringIncludes(prompt, "stop_local_no_handoff/cancel_flow/defer_flow");
+  assertStringIncludes(prompt, "exit_to_global_dispatcher");
+  assertStringIncludes(prompt, "safety_preempt");
+  assertStringIncludes(prompt, "handoff_to_local_flow");
+  assertStringIncludes(prompt, "Anti-faux-positif exit");
+  assertStringIncludes(prompt, '"flow_action":"answer_review"');
+  assertStringIncludes(prompt, '"flow_action":"safety_preempt"');
+});
+
+Deno.test("daily action review local dispatcher receives inbound activation note", async () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const state = buildInitialDailyActionReviewState(targets);
+  let capturedInboundNote: unknown = null;
+
+  const result = await runDailyActionReviewLocalFlow({
+    text: "Pas maintenant.",
+    targets,
+    previousState: state,
+    noteInformationInbound: {
+      source_flow_id: "process_checkins.action_evening_review_v2",
+      target_dispatcher: "daily_action_review_v1",
+      handoff_reason: "bridge",
+      structured_context: {
+        target_occurrence_ids: ["a1"],
+      },
+    },
+    dispatcherRunner: async ({ userPrompt }) => {
+      capturedInboundNote = JSON.parse(userPrompt).note_information_inbound;
+      return {
+        flow_action: "stop_local_no_handoff",
+        confidence: "high",
+        risk_score: 0,
+        target_resolution: {
+          resolved_occurrence_ids: [],
+          ambiguous: false,
+          why: "User stops daily.",
+        },
+        item_updates: {},
+        daily_intent: {
+          kind: "stop",
+          summary: "User stops daily.",
+        },
+        state_updates: {
+          status_hint: "stopped",
+          turn_count_increment: 1,
+          close_after_visible: true,
+        },
+        visible_task: {
+          kind: "stop_close",
+          instruction: "Close locally.",
+        },
+        note_information: null,
+        exit_memo: NO_EXIT_MEMO,
+        evidence: ["stop"],
+      };
+    },
+    visibleRunner: async () =>
+      "D'accord, je laisse ce daily ouvert sans rien noter.",
+  });
+
+  assertEquals(
+    (capturedInboundNote as any)?.source_flow_id,
+    "process_checkins.action_evening_review_v2",
+  );
+  assertEquals(result.exitToGlobalDispatcher, false);
+});
 
 Deno.test("daily action review local dispatcher complete answer becomes commit-ready without visible precommit wording", async () => {
   const targets = [target("a1", "Marcher 10 min")];
@@ -225,4 +309,382 @@ Deno.test("daily action review local dispatcher exit requires memo and ignores u
     "prepare_defense_card",
   );
   assertEquals(memo.at, "2026-06-08T10:00:00.000Z");
+  assertEquals(
+    (memo.note_information as any)?.source_flow_id,
+    "daily_action_review_v1",
+  );
+  assertEquals(
+    (memo.note_information as any)?.target_dispatcher,
+    "global",
+  );
+});
+
+Deno.test("daily action review stop stays local and does not request global handoff", async () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const state = buildInitialDailyActionReviewState(targets);
+
+  const result = await runDailyActionReviewLocalFlow({
+    text: "Pas maintenant, oublie.",
+    targets,
+    previousState: state,
+    dispatcherRunner: async () => ({
+      flow_action: "stop_local_no_handoff",
+      confidence: "high",
+      risk_score: 0,
+      target_resolution: {
+        resolved_occurrence_ids: [],
+        ambiguous: false,
+        why: "User stops local daily without a new topic.",
+      },
+      item_updates: {},
+      daily_intent: {
+        kind: "stop",
+        summary: "User wants to stop the daily.",
+      },
+      state_updates: {
+        status_hint: "stopped",
+        turn_count_increment: 1,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "stop_close",
+        instruction: "Close locally.",
+        conversation_context: {
+          state_summary: "User stopped daily.",
+          user_words: ["Pas maintenant, oublie."],
+          field_or_stage: "stop_close",
+          known_values: {},
+          missing_or_weak_values: [],
+          selected_candidate: null,
+          handoff_data: null,
+          tone_constraints: ["short"],
+          do_not_say: ["noted"],
+          context_summary: "Stop without handoff.",
+          evidence_used: ["Pas maintenant, oublie."],
+        },
+      },
+      note_information: null,
+      exit_memo: NO_EXIT_MEMO,
+      evidence: ["stop requested"],
+    }),
+    visibleRunner: async ({ userPrompt }) => {
+      const parsed = JSON.parse(userPrompt);
+      assertEquals(
+        parsed.visible_task.conversation_context.field_or_stage,
+        "stop_close",
+      );
+      return "D'accord, je ne note rien pour ce daily.";
+    },
+  });
+
+  assertEquals(result.exitToGlobalDispatcher, false);
+  assertEquals(result.state.status, "stopped");
+  assertEquals(
+    result.generatedUserMessage,
+    "D'accord, je ne note rien pour ce daily.",
+  );
+});
+
+Deno.test("daily action review safety preempt creates safety note and skips visible local reply", async () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const state = buildInitialDailyActionReviewState(targets);
+
+  const result = await runDailyActionReviewLocalFlow({
+    text: "Je risque de me faire du mal.",
+    targets,
+    previousState: state,
+    dispatcherRunner: async () => ({
+      flow_action: "safety_preempt",
+      confidence: "high",
+      risk_score: 8,
+      target_resolution: {
+        resolved_occurrence_ids: [],
+        ambiguous: false,
+        why: "Safety signal.",
+      },
+      item_updates: {},
+      daily_intent: {
+        kind: "safety",
+        summary: "User signals self-harm risk.",
+      },
+      state_updates: {
+        status_hint: "stopped",
+        turn_count_increment: 1,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "safety",
+        instruction: "Do not continue daily.",
+      },
+      exit_memo: {
+        ...NO_EXIT_MEMO,
+        needed: true,
+        reason: "safety",
+        user_intent_summary: "User signals self-harm risk.",
+      },
+      evidence: ["me faire du mal"],
+    }),
+    visibleRunner: async () => {
+      throw new Error("safety_preempt_should_not_render_daily_visible_agent");
+    },
+  });
+
+  assertEquals(result.exitToGlobalDispatcher, true);
+  assertEquals(result.generatedUserMessage, null);
+  assertEquals(
+    result.dispatcherOutput.note_information?.target_dispatcher,
+    "safety_crisis",
+  );
+  assertEquals(
+    result.dispatcherOutput.note_information?.handoff_reason,
+    "safety",
+  );
+});
+
+Deno.test("daily action review handoff to local flow creates target dispatcher note", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const output = sanitizeDailyActionReviewLocalDispatcherOutput({
+    targets,
+    raw: {
+      flow_action: "handoff_to_local_flow",
+      confidence: "high",
+      risk_score: 1,
+      target_resolution: {
+        resolved_occurrence_ids: [],
+        ambiguous: false,
+        why: "User asks for a potion instead of continuing the daily.",
+      },
+      item_updates: {},
+      daily_intent: {
+        kind: "explicit_tool_request",
+        summary: "User asks for a potion.",
+      },
+      state_updates: {
+        status_hint: "blocked",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "exit_or_cancel",
+        instruction: "Hand off to potion flow.",
+      },
+      exit_memo: {
+        ...NO_EXIT_MEMO,
+        needed: true,
+        reason: "explicit_tool_request",
+        user_intent_summary: "User asks for a potion.",
+        handoff_hint_for_global_dispatcher: {
+          likely_intent: "select_state_potion",
+          why: "Potion request should be owned by the potion local flow.",
+          constraints: [
+            "Daily has not mutated anything unless committed_effects is non-empty.",
+          ],
+        },
+      },
+      evidence: ["potion request"],
+    },
+  });
+
+  assertEquals(
+    output.note_information?.target_dispatcher,
+    "select_state_potion",
+  );
+  assertEquals(output.note_information?.handoff_reason, "bridge");
+  assertEquals(output.exit_memo.needed, true);
+});
+
+Deno.test("daily action review preserves user constraint in visible conversation context", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const output = sanitizeDailyActionReviewLocalDispatcherOutput({
+    targets,
+    raw: {
+      flow_action: "clarify_reason",
+      confidence: "medium",
+      risk_score: 0,
+      target_resolution: {
+        resolved_occurrence_ids: ["a1"],
+        ambiguous: false,
+        why: "Outcome is missed but reason is missing.",
+      },
+      item_updates: {
+        a1: {
+          update_mode: "set",
+          outcome: "missed",
+          reason_category: "unclear",
+          reason_text: null,
+          still_relevant: "unknown",
+          evidence_text: "je ne l'ai pas fait",
+          matched_user_text:
+            "Je ne l'ai pas fait, mais reponds juste court stp.",
+          confidence: "medium",
+          missing_slots: ["reason", "still_relevant"],
+        },
+      },
+      daily_intent: {
+        kind: "daily_answer",
+        summary: "User missed the action and asks for a short reply.",
+      },
+      state_updates: {
+        status_hint: "needs_clarification",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "clarify_reason",
+        instruction: "Ask the reason briefly.",
+        conversation_context: {
+          state_summary: "Action missed; reason missing.",
+          user_words: ["Je ne l'ai pas fait, mais reponds juste court stp."],
+          field_or_stage: "clarify_reason",
+          known_values: {
+            outcome: "missed",
+            user_constraint: "reponds juste court",
+          },
+          missing_or_weak_values: ["reason", "still_relevant"],
+          selected_candidate: { occurrence_id: "a1", title: "Marcher 10 min" },
+          handoff_data: null,
+          tone_constraints: ["short", "no lecture"],
+          do_not_say: ["noted", "registered"],
+          context_summary: "Need reason only; user requested brevity.",
+          evidence_used: ["je ne l'ai pas fait", "reponds juste court"],
+        },
+      },
+      exit_memo: NO_EXIT_MEMO,
+      evidence: ["missed action", "short response constraint"],
+    },
+  });
+
+  assertEquals(
+    output.visible_task.conversation_context.known_values.user_constraint,
+    "reponds juste court",
+  );
+  assertEquals(output.visible_task.conversation_context.tone_constraints, [
+    "short",
+    "no lecture",
+  ]);
+});
+
+Deno.test("daily action review does not exit when user continues but needs clarification", async () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const state = buildInitialDailyActionReviewState(targets);
+
+  const result = await runDailyActionReviewLocalFlow({
+    text: "J'ai essaye mais pas vraiment jusqu'au bout.",
+    targets,
+    previousState: state,
+    dispatcherRunner: async () => ({
+      flow_action: "clarify_completion_level",
+      confidence: "medium",
+      risk_score: 0,
+      target_resolution: {
+        resolved_occurrence_ids: ["a1"],
+        ambiguous: false,
+        why: "User is still answering the daily but completion level is weak.",
+      },
+      item_updates: {
+        a1: {
+          update_mode: "set",
+          outcome: "partial",
+          reason_category: "unclear",
+          reason_text: null,
+          still_relevant: true,
+          evidence_text: "J'ai essaye mais pas vraiment jusqu'au bout.",
+          matched_user_text: "J'ai essaye mais pas vraiment jusqu'au bout.",
+          confidence: "medium",
+          missing_slots: ["completion_level"],
+        },
+      },
+      daily_intent: {
+        kind: "daily_answer",
+        summary: "User continues the daily with a partial answer.",
+      },
+      state_updates: {
+        status_hint: "needs_clarification",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "clarify_completion_level",
+        instruction: "Ask what was actually done.",
+      },
+      note_information: null,
+      exit_memo: NO_EXIT_MEMO,
+      evidence: ["partial daily answer"],
+    }),
+    visibleRunner: async () => "Tu as fait quelle partie exactement ?",
+  });
+
+  assertEquals(result.exitToGlobalDispatcher, false);
+  assertEquals(result.state.status, "needs_clarification");
+  assertEquals(
+    result.generatedUserMessage,
+    "Tu as fait quelle partie exactement ?",
+  );
+});
+
+Deno.test("daily action review visible agent receives only conversation_context and strips serialization quotes", async () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const state = buildInitialDailyActionReviewState(targets);
+  const visible = await runDailyActionReviewVisibleAgent({
+    kind: "clarify_outcome",
+    targets,
+    state,
+    dispatcherOutput: sanitizeDailyActionReviewLocalDispatcherOutput({
+      targets,
+      raw: {
+        flow_action: "clarify_outcome",
+        confidence: "medium",
+        risk_score: 0,
+        target_resolution: {
+          resolved_occurrence_ids: ["a1"],
+          ambiguous: false,
+          why: "Outcome missing.",
+        },
+        item_updates: {},
+        daily_intent: {
+          kind: "daily_clarification",
+          summary: "Outcome unclear.",
+        },
+        state_updates: {
+          status_hint: "needs_clarification",
+          turn_count_increment: 1,
+          close_after_visible: false,
+        },
+        visible_task: {
+          kind: "clarify_outcome",
+          instruction: "Ask outcome.",
+          conversation_context: {
+            state_summary: "Outcome unclear for Marcher 10 min.",
+            user_words: ["bof"],
+            field_or_stage: "clarify_outcome",
+            known_values: { targets: [{ title: "Marcher 10 min" }] },
+            missing_or_weak_values: ["outcome"],
+            selected_candidate: { title: "Marcher 10 min" },
+            handoff_data: null,
+            tone_constraints: ["short"],
+            do_not_say: ["noted"],
+            context_summary: "Need outcome only.",
+            evidence_used: ["bof"],
+          },
+        },
+        exit_memo: NO_EXIT_MEMO,
+        evidence: ["unclear"],
+      },
+    }),
+    llmRunner: async ({ userPrompt }) => {
+      const parsed = JSON.parse(userPrompt);
+      assertEquals(Object.keys(parsed), ["visible_task"]);
+      assertEquals(
+        parsed.visible_task.conversation_context.field_or_stage,
+        "clarify_outcome",
+      );
+      return '"Tu veux que je le compte fait, partiel ou pas fait ?"';
+    },
+  });
+
+  assertEquals(visible, "Tu veux que je le compte fait, partiel ou pas fait ?");
+  assertEquals(
+    sanitizeDailyActionReviewVisibleText('"C\'est noté."'),
+    "C'est noté.",
+  );
 });

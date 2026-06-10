@@ -13,9 +13,7 @@ import {
   isSafetyRoute,
   runtimeSafetyPregateForTurn,
 } from "./safety_crisis_runtime.ts";
-import { agendaBlockedReasonForOperation } from "./effect_ledger_adapter.ts";
 import type { OperationRuntimeResult } from "./effect_ledger_adapter.ts";
-import { isPlatformHandoffOperation } from "./turn_agenda.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
 import {
   clearActiveToolFlow,
@@ -69,10 +67,6 @@ type RunAdjustPlanItemOperation = (input: {
 
 type OperationRuntimePipelineGuards = {
   isActiveCardDraftingOperation: (value: unknown) => boolean;
-  writeAdjustPlanPendingDraftReview: (
-    tempMemory: any,
-    review: null,
-  ) => any;
 };
 
 export type OperationRuntimePipelineInput = {
@@ -91,7 +85,6 @@ export type OperationRuntimePipelineInput = {
   sourceMessageId: string | null;
   requestId?: string | null;
   v2Runtime: ActiveTransformationRuntime | null;
-  turnAgenda: unknown;
   activeSkillState: unknown;
   activeOperationIntake: unknown;
   pendingOperationConfirmation: unknown;
@@ -170,13 +163,6 @@ function platformHandoffOperationForTurn(args: {
     isPlatformHandoffOperation(String(candidate.operation_type ?? "").trim())
   );
   if (intent) return platformOperation(String(intent.operation_type).trim());
-  const opportunity = String(
-    args.turnFrame?.tool_skill_opportunity?.operation_type ?? "",
-  ).trim();
-  if (
-    isPlatformHandoffOperation(opportunity) &&
-    args.routeDecision?.response_owner === "tool_skill"
-  ) return platformOperation(opportunity);
   const pending = args.pendingOperationConfirmation &&
       typeof args.pendingOperationConfirmation === "object"
     ? String((args.pendingOperationConfirmation as any).operation_type ?? "")
@@ -234,11 +220,6 @@ function routeOrStateRequestsToolSkill(args: {
 }): boolean {
   if (args.routeDecision?.selected_handler === args.operationType) return true;
   if (
-    args.routeDecision?.response_owner === "tool_skill" &&
-    args.turnFrame?.tool_skill_opportunity?.operation_type ===
-      args.operationType
-  ) return true;
-  if (
     (args.routeDecision?.direct_effects_to_run ?? []).includes(
       args.operationType,
     )
@@ -290,14 +271,10 @@ function routeRequestsDirectEffect(args: {
     turnFrameHasRunnableDirectEffect(args.turnFrame, args.effectType);
 }
 
-function turnAgendaBlocksOperation(
-  turnAgenda: unknown,
-  operationType: string,
-): boolean {
-  return Boolean(
-    agendaBlockedReasonForOperation(turnAgenda as any, operationType),
-  );
+function isPlatformHandoffOperation(operationType: string): boolean {
+  return Boolean(getHandoffTargetForOperation(operationType));
 }
+
 
 function platformHandoffRuntimeResult(args: {
   operationType: string;
@@ -390,20 +367,6 @@ export async function runOperationRuntimePipeline(
     turnFrame = {
       ...turnFrame,
       tool_skill_intents: [],
-      tool_skill_opportunity: {
-        type: "none",
-        operation_type: null,
-        surface_id: null,
-        confidence_band: "low",
-        should_offer: false,
-        prop_reason: null,
-        source_span: null,
-        target_hint: null,
-        target_status: "none",
-        suggested_question_intent: null,
-        offer_timing: "never",
-        must_not_execute: true,
-      },
     };
     routeOrFrameChanged = true;
   }
@@ -428,12 +391,6 @@ export async function runOperationRuntimePipeline(
       tempMemory = clearActiveToolFlow(tempMemory);
       if (pendingOperation && pendingOperation !== selectedOperation) {
         tempMemory = clearPendingToolConfirmation(tempMemory);
-      }
-      if (selectedOperation !== "adjust_plan_item") {
-        tempMemory = args.guards.writeAdjustPlanPendingDraftReview(
-          tempMemory,
-          null,
-        );
       }
       statePatch = { temp_memory: tempMemory };
     }
@@ -579,26 +536,18 @@ export async function runOperationRuntimePipeline(
       enableAdjustPlanCoachGuidance: args.enableAdjustPlanCoachGuidance,
     });
 
+  const adjustPlanFrame = loadAdjustPlanFrameFromTempMemory(tempMemory);
   const shouldRunAdjustRuntime =
     routeDecision?.selected_handler === "adjust_plan_item" ||
     routeDecision?.direct_effects_to_run?.includes("adjust_plan_item") ||
-    turnFrame?.tool_skill_opportunity?.operation_type ===
-      "adjust_plan_item" ||
     (turnFrame?.tool_skill_intents ?? []).some((intent) =>
       intent.operation_type === "adjust_plan_item" &&
       intent.confidence_band !== "low"
-    ) ||
-    Boolean(
-      loadAdjustPlanFrameFromTempMemory(tempMemory).pending_draft_review ||
-        loadAdjustPlanFrameFromTempMemory(tempMemory).pending_confirmation ||
-        loadAdjustPlanFrameFromTempMemory(tempMemory).handoff_state,
-    );
+    ) || Boolean(adjustPlanFrame.handoff_state);
 
   const pendingAdjustPlanRuntime = !routeSafetyActive &&
       !weeklyReviewBlocksToolSkillRuntime &&
-      (loadAdjustPlanFrameFromTempMemory(tempMemory).pending_draft_review ||
-        loadAdjustPlanFrameFromTempMemory(tempMemory).pending_confirmation ||
-        loadAdjustPlanFrameFromTempMemory(tempMemory).handoff_state)
+      adjustPlanFrame.handoff_state
     ? await runAdjust()
     : null;
   const activeRecurringReminderHandoff = Boolean(
@@ -641,6 +590,7 @@ export async function runOperationRuntimePipeline(
         safetyPregateOutput: runtimeSafetyPregateOutput,
         sourceMessageId: args.sourceMessageId,
         requestId: args.requestId ?? null,
+        history: args.history,
         v2Runtime: args.v2Runtime ?? null,
         planItemSnapshot: (args.planItemSnapshot ?? null) as any,
       })
@@ -662,20 +612,13 @@ export async function runOperationRuntimePipeline(
             (tempMemory as any)?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
               ?.source_message_id ?? "",
           ).trim();
-          const blockedReason = agendaBlockedReasonForOperation(
-            args.turnAgenda as any,
-            "track_progress_plan_item",
-          ) ?? args.trackProgressBlockedReasonCode ?? null;
+          const blockedReason = args.trackProgressBlockedReasonCode ?? null;
           const result = await runTrackProgressPlanItemDirectEffect({
             turn_frame: turnFrame,
             message: args.userMessage,
             plan_snapshot: args.planItemSnapshot ?? [],
             pending_tool_skill_confirmation: args.pendingOperationConfirmation,
-            no_mutation_requested: Boolean(blockedReason) ||
-              turnAgendaBlocksOperation(
-                args.turnAgenda,
-                "track_progress_plan_item",
-              ),
+            no_mutation_requested: Boolean(blockedReason),
             blocked_reason_code: blockedReason,
             write_progress: createTrackProgressPlanItemWrite({
               supabase: args.supabase,
@@ -726,11 +669,7 @@ export async function runOperationRuntimePipeline(
         : undefined,
       turnFrame,
       pendingToolSkillConfirmation: args.pendingOperationConfirmation,
-      noMutationRequested: turnAgendaBlocksOperation(
-        args.turnAgenda,
-        "create_one_shot_reminder",
-      ) ||
-        turnAgendaBlocksOperation(args.turnAgenda, "cancel_one_shot_reminder"),
+      noMutationRequested: false,
       contextMessages: (args.history ?? [])
         .filter((m: any) =>
           m?.role === "user" && typeof m?.content === "string"
@@ -777,10 +716,7 @@ export async function runOperationRuntimePipeline(
     routeDecision?.selected_handler === "prepare_attack_card";
   const activeStatusRecapFlow = hasActiveStatusRecapFlow(tempMemory);
   const routeRequestsStatusRecap = activeStatusRecapFlow ||
-    routeDecision?.selected_handler === "status_only_no_mutation_check" ||
-    String(routeDecision?.reason_code ?? "").includes("status_only") ||
-    String(routeDecision?.reason_code ?? "").includes("status_recap") ||
-    String(routeDecision?.reason_code ?? "").includes("recap") ||
+    routeDecision?.selected_handler === "status_recap" ||
     ((turnFrame?.skill_signals.entry as any)?.status_recap?.detected === true &&
       (turnFrame?.skill_signals.entry as any)?.status_recap?.confidence_band !==
         "low");

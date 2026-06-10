@@ -83,7 +83,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `existing_reminder_modification_needs_explicit_reprogramming`
 - executed_tools: []
 - durable_effect: none
@@ -322,7 +322,7 @@
 **Routage**
 - Tours 1-2: `normal_reply` correct, `attack_card_cancelled_to_conversation`, aucun tool.
 - Tour 3: effet durable correct, mais trace incohérente: `response_owner=normal_reply`, `route_reason=attack_card_cancelled_to_conversation`, tout en exécutant `create_one_shot_reminder`. Le tool fonctionne, mais la trace ne reflète pas l'intention dominante.
-- Tour 4: mauvais routage/renderer pour aide produit; `status_only_request_blocks_tool_start` alors que la demande est un chemin UI.
+- Tour 4: mauvais routage/renderer pour aide produit; `status_recap_request_blocks_tool_start` alors que la demande est un chemin UI.
 - Tours 5-6: `prepare_defense_card` correct, confirmation puis execution; `explicit_defense_card_intent_overrides_attack_card` évite la confusion attaque/défense.
 - Tour 7: `product_help` correct, mais sortie non contrainte.
 - Tours 8-11: pending confirmation/cancel fonctionnent, mais la compréhension de la préférence est fausse.

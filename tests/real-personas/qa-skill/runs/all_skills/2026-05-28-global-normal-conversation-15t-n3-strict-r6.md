@@ -294,7 +294,7 @@
 
 **Trace courte**
 - http_status: 200
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - executed_tools: []
 - durable_effect: none
 

@@ -6,18 +6,18 @@ import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.
 import { clearToolSkillFlowForDirectReminder } from "../../router/active_flow_state.ts";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
+import {
+  createNoteInformation,
+  type NoteInformation,
+} from "../../contracts/note_information.v1.ts";
 import { SUPPORTED_COACH_PREFERENCE_KEYS } from "../../tools/operations/update_coach_preferences/status.ts";
 import { loadStatusRecapProjection } from "./projection.ts";
-import {
-  decideStatusRecap,
-  isFaitPrevuFragileRecapRequest,
-} from "./reducer.ts";
-import { renderStatusRecapDecision } from "./renderer.ts";
 import type {
   StatusRecapLocalDispatcher,
   StatusRecapReducerResult,
 } from "./local_flow.ts";
 import {
+  buildStatusRecapDbContextPack,
   hasActiveStatusRecapFlow,
   readStatusRecapFlowState,
   reduceStatusRecapLocalDispatcherOutput,
@@ -28,9 +28,6 @@ import {
 } from "./local_flow.ts";
 import type { StatusRecapVisibleAgent } from "./visible_agent.ts";
 import { runStatusRecapVisibleAgent } from "./visible_agent.ts";
-import type { StatusRecapProjection } from "./contract.ts";
-
-export { isFaitPrevuFragileRecapRequest } from "./reducer.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -55,6 +52,18 @@ function routeIsProductHelp(routeDecision: RouteDecision | null): boolean {
     routeDecision?.selected_handler === "product_help";
 }
 
+const EXPLICIT_TOOL_COMMAND_HANDLERS = new Set([
+  "adjust_plan_item",
+  "prepare_attack_card",
+  "prepare_defense_card",
+  "select_state_potion",
+  "update_coach_preferences",
+  "create_one_shot_reminder",
+  "cancel_one_shot_reminder",
+  "create_recurring_reminder",
+  "track_progress_plan_item",
+]);
+
 function routeIsExplicitToolCommand(args: {
   routeDecision: RouteDecision | null;
   turnFrame: TurnFrame | null;
@@ -64,34 +73,22 @@ function routeIsExplicitToolCommand(args: {
   if (args.routeDecision?.response_owner === "tool_skill") return true;
   if (
     args.routeDecision?.selected_handler &&
-    args.routeDecision.selected_handler !== "status_only_no_mutation_check" &&
+    args.routeDecision.selected_handler !== "status_recap" &&
     args.routeDecision.selected_handler !== "product_help"
   ) {
-    const handler = args.routeDecision.selected_handler;
-    if (
-      handler.includes("reminder") ||
-      handler.includes("card") ||
-      handler.includes("potion") ||
-      handler.includes("plan") ||
-      handler.includes("coach_preferences")
-    ) return true;
+    return EXPLICIT_TOOL_COMMAND_HANDLERS.has(
+      args.routeDecision.selected_handler,
+    );
   }
   return Boolean(args.turnFrame?.tool_skill_intents?.length);
 }
 
 function statusRecapRouteSignal(routeDecision: RouteDecision | null): boolean {
   if (!routeDecision) return false;
-  if (routeDecision.selected_handler === "status_only_no_mutation_check") {
+  if (routeDecision.selected_handler === "status_recap") {
     return true;
   }
-  if (
-    routeDecision.reason_code.includes("status_only") ||
-    routeDecision.reason_code.includes("recap")
-  ) return true;
-  return routeDecision.blocked_paths.some((path) =>
-    path.reason_code.includes("status_only") ||
-    path.reason_code.includes("recap")
-  );
+  return false;
 }
 
 function recentMessagesFromHistory(
@@ -114,113 +111,73 @@ function exitMemoForTempMemory(args: {
   decision: NonNullable<
     Awaited<ReturnType<StatusRecapLocalDispatcher>>
   >;
+  userMessage: string;
+  noteInformationInbound: NoteInformation | null;
 }) {
+  const targetDispatcher = args.decision.flow_action === "safety_preempt"
+    ? "safety_crisis"
+    : args.decision.flow_action === "handoff_to_local_flow"
+    ? "other_local"
+    : "global";
+  const noteInformation = args.decision.note_information ??
+    createNoteInformation({
+      source_flow_id: "status_recap",
+      source_flow_state_summary:
+        args.decision.exit_memo.local_flow_context.last_answer_summary ??
+          args.decision.status_intent.summary ??
+          "Status recap local flow is handing off.",
+      handoff_reason: targetDispatcher === "safety_crisis"
+        ? "safety"
+        : args.decision.exit_memo.reason === "product_help" ||
+            args.decision.exit_memo.reason === "explicit_tool_request" ||
+            args.decision.exit_memo.reason === "preference_update"
+        ? "explicit_user_request"
+        : "topic_change",
+      target_dispatcher: targetDispatcher,
+      handoff_context_for_next_dispatcher: JSON.stringify({
+        source_flow: "status_recap",
+        target_dispatcher: targetDispatcher,
+        handoff_reason: args.decision.exit_memo.reason,
+        user_message_summary: args.decision.exit_memo.user_intent_summary ??
+          args.userMessage,
+        active_flow_summary: args.decision.status_intent.summary,
+        collected_state: args.decision.exit_memo.local_flow_context,
+        unresolved_questions: [],
+        confidence: args.decision.confidence,
+        evidence: args.decision.evidence,
+        recommended_next_focus:
+          args.decision.exit_memo.handoff_hint_for_global_dispatcher.why ??
+            args.decision.exit_memo.user_intent_summary ??
+            "Reprocess the current user message outside status_recap.",
+        note_information_inbound: args.noteInformationInbound,
+      }),
+      target_local_dispatcher_hint: targetDispatcher === "safety_crisis"
+        ? "Safety owns the next turn. Do not continue status_recap."
+        : "Reprocess the same user message. Status recap did not mutate anything.",
+      user_words: [args.userMessage],
+      structured_context: {
+        source_flow: "status_recap",
+        target_dispatcher: targetDispatcher,
+        handoff_reason: args.decision.exit_memo.reason,
+        user_message_summary: args.decision.exit_memo.user_intent_summary ??
+          args.userMessage,
+        active_flow_summary: args.decision.status_intent.summary,
+        collected_state: args.decision.exit_memo.local_flow_context,
+        unresolved_questions: [],
+        confidence: args.decision.confidence,
+        evidence: args.decision.evidence,
+        recommended_next_focus:
+          args.decision.exit_memo.handoff_hint_for_global_dispatcher.why ??
+            args.decision.exit_memo.user_intent_summary ??
+            "Reprocess the current user message outside status_recap.",
+      },
+      risk_score: args.decision.risk_score,
+    });
   return {
     ...args.decision.exit_memo,
+    note_information: noteInformation,
     at: new Date().toISOString(),
     reducer_reason_code: args.reduced.reason_code,
-  };
-}
-
-function compatProjectionFromVisibleFacts(input: any): StatusRecapProjection {
-  return {
-    attack_cards: input.grounded_facts_json?.facts?.attack_cards ?? [],
-    defense_cards: input.grounded_facts_json?.facts?.defense_cards ?? [],
-    one_shot_reminders: input.grounded_facts_json?.facts?.one_shot_reminders ??
-      { pending: [], cancelled_recent: [] },
-    recurring_reminders:
-      input.grounded_facts_json?.facts?.recurring_reminders ?? [],
-    potion_sessions: input.grounded_facts_json?.facts?.potion_sessions ?? [],
-    coach_preferences: input.grounded_facts_json?.facts?.coach_preferences ??
-      [],
-    recent_effect_history:
-      input.grounded_facts_json?.facts?.recent_effect_history ?? [],
-  };
-}
-
-function compatStatusDispatcher(
-  action: "answer_status" | "answer_fait_prevu_fragile",
-): StatusRecapLocalDispatcher {
-  return async () => ({
-    flow_action: action,
-    confidence: "high",
-    risk_score: 0,
-    status_intent: {
-      kind: action === "answer_fait_prevu_fragile"
-        ? "fait_prevu_fragile"
-        : "durable_status",
-      summary: "legacy status recap wrapper",
-      requires_db_projection: true,
-      requires_effect_history: false,
-    },
-    target_objects: ["unknown"],
-    read_scope: {
-      requested_categories: ["all"],
-      include_cancelled: false,
-      include_recent_failed_or_blocked_effects: false,
-      format: action === "answer_fait_prevu_fragile"
-        ? "fait_prevu_fragile"
-        : "compact",
-    },
-    state_updates: {
-      status: "active",
-      turn_count_increment: 1,
-      close_after_visible: false,
-    },
-    visible_task: {
-      kind: action === "answer_fait_prevu_fragile"
-        ? "fait_prevu_fragile"
-        : "status_compact",
-      instruction: "legacy wrapper",
-    },
-    exit_memo: {
-      needed: false,
-      reason: "none",
-      user_intent_summary: null,
-      local_flow_context: {
-        skill_id: "status_recap",
-        last_intent: null,
-        last_target_objects: [],
-        last_answer_summary: null,
-        last_projection_summary: null,
-      },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: "unknown",
-        why: null,
-        constraints: [],
-      },
-    },
-    evidence: ["legacy_wrapper"],
-  });
-}
-
-function compatStatusVisibleAgent(
-  intent: "durable_status" | "fait_prevu_fragile",
-): StatusRecapVisibleAgent {
-  return async (input) => {
-    const projection = compatProjectionFromVisibleFacts(input);
-    const decision = renderStatusRecapDecision({
-      projection,
-      decision: decideStatusRecap({
-        userMessage: input.user_message,
-        turnFrame: null,
-        routeDecision: {
-          route_version: "v1",
-          response_owner: "normal_reply",
-          selected_handler: "status_only_no_mutation_check",
-          blocked_paths: [],
-          direct_effects_to_run: [],
-          reason_code: intent === "fait_prevu_fragile"
-            ? "recap_fait_prevu_fragile"
-            : "status_only_no_mutation_check",
-          memory_used_for_route: false,
-          memory_item_ids_used_for_route: [],
-          memory_use_kind: "none",
-        },
-        projection,
-      }),
-    });
-    return decision.reply;
   };
 }
 
@@ -262,18 +219,62 @@ export async function maybeRunStatusRecapRuntime(args: {
   });
   const previousState = readStatusRecapFlowState(args.tempMemory);
   const projectionSummary = statusRecapProjectionSummary(projection);
+  const dbContextPack = buildStatusRecapDbContextPack(projectionSummary);
+  const noteInformationInbound = args.turnFrame?.note_information ??
+    (!activeStatusFlow && statusRecapRouteSignal(args.routeDecision)
+      ? createNoteInformation({
+        source_flow_id: "global_dispatcher",
+        source_flow_state_summary:
+          "Global dispatcher selected status_recap for a read-only status request.",
+        handoff_reason: "explicit_user_request",
+        target_dispatcher: "status_recap",
+        handoff_context_for_next_dispatcher:
+          "Run status_recap local dispatcher. Read DB context only; do not mutate or answer from global.",
+        target_local_dispatcher_hint:
+          "Answer factual status from the status_recap db_context_pack and projection.",
+        user_words: [args.userMessage],
+        structured_context: {
+          source_flow: "global_dispatcher",
+          target_dispatcher: "status_recap",
+          handoff_reason: "explicit_user_request",
+          user_message_summary: args.userMessage,
+          active_flow_summary: "No prior status_recap state.",
+          collected_state: {},
+          unresolved_questions: [],
+          confidence: "medium",
+          evidence: [args.routeDecision?.reason_code ?? "status_recap_route"],
+          recommended_next_focus:
+            "Ground the answer in the target DB status projection.",
+        },
+        risk_score: 0,
+      })
+      : null);
   const dispatcher = args.runLocalDispatcher ?? runStatusRecapLocalDispatcher;
   console.info("[StatusRecap] local_dispatcher_called", {
     active_status_flow: activeStatusFlow,
+    db_context_pack_loaded: true,
     projection_summary: projectionSummary,
+    note_information_consumed: Boolean(noteInformationInbound),
+    micro_memory_context_count: 0,
   });
   const decision = await dispatcher({
     user_id: args.userId,
     request_id: args.requestId ?? null,
-    user_message: args.userMessage,
+    current_user_message: args.userMessage,
     recent_messages: recentMessagesFromHistory(args.history),
-    active_state: previousState,
-    projection_summary: projectionSummary,
+    active_flow_state: previousState,
+    note_information_inbound: noteInformationInbound,
+    db_context_pack: dbContextPack,
+    micro_memory_context: [],
+    platform_context: {
+      timezone: args.userTimezone,
+      channel: args.turnFrame?.channel ?? "web",
+    },
+    risk_context: {
+      safety_risk_band: args.turnFrame?.safety.risk_band ?? null,
+      risk_score: 0,
+    },
+    available_inline_tools: [],
     last_answer_summary: previousState?.last_answer_summary ?? null,
     route_decision: args.routeDecision,
     turn_frame: args.turnFrame,
@@ -315,15 +316,71 @@ export async function maybeRunStatusRecapRuntime(args: {
     previous: previousState,
     output: decision,
     projection,
+    currentUserMessage: args.userMessage,
+    noteInformationInbound,
   });
+  if (reduced.status === "safety") {
+    const exitMemo = exitMemoForTempMemory({
+      reduced,
+      decision,
+      userMessage: args.userMessage,
+      noteInformationInbound,
+    });
+    const nextTempMemory = {
+      ...writeStatusRecapFlowState(args.tempMemory, reduced.local_state),
+      [STATUS_RECAP_EXIT_MEMO_KEY]: exitMemo,
+    };
+    console.info("[StatusRecap] safety_preempt", {
+      note_information_created: true,
+      target_dispatcher: "safety_crisis",
+      toolExecution: "none",
+      executedTools: [],
+    });
+    return {
+      content: "",
+      nextTempMemory,
+      toolExecution: "none",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "status_recap",
+        status: "safety_preempt",
+        reason_code: reduced.reason_code,
+        operation_suggestions: [],
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: reduced.blocked_effects,
+        exit_memo: exitMemo,
+        note_information: exitMemo.note_information,
+        flow_action: decision.flow_action,
+        status_intent: decision.status_intent.kind,
+        target_objects: decision.target_objects,
+        visible_task: {
+          kind: reduced.visible_task,
+          conversation_context: reduced.conversation_context,
+        },
+        risk_score: decision.risk_score,
+        projection_used: decision.status_intent.requires_db_projection,
+        projection_summary: projectionSummary,
+        toolExecution: "none",
+        executedTools: [],
+      },
+    };
+  }
   if (reduced.exit_to_global_dispatcher) {
-    const exitMemo = exitMemoForTempMemory({ reduced, decision });
+    const exitMemo = exitMemoForTempMemory({
+      reduced,
+      decision,
+      userMessage: args.userMessage,
+      noteInformationInbound,
+    });
     const nextTempMemory = {
       ...writeStatusRecapFlowState(args.tempMemory, reduced.local_state),
       [STATUS_RECAP_EXIT_MEMO_KEY]: exitMemo,
     };
     console.info("[StatusRecap] exit_to_global_dispatcher", {
       exit_memo_reason: decision.exit_memo.reason,
+      note_information_created: true,
       global_dispatcher_second_pass_after_status_exit: true,
       toolExecution: "none",
       executedTools: [],
@@ -343,10 +400,14 @@ export async function maybeRunStatusRecapRuntime(args: {
         committed_effects: [],
         blocked_effects: [],
         exit_memo: exitMemo,
+        note_information: exitMemo.note_information,
         flow_action: decision.flow_action,
         status_intent: decision.status_intent.kind,
         target_objects: decision.target_objects,
-        visible_task: reduced.visible_task,
+        visible_task: {
+          kind: reduced.visible_task,
+          conversation_context: reduced.conversation_context,
+        },
         projection_used: decision.status_intent.requires_db_projection,
         projection_summary: projectionSummary,
         toolExecution: "none",
@@ -359,11 +420,7 @@ export async function maybeRunStatusRecapRuntime(args: {
     user_id: args.userId,
     request_id: args.requestId ?? null,
     stage: reduced.visible_task,
-    user_message: args.userMessage,
-    recent_messages: recentMessagesFromHistory(args.history),
-    local_state: reduced.local_state,
-    grounded_facts_json: reduced.grounded_facts_json,
-    dispatcher_instruction: decision.visible_task.instruction,
+    conversation_context: reduced.conversation_context,
   });
   const content = String(visible ?? "").trim();
   if (!content) {
@@ -415,7 +472,14 @@ export async function maybeRunStatusRecapRuntime(args: {
       projection_used: decision.status_intent.requires_db_projection,
       intent: decision.status_intent.kind,
       target_objects: decision.target_objects,
-      visible_task: reduced.visible_task,
+      visible_task: {
+        kind: reduced.visible_task,
+        conversation_context: reduced.conversation_context,
+      },
+      visible_task_kind: reduced.visible_task,
+      visible_prompt_id: `status_recap.visible.${reduced.visible_task}`,
+      conversation_context: reduced.conversation_context,
+      note_information_inbound: noteInformationInbound,
       operation_suggestions: [],
       requested_effects: [],
       allowed_effects: [],
@@ -433,70 +497,4 @@ export async function maybeRunStatusRecapRuntime(args: {
       executedTools: [],
     },
   };
-}
-
-export async function buildStatusOnlyNoMutationRuntime(args: {
-  supabase: SupabaseClient;
-  userId: string;
-  tempMemory: any;
-  userTimezone?: string;
-  userMessage?: string;
-}): Promise<OperationRuntimeResult> {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: args.supabase,
-    userId: args.userId,
-    userMessage: args.userMessage ??
-      "sans rien modifier, dis-moi ce qui existe vraiment",
-    userTimezone: args.userTimezone ?? "Europe/Paris",
-    tempMemory: args.tempMemory,
-    turnFrame: null,
-    routeDecision: {
-      route_version: "v1",
-      response_owner: "normal_reply",
-      selected_handler: "status_only_no_mutation_check",
-      blocked_paths: [],
-      direct_effects_to_run: [],
-      reason_code: "status_only_no_mutation_check",
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-    },
-    activeOperationIntake: null,
-    runLocalDispatcher: compatStatusDispatcher("answer_status"),
-    runVisibleAgent: compatStatusVisibleAgent("durable_status"),
-  });
-  if (!runtime) throw new Error("status_recap_runtime_not_activated");
-  return runtime;
-}
-
-export async function buildFaitPrevuFragileRecapRuntime(args: {
-  supabase: SupabaseClient;
-  userId: string;
-  userTimezone?: string;
-  tempMemory?: any;
-}): Promise<OperationRuntimeResult> {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: args.supabase,
-    userId: args.userId,
-    userMessage: "fait / prévu / fragile",
-    userTimezone: args.userTimezone ?? "Europe/Paris",
-    tempMemory: args.tempMemory ?? {},
-    turnFrame: null,
-    routeDecision: {
-      route_version: "v1",
-      response_owner: "normal_reply",
-      selected_handler: "status_only_no_mutation_check",
-      blocked_paths: [],
-      direct_effects_to_run: [],
-      reason_code: "recap_fait_prevu_fragile",
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-    },
-    activeOperationIntake: null,
-    runLocalDispatcher: compatStatusDispatcher("answer_fait_prevu_fragile"),
-    runVisibleAgent: compatStatusVisibleAgent("fait_prevu_fragile"),
-  });
-  if (!runtime) throw new Error("status_recap_fpf_runtime_not_activated");
-  return runtime;
 }

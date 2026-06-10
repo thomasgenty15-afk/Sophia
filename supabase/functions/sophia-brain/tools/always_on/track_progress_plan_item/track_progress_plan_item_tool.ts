@@ -45,7 +45,7 @@ export type TrackProgressPlanItemOutcome =
     logged_progress_id: string;
   };
 
-function legacyClarifyReason(reasonCode: string):
+function clarifyReason(reasonCode: string):
   | "target_ambiguous"
   | "target_missing"
   | "status_missing"
@@ -58,7 +58,7 @@ function legacyClarifyReason(reasonCode: string):
   return "target_missing";
 }
 
-function legacyBlockedReason(reasonCode: string):
+function blockedReason(reasonCode: string):
   | "safety_high"
   | "pending_confirmation_active"
   | "duplicate_source_message"
@@ -77,7 +77,7 @@ function legacyBlockedReason(reasonCode: string):
   return "duplicate_db";
 }
 
-function toLegacyOutcome(
+function toOutcome(
   result: TrackProgressDirectEffectResult,
 ): TrackProgressPlanItemOutcome {
   if (!result.detected) return { detected: false };
@@ -108,7 +108,7 @@ function toLegacyOutcome(
     return {
       detected: true,
       status: "needs_clarify",
-      reason: legacyClarifyReason(result.debug.reason_code),
+      reason: clarifyReason(result.debug.reason_code),
       message: result.reply ?? "Je prefere confirmer avant de l'ecrire.",
     };
   }
@@ -116,7 +116,7 @@ function toLegacyOutcome(
   return {
     detected: true,
     status: "blocked",
-    reason: legacyBlockedReason(result.debug.reason_code),
+    reason: blockedReason(result.debug.reason_code),
     message: result.reply ?? result.debug.reason_code,
   };
 }
@@ -140,5 +140,5 @@ export async function runTrackProgressPlanItemV2(params: {
     db_idempotency_check: params.db_idempotency_check,
     write_progress: params.write_progress,
   });
-  return toLegacyOutcome(result);
+  return toOutcome(result);
 }

@@ -62,7 +62,12 @@ type RequestBody =
     ordering_rationale?: string;
   }
   | { action: "remove"; cycle_id: string; transformation_id: string }
-  | { action: "rename"; cycle_id: string; transformation_id: string; title: string };
+  | {
+    action: "rename";
+    cycle_id: string;
+    transformation_id: string;
+    title: string;
+  };
 
 // ---------------------------------------------------------------------------
 // Core logic — exported for use by sophia-brain
@@ -85,7 +90,12 @@ type VisibleTransformationRow = UserTransformationRow & {
 };
 
 const HIDDEN_STATUSES = new Set(["cancelled", "abandoned"]);
-const LOCKED_STATUSES = new Set(["active", "completed", "abandoned", "archived"]);
+const LOCKED_STATUSES = new Set([
+  "active",
+  "completed",
+  "abandoned",
+  "archived",
+]);
 
 function extractOnboardingV2Payload(
   handoffPayload: UserTransformationRow["handoff_payload"],
@@ -99,7 +109,9 @@ function extractOnboardingV2Payload(
     : {};
 }
 
-function toVisibleTransformation(row: UserTransformationRow): VisibleTransformationRow {
+function toVisibleTransformation(
+  row: UserTransformationRow,
+): VisibleTransformationRow {
   return {
     ...row,
     onboarding_v2: extractOnboardingV2Payload(row.handoff_payload),
@@ -212,11 +224,15 @@ async function persistNormalizedRoadmap(args: {
   }
 
   const rowsById = new Map(
-    ((data ?? []) as Array<Record<string, unknown>>).map((row) => [String(row.id), row]),
+    ((data ?? []) as Array<Record<string, unknown>>).map((
+      row,
+    ) => [String(row.id), row]),
   );
   const currentMaxPriority = Math.max(
     0,
-    ...Array.from(rowsById.values()).map((row) => Number(row.priority_order ?? 0)),
+    ...Array.from(rowsById.values()).map((row) =>
+      Number(row.priority_order ?? 0)
+    ),
   );
 
   for (const [index, update] of args.updates.entries()) {
@@ -240,7 +256,10 @@ async function persistNormalizedRoadmap(args: {
   for (const update of args.updates) {
     const row = rowsById.get(update.id);
     if (!row) {
-      throw new RoadmapActionError(500, `Missing transformation ${update.id} during normalization`);
+      throw new RoadmapActionError(
+        500,
+        `Missing transformation ${update.id} during normalization`,
+      );
     }
 
     const { error: finalError } = await args.admin
@@ -295,12 +314,17 @@ export async function executeRoadmapAction(
       const rows = await loadCycleTransformations(admin, body.cycle_id);
       const visible = rows.filter((row) => !HIDDEN_STATUSES.has(row.status));
       const locked = visible.filter((row) => LOCKED_STATUSES.has(row.status));
-      const editable = visible.filter((row) => !LOCKED_STATUSES.has(row.status));
+      const editable = visible.filter((row) =>
+        !LOCKED_STATUSES.has(row.status)
+      );
       const providedIds = body.ordered_ids.map((id) => id.trim());
       const uniqueProvidedIds = new Set(providedIds);
 
       if (editable.length === 0) {
-        throw new RoadmapActionError(400, "No editable transformations to reorder");
+        throw new RoadmapActionError(
+          400,
+          "No editable transformations to reorder",
+        );
       }
       if (uniqueProvidedIds.size !== providedIds.length) {
         throw new RoadmapActionError(400, "ordered_ids contains duplicate IDs");
@@ -365,7 +389,7 @@ export async function executeRoadmapAction(
             onboarding_v2: {
               ordering_rationale: seed.orderingRationale,
               questionnaire_context: seed.questionnaireContext,
-              source: "roadmap_review_add",
+              source: "roadmap_manual_add",
             },
           },
           created_at: now,
@@ -380,7 +404,10 @@ export async function executeRoadmapAction(
         );
       }
 
-      const refreshedRows = await loadCycleTransformations(admin, body.cycle_id);
+      const refreshedRows = await loadCycleTransformations(
+        admin,
+        body.cycle_id,
+      );
       await persistNormalizedRoadmap({
         admin,
         cycleId: body.cycle_id,
@@ -393,7 +420,9 @@ export async function executeRoadmapAction(
     case "remove": {
       const rows = await loadCycleTransformations(admin, body.cycle_id);
       const visible = rows.filter((row) => !HIDDEN_STATUSES.has(row.status));
-      const editable = visible.filter((row) => !LOCKED_STATUSES.has(row.status));
+      const editable = visible.filter((row) =>
+        !LOCKED_STATUSES.has(row.status)
+      );
       const target = editable.find((row) => row.id === body.transformation_id);
 
       if (!target) {
@@ -466,7 +495,10 @@ export async function executeRoadmapAction(
     .order("priority_order", { ascending: true });
 
   if (fetchErr) {
-    throw new RoadmapActionError(500, "Failed to fetch updated transformations");
+    throw new RoadmapActionError(
+      500,
+      "Failed to fetch updated transformations",
+    );
   }
 
   return {
@@ -481,10 +513,9 @@ export async function executeRoadmapAction(
         priority_order: row.priority_order,
         status: row.status,
         user_summary: row.user_summary ?? "",
-        ordering_rationale:
-          typeof onboardingV2.ordering_rationale === "string"
-            ? onboardingV2.ordering_rationale
-            : null,
+        ordering_rationale: typeof onboardingV2.ordering_rationale === "string"
+          ? onboardingV2.ordering_rationale
+          : null,
       };
     }),
   };
@@ -508,11 +539,10 @@ class RoadmapActionError extends Error {
 // ---------------------------------------------------------------------------
 //
 // IMPORTANT: `Deno.serve(...)` must NEVER run when this file is imported from
-// elsewhere (e.g. sophia-brain/agents/roadmap_review.ts imports
-// `executeRoadmapAction` from here). Otherwise two `Deno.serve` handlers get
-// registered inside the importing worker and requests addressed to the host
-// function (e.g. /sophia-brain) can be intercepted by this handler,
-// producing bogus "Invalid request body" 400s with this file's Zod schema.
+// elsewhere. Otherwise two `Deno.serve` handlers get registered inside the
+// importing worker and requests addressed to the host function can be
+// intercepted by this handler, producing bogus "Invalid request body" 400s
+// with this file's Zod schema.
 // Gate with `import.meta.main`: true only when this module is the entrypoint.
 
 const httpHandler = async (req: Request): Promise<Response> => {
@@ -546,7 +576,8 @@ const httpHandler = async (req: Request): Promise<Response> => {
 
     const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
     const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
-    const serviceRoleKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    const serviceRoleKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "")
+      .trim();
     if (!url || !anonKey || !serviceRoleKey) {
       return serverError(req, requestId, "Server misconfigured");
     }
@@ -555,7 +586,8 @@ const httpHandler = async (req: Request): Promise<Response> => {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data: authData, error: authError } = await userClient.auth.getUser();
+    const { data: authData, error: authError } = await userClient.auth
+      .getUser();
     if (authError || !authData?.user) {
       return jsonResponse(
         req,

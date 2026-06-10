@@ -468,7 +468,10 @@ async function loadTransformationHandoffContext(args: {
       .eq("user_id", args.userId)
       .eq("cycle_id", transformation.cycle_id)
       .eq("transformation_id", transformation.id)
-      .eq("snapshot_type", "conversation_pulse")
+      .in("snapshot_type", [
+        "daily_conversation_pulse_v2",
+        "watcher_conversation_pulse_v2",
+      ])
       .lte("created_at", completedAt)
       .order("created_at", { ascending: false })
       .limit(1)

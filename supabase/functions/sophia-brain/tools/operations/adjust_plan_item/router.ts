@@ -6,12 +6,7 @@ import type {
   AdjustPlanUserIntent,
 } from "./contract.ts";
 import {
-  generateAdjustPlanPlatformInputDraft,
-  writeAdjustPlanPlatformInputReply,
-} from "./generator.ts";
-import type { AdjustPlanReplyRenderIntent } from "./renderer.ts";
-import {
-  clearAdjustPlanExecutableLegacyState,
+  clearAdjustPlanNonHandoffState,
   loadAdjustPlanFrameFromTempMemory,
   writeAdjustPlanHandoffState,
 } from "./state.ts";
@@ -29,17 +24,16 @@ import {
 import {
   type InlineInfoToolContext,
   runInlineGetInfoDbTool,
+  runInlineGetInfoProductTool,
 } from "../inline_info_tools.ts";
+import {
+  createNoteInformation,
+  type NoteInformation,
+} from "../../../contracts/note_information.v1.ts";
 import {
   adjustPlanSkillResult,
   ensureRuntimeHasSkillResult,
 } from "./runtime_adapter.ts";
-
-type FollowupDecision = {
-  status: AdjustPlanHandoffStatus;
-  userIntent: AdjustPlanUserIntent;
-  reasonCode: string;
-};
 
 export type AdjustPlanLifecycleDeps = {
   [key: string]: unknown;
@@ -73,8 +67,7 @@ function turnFrameHasAdjustPlanIntent(
   return intents.some((intent: any) =>
     intent?.operation_type === "adjust_plan_item" &&
     intent?.confidence_band !== "low"
-  ) || context.turnFrame?.tool_skill_opportunity?.operation_type ===
-      "adjust_plan_item";
+  );
 }
 
 function routeSelectsAdjustPlan(
@@ -95,140 +88,6 @@ function routeSelectsAdjustPlan(
     turnFrameHasAdjustPlanIntent(context);
 }
 
-function structuredContinuationIntent(
-  value: unknown,
-): AdjustPlanHandoffStatus | null {
-  const raw = String(value ?? "").trim();
-  if (raw === "apply_attempt" || raw === "handoff_apply_attempt") {
-    return "apply_attempt";
-  }
-  if (raw === "repeat_handoff" || raw === "repeat_draft") {
-    return "repeat_draft";
-  }
-  if (raw === "revise_handoff" || raw === "revise_draft") {
-    return "revise_draft";
-  }
-  if (raw === "cancelled" || raw === "cancel_handoff") return "cancelled";
-  if (raw === "topic_change") return "topic_change";
-  return null;
-}
-
-function decisionFromStatus(
-  status: AdjustPlanHandoffStatus,
-  reasonCode: string,
-): FollowupDecision {
-  if (status === "apply_attempt") {
-    return { status, userIntent: "approve", reasonCode };
-  }
-  if (status === "repeat_draft") {
-    return { status, userIntent: "explain", reasonCode };
-  }
-  if (status === "revise_draft") {
-    return { status, userIntent: "revise", reasonCode };
-  }
-  if (status === "cancelled") {
-    return { status, userIntent: "cancel", reasonCode };
-  }
-  if (status === "topic_change") {
-    return { status, userIntent: "topic_change", reasonCode };
-  }
-  return { status, userIntent: "start", reasonCode };
-}
-
-function structuredFollowup(
-  context: AdjustPlanRouterContext,
-): FollowupDecision | null {
-  const arbitration = (context.routeDecision as any)?.active_flow_arbitration;
-  const arbitrationIntent = structuredContinuationIntent(
-    arbitration?.continuation_intent,
-  );
-  if (arbitrationIntent) {
-    return decisionFromStatus(
-      arbitrationIntent,
-      `active_input_coach_structured_${arbitrationIntent}`,
-    );
-  }
-  const confirmation = context.turnFrame?.confirmation_response;
-  if (confirmation && confirmation.confidence_band !== "low") {
-    if (confirmation.kind === "yes") {
-      return decisionFromStatus(
-        "apply_attempt",
-        "confirmation_yes_is_platform_input_apply_attempt",
-      );
-    }
-    if (confirmation.kind === "no") {
-      return decisionFromStatus(
-        "cancelled",
-        "confirmation_no_cancels_platform_input_coach",
-      );
-    }
-    if (confirmation.kind === "topic_change") {
-      return decisionFromStatus(
-        "topic_change",
-        "confirmation_topic_change_clears_platform_input_coach",
-      );
-    }
-    if (confirmation.kind === "correction_to_pending") {
-      return decisionFromStatus(
-        "revise_draft",
-        "confirmation_correction_revises_platform_input",
-      );
-    }
-  }
-
-  const intents = Array.isArray(context.turnFrame?.tool_skill_intents)
-    ? context.turnFrame.tool_skill_intents
-    : [];
-  for (const intent of intents) {
-    if (
-      intent.operation_type !== "adjust_plan_item" ||
-      intent.confidence_band === "low"
-    ) continue;
-    const continuation = structuredContinuationIntent(
-      (intent.payload_hint as any)?.handoff_continuation_intent ??
-        (intent.operation_input as any)?.handoff_continuation_intent,
-    );
-    if (continuation) {
-      return decisionFromStatus(
-        continuation,
-        `tool_skill_intent_structured_${continuation}`,
-      );
-    }
-    if (intent.user_intent === "explain_only") {
-      return decisionFromStatus(
-        "repeat_draft",
-        "tool_skill_intent_explain_repeats_platform_input",
-      );
-    }
-    if (
-      intent.user_intent === "adjust" ||
-      intent.user_intent === "update" ||
-      intent.user_intent === "create" ||
-      intent.user_intent === "select"
-    ) {
-      return decisionFromStatus(
-        "revise_draft",
-        "tool_skill_intent_revises_platform_input",
-      );
-    }
-  }
-  return null;
-}
-
-function concurrentOperationSelected(
-  context: AdjustPlanRouterContext,
-): boolean {
-  const handler = String(context.routeDecision?.selected_handler ?? "").trim();
-  if (!handler) return false;
-  if (
-    handler === "adjust_plan_item" ||
-    handler === "product_help" ||
-    handler === "status_recap" ||
-    handler === "normal_reply"
-  ) return false;
-  return true;
-}
-
 function traceForInputCoach(args: {
   status: AdjustPlanHandoffStatus;
   userIntent: AdjustPlanUserIntent;
@@ -240,7 +99,7 @@ function traceForInputCoach(args: {
   return {
     selected_handler: "adjust_plan_item",
     operation_type: "adjust_plan_item",
-    mode: "platform_input_coaching",
+    mode: "platform_handoff",
     status: args.status,
     reason_code: args.reasonCode,
     operation_id: null,
@@ -307,10 +166,10 @@ function writeState(args: {
 }): any {
   const now = nowIso();
   return writeAdjustPlanHandoffState(
-    clearAdjustPlanExecutableLegacyState(args.tempMemory),
+    clearAdjustPlanNonHandoffState(args.tempMemory),
     {
       skill_id: "adjust_plan_item",
-      mode: "platform_input_coaching",
+      mode: "platform_handoff",
       status: args.status,
       draft: args.draft ?? null,
       local_flow_state: args.localState ?? null,
@@ -333,11 +192,58 @@ function localStateFromActive(value: unknown): AdjustPlanLocalState | null {
     : null;
 }
 
+function buildInboundNoteInformation(args: {
+  context: AdjustPlanRouterContext;
+  activeHandoff: ReturnType<typeof loadAdjustPlanFrameFromTempMemory>[
+    "handoff_state"
+  ];
+}): NoteInformation | null {
+  if (args.activeHandoff?.local_flow_state) return null;
+  return createNoteInformation({
+    source_flow_id: "global_dispatcher",
+    source_flow_presentation:
+      "Global dispatcher selected adjust_plan_item for a non-mutant Plan adjustment handoff.",
+    source_flow_state_summary:
+      "First activation of adjust_plan_item from global routing.",
+    handoff_reason: "explicit_user_request",
+    target_dispatcher: "adjust_plan_item",
+    handoff_context_for_next_dispatcher: JSON.stringify({
+      selected_handler: args.context.routeDecision?.selected_handler ?? null,
+      response_owner: args.context.routeDecision?.response_owner ?? null,
+      reason_code: args.context.routeDecision?.reason_code ?? null,
+      tool_skill_intents: args.context.turnFrame?.tool_skill_intents ?? [],
+      plan_item_snapshot_count: Array.isArray(args.context.planItemSnapshot)
+        ? args.context.planItemSnapshot.length
+        : 0,
+      no_chat_mutation: true,
+    }),
+    target_local_dispatcher_hint:
+      "Start adjust_plan_item locally; do not execute Plan mutations from chat.",
+    user_words: [args.context.userMessage],
+    structured_context: {
+      selected_handler: args.context.routeDecision?.selected_handler ?? null,
+      response_owner: args.context.routeDecision?.response_owner ?? null,
+      reason_code: args.context.routeDecision?.reason_code ?? null,
+      tool_skill_intents: args.context.turnFrame?.tool_skill_intents ?? [],
+      plan_item_snapshot_count: Array.isArray(args.context.planItemSnapshot)
+        ? args.context.planItemSnapshot.length
+        : 0,
+      no_chat_mutation: true,
+    },
+    risk_score: 0,
+    no_chat_mutation: {
+      db_write_committed: false,
+      executable_confirmation_generated: false,
+    },
+  });
+}
+
 function adjustPlanInlineInfoContext(args: {
   state: AdjustPlanLocalState;
   userMessage: string;
   subskillContext: Record<string, unknown> | null;
   planSnapshot: unknown;
+  noteInformation?: Record<string, unknown> | null;
 }): InlineInfoToolContext {
   const context = args.subskillContext ?? {};
   const question = String(
@@ -355,6 +261,7 @@ function adjustPlanInlineInfoContext(args: {
       plan_snapshot: args.planSnapshot,
     },
     dispatcher_context: context,
+    note_information: args.noteInformation as any ?? null,
   };
 }
 
@@ -378,6 +285,29 @@ function appendAdjustPlanSubskillHistory(args: {
         created_at: new Date().toISOString(),
       },
     ].slice(-8),
+  };
+}
+
+function withInlineToolConversationContext(args: {
+  base: any;
+  targetDispatcher: "status_recap" | "product_help";
+  answer: string;
+  nextFocus?: string | null;
+}) {
+  return {
+    ...(args.base ?? {}),
+    field_or_stage: "inline",
+    inline_tool_result: {
+      target_dispatcher: args.targetDispatcher,
+      answer_summary: args.answer,
+      next_focus: args.nextFocus ??
+        "Revenir a l'ajustement du Plan avec les elements deja collectes.",
+    },
+    context_summary: [
+      String(args.base?.context_summary ?? args.base?.state_summary ?? "")
+        .trim(),
+      args.answer ? `Reponse inline: ${args.answer.slice(0, 500)}` : "",
+    ].filter(Boolean).join("\n"),
   };
 }
 
@@ -417,6 +347,10 @@ async function runAdjustPlanLocalFlow(args: {
   const visibleAgent = args.deps.visibleAgent ?? runAdjustPlanVisibleAgent;
   const previousLocalState = localStateFromActive(args.activeHandoff) ??
     createInitialAdjustPlanLocalState();
+  const noteInformationInbound = buildInboundNoteInformation({
+    context: args.context,
+    activeHandoff: args.activeHandoff,
+  });
   const dispatcherOutput = await localDispatcher({
     user_id: args.context.userId,
     request_id: args.context.requestId ?? null,
@@ -426,7 +360,27 @@ async function runAdjustPlanLocalFlow(args: {
     local_state: previousLocalState,
     route_decision: args.context.routeDecision,
     turn_frame: args.context.turnFrame,
+    note_information_inbound: noteInformationInbound,
     plan_snapshot: { items: args.context.planItemSnapshot ?? [] },
+    db_context_pack: {
+      source: "supabase",
+      freshness: "same_turn",
+      confidence: "high",
+      plan_items: args.context.planItemSnapshot ?? [],
+      surface_capabilities: {
+        plan_handoff_destination: "Plan",
+        chat_can_mutate_plan: false,
+      },
+      evidence: ["adjust_plan_item.plan_item_snapshot"],
+    },
+    micro_memory_context: {
+      items: [],
+      exclusions: ["not_loaded_for_adjust_plan_item_v1"],
+      budget: {
+        max_items: 0,
+        reason: "No candidate-specific memory loader wired in V1.",
+      },
+    },
   });
   if (!dispatcherOutput) {
     return runtimeResult({
@@ -455,7 +409,7 @@ async function runAdjustPlanLocalFlow(args: {
   if (reduced.exit_to_global_dispatcher) {
     const nextTempMemory = {
       ...writeAdjustPlanHandoffState(
-        clearAdjustPlanExecutableLegacyState(args.context.tempMemory),
+        clearAdjustPlanNonHandoffState(args.context.tempMemory),
         null,
       ),
       __last_adjust_plan_item_exit_memo: {
@@ -480,6 +434,88 @@ async function runAdjustPlanLocalFlow(args: {
         no_chat_mutation: true,
         executable_from_chat: false,
         exit_memo: reduced.exit_memo,
+        note_information: reduced.note_information,
+      },
+    });
+  }
+  if (reduced.handoff_to_local_flow) {
+    const targetDispatcher = reduced.note_information?.target_dispatcher ??
+      reduced.target_dispatcher ?? "other_local";
+    const nextTempMemory = {
+      ...writeAdjustPlanHandoffState(
+        clearAdjustPlanNonHandoffState(args.context.tempMemory),
+        null,
+      ),
+      __last_adjust_plan_item_exit_memo: {
+        reason: "bridge",
+        target_dispatcher: targetDispatcher,
+        flow_summary: reduced.conversation_context?.state_summary ??
+          previousLocalState.last_handoff_summary ??
+          null,
+        handoff_hint_for_global_dispatcher: null,
+        note_information: reduced.note_information,
+        at: new Date().toISOString(),
+      },
+    };
+    return runtimeResult({
+      content: "",
+      nextTempMemory,
+      status: "topic_change",
+      userIntent: "topic_change",
+      reasonCode: reduced.reason_code,
+      extra: {
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        target_dispatcher: targetDispatcher,
+        flow_action: dispatcherOutput.flow_action,
+        visible_task: { kind: "none" },
+        note_information: reduced.note_information,
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [],
+      },
+    });
+  }
+  if (reduced.reason_code === "adjust_plan_item_local_safety_preempt") {
+    const nextTempMemory = {
+      ...writeAdjustPlanHandoffState(
+        clearAdjustPlanNonHandoffState(args.context.tempMemory),
+        null,
+      ),
+      __last_adjust_plan_item_exit_memo: {
+        reason: "safety",
+        target_dispatcher: "safety_crisis",
+        flow_summary: reduced.conversation_context?.state_summary ??
+          previousLocalState.last_handoff_summary ??
+          null,
+        handoff_hint_for_global_dispatcher: null,
+        note_information: reduced.note_information,
+        at: new Date().toISOString(),
+      },
+    };
+    return runtimeResult({
+      content: "",
+      nextTempMemory,
+      status: "blocked",
+      userIntent: "topic_change",
+      reasonCode: reduced.reason_code,
+      extra: {
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+        executable_from_chat: false,
+        target_dispatcher: "safety_crisis",
+        flow_action: dispatcherOutput.flow_action,
+        visible_task: { kind: "none" },
+        note_information: reduced.note_information,
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [{
+          type: "adjust_plan_item",
+          reason_code: "safety_preempt",
+        }],
       },
     });
   }
@@ -494,7 +530,7 @@ async function runAdjustPlanLocalFlow(args: {
         toolSkillRun: {
           selected_handler: "adjust_plan_item",
           operation_type: "adjust_plan_item",
-          mode: "platform_input_coaching",
+          mode: "platform_handoff",
           status: "blocked",
           reason_code: "adjust_plan_item_get_info_db_missing_supabase",
           committed_effects: [],
@@ -512,6 +548,7 @@ async function runAdjustPlanLocalFlow(args: {
       userMessage: args.context.userMessage,
       subskillContext: reduced.subskill_context,
       planSnapshot: args.context.planItemSnapshot ?? [],
+      noteInformation: reduced.note_information as any ?? null,
     });
     const info = await runInlineGetInfoDbTool({
       supabase: args.context.supabase,
@@ -525,6 +562,19 @@ async function runAdjustPlanLocalFlow(args: {
       requestId: args.context.requestId ?? null,
       objectTypes: ["plan_item"],
       context: toolContext,
+    });
+    const inlineConversationContext = withInlineToolConversationContext({
+      base: reduced.conversation_context,
+      targetDispatcher: "status_recap",
+      answer: info.content,
+    });
+    const traceEvents: Record<string, unknown>[] = [...info.runtimeTrace];
+    const visibleInlineMessage = await visibleAgent({
+      user_id: args.context.userId,
+      request_id: args.context.requestId ?? null,
+      stage: "inline_tool_return",
+      conversation_context: inlineConversationContext,
+      trace_event: (event) => traceEvents.push(event),
     });
     const nextLocalState = appendAdjustPlanSubskillHistory({
       state: reduced.local_state,
@@ -542,7 +592,8 @@ async function runAdjustPlanLocalFlow(args: {
       createdAt: args.activeHandoff?.created_at ?? null,
     });
     return {
-      content: info.content ||
+      content: visibleInlineMessage ||
+        info.content ||
         "Je n'arrive pas à lire cet état maintenant, mais je garde l'ajustement du plan en cours.",
       additionalContents: info.additionalContents,
       nextTempMemory,
@@ -551,11 +602,12 @@ async function runAdjustPlanLocalFlow(args: {
       toolSkillRun: {
         selected_handler: "adjust_plan_item",
         operation_type: "adjust_plan_item",
-        mode: "platform_input_coaching",
+        mode: "platform_handoff",
         status: statusForLocalRuntime(reduced.status),
         reason_code: reduced.reason_code,
         flow_action: dispatcherOutput.flow_action,
         visible_task: { kind: "none" },
+        conversation_context: inlineConversationContext,
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
@@ -564,7 +616,79 @@ async function runAdjustPlanLocalFlow(args: {
         local_flow_state: nextLocalState,
         subskill_run: info.subskillRun,
         risk_score: reduced.risk_score,
-        runtime_trace: info.runtimeTrace,
+        runtime_trace: traceEvents,
+      },
+    };
+  }
+  if (reduced.get_info_product && reduced.local_state) {
+    const toolContext = adjustPlanInlineInfoContext({
+      state: reduced.local_state,
+      userMessage: args.context.userMessage,
+      subskillContext: reduced.subskill_context,
+      planSnapshot: args.context.planItemSnapshot ?? [],
+      noteInformation: reduced.note_information as any ?? null,
+    });
+    const info = await runInlineGetInfoProductTool({
+      userId: args.context.userId,
+      userMessage: args.context.userMessage,
+      history: args.context.history,
+      turnFrame: args.context.turnFrame,
+      context: toolContext,
+      requestId: args.context.requestId ?? null,
+    });
+    const inlineConversationContext = withInlineToolConversationContext({
+      base: reduced.conversation_context,
+      targetDispatcher: "product_help",
+      answer: info.content,
+    });
+    const traceEvents: Record<string, unknown>[] = [...info.runtimeTrace];
+    const visibleInlineMessage = await visibleAgent({
+      user_id: args.context.userId,
+      request_id: args.context.requestId ?? null,
+      stage: "inline_tool_return",
+      conversation_context: inlineConversationContext,
+      trace_event: (event) => traceEvents.push(event),
+    });
+    const nextLocalState = appendAdjustPlanSubskillHistory({
+      state: reduced.local_state,
+      userMessage: args.context.userMessage,
+      context: toolContext,
+      reply: info.content,
+    });
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: statusForLocalRuntime(reduced.status),
+      draft: reduced.draft ?? args.activeHandoff?.draft ?? null,
+      localState: nextLocalState,
+      previousTurnCount: Number(args.activeHandoff?.turn_count ?? 0) + 1,
+      maxTurns: Number(args.activeHandoff?.max_turns ?? 8),
+      createdAt: args.activeHandoff?.created_at ?? null,
+    });
+    return {
+      content: visibleInlineMessage || info.content ||
+        "Je garde l'ajustement du plan en cours, mais je n'arrive pas à répondre à cette question produit maintenant.",
+      additionalContents: info.additionalContents,
+      nextTempMemory,
+      toolExecution: "none",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "adjust_plan_item",
+        operation_type: "adjust_plan_item",
+        mode: "platform_handoff",
+        status: statusForLocalRuntime(reduced.status),
+        reason_code: reduced.reason_code,
+        flow_action: dispatcherOutput.flow_action,
+        visible_task: { kind: "inline_tool_return" },
+        conversation_context: inlineConversationContext,
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [],
+        pending_confirmation: null,
+        local_flow_state: nextLocalState,
+        subskill_run: info.subskillRun,
+        risk_score: reduced.risk_score,
+        runtime_trace: traceEvents,
       },
     };
   }
@@ -573,17 +697,35 @@ async function runAdjustPlanLocalFlow(args: {
     user_id: args.context.userId,
     request_id: args.context.requestId ?? null,
     stage: reduced.visible_task,
-    user_message: args.context.userMessage,
-    recent_messages: recentMessages(args.context),
-    local_state: reduced.local_state,
-    draft: reduced.draft,
+    conversation_context: reduced.conversation_context!,
     trace_event: (event) => traceEvents.push(event),
   });
   if (!visibleMessage) {
+    const recoveryMessage = reduced.conversation_context
+      ? await visibleAgent({
+        user_id: args.context.userId,
+        request_id: args.context.requestId ?? null,
+        stage: "contract_recovery",
+        conversation_context: reduced.conversation_context,
+        validation_errors_to_fix: ["visible_agent_failed"],
+        trace_event: (event) => traceEvents.push(event),
+      })
+      : null;
+    const nextTempMemory = reduced.local_state
+      ? writeState({
+        tempMemory: args.context.tempMemory,
+        status: statusForLocalRuntime(reduced.status),
+        draft: reduced.draft ?? args.activeHandoff?.draft ?? null,
+        localState: reduced.local_state,
+        previousTurnCount: Number(args.activeHandoff?.turn_count ?? 0) + 1,
+        maxTurns: Number(args.activeHandoff?.max_turns ?? 8),
+        createdAt: args.activeHandoff?.created_at ?? null,
+      })
+      : args.context.tempMemory;
     return runtimeResult({
-      content:
-        "Je garde l'ajustement du plan en cours, mais je n'arrive pas a formuler correctement la prochaine reponse. Reessaie dans un instant.",
-      nextTempMemory: args.context.tempMemory,
+      content: recoveryMessage ||
+        "Je garde l'ajustement du plan en cours. Il me manque une precision pour formuler correctement la proposition a reprendre dans Plan.",
+      nextTempMemory,
       status: "blocked",
       userIntent: "unknown",
       reasonCode: "adjust_plan_item_visible_agent_failed",
@@ -596,6 +738,9 @@ async function runAdjustPlanLocalFlow(args: {
           type: "local_flow_runtime",
           reason_code: "adjust_plan_item_visible_agent_failed",
         }],
+        local_flow_state: reduced.local_state,
+        visible_task: { kind: reduced.visible_task },
+        conversation_context: reduced.conversation_context,
         runtime_trace: traceEvents,
       },
     });
@@ -613,7 +758,7 @@ async function runAdjustPlanLocalFlow(args: {
       createdAt: args.activeHandoff?.created_at ?? null,
     })
     : writeAdjustPlanHandoffState(
-      clearAdjustPlanExecutableLegacyState(args.context.tempMemory),
+      clearAdjustPlanNonHandoffState(args.context.tempMemory),
       null,
     );
   return runtimeResult({
@@ -628,12 +773,14 @@ async function runAdjustPlanLocalFlow(args: {
       no_chat_mutation: true,
       executable_from_chat: false,
       pending_confirmation: null,
+      flow_action: dispatcherOutput.flow_action,
       requested_effects: [],
       allowed_effects: [],
       committed_effects: [],
       blocked_effects: reduced.blocked_effects,
       local_flow_state: reduced.local_state,
       visible_task: { kind: reduced.visible_task },
+      conversation_context: reduced.conversation_context,
       risk_score: reduced.risk_score,
       runtime_trace: traceEvents,
       platform_handoff: reduced.draft
@@ -651,177 +798,6 @@ async function runAdjustPlanLocalFlow(args: {
   });
 }
 
-async function buildDraft(args: {
-  context: AdjustPlanRouterContext;
-  previous?: AdjustPlanHandoffDraft | null;
-  revisionRequest?: string | null;
-}): Promise<AdjustPlanHandoffDraft> {
-  return await generateAdjustPlanPlatformInputDraft({
-    user_message: args.context.userMessage,
-    conversation_context: recentMessages(args.context),
-    previous_draft: args.previous ?? null,
-    user_revision_request: args.revisionRequest ?? null,
-    request_id: args.context.requestId ?? null,
-    user_id: args.context.userId,
-    force_real_ai: args.context.forceFullAi === true,
-  });
-}
-
-async function writeVisibleReply(args: {
-  context: AdjustPlanRouterContext;
-  draft: AdjustPlanHandoffDraft;
-  previous?: AdjustPlanHandoffDraft | null;
-  intent: AdjustPlanReplyRenderIntent;
-}): Promise<string> {
-  return await writeAdjustPlanPlatformInputReply({
-    user_message: args.context.userMessage,
-    draft: args.draft,
-    previous_draft: args.previous ?? null,
-    conversation_context: recentMessages(args.context),
-    intent: args.intent,
-    request_id: args.context.requestId ?? null,
-    user_id: args.context.userId,
-    force_real_ai: args.context.forceFullAi === true,
-  });
-}
-
-async function startInputCoach(args: {
-  context: AdjustPlanRouterContext;
-  previous?: AdjustPlanHandoffDraft | null;
-  revisionRequest?: string | null;
-  status?: AdjustPlanHandoffStatus;
-  reasonCode: string;
-  userIntent: AdjustPlanUserIntent;
-  previousTurnCount?: number;
-  maxTurns?: number;
-  createdAt?: string | null;
-}): Promise<AdjustPlanOperationRuntimeResult> {
-  const draft = await buildDraft({
-    context: args.context,
-    previous: args.previous ?? null,
-    revisionRequest: args.revisionRequest ?? null,
-  });
-  const status = args.status ?? "draft_delivered";
-  const content = await writeVisibleReply({
-    context: args.context,
-    draft,
-    previous: args.previous ?? null,
-    intent: status === "revise_draft" ? "revise" : "start",
-  });
-  const nextTempMemory = writeState({
-    tempMemory: args.context.tempMemory,
-    status,
-    draft,
-    previousTurnCount: args.previousTurnCount ?? 0,
-    maxTurns: args.maxTurns,
-    createdAt: args.createdAt ?? null,
-  });
-  return runtimeResult({
-    content,
-    nextTempMemory,
-    status,
-    userIntent: args.userIntent,
-    reasonCode: args.reasonCode,
-    draft,
-  });
-}
-
-async function handleActiveInputCoach(args: {
-  context: AdjustPlanRouterContext;
-}): Promise<AdjustPlanOperationRuntimeResult | null> {
-  const active = loadAdjustPlanFrameFromTempMemory(args.context.tempMemory)
-    .handoff_state;
-  if (!active) return null;
-  if (
-    concurrentOperationSelected(args.context) &&
-    !turnFrameHasAdjustPlanIntent(args.context)
-  ) {
-    return null;
-  }
-  const structured = structuredFollowup(args.context);
-  if (
-    structured?.status === "cancelled" || structured?.status === "topic_change"
-  ) {
-    const nextTempMemory = writeAdjustPlanHandoffState(
-      clearAdjustPlanExecutableLegacyState(args.context.tempMemory),
-      null,
-    );
-    return runtimeResult({
-      content:
-        "Ok, je laisse cette formulation de côté. Ton plan reste inchangé ici.",
-      nextTempMemory,
-      status: structured.status,
-      userIntent: structured.userIntent,
-      reasonCode: structured.reasonCode,
-    });
-  }
-  if (structured?.status === "apply_attempt") {
-    const draft = active.draft ?? await buildDraft({ context: args.context });
-    const content = await writeVisibleReply({
-      context: args.context,
-      draft,
-      previous: active.draft ?? null,
-      intent: "apply_attempt",
-    });
-    const nextTempMemory = writeState({
-      tempMemory: args.context.tempMemory,
-      status: "apply_attempt",
-      draft,
-      previousTurnCount: Number(active.turn_count ?? 0) + 1,
-      maxTurns: active.max_turns,
-      createdAt: active.created_at,
-    });
-    return runtimeResult({
-      content,
-      nextTempMemory,
-      status: "apply_attempt",
-      userIntent: "approve",
-      reasonCode: structured.reasonCode,
-      draft,
-    });
-  }
-  if (structured?.status === "repeat_draft") {
-    const draft = active.draft ?? await buildDraft({ context: args.context });
-    const content = await writeVisibleReply({
-      context: args.context,
-      draft,
-      previous: active.draft ?? null,
-      intent: "repeat",
-    });
-    const nextTempMemory = writeState({
-      tempMemory: args.context.tempMemory,
-      status: "repeat_draft",
-      draft,
-      previousTurnCount: Number(active.turn_count ?? 0) + 1,
-      maxTurns: active.max_turns,
-      createdAt: active.created_at,
-    });
-    return runtimeResult({
-      content,
-      nextTempMemory,
-      status: "repeat_draft",
-      userIntent: "explain",
-      reasonCode: structured.reasonCode,
-      draft,
-    });
-  }
-  if (structured?.status === "revise_draft" || !structured) {
-    return await startInputCoach({
-      context: args.context,
-      previous: active.draft ?? null,
-      revisionRequest: args.context.userMessage,
-      status: "revise_draft",
-      reasonCode: structured?.reasonCode ??
-        "active_platform_input_coach_default_revision",
-      userIntent: "revise",
-      previousTurnCount: Number(active.turn_count ?? 0) + 1,
-      maxTurns: active.max_turns,
-      createdAt: active.created_at,
-    });
-  }
-  return null;
-}
-
 export async function maybeRunAdjustPlanItemOperation(args: {
   context: AdjustPlanRouterContext;
   deps: AdjustPlanLifecycleDeps;
@@ -830,7 +806,7 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     args.context.tempMemory,
   ).handoff_state;
   const selected = routeSelectsAdjustPlan(args.context, args.deps);
-  if (!selected) return null;
+  if (!selected && !activeHandoff) return null;
 
   const localRuntime = await runAdjustPlanLocalFlow({
     context: args.context,
@@ -838,15 +814,24 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     activeHandoff,
   });
   if (localRuntime) return ensureRuntimeHasSkillResult(localRuntime);
-
-  const active = await handleActiveInputCoach({ context: args.context });
-  if (active) return ensureRuntimeHasSkillResult(active);
-
-  const runtime = await startInputCoach({
-    context: args.context,
-    status: "draft_delivered",
-    reasonCode: "adjust_plan_platform_input_coach_start",
-    userIntent: "start",
-  });
-  return ensureRuntimeHasSkillResult(runtime);
+  return ensureRuntimeHasSkillResult(runtimeResult({
+    content:
+      "Je garde l'ajustement du plan dans ce flow local, mais je n'arrive pas a traiter ce tour correctement.",
+    nextTempMemory: args.context.tempMemory,
+    status: "blocked",
+    userIntent: "unknown",
+    reasonCode: "adjust_plan_item_local_runtime_null_no_legacy_fallback",
+    extra: {
+      mode: "platform_handoff",
+      no_chat_mutation: true,
+      executable_from_chat: false,
+      requested_effects: [],
+      allowed_effects: [],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "local_flow_runtime",
+        reason_code: "adjust_plan_item_local_runtime_null_no_legacy_fallback",
+      }],
+    },
+  }));
 }

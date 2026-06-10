@@ -22,7 +22,6 @@ export type ConversationTurnTrace = {
     prompt_version: string;
     model_used?: string | null;
     memory_plan: DispatcherMemoryPlan | null;
-    turn_agenda_summary?: unknown;
   };
   turn_frame: TurnFrame;
   route_decision: RouteDecision;
@@ -154,40 +153,40 @@ export async function logConversationTurn(
       error?.code === "PGRST204" &&
       String(error.message ?? "").includes("effect_ledger")
     ) {
-      const { effect_ledger: _effectLedger, ...legacyPayload } = basePayload;
-      const { error: legacyError } = await (writeClient as any)
+      const { effect_ledger: _effectLedger, ...compatPayload } = basePayload;
+      const { error: compatError } = await (writeClient as any)
         .from("conversation_turn_traces")
         .insert({
-          ...legacyPayload,
+          ...compatPayload,
           tool_skill_run: trace.tool_skill_run ?? null,
         });
       if (
-        legacyError?.code === "PGRST204" &&
-        String(legacyError.message ?? "").includes("tool_skill_run")
+        compatError?.code === "PGRST204" &&
+        String(compatError.message ?? "").includes("tool_skill_run")
       ) {
         const { error: oldestError } = await (writeClient as any)
           .from("conversation_turn_traces")
           .insert({
-            ...legacyPayload,
+            ...compatPayload,
             operation_flow_run: trace.tool_skill_run ?? null,
           });
         if (oldestError) throw oldestError;
         return;
       }
-      if (legacyError) throw legacyError;
+      if (compatError) throw compatError;
       return;
     }
     if (
       error?.code === "PGRST204" &&
       String(error.message ?? "").includes("tool_skill_run")
     ) {
-      const { error: legacyError } = await (writeClient as any)
+      const { error: compatError } = await (writeClient as any)
         .from("conversation_turn_traces")
         .insert({
           ...basePayload,
           operation_flow_run: trace.tool_skill_run ?? null,
         });
-      if (legacyError) throw legacyError;
+      if (compatError) throw compatError;
       return;
     }
     if (error) throw error;

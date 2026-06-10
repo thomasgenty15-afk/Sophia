@@ -94,6 +94,8 @@ EffectLedger. Ils ne doivent pas inventer une intention.
 
 13. Tu dois éviter à tout pris les modèles de réponses avec des trous à remplir. 
 
+14. Tu n'as pas le droit de mettre des guards qui repose sur de la regex.
+
 ## Test Mental
 
 Avant de coder, l'agent doit pouvoir répondre :

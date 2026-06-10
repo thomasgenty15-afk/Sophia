@@ -86,7 +86,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `answered`
 - executed_tools: []
 - durable_effect: none
@@ -166,7 +166,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `existing_reminder_modification_needs_explicit_reprogramming`
 - executed_tools: []
 - durable_effect: none
@@ -329,9 +329,9 @@
 **Routage**
 - Tours 1-2: green. `attack_card_cancelled_to_conversation`, aucun outil execute.
 - Tour 3: green. `create_one_shot_reminder` execute, DB correcte, reponse composee avec phrase.
-- Tour 4: red. `status_only_request_blocks_tool_start` capture encore une demande product help rappel.
+- Tour 4: red. `status_recap_request_blocks_tool_start` capture encore une demande product help rappel.
 - Tour 7: green. `product_help` cible bien la carte et repond avec un emplacement.
-- Tour 8: yellow/red. Le router evite un side effect, mais `status_only_request_blocks_tool_start` devient une reponse de modification/reprogrammation au lieu d'aide produit.
+- Tour 8: yellow/red. Le router evite un side effect, mais `status_recap_request_blocks_tool_start` devient une reponse de modification/reprogrammation au lieu d'aide produit.
 - Tour 9: red. `normal_reply_default` + `tool_status=answered` ressort le status resolver pour une demande memoire/recap humain.
 - Tour 15: red. `selected_handler=select_state_potion` sur une demande explicite de reparation emotionnelle courte.
 
@@ -360,7 +360,7 @@
 - Tour 15: `select_state_potion` reste actif alors que le user demande une phrase emotionnelle. Impact systeme: mauvaise arbitration entre tool skill et skill conversationnel. Severite: red.
 
 **Fix propose**
-- Ajouter une garde `product_help_location_request` avant `status_only_request_blocks_tool_start`, avec entite `one_shot_reminder` vs `attack_card`.
+- Ajouter une garde `product_help_location_request` avant `status_recap_request_blocks_tool_start`, avec entite `one_shot_reminder` vs `attack_card`.
 - Ajouter une garde `human_memory_recap_request` pour bloquer le status resolver quand le user demande "ce que tu dois retenir".
 - Centraliser le rendu horaire user-facing via timezone du client, surtout dans les recaps.
 - Ajouter une sortie explicite de `select_state_potion` si le dernier message contient "pas au système", "une phrase", "sans potion", ou demande une reparation emotionnelle directe.

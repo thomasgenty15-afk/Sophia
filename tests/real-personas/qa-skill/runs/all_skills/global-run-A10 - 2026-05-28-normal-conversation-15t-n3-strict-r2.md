@@ -226,7 +226,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: `null`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - direct_effects: `[]`
 - executed_tools: `[]`

@@ -23,6 +23,27 @@ Routes non visibles :
   reanalyser le meme message.
 - `safety_preempt` laisse la pipeline safety reprendre.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, direct handoff to `adjust_plan_item`, and inline
+product/status roundtrips if enabled. Use
+`source_flow_id="weekly_adaptive_review_v1"` and copy the catalog presentation.
+
+Do not produce it for `stop_weekly`, `complete_weekly_no_change`,
+`repeat_plan_handoff`, `apply_attempt`, or local weekly answers when no new
+dispatcher is called. Those actions close/continue locally and global must not
+run on the same turn.
+
+Choose `target_dispatcher` as `global` for explicit other tool/product/status
+or topic change when not inline, `safety_crisis` for safety,
+`adjust_plan_item` for a direct Plan handoff, and `product_help`/`status_recap`
+for inline info. The handoff context must include weekly stage, strategy, human
+signals, last weekly summary, Plan handoff summary, validation status, and
+no-plan-mutation constraint.
+
 ## Dispatcher Output Contract
 
 Le dispatcher local retourne uniquement ce JSON :

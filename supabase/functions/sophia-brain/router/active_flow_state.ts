@@ -1,8 +1,10 @@
 /// <reference path="../../tsserver-shims.d.ts" />
 
 import { loadAdjustPlanFrameFromTempMemory } from "../tools/operations/adjust_plan_item/state.ts";
+import { CLARIFICATION_FLOW_STATE_KEY } from "../clarification/state.ts";
 
 export type ActiveFlowState = {
+  activeClarificationState: unknown;
   activeSkillState: unknown;
   activeToolSkillIntake: unknown;
   pendingToolSkillConfirmation: unknown;
@@ -13,6 +15,7 @@ export const SUSPENDED_PLATFORM_HANDOFF_STATE_KEY =
   "__suspended_platform_handoff_state_v1";
 
 export const ACTIVE_FLOW_TEMP_MEMORY_KEYS = {
+  activeClarificationState: [CLARIFICATION_FLOW_STATE_KEY],
   activeSkillState: ["__active_skill_state", "active_skill_state"],
   activeToolSkillIntake: [
     "__active_tool_skill_intake",
@@ -34,7 +37,6 @@ const TOOL_SKILL_PENDING_CONFIRMATION_OWNERS = new Set([
   "prepare_defense_card",
   "create_recurring_reminder",
   "select_state_potion",
-  "update_coach_preferences",
 ]);
 
 const COMMON_OPERATION_SLOT_KEYS = [
@@ -63,7 +65,6 @@ const PLATFORM_HANDOFF_KEYS_BY_OPERATION: Record<string, string> = {
   prepare_defense_card: "__active_tool_skill_intake",
   select_state_potion: "__active_tool_skill_intake",
   create_recurring_reminder: "__recurring_reminder_handoff_state",
-  update_coach_preferences: "__coach_preference_handoff_state_v1",
 };
 
 function readFirstTempMemoryKey(
@@ -110,10 +111,6 @@ function readActivePlatformHandoffEntry(
       "__recurring_reminder_handoff_state",
       temp.__recurring_reminder_handoff_state,
     ],
-    [
-      "__coach_preference_handoff_state_v1",
-      temp.__coach_preference_handoff_state_v1,
-    ],
     ["__active_tool_skill_intake", temp.__active_tool_skill_intake],
     ["active_tool_skill_intake", temp.active_tool_skill_intake],
   ];
@@ -131,9 +128,12 @@ export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
     temp.__active_attack_card_handoff ??
     temp.__recurring_reminder_handoff_state ??
     temp.__coach_preference_flow_state_v1 ??
-    temp.__coach_preference_handoff_state_v1 ??
     null;
   return {
+    activeClarificationState: readFirstTempMemoryKey(
+      tempMemory,
+      ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeClarificationState,
+    ),
     activeSkillState: readFirstTempMemoryKey(
       tempMemory,
       ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeSkillState,
@@ -164,7 +164,6 @@ export function clearActiveToolFlow<
   delete next.__adjust_plan_handoff_state;
   delete next.__active_attack_card_handoff;
   delete next.__recurring_reminder_handoff_state;
-  delete next.__coach_preference_handoff_state_v1;
   delete next.__coach_preference_flow_state_v1;
   return next;
 }
@@ -302,24 +301,31 @@ function compactRuntimeRecord(
   return Object.keys(out).length > 0 ? out : null;
 }
 
-function compactPostMorningNudgeExitMemo(
+function compactStructuredLocalHandoff(
   record: Record<string, unknown>,
 ): {
   flow_summary: string | null;
   handoff_hint_for_global_dispatcher: string | null;
 } {
-  const localContext = record.local_flow_context &&
-      typeof record.local_flow_context === "object"
+  const localContext = record.collected_state &&
+      typeof record.collected_state === "object"
+    ? record.collected_state as Record<string, unknown>
+    : record.local_flow_context && typeof record.local_flow_context ===
+        "object"
     ? record.local_flow_context as Record<string, unknown>
     : {};
   const handoffHint = record.handoff_hint_for_global_dispatcher &&
       typeof record.handoff_hint_for_global_dispatcher === "object"
     ? record.handoff_hint_for_global_dispatcher as Record<string, unknown>
     : {};
-  const likelyIntent = compactRuntimeString(handoffHint.likely_intent);
-  const why = compactRuntimeString(handoffHint.why);
+  const likelyIntent = compactRuntimeString(record.recommended_next_focus) ??
+    compactRuntimeString(handoffHint.likely_intent);
+  const why = compactRuntimeString(record.reason) ??
+    compactRuntimeString(handoffHint.why);
   return {
-    flow_summary: compactRuntimeString(record.user_intent_summary) ??
+    flow_summary: compactRuntimeString(record.user_message_summary) ??
+      compactRuntimeString(record.flow_summary) ??
+      compactRuntimeString(record.user_intent_summary) ??
       compactRuntimeString(localContext.source_nudge_summary),
     handoff_hint_for_global_dispatcher: [likelyIntent, why].filter(Boolean)
       .join(": ") || null,
@@ -360,26 +366,6 @@ function buildToolSkillRuntimeContext(args: {
       ),
     };
   }
-  const pendingDraftReview = adjustPlanFrame.pending_draft_review;
-  if (pendingDraftReview) {
-    return {
-      owner: "tool_skill",
-      operation_type: "adjust_plan_item",
-      phase: "awaiting_confirmation",
-      runtime_phase: "draft_review",
-      pending_confirmation: true,
-      confirmation_owned_by_runtime: true,
-      dispatcher_must_not_classify_confirmation: true,
-      source: "__pending_adjust_plan_draft_review",
-      operation_id: compactRuntimeString(pendingDraftReview.operation_id),
-      turn_count: Number(pendingDraftReview.turn_count ?? 0),
-      known_slots: compactRuntimeRecord(
-        pendingDraftReview.operation_input,
-        ADJUST_PLAN_SLOT_KEYS,
-      ),
-    };
-  }
-
   if (pendingConfirmationOwnedByToolSkill(args.pendingOperationConfirmation)) {
     const pending = args.pendingOperationConfirmation as any;
     return {
@@ -474,9 +460,14 @@ function buildConversationSkillRuntimeContext(
     (workingState as any).pending_confirmation ||
       (workingState as any).confirmation_required === true ||
       (workingState as any).requires_confirmation === true ||
-      /\b(confirm|confirmation|pending|awaiting)\b/i.test(
-        `${phase ?? ""} ${status ?? ""}`,
-      ),
+      phase === "confirm" ||
+      phase === "confirmation" ||
+      phase === "pending" ||
+      phase === "awaiting" ||
+      status === "confirm" ||
+      status === "confirmation" ||
+      status === "pending" ||
+      status === "awaiting",
   );
   if (!pendingConfirmation) return null;
   return {
@@ -524,10 +515,15 @@ export function buildLastLocalFlowExitContext(
     reason: string;
     flow_summary: string | null;
     handoff_hint_for_global_dispatcher: string | null;
+    note_information: Record<string, unknown> | null;
     at: string | null;
   };
   const temp = (tempMemory ?? {}) as Record<string, unknown>;
   const candidates: Array<{ operation_type: string; memo: unknown }> = [
+    {
+      operation_type: "whatsapp_onboarding",
+      memo: temp.__last_whatsapp_onboarding_exit_memo,
+    },
     {
       operation_type: "adjust_plan_item",
       memo: temp.__last_adjust_plan_item_exit_memo,
@@ -550,7 +546,11 @@ export function buildLastLocalFlowExitContext(
     },
     {
       operation_type: "post_morning_nudge",
-      memo: temp.__last_post_morning_nudge_exit_memo,
+      memo: temp.__last_post_morning_nudge_note_information,
+    },
+    {
+      operation_type: "flow_opportunity_verification",
+      memo: temp.__last_flow_opportunity_verification_exit_memo,
     },
     {
       operation_type: "daily_action_review",
@@ -561,8 +561,24 @@ export function buildLastLocalFlowExitContext(
       memo: temp.__last_weekly_adaptive_review_exit_memo,
     },
     {
+      operation_type: "status_recap",
+      memo: temp.__last_status_recap_exit_memo,
+    },
+    {
       operation_type: "product_help",
       memo: temp.__last_product_help_exit_memo,
+    },
+    {
+      operation_type: "emotional_repair",
+      memo: temp.__last_emotional_repair_exit_memo,
+    },
+    {
+      operation_type: "demotivation_repair",
+      memo: temp.__last_demotivation_repair_exit_memo,
+    },
+    {
+      operation_type: "safety_crisis",
+      memo: temp.__last_safety_crisis_exit_memo,
     },
   ];
   const valid: LocalFlowExitContext[] = candidates
@@ -578,7 +594,7 @@ export function buildLastLocalFlowExitContext(
           candidate.operation_type === "daily_action_review" ||
           candidate.operation_type === "weekly_adaptive_review" ||
           candidate.operation_type === "product_help"
-          ? compactPostMorningNudgeExitMemo(record)
+          ? compactStructuredLocalHandoff(record)
           : null;
       return {
         operation_type: candidate.operation_type,
@@ -588,6 +604,11 @@ export function buildLastLocalFlowExitContext(
         handoff_hint_for_global_dispatcher:
           structuredLocalMemo?.handoff_hint_for_global_dispatcher ??
             compactRuntimeString(record.handoff_hint_for_global_dispatcher),
+        note_information: record.note_information &&
+            typeof record.note_information === "object" &&
+            !Array.isArray(record.note_information)
+          ? record.note_information as Record<string, unknown>
+          : null,
         at,
       };
     })
@@ -602,13 +623,19 @@ export function clearLastLocalFlowExitContext<
 >(tempMemory: T): Record<string, unknown> {
   const next = { ...((tempMemory ?? {}) as Record<string, unknown>) };
   delete next.__last_prepare_attack_card_exit_memo;
+  delete next.__last_whatsapp_onboarding_exit_memo;
   delete next.__last_adjust_plan_item_exit_memo;
   delete next.__last_prepare_defense_card_exit_memo;
   delete next.__last_select_state_potion_exit_memo;
   delete next.__last_update_coach_preferences_exit_memo;
-  delete next.__last_post_morning_nudge_exit_memo;
+  delete next.__last_flow_opportunity_verification_exit_memo;
+  delete next.__last_post_morning_nudge_note_information;
   delete next.__last_daily_action_review_exit_memo;
   delete next.__last_weekly_adaptive_review_exit_memo;
+  delete next.__last_status_recap_exit_memo;
   delete next.__last_product_help_exit_memo;
+  delete next.__last_emotional_repair_exit_memo;
+  delete next.__last_demotivation_repair_exit_memo;
+  delete next.__last_safety_crisis_exit_memo;
   return next;
 }

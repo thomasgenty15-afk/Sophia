@@ -1403,17 +1403,17 @@ Deno.test("router helpers: route guards centralize one-shot non-mutation decisio
     explicitProductHelp: false,
     activeCardDrafting: false,
     explicitOperationCommand: false,
-    statusOnlyNoMutation: true,
+    statusRecapReadOnly: true,
   });
   assertEquals(statusGuard.blocked, true);
   assertEquals(
     statusGuard.reason_code,
-    "status_only_request_blocks_tool_start",
+    "status_recap_request_blocks_tool_start",
   );
 
   const directBlock = oneShotReminderDirectEffectBlockForNonMutationContext({
     routeIsProductHelp: true,
-    statusOnlyNoMutation: false,
+    statusRecapReadOnly: false,
     recapOnly: false,
   });
   assertEquals(directBlock.blocked, true);

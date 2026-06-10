@@ -82,7 +82,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - tool_status: `answered`
 - executed_tools: []
 - durable_effect: none
@@ -327,7 +327,7 @@
 **Routage**
 - Tours 1-2: green. `route_reason=attack_card_cancelled_to_conversation`, aucun tool execute.
 - Tour 3: green/yellow. `create_one_shot_reminder` execute et DB correcte; la reponse compose aussi la demande textuelle.
-- Tour 4: red. `status_only_request_blocks_tool_start` bloque bien les side effects, mais capture une demande product help.
+- Tour 4: red. `status_recap_request_blocks_tool_start` bloque bien les side effects, mais capture une demande product help.
 - Tour 7: yellow/red. `product_help` est bien selectionne, mais la resolution d'objet pointe vers le rappel au lieu de la carte.
 - Tour 8: red. La correction utilisateur est routee vers `prepare_attack_card` en `ask_question`, comme si la carte n'avait pas ete creee.
 - Tours 13-14: red. `human_recap_priority` ou no-tool request aboutit encore a `tool_skill/status answered` et un statut systeme.
@@ -358,7 +358,7 @@
 **Fix propose**
 - Ajouter une resolution d'entite produit par type (`rappel`, `carte d'attaque`, `preference`) et par dernier effet durable confirme.
 - Pour toute reponse "je n'ai pas encore cree X", verifier d'abord la table durable correspondante quand le tour precedent a annonce une creation.
-- Scinder `status_only_request_blocks_tool_start` en deux chemins: status DB explicite vs recap humain/product help.
+- Scinder `status_recap_request_blocks_tool_start` en deux chemins: status DB explicite vs recap humain/product help.
 - Ajouter un test d'integration: creation carte -> question "ou la retrouver" -> correction "je parle de la carte" doit rester `product_help` et repondre `Ressources > Cartes d'attaque`.
 
 ## Verdict Global

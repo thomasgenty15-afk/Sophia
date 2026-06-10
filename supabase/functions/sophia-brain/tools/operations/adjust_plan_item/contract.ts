@@ -1,8 +1,57 @@
 import type { RiskBand, TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import type { PlanAdjustmentDraftV1 } from "./generator.ts";
 import type { AdjustPlanToolSkillState } from "./workflow.ts";
+
+export type PlanAdjustmentDraftV1 = {
+  operation_type: "adjust_plan_item";
+  output_schema: "plan_adjustment_draft_v1";
+  draft: {
+    title: string;
+    scope_label: string;
+    adjustment_type: string;
+    execution_strategy?:
+      | "patch_existing"
+      | "bridge_action"
+      | "level_adjustment"
+      | "whole_plan_adjustment";
+    proposed_change: string;
+    why_it_helps: string;
+    confidence: "low" | "medium" | "high";
+    decision_basis: {
+      user_problem: string;
+      inferred_need: string;
+      confidence: "low" | "medium" | "high";
+      evidence: string[];
+      uncertainty: string[];
+      must_preserve: string[];
+    };
+    change_rationale: {
+      why_this_change: string;
+      expected_mechanism: string;
+      success_condition: string;
+    };
+    ack_summary: {
+      changed: string[];
+      unchanged: string[];
+      why_it_helps: string;
+      confidence: "low" | "medium" | "high";
+      follow_up_needed?: string | null;
+    };
+    adjust_plan_result: Record<string, unknown>;
+    patch: Record<string, unknown>;
+    bridge_action?: {
+      title: string;
+      description: string;
+      source_relation: "bridge_to_original_action";
+      resume_original_after_completion: boolean;
+    };
+    allowed_patch_fields: string[];
+  };
+  confirmation_message: string;
+  execution_message: string;
+  confirmation_actions: ["yes", "no"];
+};
 
 export type AdjustPlanIntent =
   | "start_adjustment"
@@ -75,7 +124,7 @@ export type AdjustPlanInputCoachStatus = AdjustPlanHandoffStatus;
 
 export type AdjustPlanPlatformInputDraft = {
   operation_type: "adjust_plan_item";
-  mode: "platform_input_coaching";
+  mode: "platform_handoff";
   no_chat_mutation: true;
   executable_from_chat: false;
   user_blocker_summary: string;

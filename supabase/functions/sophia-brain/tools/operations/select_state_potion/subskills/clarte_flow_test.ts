@@ -36,13 +36,6 @@ function decision(
         : fieldState.status === "proposed"
         ? "confirm_proposal"
         : "ask_deeper",
-      required_data: {
-        potion_name: "Potion de clarté",
-        field_label:
-          "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
-        field_value: fieldState.locked_value ?? fieldState.candidate_value,
-        platform_destination: "section État / Potions",
-      },
     },
     subskill_call: overrides.subskill_call ?? {
       needed: false,
@@ -246,6 +239,59 @@ Deno.test("clarte reducer exposes local safety risk assessment", () => {
   assertEquals(reduced.risk_assessment.safety_preempt, true);
 });
 
+Deno.test("clarte reducer stop local does not exit to global dispatcher", () => {
+  const previous = createInitialClarteState(null);
+  const reduced = reduceClarteDispatcherOutput({
+    previous,
+    decision: decision({
+      flow_action: "stop_local_no_handoff",
+      visible_task: {
+        kind: "exit",
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        flow_summary: null,
+        collected_value: null,
+        handoff_hint_for_global_dispatcher: null,
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "cancelled");
+  assertEquals(reduced.visible_task, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.clarte_state, null);
+  assertEquals(reduced.reason_code, "clarte_flow_stopped_local_no_handoff");
+});
+
+Deno.test("clarte reducer topic change exits to global dispatcher", () => {
+  const previous = createInitialClarteState(null);
+  const reduced = reduceClarteDispatcherOutput({
+    previous,
+    decision: decision({
+      flow_action: "exit_to_global_dispatcher",
+      visible_task: {
+        kind: "exit",
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "Potion de clarté interrompue.",
+        collected_value: null,
+        handoff_hint_for_global_dispatcher:
+          "Le user demande maintenant un rappel ponctuel.",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "topic_change");
+  assertEquals(reduced.visible_task, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.clarte_state?.last_visible_task, "exit");
+  assertEquals(reduced.reason_code, "clarte_flow_topic_change");
+});
+
 Deno.test("clarte reducer routes product help inline with local context", () => {
   const reduced = reduceClarteDispatcherOutput({
     previous: createInitialClarteState(null),
@@ -253,13 +299,6 @@ Deno.test("clarte reducer routes product help inline with local context", () => 
       flow_action: "get_info_product",
       visible_task: {
         kind: "none",
-        required_data: {
-          potion_name: "Potion de clarté",
-          field_label:
-            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
-          field_value: null,
-          platform_destination: "section État / Potions",
-        },
       },
       subskill_call: {
         needed: true,
@@ -283,7 +322,10 @@ Deno.test("clarte reducer routes product help inline with local context", () => 
   assertEquals(reduced.visible_task, "none");
   assertEquals(reduced.status, "collecting");
   assertEquals(reduced.clarte_state?.last_visible_task, "none");
-  assertEquals(reduced.subskill_context?.active_flow, "select_state_potion.clarte");
+  assertEquals(
+    reduced.subskill_context?.active_flow,
+    "select_state_potion.clarte",
+  );
 });
 
 Deno.test("clarte reducer routes status recap inline with local context", () => {
@@ -293,13 +335,6 @@ Deno.test("clarte reducer routes status recap inline with local context", () => 
       flow_action: "get_info_db",
       visible_task: {
         kind: "none",
-        required_data: {
-          potion_name: "Potion de clarté",
-          field_label:
-            "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
-          field_value: null,
-          platform_destination: "section État / Potions",
-        },
       },
       subskill_call: {
         needed: true,
@@ -322,5 +357,8 @@ Deno.test("clarte reducer routes status recap inline with local context", () => 
   assertEquals(reduced.get_info_db, true);
   assertEquals(reduced.visible_task, "none");
   assertEquals(reduced.status, "collecting");
-  assertEquals(reduced.subskill_context?.active_flow, "select_state_potion.clarte");
+  assertEquals(
+    reduced.subskill_context?.active_flow,
+    "select_state_potion.clarte",
+  );
 });

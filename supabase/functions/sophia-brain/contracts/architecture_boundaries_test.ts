@@ -71,7 +71,6 @@ Deno.test("all_declared_boundaries_are_findable", () => {
     "memory_planner",
     "context_loader",
     "router",
-    "agenda",
     "conversation_skill",
     "tool_skill",
     "executor",

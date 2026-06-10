@@ -800,7 +800,7 @@ Décisions.
    volontairement étroite et accompagnée d'anti-faux-positifs explicites (titres
    de cartes, objets d'action).
 
-3. `statusOnlyNoMutationRuntime` n'est plus produit si
+3. `statusRecapRuntime` n'est plus produit si
    `isExplicitConversationalFormatRequestForTest(userMessage) === true`. La
    réponse passe par les composers aval (`normal_reply`).
 
@@ -1177,7 +1177,7 @@ exécution, et heures/texte de rappel non fiables.
 Deux gardes **non-sémantiques** (sur des faits structurels : `response_owner` et
 `operation_type` du flow actif), pas sur l'interprétation du message.
 
-1. **Garde produit (L4)**. Le bloc `status_only_request_blocks_tool_start` dans
+1. **Garde produit (L4)**. Le bloc `status_recap_request_blocks_tool_start` dans
    `router/run.ts` ne fire plus si
    `routeDecision.response_owner ===
    "product_help"`. Répare A2-r7 T4, A4-r6
@@ -1337,7 +1337,7 @@ composer DÉTERMINISTE `buildFaitPrevuFragileRecapRuntime` rend exactement 3
 lignes labellisées, SANS question, sourcées DB, heures en `user_timezone`.
 Détecteur `isFaitPrevuFragileRecapRequestForTest` volontairement narrow (exige
 la séquence `fait [,/] prevu [,/] fragile`) → quasi zéro faux positif. Placé
-dans la chaîne `operationRuntime` AVANT `statusOnlyNoMutationRuntime`, donc il
+dans la chaîne `operationRuntime` AVANT `statusRecapRuntime`, donc il
 prime même quand le routage amont était émotionnel (corrige T14 au niveau
 composer, pas au niveau route).
 
@@ -1580,7 +1580,7 @@ Tests. `update_coach_preferences/tests.ts` : retry (échoue 1 fois → succès),
 
 ### D2 — Le renderer obéit à `explicit_no_status` — RÉSOLU
 
-Couche. L5 (`run.ts`, gate du composer `statusOnlyNoMutationRuntime`).
+Couche. L5 (`run.ts`, gate du composer `statusRecapRuntime`).
 
 Symptôme. A2-codex-r8 T7 : l'arbitre route bien en
 `central_arbitrator_explicit_no_status_request` (normal_reply), mais le composer
@@ -1951,9 +1951,9 @@ Fix :
   exige « rappel » + verbe de création, EXCLUT recap/bilan et le cadrage
   vérification/status (« quelle heure », « tu as vraiment programmé »).
 - L4 : les gardes `recap_only_request_supersedes_tool_flow` et
-  `status_only_request_blocks_tool_start` ne tirent plus si
+  `status_recap_request_blocks_tool_start` ne tirent plus si
   `isExplicitOperationCommandForTest(userMessage)`.
-- L5 (rendu) : `statusOnlyNoMutationRuntime` et `faitPrevuFragileRecapRuntime`
+- L5 (rendu) : `statusRecapRuntime` et `faitPrevuFragileRecapRuntime`
   ne s'arment plus si `messageIsExplicitOperationCommand` (sinon ils préemptent
   la création/confirmation dans la chaîne `??`).
 - L3 (défense en profondeur) : `isExplicitOperationCommand` (arbitre) subordonne
@@ -2149,7 +2149,7 @@ Couche. L4 (gate status composer).
 
 Symptôme : A14-r1 T6-T8 — status-only preempt le flow carte de défense.
 
-Fix : le composer `statusOnlyNoMutationRuntime` est désactivé quand
+Fix : le composer `statusRecapRuntime` est désactivé quand
 `routeIsCardToolSkill`, `messageIsExplicitCardCommand`, ou
 `isActiveCardDraftingOperationForTest(activeOperationIntake)`.
 
@@ -3822,8 +3822,8 @@ Fix :
   `DailyReviewEffectsResult` au contrat;
 - ajout `daily_action_review/executor.ts` pour transformer `effect_plan.effects`
   en `committed_effects` / `failed_effects`;
-- ajout `daily_action_review/renderer.ts` pour empêcher le langage "noté" sans
-  commit complet;
+- ajout initial d'un guard de wording commit, supprimé ensuite au profit du
+  prompt visible stage-specific local sans renderer déterministe;
 - `handlers_pending.ts` écrit désormais par effet, retourne un commit ledger,
   traite une entry existante comme commit idempotent explicite
   `commit_status=already_existing`, et ne marque le pending done que si tous les
@@ -3838,12 +3838,12 @@ Tests :
 - `writer_failure_no_committed_effect`;
 - `partial_success_does_not_claim_all_done`;
 - `already_existing_entry_is_handled_explicitly`;
-- `final_done_language_requires_committed_effect`;
+- invariant commit vérifié via EffectLedger et prompt visible local;
 - `deno test --allow-env --allow-net --allow-read supabase/functions/_shared/daily_action_review_test.ts`;
 - `deno test --allow-env --allow-net --allow-read supabase/functions/_shared/v2-daily-bilan-decider_test.ts`;
 - `deno test --allow-env --allow-net --allow-read supabase/functions/_shared/weekly_progress_review_test.ts`;
 - `deno test --allow-env --allow-net --allow-read supabase/functions/_shared/weekly_review_test.ts`;
-- `deno check supabase/functions/_shared/daily_action_review.ts supabase/functions/_shared/daily_action_review/contract.ts supabase/functions/_shared/daily_action_review/effects.ts supabase/functions/_shared/daily_action_review/executor.ts supabase/functions/_shared/daily_action_review/renderer.ts supabase/functions/whatsapp-webhook/handlers_pending.ts`.
+- `deno check supabase/functions/_shared/daily_action_review.ts supabase/functions/_shared/daily_action_review/contract.ts supabase/functions/_shared/daily_action_review/effects.ts supabase/functions/_shared/daily_action_review/executor.ts supabase/functions/_shared/daily_action_review/local_flow.ts supabase/functions/whatsapp-webhook/handlers_pending.ts`.
 
 Limites :
 

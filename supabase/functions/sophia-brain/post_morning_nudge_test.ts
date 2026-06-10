@@ -1,15 +1,20 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import type { MorningNudgePayloadV2 } from "./morning_nudge_contract.ts";
 import {
-  buildPostMorningNudgeExitMemo,
+  actionDispatcherSystemPrompt,
+  buildPostMorningNudgeLocalHandoffNote,
   createPostMorningNudgeActiveState,
-  LAST_POST_MORNING_NUDGE_EXIT_MEMO_KEY,
+  emotionalPresenceDispatcherSystemPrompt,
+  LAST_POST_MORNING_NUDGE_NOTE_INFORMATION_KEY,
+  normalizePostMorningNudgeActionDispatcherOutput,
+  normalizePostMorningNudgeSuppressedActionDispatcherOutput,
   POST_MORNING_NUDGE_TEMP_MEMORY_KEY,
   readPostMorningNudgeActiveState,
-  reducePostMorningNudgeTurn,
+  reducePostMorningNudgeActionTurn,
   resolvePostMorningNudgeDispatcher,
   runPostMorningNudgeLocalRuntime,
+  suppressedActionDispatcherSystemPrompt,
   writePostMorningNudgeActiveState,
 } from "./post_morning_nudge.ts";
 
@@ -32,6 +37,10 @@ const BASE_NUDGE: MorningNudgePayloadV2 = {
   sent_at: "2026-03-24T07:00:00.000Z",
 };
 
+function countOccurrences(haystack: string, needle: string): number {
+  return haystack.split(needle).length - 1;
+}
+
 Deno.test("post morning nudge creates active action state from structured payload", () => {
   const state = createPostMorningNudgeActiveState({
     sourceNudge: BASE_NUDGE,
@@ -44,9 +53,53 @@ Deno.test("post morning nudge creates active action state from structured payloa
   assertEquals(state?.turn_count, 0);
   assertEquals(state?.max_turns, 3);
   assertEquals(
+    state?.activation_note_information.target_dispatcher,
+    "post_morning_nudge.action",
+  );
+  assertEquals(
     resolvePostMorningNudgeDispatcher(state!),
     "post_morning_nudge.action_dispatcher",
   );
+});
+
+Deno.test("post morning nudge dispatcher prompts document real field completion rules", () => {
+  const prompts = [
+    actionDispatcherSystemPrompt(),
+    suppressedActionDispatcherSystemPrompt(),
+    emotionalPresenceDispatcherSystemPrompt(),
+  ];
+
+  for (const prompt of prompts) {
+    assertStringIncludes(prompt, "Field Completion Rules:");
+    assertStringIncludes(prompt, "Transition Rules:");
+    assertStringIncludes(
+      prompt,
+      "Decision Examples (non-visible, exactly two):",
+    );
+    assertEquals(countOccurrences(prompt, '"example_id"'), 2);
+    assertStringIncludes(prompt, "flow_action");
+    assertStringIncludes(prompt, "confidence");
+    assertStringIncludes(prompt, "risk_score");
+    assertStringIncludes(prompt, "local_assessment");
+    assertStringIncludes(prompt, "state_updates");
+    assertStringIncludes(prompt, "visible_task.kind");
+    assertStringIncludes(prompt, "visible_task.instruction");
+    assertStringIncludes(prompt, "visible_task.conversation_context");
+    assertStringIncludes(prompt, "note_information");
+    assertStringIncludes(prompt, "evidence");
+    assertStringIncludes(prompt, "source_flow_id");
+    assertStringIncludes(prompt, "source_flow_state_summary");
+    assertStringIncludes(prompt, "handoff_context_for_next_dispatcher");
+    assertStringIncludes(prompt, "target_local_dispatcher_hint");
+    assertStringIncludes(prompt, "no_chat_mutation");
+    assertStringIncludes(prompt, "structured_context");
+    assertStringIncludes(prompt, "champs top-level inventes");
+    assertStringIncludes(prompt, "Ce contrat ne contient pas exit_memo");
+    assertStringIncludes(prompt, "ne les ajoute pas");
+    assertStringIncludes(prompt, "safety_preempt");
+    assertStringIncludes(prompt, "exit_to_global_dispatcher");
+    assertStringIncludes(prompt, "Stop local sans handoff");
+  }
 });
 
 Deno.test("post morning nudge greeting payload opens no active flow", () => {
@@ -91,20 +144,53 @@ Deno.test("post morning nudge resolver reads state, not user message text", asyn
 
   const runtime = await runPostMorningNudgeLocalRuntime({
     tempMemory,
-    dispatcher: async (active) => ({
-      dispatcher_id: resolvePostMorningNudgeDispatcher(active),
-      flow_action: "continue_local",
-      visible_task: { kind: "suppressed_action_support" },
-      no_durable_mutation: {
-        action_created: false,
-        card_created: false,
-        potion_created: false,
-        reminder_created: false,
-        scheduled_checkin_created: false,
-        preference_written: false,
-        plan_patch_written: false,
-      },
-    }),
+    suppressedActionDispatcher: async (
+      { active_state, note_information_inbound },
+    ) => {
+      assertEquals(
+        note_information_inbound?.target_dispatcher,
+        "post_morning_nudge.suppressed_action",
+      );
+      return normalizePostMorningNudgeSuppressedActionDispatcherOutput({
+        flow_action: "support_emotion",
+        confidence: "high",
+        risk_score: 0,
+        local_assessment: {
+          action_readiness: "needs_support",
+          motivation_need: "none",
+          emotional_load: "high",
+          user_wants_conversation: true,
+          suppression_still_valid: true,
+          target_action_reference: "Marcher 10 min",
+          main_need: "support",
+          minimal_save_candidate: null,
+          reopen_step_candidate: null,
+        },
+        state_updates: {
+          status: "active",
+          turn_count_increment: 1,
+          close_after_visible: false,
+        },
+        visible_task: {
+          kind: "soft_support",
+          conversation_context: {
+            known_values: {
+              suppressed_action_titles: ["Marcher 10 min"],
+              target_action_titles: ["Marcher 10 min"],
+              suppression_reason: "high_emotional_load",
+              main_need: "support",
+              minimal_save_candidate: null,
+              reopen_step_candidate: null,
+            },
+          },
+        },
+        note_information: null,
+        evidence: ["test dispatcher output"],
+      }, active_state);
+    },
+    suppressedActionVisibleAgent: async ({ decision }) =>
+      `visible:${decision.visible_task.kind}`,
+    nowIso: "2026-03-24T07:02:00.000Z",
   });
 
   assertEquals(
@@ -119,36 +205,126 @@ Deno.test("post morning nudge resolver reads state, not user message text", asyn
       ?.turn_count,
     1,
   );
+  assertEquals(
+    ((runtime?.toolSkillRun as any)?.runtime_trace?.[0] as any)
+      ?.activation_note_information_consumed,
+    true,
+  );
 });
 
-Deno.test("post morning nudge exit_to_global writes mandatory exit memo", async () => {
+Deno.test("post morning nudge visible task carries conversation context", async () => {
+  const state = createPostMorningNudgeActiveState({
+    sourceNudge: BASE_NUDGE,
+  })!;
+  const runtime = await runPostMorningNudgeLocalRuntime({
+    tempMemory: writePostMorningNudgeActiveState({}, state),
+    actionDispatcher: async ({ active_state }) =>
+      normalizePostMorningNudgeActionDispatcherOutput({
+        flow_action: "choose_first_step",
+        confidence: "high",
+        risk_score: 0,
+        local_assessment: {
+          action_readiness: "blocked",
+          motivation_need: "light",
+          emotional_load: "low",
+          user_wants_conversation: true,
+          target_action_reference: "Marcher 10 min",
+          main_friction: "ne sait pas commencer",
+          next_step_candidate: "Mettre les chaussures",
+          scope_reduction_candidate: null,
+        },
+        state_updates: {
+          status: "active",
+          turn_count_increment: 1,
+          close_after_visible: false,
+        },
+        visible_task: {
+          kind: "choose_first_step",
+          conversation_context: {
+            state_summary: "custom context",
+            user_words: ["je commence par quoi"],
+            known_values: {
+              target_action_titles: ["Marcher 10 min"],
+              target_item_titles: ["Marcher 10 min"],
+              main_friction: "ne sait pas commencer",
+              next_step_candidate: "Mettre les chaussures",
+              scope_reduction_candidate: null,
+            },
+            tone_constraints: ["sans pression", "une seule marche"],
+          },
+        },
+        note_information: null,
+        evidence: ["test dispatcher output"],
+      }, active_state),
+    actionVisibleAgent: async ({ decision }) =>
+      String(
+        decision.visible_task.conversation_context.known_values
+          .next_step_candidate,
+      ),
+  });
+
+  assertEquals(runtime?.content, "Mettre les chaussures");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.visible_task.conversation_context
+      .known_values.target_action_titles,
+    ["Marcher 10 min"],
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.visible_task.conversation_context
+      .tone_constraints,
+    ["sans pression", "une seule marche"],
+  );
+});
+
+Deno.test("post morning nudge exit_to_global writes mandatory note information", async () => {
   const state = createPostMorningNudgeActiveState({
     sourceNudge: BASE_NUDGE,
   })!;
   const tempMemory = writePostMorningNudgeActiveState({}, state);
   const runtime = await runPostMorningNudgeLocalRuntime({
     tempMemory,
-    dispatcher: async (active) => ({
-      dispatcher_id: resolvePostMorningNudgeDispatcher(active),
-      flow_action: "exit_to_global_dispatcher",
-      visible_task: { kind: "exit" },
-      exit_memo: buildPostMorningNudgeExitMemo({
-        state: active,
-        reason: "explicit_tool_request",
-        userIntentSummary: "User asks for another tool.",
-        likelyIntent: "prepare_defense_card",
-        why: "The local dispatcher selected an explicit handoff.",
-      }),
-      no_durable_mutation: {
-        action_created: false,
-        card_created: false,
-        potion_created: false,
-        reminder_created: false,
-        scheduled_checkin_created: false,
-        preference_written: false,
-        plan_patch_written: false,
-      },
-    }),
+    actionDispatcher: async ({ active_state }) =>
+      normalizePostMorningNudgeActionDispatcherOutput({
+        flow_action: "exit_to_global_dispatcher",
+        confidence: "high",
+        risk_score: 0,
+        local_assessment: {
+          action_readiness: "unknown",
+          motivation_need: "unknown",
+          emotional_load: "low",
+          user_wants_conversation: false,
+          target_action_reference: "Marcher 10 min",
+          main_friction: null,
+          next_step_candidate: null,
+          scope_reduction_candidate: null,
+        },
+        state_updates: {
+          status: "exit_to_global",
+          turn_count_increment: 1,
+          close_after_visible: true,
+        },
+        visible_task: {
+          kind: "exit_or_cancel",
+          conversation_context: {
+            known_values: {
+              target_action_titles: ["Marcher 10 min"],
+              target_item_titles: ["Marcher 10 min"],
+              main_friction: null,
+              next_step_candidate: null,
+              scope_reduction_candidate: null,
+            },
+          },
+        },
+        note_information: buildPostMorningNudgeLocalHandoffNote({
+          state: active_state,
+          reason: "explicit_tool_request",
+          userIntentSummary: "User asks for another tool.",
+          likelyIntent: "prepare_defense_card",
+          why: "The local dispatcher selected an explicit handoff.",
+        }).note_information,
+        evidence: ["test dispatcher output"],
+      }, active_state),
+    actionVisibleAgent: async () => "should not render",
   });
 
   assertEquals(
@@ -161,42 +337,120 @@ Deno.test("post morning nudge exit_to_global writes mandatory exit memo", async 
   );
   assertEquals(
     ((runtime?.nextTempMemory as any)[
-      LAST_POST_MORNING_NUDGE_EXIT_MEMO_KEY
+      LAST_POST_MORNING_NUDGE_NOTE_INFORMATION_KEY
     ] as any)
       ?.reason,
     "explicit_tool_request",
   );
   assertEquals(
-    ((runtime?.toolSkillRun as any)?.exit_memo as any)
-      ?.handoff_hint_for_global_dispatcher?.likely_intent,
+    ((runtime?.toolSkillRun as any)?.note_information as any)
+      ?.target_dispatcher,
     "prepare_defense_card",
   );
 });
 
-Deno.test("post morning nudge max turns closes local flow", () => {
+Deno.test("post morning nudge stop local no handoff does not call global", async () => {
+  const state = createPostMorningNudgeActiveState({
+    sourceNudge: BASE_NUDGE,
+  })!;
+  const runtime = await runPostMorningNudgeLocalRuntime({
+    tempMemory: writePostMorningNudgeActiveState({}, state),
+    actionDispatcher: async ({ active_state }) =>
+      normalizePostMorningNudgeActionDispatcherOutput({
+        flow_action: "cancel_flow",
+        confidence: "high",
+        risk_score: 0,
+        local_assessment: {
+          action_readiness: "not_today",
+          motivation_need: "none",
+          emotional_load: "low",
+          user_wants_conversation: false,
+          target_action_reference: "Marcher 10 min",
+          main_friction: null,
+          next_step_candidate: null,
+          scope_reduction_candidate: null,
+        },
+        state_updates: {
+          status: "closed",
+          turn_count_increment: 1,
+          close_after_visible: true,
+        },
+        visible_task: {
+          kind: "exit_or_cancel",
+          conversation_context: {
+            known_values: {
+              target_action_titles: ["Marcher 10 min"],
+              target_item_titles: ["Marcher 10 min"],
+              main_friction: null,
+              next_step_candidate: null,
+              scope_reduction_candidate: null,
+            },
+          },
+        },
+        note_information: null,
+        evidence: ["test dispatcher output"],
+      }, active_state),
+    actionVisibleAgent: async ({ decision }) =>
+      `visible:${decision.visible_task.kind}`,
+  });
+
+  assertEquals(runtime?.content, "visible:exit_or_cancel");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.flow_action_category,
+    "stop_local_no_handoff",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.runtime_trace?.[0]
+      ?.global_dispatcher_skipped_due_post_morning_nudge,
+    true,
+  );
+  assertEquals((runtime?.toolSkillRun as any)?.local_handoff_note, null);
+});
+
+Deno.test("post morning nudge max turns closes action flow", () => {
   const state = {
     ...createPostMorningNudgeActiveState({ sourceNudge: BASE_NUDGE })!,
     turn_count: 2,
     max_turns: 3,
   };
-  const reduced = reducePostMorningNudgeTurn({
+  const reduced = reducePostMorningNudgeActionTurn({
     state,
-    dispatcherOutput: {
-      dispatcher_id: "post_morning_nudge.action_dispatcher",
-      flow_action: "continue_local",
-      visible_task: { kind: "action_followup" },
-      no_durable_mutation: {
-        action_created: false,
-        card_created: false,
-        potion_created: false,
-        reminder_created: false,
-        scheduled_checkin_created: false,
-        preference_written: false,
-        plan_patch_written: false,
+    output: normalizePostMorningNudgeActionDispatcherOutput({
+      flow_action: "choose_first_step",
+      confidence: "high",
+      risk_score: 0,
+      local_assessment: {
+        action_readiness: "blocked",
+        motivation_need: "light",
+        emotional_load: "low",
+        user_wants_conversation: true,
+        target_action_reference: "Marcher 10 min",
+        main_friction: null,
+        next_step_candidate: "Mettre les chaussures",
+        scope_reduction_candidate: null,
       },
-    },
+      state_updates: {
+        status: "active",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "choose_first_step",
+        conversation_context: {
+          known_values: {
+            target_action_titles: ["Marcher 10 min"],
+            target_item_titles: ["Marcher 10 min"],
+            main_friction: null,
+            next_step_candidate: "Mettre les chaussures",
+            scope_reduction_candidate: null,
+          },
+        },
+      },
+      note_information: null,
+      evidence: ["test dispatcher output"],
+    }, state),
   });
 
   assertEquals(reduced.nextState?.status, "closed");
-  assertEquals(reduced.exitMemo, null);
+  assertEquals(reduced.handoffNote, null);
 });

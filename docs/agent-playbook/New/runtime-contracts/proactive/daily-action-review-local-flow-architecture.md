@@ -102,8 +102,9 @@ The following pieces stay conceptually valid :
 - `reduceDailyReviewState` keeps merging item updates.
 - `buildDailyReviewEffectPlan` remains the effect gate.
 - `executeDailyReviewEffectPlan` remains the writer/ledger boundary.
-- `dailyReviewFinalMessageRequiresCommit` or an equivalent post-visible guard
-  must remain to prevent false success wording.
+- The `commit_success` visible prompt is called only after
+  `dailyReviewEffectsFullyCommitted`; no deterministic visible renderer is part
+  of the nominal path.
 
 ## What Changes
 
@@ -396,4 +397,3 @@ start there, then later move to `sophia-brain/skills/*` if the project decides
 to standardize proactive flows.
 
 No Supabase destructive commands.
-

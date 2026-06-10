@@ -18,7 +18,7 @@ convertit seulement une opération déjà structurée en destination produit.
 skill handoff draft
   -> getHandoffTargetForOperation(operation_type)
   -> renderer uses destination + platform_steps
-  -> TurnAgenda / EffectLedger trace platform_handoff.surface_id
+  -> local reducer contract / EffectLedger trace platform_handoff.surface_id
 ```
 
 ## File Ownership
@@ -71,7 +71,7 @@ export type ProductSurfaceHandoffTarget = {
 
 ## Inputs
 
-- `operation_type` déjà structuré par le dispatcher, TurnAgenda ou le skill
+- `operation_type` déjà structuré par le dispatcher, local reducer contract ou le skill
   propriétaire.
 - Metadata optionnelle du skill : `source`, `reason_code`,
   `user_goal_summary`.
@@ -134,7 +134,7 @@ Le registry ne possède pas :
 
 ## Integration Points
 
-- `TurnAgenda` peut copier `surface_id` dans les tasks `platform_handoff`.
+- `local reducer contract` peut copier `surface_id` dans les tasks `platform_handoff`.
 - `EffectLedger` peut persister `surface_id` dans les entries handoff.
 - Les renderers handoff lisent destination + étapes depuis le registry.
 - `final_response_pipeline` autorise le wording honnête de redirection vers une

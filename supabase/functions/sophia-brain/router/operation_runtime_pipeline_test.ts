@@ -212,7 +212,6 @@ Deno.test("operation_runtime_pipeline safety route blocks operation runtime", as
     sourceMessageId: "msg_1",
     requestId: "turn_op_1",
     v2Runtime: null,
-    turnAgenda: null,
     activeSkillState: null,
     activeOperationIntake: null,
     pendingOperationConfirmation: null,
@@ -222,7 +221,6 @@ Deno.test("operation_runtime_pipeline safety route blocks operation runtime", as
     },
     guards: {
       isActiveCardDraftingOperation: () => false,
-      writeAdjustPlanPendingDraftReview: (tempMemory) => tempMemory,
     },
   });
   assertEquals(result.operationRuntime, null);
@@ -245,7 +243,6 @@ function basePipelineInput(overrides: Record<string, unknown> = {}) {
     sourceMessageId: "msg_1",
     requestId: "turn_op_1",
     v2Runtime: null,
-    turnAgenda: null,
     activeSkillState: null,
     activeOperationIntake: null,
     pendingOperationConfirmation: null,
@@ -253,7 +250,6 @@ function basePipelineInput(overrides: Record<string, unknown> = {}) {
     runAdjustPlanItemOperation: async () => null,
     guards: {
       isActiveCardDraftingOperation: () => false,
-      writeAdjustPlanPendingDraftReview: (tempMemory: any) => tempMemory,
     },
     ...overrides,
   };

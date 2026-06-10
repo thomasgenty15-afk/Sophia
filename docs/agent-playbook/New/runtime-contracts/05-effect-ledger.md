@@ -32,7 +32,7 @@ timeline d'exécution observée, pas un read model qui remplace les tables méti
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour avant mutation ;
-- `TurnAgenda` pour distinguer `reply`, `effect`, `platform_handoff`,
+- `local reducer contract` pour distinguer `reply`, `effect`, `platform_handoff`,
   `clarification`, `status`, `memory` et `repair` ;
 - Confirmation Contract pour interpréter approve/reject/revise/explain ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
@@ -43,11 +43,11 @@ Utilisation actuelle dans le code :
 
 - `router/run.ts` crée `const effectLedger = createEffectLedger(...)`, aligne
   son `turn_id` avec le `TurnFrame`, puis appelle
-  `recordAgendaEffectsInLedger`, `recordToolSkillEffectsInLedger` et
+  `recordToolSkillEffectsInLedger`, `recordToolSkillEffectsInLedger` et
   `recordRecommendationEffectInLedger`.
-- `router/turn_agenda.ts` produit les tâches `effect`, `platform_handoff` et
+- `router/local_reducer.ts` produit les tâches `effect`, `platform_handoff` et
   `clarification` qui deviennent respectivement des entries durables ou
-  non-mutantes via `recordAgendaEffectsInLedger`.
+  non-mutantes via `recordToolSkillEffectsInLedger`.
 - `router/confirmation_contract.ts` et les confirmations locales des tools
   décident approve/reject/revise/explain. Le ledger ne relit jamais le message
   user pour décider une confirmation.
@@ -69,7 +69,7 @@ Utilisation actuelle dans le code :
 
 ```txt
 dispatcher / routers
-  -> TurnAgenda effect / platform_handoff / clarification tasks
+  -> local reducer contract effect / platform_handoff / clarification tasks
   -> EffectLedger durable_effect / platform_handoff / clarification entries
 
 tool skill router
@@ -103,9 +103,9 @@ normal reply / operation reply
   `rewriteUncommittedEffectClaims`.
 - `router/effect_ledger_adapter.ts` possède le mapping runtime générique :
   `effectTypeFromToolType`, `executedToolsForStatus`,
-  `recordToolSkillEffectsInLedger`, `recordAgendaEffectsInLedger`,
+  `recordToolSkillEffectsInLedger`, `recordToolSkillEffectsInLedger`,
   `recordRecommendationEffectInLedger` et
-  `agendaBlockedReasonForOperation`.
+  `globalBlockedReasonForOperation`.
 - `router/effect_ledger_persistence.ts` possède
   `persistEffectLedgerForTurn`, writer non-bloquant vers `turn_summary_logs`.
 - `router/effect_ledger_reader.ts` possède `loadRecentEffectHistory`.
@@ -120,7 +120,7 @@ normal reply / operation reply
 
 ## Inputs
 
-- `TurnAgenda.tasks` de type `effect`, `platform_handoff` ou `clarification`.
+- `local reducer contract.tasks` de type `effect`, `platform_handoff` ou `clarification`.
 - `toolSkillRun.requested_effects`.
 - `toolSkillRun.allowed_effects`.
 - `toolSkillRun.blocked_effects`.

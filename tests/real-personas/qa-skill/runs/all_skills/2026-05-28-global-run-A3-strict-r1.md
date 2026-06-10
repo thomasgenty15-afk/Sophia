@@ -7,7 +7,7 @@
 - Persona: utilisateur QA dédié `qa-normal-global_run_A3_20260528_strict_r1-1779976179733@example.com`, user id `04c589d5-dafc-44b3-a4be-5bd513e23050`.
 - Objectif: relancer un test global 15 tours après corrections A3 faites par un autre agent.
 - Trajectoire: surcharge légère -> Slack/Nora -> tentative carte de défense -> rappel ponctuel -> product help rappel -> préférence coach -> carte d'attaque -> soutien émotionnel -> recap statut.
-- Surfaces visées: `execution_breakdown`, `prepare_defense_card`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_only_no_mutation_check`, mémoire/préférences.
+- Surfaces visées: `execution_breakdown`, `prepare_defense_card`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_recap`, mémoire/préférences.
 - Cadre IA réel: Supabase local, endpoint local `test-send-message`, `force_full_ai=true`, pas de fallback déterministe, pas de replay pré-scripté. Chaque message utilisateur a été choisi après lecture de la réponse Sophia et de la trace courte précédente.
 - Validité QA: valide. 15 tours complets, `http_status=200` partout, aucune réponse vide, aucun abort. Vérification DB: 30 `chat_messages` pour 15 tours, scope/persona isolé.
 - Note environnement: les logs du serveur local montrent des requêtes concurrentes d'autres run ids (`A1`, `A2`, `A4`) pendant la fenêtre. Elles n'ont pas écrit dans le `user_id` A3 vérifié; le transcript A3 et ses effets durables restent isolés.
@@ -335,7 +335,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: `null`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - executed_tools: `[]`
 - tool_execution: `none`
@@ -383,7 +383,7 @@
 - `create_one_shot_reminder`: succès; un seul rappel créé, pas de doublon en product help.
 - `product_help`: succès sur rappel; aucun side effect indésirable.
 - `update_coach_preferences`: préférence enregistrée correctement.
-- `status_only_no_mutation_check`: succès; ne mute pas et détecte l'absence de carte de défense.
+- `status_recap`: succès; ne mute pas et détecte l'absence de carte de défense.
 
 **Memory / Effets durables**
 - `chat_messages`: 30 lignes pour 15 tours, transcript cohérent.

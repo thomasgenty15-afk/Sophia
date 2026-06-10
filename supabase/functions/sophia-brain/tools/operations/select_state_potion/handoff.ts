@@ -7,21 +7,10 @@ import {
   runInlineGetInfoDbTool,
   runInlineGetInfoProductTool,
 } from "../inline_info_tools.ts";
-import {
-  generateWithGemini,
-  getGlobalAiModel,
-} from "../../../../_shared/gemini.ts";
-import { loadPotionBaseContext } from "../../../../_shared/potion-base-context.ts";
 import { POTION_DEFINITIONS } from "../../../../_shared/v2-potions.ts";
-import type {
-  PotionQuestion,
-  PotionType,
-} from "../../../../_shared/v2-types.ts";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
-import type { ClarificationLlmRunner } from "../../../clarification/tool.ts";
-import { runSkillClarification } from "../../../skills/_shared/clarification_adapter.ts";
 import {
   isPendingStatePotionRecommendationOperation,
   selectStatePotionRouteIsSelected,
@@ -29,18 +18,20 @@ import {
 import type {
   ClarteHandoffState,
   SelectStatePotionRiskAssessment,
+  StatePotionConversationContext,
   StatePotionHandoffDraft,
   StatePotionHandoffStatus,
   StatePotionSubskillHandoffState,
+  StatePotionSubskillPotionType,
   StatePotionSubskillVisibleTaskKind,
+  StatePotionVisibleFieldContext,
 } from "./contract.ts";
 import { statePotionSubskillId } from "./contract.ts";
 import {
-  generatePotionSessionDraftWithAi,
-  type PotionSessionDraftGenerator,
-  type PotionSessionDraftGeneratorInput,
-  type PotionSessionDraftV1,
-} from "./generator.ts";
+  buildClarteConversationContext,
+  buildPotionSubskillConversationContext,
+  buildStatePotionNoteInformation,
+} from "./conversation_context.ts";
 import {
   runSelectStatePotionIntake,
   type SelectStatePotionIntakeState,
@@ -67,6 +58,8 @@ import {
 } from "./subskills/state_potion_subskill_flow.ts";
 import { isStatePotionLocalSubskillType } from "./subskills/state_potion_subskill_registry.ts";
 import {
+  clarteVisibleTaskInstruction,
+  potionSubskillVisibleTaskInstruction,
   runSelectStatePotionVisibleAgent,
   type SelectStatePotionVisibleAgent,
   type SelectStatePotionVisibleStage,
@@ -207,6 +200,7 @@ async function renderVisibleStage(args: {
   clarteVisibleTask?: any;
   potionSubskillState?: StatePotionSubskillHandoffState | null;
   potionSubskillVisibleTask?: StatePotionSubskillVisibleTaskKind | null;
+  conversationContext?: StatePotionConversationContext | null;
   constraints?: Array<Record<string, unknown>>;
   runtimeTrace?: SelectStatePotionRuntimeTraceEvent[];
 }): Promise<string | null> {
@@ -217,28 +211,29 @@ async function renderVisibleStage(args: {
     clarte_visible_task: args.clarteVisibleTask ?? null,
     potion_subskill_visible_task: args.potionSubskillVisibleTask ?? null,
     handoff_status: args.handoffStatus ?? null,
+    conversation_context_provided: Boolean(args.conversationContext),
   });
+  const conversationContext = args.conversationContext ??
+    buildPotionSubskillConversationContext({
+      state: args.potionSubskillState ?? null,
+      visibleTask: args.potionSubskillVisibleTask ?? "none",
+      draft: args.draft ?? null,
+      userMessage: args.userMessage,
+    });
+  const instruction = args.stage === "clarte_task"
+    ? clarteVisibleTaskInstruction(args.clarteVisibleTask)
+    : args.stage === "potion_subskill_task"
+    ? potionSubskillVisibleTaskInstruction(args.potionSubskillVisibleTask)
+    : null;
   const message = await args.agent({
     user_id: args.userId,
     request_id: args.requestId ?? null,
     stage: args.stage,
-    user_message: args.userMessage,
-    recent_messages: args.recentMessages,
-    intake_state: args.intakeState ?? null,
-    handoff_status: args.handoffStatus ?? null,
-    draft: args.draft ?? null,
-    question_intent: args.questionIntent ?? null,
-    selected_potion_label: args.selectedPotionLabel ??
-      args.draft?.recommendation.platform_inputs?.potion_title ??
-      args.draft?.recommendation.potion_label ??
-      selectedPotionLabelFromIntake(args.intakeState),
-    current_field_id: args.currentFieldId ??
-      currentFieldIdFromIntake(args.intakeState),
-    clarte_state: args.clarteState ?? null,
-    clarte_visible_task: args.clarteVisibleTask ?? null,
-    potion_subskill_state: args.potionSubskillState ?? null,
-    potion_subskill_visible_task: args.potionSubskillVisibleTask ?? null,
-    constraints: args.constraints ?? [],
+    visible_task: {
+      kind: args.stage,
+      instruction,
+      conversation_context: conversationContext,
+    },
     trace_event: (event) => {
       args.runtimeTrace?.push(event);
     },
@@ -249,219 +244,6 @@ async function renderVisibleStage(args: {
     stage: args.stage,
   });
   return message;
-}
-
-function isPotionType(value: string): value is PotionType {
-  return value in POTION_DEFINITIONS;
-}
-
-function detailAnswerById(
-  intakeState: SelectStatePotionIntakeState | null | undefined,
-  questionId: string,
-): string | null {
-  const answer = intakeState?.details.answers.find((item) =>
-    item.question_id === questionId && item.answer.trim()
-  )?.answer.trim();
-  return answer || null;
-}
-
-function normalizeOptionText(value: string): string {
-  let output = "";
-  for (const char of normalizeControlText(value)) {
-    const isLowerLetter = char >= "a" && char <= "z";
-    const isDigit = char >= "0" && char <= "9";
-    output += isLowerLetter || isDigit || char === " " ? char : " ";
-  }
-  return collapseSpaces(output);
-}
-
-function optionForValueOrLabel(
-  question: PotionQuestion,
-  rawValue: string | null,
-): { value: string; label: string } | null {
-  if (!question.options.length) return null;
-  if (rawValue) {
-    const normalizedRaw = normalizeOptionText(rawValue);
-    const exact = question.options.find((option) =>
-      normalizeOptionText(option.value) === normalizedRaw ||
-      normalizeOptionText(option.label) === normalizedRaw
-    );
-    if (exact) return exact;
-    const fuzzy = question.options.find((option) =>
-      normalizedRaw.includes(normalizeOptionText(option.value)) ||
-      normalizedRaw.includes(normalizeOptionText(option.label)) ||
-      normalizeOptionText(option.label).includes(normalizedRaw)
-    );
-    if (fuzzy) return fuzzy;
-  }
-  return null;
-}
-
-function buildPlatformInputs(args: {
-  potionType: string;
-  intakeState?: SelectStatePotionIntakeState | null;
-}): StatePotionHandoffDraft["recommendation"]["platform_inputs"] | undefined {
-  if (!isPotionType(args.potionType)) return undefined;
-  const potionType = args.potionType;
-  const definition = POTION_DEFINITIONS[potionType];
-  const answers = definition.questionnaire.flatMap((question) => {
-    const rawAnswer = detailAnswerById(args.intakeState, question.id);
-    if (!rawAnswer) return [];
-    if (question.input_type === "single_select") {
-      const option = optionForValueOrLabel(question, rawAnswer);
-      return [{
-        question_id: question.id,
-        question_label: question.label,
-        value: option?.label ?? rawAnswer ?? "",
-        option_value: option?.value ?? null,
-        option_label: option?.label ?? null,
-      }];
-    }
-    return [{
-      question_id: question.id,
-      question_label: question.label,
-      value: rawAnswer,
-      option_value: null,
-      option_label: null,
-    }];
-  });
-  const optional = args.intakeState?.details.optional_free_text;
-  const optionalValue = optional?.status === "locked"
-    ? String(optional.locked_value ?? "").trim()
-    : "";
-  return {
-    potion_type: potionType,
-    potion_title: visiblePotionLabel(potionType),
-    answers,
-    optional_free_text: optionalValue
-      ? definition.free_text_label
-        ? {
-          label: definition.free_text_label,
-          value: optionalValue,
-        }
-        : null
-      : null,
-  };
-}
-
-function looksLikeInternalVisibleText(value: string): boolean {
-  const text = normalizeControlText(value)
-    .replaceAll("_", " ")
-    .replaceAll(":", " ")
-    .replaceAll("-", " ");
-  const normalizedText = collapseSpaces(text);
-  if (!normalizedText) return false;
-  const forbiddenFragments = [
-    "current user message",
-    "user message describes",
-    "user message implies",
-    "user explicitly",
-    "user described",
-    "user mentioned",
-    "source message",
-    "operation input",
-    "payload hint",
-    "question id",
-    "confidence band",
-    "reason code",
-    "tool skill",
-    "evidence",
-  ];
-  return forbiddenFragments.some((fragment) =>
-    normalizedText.includes(fragment)
-  );
-}
-
-function userFacingTextOrNull(value: unknown): string | null {
-  const raw = String(value ?? "").trim();
-  if (!raw || looksLikeInternalVisibleText(raw)) return null;
-  return raw;
-}
-
-function userFacingDetailAnswers(
-  intakeState?: SelectStatePotionIntakeState | null,
-): string[] {
-  return (intakeState?.details.answers ?? [])
-    .map((answer) => userFacingTextOrNull(answer.answer))
-    .filter((answer): answer is string => Boolean(answer))
-    .slice(0, 3);
-}
-
-function userStateSummaryFromDraft(
-  draft: PotionSessionDraftV1,
-  intakeState?: SelectStatePotionIntakeState | null,
-): string {
-  const answers = userFacingDetailAnswers(intakeState);
-  if (answers.length > 0) return answers.join(" ; ");
-  return userFacingTextOrNull(draft.draft.title) ||
-    "tu veux changer d'état sans transformer ça en gros protocole.";
-}
-
-function whyThisPotionFromDraft(draft: PotionSessionDraftV1): string {
-  return userFacingTextOrNull(draft.draft.why_this_potion) ||
-    "Cette potion garde le soutien court et centré sur l'état que tu veux retrouver.";
-}
-
-function handoffDraftFromPotionDraft(args: {
-  draft: PotionSessionDraftV1;
-  intakeState?: SelectStatePotionIntakeState | null;
-  noFollowup: boolean;
-}): StatePotionHandoffDraft {
-  const potionType = args.draft.draft.potion_type;
-  const userStateSummary = userStateSummaryFromDraft(
-    args.draft,
-    args.intakeState,
-  );
-  const immediateStep = args.draft.draft.instant_support_message || null;
-  return {
-    operation_type: "select_state_potion",
-    mode: "platform_handoff",
-    no_chat_mutation: true,
-    executable_from_chat: false,
-    user_state_summary: userStateSummary,
-    desired_shift_summary: userFacingTextOrNull(
-      args.draft.draft.follow_up.reminder_instruction,
-    ) ?? "",
-    recommendation: {
-      potion_label: potionLabel(potionType),
-      why_this_potion: whyThisPotionFromDraft(args.draft),
-      immediate_step: userFacingTextOrNull(immediateStep),
-      preserve: [],
-      avoid: [],
-      platform_destination: PLATFORM_DESTINATION,
-      platform_steps: PLATFORM_STEPS,
-      platform_inputs: buildPlatformInputs({
-        potionType,
-        intakeState: args.intakeState,
-      }),
-    },
-    missing_decisions: [],
-  };
-}
-
-function defaultClarificationRunner(args: {
-  requestId?: string | null;
-  userId?: string | null;
-}): ClarificationLlmRunner {
-  return async (input) =>
-    await generateWithGemini(
-      input.system_prompt,
-      input.user_prompt,
-      0.1,
-      input.json_mode,
-      [],
-      "auto",
-      {
-        requestId: args.requestId ?? undefined,
-        userId: args.userId ?? undefined,
-        model: getGlobalAiModel("gemini-2.5-flash"),
-        source: "select_state_potion.handoff_clarification",
-        forceRealAi: true,
-        reasoningEffort: "low",
-        httpTimeoutMs: 45_000,
-        maxRetries: 1,
-      },
-    );
 }
 
 function createHandoffState(args: {
@@ -504,6 +286,111 @@ function createHandoffState(args: {
   };
 }
 
+function intakeFieldValue(field: {
+  locked_value?: string | null;
+  proposed_value?: string | null;
+}): string | null {
+  return String(field.locked_value ?? field.proposed_value ?? "").trim() ||
+    null;
+}
+
+function visibleFieldsFromIntake(
+  state: SelectStatePotionIntakeState | null | undefined,
+): StatePotionVisibleFieldContext[] {
+  if (!state) return [];
+  const fieldsById = new Map(
+    (state.details.fields ?? []).map((field) => [field.question_id, field]),
+  );
+  const answersById = new Map(
+    state.details.answers.map((answer) => [answer.question_id, answer]),
+  );
+  return state.details.required_question_ids.map((fieldId) => {
+    const field = fieldsById.get(fieldId);
+    const answer = answersById.get(fieldId);
+    const status = answer?.answer.trim()
+      ? "locked"
+      : field?.status === "locked" || field?.status === "proposed"
+      ? field.status
+      : "missing";
+    const value = answer?.answer.trim() ||
+      (field ? intakeFieldValue(field) : null);
+    return {
+      field_id: fieldId,
+      field_label: field?.label ?? answer?.label ?? fieldId,
+      status,
+      value,
+      candidate_value: status === "proposed" ? value : null,
+      locked_value: status === "locked" ? value : null,
+      option_value: null,
+      option_label: null,
+      needs_user_confirmation: field?.needs_user_confirmation === true ||
+        status === "proposed",
+      detail_sufficiency: null,
+    };
+  });
+}
+
+function buildSelectStatePotionParentConversationContext(args: {
+  state: SelectStatePotionIntakeState | null | undefined;
+  userMessage: string;
+  visibleStage: string;
+  evidence?: string[];
+}): StatePotionConversationContext {
+  const rawSelectedPotion = intakeSelectedPotion(args.state);
+  const selectedPotion = isStatePotionLocalSubskillType(rawSelectedPotion)
+    ? rawSelectedPotion
+    : null;
+  const potionName = selectedPotion ? visiblePotionLabel(selectedPotion) : null;
+  const fields = visibleFieldsFromIntake(args.state);
+  const knownValues = Object.fromEntries(
+    fields
+      .filter((field) => field.status === "locked" && field.value)
+      .map((field) => [field.field_id, field.value as string]),
+  );
+  const missingOrWeakValues = fields
+    .filter((field) => field.status !== "locked")
+    .map((field) => ({
+      field_id: field.field_id,
+      field_label: field.field_label,
+      reason: "champ plateforme pas encore verrouillé par le dispatcher local",
+      followup_question: null,
+    }));
+  const stateKind = args.state?.state.kind ?? null;
+  return {
+    state_summary: [
+      "select_state_potion",
+      `stage=${args.visibleStage}`,
+      stateKind ? `state=${stateKind}` : "state=unknown",
+      potionName ? `potion=${potionName}` : "potion=unknown",
+    ].join(" | "),
+    user_words: [args.userMessage],
+    field_or_stage: currentFieldIdFromIntake(args.state) ?? args.visibleStage,
+    known_values: knownValues,
+    missing_or_weak_values: missingOrWeakValues,
+    selected_candidate: {
+      potion_type: selectedPotion,
+      potion_name: potionName,
+    },
+    handoff_data: {
+      potion_name: potionName,
+      platform_destination: "section État / Potions",
+      fields,
+    },
+    tone_constraints: [
+      "répondre naturellement",
+      "rester court",
+      "ne pas afficher de slots techniques",
+    ],
+    do_not_say: [
+      "ne dis jamais que la potion est activée",
+      "ne demande jamais de dire oui pour lancer depuis le chat",
+      "ne montre pas les ids techniques, reason_code, evidence ou slots",
+    ],
+    context_summary: null,
+    evidence_used: args.evidence ?? [],
+  };
+}
+
 function runtimeResult(args: {
   content: string;
   nextTempMemory: any;
@@ -514,6 +401,7 @@ function runtimeResult(args: {
   constraints?: Array<Record<string, unknown>>;
   handoffTarget?: string | null;
   riskAssessment?: SelectStatePotionRiskAssessment | null;
+  noteInformation?: Record<string, unknown> | null;
   runtimeTrace?: SelectStatePotionRuntimeTraceEvent[];
 }): StatePotionHandoffRuntimeResult {
   return {
@@ -538,6 +426,7 @@ function runtimeResult(args: {
       constraints: args.constraints ?? [],
       risk_assessment: args.riskAssessment ?? null,
       runtime_trace: args.runtimeTrace ?? [],
+      note_information: args.noteInformation ?? null,
       handoff: args.handoffTarget ? { target: args.handoffTarget } : null,
       platform_handoff: {
         operation_type: "select_state_potion",
@@ -561,34 +450,6 @@ function awaitsDetailFieldConfirmation(
   return (state.intake_state?.details.fields ?? []).some((field) =>
     field.status === "proposed" && field.needs_user_confirmation === true
   );
-}
-
-function previousDraftContextFromHandoffDraft(
-  draft: StatePotionHandoffDraft | null | undefined,
-): Record<string, unknown> | null {
-  if (!draft) return null;
-  const inputs = draft.recommendation.platform_inputs;
-  const potionType = inputs?.potion_type;
-  if (!potionType) return null;
-  return {
-    draft: {
-      potion_type: potionType,
-      title: inputs?.potion_title ?? draft.recommendation.potion_label,
-      why_this_potion: draft.recommendation.why_this_potion,
-      opening_prompt: draft.user_state_summary,
-      follow_up: {
-        reminder_instruction: draft.desired_shift_summary,
-      },
-      target_binding: {
-        evidence: [
-          ...(inputs?.answers ?? []).map((answer) => answer.value).filter(
-            Boolean,
-          ),
-          inputs?.optional_free_text?.value ?? "",
-        ].filter(Boolean),
-      },
-    },
-  };
 }
 
 function operationInputFromHandoffIntakeState(
@@ -627,82 +488,6 @@ function operationInputFromHandoffIntakeState(
   };
 }
 
-function sanitizeHandoffQuestion(question: string): string {
-  let output = String(question ?? "").trim();
-  output = output.replace(
-    /^(c['’ ]?est bon|ça y est|ca y est|voilà c['’ ]?est|voila c['’ ]?est)\s+pour\s+[^.?!]+[.?!]\s*/i,
-    "",
-  );
-  output = output.replace(
-    /^(c['’ ]?est bon|ça y est|ca y est|voilà c['’ ]?est|voila c['’ ]?est)[.?!]\s*/i,
-    "",
-  );
-  return output.trim() || question;
-}
-
-async function maybeClarifyWithTool(args: {
-  outputQuestion: string;
-  phase: string;
-  intakeState?: SelectStatePotionIntakeState | null;
-  userMessage: string;
-  recentMessages: RecentChatMessage[];
-  activeState?: StatePotionHandoffState | null;
-  llmRunner: ClarificationLlmRunner;
-  requestId?: string | null;
-}): Promise<string> {
-  const shortlist = args.intakeState?.shortlist.options ?? [];
-  const candidates = args.phase === "potion_choice" && shortlist.length >= 2
-    ? shortlist.map((option) => ({
-      id: option.potion_type,
-      label: potionLabel(option.potion_type),
-      description: option.reason,
-      operation_type: "select_state_potion",
-      surface_id: STATE_POTION_HANDOFF_TARGET?.surface_id ??
-        "state_potions",
-      evidence: option.evidence,
-    }))
-    : [
-      {
-        id: "immediate_support",
-        label: "soutien immédiat",
-        description: "recevoir une phrase ou un pas court sans potion",
-        operation_type: null,
-        surface_id: null,
-        evidence: [],
-      },
-      {
-        id: "state_potion_handoff",
-        label: "potion d'état",
-        description: "choisir une potion à lancer dans la plateforme",
-        operation_type: "select_state_potion",
-        surface_id: STATE_POTION_HANDOFF_TARGET?.surface_id ??
-          "state_potions",
-        evidence: [],
-      },
-    ];
-  if (candidates.length < 2) return args.outputQuestion;
-  const clarification = await runSkillClarification({
-    owner: "state_potion_handoff",
-    ambiguity_kind: args.phase === "potion_choice"
-      ? "surface"
-      : "handoff_readiness",
-    candidates,
-    known_context: {
-      phase: args.phase,
-      no_chat_mutation: true,
-    },
-    user_message: args.userMessage,
-    recent_messages: args.recentMessages,
-    active_flow_state: args.activeState ?? null,
-    llm_runner: args.llmRunner,
-    request_id: args.requestId ?? null,
-  });
-  return clarification.status === "ask" || clarification.status ===
-      "still_ambiguous"
-    ? clarification.question ?? args.outputQuestion
-    : args.outputQuestion;
-}
-
 function runtimeActionFromLocalFlow(args: {
   flowAction: SelectStatePotionFlowAction;
   activeState: StatePotionHandoffState;
@@ -731,8 +516,10 @@ function runtimeActionFromLocalFlow(args: {
     case "continue_routing":
     case "unclear":
       return "continue_collecting";
+    case "stop_local_no_handoff":
     case "cancel_flow":
       return "cancelled";
+    case "handoff_to_local_flow":
     case "exit_to_global_dispatcher":
       return "exit_to_global_dispatcher";
     case "safety_preempt":
@@ -767,9 +554,12 @@ function potionSubskillTypeFromHandoffState(
 
 function intakeSelectedPotion(
   state: SelectStatePotionIntakeState | null | undefined,
-): string | null {
-  return state?.selected_potion.value ??
+): StatePotionSubskillPotionType | null {
+  const selected = state?.selected_potion.value ??
     state?.explicit_potion_request.potion_type ?? null;
+  return statePotionSubskillId(selected)
+    ? selected as StatePotionSubskillPotionType
+    : null;
 }
 
 function selectedHandlerForHandoffState(
@@ -903,6 +693,32 @@ async function runClarteHandoffTurn(args: {
       intakeState: args.intakeState,
       clarteState: baseClarteState,
     });
+  const activationNoteInformation = args.previous
+    ? null
+    : buildStatePotionNoteInformation({
+      sourceFlowId: "select_state_potion",
+      targetDispatcher: "other_local",
+      handoffReason: "clarification_resolved",
+      userMessage: args.userMessage,
+      context: buildClarteConversationContext({
+        state: baseClarteState,
+        visibleTask: "ask_deeper",
+        draft: null,
+        userMessage: args.userMessage,
+        evidence: ["local_dispatcher_activation"],
+      }),
+      targetHint: "select_state_potion.clarte",
+    });
+  if (activationNoteInformation) {
+    runtimeTrace.push({
+      component: "local_dispatcher",
+      event: "note_information_created",
+      source_flow: "select_state_potion",
+      target_dispatcher: "other_local",
+      target_local_dispatcher_hint: "select_state_potion.clarte",
+      handoff_reason: "clarification_resolved",
+    });
+  }
   const decision = await args.dispatcher({
     user_id: args.userId,
     request_id: args.requestId ?? null,
@@ -939,7 +755,49 @@ async function runClarteHandoffTurn(args: {
     field_status: reduced.clarte_state?.field_state.status ?? null,
     exit_to_global_dispatcher: reduced.exit_to_global_dispatcher,
   });
+  const conversationContext = buildClarteConversationContext({
+    state: reduced.clarte_state,
+    visibleTask: reduced.visible_task,
+    draft: reduced.draft,
+    userMessage: args.userMessage,
+    evidence: decision.evidence,
+  });
+  runtimeTrace.push({
+    component: "local_reducer",
+    event: "conversation_context_built",
+    flow: "select_state_potion.clarte",
+    visible_task: reduced.visible_task,
+    field_or_stage: conversationContext.field_or_stage,
+  });
+  const safetyNoteInformation = reduced.status === "blocked"
+    ? buildStatePotionNoteInformation({
+      sourceFlowId: "select_state_potion.clarte",
+      targetDispatcher: "safety_crisis",
+      handoffReason: "safety",
+      userMessage: args.userMessage,
+      riskScore: reduced.risk_assessment.risk_score,
+      context: conversationContext,
+      targetHint: "Safety preempt from active select_state_potion.clarte flow.",
+    })
+    : null;
+  if (safetyNoteInformation) {
+    runtimeTrace.push({
+      component: "local_dispatcher",
+      event: "note_information_created",
+      target_dispatcher: "safety_crisis",
+      handoff_reason: "safety",
+    });
+  }
   if (reduced.exit_to_global_dispatcher) {
+    const noteInformation = buildStatePotionNoteInformation({
+      sourceFlowId: "select_state_potion.clarte",
+      targetDispatcher: "global",
+      handoffReason: "topic_change",
+      userMessage: args.userMessage,
+      riskScore: reduced.risk_assessment.risk_score,
+      context: conversationContext,
+      targetHint: decision.exit_memo?.handoff_hint_for_global_dispatcher,
+    });
     const nextTempMemory = {
       ...clearSelectStatePotionFrame(args.nextTempMemory),
       __last_select_state_potion_exit_memo: {
@@ -948,6 +806,7 @@ async function runClarteHandoffTurn(args: {
         collected_value: decision.exit_memo?.collected_value ?? null,
         handoff_hint_for_global_dispatcher:
           decision.exit_memo?.handoff_hint_for_global_dispatcher ?? null,
+        note_information: noteInformation,
         at: new Date().toISOString(),
       },
     };
@@ -961,12 +820,15 @@ async function runClarteHandoffTurn(args: {
       handoffTarget: STATE_POTION_HANDOFF_TARGET?.surface_id ??
         "state_potions",
       riskAssessment: reduced.risk_assessment,
+      noteInformation,
       runtimeTrace: [
         ...runtimeTrace,
         {
           component: "local_dispatcher",
           event: "exit_to_global_dispatcher",
           reason: decision.exit_memo?.reason ?? "topic_change",
+          note_information_created: true,
+          target_dispatcher: "global",
           same_user_message_should_be_rerouted_globally: true,
         },
       ],
@@ -993,6 +855,7 @@ async function runClarteHandoffTurn(args: {
         history: args.recentMessages,
         turnFrame: args.turnFrame,
         context: toolContext,
+        requestId: args.requestId ?? null,
       })
       : await runInlineGetInfoDbTool({
         supabase: args.supabase,
@@ -1086,6 +949,7 @@ async function runClarteHandoffTurn(args: {
     currentFieldId: "plan_meaning_loss_reason",
     clarteState: reduced.clarte_state,
     clarteVisibleTask: reduced.visible_task,
+    conversationContext,
     runtimeTrace,
   });
   if (!content) return null;
@@ -1098,6 +962,7 @@ async function runClarteHandoffTurn(args: {
     draft: reduced.draft,
     handoffTarget: STATE_POTION_HANDOFF_TARGET?.surface_id ?? "state_potions",
     riskAssessment: reduced.risk_assessment,
+    noteInformation: safetyNoteInformation ?? activationNoteInformation,
     runtimeTrace,
   });
 }
@@ -1162,6 +1027,33 @@ async function runPotionSubskillHandoffTurn(args: {
       intakeState: args.intakeState,
       potionSubskillState: baseSubskillState,
     });
+  const selectedHandler = `select_state_potion.${args.potionType}`;
+  const activationNoteInformation = args.previous
+    ? null
+    : buildStatePotionNoteInformation({
+      sourceFlowId: "select_state_potion",
+      targetDispatcher: "other_local",
+      handoffReason: "clarification_resolved",
+      userMessage: args.userMessage,
+      context: buildPotionSubskillConversationContext({
+        state: baseSubskillState,
+        visibleTask: "ask_deeper",
+        draft: null,
+        userMessage: args.userMessage,
+        evidence: ["local_dispatcher_activation"],
+      }),
+      targetHint: selectedHandler,
+    });
+  if (activationNoteInformation) {
+    runtimeTrace.push({
+      component: "local_dispatcher",
+      event: "note_information_created",
+      source_flow: "select_state_potion",
+      target_dispatcher: "other_local",
+      target_local_dispatcher_hint: selectedHandler,
+      handoff_reason: "clarification_resolved",
+    });
+  }
   const decision = await args.dispatcher({
     user_id: args.userId,
     request_id: args.requestId ?? null,
@@ -1200,8 +1092,50 @@ async function runPotionSubskillHandoffTurn(args: {
     current_field_id: reduced.potion_subskill_state?.current_field_id ?? null,
     exit_to_global_dispatcher: reduced.exit_to_global_dispatcher,
   });
-  const selectedHandler = `select_state_potion.${args.potionType}`;
+  const conversationContext = buildPotionSubskillConversationContext({
+    state: reduced.potion_subskill_state,
+    visibleTask: reduced.visible_task,
+    draft: reduced.draft,
+    userMessage: args.userMessage,
+    evidence: decision.evidence,
+  });
+  runtimeTrace.push({
+    component: "local_reducer",
+    event: "conversation_context_built",
+    flow: `select_state_potion.${args.potionType}`,
+    visible_task: reduced.visible_task,
+    field_or_stage: conversationContext.field_or_stage,
+  });
+  const safetyNoteInformation = reduced.status === "blocked"
+    ? buildStatePotionNoteInformation({
+      sourceFlowId: `select_state_potion.${args.potionType}`,
+      targetDispatcher: "safety_crisis",
+      handoffReason: "safety",
+      userMessage: args.userMessage,
+      riskScore: reduced.risk_assessment.risk_score,
+      context: conversationContext,
+      targetHint:
+        `Safety preempt from active select_state_potion.${args.potionType} flow.`,
+    })
+    : null;
+  if (safetyNoteInformation) {
+    runtimeTrace.push({
+      component: "local_dispatcher",
+      event: "note_information_created",
+      target_dispatcher: "safety_crisis",
+      handoff_reason: "safety",
+    });
+  }
   if (reduced.exit_to_global_dispatcher) {
+    const noteInformation = buildStatePotionNoteInformation({
+      sourceFlowId: selectedHandler,
+      targetDispatcher: "global",
+      handoffReason: "topic_change",
+      userMessage: args.userMessage,
+      riskScore: reduced.risk_assessment.risk_score,
+      context: conversationContext,
+      targetHint: decision.exit_memo?.handoff_hint_for_global_dispatcher,
+    });
     const nextTempMemory = {
       ...clearSelectStatePotionFrame(args.nextTempMemory),
       __last_select_state_potion_exit_memo: {
@@ -1210,6 +1144,7 @@ async function runPotionSubskillHandoffTurn(args: {
         collected_value: decision.exit_memo?.collected_value ?? null,
         handoff_hint_for_global_dispatcher:
           decision.exit_memo?.handoff_hint_for_global_dispatcher ?? null,
+        note_information: noteInformation,
         at: new Date().toISOString(),
       },
     };
@@ -1223,12 +1158,15 @@ async function runPotionSubskillHandoffTurn(args: {
       handoffTarget: STATE_POTION_HANDOFF_TARGET?.surface_id ??
         "state_potions",
       riskAssessment: reduced.risk_assessment,
+      noteInformation,
       runtimeTrace: [
         ...runtimeTrace,
         {
           component: "local_dispatcher",
           event: "exit_to_global_dispatcher",
           reason: decision.exit_memo?.reason ?? "topic_change",
+          note_information_created: true,
+          target_dispatcher: "global",
           same_user_message_should_be_rerouted_globally: true,
         },
       ],
@@ -1256,6 +1194,7 @@ async function runPotionSubskillHandoffTurn(args: {
         history: args.recentMessages,
         turnFrame: args.turnFrame,
         context: toolContext,
+        requestId: args.requestId ?? null,
       })
       : await runInlineGetInfoDbTool({
         supabase: args.supabase,
@@ -1349,6 +1288,7 @@ async function runPotionSubskillHandoffTurn(args: {
     currentFieldId: reduced.potion_subskill_state?.current_field_id ?? null,
     potionSubskillState: reduced.potion_subskill_state,
     potionSubskillVisibleTask: reduced.visible_task,
+    conversationContext,
     runtimeTrace,
   });
   if (!content) return null;
@@ -1361,6 +1301,7 @@ async function runPotionSubskillHandoffTurn(args: {
     draft: reduced.draft,
     handoffTarget: STATE_POTION_HANDOFF_TARGET?.surface_id ?? "state_potions",
     riskAssessment: reduced.risk_assessment,
+    noteInformation: safetyNoteInformation ?? activationNoteInformation,
     runtimeTrace,
   });
 }
@@ -1379,11 +1320,9 @@ export async function runSelectStatePotionHandoffSkill(args: {
   requestId?: string | null;
   history?: unknown;
   slotFillerOverride?: SelectStatePotionSlotFiller;
-  draftGeneratorOverride?: PotionSessionDraftGenerator;
   localFlowDispatcherOverride?: SelectStatePotionLocalFlowDispatcher;
   clarteLocalDispatcherOverride?: ClarteLocalDispatcher;
   potionSubskillLocalDispatcherOverride?: StatePotionSubskillLocalDispatcher;
-  clarificationLlmRunnerOverride?: ClarificationLlmRunner | null;
   visibleAgentOverride?: SelectStatePotionVisibleAgent;
 }): Promise<StatePotionHandoffRuntimeResult | null> {
   const existingHandoff = loadStatePotionHandoffStateFromTempMemory(
@@ -1423,24 +1362,6 @@ export async function runSelectStatePotionHandoffSkill(args: {
   const frame = loadSelectStatePotionFrameFromTempMemory(nextTempMemory);
 
   const noFollowup = readPotionFollowupConsent(nextTempMemory) === "refused";
-
-  const draftGeneratorWithDbContext = async (
-    input: PotionSessionDraftGeneratorInput,
-  ) => {
-    if (args.draftGeneratorOverride) {
-      return await args.draftGeneratorOverride(input);
-    }
-    const baseContext = await loadPotionBaseContext({
-      admin: args.supabase,
-      userId: args.userId,
-      potionType: input.potion_type,
-      relatedPlanItemId: input.context?.related_plan_item_id ?? null,
-    });
-    return await generatePotionSessionDraftWithAi({
-      ...input,
-      base_context: baseContext,
-    });
-  };
 
   let existingHandoffAction:
     | StatePotionHandoffStatus
@@ -1512,6 +1433,13 @@ export async function runSelectStatePotionHandoffSkill(args: {
       risk_assessment: localFlowDecision?.risk_assessment ?? null,
     }];
     if (existingHandoffAction === "apply_attempt") {
+      const conversationContext =
+        buildSelectStatePotionParentConversationContext({
+          state: existingHandoff.intake_state,
+          userMessage: args.userMessage,
+          visibleStage: "apply_attempt",
+          evidence: localFlowDecision?.evidence ?? [],
+        });
       const nextState = createHandoffState({
         status: "apply_attempt",
         previous: existingHandoff,
@@ -1527,6 +1455,8 @@ export async function runSelectStatePotionHandoffSkill(args: {
         intakeState: existingHandoff.intake_state ?? null,
         handoffStatus: "apply_attempt",
         draft: existingHandoff.draft,
+        conversationContext,
+        runtimeTrace,
       });
       if (!content) return null;
       return runtimeResult({
@@ -1541,6 +1471,13 @@ export async function runSelectStatePotionHandoffSkill(args: {
       });
     }
     if (existingHandoffAction === "repeat_handoff") {
+      const conversationContext =
+        buildSelectStatePotionParentConversationContext({
+          state: existingHandoff.intake_state,
+          userMessage: args.userMessage,
+          visibleStage: "repeat_handoff",
+          evidence: localFlowDecision?.evidence ?? [],
+        });
       const nextState = createHandoffState({
         status: "repeat_handoff",
         previous: existingHandoff,
@@ -1556,6 +1493,8 @@ export async function runSelectStatePotionHandoffSkill(args: {
         intakeState: existingHandoff.intake_state ?? null,
         handoffStatus: "repeat_handoff",
         draft: existingHandoff.draft,
+        conversationContext,
+        runtimeTrace,
       });
       if (!content) return null;
       return runtimeResult({
@@ -1572,6 +1511,13 @@ export async function runSelectStatePotionHandoffSkill(args: {
       });
     }
     if (existingHandoffAction === "platform_destination_followup") {
+      const conversationContext =
+        buildSelectStatePotionParentConversationContext({
+          state: existingHandoff.intake_state,
+          userMessage: args.userMessage,
+          visibleStage: "platform_destination_followup",
+          evidence: localFlowDecision?.evidence ?? [],
+        });
       const nextState = createHandoffState({
         status: "repeat_handoff",
         previous: existingHandoff,
@@ -1587,6 +1533,8 @@ export async function runSelectStatePotionHandoffSkill(args: {
         intakeState: existingHandoff.intake_state ?? null,
         handoffStatus: "repeat_handoff",
         draft: existingHandoff.draft,
+        conversationContext,
+        runtimeTrace,
       });
       if (!content) return null;
       return runtimeResult({
@@ -1602,6 +1550,13 @@ export async function runSelectStatePotionHandoffSkill(args: {
     }
     if (existingHandoffAction === "cancelled") {
       nextTempMemory = clearSelectStatePotionFrame(nextTempMemory);
+      const conversationContext =
+        buildSelectStatePotionParentConversationContext({
+          state: existingHandoff.intake_state,
+          userMessage: args.userMessage,
+          visibleStage: "cancel",
+          evidence: localFlowDecision?.evidence ?? [],
+        });
       const content = await renderVisibleStage({
         agent: visibleAgent,
         userId: args.userId,
@@ -1612,6 +1567,8 @@ export async function runSelectStatePotionHandoffSkill(args: {
         intakeState: existingHandoff.intake_state ?? null,
         handoffStatus: "cancelled",
         draft: existingHandoff.draft,
+        conversationContext,
+        runtimeTrace,
       });
       if (!content) return null;
       return runtimeResult({
@@ -1627,6 +1584,28 @@ export async function runSelectStatePotionHandoffSkill(args: {
     }
     if (existingHandoffAction === "blocked") {
       nextTempMemory = clearSelectStatePotionFrame(nextTempMemory);
+      const conversationContext =
+        buildSelectStatePotionParentConversationContext({
+          state: existingHandoff.intake_state,
+          userMessage: args.userMessage,
+          visibleStage: "blocked",
+          evidence: localFlowDecision?.evidence ?? [],
+        });
+      const noteInformation = buildStatePotionNoteInformation({
+        sourceFlowId: "select_state_potion",
+        targetDispatcher: "safety_crisis",
+        handoffReason: "safety",
+        userMessage: args.userMessage,
+        riskScore: localFlowDecision?.risk_assessment.risk_score ?? 10,
+        context: conversationContext,
+        targetHint: "Safety preempt from active select_state_potion flow.",
+      });
+      runtimeTrace.push({
+        component: "local_dispatcher",
+        event: "note_information_created",
+        target_dispatcher: "safety_crisis",
+        handoff_reason: "safety",
+      });
       const content = await renderVisibleStage({
         agent: visibleAgent,
         userId: args.userId,
@@ -1637,6 +1616,8 @@ export async function runSelectStatePotionHandoffSkill(args: {
         intakeState: existingHandoff.intake_state ?? null,
         handoffStatus: "blocked",
         draft: existingHandoff.draft,
+        conversationContext,
+        runtimeTrace,
       });
       if (!content) return null;
       return runtimeResult({
@@ -1647,17 +1628,40 @@ export async function runSelectStatePotionHandoffSkill(args: {
         selectedHandler: selectedHandlerForHandoffState(existingHandoff),
         draft: existingHandoff.draft,
         riskAssessment: localFlowDecision?.risk_assessment ?? null,
+        noteInformation,
         runtimeTrace,
       });
     }
     if (existingHandoffAction === "exit_to_global_dispatcher") {
+      const conversationContext =
+        buildSelectStatePotionParentConversationContext({
+          state: existingHandoff.intake_state,
+          userMessage: args.userMessage,
+          visibleStage: "exit",
+          evidence: localFlowDecision?.evidence ?? [],
+        });
+      const noteInformation = buildStatePotionNoteInformation({
+        sourceFlowId: "select_state_potion",
+        targetDispatcher: "global",
+        handoffReason: "topic_change",
+        userMessage: args.userMessage,
+        riskScore: localFlowDecision?.risk_assessment.risk_score ?? 0,
+        context: conversationContext,
+        targetHint: localFlowDecision?.exit_memo_request
+          .handoff_hint_for_global_dispatcher,
+      });
       nextTempMemory = {
         ...clearSelectStatePotionFrame(nextTempMemory),
         __last_select_state_potion_exit_memo: {
-          reason: "topic_change",
+          reason: normalizeLocalExitReason(
+            localFlowDecision?.exit_memo_request.exit_reason,
+          ),
           flow_summary: null,
           collected_value: null,
-          handoff_hint_for_global_dispatcher: null,
+          handoff_hint_for_global_dispatcher:
+            localFlowDecision?.exit_memo_request
+              .handoff_hint_for_global_dispatcher ?? null,
+          note_information: noteInformation,
           at: new Date().toISOString(),
         },
       };
@@ -1669,11 +1673,14 @@ export async function runSelectStatePotionHandoffSkill(args: {
         selectedHandler: selectedHandlerForHandoffState(existingHandoff),
         draft: existingHandoff.draft,
         riskAssessment: localFlowDecision?.risk_assessment ?? null,
+        noteInformation,
         runtimeTrace: [
           ...runtimeTrace,
           {
             component: "local_dispatcher",
             event: "exit_to_global_dispatcher",
+            note_information_created: true,
+            target_dispatcher: "global",
             same_user_message_should_be_rerouted_globally: true,
           },
         ],
@@ -1709,13 +1716,6 @@ export async function runSelectStatePotionHandoffSkill(args: {
       ...(existingHandoffAction === "revise_handoff"
         ? {
           revision_request: args.userMessage,
-          ...(existingHandoff.intake_state
-            ? {
-              previous_draft: previousDraftContextFromHandoffDraft(
-                existingHandoff.draft,
-              ),
-            }
-            : {}),
         }
         : {}),
     }
@@ -1755,58 +1755,9 @@ export async function runSelectStatePotionHandoffSkill(args: {
         : activeOperationInput),
     request_id: args.requestId ?? null,
     slot_filler: args.slotFillerOverride,
-    draft_generator: draftGeneratorWithDbContext,
   });
 
   const outputIntakeState = output.state_patch.intake_state ?? null;
-  if (output.status === "handoff_ready" && output.draft) {
-    const handoffDraft = handoffDraftFromPotionDraft({
-      draft: output.draft,
-      intakeState: output.state_patch.intake_state ?? null,
-      noFollowup,
-    });
-    nextTempMemory = clearPotionFollowupConsent(nextTempMemory);
-    nextTempMemory = writeStatePotionHandoffState(
-      nextTempMemory,
-      createHandoffState({
-        status: "handoff_delivered",
-        previous: existingHandoff,
-        draft: handoffDraft,
-        phase: output.phase,
-        operationInput: output.state_patch.operation_input ?? null,
-        intakeState: output.state_patch.intake_state ?? null,
-      }),
-    );
-    const content = await renderVisibleStage({
-      agent: visibleAgent,
-      userId: args.userId,
-      requestId: args.requestId ?? null,
-      stage: "handoff_delivered",
-      userMessage: args.userMessage,
-      recentMessages,
-      intakeState: output.state_patch.intake_state ?? null,
-      handoffStatus: "handoff_delivered",
-      draft: handoffDraft,
-      constraints: noFollowup
-        ? [{ kind: "no_followup", evidence: [args.userMessage] }]
-        : [],
-    });
-    if (!content) return null;
-    return runtimeResult({
-      content,
-      nextTempMemory,
-      status: "handoff_delivered",
-      reasonCode: "state_potion_platform_handoff_delivered",
-      selectedHandler: selectedHandlerForIntakeState(
-        output.state_patch.intake_state ?? null,
-      ),
-      draft: handoffDraft,
-      constraints: noFollowup
-        ? [{ kind: "no_followup", evidence: [args.userMessage] }]
-        : [],
-    });
-  }
-
   if (intakeSelectedPotion(outputIntakeState) === "clarte") {
     return await runClarteHandoffTurn({
       supabase: args.supabase,
@@ -1866,33 +1817,48 @@ export async function runSelectStatePotionHandoffSkill(args: {
       intakeState: output.state_patch.intake_state ?? null,
     });
     const question = output.next_question?.question || output.ack
-      ? sanitizeHandoffQuestion(output.next_question?.question ?? output.ack!)
+      ? output.next_question?.question ?? output.ack!
       : "";
-    const llmRunner = args.clarificationLlmRunnerOverride === null
-      ? null
-      : args.clarificationLlmRunnerOverride ??
-        defaultClarificationRunner({
-          requestId: args.requestId ?? null,
-          userId: args.userId,
-        });
-    const visibleQuestionIntent = llmRunner && !shouldAnnouncePotionSelected
-      ? await maybeClarifyWithTool({
-        outputQuestion: question,
-        phase: output.phase,
-        intakeState: output.state_patch.intake_state ?? null,
-        userMessage: args.userMessage,
-        recentMessages,
-        activeState,
-        llmRunner,
-        requestId: args.requestId ?? null,
-      })
-      : question;
+    const visibleQuestionIntent = question;
     const visibleStage: SelectStatePotionVisibleStage =
       shouldAnnouncePotionSelected
         ? "potion_selected"
         : output.phase === "detail_intake"
         ? "detail_field_intake"
         : "potion_clarification";
+    const conversationContext = buildSelectStatePotionParentConversationContext(
+      {
+        state: output.state_patch.intake_state ?? null,
+        userMessage: args.userMessage,
+        visibleStage,
+        evidence: [
+          output.state_patch.summary,
+          ...(output.state_patch.intake_state?.state.evidence ?? []),
+          ...(output.state_patch.intake_state?.selected_potion.evidence ?? []),
+        ].filter(Boolean),
+      },
+    );
+    const runtimeTrace: SelectStatePotionRuntimeTraceEvent[] = [];
+    const activationNoteInformation = existingHandoff
+      ? null
+      : buildStatePotionNoteInformation({
+        sourceFlowId: "global_dispatcher",
+        targetDispatcher: "select_state_potion",
+        handoffReason: "explicit_user_request",
+        userMessage: args.userMessage,
+        context: conversationContext,
+        targetHint: "select_state_potion",
+      });
+    if (activationNoteInformation) {
+      runtimeTrace.push({
+        component: "local_dispatcher",
+        event: "note_information_created",
+        source_flow: "global_dispatcher",
+        target_dispatcher: "select_state_potion",
+        target_local_dispatcher_hint: "select_state_potion",
+        handoff_reason: "explicit_user_request",
+      });
+    }
     const visibleQuestion = await renderVisibleStage({
       agent: visibleAgent,
       userId: args.userId,
@@ -1907,12 +1873,14 @@ export async function runSelectStatePotionHandoffSkill(args: {
       currentFieldId: currentFieldIdFromIntake(
         output.state_patch.intake_state ?? null,
       ),
+      conversationContext,
       constraints: noFollowup
         ? [{
           kind: "no_followup",
           evidence: ["potion_followup_consent_refused_memory"],
         }]
         : [],
+      runtimeTrace,
     });
     if (!visibleQuestion) return null;
     nextTempMemory = writeStatePotionHandoffState(nextTempMemory, {
@@ -1935,6 +1903,8 @@ export async function runSelectStatePotionHandoffSkill(args: {
           evidence: ["potion_followup_consent_refused_memory"],
         }]
         : [],
+      noteInformation: activationNoteInformation,
+      runtimeTrace,
     });
   }
 

@@ -22,6 +22,7 @@ import {
   writeMomentumStateV2,
 } from "../momentum_state.ts";
 import { listMorningNudgeEventContexts } from "../momentum_morning_nudge.ts";
+import { buildWatcherConversationPulse } from "../conversation_pulse_builder.ts";
 import { detectDefenseCardNewTriggers } from "./defense_card_watcher.ts";
 
 type ExistingCheckin = {
@@ -94,8 +95,17 @@ function dayKeyInTimezone(isoOrMs: string | number, timezone: string): string {
 
 function isPlanObjectiveContext(eventContext: string): boolean {
   const text = String(eventContext ?? "").toLowerCase();
-  return /\b(plan|objectif|objectifs|habitude|routine|discipline|phase|north star|action du plan)\b/
-    .test(text);
+  return [
+    "plan",
+    "objectif",
+    "objectifs",
+    "habitude",
+    "routine",
+    "discipline",
+    "phase",
+    "north star",
+    "action du plan",
+  ].some((marker) => text.includes(marker));
 }
 
 function isInsideDailyBilanWindow(
@@ -417,7 +427,7 @@ export async function runWatcher(
   ).join("\n");
   void transcript;
 
-  // Deterministic mode (MEGA): keep behavior stable for integration tests.
+  // MEGA mode keeps behavior stable for integration tests.
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
     (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
@@ -890,6 +900,34 @@ ${exclusionSnapshotBlock}
   } catch (e) {
     console.error(
       `[Veilleur] momentum_consolidation_error user=${userId} scope=${scope}`,
+      e,
+    );
+  }
+
+  try {
+    const result = await buildWatcherConversationPulse({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      nowIso: now,
+      windowStartIso: new Date(windowStartMs).toISOString(),
+      timezone: tctx.user_timezone,
+      scope,
+    });
+    if (result?.snapshotId) {
+      console.log(JSON.stringify({
+        tag: "watcher_conversation_pulse_v2_generated",
+        user_id: userId,
+        scope,
+        snapshot_id: result.snapshotId,
+        pulse_kind: result.pulse.pulse_kind ?? "watcher_4h",
+        likely_need: result.pulse.signals.likely_need,
+        proactive_risk: result.pulse.signals.proactive_risk,
+      }));
+    }
+  } catch (e) {
+    console.error(
+      `[Veilleur] conversation_pulse_v2_error user=${userId} scope=${scope}`,
       e,
     );
   }

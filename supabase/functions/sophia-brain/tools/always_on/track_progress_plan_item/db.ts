@@ -29,7 +29,15 @@ async function resolveActiveTransformationRuntime(args: {
 
 function resolveLoggedAtIso(dateHint: string | null | undefined): string {
   const trimmed = String(dateHint ?? "").trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+  const parts = trimmed.split("-");
+  const isIsoDate = parts.length === 3 &&
+    parts[0].length === 4 &&
+    parts[1].length === 2 &&
+    parts[2].length === 2 &&
+    parts.every((part) =>
+      part.length > 0 && [...part].every((char) => char >= "0" && char <= "9")
+    );
+  if (isIsoDate) {
     return new Date(`${trimmed}T12:00:00.000Z`).toISOString();
   }
   return new Date().toISOString();

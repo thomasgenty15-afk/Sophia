@@ -1,4 +1,3 @@
-import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts";
 import { classifyWinbackReplyIntent } from "../_shared/whatsapp_winback.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
 import {
@@ -60,29 +59,10 @@ export async function computeOptInAndBilanContext(params: any) {
     recentBilanPurpose,
   };
 }
-async function analyzeSignalsForWhatsApp(text: string, requestId: string) {
-  const raw = (text ?? "").trim();
-  const result = await analyzeSignalsV2({
-    userMessage: raw,
-    lastAssistantMessage: "",
-    last5Messages: [
-      {
-        role: "user",
-        content: raw,
-      },
-    ],
-    signalHistory: [],
-    activeMachine: null,
-    stateSnapshot: {
-      current_mode: "companion",
-    },
-  }, {
-    requestId,
-  });
-  return result.signals;
-}
 async function detectAdaptiveFlow(inboundText: string, requestId: string) {
-  // Default: normal flow with all steps
+  void requestId;
+  // Legacy adaptive signal analysis used analyzeSignalsV2, which no longer exists
+  // in the current dispatcher contract. V1 fails closed to the normal flow.
   const defaultResult = {
     flow: "normal",
     deferredSteps: [],
@@ -90,45 +70,7 @@ async function detectAdaptiveFlow(inboundText: string, requestId: string) {
   };
   const text = (inboundText ?? "").trim();
   if (!text) return defaultResult;
-  try {
-    const signals = await analyzeSignalsForWhatsApp(inboundText, requestId);
-    const topicDepth = (signals as any)?.topic_depth;
-    // SCENARIO A: Urgency detected (safety or NEED_SUPPORT)
-    const isUrgent = signals.safety.level !== "NONE" ||
-      topicDepth?.value === "NEED_SUPPORT" &&
-        (topicDepth?.confidence ?? 0) >= 0.7;
-    if (isUrgent) {
-      const forceMode = signals.safety.level === "SENTRY"
-        ? "sentry"
-        : "companion";
-      return {
-        flow: "urgent",
-        deferredSteps: [
-          "motivation",
-          "personal_fact",
-        ],
-        forceMode,
-        detectedTopic: undefined,
-      };
-    }
-    // SCENARIO B: Serious topic (not urgent but deep)
-    const isSerious = topicDepth?.value === "SERIOUS" &&
-      (topicDepth?.confidence ?? 0) >= 0.6;
-    if (isSerious) {
-      return {
-        flow: "serious_topic",
-        deferredSteps: [
-          "motivation",
-        ],
-        detectedTopic: undefined,
-      };
-    }
-    // SCENARIO C: Normal (calm mood, no urgency)
-    return defaultResult;
-  } catch (e) {
-    console.warn("[handlers_optin_bilan] detectAdaptiveFlow error:", e);
-    return defaultResult;
-  }
+  return defaultResult;
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN HANDLER

@@ -192,39 +192,14 @@ function candidateForActiveSkill(skillId: string): CandidatePatch | null {
   };
 }
 
-function normalizeHintText(value: unknown): string {
-  return String(value ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-function hasStatePotionHint(userMessage: unknown): boolean {
-  const text = normalizeHintText(userMessage);
-  return /\b(potion|changer d etat|change d etat|etat avec une potion|potion d etat)\b/
-    .test(text);
-}
-
 function addActiveSkillMessageHintCandidates(args: {
   byId: Map<string, CandidatePatch>;
   allowed: Set<string>;
   userMessage?: string | null;
 }): void {
-  if (
-    args.allowed.has("select_state_potion") &&
-    hasStatePotionHint(args.userMessage)
-  ) {
-    addCandidate(args.byId, {
-      id: "select_state_potion",
-      label: operationLabel("select_state_potion"),
-      operation_type: "select_state_potion",
-      evidence: ["user_message.state_potion_hint"],
-      source: "message_hint",
-      confidence_band: "medium",
-    });
-  }
+  void args.byId;
+  void args.allowed;
+  void args.userMessage;
 }
 
 function signalDetected(signal: unknown): boolean {
@@ -428,25 +403,6 @@ function collectCandidatesFromTurnFrame(
       evidence: ["turn_frame.skill_signals.entry"],
       source: "skill_signal",
       confidence_band: confidence,
-    });
-  }
-
-  const opportunity = turnFrame.tool_skill_opportunity;
-  if (
-    opportunity?.type !== "none" &&
-    opportunity.operation_type &&
-    (opportunity.should_offer ||
-      opportunity.confidence_band === "medium" ||
-      opportunity.confidence_band === "high")
-  ) {
-    addCandidate(byId, {
-      id: opportunity.operation_type,
-      label: operationLabel(opportunity.operation_type),
-      operation_type: opportunity.operation_type,
-      surface_id: opportunity.surface_id ?? null,
-      evidence: ["turn_frame.tool_skill_opportunity"],
-      source: "opportunity",
-      confidence_band: opportunity.confidence_band,
     });
   }
 

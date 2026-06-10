@@ -1,3 +1,5 @@
+import type { NoteInformation } from "../../contracts/note_information.v1.ts";
+
 export type ProductHelpIntent =
   | "explain_feature"
   | "how_to"
@@ -34,15 +36,6 @@ export type ProductHelpObjectType =
   | "initiative"
   | "unknown";
 
-export type ProductHelpConstraint =
-  | "non_mutating"
-  | "do_not_execute_tool"
-  | "do_not_claim_object_exists_without_source"
-  | "do_not_render_status_block"
-  | "preserve_active_flow"
-  | "short_reply"
-  | "exact_location_requested";
-
 export type ProductHelpBridgeOperationType =
   | "prepare_attack_card"
   | "prepare_defense_card"
@@ -61,8 +54,12 @@ export type ProductHelpLocalFlowAction =
   | "bridge_explanation_only"
   | "repeat_answer"
   | "apply_attempt"
+  | "inline_status_roundtrip"
+  | "inline_tool_return"
+  | "stop_local_no_handoff"
   | "close_product_help"
   | "return_to_parent_flow"
+  | "handoff_to_local_dispatcher"
   | "exit_to_global_dispatcher"
   | "safety_preempt";
 
@@ -75,15 +72,46 @@ export type ProductHelpVisibleTaskKind =
   | "bridge_explanation_only"
   | "repeat_answer"
   | "apply_attempt"
+  | "inline_tool_return"
+  | "stop_or_cancel"
+  | "exit_ack"
   | "close_product_help"
-  | "safety";
+  | "safety"
+  | "safety_transition";
+
+export type ProductHelpConversationContext = {
+  state_summary: string;
+  user_words: string[];
+  field_or_stage: string | null;
+  known_values: Record<string, unknown>;
+  missing_or_weak_values: string[];
+  selected_candidate: Record<string, unknown>;
+  handoff_data: Record<string, unknown>;
+  tone_constraints: string[];
+  do_not_say: string[];
+  context_summary: string | null;
+  evidence_used: string[];
+};
 
 export type ProductHelpLocalFlowState = {
   skill_id: "product_help";
-  status: "open" | "answered" | "closing" | "exit_to_global" | "safety";
+  status:
+    | "open"
+    | "answered"
+    | "closing"
+    | "stopped"
+    | "handoff"
+    | "exit_to_global"
+    | "safety";
   mode: "standalone";
   product_help_state: {
-    stage: "answering" | "clarifying" | "bridge_explained" | "closing";
+    stage:
+      | "answering"
+      | "clarifying"
+      | "bridge_explained"
+      | "status_inline"
+      | "handoff"
+      | "closing";
     last_intent: string | null;
     last_target: Record<string, unknown>;
     last_answer_summary: string | null;
@@ -137,6 +165,7 @@ export type ProductHelpLocalDispatcherOutput = {
   visible_task: {
     kind: ProductHelpVisibleTaskKind;
     instruction: string;
+    conversation_context: ProductHelpConversationContext;
   };
   return_to_parent: {
     needed: boolean;
@@ -179,126 +208,6 @@ export type ProductHelpLocalDispatcherOutput = {
       constraints: string[];
     };
   };
+  note_information: NoteInformation | null;
   evidence: string[];
 };
-
-export type ProductHelpDecision = {
-  skill_id: "product_help";
-  intent: ProductHelpIntent;
-  target: {
-    kind: ProductHelpTargetKind;
-    feature_id?: string;
-    object_type?: ProductHelpObjectType;
-    object_ref?: string;
-    confidence_band: "low" | "medium" | "high";
-  };
-  grounding: {
-    catalog_feature_ids: string[];
-    db_sources_required: boolean;
-    db_sources_used: Array<{
-      source_type:
-        | "recent_effect"
-        | "db_projection"
-        | "active_flow"
-        | "catalog";
-      id?: string;
-      label?: string;
-    }>;
-  };
-  bridge?: {
-    operation_type: ProductHelpBridgeOperationType;
-    bridge_kind: "explain_only" | "offer_with_consent" | "handoff_needed";
-    requires_confirmation: true;
-  };
-  constraints: ProductHelpConstraint[];
-  response_contract: {
-    max_questions: 0 | 1;
-    allow_operation_suggestion: boolean;
-    allow_status_projection: boolean;
-    allow_generic_catalog_answer: boolean;
-    must_include_location: boolean;
-    must_include_limit: boolean;
-  };
-  operation_suggestions: [];
-  reply: string;
-  state_patch: Record<string, unknown>;
-};
-
-export function baseProductHelpDecision(
-  patch: Omit<
-    Partial<ProductHelpDecision>,
-    "skill_id" | "operation_suggestions"
-  >,
-): ProductHelpDecision {
-  const decision = {
-    skill_id: "product_help",
-    intent: "unclear",
-    target: { kind: "unknown", confidence_band: "low" },
-    grounding: {
-      catalog_feature_ids: [],
-      db_sources_required: false,
-      db_sources_used: [],
-    },
-    constraints: [
-      "non_mutating",
-      "do_not_execute_tool",
-      "do_not_claim_object_exists_without_source",
-      "do_not_render_status_block",
-    ],
-    response_contract: {
-      max_questions: 0,
-      allow_operation_suggestion: false,
-      allow_status_projection: false,
-      allow_generic_catalog_answer: false,
-      must_include_location: false,
-      must_include_limit: false,
-    },
-    reply: "",
-    state_patch: {},
-    operation_suggestions: [],
-  } satisfies ProductHelpDecision;
-  return {
-    ...decision,
-    ...patch,
-    skill_id: "product_help",
-    intent: patch.intent ?? decision.intent,
-    operation_suggestions: [],
-  };
-}
-
-export function validateProductHelpDecision(
-  decision: ProductHelpDecision,
-): ProductHelpDecision {
-  const constraints = new Set<ProductHelpConstraint>(decision.constraints);
-  constraints.add("non_mutating");
-  constraints.add("do_not_execute_tool");
-  constraints.add("do_not_claim_object_exists_without_source");
-  constraints.add("do_not_render_status_block");
-
-  if (decision.bridge && decision.bridge.requires_confirmation !== true) {
-    throw new Error("product_help_bridge_requires_confirmation");
-  }
-
-  const target = (decision.target.kind === "user_object" ||
-      decision.target.kind === "recent_effect") &&
-      !decision.target.object_type
-    ? {
-      ...decision.target,
-      kind: "unknown" as const,
-      confidence_band: "low" as const,
-    }
-    : decision.target;
-
-  return {
-    ...decision,
-    target,
-    constraints: [...constraints],
-    response_contract: {
-      ...decision.response_contract,
-      allow_operation_suggestion: false,
-      allow_status_projection: false,
-    },
-    operation_suggestions: [],
-    state_patch: decision.state_patch ?? {},
-  };
-}

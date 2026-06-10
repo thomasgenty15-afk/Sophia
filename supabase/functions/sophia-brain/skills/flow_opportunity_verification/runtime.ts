@@ -8,21 +8,34 @@ import {
 } from "../../../_shared/gemini.ts";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
+import type { ConversationSkillOutput } from "../../contracts/skill_output.v1.ts";
 import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.ts";
+import {
+  createNoteInformation,
+  type NoteInformation,
+  noteInformationForTrace,
+} from "../../contracts/note_information.v1.ts";
 import { loadProductSurfaceRegistry } from "../../product_surface_registry/registry.ts";
 import { runProductHelpSkill } from "../product_help/skill.ts";
+import { runDemotivationRepairSkill } from "../demotivation_repair/skill.ts";
+import { runEmotionalRepairSkill } from "../emotional_repair/skill.ts";
 import { maybeRunStatusRecapRuntime } from "../status_recap/runtime.ts";
-import type { StatusRecapLocalDispatcher } from "../status_recap/local_flow.ts";
+import {
+  normalizeStatusRecapLocalDispatcherOutput,
+  type StatusRecapLocalDispatcher,
+} from "../status_recap/local_flow.ts";
 import type { StatusRecapObjectType } from "../status_recap/contract.ts";
 import { maybeRunUpdateCoachPreferencesOperation } from "../../tools/operations/update_coach_preferences/router.ts";
 import { maybeRunPrepareAttackCardOperation } from "../../tools/operations/prepare_attack_card/router.ts";
 import { maybeRunPrepareDefenseCardOperation } from "../../tools/operations/prepare_defense_card/router.ts";
+import { maybeRunCreateRecurringReminderOperation } from "../../tools/operations/create_recurring_reminder/router.ts";
 import type { runSafetyPregate } from "../../safety/safety_pregate.ts";
 import type {
   FlowOpportunityDispatcherOutput,
   FlowOpportunityLocalState,
   FlowOpportunityPayload,
   FlowOpportunityTargetFlow,
+  FlowOpportunityTargetKind,
 } from "./contract.ts";
 import {
   buildInitialOfferDispatcherOutput,
@@ -54,9 +67,15 @@ export type FlowOpportunityLocalDispatcherInput = {
   recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
   active_state: FlowOpportunityLocalState;
   initial_payload: FlowOpportunityPayload;
+  note_information_inbound?: NoteInformation | null;
+  db_context_pack?: Record<string, unknown>;
+  micro_memory_context?: Record<string, unknown>;
+  platform_context?: Record<string, unknown>;
   turn_frame: TurnFrame | null;
   route_decision: RouteDecision | null;
   safety: unknown;
+  channel: "web" | "whatsapp";
+  timezone: string;
 };
 
 export type FlowOpportunityLocalDispatcher = (
@@ -65,6 +84,7 @@ export type FlowOpportunityLocalDispatcher = (
 
 const SUPPORTED_TARGET_FLOWS = [
   "status_recap",
+  "product_help",
   "update_coach_preferences",
   "emotional_repair",
   "demotivation_repair",
@@ -73,6 +93,12 @@ const SUPPORTED_TARGET_FLOWS = [
   "select_state_potion",
   "create_recurring_reminder",
   "adjust_plan_item",
+];
+
+const SUPPORTED_TARGET_KINDS = [
+  "skill",
+  "tool_skill",
+  "direct_effect",
 ];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -112,6 +138,43 @@ function targetFlow(value: unknown): FlowOpportunityTargetFlow {
     : "unknown";
 }
 
+function targetKind(value: unknown): FlowOpportunityTargetKind {
+  const raw = stringValue(value);
+  return SUPPORTED_TARGET_KINDS.includes(raw)
+    ? raw as FlowOpportunityTargetKind
+    : "unknown";
+}
+
+function targetKindForFlow(
+  flow: FlowOpportunityTargetFlow,
+): FlowOpportunityTargetKind {
+  switch (flow) {
+    case "status_recap":
+    case "product_help":
+    case "emotional_repair":
+    case "demotivation_repair":
+      return "skill";
+    case "update_coach_preferences":
+    case "prepare_attack_card":
+    case "prepare_defense_card":
+    case "select_state_potion":
+    case "create_recurring_reminder":
+    case "adjust_plan_item":
+      return "tool_skill";
+    case "one_shot_reminder":
+      return "direct_effect";
+    default:
+      return "unknown";
+  }
+}
+
+function targetKindMatchesFlow(
+  kind: FlowOpportunityTargetKind,
+  flow: FlowOpportunityTargetFlow,
+): boolean {
+  return kind !== "unknown" && kind === targetKindForFlow(flow);
+}
+
 function recentMessagesFromHistory(history: unknown): Array<{
   role: "user" | "assistant";
   content: string;
@@ -128,20 +191,139 @@ function recentMessagesFromHistory(history: unknown): Array<{
     : [];
 }
 
-function emptyToolOpportunity() {
+type ConversationOpportunityTarget =
+  | "product_help"
+  | "emotional_repair"
+  | "demotivation_repair";
+
+type ConversationTargetFlowRunner = typeof runConversationTargetFlow;
+
+function conversationSkillReply(
+  output: ConversationSkillOutput | null,
+): string {
+  return String(output?.reply ?? output?.generated_user_message ?? "").trim();
+}
+
+function writeConversationSkillState(args: {
+  tempMemory: any;
+  skillId: ConversationOpportunityTarget;
+  output: ConversationSkillOutput | null;
+}): any {
+  const next = { ...(args.tempMemory ?? {}) };
+  const patch = args.output?.skill_id === args.skillId &&
+      args.output.state_patch &&
+      typeof args.output.state_patch === "object"
+    ? args.output.state_patch as Record<string, unknown>
+    : {};
+
+  if (
+    args.skillId === "product_help" &&
+    (!patch.product_help_local_state ||
+      ["closing", "exit_to_global", "safety"].includes(
+        String((patch.product_help_local_state as any)?.status ?? ""),
+      ))
+  ) {
+    delete next.__active_skill_state;
+    delete next.active_skill_state;
+    return next;
+  }
+
+  if (
+    !args.output || args.output.status === "complete" ||
+    args.output.status === "exit"
+  ) {
+    delete next.__active_skill_state;
+    delete next.active_skill_state;
+    return next;
+  }
+
+  const previous =
+    next.__active_skill_state && typeof next.__active_skill_state === "object"
+      ? next.__active_skill_state as Record<string, unknown>
+      : {};
+  const previousWorking =
+    previous.working_state && typeof previous.working_state === "object"
+      ? previous.working_state as Record<string, unknown>
+      : {};
+  const now = new Date().toISOString();
+  next.__active_skill_state = {
+    ...previous,
+    version: Number(previous.version ?? 1),
+    skill_id: args.skillId,
+    status: args.output.status === "handoff" ? "handoff" : "active",
+    turn_count: Number(previous.turn_count ?? 0) + 1,
+    started_at: typeof previous.started_at === "string"
+      ? previous.started_at
+      : now,
+    updated_at: now,
+    working_state: {
+      ...previousWorking,
+      ...patch,
+    },
+  };
+  delete next.active_skill_state;
+  return next;
+}
+
+async function runConversationTargetFlow(args: {
+  skillId: ConversationOpportunityTarget;
+  userId: string;
+  userMessage: string;
+  history?: unknown;
+  tempMemory: any;
+  turnFrame: TurnFrame;
+  targetContext: Record<string, unknown>;
+  noteInformation?: NoteInformation | null;
+}): Promise<OperationRuntimeResult | null> {
+  const registry = await loadProductSurfaceRegistry();
+  const input = {
+    user_message: args.userMessage,
+    context: {
+      skill_id: args.skillId,
+      user_id: args.userId,
+      recent_messages: recentMessagesFromHistory(args.history),
+      active_skill_working_state: null,
+      turn_frame: args.turnFrame,
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: registry.surfaces,
+      exclusions: [],
+      flow_opportunity_context: args.targetContext,
+      note_information: args.noteInformation ?? null,
+    } as any,
+    explicit_constraints: [],
+  };
+  const output = args.skillId === "product_help"
+    ? await runProductHelpSkill(input)
+    : args.skillId === "emotional_repair"
+    ? await runEmotionalRepairSkill(input)
+    : await runDemotivationRepairSkill(input);
+  const content = conversationSkillReply(output);
+  if (!content) return null;
   return {
-    type: "none" as const,
-    operation_type: null,
-    surface_id: null,
-    confidence_band: "low" as const,
-    should_offer: false,
-    prop_reason: null,
-    source_span: null,
-    target_hint: null,
-    target_status: "none" as const,
-    suggested_question_intent: null,
-    offer_timing: "never" as const,
-    must_not_execute: true as const,
+    content,
+    nextTempMemory: writeConversationSkillState({
+      tempMemory: args.tempMemory,
+      skillId: args.skillId,
+      output,
+    }),
+    toolExecution: "none",
+    executedTools: [],
+    toolSkillRun: {
+      selected_handler: args.skillId,
+      skill_id: args.skillId,
+      mode: "conversation_skill",
+      status: output.status,
+      response_intent: output.response_intent,
+      diagnosis: output.diagnosis ?? {},
+      requested_effects: output.effects?.requested ?? [],
+      allowed_effects: output.effects?.allowed ?? [],
+      committed_effects: output.effects?.committed ?? [],
+      blocked_effects: output.effects?.blocked ?? [],
+      note_information: args.noteInformation ?? null,
+      toolExecution: "none",
+      executedTools: [],
+    },
   };
 }
 
@@ -175,7 +357,7 @@ function syntheticLocalTurnFrame(args: {
     },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: emptyToolOpportunity(),
+    flow_opportunity: null,
     skill_signals: {},
     memory_plan: {
       context_need: "minimal",
@@ -192,11 +374,11 @@ function routeIsDirect(routeDecision: RouteDecision | null): boolean {
   if (routeDecision.response_owner === "safety") return true;
   if (routeDecision.response_owner === "product_help") return true;
   if (routeDecision.response_owner === "tool_skill") return true;
-  if (routeDecision.selected_handler === "status_only_no_mutation_check") {
+  if (routeDecision.response_owner === "conversation_handler") return true;
+  if (routeDecision.selected_handler === "status_recap") {
     return true;
   }
-  if (routeDecision.reason_code.includes("status_only")) return true;
-  return routeDecision.reason_code.includes("status_recap");
+  return false;
 }
 
 function hasExplicitToolIntent(turnFrame: TurnFrame | null): boolean {
@@ -214,8 +396,11 @@ function flowOpportunityFromCanonicalField(
   if (!isRecord(raw)) return null;
   const flow = targetFlow(raw.target_flow);
   if (flow === "unknown") return null;
+  const kind = targetKind(raw.target_kind);
+  if (!targetKindMatchesFlow(kind, flow)) return null;
   return {
     opportunity_id: stringValue(raw.opportunity_id) || `${flow}.opportunity`,
+    target_kind: kind,
     target_flow: flow,
     target_action: stringValue(raw.target_action) || `run_${flow}`,
     confidence: confidence(raw.confidence),
@@ -223,32 +408,6 @@ function flowOpportunityFromCanonicalField(
     reason: stringValue(raw.reason),
     evidence: stringArray(raw.evidence),
     seed_context: isRecord(raw.seed_context) ? raw.seed_context : {},
-  };
-}
-
-function flowOpportunityFromLegacyToolOpportunity(
-  turnFrame: TurnFrame | null,
-): FlowOpportunityPayload | null {
-  const opportunity = turnFrame?.tool_skill_opportunity;
-  if (!opportunity?.should_offer || !opportunity.operation_type) return null;
-  const flow = targetFlow(opportunity.operation_type);
-  if (flow === "unknown") return null;
-  return {
-    opportunity_id: `${flow}.${opportunity.type}`,
-    target_flow: flow,
-    target_action: `run_${flow}`,
-    confidence: confidence(opportunity.confidence_band),
-    priority: opportunity.confidence_band === "high" ? 80 : 60,
-    reason: opportunity.prop_reason ?? "structured opportunity",
-    evidence: [opportunity.source_span, opportunity.prop_reason].filter((
-      value,
-    ): value is string => typeof value === "string" && value.trim().length > 0),
-    seed_context: {
-      focus: opportunity.target_hint ? [opportunity.target_hint] : [],
-      surface: opportunity.surface_id,
-      target_hint: opportunity.target_hint,
-      legacy_tool_skill_opportunity: opportunity,
-    },
   };
 }
 
@@ -283,6 +442,7 @@ function flowOpportunityFromSkillSignal(
   if (!candidate) return null;
   return {
     opportunity_id: `${candidate.target_flow}.implicit_need`,
+    target_kind: "skill",
     target_flow: candidate.target_flow,
     target_action: `run_${candidate.target_flow}`,
     confidence: confidence(candidate.signal?.confidence_band),
@@ -309,7 +469,6 @@ export function selectFlowOpportunityForTurn(args: {
   if (routeIsDirect(args.routeDecision)) return null;
   if (hasExplicitToolIntent(args.turnFrame)) return null;
   return flowOpportunityFromCanonicalField(args.turnFrame) ??
-    flowOpportunityFromLegacyToolOpportunity(args.turnFrame) ??
     flowOpportunityFromSkillSignal(args.turnFrame);
 }
 
@@ -327,6 +486,17 @@ export async function runFlowOpportunityLocalDispatcher(
         subskill_history: input.active_state.subskill_history,
         supported_target_flows: SUPPORTED_TARGET_FLOWS,
         safety: input.safety,
+        note_information_inbound: input.note_information_inbound ?? null,
+        db_context_pack: input.db_context_pack ?? {},
+        micro_memory_context: input.micro_memory_context ?? {
+          items: [],
+          exclusions: ["not_loaded_by_default_for_verification_opportunities"],
+          budget: { max_items: 0, reason: "not useful by default" },
+        },
+        platform_context: input.platform_context ?? {},
+        risk_context: input.safety,
+        channel: input.channel,
+        timezone: input.timezone,
       }),
       0.2,
       true,
@@ -355,6 +525,7 @@ function initialPayloadFromState(
 ): FlowOpportunityPayload {
   return {
     opportunity_id: state.opportunity_id,
+    target_kind: state.target_kind,
     target_flow: state.target_flow,
     target_action: state.target_action,
     confidence: "high",
@@ -368,9 +539,6 @@ function initialPayloadFromState(
 async function renderVisible(args: {
   userId: string;
   requestId?: string | null;
-  userMessage: string;
-  history?: unknown;
-  state: FlowOpportunityLocalState | null;
   visibleTask: FlowOpportunityDispatcherOutput["visible_task"];
   visibleAgent?: FlowOpportunityVisibleAgent;
 }): Promise<string> {
@@ -379,10 +547,7 @@ async function renderVisible(args: {
     user_id: args.userId,
     request_id: args.requestId ?? null,
     stage: args.visibleTask.kind,
-    user_message: args.userMessage,
-    recent_messages: recentMessagesFromHistory(args.history),
-    local_state: args.state,
-    dispatcher_instruction: args.visibleTask.instruction,
+    conversation_context: args.visibleTask.conversation_context,
   }) ?? "";
 }
 
@@ -393,6 +558,7 @@ async function runInlineGetInfoProduct(args: {
   turnFrame: TurnFrame | null;
   state: FlowOpportunityLocalState;
   subskillContext: Record<string, unknown> | null;
+  noteInformation: NoteInformation | null;
   tempMemory: any;
 }): Promise<OperationRuntimeResult> {
   const registry = await loadProductSurfaceRegistry();
@@ -407,6 +573,7 @@ async function runInlineGetInfoProduct(args: {
       target_flow: args.state.target_flow,
       target_context: args.state.target_context,
       confirmation_anchor: args.state.confirmation_anchor,
+      note_information: args.noteInformation,
       preserve_active_flow: true,
       ...(args.subskillContext ?? {}),
     },
@@ -445,6 +612,7 @@ async function runInlineGetInfoProduct(args: {
         skill_output: skillOutput,
       },
       visible_task: { kind: "none" },
+      note_information: args.noteInformation,
       requested_effects: [],
       allowed_effects: [],
       committed_effects: [],
@@ -455,6 +623,7 @@ async function runInlineGetInfoProduct(args: {
         component: "flow_opportunity_verification",
         event: "get_info_product_called",
         preserve_active_flow: true,
+        note_information: noteInformationForTrace(args.noteInformation),
       }, {
         component: "flow_opportunity_verification",
         event: "get_info_product_returned_to_flow",
@@ -468,51 +637,51 @@ function statusRecapDispatcherForOpportunity(
   state: FlowOpportunityLocalState,
 ): StatusRecapLocalDispatcher {
   const objectTypes = statusRecapObjectsFromTargetContext(state.target_context);
-  return async () => ({
-    flow_action: "answer_object_status",
-    confidence: "high",
-    risk_score: 0,
-    status_intent: {
-      kind: "object_status",
-      summary: `flow opportunity accepted for ${state.target_flow}`,
-      requires_db_projection: true,
-      requires_effect_history: false,
-    },
-    target_objects: objectTypes,
-    read_scope: {
-      requested_categories: ["all"],
-      include_cancelled: false,
-      include_recent_failed_or_blocked_effects: false,
-      format: "compact",
-    },
-    state_updates: {
-      status: "active",
-      turn_count_increment: 1,
-      close_after_visible: true,
-    },
-    visible_task: {
-      kind: "object_status",
-      instruction: "Answer the accepted flow opportunity from DB projection.",
-    },
-    exit_memo: {
-      needed: false,
-      reason: "none",
-      user_intent_summary: null,
-      local_flow_context: {
-        skill_id: "status_recap",
-        last_intent: "object_status",
-        last_target_objects: objectTypes,
-        last_answer_summary: null,
-        last_projection_summary: null,
+  return async () =>
+    normalizeStatusRecapLocalDispatcherOutput({
+      flow_action: "answer_object_status",
+      confidence: "high",
+      risk_score: 0,
+      status_intent: {
+        kind: "object_status",
+        summary: `flow opportunity accepted for ${state.target_flow}`,
+        requires_db_projection: true,
+        requires_effect_history: false,
       },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: "unknown",
-        why: null,
-        constraints: [],
+      target_objects: objectTypes,
+      read_scope: {
+        requested_categories: ["all"],
+        include_cancelled: false,
+        include_recent_failed_or_blocked_effects: false,
+        format: "compact",
       },
-    },
-    evidence: state.origin.evidence,
-  });
+      state_updates: {
+        status: "active",
+        turn_count_increment: 1,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "object_status",
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        user_intent_summary: null,
+        local_flow_context: {
+          skill_id: "status_recap",
+          last_intent: "object_status",
+          last_target_objects: objectTypes,
+          last_answer_summary: null,
+          last_projection_summary: null,
+        },
+        handoff_hint_for_global_dispatcher: {
+          likely_intent: "unknown",
+          why: null,
+          constraints: [],
+        },
+      },
+      evidence: state.origin.evidence,
+    });
 }
 
 function statusRecapObjectsFromTargetContext(
@@ -552,6 +721,7 @@ async function runInlineGetInfoDb(args: {
   routeDecision: RouteDecision | null;
   state: FlowOpportunityLocalState;
   subskillContext: Record<string, unknown> | null;
+  noteInformation: NoteInformation | null;
   tempMemory: any;
   requestId?: string | null;
 }): Promise<OperationRuntimeResult> {
@@ -580,13 +750,13 @@ async function runInlineGetInfoDb(args: {
       target_flow: args.state.target_flow,
       target_context: args.state.target_context,
       confirmation_anchor: args.state.confirmation_anchor,
+      note_information: args.noteInformation,
       preserve_active_flow: true,
       ...(args.subskillContext ?? {}),
     },
   });
   return {
-    content: content ||
-      "Je n'arrive pas à lire cet état maintenant, donc je garde la proposition en cours.",
+    content,
     additionalContents: statusRuntime?.additionalContents,
     nextTempMemory: writeFlowOpportunityState(args.tempMemory, nextState),
     toolExecution: "none",
@@ -604,6 +774,7 @@ async function runInlineGetInfoDb(args: {
         skill_output: statusRuntime?.toolSkillRun ?? null,
       },
       visible_task: { kind: "none" },
+      note_information: args.noteInformation,
       requested_effects: [],
       allowed_effects: [],
       committed_effects: [],
@@ -614,6 +785,7 @@ async function runInlineGetInfoDb(args: {
         component: "flow_opportunity_verification",
         event: "get_info_db_called",
         preserve_active_flow: true,
+        note_information: noteInformationForTrace(args.noteInformation),
       }, {
         component: "flow_opportunity_verification",
         event: "get_info_db_returned_to_flow",
@@ -623,7 +795,7 @@ async function runInlineGetInfoDb(args: {
   };
 }
 
-async function launchTargetFlow(args: {
+async function handoffToTargetFlow(args: {
   supabase: SupabaseClient;
   userId: string;
   userMessage: string;
@@ -632,12 +804,16 @@ async function launchTargetFlow(args: {
   history?: unknown;
   tempMemory: any;
   state: FlowOpportunityLocalState;
+  noteInformation: NoteInformation | null;
   turnFrame: TurnFrame | null;
   safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
   sourceMessageId?: string | null;
   requestId?: string | null;
   runPrepareAttackCardOperation?: typeof maybeRunPrepareAttackCardOperation;
   runPrepareDefenseCardOperation?: typeof maybeRunPrepareDefenseCardOperation;
+  runCreateRecurringReminderOperation?:
+    typeof maybeRunCreateRecurringReminderOperation;
+  runConversationTargetFlow?: ConversationTargetFlowRunner;
 }): Promise<OperationRuntimeResult> {
   const clearedTempMemory = writeFlowOpportunityState(args.tempMemory, null);
   const localTurnFrame = syntheticLocalTurnFrame({
@@ -647,22 +823,23 @@ async function launchTargetFlow(args: {
     sourceMessageId: args.sourceMessageId ?? null,
     safetyPregateOutput: args.safetyPregateOutput,
   });
+  localTurnFrame.note_information = args.noteInformation ?? undefined;
   const targetRoute: RouteDecision = {
     route_version: "v1",
     response_owner: args.state.target_flow === "status_recap"
-      ? "normal_reply"
+      ? "conversation_handler"
       : "tool_skill",
     selected_handler: args.state.target_flow === "status_recap"
-      ? "status_only_no_mutation_check"
+      ? "status_recap"
       : args.state.target_flow,
     direct_effects_to_run: [],
     blocked_paths: [],
-    reason_code: "flow_opportunity_verification_target_flow_launched",
+    reason_code: "flow_opportunity_verification_handoff_to_local_flow",
     memory_used_for_route: false,
     memory_item_ids_used_for_route: [],
     memory_use_kind: "none",
   };
-  const launched = args.state.target_flow === "status_recap"
+  const handoffResult = args.state.target_flow === "status_recap"
     ? await maybeRunStatusRecapRuntime({
       supabase: args.supabase,
       userId: args.userId,
@@ -686,6 +863,7 @@ async function launchTargetFlow(args: {
       tempMemory: clearedTempMemory,
       turnFrame: {
         ...localTurnFrame,
+        note_information: args.noteInformation ?? undefined,
         tool_skill_intents: [{
           operation_type: "update_coach_preferences",
           explicitness: "explicit",
@@ -703,6 +881,19 @@ async function launchTargetFlow(args: {
       requestId: args.requestId ?? null,
       history: args.history,
     })
+    : args.state.target_flow === "product_help" ||
+        args.state.target_flow === "emotional_repair" ||
+        args.state.target_flow === "demotivation_repair"
+    ? await (args.runConversationTargetFlow ?? runConversationTargetFlow)({
+      skillId: args.state.target_flow,
+      userId: args.userId,
+      userMessage: args.userMessage,
+      history: args.history,
+      tempMemory: clearedTempMemory,
+      turnFrame: localTurnFrame,
+      targetContext: args.state.target_context,
+      noteInformation: args.noteInformation,
+    })
     : args.state.target_flow === "prepare_attack_card"
     ? await (args.runPrepareAttackCardOperation ??
       maybeRunPrepareAttackCardOperation)({
@@ -714,6 +905,7 @@ async function launchTargetFlow(args: {
         tempMemory: clearedTempMemory,
         turnFrame: {
           ...localTurnFrame,
+          note_information: args.noteInformation ?? undefined,
           tool_skill_intents: [{
             operation_type: "prepare_attack_card",
             explicitness: "explicit",
@@ -742,6 +934,7 @@ async function launchTargetFlow(args: {
         tempMemory: clearedTempMemory,
         turnFrame: {
           ...localTurnFrame,
+          note_information: args.noteInformation ?? undefined,
           tool_skill_intents: [{
             operation_type: "prepare_defense_card",
             explicitness: "explicit",
@@ -759,24 +952,53 @@ async function launchTargetFlow(args: {
         requestId: args.requestId ?? null,
         history: args.history,
       })
+    : args.state.target_flow === "create_recurring_reminder"
+    ? await (args.runCreateRecurringReminderOperation ??
+      maybeRunCreateRecurringReminderOperation)({
+        supabase: args.supabase,
+        userId: args.userId,
+        userMessage: args.userMessage,
+        channel: args.channel,
+        userTimezone: args.userTimezone,
+        tempMemory: clearedTempMemory,
+        turnFrame: {
+          ...localTurnFrame,
+          note_information: args.noteInformation ?? undefined,
+          tool_skill_intents: [{
+            operation_type: "create_recurring_reminder",
+            explicitness: "explicit",
+            target_hint: stringValue(args.state.target_context.target_hint) ||
+              args.state.target_action,
+            operation_input: args.state.target_context,
+            confidence_band: "high",
+            ambiguity: "none",
+            user_intent: "create",
+          }],
+        },
+        routeDecision: targetRoute,
+        safetyPregateOutput: args.safetyPregateOutput,
+        sourceMessageId: args.sourceMessageId ?? null,
+        requestId: args.requestId ?? null,
+        history: args.history,
+      })
     : null;
-  if (launched) {
+  if (handoffResult) {
     return {
-      ...launched,
+      ...handoffResult,
       nextTempMemory: writeFlowOpportunityState(
-        launched.nextTempMemory ?? clearedTempMemory,
+        handoffResult.nextTempMemory ?? clearedTempMemory,
         null,
       ),
       toolSkillRun: {
-        ...launched.toolSkillRun,
-        launched_by: "flow_opportunity_verification",
+        ...handoffResult.toolSkillRun,
+        handoff_source_flow: "flow_opportunity_verification",
         original_opportunity_id: args.state.opportunity_id,
+        note_information: args.noteInformation,
       },
     };
   }
   return {
-    content:
-      "Je garde l'idée, mais je n'arrive pas à lancer le flow cible correctement sur ce tour.",
+    content: "",
     nextTempMemory: clearedTempMemory,
     toolExecution: "blocked",
     executedTools: [],
@@ -784,19 +1006,91 @@ async function launchTargetFlow(args: {
       selected_handler: "flow_opportunity_verification",
       skill_id: "flow_opportunity_verification",
       status: "blocked",
-      reason_code: "flow_opportunity_verification_target_flow_launch_failed",
+      reason_code: "flow_opportunity_verification_target_flow_handoff_failed",
       target_flow: args.state.target_flow,
       requested_effects: [],
       allowed_effects: [],
       committed_effects: [],
       blocked_effects: [{
         type: "target_flow",
-        reason_code: "target_flow_launch_failed",
+        reason_code: "target_flow_handoff_failed",
       }],
       toolExecution: "blocked",
       executedTools: [],
     },
   };
+}
+
+function dbContextPackForFlowOpportunity(args: {
+  opportunity: FlowOpportunityPayload;
+  previous: FlowOpportunityLocalState | null;
+  supportedTargetFlows: string[];
+}): Record<string, unknown> {
+  return {
+    source: "flow_opportunity_verification.runtime",
+    freshness: "same_turn",
+    confidence: args.opportunity.confidence,
+    status: "dispatcher_selected",
+    opportunity: args.opportunity,
+    active_flow_state: args.previous
+      ? {
+        status: args.previous.status,
+        opportunity_id: args.previous.opportunity_id,
+        target_kind: args.previous.target_kind,
+        target_flow: args.previous.target_flow,
+        target_context: args.previous.target_context,
+        confirmation_anchor: args.previous.confirmation_anchor,
+        subskill_history: args.previous.subskill_history,
+        turn_count: args.previous.turn_count,
+        max_turns: args.previous.max_turns,
+      }
+      : null,
+    supported_target_flows: args.supportedTargetFlows,
+    available_inline_tools: ["product_help", "status_recap"],
+    micro_memory_policy: {
+      loaded: false,
+      reason:
+        "verification_opportunities does not load micro_memory_context by default",
+      max_items: 0,
+    },
+  };
+}
+
+function initialActivationNote(args: {
+  opportunity: FlowOpportunityPayload;
+  userMessage: string;
+}): NoteInformation {
+  return createNoteInformation({
+    source_flow_id: "global_dispatcher",
+    source_flow_presentation:
+      "Global dispatcher selected an implicit opportunity and delegated verification to the local flow.",
+    source_flow_state_summary:
+      `Opportunity ${args.opportunity.opportunity_id}; target=${args.opportunity.target_flow}; confidence=${args.opportunity.confidence}.`,
+    handoff_reason: "bridge",
+    target_dispatcher: "verification_opportunities",
+    handoff_context_for_next_dispatcher: args.opportunity.reason ||
+      "Verify an implicit opportunity before handoff to the target dispatcher.",
+    target_local_dispatcher_hint:
+      "Offer the selected opportunity without repicking all flows.",
+    user_words: [args.userMessage, ...args.opportunity.evidence].filter(
+      Boolean,
+    ),
+    structured_context: {
+      opportunity_id: args.opportunity.opportunity_id,
+      target_kind: args.opportunity.target_kind,
+      target_flow: args.opportunity.target_flow,
+      target_action: args.opportunity.target_action,
+      target_context: args.opportunity.seed_context,
+      confidence: args.opportunity.confidence,
+      priority: args.opportunity.priority,
+      evidence: args.opportunity.evidence,
+      recommended_next_focus:
+        stringValue(args.opportunity.seed_context.user_need) ||
+        stringValue(args.opportunity.seed_context.target_hint) ||
+        args.opportunity.target_flow,
+    },
+    risk_score: 0,
+  });
 }
 
 export async function maybeRunFlowOpportunityVerificationRuntime(args: {
@@ -816,6 +1110,9 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
   runVisibleAgent?: FlowOpportunityVisibleAgent;
   runPrepareAttackCardOperation?: typeof maybeRunPrepareAttackCardOperation;
   runPrepareDefenseCardOperation?: typeof maybeRunPrepareDefenseCardOperation;
+  runCreateRecurringReminderOperation?:
+    typeof maybeRunCreateRecurringReminderOperation;
+  runConversationTargetFlow?: ConversationTargetFlowRunner;
 }): Promise<OperationRuntimeResult | null> {
   if (String(args.safetyPregateOutput.risk_band ?? "none") === "critical") {
     return null;
@@ -833,7 +1130,19 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
   console.info("[FlowOpportunityVerification] global_opportunity_selected", {
     active_flow: Boolean(previous),
     opportunity_id: selectedOpportunity.opportunity_id,
+    target_kind: selectedOpportunity.target_kind,
     target_flow: selectedOpportunity.target_flow,
+  });
+
+  const inboundNote = (args.turnFrame as any)?.note_information ??
+    (previous ? null : initialActivationNote({
+      opportunity: selectedOpportunity,
+      userMessage: args.userMessage,
+    }));
+  const dbContextPack = dbContextPackForFlowOpportunity({
+    opportunity: selectedOpportunity,
+    previous,
+    supportedTargetFlows: SUPPORTED_TARGET_FLOWS,
   });
 
   const decision = previous
@@ -844,12 +1153,29 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       recent_messages: recentMessagesFromHistory(args.history),
       active_state: previous,
       initial_payload: selectedOpportunity,
+      note_information_inbound: inboundNote,
+      db_context_pack: dbContextPack,
+      micro_memory_context: {
+        items: [],
+        exclusions: [
+          "micro_memory_context_not_loaded_by_default_for_verification_opportunities",
+        ],
+        budget: {
+          max_items: 0,
+          reason:
+            "verification_opportunities should not load micro memory by default",
+        },
+      },
+      platform_context: { channel: args.channel, timezone: args.userTimezone },
       turn_frame: args.turnFrame,
       route_decision: args.routeDecision,
       safety: args.safetyPregateOutput,
+      channel: args.channel,
+      timezone: args.userTimezone,
     })
     : buildInitialOfferDispatcherOutput({
       opportunity_id: selectedOpportunity.opportunity_id,
+      target_kind: selectedOpportunity.target_kind,
       target_flow: selectedOpportunity.target_flow,
       target_action: selectedOpportunity.target_action,
       target_context: targetContextFromSeed(selectedOpportunity.seed_context),
@@ -858,8 +1184,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
     });
   if (!decision) {
     return {
-      content:
-        "Je n'arrive pas à vérifier cette proposition correctement, donc je ne la lance pas.",
+      content: "",
       nextTempMemory: args.tempMemory,
       toolExecution: "blocked",
       executedTools: [],
@@ -881,8 +1206,8 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
     };
   }
 
-  console.info("[FlowOpportunityVerification] local_action", {
-    local_action: decision.local_action,
+  console.info("[FlowOpportunityVerification] local_dispatcher_result", {
+    flow_action: decision.flow_action,
     visible_task: decision.visible_task.kind,
     target_flow: decision.opportunity.target_flow,
   });
@@ -895,11 +1220,13 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
   if (reduced.exit_to_global_dispatcher) {
     const exitMemo = {
       ...reduced.exit_memo,
+      note_information: reduced.note_information,
       at: new Date().toISOString(),
       reducer_reason_code: reduced.reason_code,
     };
     console.info("[FlowOpportunityVerification] exit_to_global_dispatcher", {
       exit_memo: exitMemo,
+      note_information: noteInformationForTrace(reduced.note_information),
     });
     return {
       content: "",
@@ -914,11 +1241,51 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
         skill_id: "flow_opportunity_verification",
         status: "exit",
         reason_code: "flow_opportunity_verification_exit_to_global_dispatcher",
+        flow_action: "exit_to_global_dispatcher",
         exit_memo: exitMemo,
+        note_information: reduced.note_information,
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
         blocked_effects: [],
+        toolExecution: "none",
+        executedTools: [],
+      },
+    };
+  }
+  if (reduced.safety_preempt) {
+    const safetyMemo = {
+      ...reduced.exit_memo,
+      needed: true,
+      reason: "safety",
+      note_information: reduced.note_information,
+      at: new Date().toISOString(),
+      reducer_reason_code: reduced.reason_code,
+    };
+    console.info("[FlowOpportunityVerification] safety_preempt", {
+      note_information: noteInformationForTrace(reduced.note_information),
+    });
+    return {
+      content: "",
+      nextTempMemory: {
+        ...writeFlowOpportunityState(args.tempMemory, null),
+        [FLOW_OPPORTUNITY_EXIT_MEMO_KEY]: safetyMemo,
+      },
+      toolExecution: "none",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "flow_opportunity_verification",
+        skill_id: "flow_opportunity_verification",
+        status: "exit",
+        reason_code: "flow_opportunity_verification_safety_preempt",
+        flow_action: "safety_preempt",
+        exit_memo: safetyMemo,
+        note_information: reduced.note_information,
+        visible_task: reduced.visible_task,
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: reduced.blocked_effects,
         toolExecution: "none",
         executedTools: [],
       },
@@ -936,6 +1303,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       turnFrame: args.turnFrame,
       state: reduced.local_state,
       subskillContext: reduced.subskill_context,
+      noteInformation: reduced.note_information,
       tempMemory: args.tempMemory,
     });
   }
@@ -954,16 +1322,17 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       routeDecision: args.routeDecision,
       state: reduced.local_state,
       subskillContext: reduced.subskill_context,
+      noteInformation: reduced.note_information,
       tempMemory: args.tempMemory,
       requestId: args.requestId ?? null,
     });
   }
-  if (reduced.launch_target_flow && previous) {
-    console.info("[FlowOpportunityVerification] target_flow_launched", {
+  if (reduced.handoff_to_local_flow && previous) {
+    console.info("[FlowOpportunityVerification] handoff_to_local_flow", {
       opportunity_id: previous.opportunity_id,
       target_flow: previous.target_flow,
     });
-    return await launchTargetFlow({
+    return await handoffToTargetFlow({
       supabase: args.supabase,
       userId: args.userId,
       userMessage: args.userMessage,
@@ -972,22 +1341,23 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       history: args.history,
       tempMemory: args.tempMemory,
       state: previous,
+      noteInformation: reduced.note_information,
       turnFrame: args.turnFrame,
       safetyPregateOutput: args.safetyPregateOutput,
       sourceMessageId: args.sourceMessageId ?? null,
       requestId: args.requestId ?? null,
       runPrepareAttackCardOperation: args.runPrepareAttackCardOperation,
       runPrepareDefenseCardOperation: args.runPrepareDefenseCardOperation,
+      runCreateRecurringReminderOperation:
+        args.runCreateRecurringReminderOperation,
+      runConversationTargetFlow: args.runConversationTargetFlow,
     });
   }
 
   const content = await renderVisible({
     userId: args.userId,
     requestId: args.requestId ?? null,
-    userMessage: args.userMessage,
-    history: args.history,
-    state: reduced.local_state,
-    visibleTask: decision.visible_task,
+    visibleTask: reduced.visible_task,
     visibleAgent: args.runVisibleAgent,
   });
   const nextTempMemory = writeFlowOpportunityState(
@@ -995,10 +1365,11 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
     reduced.local_state,
   );
   console.info("[FlowOpportunityVerification] visible_task.kind", {
-    kind: decision.visible_task.kind,
+    kind: reduced.visible_task.kind,
     confirmation_anchor_present: Boolean(
       reduced.local_state?.confirmation_anchor,
     ),
+    note_information: noteInformationForTrace(reduced.note_information),
   });
   return {
     content,
@@ -1011,8 +1382,12 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       mode: "local_verification_flow",
       status: reduced.status,
       reason_code: reduced.reason_code,
-      flow_action: decision.local_action,
-      visible_task: decision.visible_task,
+      flow_action: reduced.flow_action,
+      visible_task: reduced.visible_task,
+      note_information: reduced.note_information,
+      note_information_inbound: inboundNote,
+      db_context_pack_loaded: true,
+      micro_memory_context_loaded: false,
       target_flow: reduced.target_flow,
       target_flow_input: reduced.target_flow_input,
       local_flow_state: reduced.local_state,
@@ -1028,6 +1403,18 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
         component: "flow_opportunity_verification",
         event: previous ? "local_dispatcher_called" : "local_state_created",
         global_dispatcher_skipped_due_active_flow: Boolean(previous),
+        db_context_pack_loaded: true,
+        micro_memory_context_loaded: false,
+        note_information_consumed: noteInformationForTrace(inboundNote),
+      }, {
+        component: "flow_opportunity_verification",
+        event: "local_dispatcher_result",
+        flow_action: reduced.flow_action,
+        visible_task_kind: reduced.visible_task.kind,
+        risk_score: decision.risk_score,
+        note_information_created: noteInformationForTrace(
+          reduced.note_information,
+        ),
       }, {
         component: "flow_opportunity_verification",
         event: "write_blocked_no_mutation_owner",

@@ -1,5 +1,6 @@
 import type { RecurringReminderDraftV1 } from "./generator.ts";
 import type { RecurringReminderIntakeState } from "./intake.ts";
+import type { NoteInformation } from "../../../contracts/note_information.v1.ts";
 
 export type CreateRecurringReminderUserIntent =
   | "start"
@@ -79,32 +80,39 @@ export type CreateRecurringReminderVisibleTaskKind =
   | "platform_destination_followup"
   | "apply_attempt"
   | "handoff_to_one_shot"
+  | "inline_tool_return"
   | "stop_or_cancel"
   | "exit_ack"
-  | "safety";
+  | "safety"
+  | "contract_recovery";
 
-export type CreateRecurringReminderNoteInformation = {
-  needed: boolean;
-  source_flow_id: "create_recurring_reminder";
-  source_flow_presentation: string;
-  handoff_reason:
-    | "topic_change"
-    | "safety"
-    | "inline_tool"
-    | "one_shot_boundary"
-    | "flow_interruption"
-    | "none";
-  target_dispatcher:
-    | "global"
-    | "safety_crisis"
-    | "one_shot_reminder"
-    | "product_help"
-    | "status_recap"
-    | null;
-  handoff_context_for_next_dispatcher: string | null;
-  target_local_dispatcher_hint: string | null;
-  structured_context: Record<string, unknown>;
-};
+export type CreateRecurringReminderNoteInformation =
+  & Omit<
+    NoteInformation,
+    | "source_flow_id"
+    | "handoff_reason"
+    | "target_dispatcher"
+    | "handoff_context_for_next_dispatcher"
+  >
+  & {
+    needed: boolean;
+    source_flow_id: "create_recurring_reminder";
+    handoff_reason:
+      | "topic_change"
+      | "safety"
+      | "inline_tool"
+      | "one_shot_boundary"
+      | "flow_interruption"
+      | "none";
+    target_dispatcher:
+      | "global"
+      | "safety_crisis"
+      | "one_shot_reminder"
+      | "product_help"
+      | "status_recap"
+      | null;
+    handoff_context_for_next_dispatcher: string | null;
+  };
 
 export type CreateRecurringReminderFieldStatus =
   | "missing"
@@ -139,7 +147,12 @@ export type CreateRecurringReminderLocalFields = {
     status: CreateRecurringReminderFieldStatus;
     value: "base_de_vie" | "current_plan" | null;
     related_plan_item_id: string | null;
-    target_kind: "none" | "transformation" | "plan_item" | "action_family" | null;
+    target_kind:
+      | "none"
+      | "transformation"
+      | "plan_item"
+      | "action_family"
+      | null;
     target_plan_item_id: string | null;
     target_action_family_key: string | null;
     target_generated_temp_id: string | null;
@@ -160,17 +173,27 @@ export type CreateRecurringReminderLocalFields = {
   };
 };
 
+export type CreateRecurringReminderConversationContext = {
+  source_flow: "create_recurring_reminder";
+  stage_goal: string;
+  current_user_message_summary: string | null;
+  active_flow_summary: string;
+  collected_state: Record<string, unknown>;
+  known_values: Record<string, unknown>;
+  missing_or_weak_values: string[];
+  question_to_ask: string | null;
+  handoff: Record<string, unknown>;
+  inline_tool_result: Record<string, unknown> | null;
+  note_information_summary: Record<string, unknown> | null;
+  unresolved_questions: string[];
+  evidence_used: string[];
+  tone_constraints: string[];
+  do_not_say: string[];
+};
+
 export type CreateRecurringReminderVisibleTask = {
   kind: CreateRecurringReminderVisibleTaskKind;
-  required_data: {
-    recurring_summary: string;
-    cadence_summary: string | null;
-    time_summary: string | null;
-    content_summary: string | null;
-    platform_destination: string | null;
-    missing_field: string | null;
-    revised_value_summary: string | null;
-  };
+  conversation_context: CreateRecurringReminderConversationContext;
 };
 
 export type CreateRecurringReminderLocalDispatcherOutput = {

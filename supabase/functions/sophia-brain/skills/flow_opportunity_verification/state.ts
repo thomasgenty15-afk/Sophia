@@ -3,6 +3,7 @@ import type {
   FlowOpportunityLocalState,
   FlowOpportunityPayload,
   FlowOpportunityTargetFlow,
+  FlowOpportunityTargetKind,
 } from "./contract.ts";
 
 export const FLOW_OPPORTUNITY_STATE_KEY =
@@ -24,6 +25,29 @@ function stringArray(value: unknown, max = 10): string[] {
     : [];
 }
 
+function targetKindForFlow(
+  targetFlow: FlowOpportunityTargetFlow,
+): FlowOpportunityTargetKind {
+  switch (targetFlow) {
+    case "status_recap":
+    case "product_help":
+    case "emotional_repair":
+    case "demotivation_repair":
+      return "skill";
+    case "update_coach_preferences":
+    case "prepare_attack_card":
+    case "prepare_defense_card":
+    case "select_state_potion":
+    case "create_recurring_reminder":
+    case "adjust_plan_item":
+      return "tool_skill";
+    case "one_shot_reminder":
+      return "direct_effect";
+    default:
+      return "unknown";
+  }
+}
+
 export function targetContextFromSeed(
   seedContext: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -37,14 +61,16 @@ export function targetContextFromSeed(
 }
 
 export function createConfirmationAnchor(args: {
+  targetKind: FlowOpportunityTargetKind;
   targetFlow: FlowOpportunityTargetFlow;
   targetContext: Record<string, unknown>;
 }): FlowOpportunityConfirmationAnchor {
   const focus = stringArray(args.targetContext.focus).join(", ");
   return {
-    meaning: `accept target_flow ${args.targetFlow}${
+    meaning: `accept ${args.targetKind} target_flow ${args.targetFlow}${
       focus ? ` with focus ${focus}` : ""
     }`,
+    target_kind: args.targetKind,
     target_flow: args.targetFlow,
     target_context: args.targetContext,
     must_not_reinterpret_acceptance_as: [
@@ -69,17 +95,21 @@ export function createFlowOpportunityState(args: {
     mode: "local_verification_flow",
     status: args.status ?? "waiting_confirmation",
     opportunity_id: args.opportunity.opportunity_id,
+    target_kind: args.opportunity.target_kind,
     target_flow: args.opportunity.target_flow,
     target_action: args.opportunity.target_action ??
       `run_${args.opportunity.target_flow}`,
     target_context: targetContext,
     origin: {
-      user_message: args.userMessage,
-      evidence: args.opportunity.evidence,
+      user_message: args.previous?.origin.user_message ?? args.userMessage,
+      evidence: args.previous?.origin.evidence.length
+        ? args.previous.origin.evidence
+        : args.opportunity.evidence,
       created_at: args.previous?.origin.created_at ?? now,
     },
     confirmation_anchor: args.previous?.confirmation_anchor ??
       createConfirmationAnchor({
+        targetKind: args.opportunity.target_kind,
         targetFlow: args.opportunity.target_flow,
         targetContext,
       }),
@@ -99,8 +129,7 @@ export function readFlowOpportunityState(
   tempMemory: unknown,
 ): FlowOpportunityLocalState | null {
   const temp = isRecord(tempMemory) ? tempMemory : {};
-  const raw = temp[FLOW_OPPORTUNITY_STATE_KEY] ?? temp.__active_skill_state ??
-    temp.active_skill_state;
+  const raw = temp[FLOW_OPPORTUNITY_STATE_KEY];
   if (!isRecord(raw)) return null;
   if (raw.skill_id !== "flow_opportunity_verification") return null;
   if (raw.mode !== "local_verification_flow") return null;
@@ -108,7 +137,18 @@ export function readFlowOpportunityState(
     return null;
   }
   if (!isRecord(raw.confirmation_anchor)) return null;
-  return raw as FlowOpportunityLocalState;
+  const targetFlow = stringValue(raw.target_flow) as FlowOpportunityTargetFlow;
+  return {
+    ...raw,
+    target_kind: stringValue(raw.target_kind) ||
+      targetKindForFlow(targetFlow),
+    confirmation_anchor: {
+      ...raw.confirmation_anchor,
+      target_kind: stringValue((raw.confirmation_anchor as any).target_kind) ||
+        stringValue(raw.target_kind) ||
+        targetKindForFlow(targetFlow),
+    },
+  } as FlowOpportunityLocalState;
 }
 
 export function hasActiveFlowOpportunityState(tempMemory: unknown): boolean {
@@ -126,8 +166,6 @@ export function writeFlowOpportunityState(
   const next = { ...((tempMemory ?? {}) as Record<string, unknown>) };
   if (state) {
     next[FLOW_OPPORTUNITY_STATE_KEY] = state;
-    next.__active_skill_state = state;
-    next.active_skill_state = state;
   } else {
     delete next[FLOW_OPPORTUNITY_STATE_KEY];
     const active = next.__active_skill_state;
@@ -136,9 +174,10 @@ export function writeFlowOpportunityState(
     ) {
       delete next.__active_skill_state;
     }
-    const legacy = next.active_skill_state;
+    const activeSkillAlias = next.active_skill_state;
     if (
-      isRecord(legacy) && legacy.skill_id === "flow_opportunity_verification"
+      isRecord(activeSkillAlias) &&
+      activeSkillAlias.skill_id === "flow_opportunity_verification"
     ) {
       delete next.active_skill_state;
     }
@@ -154,6 +193,8 @@ export function appendGetInfoHistory(args: {
   context: Record<string, unknown>;
 }): FlowOpportunityLocalState {
   const now = new Date().toISOString();
+  const recent = args.state.recent_user_messages;
+  const alreadyRecorded = recent[recent.length - 1] === args.userMessage;
   return {
     ...args.state,
     status: "waiting_confirmation",
@@ -167,11 +208,13 @@ export function appendGetInfoHistory(args: {
         at: now,
       },
     ].slice(-8),
-    recent_user_messages: [
-      ...args.state.recent_user_messages,
-      args.userMessage,
-    ].filter(Boolean).slice(-5),
-    turn_count: Math.max(1, Number(args.state.turn_count ?? 0) + 1),
+    recent_user_messages: alreadyRecorded
+      ? recent
+      : [...recent, args.userMessage].filter(Boolean).slice(-5),
+    turn_count: Math.max(
+      1,
+      Number(args.state.turn_count ?? 0) + (alreadyRecorded ? 0 : 1),
+    ),
     confirmation_anchor: args.state.confirmation_anchor,
     updated_at: now,
   };

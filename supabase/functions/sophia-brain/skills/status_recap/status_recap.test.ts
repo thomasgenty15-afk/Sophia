@@ -1,26 +1,32 @@
 import {
   assert,
   assertEquals,
-  assertStringIncludes,
-} from "https://deno.land/std@0.208.0/assert/mod.ts";
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
-import type {
-  StatusRecapLocalDispatcherOutput,
-  StatusRecapProjection,
-} from "./contract.ts";
-import { emptyStatusRecapProjection } from "./projection.ts";
-import { decideStatusRecap } from "./reducer.ts";
-import { renderStatusRecapDecision } from "./renderer.ts";
-import { maybeRunStatusRecapRuntime as maybeRunStatusRecapRuntimeReal } from "./runtime.ts";
+import type { StatusRecapLocalDispatcherOutput } from "./contract.ts";
+import { maybeRunStatusRecapRuntime } from "./runtime.ts";
+import type { StatusRecapVisibleAgentInput } from "./visible_agent.ts";
+
+type AssertNever<T extends never> = T;
+type _StatusRecapVisibleInputHasNoLegacyFields = AssertNever<
+  Extract<
+    keyof StatusRecapVisibleAgentInput,
+    | "user_message"
+    | "recent_messages"
+    | "local_state"
+    | "draft"
+    | "dispatcher_instruction"
+  >
+>;
 
 function statusRoute(): RouteDecision {
   return {
     route_version: "v1",
-    response_owner: "normal_reply",
-    selected_handler: "status_only_no_mutation_check",
+    response_owner: "conversation_handler",
+    selected_handler: "status_recap",
     blocked_paths: [],
     direct_effects_to_run: [],
-    reason_code: "status_only_request_blocks_tool_start",
+    reason_code: "skill_entry_signal",
     memory_used_for_route: false,
     memory_item_ids_used_for_route: [],
     memory_use_kind: "none",
@@ -161,236 +167,185 @@ function richTables(): Record<string, Array<Record<string, unknown>>> {
   };
 }
 
-function testStatusDispatcher(action = "answer_status") {
-  return async (): Promise<StatusRecapLocalDispatcherOutput> => ({
-    flow_action: action as any,
-    confidence: "high" as const,
+function decision(
+  patch: Partial<StatusRecapLocalDispatcherOutput> = {},
+): StatusRecapLocalDispatcherOutput {
+  return {
+    flow_action: "answer_status",
+    confidence: "high",
     risk_score: 0,
     status_intent: {
-      kind:
-        (action === "answer_fait_prevu_fragile"
-          ? "fait_prevu_fragile"
-          : "durable_status") as StatusRecapLocalDispatcherOutput[
-            "status_intent"
-          ]["kind"],
-      summary: "test status recap",
+      kind: "durable_status",
+      summary: "status recap",
       requires_db_projection: true,
-      requires_effect_history: action === "answer_recent_effects",
+      requires_effect_history: false,
     },
-    target_objects: ["unknown" as const],
+    target_objects: ["unknown"],
     read_scope: {
-      requested_categories: ["all" as const],
-      include_cancelled: action === "answer_cancelled_objects",
-      include_recent_failed_or_blocked_effects:
-        action === "answer_recent_effects",
-      format: action === "answer_fait_prevu_fragile"
-        ? "fait_prevu_fragile" as const
-        : "compact" as const,
+      requested_categories: ["all"],
+      include_cancelled: false,
+      include_recent_failed_or_blocked_effects: false,
+      format: "compact",
     },
     state_updates: {
-      status: "active" as const,
+      status: "active",
       turn_count_increment: 1,
       close_after_visible: false,
     },
     visible_task: {
-      kind: action === "answer_fait_prevu_fragile"
-        ? "fait_prevu_fragile" as const
-        : "status_compact" as const,
-      instruction: "test",
+      kind: "status_compact",
+      instruction: "answer from conversation_context only",
     },
     exit_memo: {
       needed: false,
-      reason: "none" as const,
+      reason: "none",
       user_intent_summary: null,
       local_flow_context: {
-        skill_id: "status_recap" as const,
+        skill_id: "status_recap",
         last_intent: null,
         last_target_objects: [],
         last_answer_summary: null,
         last_projection_summary: null,
       },
       handoff_hint_for_global_dispatcher: {
-        likely_intent: "unknown" as const,
+        likely_intent: "unknown",
         why: null,
         constraints: [],
       },
     },
     evidence: ["test"],
-  });
-}
-
-function projectionFromVisibleFacts(input: any): StatusRecapProjection {
-  return {
-    ...emptyStatusRecapProjection(),
-    ...(input.grounded_facts_json?.facts ?? {}),
+    ...patch,
   };
 }
 
-async function testStatusVisibleAgent(input: any): Promise<string> {
-  const projection = projectionFromVisibleFacts(input);
-  const decision = renderStatusRecapDecision({
-    projection,
-    decision: {
-      skill_id: "status_recap",
-      intent: input.stage === "fait_prevu_fragile"
-        ? "fait_prevu_fragile"
-        : "durable_status",
-      target_objects: ["unknown"],
-      constraints: [
-        "non_mutating",
-        "db_grounded",
-        "do_not_execute_tool",
-        "do_not_claim_without_source",
-        "short_reply",
-      ],
-      projection_used: true,
-      missing_sources: [],
-      response_contract: {
-        max_questions: 0,
-        format: input.stage === "fait_prevu_fragile"
-          ? "fait_prevu_fragile"
-          : "compact",
-        allow_human_context_lines: false,
-      },
-      operation_suggestions: [],
-    },
-  });
-  return decision.reply;
-}
-
-function maybeRunStatusRecapRuntime(
-  args: Parameters<typeof maybeRunStatusRecapRuntimeReal>[0],
-) {
-  return maybeRunStatusRecapRuntimeReal({
-    ...args,
-    runLocalDispatcher: args.runLocalDispatcher ?? testStatusDispatcher(),
-    runVisibleAgent: args.runVisibleAgent ?? testStatusVisibleAgent,
-  });
-}
-
-Deno.test("status_recap_non_mutating", async () => {
+Deno.test("status_recap runtime passes filtered conversation_context to visible agent", async () => {
+  let dispatcherSawNote = false;
+  let visibleContext: Record<string, unknown> | null = null;
+  let visibleInput: Record<string, unknown> | null = null;
   const runtime = await maybeRunStatusRecapRuntime({
     supabase: fakeSupabase(richTables()),
     userId: "user-1",
-    userMessage: "sans rien modifier, dis-moi ce qui existe vraiment",
+    userMessage:
+      "Fais-moi un point factuel sur ce qui existe vraiment dans mon espace.",
     userTimezone: "Europe/Paris",
     tempMemory: { keep: true },
     turnFrame: null,
     routeDecision: statusRoute(),
     activeOperationIntake: null,
+    runLocalDispatcher: async (input) => {
+      dispatcherSawNote = Boolean(input.note_information_inbound);
+      assertEquals(input.db_context_pack.source_policy.read_only, true);
+      assertEquals(input.micro_memory_context, []);
+      return decision();
+    },
+    runVisibleAgent: async (input) => {
+      visibleInput = input as unknown as Record<string, unknown>;
+      visibleContext = input.conversation_context as unknown as Record<
+        string,
+        unknown
+      >;
+      const facts = input.conversation_context.filtered_facts;
+      assertEquals(facts.attack_cards[0].title, "Démarrage doc");
+      assertEquals(
+        facts.one_shot_reminders.pending[0].instruction,
+        "ouvrir le document",
+      );
+      assertEquals(
+        input.conversation_context.constraints
+          .micro_memory_raw_available_to_visible_agent,
+        false,
+      );
+      return "status visible from local visible agent";
+    },
   });
+
   assert(runtime);
+  assertEquals(dispatcherSawNote, true);
+  assertEquals(runtime.content, "status visible from local visible agent");
   assertEquals(runtime.toolExecution, "none");
   assertEquals(runtime.executedTools, []);
-  assertEquals(runtime.toolSkillRun.selected_handler, "status_recap");
+  assertEquals((runtime.toolSkillRun as any).selected_handler, "status_recap");
+  assertEquals(
+    (runtime.toolSkillRun as any).visible_task.kind,
+    "status_compact",
+  );
+  assertEquals(Boolean(visibleContext), true);
+  assertEquals("user_message" in ((visibleInput as any) ?? {}), false);
+  assertEquals("recent_messages" in ((visibleInput as any) ?? {}), false);
+  assertEquals("local_state" in ((visibleInput as any) ?? {}), false);
+  assertEquals(
+    "dispatcher_instruction" in ((visibleInput as any) ?? {}),
+    false,
+  );
+  assertEquals(
+    "current_user_message" in ((visibleContext as any) ?? {}),
+    false,
+  );
+  assertEquals(
+    "dispatcher_instruction" in ((visibleContext as any) ?? {}),
+    false,
+  );
 });
 
-Deno.test("durable_status_lists_existing_cards_reminders_preferences", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
+Deno.test("status_recap does not activate for product help or explicit tool command", async () => {
+  const productRuntime = await maybeRunStatusRecapRuntime({
     supabase: fakeSupabase(richTables()),
     userId: "user-1",
-    userMessage: "qu'est-ce qui est vraiment enregistré ?",
+    userMessage: "où annuler dans l'app ?",
     userTimezone: "Europe/Paris",
     tempMemory: {},
     turnFrame: null,
-    routeDecision: statusRoute(),
+    routeDecision: productHelpRoute(),
     activeOperationIntake: null,
   });
-  assert(runtime);
-  assertStringIncludes(runtime.content, "Démarrage doc");
-  assertStringIncludes(runtime.content, "ouvrir le document");
-  assertStringIncludes(runtime.content, "moins de questions");
-});
+  assertEquals(productRuntime, null);
 
-Deno.test("cancelled_reminder_included_when_requested", async () => {
-  const tables = richTables();
-  tables.scheduled_checkins = [{
-    id: "cancelled-1",
-    user_id: "user-1",
-    status: "cancelled",
-    scheduled_for: "2026-05-30T08:21:00.000Z",
-    message_payload: { reminder_instruction: "ouvrir le document" },
-    event_context: "one_shot_reminder:cancelled-1",
-    updated_at: "2026-05-29T12:00:00.000Z",
-  }];
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(tables),
-    userId: "user-1",
-    userMessage: "ce rappel que tu as annulé, il est toujours actif ?",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: statusRoute(),
-    activeOperationIntake: null,
-  });
-  assert(runtime);
-  assertStringIncludes(runtime.content, "annulé");
-  assertStringIncludes(runtime.content, "pas actif");
-});
-
-Deno.test("pending_reminder_status_uses_db_time_and_instruction", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
+  const toolRuntime = await maybeRunStatusRecapRuntime({
     supabase: fakeSupabase(richTables()),
     userId: "user-1",
-    userMessage: "est-ce que j'ai un rappel actif ?",
+    userMessage: "crée un rappel demain à 9h",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: null,
+    routeDecision: toolRoute("create_recurring_reminder"),
+    activeOperationIntake: null,
+  });
+  assertEquals(toolRuntime, null);
+});
+
+Deno.test("status_recap first activation creates inbound note_information", async () => {
+  let inboundTarget: string | null = null;
+  const runtime = await maybeRunStatusRecapRuntime({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    userMessage: "Sans rien changer, fais le point factuel.",
     userTimezone: "Europe/Paris",
     tempMemory: {},
     turnFrame: null,
     routeDecision: statusRoute(),
     activeOperationIntake: null,
+    runLocalDispatcher: async (input) => {
+      inboundTarget = input.note_information_inbound?.target_dispatcher ?? null;
+      return decision();
+    },
+    runVisibleAgent: async (input) => {
+      assertEquals(
+        input.conversation_context.handoff_data.inbound_source_flow_id,
+        "global_dispatcher",
+      );
+      return "no source visible";
+    },
   });
+
   assert(runtime);
-  assertStringIncludes(runtime.content, "10:21");
-  assertStringIncludes(runtime.content, "ouvrir le document");
+  assertEquals(inboundTarget, "status_recap");
+  assertEquals(
+    (runtime.toolSkillRun as any).note_information_inbound.target_dispatcher,
+    "status_recap",
+  );
 });
 
-Deno.test("coach_preferences_ignore_system_defaults_as_user_choices", () => {
-  const projection: StatusRecapProjection = {
-    ...emptyStatusRecapProjection(),
-    coach_preferences: [{
-      key: "coach.tone",
-      value: { value: "warm_direct" },
-      reason: null,
-      source_type: "system_default",
-      updated_at: null,
-    }],
-  };
-  const decision = renderStatusRecapDecision({
-    projection,
-    decision: decideStatusRecap({
-      userMessage: "quelles préférences coach sont enregistrées ?",
-      turnFrame: null,
-      routeDecision: statusRoute(),
-      projection,
-    }),
-  });
-  assertStringIncludes(decision.reply, "pas de choix utilisateur explicite");
-});
-
-Deno.test("coach_preferences_explicit_are_reported", () => {
-  const projection: StatusRecapProjection = {
-    ...emptyStatusRecapProjection(),
-    coach_preferences: [{
-      key: "coach.tone",
-      value: { value: "direct" },
-      reason: "User asked direct style.",
-      source_type: "explicit_user",
-      updated_at: null,
-    }],
-  };
-  const decision = renderStatusRecapDecision({
-    projection,
-    decision: decideStatusRecap({
-      userMessage: "quelles préférences coach sont enregistrées ?",
-      turnFrame: null,
-      routeDecision: statusRoute(),
-      projection,
-    }),
-  });
-  assertStringIncludes(decision.reply, "ton très direct");
-});
-
-Deno.test("fait_prevu_fragile raw text does not arm status runtime", async () => {
+Deno.test("status_recap raw fait/prevision wording does not arm runtime without route signal", async () => {
   const runtime = await maybeRunStatusRecapRuntime({
     supabase: fakeSupabase(richTables()),
     userId: "user-1",
@@ -402,199 +357,4 @@ Deno.test("fait_prevu_fragile raw text does not arm status runtime", async () =>
     activeOperationIntake: null,
   });
   assertEquals(runtime, null);
-});
-
-Deno.test("product_help_where_question_returns_null", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(richTables()),
-    userId: "user-1",
-    userMessage: "où annuler dans l'app ?",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: productHelpRoute(),
-    activeOperationIntake: null,
-  });
-  assertEquals(runtime, null);
-});
-
-Deno.test("explicit_tool_command_returns_null", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(richTables()),
-    userId: "user-1",
-    userMessage: "crée un rappel demain à 9h",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: toolRoute("create_recurring_reminder"),
-    activeOperationIntake: null,
-  });
-  assertEquals(runtime, null);
-});
-
-Deno.test("active_card_draft_returns_null", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(richTables()),
-    userId: "user-1",
-    userMessage: "sans rien modifier, la carte parle de mon piège",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: statusRoute(),
-    activeOperationIntake: { operation_type: "prepare_attack_card" },
-  });
-  assertEquals(runtime, null);
-});
-
-Deno.test("human_recap_no_db_does_not_render_status_block", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(richTables()),
-    userId: "user-1",
-    userMessage: "récap humain : résume ce que tu dois retenir de mon piège",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: null,
-    activeOperationIntake: null,
-  });
-  assertEquals(runtime, null);
-});
-
-Deno.test("no_claim_without_source", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase({}),
-    userId: "user-1",
-    userMessage: "sans rien modifier, dis-moi ce qui existe vraiment",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: statusRoute(),
-    activeOperationIntake: null,
-  });
-  assert(runtime);
-  assertStringIncludes(runtime.content, "je ne vois pas assez de source DB");
-});
-
-Deno.test("no_product_how_to_language", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(richTables()),
-    userId: "user-1",
-    userMessage: "est-ce que le rappel est actif ?",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: statusRoute(),
-    activeOperationIntake: null,
-  });
-  assert(runtime);
-  assertEquals(runtime.content.includes("clique"), false);
-  assertEquals(runtime.content.includes("dans l'app"), false);
-});
-
-Deno.test("no_done_language_without_past_source", async () => {
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase({}),
-    userId: "user-1",
-    userMessage: "qu'est-ce que tu as créé ?",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: statusRoute(),
-    activeOperationIntake: null,
-  });
-  assert(runtime);
-  assertEquals(runtime.content.includes("j'ai créé"), false);
-  assertEquals(runtime.content.includes("C'est fait"), false);
-});
-
-Deno.test("status_projection_prefers_db_current_state", async () => {
-  const tables = richTables();
-  tables.scheduled_checkins = [{
-    id: "cancelled-1",
-    user_id: "user-1",
-    status: "cancelled",
-    scheduled_for: "2026-05-30T08:21:00.000Z",
-    message_payload: { reminder_instruction: "ouvrir le document" },
-    event_context: "one_shot_reminder:cancelled-1",
-    updated_at: "2026-05-29T12:00:00.000Z",
-  }];
-  tables.turn_summary_logs = [{
-    user_id: "user-1",
-    created_at: "2026-05-29T10:00:00.000Z",
-    payload: {
-      tag: "effect_ledger",
-      entries: [{
-        turn_id: "turn-1",
-        user_id: "user-1",
-        source_message_id: "msg-1",
-        request_id: "req-1",
-        created_at: "2026-05-29T10:00:00.000Z",
-        status: "committed",
-        effect_type: "one_shot_reminder.create",
-        operation_type: "one_shot_reminder",
-        operation_id: "op-1",
-        tool_id: "create_one_shot_reminder",
-        source: "executor",
-        reason_code: null,
-        payload_summary: {},
-        db_ref: { table: "scheduled_checkins", id: "cancelled-1" },
-      }],
-    },
-  }];
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(tables),
-    userId: "user-1",
-    userMessage: "récap exact du rappel créé/annulé",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: statusRoute(),
-    activeOperationIntake: null,
-  });
-  assert(runtime);
-  assertStringIncludes(runtime.content, "créé puis annulé");
-  assertStringIncludes(runtime.content, "pas actif");
-  assertEquals(runtime.content.includes("actif, 10:21"), false);
-});
-
-Deno.test("status_projection_does_not_claim_object_from_requested_only", async () => {
-  const tables = {
-    turn_summary_logs: [{
-      user_id: "user-1",
-      created_at: "2026-05-29T10:00:00.000Z",
-      payload: {
-        tag: "effect_ledger",
-        entries: [{
-          turn_id: "turn-1",
-          user_id: "user-1",
-          source_message_id: "msg-1",
-          request_id: "req-1",
-          created_at: "2026-05-29T10:00:00.000Z",
-          status: "requested",
-          effect_type: "one_shot_reminder.create",
-          operation_type: "one_shot_reminder",
-          operation_id: null,
-          tool_id: "create_one_shot_reminder",
-          source: "tool_skill",
-          reason_code: null,
-          payload_summary: { scheduled_for: "2026-05-30T08:21:00.000Z" },
-          db_ref: null,
-        }],
-      },
-    }],
-  };
-  const runtime = await maybeRunStatusRecapRuntime({
-    supabase: fakeSupabase(tables),
-    userId: "user-1",
-    userMessage: "qu'est-ce que tu as créé ?",
-    userTimezone: "Europe/Paris",
-    tempMemory: {},
-    turnFrame: null,
-    routeDecision: statusRoute(),
-    activeOperationIntake: null,
-  });
-  assert(runtime);
-  assertStringIncludes(runtime.content, "aucun actif visible");
-  assertEquals(runtime.content.includes("j'ai créé"), false);
-  assertEquals(runtime.content.includes("créé puis annulé"), false);
 });

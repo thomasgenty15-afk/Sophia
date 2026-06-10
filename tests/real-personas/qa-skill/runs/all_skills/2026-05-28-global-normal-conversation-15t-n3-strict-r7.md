@@ -7,7 +7,7 @@
 - Persona: utilisateur QA dédié `qa-normal-global15_20260528_n3_strict_r7-1779973658393@example.com`, user id `717b06d9-dfbe-49ae-acd7-6f40a798e55e`.
 - Objectif: tester une conversation normale de 15 tours sur le système global Sophia: dispatcher, routing, skills, tool skills, mémoire, effets durables et aide produit.
 - Trajectoire: utilisateur éparpillé -> Slack/Nora -> carte de défense -> rappel ponctuel -> aide produit rappel -> préférence coach -> carte d'attaque -> recap statut.
-- Surfaces visées: `execution_breakdown`, `prepare_attack_card`, `prepare_defense_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_only_no_mutation_check`, mémoire/préférences.
+- Surfaces visées: `execution_breakdown`, `prepare_attack_card`, `prepare_defense_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_recap`, mémoire/préférences.
 - Cadre IA réel: Supabase local, endpoint local `test-send-message`, `force_full_ai=true`, pas de fallback déterministe, pas de replay pré-scripté. Chaque message utilisateur a été choisi après lecture de la réponse précédente et de la trace courte.
 - Validité QA: valide. Le run contient 15 tours complets, `http_status=200` partout, aucune réponse vide, aucun abort. Vérification DB: 30 `chat_messages` exactement pour 15 tours, donc pas de pollution du persona r7.
 - Note environnement: les logs du serveur local ont montré des requêtes d'autres run ids pendant la fenêtre, mais elles ciblaient d'autres scopes/personas. Le transcript et les effets durables r7 restent isolés et vérifiés par `user_id`.
@@ -325,9 +325,9 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: `null`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
-- selected_handler interne DB: `status_only_no_mutation_check`
+- selected_handler interne DB: `status_recap`
 - executed_tools: `[]`
 - durable_effect: aucun nouveau side effect, mais le résumé masque qu'il y a en fait 2 rappels en base.
 
@@ -363,7 +363,7 @@
 - Tour 4: la réponse affichée est un brouillon de carte de défense, mais la trace courte indique `response_owner=product_help`, `selected_handler=product_help`, `route_reason=product_help_inline_resume_active_tool_skill`. La metadata DB contient bien `tool_skill_runtime.selected_handler=prepare_defense_card`; l'incohérence semble donc venir de la trace courte.
 - Tour 5: la révision de carte de défense route correctement via `pending_defense_card_revision_priority`.
 - Tour 11: la préférence est bien exécutée, mais `response_owner=normal_reply`, `selected_handler=null` alors que `executed_tools=["update_coach_preferences"]`. Cela fonctionne côté effet durable, mais l'observabilité reste incohérente.
-- Tour 15: `status_only_request_blocks_tool_start` empêche bien une mutation pendant le recap.
+- Tour 15: `status_recap_request_blocks_tool_start` empêche bien une mutation pendant le recap.
 
 **Skills / Operations / Tools**
 - `prepare_defense_card`: succès fonctionnel. Collecte des slots, révision, confirmation et création DB correctes.
@@ -392,7 +392,7 @@
 - Au moment de product help rappel, injecter le dernier rappel créé comme contexte consultable mais non mutable, et désactiver les direct effects de rappel sur ce tour.
 - Dans le dispatcher, donner priorité au refus récent d'attaque card et aux signaux d'impulsion émotionnelle avant toute continuation/recommendation `prepare_attack_card`.
 - Unifier la trace courte avec `router_decision_v2.tool_skill_runtime.selected_handler` pour éviter `product_help` affiché sur une réponse de défense et `normal_reply` sur une préférence exécutée.
-- Dans `status_only_no_mutation_check`, compter les objets durables et signaler les doublons évidents plutôt que de résumer uniquement par type.
+- Dans `status_recap`, compter les objets durables et signaler les doublons évidents plutôt que de résumer uniquement par type.
 
 ## Verdict Global
 

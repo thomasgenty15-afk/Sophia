@@ -105,6 +105,26 @@ pas lui-même :
 - ces sub-skills ne deviennent jamais owner final et ne clearent pas l'état
   `__coach_preference_flow_state_v1`.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, `visible_task.kind=get_info_db`, and
+`visible_task.kind=get_info_product`. Use
+`source_flow_id="update_coach_preferences"` and copy the catalog presentation.
+
+Do not produce it for local actions such as `punctual_instruction_ack`,
+`unsupported_preference`, `repeat_saved_preferences`, `write_failed_or_blocked`,
+or `cancel_flow` when no new dispatcher is called. These are local
+ack/stop/defer actions and must not call global on the same turn.
+
+Choose `target_dispatcher` as `status_recap` for read-only preference status,
+`product_help` for product explanation, `safety_crisis` for safety, and
+`global` for a clear out-of-flow request. The handoff context must include the
+current setting/value proposal, committed preference keys if any, unsupported
+parts, and whether a DB write was committed.
+
 ## Reducer / Validator
 
 Le reducer peut seulement faire des checks déterministes de contrat :

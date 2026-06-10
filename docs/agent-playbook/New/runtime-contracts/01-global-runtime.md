@@ -28,7 +28,7 @@ processMessage
 - `dispatcher/*` : première compréhension globale du tour.
 - `routers/*` : choix déterministe du propriétaire depuis `TurnFrame`.
 - `router/user_turn_snapshot.ts` : snapshot canonique du tour.
-- `router/turn_agenda.ts` : agenda multi-intention.
+- `router/local_reducer.ts` : agenda multi-intention.
 - `router/handoff_flow_arbitration.ts` : continuité/interruption des handoffs
   actifs depuis `TurnFrame`, confirmations et état actif, sans détection métier
   depuis le texte brut.

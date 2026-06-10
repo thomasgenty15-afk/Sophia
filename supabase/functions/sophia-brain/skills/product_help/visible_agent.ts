@@ -2,8 +2,12 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
+import {
+  VISIBLE_OUTPUT_STYLE_RULES,
+  visibleOutputStyleIssues,
+} from "../../router/response_style_policy.ts";
 import type {
-  ProductHelpLocalFlowState,
+  ProductHelpConversationContext,
   ProductHelpVisibleTaskKind,
 } from "./contract.ts";
 
@@ -11,12 +15,7 @@ export type ProductHelpVisibleAgentInput = {
   user_id: string;
   request_id?: string | null;
   stage: ProductHelpVisibleTaskKind;
-  user_message: string;
-  recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
-  mode: "standalone" | "inline";
-  local_state: ProductHelpLocalFlowState | null;
-  visible_facts_json: Record<string, unknown>;
-  dispatcher_instruction?: string | null;
+  conversation_context: ProductHelpConversationContext;
 };
 
 export type ProductHelpVisibleAgent = (
@@ -55,9 +54,16 @@ function visibleTaskInstruction(stage: ProductHelpVisibleTaskKind): string {
       return "Redis l'information utile en version courte, sans nouvelle recommandation.";
     case "apply_attempt":
       return "Refuse doucement l'exécution depuis product_help et redonne la destination ou le flow à utiliser.";
+    case "inline_tool_return":
+      return "Rends uniquement le résultat filtré du roundtrip inline, puis laisse le flow parent reprendre.";
+    case "stop_or_cancel":
+      return "Accuse réception très brièvement. Ne pose pas de question et ne propose pas d'outil.";
+    case "exit_ack":
+      return "Si un message visible est nécessaire, fais une transition minimale. Ne réponds pas pour le dispatcher cible.";
     case "close_product_help":
       return "Clos product_help sobrement, sans proposer d'outil.";
     case "safety":
+    case "safety_transition":
       return "Ne continue pas l'explication produit; formule une transition minimale laissant la prise en charge safety reprendre.";
   }
 }
@@ -68,43 +74,16 @@ function visibleSystemPrompt(input: ProductHelpVisibleAgentInput): string {
     "Tu écris uniquement le prochain message visible de Sophia.",
     "Tu ne routes pas, tu ne lances aucun flow, tu ne remplis aucun champ d'un autre flow.",
     "product_help est strictement non-mutant: ne dis jamais que tu as créé, modifié, annulé, activé, programmé, enregistré ou appliqué quelque chose.",
-    "N'invente aucun objet réel: pour affirmer qu'un objet existe ou a un état, il faut une source dans visible_facts_json.recent_committed_effects, visible_facts_json.grounding.db_sources_used ou active_flow_used.",
+    "Tu écris seulement à partir de conversation_context. Tu ne lis pas de DB brute, de mémoire brute, ni de contexte hors conversation_context.",
+    "N'invente aucun objet réel: pour affirmer qu'un objet existe ou a un état, il faut une source dans conversation_context.known_values.grounded_sources, conversation_context.known_values.grounding.db_sources_used ou active_flow_used.",
     "Ne rends pas un status recap complet.",
-    "Si mode=inline, réponds à la question produit puis laisse naturellement le flow parent reprendre.",
+    "Si conversation_context indique un mode inline, réponds à la question produit puis laisse naturellement le flow parent reprendre.",
     "Ne mentionne jamais JSON, dispatcher, reducer, prompt, DB, table ou outil interne.",
+    VISIBLE_OUTPUT_STYLE_RULES,
     "Reste court, naturel et concret.",
     visibleTaskInstruction(input.stage),
     'Retourne uniquement un JSON strict: {"message":"..."}.',
   ].join("\n");
-}
-
-function hasCommittedGrounding(input: ProductHelpVisibleAgentInput): boolean {
-  const facts = input.visible_facts_json as any;
-  return Boolean(
-    facts?.grounding?.active_flow_used ||
-      (Array.isArray(facts?.grounding?.db_sources_used) &&
-        facts.grounding.db_sources_used.length > 0) ||
-      (Array.isArray(facts?.recent_committed_effects) &&
-        facts.recent_committed_effects.length > 0),
-  );
-}
-
-function applyNoDoneLanguageGuard(
-  message: string,
-  input: ProductHelpVisibleAgentInput,
-): string {
-  if (hasCommittedGrounding(input)) return message;
-  return message
-    .replace(/j'ai créé/gi, "je peux aider à créer")
-    .replace(/j'ai modifié/gi, "je peux aider à modifier")
-    .replace(/j'ai annulé/gi, "je peux aider à annuler")
-    .replace(/j'ai activé/gi, "je peux aider à activer")
-    .replace(/j'ai programmé/gi, "je peux aider à programmer")
-    .replace(/j'ai enregistré/gi, "je peux aider à enregistrer")
-    .replace(/c'est fait/gi, "ça passe par le flow adapté")
-    .replace(/c'est créé/gi, "la création passe par le flow adapté")
-    .replace(/c'est programmé/gi, "la programmation passe par confirmation")
-    .trim();
 }
 
 export async function runProductHelpVisibleAgent(
@@ -113,12 +92,7 @@ export async function runProductHelpVisibleAgent(
   const userPrompt = JSON.stringify({
     task: "write_product_help_visible_message",
     stage: input.stage,
-    mode: input.mode,
-    current_user_message: input.user_message,
-    recent_messages: input.recent_messages,
-    local_state: input.local_state,
-    visible_facts_json: input.visible_facts_json,
-    dispatcher_instruction: input.dispatcher_instruction ?? null,
+    conversation_context: input.conversation_context,
     hard_constraints: {
       toolExecution: "none",
       executedTools: [],
@@ -128,7 +102,9 @@ export async function runProductHelpVisibleAgent(
       committed_effects: [],
       no_durable_claim_without_grounded_fact: true,
       no_status_recap: true,
-      no_parent_flow_mutation: input.mode === "inline",
+      no_parent_flow_mutation:
+        input.conversation_context.known_values.mode === "inline" ||
+        input.conversation_context.handoff_data.mode === "inline",
     },
     required_json_shape: { message: "string" },
   });
@@ -152,7 +128,9 @@ export async function runProductHelpVisibleAgent(
       },
     );
     const parsed = parseVisibleMessage(raw);
-    return parsed ? applyNoDoneLanguageGuard(parsed, input) : null;
+    return parsed && visibleOutputStyleIssues(parsed).length === 0
+      ? parsed
+      : null;
   } catch (error) {
     console.warn("[ProductHelp] visible agent failed", error);
     return null;

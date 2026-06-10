@@ -3,7 +3,6 @@ export type ArchitectureLayer =
   | "memory_planner"
   | "context_loader"
   | "router"
-  | "agenda"
   | "conversation_skill"
   | "tool_skill"
   | "executor"
@@ -85,21 +84,6 @@ export const SOPHIA_BRAIN_ARCHITECTURE_BOUNDARIES:
         "load_memory",
         "write_memory",
         "execute_effects",
-        "render_user_response",
-      ],
-    },
-    {
-      layer: "agenda",
-      owns: [
-        "TurnAgenda",
-        "task_representation",
-        "blocking_representation",
-        "turn_constraints",
-      ],
-      must_not: [
-        "execute_tasks",
-        "write_database",
-        "parse_user_semantics",
         "render_user_response",
       ],
     },

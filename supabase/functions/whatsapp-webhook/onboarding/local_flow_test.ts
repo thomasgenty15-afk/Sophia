@@ -1,5 +1,7 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1";
+import { createNoteInformation } from "../../sophia-brain/contracts/note_information.v1.ts";
 import type {
+  WhatsAppOnboardingConversationContext,
   WhatsAppOnboardingLocalDecision,
   WhatsAppOnboardingPlanProjection,
   WhatsAppOnboardingReducerInput,
@@ -9,6 +11,10 @@ import {
   isWhatsAppOnboardingLocalState,
   reduceWhatsAppOnboardingDecision,
 } from "./state.ts";
+import {
+  buildWhatsAppOnboardingLocalDispatcherSystemPrompt,
+  normalizeWhatsAppOnboardingDecision,
+} from "./local_flow.ts";
 
 const readyPlan: WhatsAppOnboardingPlanProjection = {
   status: "active",
@@ -30,6 +36,31 @@ const missingPlan: WhatsAppOnboardingPlanProjection = {
   active_plan_items_user_facing: [],
 };
 
+const conversationContext: WhatsAppOnboardingConversationContext = {
+  state_summary: "test",
+  user_words: ["test"],
+  stage: "plan_wait",
+  plan: {
+    status: "active",
+    title: "Plan test",
+    summary: "Plan test",
+    first_items: ["Lister 5 contacts professionnels"],
+  },
+  preference: {
+    key: null,
+    label: null,
+    value_label: null,
+    notes: null,
+  },
+  missing_or_weak_values: [],
+  feedback_summary: null,
+  topic_choice_summary: null,
+  inline_tool_summary: null,
+  tone_constraints: [],
+  do_not_say: [],
+  evidence_used: ["test"],
+};
+
 function decision(
   patch: Partial<WhatsAppOnboardingLocalDecision>,
 ): WhatsAppOnboardingLocalDecision {
@@ -46,8 +77,9 @@ function decision(
     },
     visible_task: {
       kind: "plan_wait",
-      required_data: { operation_name: "whatsapp_onboarding" },
+      conversation_context: conversationContext,
     },
+    note_information: null,
     exit_memo_request: {
       needed: false,
       exit_reason: "none",
@@ -97,9 +129,135 @@ function reduce(args: {
 }
 
 Deno.test("whatsapp_onboarding local states are explicit", () => {
-  assertEquals(isWhatsAppOnboardingLocalState("awaiting_plan_finalization"), true);
+  assertEquals(
+    isWhatsAppOnboardingLocalState("awaiting_plan_finalization"),
+    true,
+  );
   assertEquals(isWhatsAppOnboardingLocalState("onboarding_pref_tone"), true);
   assertEquals(isWhatsAppOnboardingLocalState("normal_reply"), false);
+});
+
+Deno.test("whatsapp_onboarding visible task exposes conversation_context without required_data", () => {
+  const normalized = normalizeWhatsAppOnboardingDecision({
+    flow_action: "answer_tone",
+    confidence: "high",
+    stage: "pref_tone",
+    preference_updates: [],
+    plan_feedback: { status: "missing" },
+    topic_choice: { status: "missing" },
+    visible_task: {
+      kind: "ask_tone",
+      required_data: { legacy: true },
+      conversation_context: conversationContext,
+    },
+    exit_memo_request: { needed: false, exit_reason: "none" },
+    global_effect_policy: {
+      allow_global_dispatcher: false,
+      allow_track_progress_plan_item: false,
+      allow_update_coach_preferences_runtime: false,
+      allow_normal_reply: false,
+      why: "test",
+    },
+    no_chat_mutation: {},
+    risk_assessment: { risk_score: 0, risk_band: "none" },
+  });
+
+  assertEquals(normalized.visible_task.kind, "ask_tone");
+  assertEquals(
+    normalized.visible_task.conversation_context.state_summary,
+    conversationContext.state_summary,
+  );
+  assertEquals((normalized.visible_task as any).required_data, undefined);
+  assertEquals((decision({}).visible_task as any).required_data, undefined);
+});
+
+Deno.test("whatsapp_onboarding local dispatcher prompt documents real output fields", () => {
+  const prompt = buildWhatsAppOnboardingLocalDispatcherSystemPrompt();
+  for (
+    const field of [
+      "Field Completion Rules:",
+      "flow_action",
+      "confidence",
+      "stage",
+      "preference_updates",
+      "plan_feedback",
+      "topic_choice",
+      "visible_task.kind",
+      "visible_task.conversation_context",
+      "note_information",
+      "exit_memo_request",
+      "global_effect_policy",
+      "no_chat_mutation",
+      "risk_assessment",
+      "evidence",
+      "Transition Rules:",
+      "stop_local_no_handoff",
+      "exit_to_global_dispatcher",
+      "safety_preempt",
+      "handoff_to_local_flow",
+    ]
+  ) {
+    assert(prompt.includes(field), `missing prompt rule for ${field}`);
+  }
+  assertEquals(prompt.split("Example JSON ").length - 1, 2);
+});
+
+Deno.test("conversation context preserves user constraints without leaking legacy data", () => {
+  const normalized = normalizeWhatsAppOnboardingDecision({
+    flow_action: "answer_challenge",
+    confidence: "high",
+    stage: "pref_challenge",
+    preference_updates: [{
+      key: "coach.challenge_level",
+      status: "locked",
+      candidate_value: null,
+      locked_value: "balanced",
+      label: "Equilibre",
+      notes: "Challenge normal, direct seulement si je decroche.",
+      needs_user_confirmation: false,
+      why_status: "user gave a nuanced constraint",
+    }],
+    plan_feedback: { status: "missing" },
+    topic_choice: { status: "missing" },
+    visible_task: {
+      kind: "preference_saved_next_questions",
+      required_data: { legacy: true },
+      conversation_context: {
+        ...conversationContext,
+        stage: "pref_challenge",
+        preference: {
+          key: "coach.challenge_level",
+          label: "Equilibre",
+          value_label: "Equilibre",
+          notes: "Challenge normal, direct seulement si je decroche.",
+        },
+        tone_constraints: [
+          "Conserver la nuance: direct seulement si je decroche.",
+        ],
+        do_not_say: ["Ne pas transformer cette nuance en niveau high."],
+      },
+    },
+    exit_memo_request: { needed: false, exit_reason: "none" },
+    global_effect_policy: {
+      allow_global_dispatcher: false,
+      allow_track_progress_plan_item: false,
+      allow_update_coach_preferences_runtime: true,
+      allow_normal_reply: false,
+      why: "preference locked",
+    },
+    no_chat_mutation: {},
+    risk_assessment: { risk_score: 0, risk_band: "none" },
+  });
+
+  assertEquals(
+    normalized.visible_task.conversation_context.preference.notes,
+    "Challenge normal, direct seulement si je decroche.",
+  );
+  assertEquals(
+    normalized.visible_task.conversation_context.tone_constraints[0],
+    "Conserver la nuance: direct seulement si je decroche.",
+  );
+  assertEquals((normalized.visible_task as any).required_data, undefined);
 });
 
 Deno.test("plan missing blocks exit before plan is ready", () => {
@@ -120,7 +278,10 @@ Deno.test("plan missing blocks exit before plan is ready", () => {
     },
   });
   assertEquals(result.status, "owned");
-  assertEquals(result.reason_code, "whatsapp_onboarding_exit_blocked_before_plan_ready");
+  assertEquals(
+    result.reason_code,
+    "whatsapp_onboarding_exit_blocked_before_plan_ready",
+  );
   assertEquals(result.next_whatsapp_state, "awaiting_plan_finalization");
   assertEquals(result.visible_task, "blocked_exit_before_plan_ready");
   assertEquals(result.allow_global_dispatcher, false);
@@ -137,17 +298,19 @@ Deno.test("plan ready resumes preference onboarding and blocks progress item", (
   assertEquals(result.visible_task, "plan_ready_resume_preferences");
   assertEquals(result.allow_track_progress_plan_item, false);
   assertEquals(
-    result.blocked_effects.some((effect) => effect.type === "track_progress_plan_item"),
+    result.blocked_effects.some((effect) =>
+      effect.type === "track_progress_plan_item"
+    ),
     true,
   );
 });
 
-Deno.test("plan ready allows frustration exit with global handoff memo", () => {
+Deno.test("plan ready frustration without new topic stops locally without handoff", () => {
   const result = reduce({
     state: "onboarding_pref_tone",
     plan: readyPlan,
     decision: {
-      flow_action: "frustration_exit_after_plan_ready",
+      flow_action: "stop_local_no_handoff",
       exit_memo_request: {
         needed: true,
         exit_reason: "frustration",
@@ -159,11 +322,143 @@ Deno.test("plan ready allows frustration exit with global handoff memo", () => {
       },
     },
   });
-  assertEquals(result.status, "exit_to_global_dispatcher");
+  assertEquals(result.status, "stop_local_no_handoff");
   assertEquals(result.next_whatsapp_state, null);
   assertEquals(result.mark_done, true);
-  assertEquals(result.completion_mode, "deferred_after_plan_ready");
-  assertEquals(result.exit_memo?.handoff_hint_for_global_dispatcher, "commencer par le plan");
+  assertEquals(result.completion_mode, "stopped_after_plan_ready");
+  assertEquals(result.visible_task, "stop_after_plan_ready");
+  assertEquals(result.allow_global_dispatcher, false);
+  assertEquals(result.exit_memo, null);
+  assertEquals(result.note_information, null);
+});
+
+Deno.test("clear topic change after plan ready exits with note_information", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    source_flow_state_summary: "preferences active; plan ready",
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher:
+      "User wants to prioritize a different topic after onboarding plan is ready.",
+    user_words: ["laisse ca aide-moi a prioriser"],
+    risk_score: 0,
+  });
+  const result = reduce({
+    state: "onboarding_pref_tone",
+    plan: readyPlan,
+    decision: {
+      flow_action: "exit_to_global_dispatcher",
+      note_information: note,
+      exit_memo_request: {
+        needed: true,
+        exit_reason: "topic_change",
+        flow_summary: "User changes topic after plan ready.",
+        handoff_hint_for_global_dispatcher: "prioriser",
+        handoff_justification_for_global_dispatcher:
+          "The user asked to prioritize instead of continuing onboarding.",
+        plan_required_exit_blocked: false,
+      },
+    },
+  });
+  assertEquals(result.status, "exit_to_global_dispatcher");
+  assertEquals(result.next_whatsapp_state, null);
+  assertEquals(result.note_information?.target_dispatcher, "global");
+  assertEquals(result.allow_global_dispatcher, true);
+});
+
+Deno.test("handoff to another local flow requires note and blocks global normal", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    source_flow_state_summary: "preferences active; plan ready",
+    handoff_reason: "bridge",
+    target_dispatcher: "product_help",
+    handoff_context_for_next_dispatcher:
+      "User asks a product help question after onboarding plan is ready.",
+    risk_score: 0,
+  });
+  const result = reduce({
+    state: "onboarding_pref_tone",
+    plan: readyPlan,
+    decision: {
+      flow_action: "handoff_to_local_flow",
+      note_information: note,
+      exit_memo_request: {
+        needed: true,
+        exit_reason: "topic_change",
+        flow_summary: "User asks product help after plan ready.",
+        handoff_hint_for_global_dispatcher: "product_help",
+        handoff_justification_for_global_dispatcher:
+          "The user asks where the onboarding settings are managed.",
+        plan_required_exit_blocked: false,
+      },
+    },
+  });
+  assertEquals(result.status, "handoff_to_local_flow");
+  assertEquals(result.note_information?.target_dispatcher, "product_help");
+  assertEquals(result.allow_global_dispatcher, false);
+  assertEquals(
+    result.blocked_effects.some((effect) =>
+      effect.type === "global_dispatcher"
+    ),
+    true,
+  );
+});
+
+Deno.test("progress attempt during onboarding blocks plan progress logging", () => {
+  const result = reduce({
+    state: "onboarding_pref_tone",
+    plan: readyPlan,
+    decision: {
+      flow_action: "progress_attempt_during_onboarding",
+    },
+  });
+  assertEquals(result.status, "owned");
+  assertEquals(result.visible_task, "progress_attempt_blocked");
+  assertEquals(result.next_whatsapp_state, "onboarding_pref_tone");
+  assertEquals(result.allow_global_dispatcher, false);
+  assertEquals(result.allow_track_progress_plan_item, false);
+  assertEquals(
+    result.blocked_effects.some((effect) =>
+      effect.type === "track_progress_plan_item"
+    ),
+    true,
+  );
+});
+
+Deno.test("safety preempt routes with note and blocks global normal effects", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    source_flow_state_summary: "onboarding active",
+    handoff_reason: "safety",
+    target_dispatcher: "safety_crisis",
+    handoff_context_for_next_dispatcher:
+      "User message contains safety content during onboarding.",
+    risk_score: 8,
+  });
+  const result = reduce({
+    state: "onboarding_pref_tone",
+    plan: readyPlan,
+    decision: {
+      flow_action: "safety_preempt",
+      note_information: note,
+      risk_assessment: {
+        risk_score: 8,
+        risk_band: "high",
+        safety_preempt: true,
+        reason_codes: ["test_safety"],
+      },
+    },
+  });
+  assertEquals(result.status, "safety_preempt");
+  assertEquals(result.note_information?.target_dispatcher, "safety_crisis");
+  assertEquals(result.allow_global_dispatcher, false);
+  assertEquals(result.allow_track_progress_plan_item, false);
+  assertEquals(
+    result.blocked_effects.some((effect) =>
+      effect.type === "global_dispatcher"
+    ),
+    true,
+  );
 });
 
 Deno.test("tone preference write advances to challenge without global effects", () => {
@@ -189,6 +484,31 @@ Deno.test("tone preference write advances to challenge without global effects", 
   assertEquals(result.preference_writes[0]?.key, "coach.tone");
   assertEquals(result.preference_writes[0]?.locked_value, "warm_direct");
   assertEquals(result.allow_global_dispatcher, false);
+});
+
+Deno.test("clear continuation does not false-positive exit or stop", () => {
+  const result = reduce({
+    state: "onboarding_pref_challenge",
+    plan: readyPlan,
+    decision: {
+      flow_action: "answer_challenge",
+      preference_updates: [{
+        key: "coach.challenge_level",
+        status: "locked",
+        candidate_value: null,
+        locked_value: "balanced",
+        label: "Equilibre",
+        notes: "Normal, direct seulement si je decroche.",
+        needs_user_confirmation: false,
+        why_status: "user continues onboarding with a clear preference",
+      }],
+    },
+  });
+  assertEquals(result.status, "owned");
+  assertEquals(result.next_whatsapp_state, "onboarding_pref_questions");
+  assertEquals(result.visible_task, "preference_saved_next_questions");
+  assertEquals(result.allow_global_dispatcher, false);
+  assertEquals(result.note_information, null);
 });
 
 Deno.test("invalid preference value repeats question instead of writing", () => {

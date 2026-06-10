@@ -1,29 +1,23 @@
 import type { RunSkillInput } from "../_shared/skill_helpers.ts";
 import { baseOutput } from "../_shared/skill_helpers.ts";
 import {
-  type ProductHelpIntakeModel,
-  runProductHelpStructuredIntake,
-} from "./intake.ts";
+  createNoteInformation,
+  type NoteInformation,
+  noteInformationForTrace,
+} from "../../contracts/note_information.v1.ts";
 import {
   type ProductHelpLocalDispatcher,
   readProductHelpFlowState,
   reduceProductHelpLocalDispatcherOutput,
   runProductHelpLocalDispatcher,
 } from "./local_flow.ts";
-import { reduceProductHelpTurn } from "./reducer.ts";
-import {
-  choosePrimaryCatalogCandidate,
-  getProductHelpFeature,
-  pickCatalogFeatureForObject,
-  retrieveProductHelpCandidates,
-} from "./retrieval.ts";
+import { retrieveProductHelpCandidates } from "./retrieval.ts";
 import {
   type ProductHelpVisibleAgent,
   runProductHelpVisibleAgent,
 } from "./visible_agent.ts";
 
 export type ProductHelpRunSkillInput = RunSkillInput & {
-  intake_model?: ProductHelpIntakeModel;
   local_dispatcher?: ProductHelpLocalDispatcher;
   visible_agent?: ProductHelpVisibleAgent;
 };
@@ -64,6 +58,47 @@ function recentCommittedEffects(turnFrame: unknown): unknown[] {
     : [];
   return direct.filter((effect: any) => effect?.target_status === "identified")
     .slice(0, 8);
+}
+
+function inboundProductHelpNote(args: {
+  input: ProductHelpRunSkillInput;
+  mode: "standalone" | "inline";
+  previous: unknown;
+  activeFlow: Record<string, unknown> | null;
+}): NoteInformation | null {
+  const context = args.input.context as any;
+  const existing = context.note_information ?? context.inbound_note_information;
+  if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+    return existing as NoteInformation;
+  }
+  if (args.previous) return null;
+  const sourceFlowId = args.mode === "inline"
+    ? String(args.activeFlow?.skill_id ?? "parent_flow")
+    : "global";
+  return createNoteInformation({
+    source_flow_id: sourceFlowId,
+    source_flow_state_summary: args.mode === "inline"
+      ? `Parent flow ${sourceFlowId} asked product_help inline.`
+      : "Global dispatcher selected product_help for a product question.",
+    handoff_reason: args.mode === "inline"
+      ? "inline_tool"
+      : "explicit_user_request",
+    target_dispatcher: "product_help",
+    handoff_context_for_next_dispatcher: JSON.stringify({
+      user_message: args.input.user_message,
+      mode: args.mode,
+      parent_flow_context: args.mode === "inline" ? args.activeFlow : null,
+    }),
+    target_local_dispatcher_hint:
+      "Classify the product question locally; do not mutate product state.",
+    user_words: [args.input.user_message],
+    structured_context: {
+      user_message: args.input.user_message,
+      mode: args.mode,
+      parent_flow_context: args.mode === "inline" ? args.activeFlow : null,
+    },
+    risk_score: 0,
+  });
 }
 
 function fallbackSkillOutput(reason: string) {
@@ -109,153 +144,125 @@ function fallbackSkillOutput(reason: string) {
 
 export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
   const candidates = retrieveProductHelpCandidates(input.user_message);
-  if (!input.intake_model) {
-    const previous = readProductHelpFlowState(
-      input.context.active_skill_working_state,
-    );
-    const activeFlow = compactActiveFlowContext(
-      input.context.active_skill_working_state,
-    );
-    const mode = activeFlow && activeFlow.skill_id !== "product_help"
-      ? "inline"
-      : "standalone";
-    const dispatcher = input.local_dispatcher ?? runProductHelpLocalDispatcher;
-    console.info("[ProductHelp] local_dispatcher_called", {
-      mode,
-      active_product_help: Boolean(previous),
-      parent_skill_id: mode === "inline" ? activeFlow?.skill_id ?? null : null,
+  const previous = readProductHelpFlowState(
+    input.context.active_skill_working_state,
+  );
+  const activeFlow = compactActiveFlowContext(
+    input.context.active_skill_working_state,
+  );
+  const mode = activeFlow && activeFlow.skill_id !== "product_help"
+    ? "inline"
+    : "standalone";
+  const inboundNote = inboundProductHelpNote({
+    input,
+    mode,
+    previous,
+    activeFlow,
+  });
+  const dispatcher = input.local_dispatcher ?? runProductHelpLocalDispatcher;
+  const dbContextPack = {
+    product_catalog_pack: candidates.map((feature) => ({
+      id: feature.id,
+      label: feature.label,
+      locations: feature.locations,
+      limits: feature.limits,
+      source: "product_help_catalog",
+      confidence: "high",
+      freshness: "static_product_contract",
+    })),
+    parent_flow_context: mode === "inline" ? activeFlow : null,
+    inbound_note_information: inboundNote,
+    recent_committed_effects: recentCommittedEffects(input.context.turn_frame),
+    product_surfaces: input.context.product_surfaces ?? [],
+  };
+  console.info("[ProductHelp] db_context_pack_loaded", {
+    mode,
+    catalog_candidate_count: candidates.length,
+    has_parent_flow: mode === "inline",
+    micro_memory_items: 0,
+  });
+  console.info("[ProductHelp] local_dispatcher_called", {
+    mode,
+    active_product_help: Boolean(previous),
+    parent_skill_id: mode === "inline" ? activeFlow?.skill_id ?? null : null,
+  });
+  const decision = await dispatcher({
+    user_id: input.context.user_id,
+    request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
+    user_message: input.user_message,
+    recent_messages: recentMessagesFromContext(input),
+    product_help_state: previous,
+    parent_flow_context: mode === "inline" ? activeFlow : null,
+    catalog_candidates: candidates,
+    product_surface_registry: input.context.product_surfaces ?? [],
+    recent_committed_effects: recentCommittedEffects(input.context.turn_frame),
+    db_projection_sources: [],
+    db_context_pack: dbContextPack,
+    micro_memory_context: {
+      items: [],
+      exclusions: ["product_help_no_micro_memory_by_default"],
+      budget: {
+        max_items: 0,
+        reason: "product_help uses product context and parent context only",
+      },
+    },
+    note_information_inbound: inboundNote,
+    platform_context: {},
+    risk_context: { turn_safety: (input.context.turn_frame as any)?.safety },
+    available_inline_tools: ["status_recap"],
+    active_flow_context: activeFlow,
+    mode,
+    turn_frame: input.context.turn_frame,
+  });
+  if (!decision) {
+    return fallbackSkillOutput("product_help_local_dispatcher_failed");
+  }
+  console.info("[ProductHelp] local_dispatcher_result", {
+    flow_action: decision.flow_action,
+    mode: decision.mode,
+    visible_task: decision.visible_task.kind,
+    return_to_parent: decision.return_to_parent.needed,
+    exit_to_global_dispatcher:
+      decision.flow_action === "exit_to_global_dispatcher",
+    note_information_target: decision.note_information?.target_dispatcher ??
+      null,
+  });
+  if (decision.flow_action === "apply_attempt") {
+    console.info("[ProductHelp] apply_attempt_no_mutation", {
+      bridge: decision.bridge,
     });
-    const decision = await dispatcher({
-      user_id: input.context.user_id,
-      request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
-      user_message: input.user_message,
-      recent_messages: recentMessagesFromContext(input),
-      product_help_state: previous,
-      parent_flow_context: mode === "inline" ? activeFlow : null,
-      catalog_candidates: candidates,
-      product_surface_registry: input.context.product_surfaces ?? [],
-      recent_committed_effects: recentCommittedEffects(
-        input.context.turn_frame,
-      ),
-      db_projection_sources: [],
-      active_flow_context: activeFlow,
-      mode,
-      turn_frame: input.context.turn_frame,
-    });
-    if (!decision) {
-      return fallbackSkillOutput("product_help_local_dispatcher_failed");
-    }
-    console.info("[ProductHelp] local_dispatcher_result", {
+  }
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous,
+    output: decision,
+    catalogCandidates: candidates,
+    parentFlowContext: mode === "inline" ? activeFlow : null,
+    productSurfaces: input.context.product_surfaces ?? [],
+    recentCommittedEffects: recentCommittedEffects(input.context.turn_frame),
+    userMessage: input.user_message,
+  });
+  if (reduced.note_information) {
+    console.info("[ProductHelp] note_information_created", {
+      ...noteInformationForTrace(reduced.note_information),
       flow_action: decision.flow_action,
-      mode: decision.mode,
-      visible_task: decision.visible_task.kind,
-      return_to_parent: decision.return_to_parent.needed,
-      exit_to_global_dispatcher:
-        decision.flow_action === "exit_to_global_dispatcher",
     });
-    if (decision.flow_action === "apply_attempt") {
-      console.info("[ProductHelp] apply_attempt_no_mutation", {
-        bridge: decision.bridge,
-      });
-    }
-    const reduced = reduceProductHelpLocalDispatcherOutput({
-      previous,
-      output: decision,
-      catalogCandidates: candidates,
-      parentFlowContext: mode === "inline" ? activeFlow : null,
-      productSurfaces: input.context.product_surfaces ?? [],
-      recentCommittedEffects: recentCommittedEffects(input.context.turn_frame),
+  }
+  if (reduced.exit_to_global_dispatcher) {
+    console.info("[ProductHelp] exit_to_global_dispatcher", {
+      note_information_target: reduced.note_information?.target_dispatcher ??
+        null,
     });
-    if (reduced.exit_to_global_dispatcher) {
-      console.info("[ProductHelp] exit_to_global_dispatcher", {
-        exit_reason: decision.exit_memo.reason,
-        likely_intent:
-          decision.exit_memo.handoff_hint_for_global_dispatcher.likely_intent,
-      });
-      return baseOutput("product_help", {
-        status: "exit",
-        response_intent: "exit_to_global_dispatcher",
-        reply: "",
-        diagnosis: {
-          local_flow: true,
-          flow_action: decision.flow_action,
-          mode: decision.mode,
-          exit_memo: decision.exit_memo,
-          reason_code: reduced.reason_code,
-        },
-        recommendation_need: {
-          needed: false,
-          type: "none",
-          urgency: "none",
-          constraints: [
-            "product_help_does_not_execute_operations",
-            "exit_to_global_dispatcher_with_memo",
-          ],
-        },
-        operation_suggestions: [],
-        memory_write_candidates: [],
-        effects: {
-          requested: [],
-          allowed: [],
-          blocked: [],
-          committed: [],
-        },
-        state_patch: {
-          product_help_local_state: reduced.local_state,
-          product_help_exit_memo: {
-            ...decision.exit_memo,
-            at: new Date().toISOString(),
-            reducer_reason_code: reduced.reason_code,
-          },
-          summary: decision.exit_memo.user_intent_summary ??
-            "Product help exited to global dispatcher.",
-        },
-      });
-    }
-    const visibleAgent = input.visible_agent ?? runProductHelpVisibleAgent;
-    console.info("[ProductHelp] visible_prompt_called", {
-      mode,
-      stage: reduced.visible_task,
-    });
-    const visible = await visibleAgent({
-      user_id: input.context.user_id,
-      request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
-      stage: reduced.visible_task,
-      user_message: input.user_message,
-      recent_messages: recentMessagesFromContext(input),
-      mode,
-      local_state: reduced.local_state,
-      visible_facts_json: reduced.visible_facts_json,
-      dispatcher_instruction: decision.visible_task.instruction,
-    });
-    const reply = String(visible ?? "").trim();
-    if (!reply) return fallbackSkillOutput("product_help_visible_agent_failed");
-    if (mode === "inline") {
-      console.info("[ProductHelp] inline_called_from_parent", {
-        parent_skill_id: activeFlow?.skill_id ?? null,
-      });
-      console.info("[ProductHelp] returned_to_parent_flow", {
-        parent_skill_id: activeFlow?.skill_id ?? null,
-        returned_to_parent: true,
-      });
-    }
     return baseOutput("product_help", {
-      status: reduced.status === "closing" || mode === "inline"
-        ? "complete"
-        : "continue",
-      response_intent: decision.product_help_intent.kind,
-      reply,
+      status: "exit",
+      response_intent: "exit_to_global_dispatcher",
+      reply: "",
       diagnosis: {
         local_flow: true,
         flow_action: decision.flow_action,
         mode: decision.mode,
-        target: decision.target,
-        grounding: decision.grounding,
-        bridge: decision.bridge,
-        visible_task: reduced.visible_task,
-        return_to_parent_flow: reduced.return_to_parent_flow,
+        note_information: reduced.note_information,
+        exit_memo: decision.exit_memo,
         reason_code: reduced.reason_code,
-        evidence: reduced.evidence,
       },
       recommendation_need: {
         needed: false,
@@ -263,8 +270,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
         urgency: "none",
         constraints: [
           "product_help_does_not_execute_operations",
-          "operation_suggestions_always_empty",
-          "requested_allowed_committed_effects_empty",
+          "exit_to_global_dispatcher_with_note_information",
         ],
       },
       operation_suggestions: [],
@@ -272,44 +278,121 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       effects: {
         requested: [],
         allowed: [],
-        blocked: reduced.blocked_effects,
+        blocked: [],
         committed: [],
       },
       state_patch: {
         product_help_local_state: reduced.local_state,
-        product_help_subskill_trace: mode === "inline"
-          ? {
-            subskill: "product_help",
-            mode: "inline",
-            answered_intent: decision.product_help_intent.kind,
-            returned_to_parent: true,
-            parent_skill_id: activeFlow?.skill_id ?? null,
-          }
-          : null,
-        summary: reduced.answer_summary ??
-          `Product help answered: ${decision.flow_action}.`,
+        product_help_exit_memo: {
+          ...decision.exit_memo,
+          note_information: reduced.note_information,
+          at: new Date().toISOString(),
+          reducer_reason_code: reduced.reason_code,
+        },
+        summary: reduced.note_information?.source_flow_state_summary ??
+          decision.exit_memo.user_intent_summary ??
+          "Product help exited to global dispatcher.",
       },
     });
   }
-
-  const intakeResult = await runProductHelpStructuredIntake({
-    user_message: input.user_message,
-    recent_messages: input.context.recent_messages,
-    active_skill_working_state: input.context.active_skill_working_state,
-    turn_frame: input.context.turn_frame,
-    product_surfaces: input.context.product_surfaces,
-    catalog_candidates: candidates,
-    intake_model: input.intake_model,
+  const visibleAgent = input.visible_agent ?? runProductHelpVisibleAgent;
+  console.info("[ProductHelp] visible_prompt_called", {
+    mode,
+    stage: reduced.visible_task,
   });
-  const decision = intakeResult.decision;
-  const feature = decision.target.feature_id === "one_shot_reminder.chat"
-    ? getProductHelpFeature("initiatives")!
-    : getProductHelpFeature(decision.target.feature_id) ??
-      pickCatalogFeatureForObject(decision.target.object_type) ??
-      choosePrimaryCatalogCandidate(candidates);
-  return reduceProductHelpTurn({
-    decision,
-    feature,
-    intake_errors: intakeResult.errors,
+  const visible = await visibleAgent({
+    user_id: input.context.user_id,
+    request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
+    stage: reduced.visible_task,
+    conversation_context: reduced.conversation_context,
+  });
+  const reply = String(visible ?? "").trim();
+  if (!reply) return fallbackSkillOutput("product_help_visible_agent_failed");
+  if (mode === "inline") {
+    console.info("[ProductHelp] inline_called_from_parent", {
+      parent_skill_id: activeFlow?.skill_id ?? null,
+    });
+    console.info("[ProductHelp] returned_to_parent_flow", {
+      parent_skill_id: activeFlow?.skill_id ?? null,
+      returned_to_parent: true,
+    });
+  }
+  const targetDispatcher = String(
+    reduced.note_information?.target_dispatcher ?? "",
+  );
+  const handoffTarget = targetDispatcher && targetDispatcher !== "global"
+    ? targetDispatcher
+    : null;
+  return baseOutput("product_help", {
+    status: reduced.status === "handoff" || reduced.status === "safety"
+      ? "handoff"
+      : reduced.status === "closing" || reduced.status === "closed" ||
+          mode === "inline"
+      ? "complete"
+      : "continue",
+    response_intent: decision.product_help_intent.kind,
+    reply,
+    diagnosis: {
+      local_flow: true,
+      flow_action: decision.flow_action,
+      mode: decision.mode,
+      target: decision.target,
+      grounding: decision.grounding,
+      bridge: decision.bridge,
+      visible_task: reduced.visible_task,
+      return_to_parent_flow: reduced.return_to_parent_flow,
+      handoff_to_local_dispatcher: reduced.handoff_to_local_dispatcher,
+      note_information: reduced.note_information,
+      reason_code: reduced.reason_code,
+      evidence: reduced.evidence,
+    },
+    recommendation_need: {
+      needed: false,
+      type: "none",
+      urgency: "none",
+      constraints: [
+        "product_help_does_not_execute_operations",
+        "operation_suggestions_always_empty",
+        "requested_allowed_committed_effects_empty",
+      ],
+    },
+    operation_suggestions: [],
+    handoff_request: handoffTarget
+      ? {
+        target_skill_id: handoffTarget,
+        reason: reduced.reason_code,
+        confidence_band: decision.confidence,
+      }
+      : undefined,
+    memory_write_candidates: [],
+    effects: {
+      requested: [],
+      allowed: [],
+      blocked: reduced.blocked_effects,
+      committed: [],
+    },
+    state_patch: {
+      product_help_local_state: reduced.local_state,
+      product_help_note_information: reduced.note_information,
+      product_help_exit_memo: reduced.handoff_to_local_dispatcher
+        ? {
+          ...decision.exit_memo,
+          note_information: reduced.note_information,
+          at: new Date().toISOString(),
+          reducer_reason_code: reduced.reason_code,
+        }
+        : null,
+      product_help_subskill_trace: mode === "inline"
+        ? {
+          subskill: "product_help",
+          mode: "inline",
+          answered_intent: decision.product_help_intent.kind,
+          returned_to_parent: true,
+          parent_skill_id: activeFlow?.skill_id ?? null,
+        }
+        : null,
+      summary: reduced.answer_summary ??
+        `Product help answered: ${decision.flow_action}.`,
+    },
   });
 }

@@ -65,31 +65,6 @@ function latestTechniqueEntry(
     null;
 }
 
-function techniqueSignalPattern(techniqueId: CoachingTechniqueId): RegExp {
-  switch (techniqueId) {
-    case "three_second_rule":
-      return /\b3 secondes\b|premier geste|tout de suite|maintenant/i;
-    case "minimum_version":
-      return /version minimale|minimale|une ligne|2 minutes|juste commencer/i;
-    case "ten_minute_sprint":
-      return /\b10 minutes\b|\bdix minutes\b|pendant 10 minutes/i;
-    case "if_then_plan":
-      return /\bsi\b.{0,40}\balors\b/i;
-    case "environment_shift":
-      return /change.*piece|change.*pi[eè]ce|change d'environnement|sors de la piece|bouge de place/i;
-    case "urge_delay":
-      return /attends? 10 minutes|reporte.*10 minutes|repousse juste la decision/i;
-    case "immediate_replacement":
-      return /remplace|a la place|substitut|autre geste tout de suite/i;
-    case "contrast_visualization":
-      return /visualis|ce que tu gagnes|ce que tu paies|cout de ne pas/i;
-    case "precommitment":
-      return /prepare.*maintenant|a l'avance|pre-engage|rendre plus facile plus tard/i;
-    case "relapse_protocol":
-      return /prochaine repetition|prochain geste|ce n'est pas foutu|on repart/i;
-  }
-}
-
 export function buildCoachingHistorySnapshot(
   history: CoachingInterventionTechniqueHistory[] | undefined,
   limit = 6,
@@ -190,15 +165,12 @@ export function detectCoachingInterventionRender(args: {
   const labelMentioned = technique
     ? response.toLowerCase().includes(technique.label.toLowerCase())
     : false;
-  const keywordHit = addon.recommended_technique
-    ? techniqueSignalPattern(addon.recommended_technique).test(response)
-    : false;
 
-  if (labelMentioned || keywordHit) {
+  if (labelMentioned) {
     return {
       rendered: true,
-      render_confidence: labelMentioned ? "high" : "medium",
-      render_signal: labelMentioned ? "technique_label_detected" : "technique_pattern_detected",
+      render_confidence: "high",
+      render_signal: "technique_label_detected",
       technique_signal_detected: true,
       response_excerpt: truncate(response, 220),
     };

@@ -34,7 +34,7 @@ run.ts
 
 - `supabase`, `userId`, `userMessage`, `history`, `meta`, `opts`.
 - state utilisateur et `tempMemory`.
-- `TurnFrame`, `RouteDecision`, `TurnAgenda`.
+- `TurnFrame`, `RouteDecision`.
 
 ## Outputs
 

@@ -108,6 +108,13 @@ enter safety, not the global dispatcher.
 
 If safety is active, product/tool/status inline calls are not allowed.
 
+If `safety_crisis` is picked up from another active local dispatcher, the
+source dispatcher must transmit `note_information` with
+`target_dispatcher="safety_crisis"` and `handoff_reason="safety"`. The note
+must summarize the source flow, the safety signal, deferred product/tool intent
+if any, and no-chat-mutation status. Safety consumes it as background context,
+not as a risk downgrade or routing decision.
+
 ## State
 
 Recommended active state :
@@ -226,6 +233,25 @@ When resolved, safety writes an exit memo for global runtime :
 
 ```json
 {
+  "note_information": {
+    "source_flow_id": "safety_crisis",
+    "source_flow_presentation": "Owns active safety/crisis turns and prioritizes immediate human safety, grounding, means distance, and support contact. Product/tool requests are deferred, not routed.",
+    "source_flow_state_summary": "Safety crisis deescalated with required resolution facts.",
+    "handoff_reason": "flow_interruption",
+    "target_dispatcher": "global",
+    "handoff_context_for_next_dispatcher": "Immediate danger is absent, means are safe if relevant, human support path is available, and no fresh high/critical signal is present. Do not resume deferred product/tool work automatically.",
+    "target_local_dispatcher_hint": null,
+    "user_words": [],
+    "structured_context": {},
+    "risk_score": 0,
+    "no_chat_mutation": {
+      "db_write_committed": false,
+      "potion_session_created": false,
+      "scheduled_checkin_created": false,
+      "recurring_reminder_created": false,
+      "executable_confirmation_generated": false
+    }
+  },
   "reason": "resolved",
   "flow_summary": "Safety crisis deescalated; immediate danger absent, means safe, human support available.",
   "handoff_hint_for_global_dispatcher": {
@@ -238,6 +264,11 @@ When resolved, safety writes an exit memo for global runtime :
   }
 }
 ```
+
+If safety closes locally with a resolved visible prompt and no same-turn reroute,
+that is `stop_local_no_handoff`: the state is cleared and global resumes only on
+a later user turn. If the same message must be handed to global immediately, the
+resolved exit requires `note_information`.
 
 ## Product / Tool Boundary
 
@@ -266,4 +297,3 @@ Target cleanup :
   prompts ;
 - no regex or keyword-based business classifier ;
 - no product/tool route inside safety.
-

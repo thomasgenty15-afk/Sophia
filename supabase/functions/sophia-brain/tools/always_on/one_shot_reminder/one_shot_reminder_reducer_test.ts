@@ -45,7 +45,7 @@ Deno.test("create_missing_instruction_blocks", () => {
   assertEquals(state.effect_plan.allowed_effects.length, 0);
 });
 
-Deno.test("status_product_no_tool_safety_agenda_never_mutate", () => {
+Deno.test("status_product_no_tool_safety_global_block_never_mutate", () => {
   for (
     const state of [
       reduceOneShotReminderIntake({ intake: intake({ intent: "status" }) }),
@@ -59,7 +59,7 @@ Deno.test("status_product_no_tool_safety_agenda_never_mutate", () => {
       reduceOneShotReminderIntake({ intake: intake({}), safetyBlocks: true }),
       reduceOneShotReminderIntake({
         intake: intake({}),
-        agendaBlockedReason: "agenda_blocks_create",
+        globalBlockedReason: "global_blocks_create",
       }),
     ]
   ) {

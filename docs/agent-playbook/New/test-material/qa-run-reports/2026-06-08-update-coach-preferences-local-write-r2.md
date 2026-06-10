@@ -106,7 +106,7 @@
 
 **Problemes**
 - Tour 1: Sophia répond comme si elle allait durablement changer son comportement, mais aucun write n’a eu lieu. Famille: BF-ROUTE-01, avec risque BF-LEDGER-01 côté claim visible. Impact: l’utilisateur croit que la préférence est appliquée alors que DB reste inchangée. Sévérité: red.
-- Tour 2: la question de statut sur les préférences coach aurait dû armer `status_recap` / `status_only_no_mutation_check`. Elle reste servie par `normal_reply`, donc la réponse n'est pas passée par le runtime read-only DB-grounded attendu. Famille: BF-ROUTE-03. Sévérité: yellow.
+- Tour 2: la question de statut sur les préférences coach aurait dû armer `status_recap` / `status_recap`. Elle reste servie par `normal_reply`, donc la réponse n'est pas passée par le runtime read-only DB-grounded attendu. Famille: BF-ROUTE-03. Sévérité: yellow.
 
 **Fix propose**
 - Source amont: dispatcher / arbitrage route tool-skill.
@@ -119,7 +119,7 @@
 
 **Routage**
 - Tour 1 aurait dû router vers `update_coach_preferences`, mais reste en `normal_reply`.
-- Tour 2 aurait dû router vers le runtime `status_recap` via `status_only_no_mutation_check`, mais reste en `normal_reply`.
+- Tour 2 aurait dû router vers le runtime `status_recap` via `status_recap`, mais reste en `normal_reply`.
 - Tour 3 ne produit pas de side effect durable pour une demande non supportée.
 - Couverture manquante du run: si `update_coach_preferences` est actif et que
   le user demande ses préférences actuelles ou une explication des réglages, le

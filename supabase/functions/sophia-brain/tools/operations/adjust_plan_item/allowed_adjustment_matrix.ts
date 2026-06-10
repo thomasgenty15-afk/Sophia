@@ -1,7 +1,7 @@
 /**
  * Allowed Adjustment Matrix
  *
- * Single source of truth for the deterministic permission rules that govern
+ * Single source of truth for the structured permission rules that govern
  * what the AI is allowed to propose for an adjust_plan operation.
  *
  * The matrix expresses business invariants as DATA, not as prompt rules.

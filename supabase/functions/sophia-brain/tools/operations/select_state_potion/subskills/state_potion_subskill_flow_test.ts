@@ -39,11 +39,6 @@ function baseDecision(
     },
     visible_task: {
       kind: "ask_deeper",
-      required_data: {
-        potion_name: "Potion d'apaisement",
-        platform_destination: "section État / Potions",
-        fields: [],
-      },
     },
     subskill_call: {
       needed: false,
@@ -144,11 +139,6 @@ Deno.test("state potion subskill reducer locks all fields and builds platform ha
       }],
       visible_task: {
         kind: "handoff_ready",
-        required_data: {
-          potion_name: "Potion d'apaisement",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -270,11 +260,6 @@ Deno.test("state potion subskill completed fields always produce a final handoff
         current_field_id: null,
         visible_task: {
           kind: "destination_short",
-          required_data: {
-            potion_name: previous.potion_name,
-            platform_destination: "section État / Potions",
-            fields: [],
-          },
         },
       }),
     });
@@ -307,11 +292,6 @@ Deno.test("state potion subskill already delivered destination followup repeats 
       current_field_id: null,
       visible_task: {
         kind: "destination_short",
-        required_data: {
-          potion_name: "Potion d'amour",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -354,11 +334,6 @@ Deno.test("state potion subskill asks one detail question for sparse free text b
       }],
       visible_task: {
         kind: "handoff_ready",
-        required_data: {
-          potion_name: "Potion d'amour",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -436,11 +411,6 @@ Deno.test("state potion subskill detail followup answer finalizes without a seco
       }],
       visible_task: {
         kind: "handoff_ready",
-        required_data: {
-          potion_name: "Potion d'amour",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -489,11 +459,6 @@ Deno.test("amour field answer locks natural self-harshness and delivers handoff"
       }],
       visible_task: {
         kind: "handoff_ready",
-        required_data: {
-          potion_name: "Potion d'amour",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -545,11 +510,6 @@ Deno.test("amour destination followup still merges provided field values before 
       }],
       visible_task: {
         kind: "destination_short",
-        required_data: {
-          potion_name: "Potion d'amour",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -578,11 +538,6 @@ Deno.test("state potion subskill reducer waits on proposed field then advances a
       }],
       visible_task: {
         kind: "confirm_proposal",
-        required_data: {
-          potion_name: "Potion de courage",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -635,11 +590,6 @@ Deno.test("state potion subskill reducer apply_attempt does not mutate locked fi
       }],
       visible_task: {
         kind: "apply_attempt",
-        required_data: {
-          potion_name: "Potion d'amour",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
     }),
   });
@@ -653,6 +603,98 @@ Deno.test("state potion subskill reducer apply_attempt does not mutate locked fi
   assert(reduced.draft === null);
 });
 
+Deno.test("state potion subskill stop local does not exit to global dispatcher", () => {
+  const previous = createInitialStatePotionSubskillState("amour", null);
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "amour",
+      flow_action: "stop_local_no_handoff",
+      current_field_id: null,
+      visible_task: {
+        kind: "exit",
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        flow_summary: null,
+        collected_value: null,
+        handoff_hint_for_global_dispatcher: null,
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "cancelled");
+  assertEquals(reduced.visible_task, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.potion_subskill_state, null);
+  assertEquals(reduced.reason_code, "amour_flow_stopped_local_no_handoff");
+});
+
+Deno.test("state potion subskill topic change exits to global dispatcher", () => {
+  const previous = createInitialStatePotionSubskillState("courage", null);
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "courage",
+      flow_action: "exit_to_global_dispatcher",
+      current_field_id: null,
+      visible_task: {
+        kind: "exit",
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "Potion de courage interrompue.",
+        collected_value: null,
+        handoff_hint_for_global_dispatcher:
+          "Le user demande maintenant un rappel ponctuel.",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "topic_change");
+  assertEquals(reduced.visible_task, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.potion_subskill_state?.last_visible_task, "exit");
+  assertEquals(reduced.reason_code, "courage_flow_topic_change");
+});
+
+Deno.test("state potion subskill safety preempt stays local safety path", () => {
+  const previous = createInitialStatePotionSubskillState("apaisement", null);
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "apaisement",
+      flow_action: "safety_preempt",
+      current_field_id: null,
+      visible_task: {
+        kind: "safety",
+      },
+      exit_memo: {
+        needed: true,
+        reason: "safety",
+        flow_summary: "Potion d'apaisement interrompue par safety.",
+        collected_value: null,
+        handoff_hint_for_global_dispatcher:
+          "Preempter vers le dispatcher local safety.",
+      },
+      risk_assessment: {
+        risk_score: 9,
+        risk_band: "high",
+        safety_preempt: true,
+        reason_codes: ["local_dispatcher_safety"],
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "blocked");
+  assertEquals(reduced.visible_task, "safety");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.potion_subskill_state?.last_visible_task, "safety");
+  assertEquals(reduced.risk_assessment.safety_preempt, true);
+});
+
 Deno.test("state potion subskill routes product help inline with local context", () => {
   const previous = createInitialStatePotionSubskillState("rappel", null);
   const reduced = reduceStatePotionSubskillDispatcherOutput({
@@ -662,11 +704,6 @@ Deno.test("state potion subskill routes product help inline with local context",
       flow_action: "get_info_product",
       visible_task: {
         kind: "none",
-        required_data: {
-          potion_name: "Potion rappel",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
       subskill_call: {
         needed: true,
@@ -705,11 +742,6 @@ Deno.test("state potion subskill routes status recap inline with local context",
       flow_action: "get_info_db",
       visible_task: {
         kind: "none",
-        required_data: {
-          potion_name: "Potion de courage",
-          platform_destination: "section État / Potions",
-          fields: [],
-        },
       },
       subskill_call: {
         needed: true,

@@ -49,7 +49,7 @@ user message
   -> dispatcher L1 produces TurnFrame
   -> routers/arbitrators choose an owner
   -> UserTurnSnapshot captures current turn state
-  -> TurnAgenda represents reply/effect/status/memory/repair tasks
+  -> local reducer contract represents reply/effect/status/memory/repair tasks
   -> Confirmation Contract classifies approve/reject/revise/explain/status
   -> owner runtime runs one domain contract
   -> owner prepares requested/allowed/blocked effects
@@ -299,7 +299,7 @@ Un "ok" court ne valide rien si :
 ## Interruption Ownership
 
 Une nouvelle intention explicite peut suspendre ou interrompre un ancien flow.
-Cette décision appartient à `UserTurnSnapshot + TurnAgenda` et aux policies
+Cette décision appartient à `UserTurnSnapshot` et aux policies
 globales d'interruption, pas à un vieux pending qui capturerait tout.
 
 Exemples :

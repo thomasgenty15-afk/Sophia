@@ -32,6 +32,31 @@ Inventaire retenu : **12 prompts au total**.
 - Aucune decision metier ne doit venir de regex, keyword fallback ou `if message
   includes X`.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Inbound bridges from `emotional_repair`, `demotivation_repair`, opportunity
+verification, or another local flow must provide `note_information` with
+`target_dispatcher="select_state_potion"`. The dispatcher can use that note as
+source context and field candidates, but it must not route deterministically
+from the note alone.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, and inline product/status roundtrips if those are supported
+by the integration. Use `source_flow_id="select_state_potion"` and copy the
+catalog presentation.
+
+Do not produce it for `cancel_flow`, `apply_attempt`,
+`platform_destination_followup`, `repeat_handoff`, or internal
+`select_state_potion -> potion subskill` routing. The subskill routing is the
+explicit specialized exception: it keeps the structured potion/subskill
+contract and does not require a transverse dispatcher note.
+
+The handoff context for exits must include selected state/potion summary,
+collected fields, missing or weak fields, constraints such as `no_followup`, and
+the no-potion-session/no-chat-mutation invariant.
+
 ## Runtime Cible
 
 ```txt

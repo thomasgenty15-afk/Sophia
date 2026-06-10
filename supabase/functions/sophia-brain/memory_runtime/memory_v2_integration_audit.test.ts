@@ -4,7 +4,7 @@ import {
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { MemoryWriteCandidate } from "../contracts/memory_write_candidate.v1.ts";
-import type { EmotionalRepairSkillDecision } from "../skills/emotional_repair/contract.ts";
+import type { EmotionalRepairLocalDispatcherOutput } from "../skills/emotional_repair/contract.ts";
 import { runEmotionalRepairSkill } from "../skills/emotional_repair/skill.ts";
 import { loadDemotivationRepairContext } from "../skills/demotivation_repair/context_loader.ts";
 import { loadBaseSkillContext } from "../skills/_shared/context.ts";
@@ -175,7 +175,7 @@ Deno.test("S7 audit 2: sensitive cannabis memory is excluded from neutral demoti
   );
 });
 
-Deno.test("S7 audit 3: acute identity statements stay statements and fact candidates are rejected", async () => {
+Deno.test("S7 audit 3: emotional repair does not emit memory candidates for acute identity statements", async () => {
   const context = await loadBaseSkillContext("emotional_repair", {
     user_id: "user-1",
     active_skill_working_state: null,
@@ -187,12 +187,20 @@ Deno.test("S7 audit 3: acute identity statements stay statements and fact candid
     allow_sensitive: true,
     allow_safety_memory: false,
   });
-  const decision: EmotionalRepairSkillDecision = {
-    skill_id: "emotional_repair",
-    intent: "acute_self_attack",
-    phase: "separate_fact_from_identity",
-    emotional_dominance: "high",
-    context_domain: "unknown",
+  const dispatcherOutput: EmotionalRepairLocalDispatcherOutput = {
+    flow_action: "answer_repair",
+    confidence: "high",
+    risk_score: 2,
+    repair_state: {
+      intent: "acute_self_attack",
+      phase: "separate_fact_from_identity",
+      emotional_dominance: "high",
+      context_domain: "unknown",
+      summary: "Le user se decrit avec une attaque identitaire a ne pas figer.",
+      user_words: ["je suis nul je rate tout"],
+      identity_freeze_risk: true,
+      emotion_stabilized_enough_for_tool: false,
+    },
     constraints: ["no_plan", "do_not_persist_identity_attack"],
     response_contract: {
       max_questions: 0,
@@ -202,57 +210,75 @@ Deno.test("S7 audit 3: acute identity statements stay statements and fact candid
       allow_concrete_action: false,
       tone: "soft",
     },
-    memory_write_candidates: [
-      {
-        source_text: "je suis nul je rate tout",
-        should_persist_default: false,
-        anti_identity_freeze_checked: true,
-        sensitivity_level: 3,
-        reason: "acute identity attack is not a durable fact",
+    potion_bridge: {
+      status: "not_applicable",
+      selected_potion: null,
+      candidate_potions: [],
+      durable_need: { kind: null, summary: null },
+      prefill_candidates: {},
+      missing_before_handoff: [],
+      why_ready_or_blocked: "pas de bridge pendant une auto-attaque",
+    },
+    visible_task: {
+      kind: "separate_fact_from_identity",
+      conversation_context: {
+        state_summary:
+          "Le user se decrit avec une attaque identitaire a ne pas figer.",
+        user_words: ["je suis nul je rate tout"],
+        field_or_stage: "separate_fact_from_identity",
+        known_values: {
+          intent: "acute_self_attack",
+          phase: "separate_fact_from_identity",
+          emotional_dominance: "high",
+          context_domain: "unknown",
+          identity_freeze_risk: true,
+          emotion_stabilized_enough_for_tool: false,
+        },
+        missing_or_weak_values: [],
+        selected_candidate: {
+          potion: null,
+          potion_label: null,
+          durable_need_kind: null,
+          durable_need_summary: null,
+        },
+        handoff_data: {
+          bridge_context_summary: null,
+          target_dispatcher: null,
+          no_chat_mutation: true,
+        },
+        tone_constraints: ["soft", "no_plan"],
+        do_not_say: ["Ne transforme pas l'auto-insulte en fait durable."],
+        context_summary:
+          "Le user se decrit avec une attaque identitaire a ne pas figer.",
+        evidence_used: ["je suis nul je rate tout"],
+        max_questions: 0,
       },
-    ],
-    reply:
-      "Ce verdict sur toi n'est pas une information fiable; on garde le fait concret sans figer ton identité.",
-    state_patch: { summary: "Identity attack separated from facts." },
+    },
+    exit_memo: {
+      needed: false,
+      reason: "none",
+      flow_summary: null,
+      handoff_hint_for_global_dispatcher: null,
+      potion_bridge_context: null,
+    },
+    no_chat_mutation: {
+      potion_session_created: false,
+      recurring_reminder_created: false,
+      scheduled_checkin_created: false,
+      executable_confirmation_generated: false,
+      db_write_committed: false,
+    },
+    evidence: ["je suis nul je rate tout"],
   };
   const output = await runEmotionalRepairSkill({
     user_message: "je suis nul je rate tout",
     context,
-    intake_model: () => decision,
+    local_dispatcher: async () => dispatcherOutput,
+    visible_agent: async () =>
+      "Ce verdict sur toi n'est pas une information fiable; on garde le fait concret sans figer ton identite.",
   });
-  const bridge = await dispatchMemoryCandidates({
-    user_id: "user-1",
-    source_message_id: "message-identity",
-    candidates: [
-      ...(output.memory_write_candidates ?? []),
-      {
-        kind: "fact",
-        content_text: "je suis nul je rate tout",
-        evidence_source_ids: ["message-identity"],
-        confidence_band: "medium",
-        sensitivity_level: 3,
-        persistence_rationale: "forbidden identity freeze fact",
-        should_persist_default: true,
-        anti_identity_freeze_checked: true,
-      },
-    ],
-  });
-
-  assertEquals(output.memory_write_candidates?.[0]?.kind, "statement");
-  assertEquals(
-    output.memory_write_candidates?.[0]?.should_persist_default,
-    false,
-  );
-  assertEquals(
-    bridge.rejected.some((entry) =>
-      entry.reason === "identity_freeze_fact_rejected"
-    ),
-    true,
-  );
-  assertEquals(
-    bridge.accepted.some((entry) => entry.candidate.kind === "fact"),
-    false,
-  );
+  assertEquals(output.memory_write_candidates ?? [], []);
+  assertEquals(output.effects?.committed ?? [], []);
 });
 
 Deno.test("S7 audit 4: active topic can stay sticky while response owner is not cannabis and context does not inject it", async () => {

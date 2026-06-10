@@ -434,21 +434,6 @@ export function summarizeEffectLedgerForTrace(
   };
 }
 
-function normalizeClaimText(value: string): string {
-  return String(value ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[’']/g, " ")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function alreadyHonest(normalized: string): boolean {
-  return /\b(je n ai pas|je ne l ai pas|je ne le modifie pas|je ne la modifie pas|je ne modifie pas|je ne le cree pas|je ne la cree pas|je ne le programme pas|je ne la programme pas|je n ai rien|pas encore|pas reussi|pas réussi|souci technique|je ne peux pas|je ne vais pas|si tu confirmes|besoin de ta confirmation|rien n est applique|rien n est confirme|je propose|proposition|je recommande|ma recommandation|je te conseille|tu peux le faire dans|tu peux la creer dans|tu peux le creer dans|ou le faire dans plan|dans la section plan|dans la plateforme|depuis la plateforme|depuis le chat)\b/
-    .test(normalized);
-}
-
 export function rewriteUncommittedEffectClaims(args: {
   reply: string;
   ledger: EffectLedger;
@@ -458,104 +443,6 @@ export function rewriteUncommittedEffectClaims(args: {
   reason_codes: string[];
 } {
   const reply = String(args.reply ?? "");
-  const normalized = normalizeClaimText(reply);
-  if (!reply.trim() || alreadyHonest(normalized)) {
-    return { reply, changed: false, reason_codes: [] };
-  }
-
-  const reasonCodes: string[] = [];
-  const hasCommit = (types: string[]) =>
-    hasCommittedEffect(
-      args.ledger,
-      (entry) => types.includes(entry.effect_type),
-    );
-  const hasAnyCommit = hasCommittedEffect(args.ledger, () => true);
-  const claimsPreference = /\b(preference|preferences)\b/.test(normalized) &&
-    /\b(c est fait|enregistre|enregistree|gardee|garde|applique|appliquee|mis a jour|mise a jour)\b/
-      .test(normalized);
-  if (claimsPreference && !hasCommit(["coach_preferences.update"])) {
-    reasonCodes.push("uncommitted_coach_preferences_update_claim");
-  }
-
-  const claimsReminderCreate =
-    /\b(rappel|rappelle|reminder)\b/.test(normalized) &&
-    /\b(programme|programmee|planifie|planifiee|cree|cree|prevu|c est prevu|en place)\b/
-      .test(normalized);
-  if (
-    claimsReminderCreate &&
-    !hasCommit(["one_shot_reminder.create", "recurring_reminder.create"])
-  ) {
-    reasonCodes.push("uncommitted_reminder_create_claim");
-  }
-
-  const claimsReminderCancel =
-    /\b(rappel|rappelle|reminder)\b/.test(normalized) &&
-    /\b(j ai (annule|supprime|coupe)|c est (annule|supprime|coupe)|rappel (annule|supprime|coupe))\b/
-      .test(normalized);
-  if (
-    claimsReminderCancel && !hasCommit(["one_shot_reminder.cancel"])
-  ) {
-    reasonCodes.push("uncommitted_reminder_cancel_claim");
-  }
-
-  const claimsCardCreate = /\b(carte|card)\b/.test(normalized) &&
-    /\b(carte (creee|cree|preparee|prepare)|je l ai (creee|cree|preparee|prepare)|c est (cree|creee|prepare|preparee))\b/
-      .test(normalized);
-  if (
-    claimsCardCreate &&
-    !hasCommit(["attack_card.create", "defense_card.create"])
-  ) {
-    reasonCodes.push("uncommitted_card_create_claim");
-  }
-
-  const claimsPotionActivate =
-    /\b(potion|reset|protocole|clarte|apaisement|guerison|amour|courage)\b/
-      .test(normalized) &&
-    /\b(active|activee|lance|lancee|demarre|demarree|en place|c est parti)\b/
-      .test(normalized);
-  if (claimsPotionActivate && !hasCommit(["state_potion.activate"])) {
-    reasonCodes.push("uncommitted_state_potion_activate_claim");
-  }
-
-  const claimsPlanAdjust =
-    /\b(plan|action|mission|semaine)\b/.test(normalized) &&
-    /\b(modifie|modifiee|ajuste|ajustee|allege|allegee|corrige|corrigee|reporte|reportee|applique|appliquee)\b/
-      .test(normalized);
-  if (claimsPlanAdjust && !hasCommit(["plan_item.adjust"])) {
-    reasonCodes.push("uncommitted_plan_adjust_claim");
-  }
-
-  const claimsProgressTrack =
-    /\b(progres|progression|avancee|avancement|action|mission|habitude|partiel|rate|manque)\b/
-      .test(normalized) &&
-    /\b(note|notee|enregistre|enregistree|coche|cochee|marque|marquee)\b/
-      .test(normalized);
-  if (claimsProgressTrack && !hasCommit(["plan_item_progress.track"])) {
-    reasonCodes.push("uncommitted_progress_track_claim");
-  }
-
-  const claimsMemoryWrite =
-    /\b(memoire|souvenir|souviens|retiens|memorise|memorisee|garde en memoire|garde en tete)\b/
-      .test(normalized) &&
-    /\b(enregistre|enregistree|note|notee|memorise|memorisee|je m en souviens|je retiens|je le garde|je garde ca)\b/
-      .test(normalized);
-  if (claimsMemoryWrite && !hasCommit(["memory.write", "memory.item.write"])) {
-    reasonCodes.push("uncommitted_memory_write_claim");
-  }
-
-  const claimsGenericSuccess =
-    /\b(c est fait|c est bon|ca y est|voila c est|j ai (bien )?(applique|cree|creee|enregistre|active|activee|note|memorise|mis en place)|c est (bien )?(cree|creee|applique|appliquee|enregistre|enregistree|active|activee|note|notee|memorise|memorisee))\b/
-      .test(normalized);
-  if (claimsGenericSuccess && !hasAnyCommit && reasonCodes.length === 0) {
-    reasonCodes.push("uncommitted_generic_success_claim");
-  }
-
-  if (reasonCodes.length === 0) {
-    return { reply, changed: false, reason_codes: [] };
-  }
-  return {
-    reply,
-    changed: true,
-    reason_codes: reasonCodes,
-  };
+  void args.ledger;
+  return { reply, changed: false, reason_codes: [] };
 }

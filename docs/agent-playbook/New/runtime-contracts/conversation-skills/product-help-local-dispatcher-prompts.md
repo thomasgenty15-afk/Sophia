@@ -17,6 +17,24 @@ Routes non visibles :
   reanalyser le meme message.
 - `safety_preempt` laisse la pipeline safety reprendre.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+When `product_help` is called inline by a parent flow, the parent must provide
+`note_information` with `target_dispatcher="product_help"`. `product_help`
+answers only the product question and returns to the parent with a
+note-compatible `return_to_parent.return_summary`; it does not become durable
+owner.
+
+When standalone `product_help` exits to global or safety, produce
+`note_information` with `source_flow_id="product_help"` and the catalog
+presentation. Do not produce it for `close_product_help` or
+`return_to_parent_flow` when the parent remains owner. `target_dispatcher` is
+`global` for off-topic or explicit other-flow requests and `safety_crisis` for
+safety preemption. The handoff context must include the answered question,
+grounding ids, mode, parent flow if any, and no-mutation constraints.
+
 ## Prompt 01 - Dispatcher Local Product Help
 
 ```txt
@@ -465,4 +483,3 @@ Checks interdits :
 - No status recap rendered.
 - No deterministic renderer in nominal path.
 - No regex business classifier.
-

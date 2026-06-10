@@ -17,7 +17,7 @@ plateforme ou une clarification. Il n'expose pas de confirmation exécutable.
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
-- `TurnAgenda` pour distinguer reply/effects/status/memory/repair ;
+- `local reducer contract` pour distinguer reply/effects/status/memory/repair ;
 - `Confirmation Contract` pour reconnaître qu'une approbation de handoff
   plateforme reste non exécutable ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
@@ -31,7 +31,7 @@ Utilisation actuelle dans le code :
   `skills/_shared/skill_helpers.ts` et `context_loader.ts`, avec `turn_frame`,
   `recent_messages`, `active_skill_working_state`, `product_surfaces`,
   plan/memory projections et exclusions ;
-- `TurnAgenda` reste propriétaire des conflits globaux. `product_help` ne décide
+- `local reducer contract` reste propriétaire des conflits globaux. `product_help` ne décide
   pas seul de prendre le tour contre safety, status ou un tool explicite. Dans
   `router/run.ts`, `runConversationSkillForRecommendation` appelle seulement
   `runProductHelpSkill(input)` quand le route owner sélectionné est
@@ -113,7 +113,6 @@ Architecture cible détaillée :
   - `collectRecentProductObjectCandidates`
   - `runProductHelpStructuredIntake`
   - `normalizeProductHelpDecision`
-  - `legacyProductHelpHeuristicIntake`
 - Retrieval/catalogue :
   `supabase/functions/sophia-brain/skills/product_help/retrieval.ts`
   - `retrieveProductHelpCandidates`
@@ -352,28 +351,7 @@ encore disponible ou qu'un guard final est nécessaire.
 - Rendre un status complet.
 - Affirmer un objet réel sans source choisie dans `grounding.db_sources_used`.
 - Forcer un emoji ou une question finale de style.
-- Faire du renderer déterministe le chemin nominal de réponse.
 - Laisser `product_help` inline devenir owner durable à la place du parent.
-
-## Legacy Exceptions
-
-`intake.ts::legacyProductHelpHeuristicIntake` reste exporté temporairement pour
-les tests de compatibilité et les comparaisons d'urgence. Il protège les
-scénarios historiques carte/rappel/pronom/catalogue pendant que l'intake IA est
-déployé.
-
-Conditions de suppression :
-
-- les tests `skills_s3.test.ts` doivent tous utiliser des décisions structurées
-  stubbées ou des fixtures JSON sans appeler le legacy ;
-- au moins un run QA réel doit confirmer les paraphrases carte/rappel/pronom,
-  status vs help, tool action vs bridge, et active flow inline ;
-- aucune dépendance de production ne doit référencer
-  `legacyProductHelpHeuristicIntake`.
-
-Le fallback production autorisé est seulement `conservativeProductHelpFallback`,
-déclenché par échec technique ou JSON inexploitable. Il ne doit pas inventer de
-bridge ou d'objet réel.
 
 ## Required Tests
 
@@ -383,7 +361,6 @@ Tests principaux dans `supabase/functions/sophia-brain/skills/skills_s3.test.ts`
 - `product_help uses structured intake model decision`
 - `product_help intake failure uses non-mutating conservative fallback`
 - `product_help prompt does not force emoji`
-- `product_help legacy heuristic intake is not the default structured path`
 - `product_help scenarios never start operations`
 - `product_help tool action requests are bridge only, never execution` (incluant
   `effects.requested=[]`, `effects.allowed=[]` et aucun `handoff_request`)

@@ -7,10 +7,59 @@ import { loadStatePotionHandoffStateFromTempMemory } from "../../tools/operation
 import { createInitialClarteState } from "../../tools/operations/select_state_potion/subskills/clarte_flow.ts";
 import type {
   DemotivationRepairBridgePotion,
+  DemotivationRepairConversationContext,
   DemotivationRepairLocalDispatcherOutput,
   DemotivationRepairLocalState,
+  DemotivationRepairVisibleTask,
 } from "./contract.ts";
-import { reduceDemotivationRepairLocalDispatcherOutput } from "./local_flow.ts";
+import {
+  demotivationRepairDispatcherOutputExamples,
+  localDispatcherSystemPrompt,
+  reduceDemotivationRepairLocalDispatcherOutput,
+} from "./local_flow.ts";
+import { stagePrompt } from "./visible_agent.ts";
+
+type AssertNever<T extends never> = T;
+type _NoDemotivationVisibleRequiredData = AssertNever<
+  Extract<keyof DemotivationRepairVisibleTask, "required_data">
+>;
+
+Deno.test("demotivation_repair dispatcher prompt documents local field completion rules", () => {
+  const prompt = localDispatcherSystemPrompt();
+  assert(prompt.includes("Field Completion Rules pour demotivation_repair"));
+  assert(prompt.includes("- repair_state.intent:"));
+  assert(prompt.includes("- response_contract.max_questions:"));
+  assert(prompt.includes("question de clarification ou de reconnexion"));
+  assert(prompt.includes("N'utilise action_card_candidate que si"));
+  assert(prompt.includes("- potion_bridge.status:"));
+  assert(prompt.includes("- exit_memo.needed:"));
+  assert(prompt.includes("- no_chat_mutation:"));
+  assert(prompt.includes("Transition Rules:"));
+
+  const examples = demotivationRepairDispatcherOutputExamples();
+  assertEquals(examples.length, 2);
+  assertEquals(examples[0].case, "continuation_normale");
+  assertEquals(examples[1].case, "transition_safety");
+  assertEquals(
+    (examples[0].output as Record<string, unknown>).reply,
+    undefined,
+  );
+  assertEquals(
+    (examples[1].output as Record<string, unknown>).reply,
+    undefined,
+  );
+});
+
+Deno.test("demotivation_repair visible prompt strictly obeys max_questions", () => {
+  const prompt = stagePrompt("restore_meaning");
+  assert(
+    prompt.includes("Respecte strictement conversation_context.max_questions"),
+  );
+  assert(prompt.includes("si max_questions=0, ne pose aucune question"));
+  assert(
+    prompt.includes("Si max_questions=1, pose au maximum une seule question"),
+  );
+});
 
 function potionLabel(potion: DemotivationRepairBridgePotion) {
   if (potion === "clarte") return "Potion de clarté" as const;
@@ -22,6 +71,59 @@ function durableNeed(potion: DemotivationRepairBridgePotion) {
   if (potion === "clarte") return "meaning_reconnection" as const;
   if (potion === "courage") return "courage_through_avoidance" as const;
   return "anti_dropout_anchor" as const;
+}
+
+function conversationContext(
+  overrides: Partial<DemotivationRepairConversationContext> = {},
+): DemotivationRepairConversationContext {
+  const base: DemotivationRepairConversationContext = {
+    state_summary: "Le décrochage a été clarifié.",
+    user_words: ["je décroche"],
+    field_or_stage: "restore_meaning",
+    known_values: {
+      intent: "loss_of_meaning",
+      phase: "restore_meaning",
+      motivation_state: "loss_of_meaning",
+      action_readiness: "none",
+      identity_freeze_risk: false,
+      motivation_source_diagnosed: true,
+    },
+    missing_or_weak_values: [],
+    selected_candidate: {
+      potion: null,
+      potion_label: null,
+      durable_need_kind: null,
+      durable_need_summary: null,
+    },
+    handoff_data: {
+      bridge_context_summary: null,
+      target_dispatcher: null,
+      no_chat_mutation: true,
+    },
+    tone_constraints: ["energy_preserving"],
+    do_not_say: ["ne moralise pas"],
+    context_summary: "Le décrochage a été clarifié.",
+    evidence_used: ["test"],
+    db_context_summary: null,
+    memory_context_summary: null,
+    max_questions: 1,
+  };
+  return {
+    ...base,
+    ...overrides,
+    known_values: {
+      ...base.known_values,
+      ...(overrides.known_values ?? {}),
+    },
+    selected_candidate: {
+      ...base.selected_candidate,
+      ...(overrides.selected_candidate ?? {}),
+    },
+    handoff_data: {
+      ...base.handoff_data,
+      ...(overrides.handoff_data ?? {}),
+    },
+  };
 }
 
 function prefill(potion: DemotivationRepairBridgePotion) {
@@ -93,13 +195,7 @@ function dispatcherOutput(
     },
     visible_task: overrides.visible_task ?? {
       kind: "restore_meaning",
-      required_data: {
-        repair_summary: "Le décrochage a été clarifié.",
-        user_words: ["je décroche"],
-        selected_potion: null,
-        potion_label: null,
-        bridge_context_summary: null,
-      },
+      conversation_context: conversationContext(),
     },
     exit_memo: overrides.exit_memo ?? {
       needed: false,
@@ -143,24 +239,46 @@ function bridgeOfferOutput(
       missing_before_handoff: [],
       why_ready_or_blocked: "Le diagnostic est assez clair.",
       note_information: {
+        source_flow_id: "demotivation_repair",
         source_flow_presentation:
           "demotivation_repair a clarifié le décrochage motivationnel.",
+        source_flow_state_summary: "Le décrochage a été clarifié.",
+        handoff_reason: "bridge",
+        target_dispatcher: "select_state_potion",
         handoff_context_for_next_dispatcher:
           "Utiliser les candidats fournis sans refaire diagnostiquer l'épisode.",
         target_flow: "select_state_potion",
         target_local_dispatcher_hint:
           "Entrer directement dans la potion sélectionnée.",
+        user_words: ["je décroche"],
+        structured_context: {},
+        risk_score: 0,
+        no_chat_mutation: {
+          db_write_committed: false,
+          potion_session_created: false,
+          scheduled_checkin_created: false,
+          recurring_reminder_created: false,
+          executable_confirmation_generated: false,
+        },
       },
     },
     visible_task: {
       kind: "potion_bridge_offer",
-      required_data: {
-        repair_summary: "Le décrochage a été clarifié.",
-        user_words: ["je décroche"],
-        selected_potion: potion,
-        potion_label: potionLabel(potion),
-        bridge_context_summary: "Le diagnostic est assez clair.",
-      },
+      conversation_context: conversationContext({
+        field_or_stage: "potion_bridge_offer",
+        selected_candidate: {
+          potion,
+          potion_label: potionLabel(potion),
+          durable_need_kind: durableNeed(potion),
+          durable_need_summary: "Besoin durable diagnostiqué.",
+        },
+        handoff_data: {
+          bridge_context_summary: "Le diagnostic est assez clair.",
+          target_dispatcher: "select_state_potion",
+          no_chat_mutation: true,
+        },
+        context_summary: "Le diagnostic est assez clair.",
+      }),
     },
   });
 }
@@ -181,13 +299,22 @@ function confirmedContext(potion: DemotivationRepairBridgePotion) {
       },
       visible_task: {
         kind: "potion_bridge_handoff",
-        required_data: {
-          repair_summary: "Le décrochage a été clarifié.",
-          user_words: ["je décroche"],
-          selected_potion: potion,
-          potion_label: potionLabel(potion),
-          bridge_context_summary: "Bridge confirmé.",
-        },
+        conversation_context: conversationContext({
+          field_or_stage: "potion_bridge_handoff",
+          selected_candidate: {
+            potion,
+            potion_label: potionLabel(potion),
+            durable_need_kind: durableNeed(potion),
+            durable_need_summary: "Besoin durable diagnostiqué.",
+          },
+          handoff_data: {
+            bridge_context_summary: "Bridge confirmé.",
+            target_dispatcher: "select_state_potion",
+            no_chat_mutation: true,
+          },
+          context_summary: "Bridge confirmé.",
+          max_questions: 0,
+        }),
       },
     }),
   });
@@ -205,8 +332,465 @@ Deno.test("demotivation_repair no_potion blocks potion bridge offer", () => {
   assertEquals(result.status, "continue");
   assertEquals(result.reason_code, "demotivation_repair_potion_bridge_blocked");
   assertEquals(result.local_state?.last_potion_bridge_offer, null);
-  assertEquals(result.visible_task.required_data.selected_potion, null);
+  assertEquals(
+    result.visible_task.conversation_context.selected_candidate.potion,
+    null,
+  );
+  assertEquals((result.visible_task as any).required_data, undefined);
   assertEquals(result.blocked_effects[0]?.type, "select_state_potion");
+});
+
+Deno.test("demotivation_repair normal continuation keeps local ownership", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "restore_meaning",
+      confidence: "medium",
+      response_contract: {
+        max_questions: 1,
+        allow_plan_edit: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: false,
+        allow_concrete_action: false,
+        tone: "energy_preserving",
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.exit_to_global_dispatcher, false);
+  assertEquals(result.note_information, null);
+  assertEquals(result.visible_task.kind, "restore_meaning");
+  assertEquals(result.local_state?.status, "active");
+});
+
+Deno.test("demotivation_repair user constraints are preserved in visible context", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "reduce_friction",
+      constraints: ["do_not_moralize"],
+    }),
+    explicit_constraints: ["short_reply", "no_plan_edit"],
+  });
+
+  assert(result.constraints.includes("short_reply"));
+  assert(result.constraints.includes("no_plan_edit"));
+  assert(
+    result.visible_task.conversation_context.tone_constraints.includes(
+      "short_reply",
+    ),
+  );
+  assert(
+    result.visible_task.conversation_context.do_not_say.includes(
+      "Ne propose pas de modification du plan.",
+    ),
+  );
+});
+
+Deno.test("demotivation_repair restore meaning clarification allows one question", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "restore_meaning",
+      response_contract: {
+        max_questions: 0,
+        allow_plan_edit: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: false,
+        allow_concrete_action: false,
+        tone: "energy_preserving",
+      },
+      potion_bridge: {
+        ...dispatcherOutput().potion_bridge,
+        missing_before_handoff: ["meaning_anchor"],
+      },
+    }),
+  });
+
+  assertEquals(result.visible_task.kind, "restore_meaning");
+  assertEquals(result.visible_task.conversation_context.max_questions, 1);
+});
+
+Deno.test("demotivation_repair no_questions remains zero questions", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "restore_meaning",
+      constraints: ["no_questions"],
+      response_contract: {
+        max_questions: 1,
+        allow_plan_edit: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: false,
+        allow_concrete_action: false,
+        tone: "energy_preserving",
+      },
+      potion_bridge: {
+        ...dispatcherOutput().potion_bridge,
+        missing_before_handoff: ["meaning_anchor"],
+      },
+    }),
+  });
+
+  assertEquals(result.visible_task.kind, "restore_meaning");
+  assertEquals(result.visible_task.conversation_context.max_questions, 0);
+  assert(
+    result.visible_task.conversation_context.do_not_say.includes(
+      "Ne pose pas de question.",
+    ),
+  );
+});
+
+Deno.test("demotivation_repair blocks unsupported action card candidate", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "action_card_candidate",
+      repair_state: {
+        intent: "loss_of_meaning",
+        phase: "action_card_ready",
+        motivation_state: "loss_of_meaning",
+        action_readiness: "ready",
+        summary:
+          "Le user a retrouve un sens local mais n'a pas demande de support.",
+        user_words: [
+          "ce tri sert a poser la journee et recuperer du calme",
+        ],
+        identity_freeze_risk: false,
+        motivation_source_diagnosed: true,
+      },
+      response_contract: {
+        max_questions: 0,
+        allow_plan_edit: false,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: true,
+        allow_concrete_action: true,
+        tone: "energy_preserving",
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(
+    result.reason_code,
+    "demotivation_repair_action_card_candidate_blocked",
+  );
+  assertEquals(result.visible_task.kind, "restore_meaning");
+  assertEquals(result.local_state?.last_visible_task, "restore_meaning");
+  assertEquals(result.blocked_effects[0]?.type, "action_card");
+  assertEquals(result.blocked_effects[0]?.reason_code, "stage_not_mature");
+  assert(
+    result.visible_task.conversation_context.do_not_say.includes(
+      "Ne propose pas de carte ou de support produit dans ce message.",
+    ),
+  );
+});
+
+Deno.test("demotivation_repair allows explicit action card request", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "action_card_candidate",
+      repair_state: {
+        intent: "concrete_action_emerged",
+        phase: "action_card_ready",
+        motivation_state: "avoidance",
+        action_readiness: "ready",
+        summary: "Le user demande une carte pour garder son prochain pas.",
+        user_words: ["fais-moi une carte pour garder ce pas"],
+        identity_freeze_risk: false,
+        motivation_source_diagnosed: true,
+      },
+      response_contract: {
+        max_questions: 0,
+        allow_plan_edit: false,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: true,
+        allow_concrete_action: true,
+        tone: "energy_preserving",
+      },
+      evidence: ["demande explicite de carte de soutien"],
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.reason_code, "demotivation_repair_local_continue");
+  assertEquals(result.visible_task.kind, "action_card_candidate");
+  assertEquals(result.blocked_effects.length, 0);
+});
+
+Deno.test("demotivation_repair allows paraphrased support request", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "action_card_candidate",
+      repair_state: {
+        intent: "asks_smaller_step",
+        phase: "action_card_ready",
+        motivation_state: "overwhelm",
+        action_readiness: "already_chosen",
+        summary:
+          "Le user veut formaliser un support pour garder le mini-pas choisi.",
+        user_words: ["aide-moi a l'ancrer pour ne pas le perdre"],
+        identity_freeze_risk: false,
+        motivation_source_diagnosed: true,
+      },
+      response_contract: {
+        max_questions: 0,
+        allow_plan_edit: false,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: true,
+        allow_concrete_action: true,
+        tone: "energy_preserving",
+      },
+      evidence: ["demande de support a garder"],
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.reason_code, "demotivation_repair_local_continue");
+  assertEquals(result.visible_task.kind, "action_card_candidate");
+  assertEquals(result.blocked_effects.length, 0);
+});
+
+Deno.test("demotivation_repair no_tool blocks action card candidate", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "action_card_candidate",
+      constraints: ["no_tool"],
+      repair_state: {
+        intent: "concrete_action_emerged",
+        phase: "action_card_ready",
+        motivation_state: "avoidance",
+        action_readiness: "ready",
+        summary: "Le user parle d'un pas mais bloque les outils.",
+        user_words: ["pas d'outil, juste le prochain pas"],
+        identity_freeze_risk: false,
+        motivation_source_diagnosed: true,
+      },
+      response_contract: {
+        max_questions: 0,
+        allow_plan_edit: false,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: true,
+        allow_concrete_action: true,
+        tone: "energy_preserving",
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(
+    result.reason_code,
+    "demotivation_repair_action_card_candidate_blocked",
+  );
+  assertEquals(result.visible_task.kind, "smaller_step");
+  assertEquals(result.blocked_effects[0]?.type, "action_card");
+  assert(
+    result.visible_task.conversation_context.do_not_say.includes(
+      "Ne propose pas de carte ou de support produit dans ce message.",
+    ),
+  );
+});
+
+Deno.test("demotivation_repair stop local does not call global", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "stop_local_no_handoff",
+      repair_state: {
+        intent: "unclear",
+        phase: "exit",
+        motivation_state: "unclear",
+        action_readiness: "none",
+        summary: "Le user veut arreter le flow sans nouveau sujet.",
+        user_words: ["pas maintenant"],
+        identity_freeze_risk: false,
+        motivation_source_diagnosed: false,
+      },
+      response_contract: {
+        max_questions: 0,
+        allow_plan_edit: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_attack_card_suggestion: false,
+        allow_concrete_action: false,
+        tone: "grounded",
+      },
+      visible_task: {
+        kind: "exit_or_cancel",
+        conversation_context: conversationContext({
+          field_or_stage: "exit_or_cancel",
+          max_questions: 0,
+        }),
+      },
+    }),
+  });
+
+  assertEquals(result.status, "complete");
+  assertEquals(result.response_intent, "stop_local_no_handoff");
+  assertEquals(result.exit_to_global_dispatcher, false);
+  assertEquals(result.note_information, null);
+  assertEquals(result.local_state, null);
+  assertEquals(result.visible_task.kind, "exit_or_cancel");
+});
+
+Deno.test("demotivation_repair clear topic change exits with note information", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "exit_to_global_dispatcher",
+      repair_state: {
+        intent: "unclear",
+        phase: "exit",
+        motivation_state: "unclear",
+        action_readiness: "none",
+        summary: "Le user change clairement de sujet.",
+        user_words: ["aide-moi plutot a prioriser mes mails"],
+        identity_freeze_risk: false,
+        motivation_source_diagnosed: false,
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "demotivation_repair s'arrete pour changement de sujet.",
+        handoff_hint_for_global_dispatcher:
+          "Reanalyser la demande de priorisation hors demotivation_repair.",
+        potion_bridge_context: null,
+        note_information: null,
+      },
+      visible_task: {
+        kind: "exit_or_cancel",
+        conversation_context: conversationContext({
+          field_or_stage: "exit_or_cancel",
+          handoff_data: {
+            bridge_context_summary:
+              "Reanalyser la demande de priorisation hors demotivation_repair.",
+            target_dispatcher: "global",
+            no_chat_mutation: true,
+          },
+          max_questions: 0,
+        }),
+      },
+    }),
+  });
+
+  assertEquals(result.status, "exit");
+  assertEquals(result.exit_to_global_dispatcher, true);
+  assertEquals(result.local_state, null);
+  assertEquals(result.note_information?.source_flow_id, "demotivation_repair");
+  assertEquals(result.note_information?.target_dispatcher, "global");
+});
+
+Deno.test("demotivation_repair anti false positive keeps owner on local revision", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "revise_repair_context",
+      repair_state: {
+        intent: "loss_of_meaning",
+        phase: "restore_meaning",
+        motivation_state: "loss_of_meaning",
+        action_readiness: "none",
+        summary: "Le user nuance la source du decrochage.",
+        user_words: ["non c'est surtout que je ne vois plus le sens"],
+        identity_freeze_risk: false,
+        motivation_source_diagnosed: true,
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.exit_to_global_dispatcher, false);
+  assertEquals(result.note_information, null);
+  assertEquals(result.local_state?.status, "active");
+});
+
+Deno.test("demotivation_repair candidate potion is not a visible consent offer", () => {
+  const candidate = bridgeOfferOutput("clarte");
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "potion_bridge_offer",
+      potion_bridge: {
+        ...candidate.potion_bridge,
+        status: "candidate",
+      },
+      visible_task: {
+        kind: "potion_bridge_offer",
+        conversation_context: conversationContext({
+          field_or_stage: "potion_bridge_offer",
+          selected_candidate: {
+            potion: "clarte",
+            potion_label: "Potion de clarté",
+            durable_need_kind: "meaning_reconnection",
+            durable_need_summary: "Besoin durable probable.",
+          },
+        }),
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.reason_code, "demotivation_repair_potion_bridge_blocked");
+  assertEquals(result.visible_task.kind, "restore_meaning");
+  assertEquals(
+    result.visible_task.conversation_context.selected_candidate.potion,
+    null,
+  );
+  assert(
+    result.visible_task.conversation_context.do_not_say.some((rule) =>
+      rule === "Ne propose pas de potion dans ce message."
+    ),
+  );
+  assertEquals(result.local_state?.last_potion_bridge_offer, null);
+  assertEquals(result.blocked_effects[0]?.reason_code, "bridge_not_mature");
+});
+
+Deno.test("demotivation_repair visible potion offer is persisted for confirmation", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: bridgeOfferOutput("clarte"),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.reason_code, "demotivation_repair_local_continue");
+  assertEquals(result.visible_task.kind, "potion_bridge_offer");
+  assertEquals(
+    result.visible_task.conversation_context.selected_candidate.potion,
+    "clarte",
+  );
+  assertEquals(
+    result.local_state?.last_potion_bridge_offer?.selected_potion,
+    "clarte",
+  );
+});
+
+Deno.test("demotivation_repair confirmation without persisted offer does not handoff", () => {
+  const result = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "confirm_potion_bridge",
+      potion_bridge: {
+        ...bridgeOfferOutput("clarte").potion_bridge,
+        status: "confirmed_handoff",
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.potion_bridge_context, null);
+  assertEquals(result.note_information, null);
+  assertEquals(result.local_state?.last_potion_bridge_offer, null);
 });
 
 Deno.test("demotivation_repair confirmed clarte bridge carries note and candidate", () => {
@@ -214,6 +798,11 @@ Deno.test("demotivation_repair confirmed clarte bridge carries note and candidat
   assertEquals(context.origin_flow, "demotivation_repair");
   assertEquals(context.selected_potion, "clarte");
   assertEquals(context.visible_potion_label, "Potion de clarté");
+  assertEquals(context.note_information.source_flow_id, "demotivation_repair");
+  assertEquals(
+    context.note_information.target_dispatcher,
+    "select_state_potion",
+  );
   assertEquals(context.note_information.target_flow, "select_state_potion");
   assert(
     context.note_information.source_flow_presentation.length > 0,
@@ -265,6 +854,8 @@ Deno.test("demotivation_repair safety preempt wins", () => {
   assertEquals(result.status, "safety");
   assertEquals(result.potion_bridge_context, null);
   assertEquals(result.local_state, null);
+  assertEquals(result.note_information?.target_dispatcher, "safety_crisis");
+  assertEquals(result.exit_to_global_dispatcher, false);
 });
 
 Deno.test("demotivation_repair handoff starts select_state_potion subskills directly", () => {
@@ -298,6 +889,15 @@ Deno.test("demotivation_repair handoff starts select_state_potion subskills dire
     assertEquals(active.active_subskill_id, `select_state_potion.${potion}`);
     assertEquals(
       active.origin_bridge_context?.origin_flow,
+      "demotivation_repair",
+    );
+    assertEquals(
+      (active.origin_bridge_context?.note_information as any)
+        ?.target_dispatcher,
+      "select_state_potion",
+    );
+    assertEquals(
+      (active.operation_input?.note_information as any)?.source_flow_id,
       "demotivation_repair",
     );
     assertEquals(active.operation_input?.no_chat_mutation, true);

@@ -6,7 +6,7 @@
 - Persona: user QA temporaire local `bf5c3926-2ea3-414f-bf83-fb77f13cfe10`, email `qa-normal-global_run_A7_20260528_n3_strict_r2-1779989071461@example.com`.
 - Objectif: verifier si les corrections apres A6 reglent la carte complete mal arbitree, la confirmation tool skill, la sortie product help vers preference, et le recap/status incomplet.
 - Trajectoire: matinee brouillee -> carte d'attaque Maya -> rappel ponctuel -> product help -> preference coach -> memoire conversationnelle -> application preference -> honte / outil doux non execute -> refus d'outil + recap/status.
-- Surfaces visees: `execution_breakdown`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, memoire conversationnelle, `update_coach_preferences`, `emotional_repair`, `status_only_request_blocks_tool_start`.
+- Surfaces visees: `execution_breakdown`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, memoire conversationnelle, `update_coach_preferences`, `emotional_repair`, `status_recap_request_blocks_tool_start`.
 - Cadre IA reel: Supabase local, `/functions/v1/test-send-message`, `force_full_ai=true`, `include_trace=true`, `disable_debounce=true`, `SOPHIA_CLIENT_NOW_ISO=2026-05-28T10:00:00.000+02:00`, aucun fallback deterministe.
 - Validite QA: valide pour r2. Les 15 messages ont ete choisis tour par tour apres lecture de la reponse et de la trace courte precedente. Aucun code n'a ete modifie pendant le run.
 - Verification DB: carte d'attaque, rappel ponctuel et preference coach verifies avant cleanup. Nettoyage cible r2 et tentative invalide r1 effectue; post-cleanup r2 verifie a 0 ligne pour `scheduled_checkins`, `user_attack_cards`, `user_profile_facts`, `user_recurring_reminders`, `chat_messages`, `user_chat_states`.
@@ -298,7 +298,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: null
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - direct_effects: `[]`
 - operation: status-only incomplet
@@ -347,7 +347,7 @@
 **Fix propose**
 - Pour `prepare_attack_card`, afficher directement le `confirmation_message` complet quand il est disponible dans metadata.
 - Eviter que les demandes de "confirmation / brouillon attendu / demande-moi si je veux creer" soient classees en `product_help`.
-- Etendre `status_only_request_blocks_tool_start` pour couvrir toutes les entites nommees dans la demande: cartes, rappels, preferences, reperes conversationnels.
+- Etendre `status_recap_request_blocks_tool_start` pour couvrir toutes les entites nommees dans la demande: cartes, rappels, preferences, reperes conversationnels.
 
 ## 4. Analyse Systeme
 
@@ -388,7 +388,7 @@
 **Fix propose**
 - Ajouter des tests d'arbitrage pour confirmations/brouillons `prepare_attack_card` contenant "demande-moi si je veux creer", "cree cette carte", "avec ce brouillon".
 - Persister l'operation draft active de `prepare_attack_card` sur le thread pour que "oui cree" ne perde pas l'action.
-- Enrichir `status_only_request_blocks_tool_start` avec retrieval durable + temp memory conversationnelle.
+- Enrichir `status_recap_request_blocks_tool_start` avec retrieval durable + temp memory conversationnelle.
 - Ajouter une regle: un recap final ne doit jamais selectionner `update_coach_preferences` si aucune nouvelle preference n'est demandee.
 
 ## Verdict Global

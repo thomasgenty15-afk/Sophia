@@ -109,7 +109,7 @@
 - response_owner: `tool_skill`
 - route_reason: `one_shot_reminder_exact_status_request`
 - direct_effects: detected `create_one_shot_reminder`, high confidence, no execution
-- operation: `status_only_no_mutation_check`
+- operation: `status_recap`
 - durable_effect: aucun
 
 ### Tour 6
@@ -278,7 +278,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - route_reason: `recap_only_request_supersedes_tool_flow`
-- operation: `status_only_no_mutation_check`, `reminder_found=true`, `attack_card_found=false`, `coach_preference_found=false`
+- operation: `status_recap`, `reminder_found=true`, `attack_card_found=false`, `coach_preference_found=false`
 - durable_effect: aucun nouveau
 
 ## 3. Analyse De Fluidite Humaine

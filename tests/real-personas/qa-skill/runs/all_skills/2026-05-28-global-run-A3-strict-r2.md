@@ -7,7 +7,7 @@
 - Persona: utilisateur QA dédié `qa-normal-global_run_A3_20260528_strict_r2-1779977629227@example.com`, user id `dffd017e-62ab-4a85-a126-d7cc7ec3a5c1`.
 - Objectif: vérifier si les corrections post A3 r1 ont corrigé la confusion `prepare_defense_card` / `prepare_attack_card`.
 - Trajectoire: surcharge légère -> risque Slack/Nora -> carte de défense -> rappel ponctuel -> product help rappel -> préférence coach -> carte d'attaque -> soutien émotionnel -> recap statut.
-- Surfaces visées: `execution_breakdown`, `prepare_defense_card`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_only_no_mutation_check`, mémoire/préférences.
+- Surfaces visées: `execution_breakdown`, `prepare_defense_card`, `prepare_attack_card`, `create_one_shot_reminder`, `product_help`, `update_coach_preferences`, `status_recap`, mémoire/préférences.
 - Cadre IA réel: Supabase local, endpoint local `test-send-message`, `force_full_ai=true`, pas de fallback déterministe, pas de replay pré-scripté. Chaque message utilisateur a été choisi après lecture de la réponse Sophia et de la trace courte précédente.
 - Validité QA: valide. 15 tours complets, `http_status=200` partout, aucune réponse vide, aucun abort. Vérification DB: 30 `chat_messages` pour 15 tours, scope/persona isolé.
 - Note environnement: les logs serveur montrent des requêtes concurrentes d'autres run ids (`A2`, `A4`) pendant la fenêtre. Elles n'ont pas écrit dans le `user_id` A3 r2 vérifié; le transcript et les effets durables A3 r2 restent isolés.
@@ -324,7 +324,7 @@
 - http_status: 200
 - response_owner: `normal_reply`
 - selected_handler: `null`
-- route_reason: `status_only_request_blocks_tool_start`
+- route_reason: `status_recap_request_blocks_tool_start`
 - safety: `low`
 - executed_tools: `[]`
 - tool_execution: `none`
@@ -360,7 +360,7 @@
 - Tour 3: correction validée: `explicit_defense_card_intent_overrides_attack_card`.
 - Tours 4-5: `prepare_defense_card` reste actif jusqu'à confirmation et exécute bien `prepare_defense_card`.
 - Tour 7: `product_help` ne déclenche aucun outil, comportement attendu.
-- Tour 15: `status_only_request_blocks_tool_start` répond sans mutation et détecte les bons objets.
+- Tour 15: `status_recap_request_blocks_tool_start` répond sans mutation et détecte les bons objets.
 - Warning restant tour 2: la trace indique encore `response_owner=tool_skill`, `selected_handler=prepare_attack_card` après un refus explicite d'attaque card. Aucun side effect n'est exécuté, mais l'observabilité et la pression de flow restent imparfaites.
 - Warning restant tour 9: trace courte `normal_reply` avec `executed_tools=["update_coach_preferences"]`; effet durable OK, mais observabilité encore floue.
 

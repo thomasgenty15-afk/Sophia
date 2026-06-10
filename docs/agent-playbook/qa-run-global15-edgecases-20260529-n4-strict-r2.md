@@ -301,7 +301,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - route_reason: `central_arbitrator_recap_request_priority`
-- operation: `status_only_no_mutation_check`, `reminder_found=false`, `attack_card_found=false`, `coach_preference_found=true`
+- operation: `status_recap`, `reminder_found=false`, `attack_card_found=false`, `coach_preference_found=true`
 - durable_effect: aucun nouveau
 
 ## 3. Analyse De Fluidite Humaine
@@ -337,7 +337,7 @@
 - Tours 6-10: `direct_effects` detecte plusieurs fois `create_one_shot_reminder` avec `confidence_band=high`, mais aucun `executed_tools`; le systeme reste en `normal_reply_default`.
 - Tour 13 correct: `emotional_repair`, sans side effect.
 - Tour 14 incorrect: `response_owner=tool_skill`, `select_state_potion` actif malgre refus explicite.
-- Tour 15 recap: `status_only_no_mutation_check` trouve correctement absence de carte/rappel, mais `coach_preference_found=true` non supporte par DB.
+- Tour 15 recap: `status_recap` trouve correctement absence de carte/rappel, mais `coach_preference_found=true` non supporte par DB.
 
 **Skills / Operations / Tools**
 - `prepare_attack_card`: non execute. DB finale: `user_attack_cards=0`. C'est acceptable cote effet durable, mais le routage n'a jamais expose une vraie pending confirmation tool skill.
@@ -362,7 +362,7 @@
 - Ajouter un test de regression pour rappel multi-tour: choix d'heure + texte exact + confirmation "programme-le maintenant" doit executer `create_one_shot_reminder`.
 - Dans l'arbitrator, router les demandes "carte d'attaque" vers `prepare_attack_card` sauf question explicitement produit.
 - Faire de "pas de potion" un hard negative dans `select_state_potion`.
-- Dans `status_only_no_mutation_check`, deriver `coach_preference_found` uniquement d'un effet durable ou d'une source DB verifiee.
+- Dans `status_recap`, deriver `coach_preference_found` uniquement d'un effet durable ou d'une source DB verifiee.
 
 ## Verdict Global
 

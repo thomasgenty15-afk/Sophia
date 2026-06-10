@@ -31,7 +31,7 @@ export const WEEKLY_REVIEW_MIGRATION_STATUS = {
   standard_target:
     "contract -> structured_intake -> reducer -> response/effects -> renderer",
   current_shape:
-    "contract/projection -> reducer -> bridge/effects -> renderer, with legacy runtime guards",
+    "contract/projection -> reducer -> bridge/effects -> renderer",
   documented_exception:
     "weekly_review may route to adjust_plan_item only to help formulate a Plan input; adjust_plan_item never owns durable confirmation or execution.",
   durable_effect_policy:

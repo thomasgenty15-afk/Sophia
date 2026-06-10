@@ -33,6 +33,26 @@ Routes non visibles :
 - `exit_to_global_dispatcher` ne produit pas de message local si le global doit
   reanalyser le meme message. Le local doit fournir un `exit_memo`.
 
+## Cross-Dispatcher Note Information
+
+Use `09-note-information-contract.md`.
+
+Produce `note_information` for `exit_to_global_dispatcher`,
+`safety_preempt`, direct handoff to `select_state_potion`, and inline
+product/status roundtrips if enabled. Use
+`source_flow_id="post_morning_nudge.emotional_presence"` and copy the catalog
+presentation.
+
+Do not produce it for `presence_ack_close`, `negative_nudge_feedback`,
+`cancel_flow`, or local soft support when no new dispatcher is called. Those are
+`stop_local_no_handoff` actions and global must not run on the same turn.
+
+Choose `target_dispatcher` as `global` for explicit other tool/product/status
+or topic change when not inline, `safety_crisis` for safety, and
+`select_state_potion` when the user explicitly asks for potion/state support.
+The handoff context must include source nudge summary, emotional/support need,
+last local assessment, and no-mutation constraints.
+
 ## Mission Du Flow
 
 Le flow `post_morning_nudge.emotional_presence` sert a traiter une reponse a un
@@ -616,4 +636,3 @@ Checks interdits :
 - Global dispatcher does not run while local emotional presence flow is active.
 - Global dispatcher runs only after `exit_to_global_dispatcher`.
 - No durable effect is created by this flow.
-

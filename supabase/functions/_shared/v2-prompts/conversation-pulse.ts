@@ -127,6 +127,17 @@ Utilise-le comme **contexte de continuité**, pas comme substitut aux messages r
 - **support_that_helped** : max 3 techniques/supports que l'utilisateur a trouvés utiles
 - **unresolved_tensions** : max 3 tensions non résolues qui persistent
 
+### emotional_anchors
+- Max 2 sujets émotionnels récents vraiment ancrés dans les messages.
+- Ne crée pas d'ancre si le sujet est vague, hypothétique ou trop ancien.
+- **topic_summary** : résumé très court du sujet, sans diagnostic.
+- **intensity** : "low" | "medium" | "high".
+- **recency** : "same_window" | "same_day" | "recent_week".
+- **grounding** : preuve factuelle courte, sans citation longue.
+- **use_in_proactive** : true seulement si une mention proactive douce pourrait aider.
+- **specificity** : "none" | "soft_reference" | "explicit_reference".
+- **caution** : limite d'usage ou null.
+
 ### signals
 - **top_blocker** : le blocker principal identifié, ou null
 - **likely_need** : UN SEUL choix parmi :
@@ -178,6 +189,15 @@ Tu dois retourner UNIQUEMENT un JSON valide conforme à ce schéma :
     "support_that_helped": ["max 3"],
     "unresolved_tensions": ["max 3"]
   },
+  "emotional_anchors": [{
+    "topic_summary": "court",
+    "intensity": "low" | "medium" | "high",
+    "recency": "same_window" | "same_day" | "recent_week",
+    "grounding": "factuel",
+    "use_in_proactive": true|false,
+    "specificity": "none" | "soft_reference" | "explicit_reference",
+    "caution": "string ou null"
+  }],
   "signals": {
     "top_blocker": "string ou null",
     "likely_need": "push" | "simplify" | "support" | "silence" | "repair",
@@ -230,9 +250,7 @@ export function buildConversationPulseUserPrompt(
       handoff.relational_signals.join(" | ") || "aucun"
     }\n- questionnaire_context: ${
       handoff.questionnaire_context.join(" | ") || "aucun"
-    }\n- coaching_memory_summary: ${
-      handoff.coaching_memory_summary || "aucun"
-    }`
+    }\n- coaching_memory_summary: ${handoff.coaching_memory_summary || "aucun"}`
     : "";
 
   return `Date du jour : ${input.local_date}
@@ -266,6 +284,16 @@ const VALID_LIKELY_NEED = new Set([
   "repair",
 ]);
 const VALID_PROACTIVE_RISK = new Set(["low", "medium", "high"]);
+const VALID_ANCHOR_RECENCY = new Set([
+  "same_window",
+  "same_day",
+  "recent_week",
+]);
+const VALID_ANCHOR_SPECIFICITY = new Set([
+  "none",
+  "soft_reference",
+  "explicit_reference",
+]);
 
 export type ConversationPulseValidationResult =
   | { valid: true; pulse: ConversationPulse }
@@ -292,6 +320,7 @@ const FALLBACK_PULSE: ConversationPulse = {
     support_that_helped: [],
     unresolved_tensions: [],
   },
+  emotional_anchors: [],
   signals: {
     top_blocker: null,
     likely_need: "silence",
@@ -429,6 +458,47 @@ export function validateConversationPulseOutput(
   const supportThatHelped = clampArray(hlObj.support_that_helped, 3);
   const unresolvedTensions = clampArray(hlObj.unresolved_tensions, 3);
 
+  const anchorRows = Array.isArray(obj.emotional_anchors)
+    ? obj.emotional_anchors.slice(0, 2)
+    : [];
+  const emotionalAnchors = anchorRows
+    .filter((anchor): anchor is Record<string, unknown> =>
+      Boolean(anchor) && typeof anchor === "object" && !Array.isArray(anchor)
+    )
+    .map((anchor) => {
+      const topicSummary = typeof anchor.topic_summary === "string"
+        ? anchor.topic_summary.trim()
+        : "";
+      const grounding = typeof anchor.grounding === "string"
+        ? anchor.grounding.trim()
+        : "";
+      if (!topicSummary || !grounding) return null;
+      return {
+        topic_summary: topicSummary.slice(0, 120),
+        intensity: pickEnum(
+          anchor.intensity,
+          VALID_EMOTIONAL_LOAD,
+          "medium" as ConversationPulse["tone"]["emotional_load"],
+        ),
+        recency: pickEnum(
+          anchor.recency,
+          VALID_ANCHOR_RECENCY,
+          "same_window" as "same_window" | "same_day" | "recent_week",
+        ),
+        grounding: grounding.slice(0, 180),
+        use_in_proactive: anchor.use_in_proactive === true,
+        specificity: pickEnum(
+          anchor.specificity,
+          VALID_ANCHOR_SPECIFICITY,
+          "soft_reference" as "none" | "soft_reference" | "explicit_reference",
+        ),
+        caution: typeof anchor.caution === "string"
+          ? anchor.caution.trim().slice(0, 160) || null
+          : null,
+      };
+    })
+    .filter((anchor): anchor is NonNullable<typeof anchor> => anchor != null);
+
   // Warn but don't reject for over-cap (we clamp silently)
   if (Array.isArray(hlObj.wins) && hlObj.wins.length > 3) {
     violations.push(`wins exceeds cap: ${hlObj.wins.length} (max 3)`);
@@ -519,6 +589,13 @@ export function validateConversationPulseOutput(
       `unresolved_tensions exceeds cap: ${hlObj.unresolved_tensions.length} (max 3)`,
     );
   }
+  if (
+    Array.isArray(obj.emotional_anchors) && obj.emotional_anchors.length > 2
+  ) {
+    violations.push(
+      `emotional_anchors exceeds cap: ${obj.emotional_anchors.length} (max 2)`,
+    );
+  }
 
   if (input.messages.length >= 3) {
     if (normalizedMessageIds.length < 3) {
@@ -587,6 +664,7 @@ export function validateConversationPulseOutput(
       support_that_helped: supportThatHelped,
       unresolved_tensions: unresolvedTensions,
     },
+    emotional_anchors: emotionalAnchors,
     signals: {
       top_blocker: topBlocker,
       likely_need: normalizedLikelyNeed,

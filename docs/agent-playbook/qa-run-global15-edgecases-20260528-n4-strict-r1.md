@@ -301,7 +301,7 @@
 - http_status: 200
 - response_owner: `tool_skill`
 - route_reason: `central_arbitrator_recap_request_priority`
-- operation: `status_only_no_mutation_check`, `reminder_found=true`, `attack_card_found=false`, `coach_preference_found=true`
+- operation: `status_recap`, `reminder_found=true`, `attack_card_found=false`, `coach_preference_found=true`
 - durable_effect: aucun nouveau
 
 ## 3. Analyse De Fluidite Humaine
@@ -359,7 +359,7 @@
 - Tour 11: annulation non executee apres confirmation. Impact systeme: side effect attendu absent et rappel encore pending. Severite: red.
 - Tour 12: opportunite potion invalide casse `emotional_repair` et retourne HTTP 409/reponse vide. Impact systeme: run-time failure sur moment sensible. Severite: red.
 - Tour 13: exclusion explicite "sans potion ni rappel" ignoree par `select_state_potion`. Impact systeme: mauvaise priorite d'interruption. Severite: red.
-- Tour 15: `status_only_no_mutation_check` indique une preference coach inexistante. Impact systeme: recap non fiable. Severite: yellow.
+- Tour 15: `status_recap` indique une preference coach inexistante. Impact systeme: recap non fiable. Severite: yellow.
 
 **Fix propose**
 - Dans `create_one_shot_reminder`, conserver un antecedent d'instruction distinct du style de formulation; "version courte" doit modifier le style, pas remplacer `reminder_instruction`.

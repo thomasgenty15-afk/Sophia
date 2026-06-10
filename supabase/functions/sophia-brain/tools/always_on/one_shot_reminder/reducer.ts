@@ -59,7 +59,7 @@ export function reduceOneShotReminderIntake(args: {
   noMutationRequested?: boolean;
   safetyBlocks?: boolean;
   pendingToolSkillConfirmation?: unknown;
-  agendaBlockedReason?: string | null;
+  globalBlockedReason?: string | null;
 }): OneShotReminderState {
   const requested_effects = requestedForIntent(args.intake);
   let allowed_effects: OneShotReminderEffect[] = [];
@@ -126,11 +126,11 @@ export function reduceOneShotReminderIntake(args: {
       requested_effects,
       "pending_confirmation_active",
     );
-  } else if (args.agendaBlockedReason) {
+  } else if (args.globalBlockedReason) {
     status = "blocked";
-    reason_code = args.agendaBlockedReason;
+    reason_code = args.globalBlockedReason;
     constraints.push("do_not_mutate");
-    blocked_effects = blockAll(requested_effects, args.agendaBlockedReason);
+    blocked_effects = blockAll(requested_effects, args.globalBlockedReason);
   } else if (args.intake.intent === "modify_request") {
     status = "blocked";
     reason_code = "modify_requires_replace";

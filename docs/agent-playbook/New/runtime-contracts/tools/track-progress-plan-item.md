@@ -31,10 +31,10 @@ Ce domaine depend de :
 
 - `UserTurnSnapshot` pour figer l'etat complet du tour avant execution. Dans le
   code actuel, `router/run.ts` construit le snapshot avec
-  `buildUserTurnSnapshot`, puis `TurnAgenda`; le direct effect consomme ensuite
+  `buildUserTurnSnapshot`, puis `local reducer contract`; le direct effect consomme ensuite
   les decisions derivees plutot que de relire lui-meme les flows globaux.
-- `TurnAgenda` pour distinguer reply/effects/status/memory/repair. Le runtime
-  operation pipeline utilise `agendaBlockedReasonForOperation(...,
+- `local reducer contract` pour distinguer reply/effects/status/memory/repair. Le runtime
+  operation pipeline utilise `globalBlockedReasonForOperation(...,
   "track_progress_plan_item")` avant d'appeler
   `runTrackProgressPlanItemDirectEffect`; `run.ts` passe aussi
   `skip_reason_code` quand checkup ou weekly review bloquent l'effet.
@@ -52,7 +52,7 @@ Ce domaine depend de :
   statuts, effets demandes, effets autorises, effets committes, writer et
   resultat final.
 
-Ces briques sont complementaires : `UserTurnSnapshot` et `TurnAgenda` decrivent
+Ces briques sont complementaires : `UserTurnSnapshot` et `local reducer contract` decrivent
 le tour, `Confirmation Contract` et `runDirectEffectGate` disent si la mutation
 est autorisee, le contrat local decrit l'effet, et `EffectLedger` rend le commit
 observable par la reponse finale.
@@ -132,7 +132,7 @@ la cible, la valeur ou l'ecriture.
 - `plan_snapshot` pour verifier que la cible est dans le plan courant;
 - `pending_tool_skill_confirmation` pour respecter le Confirmation Contract;
 - `recent_writes_idempotency` et `db_idempotency_check` pour l'idempotence;
-- `no_mutation_requested` et `blocked_reason_code` quand TurnAgenda/safety/no
+- `no_mutation_requested` et `blocked_reason_code` quand local reducer contract/safety/no
   tool bloquent les effets;
 - `write_progress`, generalement produit par
   `createTrackProgressPlanItemWrite`.
@@ -176,7 +176,7 @@ la cible, la valeur ou l'ecriture.
 - `routers/direct_effect_gate.ts`
   - source de verite pour safety, pending confirmation, explicitness,
     target_status, confidence, duplicate source message et duplicate DB.
-- `router/turn_agenda.ts`
+- `router/local_reducer.ts`
   - contient `track_progress_plan_item` comme operation/effect possible;
   - l'adapter runtime peut bloquer l'effet via agenda.
 - `router/effect_ledger_adapter.ts`

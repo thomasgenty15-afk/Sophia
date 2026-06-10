@@ -86,8 +86,8 @@ export function detectCoachingInterventionTrigger(args: {
   progressStatusHint?: string | null;
   topBlockerStage?: string | null;
 }): CoachingInterventionTriggerDetection | null {
-  const text = String(args.userMessage ?? "").toLowerCase();
-  if (/\baide[- ]?moi\b|\bje bloque\b|\btrop dur\b|\bimpossible\b/.test(text)) {
+  void args.userMessage;
+  if (args.progressStatusHint === "blocked") {
     return {
       trigger_kind: "help_request",
       explicit_help_request: true,

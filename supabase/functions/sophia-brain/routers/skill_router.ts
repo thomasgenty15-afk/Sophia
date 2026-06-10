@@ -19,6 +19,7 @@ const SKILL_PRIORITY = [
   "safety_crisis",
   "emotional_repair",
   "demotivation_repair",
+  "status_recap",
   "product_help",
 ];
 

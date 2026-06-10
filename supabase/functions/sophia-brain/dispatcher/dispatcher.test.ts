@@ -342,7 +342,10 @@ Deno.test("active emotional repair stable description keeps ambiguous support ou
     },
   );
 
-  assertEquals(frame.skill_signals.entry?.product_help?.detected ?? false, false);
+  assertEquals(
+    frame.skill_signals.entry?.product_help?.detected ?? false,
+    false,
+  );
   assertEquals(frame.skill_signals.lifecycle?.emotional_repair?.detected, true);
   assertEquals(frame.tool_skill_intents.length, 0);
 });
@@ -378,7 +381,10 @@ Deno.test("active demotivation repair stable description keeps ambiguous cap sup
     },
   });
 
-  assertEquals(frame.skill_signals.entry?.product_help?.detected ?? false, false);
+  assertEquals(
+    frame.skill_signals.entry?.product_help?.detected ?? false,
+    false,
+  );
   assertEquals(
     frame.skill_signals.lifecycle?.demotivation_repair?.detected,
     true,
@@ -484,7 +490,10 @@ Deno.test("safety still preempts active skill stable description", async () => {
   );
 
   assertEquals(frame.safety.risk_band, "critical");
-  assertEquals(frame.skill_signals.entry?.product_help?.detected ?? false, false);
+  assertEquals(
+    frame.skill_signals.entry?.product_help?.detected ?? false,
+    false,
+  );
   assertEquals(frame.tool_skill_intents.length, 0);
   assertEquals(frame.tool_skill_opportunity.type, "none");
 });
@@ -849,7 +858,7 @@ Deno.test("route replay passes all 25 fixtures with S2 runtime", async () => {
 Deno.test("dispatcher prompt version reflects active skill stable description contract s26", () => {
   assertEquals(
     DISPATCHER_V2_PROMPT_VERSION,
-    "dispatcher_v2_prompt_2026_06_s26_active_skill_stable_description",
+    "dispatcher_v2_prompt_2026_06_s29_status_recap_entry",
   );
 });
 
@@ -916,6 +925,18 @@ Deno.test("dispatcher prompt embeds the 5 L3-migration few-shots in critical_rou
     ),
     true,
     "few-shot exact_durable_status manquant",
+  );
+  assertEquals(
+    messages.some((m) =>
+      m.includes("point factuel") && m.includes("existe vraiment")
+    ),
+    true,
+    "few-shot status_recap point factuel manquant",
+  );
+  assertEquals(
+    messages.some((m) => m.includes("sources de ce point factuel")),
+    true,
+    "few-shot status_recap sources manquant",
   );
 });
 

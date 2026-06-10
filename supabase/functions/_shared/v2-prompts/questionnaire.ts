@@ -226,6 +226,13 @@ Tu dois les formuler naturellement en t'adaptant au sujet de la transformation. 
 - ids: "q1", "q2", "q3"
 - choisis les 3 questions additionnelles les plus utiles pour réduire l'incertitude réelle du plan
 - privilégie "multiple_choice" si cela aide à mieux cadrer le sujet
+- Si l'objet concret de la transformation est clair, utilise les 3 questions custom pour optimiser le plan.
+- Si l'objet concret de la transformation est vague, abstrait ou non spécifié, commence par le clarifier avant d'optimiser le plan.
+- Dans ce cas, q1 doit identifier l'objet concret de la transformation.
+- q2 peut approfondir la forme actuelle, la forme souhaitée, le niveau actuel ou la contrainte principale liée à cet objet.
+- q3 doit rester une question d'optimisation du plan.
+- Ne pose pas trois questions d'optimisation tant que l'objet de transformation n'est pas suffisamment clair.
+- Ne pose pas non plus trois questions de clarification pure : garde toujours au moins une question custom qui aide à calibrer l'action.
 
 ### Question obligatoire 7 — Blocage principal
 - id: "sys_q4"
