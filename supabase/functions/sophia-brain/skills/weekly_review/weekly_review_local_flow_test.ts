@@ -2,6 +2,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   normalizeWeeklyReviewLocalDispatcherOutput,
   reduceWeeklyReviewLocalDispatcherOutput,
+  runWeeklyReviewLocalRuntime,
   weeklyReviewLocalDispatcherSystemPromptForTest,
 } from "./local_flow.ts";
 import { buildWeeklyReviewVisibleAgentUserPrompt } from "./visible_agent.ts";
@@ -48,6 +49,7 @@ function baseOutput(overrides: Record<string, unknown> = {}) {
     },
     human_signal_updates: {
       objective_delta: "slight_progress",
+      felt_progress: "encouraged",
       felt_state: "tired_but_ok",
       dominant_blocker_confirmation: "confirmed",
       user_summary: "fatigue mais progression legere",
@@ -237,6 +239,14 @@ Deno.test("weekly local reducer continues normally with visible-safe context", (
   assert(
     reduced.conversation_context?.do_not_say.includes("modifie le plan") ===
       true,
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).felt_progress,
+    "encouraged",
+  );
+  assertEquals(
+    (reduced.conversation_context?.known_values as any).felt_progress,
+    "encouraged",
   );
 });
 
@@ -436,6 +446,72 @@ Deno.test("weekly local reducer hands off to attack card locally with note_infor
   assertEquals(reduced.weekly_state, null);
 });
 
+Deno.test("weekly local runtime suspends parent weekly during child flow handoff", async () => {
+  const runtime = await runWeeklyReviewLocalRuntime({
+    supabase: {} as any,
+    userId: "user-weekly-child",
+    tempMemory: { __active_skill_state: weeklyState() },
+    activeSkillState: weeklyState(),
+    userMessage: "Ok, allege l'action du matin pour cette semaine.",
+    history: [],
+    dispatcher: async () =>
+      normalizeWeeklyReviewLocalDispatcherOutput(
+        baseOutput({
+          flow_action: "handoff_to_local_flow",
+          target_dispatcher: "adjust_plan_item",
+          weekly_intent: {
+            kind: "plan_handoff_request",
+            summary: "User asks for a Plan adjustment as weekly detour.",
+          },
+          human_signal_updates: {
+            objective_delta: null,
+            felt_progress: "frustrated",
+            felt_state: "tired_but_ok",
+            dominant_blocker_confirmation: "confirmed",
+            user_summary: "action du matin trop fragile",
+          },
+          handoff_updates: {
+            status: "requested",
+            requested_adjustment_summary:
+              "Alleger l'action du matin cette semaine.",
+            revision_summary: null,
+            platform_destination: "Plan",
+            scope: {
+              kind: "specific_item",
+              plan_id: "plan-1",
+              plan_title: "Plan principal",
+              plan_item_ids: ["item-1"],
+              scope_summary: "action du matin",
+              needs_scope_clarification: false,
+            },
+          },
+          note_information: noteInformation("adjust_plan_item"),
+          visible_task: {
+            kind: "exit_or_cancel",
+            instruction: "Launch child flow.",
+          },
+        }),
+      ),
+  });
+
+  assertEquals(
+    runtime?.toolSkillRun.reason_code,
+    "weekly_review_local_handoff_to_local_flow",
+  );
+  const suspended = (runtime?.nextTempMemory as any).__suspended_flow_v1;
+  assertEquals(suspended.owner, "conversation_skill");
+  assertEquals(suspended.target_flow, "adjust_plan_item");
+  assertEquals(suspended.state_snapshot.skill_id, "weekly_adaptive_review_v1");
+  assertEquals(
+    suspended.state_snapshot.weekly_flow_state.child_flow.status,
+    "active",
+  );
+  assertEquals(
+    suspended.state_snapshot.weekly_flow_state.child_flow.flow_id,
+    "adjust_plan_item",
+  );
+});
+
 Deno.test("weekly local reducer exits to global only with note_information", () => {
   const output = normalizeWeeklyReviewLocalDispatcherOutput(
     baseOutput({
@@ -529,13 +605,47 @@ Deno.test("weekly local reducer does not exit when user continues weekly", () =>
   assertEquals(reduced.target_dispatcher, "none");
 });
 
+Deno.test("weekly local reducer treats tool mention hypothesis as weekly continuation", () => {
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "answer_weekly_question",
+      target_dispatcher: "prepare_attack_card",
+      weekly_intent: {
+        kind: "weekly_answer",
+        summary:
+          "User explores whether an attack card could help but keeps discussing the weekly blocker.",
+      },
+      visible_task: {
+        kind: "weekly_reading",
+        instruction: "Continue weekly; do not launch child flow yet.",
+      },
+    }),
+  );
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: weeklyState(),
+    output,
+  });
+  assertEquals(reduced.status, "answered");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.target_dispatcher, "none");
+  assertEquals(reduced.weekly_state?.status, "open");
+});
+
 Deno.test("weekly local reducer stops locally without global handoff", () => {
   const output = normalizeWeeklyReviewLocalDispatcherOutput(
     baseOutput({
       flow_action: "stop_local_no_handoff",
+      target_dispatcher: "none",
       weekly_intent: {
         kind: "stop",
         summary: "User wants to stop the weekly.",
+      },
+      state_updates: {
+        status: "stopped",
+        weekly_stage: "closing",
+        validation_unlock_status: "locked_until_weekly_complete",
+        turn_count_increment: 1,
+        close_after_visible: true,
       },
       visible_task: {
         kind: "stop_or_cancel",
@@ -552,6 +662,7 @@ Deno.test("weekly local reducer stops locally without global handoff", () => {
   assertEquals(reduced.target_dispatcher, "none");
   assertEquals(reduced.visible_task, "stop_or_cancel");
   assertEquals(reduced.weekly_state?.status, "stopped");
+  assertEquals(reduced.note_information, null);
 });
 
 Deno.test("weekly local completion unlocks validation and stays non executable", () => {

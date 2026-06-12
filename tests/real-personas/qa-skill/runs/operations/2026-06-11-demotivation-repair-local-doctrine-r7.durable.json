@@ -1,0 +1,182 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "9060be73-a74b-4e17-b315-2a10e6e1a32a",
+        "role": "user",
+        "content": "Je suis en train de décrocher de mon petit rangement du soir. Sur le papier ça aide, mais là j'ai juste l'impression que ça ne sert à rien et que je vais abandonner.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T19:19:41.008639+00:00"
+      },
+      {
+        "id": "9aada556-f092-47c5-8c30-50a5d111ebcf",
+        "role": "assistant",
+        "content": "C'est tout à fait compréhensible de vouloir lâcher quand l'effort semble vide de sens. Au-delà de l'aspect visuel, quelle sensation cherchais-tu à t'offrir pour ton réveil demain matin en lançant cette habitude ?",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T19:20:02.749614+00:00"
+      },
+      {
+        "id": "8430ebd2-95f6-4966-a5bb-9ce998c0699b",
+        "role": "user",
+        "content": "Je voulais surtout éviter de me lever dans un bazar qui me met déjà en retard intérieurement. Mais ce soir la fatigue écrase complètement cette raison.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T19:20:20.71148+00:00"
+      },
+      {
+        "id": "79df6c81-61d6-4c0b-bea4-de791178c697",
+        "role": "assistant",
+        "content": "C'est tout à fait normal. Quand la fatigue est aussi lourde, la volonté seule ne suffit plus et forcer ne ferait qu'abîmer ton énergie pour demain. Ta priorité absolue maintenant, c'est de récupérer. Laisse le rangement de côté pour cette fois et accorde-toi ce repos sans culpabiliser.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T19:20:56.04845+00:00"
+      },
+      {
+        "id": "07c9756b-78d4-40a2-8a8a-53d8eca20a8a",
+        "role": "user",
+        "content": "Je préfère ne pas tout lâcher quand même. Si je fais juste trente secondes pour libérer la table, ça peut suffire à fermer la journée sans m'épuiser.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T19:21:10.247348+00:00"
+      },
+      {
+        "id": "96b17ce0-43c0-45b7-954d-8966d2b95de2",
+        "role": "assistant",
+        "content": "C'est le compromis idéal. Libère simplement ta table en 30 secondes pour marquer la fin de ta journée et protéger ton énergie.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r7-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T19:21:31.033007+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

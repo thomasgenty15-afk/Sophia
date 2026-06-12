@@ -10,7 +10,7 @@ import {
 import { POTION_DEFINITIONS } from "../../../../_shared/v2-potions.ts";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
-import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../../../safety/safety_context.ts";
 import {
   isPendingStatePotionRecommendationOperation,
   selectStatePotionRouteIsSelected,
@@ -516,7 +516,7 @@ function runtimeActionFromLocalFlow(args: {
     case "continue_routing":
     case "unclear":
       return "continue_collecting";
-    case "stop_local_no_handoff":
+    case "exit_to_global_dispatcher":
     case "cancel_flow":
       return "cancelled";
     case "handoff_to_local_flow":
@@ -666,8 +666,8 @@ async function runClarteHandoffTurn(args: {
       origin_flow: (originBridgeContext as any).origin_flow ?? null,
       selected_potion: (originBridgeContext as any).selected_potion ??
         "clarte",
-      source_flow_presentation: (originBridgeContext as any).note_information
-        ?.source_flow_presentation ?? null,
+      origin_flow_summary: (originBridgeContext as any).note_information
+        ?.structured_context?.active_flow_summary ?? null,
       target_flow: (originBridgeContext as any).note_information?.target_flow ??
         null,
     });
@@ -715,7 +715,7 @@ async function runClarteHandoffTurn(args: {
       event: "note_information_created",
       source_flow: "select_state_potion",
       target_dispatcher: "other_local",
-      target_local_dispatcher_hint: "select_state_potion.clarte",
+      target_subdispatcher: "select_state_potion.clarte",
       handoff_reason: "clarification_resolved",
     });
   }
@@ -1000,8 +1000,8 @@ async function runPotionSubskillHandoffTurn(args: {
       origin_flow: (originBridgeContext as any).origin_flow ?? null,
       selected_potion: (originBridgeContext as any).selected_potion ??
         args.potionType,
-      source_flow_presentation: (originBridgeContext as any).note_information
-        ?.source_flow_presentation ?? null,
+      origin_flow_summary: (originBridgeContext as any).note_information
+        ?.structured_context?.active_flow_summary ?? null,
       target_flow: (originBridgeContext as any).note_information?.target_flow ??
         null,
     });
@@ -1050,7 +1050,7 @@ async function runPotionSubskillHandoffTurn(args: {
       event: "note_information_created",
       source_flow: "select_state_potion",
       target_dispatcher: "other_local",
-      target_local_dispatcher_hint: selectedHandler,
+      target_subdispatcher: selectedHandler,
       handoff_reason: "clarification_resolved",
     });
   }
@@ -1315,7 +1315,7 @@ export async function runSelectStatePotionHandoffSkill(args: {
   tempMemory: any;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId: string | null;
   requestId?: string | null;
   history?: unknown;
@@ -1743,7 +1743,7 @@ export async function runSelectStatePotionHandoffSkill(args: {
       : "direct_user_request",
     trigger_message_id: args.sourceMessageId ?? args.requestId ??
       crypto.randomUUID(),
-    safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+    safety_context_risk_band: args.safetyContextOutput.risk_band,
     turn_count: Number(
       existingHandoff?.turn_count ?? (frame.active as any)
         ?.turn_count ??
@@ -1855,7 +1855,7 @@ export async function runSelectStatePotionHandoffSkill(args: {
         event: "note_information_created",
         source_flow: "global_dispatcher",
         target_dispatcher: "select_state_potion",
-        target_local_dispatcher_hint: "select_state_potion",
+        target_subdispatcher: "select_state_potion",
         handoff_reason: "explicit_user_request",
       });
     }

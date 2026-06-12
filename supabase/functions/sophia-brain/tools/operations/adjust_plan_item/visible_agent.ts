@@ -237,7 +237,7 @@ const STAGE_PROMPTS: Record<
     "Ferme courtement le flow local.",
     "Ne redirige pas vers Plan, la plateforme, le niveau actif ou Ajuster mon plan.",
     "Ne propose pas de retourner au plan apres un stop, cancel, abandon ou laisse tomber.",
-    "Pas de question finale, pas de coaching additionnel, pas de global visible.",
+    "Pas de question finale, pas de coaching additionnel, ne traite pas de nouveau sujet dans ce prompt visible.",
   ],
   exit_or_cancel: [
     "Stage exit_ack.",

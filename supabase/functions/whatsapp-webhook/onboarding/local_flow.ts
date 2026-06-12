@@ -5,6 +5,16 @@ import {
   normalizeNoteInformation,
 } from "../../sophia-brain/contracts/note_information.v1.ts";
 import type { NoteInformation } from "../../sophia-brain/contracts/note_information.v1.ts";
+import type { DispatcherMemoryPlan } from "../../sophia-brain/contracts/turn_frame.v1.ts";
+import {
+  type ConversationTurnTrace,
+  logConversationTurn,
+} from "../../sophia-brain/observability/trace_logger.ts";
+import {
+  activeActionCandidatesForDirectEffects,
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../sophia-brain/router/direct_effect_local_context.ts";
 import { sendWhatsAppTextTracked } from "../wa_whatsapp_api.ts";
 import { loadHistory } from "../wa_db.ts";
 import { runWhatsAppOnboardingVisibleAgent } from "./visible_agent.ts";
@@ -59,6 +69,18 @@ function stringArray(value: unknown): string[] {
     : [];
 }
 
+function compactString(value: unknown, max = 220): string | null {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (!text) return null;
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function compactStringArray(value: unknown, maxItems = 6): string[] {
+  return stringArray(value).map((item) => compactString(item)).filter((
+    item,
+  ): item is string => Boolean(item)).slice(0, maxItems);
+}
+
 function enumValue<T extends string>(
   value: unknown,
   allowed: readonly T[],
@@ -80,7 +102,7 @@ const FLOW_ACTIONS = [
   "repeat_current_question",
   "progress_attempt_during_onboarding",
   "blocked_exit_before_plan_ready",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "complete_onboarding",
   "get_info_product",
   "get_info_db",
@@ -168,6 +190,7 @@ function emptyConversationContext(args: {
     active_plan_summary: null,
     active_plan_item_count: 0,
     active_plan_items_user_facing: [],
+    active_action_candidates_for_direct_effects: [],
   };
   const userWords = stringValue(args.userMessage)
     ? [String(args.userMessage).trim()]
@@ -306,35 +329,28 @@ function noteFallbackForDecision(args: {
     "WhatsApp onboarding is transferring ownership after a local dispatcher decision.";
   return createNoteInformation({
     source_flow_id: "whatsapp_onboarding",
-    source_flow_state_summary: [
-      `whatsapp_state=${args.whatsappState ?? "unknown"}`,
-      `plan_status=${args.planProjection?.status ?? "unknown"}`,
-      `plan_ready=${
-        args.planProjection?.is_plan_ready_for_onboarding === true
-      }`,
-    ].join("; "),
     handoff_reason: reason,
     target_dispatcher: target,
     handoff_context_for_next_dispatcher: handoffContext,
-    target_local_dispatcher_hint: target === "other_local"
-      ? "local_flow_handoff"
-      : null,
     user_words: stringValue(args.userMessage)
       ? [String(args.userMessage).trim()]
       : [],
     structured_context: {
+      source_flow: "whatsapp_onboarding",
+      user_message_summary: handoffContext,
+      active_flow_summary: [
+        `whatsapp_state=${args.whatsappState ?? "unknown"}`,
+        `plan_status=${args.planProjection?.status ?? "unknown"}`,
+        `plan_ready=${
+          args.planProjection?.is_plan_ready_for_onboarding === true
+        }`,
+      ].join("; "),
       whatsapp_state: args.whatsappState ?? null,
       plan_status: args.planProjection?.status ?? "unknown",
       plan_ready: args.planProjection?.is_plan_ready_for_onboarding === true,
       active_plan_title: args.planProjection?.active_plan_title ?? null,
-    },
-    risk_score: args.riskScore,
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
+      unresolved_questions: [],
+      recommended_next_focus: target,
     },
   });
 }
@@ -346,33 +362,28 @@ function buildWhatsAppOnboardingActivationNote(args: {
 }): NoteInformation {
   return createNoteInformation({
     source_flow_id: "whatsapp_webhook_state",
-    source_flow_presentation:
-      "System WhatsApp state activation for onboarding. It provides local dispatcher entry context and is never user-visible.",
-    source_flow_state_summary: [
-      `whatsapp_state=${args.whatsappState}`,
-      `plan_status=${args.planProjection.status}`,
-      `plan_ready=${args.planProjection.is_plan_ready_for_onboarding === true}`,
-    ].join("; "),
     handoff_reason: "bridge",
     target_dispatcher: "other_local",
     handoff_context_for_next_dispatcher:
       "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn.",
-    target_local_dispatcher_hint: "whatsapp_onboarding",
     user_words: stringValue(args.userMessage) ? [args.userMessage.trim()] : [],
     structured_context: {
+      source_flow: "whatsapp_webhook_state",
+      user_message_summary: args.userMessage.trim(),
+      active_flow_summary: [
+        `whatsapp_state=${args.whatsappState}`,
+        `plan_status=${args.planProjection.status}`,
+        `plan_ready=${
+          args.planProjection.is_plan_ready_for_onboarding === true
+        }`,
+      ].join("; "),
       whatsapp_state: args.whatsappState,
       plan_status: args.planProjection.status,
       plan_ready: args.planProjection.is_plan_ready_for_onboarding === true,
       active_plan_title: args.planProjection.active_plan_title,
       active_plan_item_count: args.planProjection.active_plan_item_count,
-    },
-    risk_score: 0,
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
+      unresolved_questions: [],
+      recommended_next_focus: "whatsapp_onboarding",
     },
   });
 }
@@ -400,15 +411,13 @@ function normalizeDecisionNoteInformation(args: {
   const fallback = noteFallbackForDecision(args);
   return normalizeNoteInformation(raw, {
     source_flow_id: fallback.source_flow_id,
-    source_flow_state_summary: fallback.source_flow_state_summary,
     handoff_reason: fallback.handoff_reason,
     target_dispatcher: fallback.target_dispatcher,
     handoff_context_for_next_dispatcher:
       fallback.handoff_context_for_next_dispatcher,
-    target_local_dispatcher_hint: fallback.target_local_dispatcher_hint,
     user_words: fallback.user_words,
     structured_context: fallback.structured_context,
-    risk_score: fallback.risk_score,
+    current_user_message: stringValue(args.userMessage) ?? undefined,
   });
 }
 
@@ -629,13 +638,13 @@ export function buildWhatsAppOnboardingLocalDispatcherSystemPrompt(): string {
     "Tu es le dispatcher local structure du flow whatsapp_onboarding.",
     "Tu ne reponds jamais directement au user. Tu retournes uniquement un JSON valide.",
     "Aucune regex, aucun mot-cle isole, aucun template: raisonne depuis le message, les messages recents, le whatsapp_state et plan_status.",
-    "Pendant un state onboarding actif, le dispatcher global et track_progress_plan_item sont interdits.",
+    "Pendant un state onboarding actif, le dispatcher global reste contrôlé par ce flow, mais les direct effects instantanés autorisés peuvent être transmis quand ils sont explicites. track_progress_plan_item est notamment autorisé si le user rapporte un progrès déjà fait sur une action candidate structurée.",
     "Le plan est incompressible: si plan_status n'est pas active ou ready_pending_activation, aucun exit produit vers le dispatcher global.",
     "Si le user est fatigue des questions avant plan pret, retourne blocked_exit_before_plan_ready.",
-    "Si le user est fatigue des questions apres plan pret sans nouveau sujet clair, retourne stop_local_no_handoff. Le visible doit etre stop_after_plan_ready.",
+    "Si le user est fatigue des questions apres plan pret sans nouveau sujet clair, retourne exit_to_global_dispatcher. Le visible doit etre stop_after_plan_ready.",
     "Si le user change clairement de sujet apres plan pret, retourne exit_to_global_dispatcher avec note_information exploitable pour le dispatcher global.",
     "Si safety est present, retourne safety_preempt avec note_information vers safety_crisis. Le dispatcher global normal ne doit pas reprendre.",
-    "Si le user demande d'avancer/progresser une action du plan pendant l'onboarding, retourne progress_attempt_during_onboarding et bloque track_progress_plan_item.",
+    "Si le user rapporte un progres deja fait sur une action du plan pendant l'onboarding, laisse passer track_progress_plan_item via les direct effects/dispatcher global avec une note_information exploitable; ne bloque pas par principe. Si le user exprime seulement une intention future d'avancer, reste dans l'onboarding.",
     "Si le state est awaiting_plan_finalization et le plan est pret, retourne plan_ready_resume_preferences.",
     "Si le state est une preference, interprete la reponse pour la preference courante uniquement.",
     "Valeurs canoniques: coach.tone=soft|warm_direct|direct; coach.challenge_level=low|balanced|high; coach.question_tendency=low|normal|high.",
@@ -643,23 +652,24 @@ export function buildWhatsAppOnboardingLocalDispatcherSystemPrompt(): string {
     "Si le user dit je ne sais pas sans rejet, retourne skip_optional_preference.",
     "",
     "Field Completion Rules:",
-    "- flow_action: decision principale du tour courant. Utilise plan_not_ready_wait tant que le plan n'est pas pret; plan_ready_resume_preferences quand le plan devient pret; answer_tone/answer_challenge/answer_questions pour verrouiller la preference courante; skip_optional_preference pour un refus faible ou un 'je ne sais pas' sans rejet du flow; repeat_current_question si la reponse est insuffisante; answer_plan_feedback puis answer_topic_choice aux stages correspondants; progress_attempt_during_onboarding si le user veut logger/valider une action du plan pendant onboarding; stop_local_no_handoff si le plan est pret et le user veut juste arreter les questions sans nouveau sujet; exit_to_global_dispatcher si le plan est pret et le user apporte un autre sujet clair; handoff_to_local_flow si un autre dispatcher local doit reprendre; safety_preempt pour safety; technical_blocked seulement si impossible de produire une decision fiable. Ne choisis jamais exit_to_global_dispatcher avant plan pret.",
+    "- flow_action: decision principale du tour courant. Utilise plan_not_ready_wait tant que le plan n'est pas pret; plan_ready_resume_preferences quand le plan devient pret; answer_tone/answer_challenge/answer_questions pour verrouiller la preference courante; skip_optional_preference pour un refus faible ou un 'je ne sais pas' sans rejet du flow; repeat_current_question si la reponse est insuffisante; answer_plan_feedback puis answer_topic_choice aux stages correspondants; progress_attempt_during_onboarding si le user veut logger/valider une action du plan pendant onboarding; exit_to_global_dispatcher si le plan est pret et le user veut juste arreter les questions sans nouveau sujet; exit_to_global_dispatcher si le plan est pret et le user apporte un autre sujet clair; handoff_to_local_flow si un autre dispatcher local doit reprendre; safety_preempt pour safety; technical_blocked seulement si impossible de produire une decision fiable. Ne choisis jamais exit_to_global_dispatcher avant plan pret.",
     "- confidence: high si l'intention et les valeurs sont explicites; medium si l'intention est probable mais une nuance manque; low si clarification, repeat_current_question, safety prudente ou technical_blocked. Ne mets pas high pour une interpretation fragile.",
     "- stage: stage local coherent avec whatsapp_state et flow_action. plan_wait/plan_ready_resume pour finalisation du plan; pref_tone/pref_challenge/pref_questions pour preferences; plan_feedback pour feedback du plan; topic_choice pour choix de suite; completed pour complete_onboarding; exit pour stop, exit ou handoff; safety pour safety_preempt; technical pour technical_blocked.",
     "- preference_updates: uniquement pour la preference courante. Pour status=locked, locked_value doit etre une valeur canonique et label doit etre user-facing; candidate_value est null sauf proposition a confirmer; notes garde les nuances utilisateur sans en faire un fait global; needs_user_confirmation reste false en V1 sauf vraie ambiguite; why_status explique l'indice semantique. Laisse [] si aucun champ preference ne doit etre ecrit.",
     "- plan_feedback: remplis status et summary seulement au state onboarding_plan_creation_feedback. status=positive/negative/mixed/skipped/unclear selon le retour du user; needs_followup=true si le visible doit demander une precision. Ailleurs, status=missing et summary=null.",
     "- topic_choice: remplis au state onboarding_topic_choice ou pour une sortie/handoff. status=plan si le user veut revenir au plan, other_topic si un sujet clair doit passer au global, skip si elle ne veut pas choisir, unclear si trop vague. handoff_hint_for_global_dispatcher et handoff_justification_for_global_dispatcher sont obligatoires pour other_topic, exit_to_global_dispatcher ou handoff_to_local_flow, sinon null.",
-    "- visible_task.kind: choisis le stage visible exact, jamais un stage generique. stop_local_no_handoff -> stop_after_plan_ready; progress_attempt_during_onboarding -> progress_attempt_blocked; get_info_product -> inline_product_return; get_info_db -> inline_status_return; safety_preempt -> safety; technical_blocked -> technical_blocked. Pour une preference verrouillee, utilise le prochain stage visible attendu par le reducer.",
+    "- visible_task.kind: choisis le stage visible exact, jamais un stage generique. exit_to_global_dispatcher -> stop_after_plan_ready; progress_attempt_during_onboarding -> progress_attempt_blocked; get_info_product -> inline_product_return; get_info_db -> inline_status_return; safety_preempt -> safety; technical_blocked -> technical_blocked. Pour une preference verrouillee, utilise le prochain stage visible attendu par le reducer.",
     "- visible_task.conversation_context: seul contexte donne a l'agent visible. Inclure state_summary, user_words, stage, plan compact, preference courante, valeurs faibles/manquantes, feedback/topic summaries, contraintes de ton, do_not_say et evidence_used. Ne mets jamais DB brute, memoire brute, note_information brute, secrets, ids internes inutiles, ou instruction de muter la DB.",
-    "- note_information: null pour continuation locale, repeat, stop_local_no_handoff, progression bloquee et inline local. Obligatoire pour exit_to_global_dispatcher, safety_preempt et handoff_to_local_flow. Elle est consommee par le dispatcher cible, jamais par le prompt visible; elle doit contenir source_flow_id=whatsapp_onboarding, target_dispatcher, handoff_reason, user_words, active state summary, collected_state, unresolved_questions, confidence/evidence et next focus.",
-    "- exit_memo_request: needed=false et exit_reason=none en continuation locale. Pour exit_to_global_dispatcher ou handoff_to_local_flow, needed=true avec flow_summary, hint et justification exploitables. Pour safety_preempt, exit_reason=safety. Pour stop_local_no_handoff, ne cree pas de note_information; si rempli, il sert seulement a expliquer le stop au reducer et ne doit pas autoriser le global. plan_required_exit_blocked=true seulement quand une sortie est demandee avant plan pret.",
-    "- global_effect_policy: pendant onboarding actif, allow_track_progress_plan_item=false et allow_normal_reply=false. allow_global_dispatcher=true seulement pour exit_to_global_dispatcher apres plan pret; false pour stop, safety, handoff local, progression bloquee et continuation. allow_update_coach_preferences_runtime=true seulement si une preference locked valide est presente; sinon false. why doit expliquer la limite.",
+    "- note_information: null pour continuation locale, repeat, progression bloquee et inline local. Obligatoire pour exit_to_global_dispatcher, safety_preempt et handoff_to_local_flow. Elle est consommee par le dispatcher cible, jamais par le prompt visible. Structure canonique: source_flow_id=whatsapp_onboarding, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context non vide, confidence si utile. Mets l'etat actif, collected_state, unresolved_questions, evidence et next focus dans structured_context. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    "- exit_memo_request: needed=false et exit_reason=none en continuation locale. Pour exit_to_global_dispatcher ou handoff_to_local_flow, needed=true avec flow_summary, hint et justification exploitables. Pour safety_preempt, exit_reason=safety. plan_required_exit_blocked=true seulement quand une sortie est demandee avant plan pret.",
+    "- global_effect_policy: pendant onboarding actif, allow_track_progress_plan_item=true seulement si le message courant rapporte explicitement un progres deja fait sur une action presente dans platform_context.active_action_candidates_for_direct_effects. allow_normal_reply=false. allow_global_dispatcher=true pour exit_to_global_dispatcher apres plan pret ou pour un direct effect instantane autorise; false pour safety, handoff local et continuation. allow_update_coach_preferences_runtime=true seulement si une preference locked valide est presente; sinon false. why doit expliquer la limite.",
+    ...directEffectLocalDispatcherPromptLines(),
     "- no_chat_mutation: tous les booleens doivent rester false. Ce dispatcher ne cree pas de plan, ne logge pas de progression, ne cree pas de pending confirmation et ne cree pas de token.",
     "- risk_assessment: risk_score de 0 a 10, utile et proportionne. Ne pas inventer de safety. Si safety_preempt=true, flow_action doit etre safety_preempt, risk_band medium/high/critical selon gravite, reason_codes explicites, et note_information vers safety_crisis. Si pas de safety, risk_score faible et safety_preempt=false.",
     "- evidence: liste courte d'indices semantiques reellement utilises, cites depuis le message ou le contexte compact. Pas de pseudo-preuves, pas de mots-cles isoles hors contexte.",
     "",
     "Transition Rules:",
-    "- stop_local_no_handoff: seulement apres plan pret, quand le user veut arreter l'onboarding sans demander un autre sujet. Pas de global sur ce tour, pas de question finale, pas d'outil.",
+    "- exit_to_global_dispatcher: seulement apres plan pret, quand le user veut arreter l'onboarding ou demande clairement un autre sujet. note_information obligatoire et allow_global_dispatcher=true.",
     "- exit_to_global_dispatcher: seulement apres plan pret et si le user demande clairement un autre sujet. note_information obligatoire et allow_global_dispatcher=true.",
     "- safety_preempt: safety prioritaire, note_information vers safety_crisis obligatoire, allow_global_dispatcher=false.",
     "- handoff_to_local_flow: seulement si un autre dispatcher local autorise doit reprendre; note_information obligatoire, allow_global_dispatcher=false.",
@@ -667,7 +677,7 @@ export function buildWhatsAppOnboardingLocalDispatcherSystemPrompt(): string {
     "Example JSON 1 - continuation normale:",
     '{"flow_action":"answer_tone","confidence":"high","stage":"pref_tone","preference_updates":[{"key":"coach.tone","status":"locked","candidate_value":null,"locked_value":"warm_direct","label":"Bienveillant ferme","notes":"Direct si je decroche, sinon doux.","needs_user_confirmation":false,"why_status":"user gave a clear tone preference"}],"plan_feedback":{"status":"missing","summary":null,"needs_followup":false},"topic_choice":{"status":"missing","handoff_hint_for_global_dispatcher":null,"handoff_justification_for_global_dispatcher":null},"visible_task":{"kind":"preference_saved_next_challenge","conversation_context":{"state_summary":"whatsapp_state=onboarding_pref_tone; plan_status=active; plan_ready=true","user_words":["plutot doux mais direct si je decroche"],"stage":"pref_tone","plan":{"status":"active","title":"Plan","summary":"Plan pret","first_items":[]},"preference":{"key":"coach.tone","label":"Bienveillant ferme","value_label":"Bienveillant ferme","notes":"Direct si je decroche, sinon doux."},"missing_or_weak_values":[],"feedback_summary":null,"topic_choice_summary":null,"inline_tool_summary":null,"tone_constraints":["Message WhatsApp court."],"do_not_say":["Ne dis pas qu\'une action du plan est faite."],"evidence_used":["plutot doux","direct si je decroche"]}},"note_information":null,"exit_memo_request":{"needed":false,"exit_reason":"none","flow_summary":null,"handoff_hint_for_global_dispatcher":null,"handoff_justification_for_global_dispatcher":null,"plan_required_exit_blocked":false},"global_effect_policy":{"allow_global_dispatcher":false,"allow_track_progress_plan_item":false,"allow_update_coach_preferences_runtime":true,"allow_normal_reply":false,"why":"onboarding local owns the preference turn"},"no_chat_mutation":{"plan_created":false,"plan_item_progress_logged":false,"pending_confirmation_created":false,"confirmation_token_created":false},"risk_assessment":{"risk_score":0,"risk_band":"none","safety_preempt":false,"reason_codes":[]},"evidence":["plutot doux","direct si je decroche"]}',
     "Example JSON 2 - transition critique:",
-    '{"flow_action":"exit_to_global_dispatcher","confidence":"high","stage":"exit","preference_updates":[],"plan_feedback":{"status":"missing","summary":null,"needs_followup":false},"topic_choice":{"status":"other_topic","handoff_hint_for_global_dispatcher":"prioriser les contacts pro","handoff_justification_for_global_dispatcher":"The user asks to stop onboarding and prioritize a specific work topic after plan is ready."},"visible_task":{"kind":"complete_to_global","conversation_context":{"state_summary":"whatsapp_state=onboarding_pref_challenge; plan_status=active; plan_ready=true","user_words":["stop tes questions aide-moi plutot a prioriser mes contacts"],"stage":"exit","plan":{"status":"active","title":"Plan","summary":"Plan pret","first_items":[]},"preference":{"key":"coach.challenge_level","label":null,"value_label":null,"notes":null},"missing_or_weak_values":[],"feedback_summary":null,"topic_choice_summary":"prioriser les contacts pro","inline_tool_summary":null,"tone_constraints":["Ne pas poser de question d\'onboarding."],"do_not_say":["Ne dis pas que le global a deja repondu."],"evidence_used":["stop tes questions","aide-moi plutot a prioriser mes contacts"]}},"note_information":{"source_flow_id":"whatsapp_onboarding","source_flow_state_summary":"whatsapp_state=onboarding_pref_challenge; plan_status=active; plan_ready=true","handoff_reason":"topic_change","target_dispatcher":"global","handoff_context_for_next_dispatcher":"User interrupts onboarding after plan ready and asks to prioritize professional contacts.","target_local_dispatcher_hint":null,"user_words":["stop tes questions aide-moi plutot a prioriser mes contacts"],"structured_context":{"plan_ready":true,"collected_state":{"preference_stage":"coach.challenge_level"},"unresolved_questions":["coach.challenge_level"]},"risk_score":0,"no_chat_mutation":{"db_write_committed":false,"executable_confirmation_generated":false}},"exit_memo_request":{"needed":true,"exit_reason":"topic_change","flow_summary":"User interrupted WhatsApp onboarding after plan ready.","handoff_hint_for_global_dispatcher":"prioriser les contacts pro","handoff_justification_for_global_dispatcher":"Clear new topic after plan ready.","plan_required_exit_blocked":false},"global_effect_policy":{"allow_global_dispatcher":true,"allow_track_progress_plan_item":false,"allow_update_coach_preferences_runtime":false,"allow_normal_reply":false,"why":"clear topic change after plan ready"},"no_chat_mutation":{"plan_created":false,"plan_item_progress_logged":false,"pending_confirmation_created":false,"confirmation_token_created":false},"risk_assessment":{"risk_score":0,"risk_band":"none","safety_preempt":false,"reason_codes":[]},"evidence":["stop tes questions","aide-moi plutot"]}',
+    '{"flow_action":"exit_to_global_dispatcher","confidence":"high","stage":"exit","preference_updates":[],"plan_feedback":{"status":"missing","summary":null,"needs_followup":false},"topic_choice":{"status":"other_topic","handoff_hint_for_global_dispatcher":"prioriser les contacts pro","handoff_justification_for_global_dispatcher":"The user asks to stop onboarding and prioritize a specific work topic after plan is ready."},"visible_task":{"kind":"complete_to_global","conversation_context":{"state_summary":"whatsapp_state=onboarding_pref_challenge; plan_status=active; plan_ready=true","user_words":["stop tes questions aide-moi plutot a prioriser mes contacts"],"stage":"exit","plan":{"status":"active","title":"Plan","summary":"Plan pret","first_items":[]},"preference":{"key":"coach.challenge_level","label":null,"value_label":null,"notes":null},"missing_or_weak_values":[],"feedback_summary":null,"topic_choice_summary":"prioriser les contacts pro","inline_tool_summary":null,"tone_constraints":["Ne pas poser de question d\'onboarding."],"do_not_say":["Ne dis pas que le global a deja repondu."],"evidence_used":["stop tes questions","aide-moi plutot a prioriser mes contacts"]}},"note_information":{"source_flow_id":"whatsapp_onboarding","handoff_reason":"topic_change","target_dispatcher":"global","handoff_context_for_next_dispatcher":"User interrupts onboarding after plan ready and asks to prioritize professional contacts.","user_words":["stop tes questions aide-moi plutot a prioriser mes contacts"],"structured_context":{"user_message_summary":"The user asks to stop onboarding and prioritize professional contacts.","active_flow_summary":"whatsapp_state=onboarding_pref_challenge; plan_status=active; plan_ready=true","plan_ready":true,"collected_state":{"preference_stage":"coach.challenge_level"},"unresolved_questions":["coach.challenge_level"],"recommended_next_focus":"prioriser les contacts pro"},"confidence":"high"},"exit_memo_request":{"needed":true,"exit_reason":"topic_change","flow_summary":"User interrupted WhatsApp onboarding after plan ready.","handoff_hint_for_global_dispatcher":"prioriser les contacts pro","handoff_justification_for_global_dispatcher":"Clear new topic after plan ready.","plan_required_exit_blocked":false},"global_effect_policy":{"allow_global_dispatcher":true,"allow_track_progress_plan_item":false,"allow_update_coach_preferences_runtime":false,"allow_normal_reply":false,"why":"clear topic change after plan ready"},"no_chat_mutation":{"plan_created":false,"plan_item_progress_logged":false,"pending_confirmation_created":false,"confirmation_token_created":false},"risk_assessment":{"risk_score":0,"risk_band":"none","safety_preempt":false,"reason_codes":[]},"evidence":["stop tes questions","aide-moi plutot"]}',
   ].join("\n");
 }
 
@@ -715,9 +725,21 @@ async function runLocalDispatcher(input: {
       plan_projection: input.planProjection,
     },
     micro_memory_context: null,
-    platform_context: {
+    platform_context: withDirectEffectLocalContext({
       channel: "whatsapp",
-    },
+      active_action_candidates_for_direct_effects:
+        input.planProjection.active_action_candidates_for_direct_effects,
+    }, {
+      items: input.planProjection.active_action_candidates_for_direct_effects
+        .map((candidate) => ({
+          id: candidate.plan_item_id,
+          title: candidate.title,
+          status: candidate.status,
+          plan_id: candidate.plan_id,
+          dimension: candidate.dimension,
+          item_type: candidate.tracking_type,
+        })),
+    }),
     risk_context: {
       local_flow_must_emit_safety_preempt_with_note_information: true,
     },
@@ -770,17 +792,14 @@ async function runLocalDispatcher(input: {
       },
       note_information: {
         source_flow_id: "whatsapp_onboarding",
-        source_flow_state_summary: "string",
         handoff_reason:
           "topic_change|safety|bridge|flow_interruption|explicit_user_request",
         target_dispatcher:
           "global|safety_crisis|product_help|status_recap|other_local|prepare_attack_card|prepare_defense_card|select_state_potion|adjust_plan_item|track_progress_plan_item|emotional_repair|demotivation_repair",
         handoff_context_for_next_dispatcher: "string",
-        target_local_dispatcher_hint: "string|null",
         user_words: "array",
         structured_context: "object",
-        risk_score: "number",
-        no_chat_mutation: "object",
+        confidence: "low|medium|high",
       },
       exit_memo_request: "object",
       global_effect_policy: "object",
@@ -855,9 +874,12 @@ export async function loadWhatsAppOnboardingPlanProjection(
       active_plan_summary: null,
       active_plan_item_count: 0,
       active_plan_items_user_facing: [],
+      active_action_candidates_for_direct_effects: [],
     };
   }
-  const { data } = await admin.from("user_plan_items").select("title,status")
+  const { data } = await admin.from("user_plan_items").select(
+    "id,title,status,plan_id,dimension,kind",
+  )
     .eq("user_id", userId)
     .eq("plan_id", plan.id)
     .in("status", ["active", "pending", "in_maintenance"])
@@ -866,6 +888,9 @@ export async function loadWhatsAppOnboardingPlanProjection(
   const items = (data ?? [])
     .map((item: any) => String(item?.title ?? "").trim())
     .filter(Boolean);
+  const activeActionCandidates = activeActionCandidatesForDirectEffects({
+    items: data ?? [],
+  });
   return {
     status: "active",
     is_plan_ready_for_onboarding: true,
@@ -874,6 +899,7 @@ export async function loadWhatsAppOnboardingPlanProjection(
     active_plan_summary: String(plan?.content?.summary ?? "").trim() || title,
     active_plan_item_count: items.length,
     active_plan_items_user_facing: items,
+    active_action_candidates_for_direct_effects: activeActionCandidates,
   };
 }
 
@@ -1140,6 +1166,261 @@ async function sendVisibleReply(params: {
   });
 }
 
+export function buildWhatsAppOnboardingConversationTrace(params: {
+  requestId: string;
+  userId: string;
+  sourceMessageId: string | null;
+  whatsappState: WhatsAppOnboardingState;
+  webOnboardingCompleted: boolean;
+  whatsappPreferencesDone: boolean;
+  planProjection: WhatsAppOnboardingPlanProjection;
+  decision: WhatsAppOnboardingLocalDecision;
+  reduced: WhatsAppOnboardingReducerResult;
+  dispatcherLatencyMs: number;
+  totalLatencyMs: number;
+  visibleStatus: "not_started" | "completed" | "failed" | "handoff";
+}): ConversationTurnTrace {
+  const currentPreferenceKey = preferenceKeyForState(params.whatsappState);
+  const nextPreferenceKey = params.reduced.next_whatsapp_state
+    ? preferenceKeyForState(params.reduced.next_whatsapp_state)
+    : null;
+  const riskBand = params.reduced.risk_assessment.risk_band ?? "none";
+  const riskReasonCodes = params.reduced.risk_assessment.reason_codes ?? [];
+  const evidence = compactStringArray(params.decision.evidence);
+  const sourceMessageId = params.sourceMessageId || params.requestId;
+  const blockedPaths = params.reduced.blocked_effects.map((effect) => ({
+    path: effect.type,
+    reason_code: effect.reason_code,
+  }));
+  const preferenceWrites = params.reduced.preference_writes.map((write) => ({
+    key: write.key,
+    status: write.status,
+    value: write.locked_value ?? write.candidate_value ?? null,
+    label: write.label,
+    has_notes: Boolean(compactString(write.notes)),
+    reason: compactString(write.why_status, 160),
+  }));
+  const routeDecision = {
+    route_version: "v1",
+    response_owner: "tool_skill",
+    selected_handler: "whatsapp_onboarding",
+    blocked_paths: blockedPaths,
+    direct_effects_to_run: [],
+    reason_code: params.reduced.reason_code,
+    memory_used_for_route: false,
+    memory_item_ids_used_for_route: [],
+    memory_use_kind: "none",
+    active_flow_arbitration: {
+      decision: "local_flow_owns_turn",
+      active_owner: "whatsapp_onboarding",
+      selected_owner: "whatsapp_onboarding",
+      resume_policy: params.reduced.allow_global_dispatcher
+        ? "exit_to_global_dispatcher"
+        : "stay_local",
+      reason_code: params.reduced.reason_code,
+      continuation_intent: params.decision.flow_action,
+    },
+  } as const;
+  const memoryPlan: DispatcherMemoryPlan = {
+    response_intent: params.decision.flow_action,
+    reasoning_complexity: "low",
+    context_need: "minimal",
+    memory_mode: "none",
+    model_tier_hint: "lite",
+    context_budget_tier: "tiny",
+    targets: [],
+    retrieval_policy: "semantic_only",
+    plan_confidence: params.decision.confidence === "high"
+      ? 0.9
+      : params.decision.confidence === "medium"
+      ? 0.6
+      : 0.35,
+  };
+  const turnFrame = {
+    turn_id: params.requestId,
+    source_message_id: sourceMessageId,
+    user_id: params.userId,
+    channel: "whatsapp",
+    safety: {
+      risk_band: riskBand,
+      reason_codes: riskReasonCodes,
+      evidence: compactStringArray(
+        params.decision.risk_assessment.reason_codes,
+      ),
+    },
+    direct_effects: [],
+    tool_skill_intents: [{
+      operation_type: "whatsapp_onboarding",
+      explicitness: "implied",
+      target_hint: params.reduced.visible_task,
+      operation_input: {
+        flow_action: params.decision.flow_action,
+        stage: params.decision.stage,
+        current_whatsapp_state: params.whatsappState,
+        next_whatsapp_state: params.reduced.next_whatsapp_state,
+      },
+      payload_hint: {
+        visible_task: params.reduced.visible_task,
+        plan_status: params.planProjection.status,
+        current_preference_key: currentPreferenceKey,
+      },
+      confidence_band: params.decision.confidence,
+      ambiguity: params.decision.confidence === "low"
+        ? "intent_ambiguous"
+        : "none",
+      user_intent: params.reduced.mark_done ? "none" : "update",
+    }],
+    note_information: params.reduced.note_information,
+    skill_signals: {
+      entry: {
+        whatsapp_onboarding: {
+          detected: true,
+          confidence_band: params.decision.confidence,
+          reason: params.reduced.reason_code,
+        },
+      },
+      lifecycle: {
+        [params.decision.flow_action]: {
+          detected: true,
+          confidence_band: params.decision.confidence,
+          reason: params.reduced.visible_task,
+        },
+      },
+      exit: params.reduced.allow_global_dispatcher ||
+          params.reduced.status === "handoff_to_local_flow" ||
+          params.reduced.status === "safety_preempt"
+        ? {
+          [params.reduced.status]: {
+            detected: true,
+            confidence_band: params.decision.confidence,
+            reason: params.reduced.reason_code,
+          },
+        }
+        : {},
+    },
+    memory_plan: memoryPlan,
+  };
+  return {
+    turn_id: params.requestId,
+    user_id: params.userId,
+    source_message_id: sourceMessageId,
+    ts: new Date().toISOString(),
+    safety_pregate: {
+      detected: params.reduced.risk_assessment.safety_preempt,
+      risk_band: riskBand,
+      reason_codes: riskReasonCodes,
+      evidence,
+      layer_contributions: {
+        lexical: false,
+        active_flow_caution: params.reduced.risk_assessment.safety_preempt,
+        dispatcher_llm: false,
+      },
+      allow_side_effects: !params.reduced.risk_assessment.safety_preempt,
+    },
+    dispatcher_run: {
+      latency_ms: Math.max(0, Math.round(params.dispatcherLatencyMs)),
+      tokens_in: 0,
+      tokens_out: 0,
+      prompt_version: "whatsapp_onboarding_local_dispatcher_v1",
+      model_used: getGlobalAiModel("gemini-2.5-flash"),
+      memory_plan: turnFrame.memory_plan,
+    },
+    turn_frame: turnFrame as any,
+    route_decision: routeDecision as any,
+    direct_effects: [],
+    effect_ledger: {
+      surface: "whatsapp_onboarding",
+      allowed_effects: [],
+      committed_effects: preferenceWrites.map((write) => ({
+        type: "user_profile_fact_upsert",
+        key: write.key,
+      })),
+      blocked_effects: params.reduced.blocked_effects,
+      no_chat_mutation: params.decision.no_chat_mutation,
+    },
+    skill_run: {
+      selected_skill_id: "whatsapp_onboarding",
+      reason_code: params.reduced.reason_code,
+      source: "whatsapp_onboarding.local_dispatcher",
+      local_flow: {
+        flow_action: params.decision.flow_action,
+        confidence: params.decision.confidence,
+        stage: params.decision.stage,
+        visible_task: params.reduced.visible_task,
+        visible_status: params.visibleStatus,
+        reducer_status: params.reduced.status,
+        current_whatsapp_state: params.whatsappState,
+        next_whatsapp_state: params.reduced.next_whatsapp_state,
+        current_preference_key: currentPreferenceKey,
+        next_preference_key: nextPreferenceKey,
+        plan_status: params.planProjection.status,
+        plan_ready: params.planProjection.is_plan_ready_for_onboarding,
+        preference_writes: preferenceWrites,
+        allow_global_dispatcher: params.reduced.allow_global_dispatcher,
+        allow_track_progress_plan_item:
+          params.reduced.allow_track_progress_plan_item,
+        note_information_target:
+          params.reduced.note_information?.target_dispatcher ?? null,
+        evidence,
+      },
+    },
+    tool_skill_run: {
+      selected_handler: "whatsapp_onboarding",
+      reason_code: params.reduced.reason_code,
+      status: params.reduced.status,
+      flow_action: params.decision.flow_action,
+      visible_task: params.reduced.visible_task,
+    },
+    recommendation_tool_run: null,
+    confirmation_token_outcomes: [],
+    memory_write_candidates_emitted: 0,
+    response_owner: "tool_skill",
+    total_latency_ms: Math.max(0, Math.round(params.totalLatencyMs)),
+  };
+}
+
+async function logWhatsAppOnboardingConversationTrace(params: {
+  admin: any;
+  requestId: string;
+  userId: string;
+  sourceMessageId: string | null;
+  whatsappState: WhatsAppOnboardingState;
+  webOnboardingCompleted: boolean;
+  whatsappPreferencesDone: boolean;
+  planProjection: WhatsAppOnboardingPlanProjection;
+  decision: WhatsAppOnboardingLocalDecision;
+  reduced: WhatsAppOnboardingReducerResult;
+  dispatcherLatencyMs: number;
+  startedAtMs: number;
+  visibleStatus: "not_started" | "completed" | "failed" | "handoff";
+}) {
+  try {
+    await logConversationTurn(
+      buildWhatsAppOnboardingConversationTrace({
+        requestId: params.requestId,
+        userId: params.userId,
+        sourceMessageId: params.sourceMessageId,
+        whatsappState: params.whatsappState,
+        webOnboardingCompleted: params.webOnboardingCompleted,
+        whatsappPreferencesDone: params.whatsappPreferencesDone,
+        planProjection: params.planProjection,
+        decision: params.decision,
+        reduced: params.reduced,
+        dispatcherLatencyMs: params.dispatcherLatencyMs,
+        totalLatencyMs: Date.now() - params.startedAtMs,
+        visibleStatus: params.visibleStatus,
+      }),
+      { supabase: params.admin },
+    );
+  } catch (error) {
+    console.warn("[WhatsAppOnboarding] conversation trace failed", {
+      request_id: params.requestId,
+      selected_handler: "whatsapp_onboarding",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 export async function runWhatsAppOnboardingLocalFlow(params: {
   admin: any;
   userId: string;
@@ -1151,6 +1432,7 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
   waMessageId: string | null;
   text: string;
 }) {
+  const startedAtMs = Date.now();
   const tempMemory = await loadTempMemory(params.admin, params.userId);
   const [planProjection, recentMessages] = await Promise.all([
     loadWhatsAppOnboardingPlanProjection(params.admin, params.userId),
@@ -1161,6 +1443,7 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
     whatsappState: params.whatsappState,
     planProjection,
   });
+  const dispatcherStartedAtMs = Date.now();
   const decision = await runLocalDispatcher({
     requestId: params.requestId,
     userId: params.userId,
@@ -1173,6 +1456,7 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
     tempMemory,
     noteInformationInbound: activationNote,
   });
+  const dispatcherLatencyMs = Date.now() - dispatcherStartedAtMs;
   const reduced = reduceWhatsAppOnboardingDecision({
     whatsappState: params.whatsappState,
     webOnboardingCompleted: params.webOnboardingCompleted,
@@ -1228,6 +1512,21 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
       has_note_information: Boolean(reduced.note_information),
       allow_global_dispatcher: reduced.allow_global_dispatcher,
       same_turn_global_allowed: reduced.status === "exit_to_global_dispatcher",
+    });
+    await logWhatsAppOnboardingConversationTrace({
+      admin: params.admin,
+      requestId: params.requestId,
+      userId: params.userId,
+      sourceMessageId: params.waMessageId,
+      whatsappState: params.whatsappState,
+      webOnboardingCompleted: params.webOnboardingCompleted,
+      whatsappPreferencesDone: params.whatsappPreferencesDone,
+      planProjection,
+      decision,
+      reduced,
+      dispatcherLatencyMs,
+      startedAtMs,
+      visibleStatus: "handoff",
     });
     return {
       handled: false,
@@ -1300,6 +1599,21 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
       visible_task: reduced.visible_task,
       flow_action: decision.flow_action,
     });
+    await logWhatsAppOnboardingConversationTrace({
+      admin: params.admin,
+      requestId: params.requestId,
+      userId: params.userId,
+      sourceMessageId: params.waMessageId,
+      whatsappState: params.whatsappState,
+      webOnboardingCompleted: params.webOnboardingCompleted,
+      whatsappPreferencesDone: params.whatsappPreferencesDone,
+      planProjection,
+      decision,
+      reduced,
+      dispatcherLatencyMs,
+      startedAtMs,
+      visibleStatus: "failed",
+    });
     return {
       handled: true,
       decision,
@@ -1334,6 +1648,21 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
       reducer_status: reduced.status,
       allow_track_progress_plan_item: reduced.allow_track_progress_plan_item,
     },
+  });
+  await logWhatsAppOnboardingConversationTrace({
+    admin: params.admin,
+    requestId: params.requestId,
+    userId: params.userId,
+    sourceMessageId: params.waMessageId,
+    whatsappState: params.whatsappState,
+    webOnboardingCompleted: params.webOnboardingCompleted,
+    whatsappPreferencesDone: params.whatsappPreferencesDone,
+    planProjection,
+    decision,
+    reduced,
+    dispatcherLatencyMs,
+    startedAtMs,
+    visibleStatus: "completed",
   });
   return {
     handled: true,

@@ -22,6 +22,7 @@ import {
 } from "./platform_context.ts";
 import {
   type CreateRecurringReminderLocalDispatcher,
+  type CreateRecurringReminderLocalDispatcherFailureDiagnostic,
   reduceCreateRecurringReminderLocalDispatcherOutput,
   runCreateRecurringReminderLocalDispatcher,
 } from "./local_flow.ts";
@@ -309,6 +310,9 @@ async function runCreateRecurringReminderLocalFlow(args: {
 }): Promise<CreateRecurringReminderRuntimeResult | null> {
   const dispatcher = args.runLocalDispatcher ??
     runCreateRecurringReminderLocalDispatcher;
+  let localDispatcherFailure:
+    | CreateRecurringReminderLocalDispatcherFailureDiagnostic
+    | null = null;
   const inboundActivationNote = args.frame.handoff_state
     ? null
     : activationNoteInformation({
@@ -346,6 +350,9 @@ async function runCreateRecurringReminderLocalFlow(args: {
     channel: args.channel,
     timezone: args.userTimezone,
     safety_risk_band: String(args.turnFrame?.safety?.risk_band ?? "none"),
+    report_failure: (diagnostic) => {
+      localDispatcherFailure = diagnostic;
+    },
   });
   if (!output) {
     const recoveryTask = contractRecoveryVisibleTask({
@@ -375,6 +382,17 @@ async function runCreateRecurringReminderLocalFlow(args: {
         reasonCode: "local_dispatcher_failed",
         extra: {
           activation_note_information: inboundActivationNote,
+          local_dispatcher_failure: localDispatcherFailure,
+          blocked_effects: [{
+            type: "local_dispatcher",
+            reason_code: "local_dispatcher_failed",
+            diagnostic: localDispatcherFailure,
+          }],
+          runtime_trace: [{
+            component: "create_recurring_reminder",
+            event: "local_dispatcher_failed",
+            diagnostic: localDispatcherFailure,
+          }],
         },
       }),
     };
@@ -537,7 +555,7 @@ export async function maybeRunCreateRecurringReminderOperation(args: {
   tempMemory: any;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: { risk_band: RiskBand };
+  safetyContextOutput: { risk_band: RiskBand };
   sourceMessageId: string | null;
   requestId?: string | null;
   history?: unknown;
@@ -565,7 +583,7 @@ export async function maybeRunCreateRecurringReminderOperation(args: {
 
   const nextTempMemory = { ...(args.tempMemory ?? {}) };
   const frame = loadRecurringReminderFrameFromTempMemory(nextTempMemory);
-  if (blocksToolSkills(args.safetyPregateOutput.risk_band)) {
+  if (blocksToolSkills(args.safetyContextOutput.risk_band)) {
     clearRecurringReminderFrame(nextTempMemory);
     return null;
   }

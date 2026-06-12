@@ -1,4 +1,4 @@
-import type { runSafetyPregate } from "../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../safety/safety_context.ts";
 import { isAtLeast } from "../safety/safety_thresholds.ts";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
@@ -23,7 +23,7 @@ export function isActiveSafetyCrisisSkillState(value: unknown): boolean {
 
 export function shouldSkipGlobalDispatcherForSafetyLocalTurn(args: {
   activeSkillState: unknown;
-  safetyPregateOutput: {
+  safetyContextOutput: {
     risk_band: RiskBand;
     reason_codes?: string[];
   };
@@ -38,62 +38,42 @@ export function shouldSkipGlobalDispatcherForSafetyLocalTurn(args: {
     "explicit_suicidal_thoughts",
   ]);
   return isActiveSafetyCrisisSkillState(args.activeSkillState) ||
-    isAtLeast(args.safetyPregateOutput.risk_band, "high") ||
-    (args.safetyPregateOutput.risk_band === "medium" &&
-      (args.safetyPregateOutput.reason_codes ?? []).some((reason) =>
+    isAtLeast(args.safetyContextOutput.risk_band, "high") ||
+    (args.safetyContextOutput.risk_band === "medium" &&
+      (args.safetyContextOutput.reason_codes ?? []).some((reason) =>
         safetyMediumReasonsThatOwnLocalFlow.has(String(reason))
       ));
-}
-
-function safetyActivationRiskScore(riskBand: RiskBand): number {
-  switch (riskBand) {
-    case "critical":
-      return 10;
-    case "high":
-      return 8;
-    case "medium":
-      return 5;
-    case "low":
-      return 2;
-    case "none":
-      return 0;
-  }
 }
 
 export function buildSafetyCrisisActivationNoteInformation(args: {
   userMessage: string;
   sourceMessageId?: string | null;
   requestId?: string | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
 }): NoteInformation {
   const activeFlowSummary =
-    "No active safety_crisis state existed before this turn; safety pregate selected the safety local dispatcher.";
+    "No active safety_crisis state existed before this turn; safety context selected the safety local dispatcher.";
   const collectedState = {
     first_activation: true,
     source_message_id: args.sourceMessageId ?? null,
     request_id: args.requestId ?? null,
-    safety_pregate: {
-      detected: args.safetyPregateOutput.detected,
-      risk_band: args.safetyPregateOutput.risk_band,
-      reason_codes: args.safetyPregateOutput.reason_codes ?? [],
-      evidence: args.safetyPregateOutput.evidence ?? [],
+    safety_context: {
+      detected: args.safetyContextOutput.detected,
+      risk_band: args.safetyContextOutput.risk_band,
+      reason_codes: args.safetyContextOutput.reason_codes ?? [],
+      evidence: args.safetyContextOutput.evidence ?? [],
     },
   };
   const evidence = [
-    ...(args.safetyPregateOutput.evidence ?? []),
+    ...(args.safetyContextOutput.evidence ?? []),
     ...(args.userMessage ? [`user_message:${args.userMessage}`] : []),
   ].slice(0, 8);
   return createNoteInformation({
     source_flow_id: "global",
-    source_flow_presentation:
-      "Global routing boundary handing first ownership to the safety_crisis local dispatcher.",
-    source_flow_state_summary: activeFlowSummary,
     handoff_reason: "safety",
     target_dispatcher: "safety_crisis",
     handoff_context_for_next_dispatcher:
-      "Safety pregate selected safety_crisis for first local ownership on this turn. The safety local dispatcher must own routing and produce the conversation_context.",
-    target_local_dispatcher_hint:
-      "Start safety_crisis from pregate risk context; defer product, status, reminder, plan, card, and potion work.",
+      "Safety context selected safety_crisis for first local ownership on this turn. The safety local dispatcher must own routing and produce the conversation_context.",
     user_words: args.userMessage ? [args.userMessage] : [],
     structured_context: {
       source_flow: "global",
@@ -107,20 +87,23 @@ export function buildSafetyCrisisActivationNoteInformation(args: {
         "means_safe",
         "human_support_available",
       ],
-      confidence: args.safetyPregateOutput.risk_band === "critical" ||
-          args.safetyPregateOutput.risk_band === "high"
+      confidence: args.safetyContextOutput.risk_band === "critical" ||
+          args.safetyContextOutput.risk_band === "high"
         ? "high"
         : "medium",
       evidence,
       recommended_next_focus:
         "Assess immediate danger, means proximity, whether the user is alone, and human or emergency support.",
     },
-    risk_score: safetyActivationRiskScore(args.safetyPregateOutput.risk_band),
+    confidence: args.safetyContextOutput.risk_band === "critical" ||
+        args.safetyContextOutput.risk_band === "high"
+      ? "high"
+      : "medium",
   });
 }
 
 export function withActiveSafetyFlowCaution<
-  T extends ReturnType<typeof runSafetyPregate>,
+  T extends SafetySignalContext,
 >(
   output: T,
   tempMemory: unknown,
@@ -164,28 +147,28 @@ export function selectedConversationSkillForRoute(
   return "";
 }
 
-export function runtimeSafetyPregateForTurn<
-  T extends ReturnType<typeof runSafetyPregate>,
+export function runtimeSafetyContextForTurn<
+  T extends SafetySignalContext,
 >(args: {
-  safetyPregateOutput: T;
+  safetyContextOutput: T;
   routeDecision: RouteDecision | null;
   turnFrame: TurnFrame | null;
   tempMemory: unknown;
   userMessage: string;
-}): { riskBand: RiskBand; pregateOutput: T } {
+}): { riskBand: RiskBand; safetyContextOutput: T } {
   void args.userMessage;
   void args.tempMemory;
   void args.routeDecision;
-  const safetyFloorRiskBand: RiskBand = args.safetyPregateOutput.risk_band;
+  const safetyFloorRiskBand: RiskBand = args.safetyContextOutput.risk_band;
   const riskBand = args.turnFrame?.safety?.risk_band &&
       isAtLeast(args.turnFrame.safety.risk_band, safetyFloorRiskBand)
     ? args.turnFrame.safety.risk_band
     : safetyFloorRiskBand;
   return {
     riskBand,
-    pregateOutput: riskBand === args.safetyPregateOutput.risk_band
-      ? args.safetyPregateOutput
-      : { ...args.safetyPregateOutput, risk_band: riskBand },
+    safetyContextOutput: riskBand === args.safetyContextOutput.risk_band
+      ? args.safetyContextOutput
+      : { ...args.safetyContextOutput, risk_band: riskBand },
   };
 }
 
@@ -264,10 +247,16 @@ export function suppressToolSignalsForSafetyRoute(args: {
     path.path === "tool_signals" &&
     path.reason_code === "safety_route_suppresses_tool_signals"
   );
+  const oneShotDirectEffects = args.turnFrame.direct_effects.filter((
+    effect,
+  ) => effect.effect_type === "create_one_shot_reminder");
+  const directEffectsToRun = args.routeDecision.direct_effects_to_run.filter((
+    effect,
+  ) => effect === "create_one_shot_reminder");
   return {
     routeDecision: {
       ...args.routeDecision,
-      direct_effects_to_run: [],
+      direct_effects_to_run: directEffectsToRun,
       blocked_paths: hasSuppressionMarker ? args.routeDecision.blocked_paths : [
         ...args.routeDecision.blocked_paths,
         {
@@ -279,9 +268,13 @@ export function suppressToolSignalsForSafetyRoute(args: {
     turnFrame: {
       ...args.turnFrame,
       tool_skill_intents: [],
-      direct_effects: [],
+      direct_effects: oneShotDirectEffects,
       flow_opportunity: null,
     },
-    changed: true,
+    changed: args.turnFrame.tool_skill_intents.length > 0 ||
+      args.turnFrame.direct_effects.length !== oneShotDirectEffects.length ||
+      args.routeDecision.direct_effects_to_run.length !==
+        directEffectsToRun.length ||
+      Boolean(args.turnFrame.flow_opportunity),
   };
 }

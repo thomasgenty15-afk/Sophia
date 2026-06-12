@@ -145,7 +145,7 @@ for `safety_preempt`. Use `source_flow_id="demotivation_repair"` and copy
 
 Do not produce it for local support/close actions such as `smaller_step`,
 `repeat_last_repair`, `answer_repair`, or `cancel_flow` when no new topic or
-handoff exists. Those are `stop_local_no_handoff`: the reducer chooses a local
+handoff exists. Those are `exit_to_global_dispatcher`: the reducer chooses a local
 `visible_task`, closes or defers the state, and global is not called on the same
 turn.
 

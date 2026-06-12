@@ -13,7 +13,7 @@ import {
 } from "./subskills/state_potion_subskill_flow.ts";
 
 const fakeSupabase = {} as any;
-const fakeSafetyPregate = {
+const fakeSafetyContext = {
   risk_band: "none",
   reason_codes: [],
   evidence: [],
@@ -40,7 +40,7 @@ function baseArgs(overrides: Record<string, unknown> = {}) {
     tempMemory: {},
     turnFrame: null,
     routeDecision: selectPotionRouteDecision,
-    safetyPregateOutput: fakeSafetyPregate,
+    safetyContextOutput: fakeSafetyContext,
     sourceMessageId: "m-handoff",
     requestId: "r-handoff",
     history: [],
@@ -224,7 +224,7 @@ Deno.test("apply_attempt does not execute potion writers", async () => {
   assertEquals((result.toolSkillRun as any).committed_effects, []);
 });
 
-Deno.test("stop_local_no_handoff clears active handoff without global reroute", async () => {
+Deno.test("exit_to_global_dispatcher clears active handoff without global reroute", async () => {
   const result = await runSelectStatePotionHandoffSkill(baseArgs({
     userMessage: "Laisse tomber la potion.",
     tempMemory: {
@@ -243,7 +243,7 @@ Deno.test("stop_local_no_handoff clears active handoff without global reroute", 
       },
     },
     localFlowDispatcherOverride: async () => ({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       confidence: "high",
       target_stage: "potion_choice",
       slot_interpretation: {
@@ -276,7 +276,7 @@ Deno.test("stop_local_no_handoff clears active handoff without global reroute", 
         safety_preempt: false,
         reason_codes: [],
       },
-      evidence: ["test_stop_local"],
+      evidence: ["test_exit_global"],
     }),
     visibleAgentOverride: async (input: any) => {
       assertEquals(input.stage, "cancel");

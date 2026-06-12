@@ -4,8 +4,14 @@ import { supabase } from '../lib/supabase';
 import { canAccessArchitectWeek } from '../lib/entitlements';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 
+type UserLike = { id: string } | null;
+type WeekStateRow = {
+  id: string;
+  first_updated_at: string | null;
+};
+
 export const useArchitectLogic = (
-  user: any,
+  user: UserLike,
   weekNumber: string,
   answers: Record<string, string>,
   setInitialAnswers: (answers: Record<string, string>) => void,
@@ -59,7 +65,7 @@ export const useArchitectLogic = (
           .select('id, first_updated_at')
           .eq('user_id', user.id)
           .eq('module_id', moduleId)
-          .maybeSingle();
+          .maybeSingle<WeekStateRow>();
 
         if (!existingWeek) {
           const { error: insErr } = await supabase.from('user_week_states').insert({
@@ -74,17 +80,17 @@ export const useArchitectLogic = (
         } else {
           // Update last touched time
           const { error: updErr } = await supabase
-            .from('user_week_states')
-            .update({ updated_at: timestamp })
-            .eq('id', (existingWeek as any).id);
+              .from('user_week_states')
+              .update({ updated_at: timestamp })
+              .eq('id', existingWeek.id);
           if (updErr) throw updErr;
 
           // Set first_updated_at once
-          if (!(existingWeek as any).first_updated_at) {
+          if (!existingWeek.first_updated_at) {
             const { error: firstErr } = await supabase
               .from('user_week_states')
               .update({ first_updated_at: timestamp })
-              .eq('id', (existingWeek as any).id);
+              .eq('id', existingWeek.id);
             if (firstErr) throw firstErr;
           }
         }
@@ -107,22 +113,27 @@ export const useArchitectLogic = (
 
     try {
         const clientRequestId = newRequestId();
+        const contextOverride = [
+            'Aide à répondre à une question du module architecte.',
+            `Question: ${currentQuestionText}`,
+            currentAnswer ? `Réponse actuelle: ${currentAnswer}` : '',
+            'Réponds uniquement avec une proposition de texte à insérer.',
+        ].filter(Boolean).join('\n');
         const { data, error } = await supabase.functions.invoke('sophia-brain', {
             body: {
-                mode: 'architect_help',
-                context: {
-                    question: currentQuestionText,
-                    currentAnswer: currentAnswer,
-                    userPrompt: aiPrompt
-                }
+                message: aiPrompt.trim(),
+                channel: 'web',
+                scope: `architect:week_${weekNumber}`,
+                contextOverride,
             },
             headers: requestHeaders(clientRequestId)
         });
 
         if (error) throw error;
 
-        if (data?.suggestion) {
-            setAnswer(data.suggestion);
+        const suggestion = (data?.content ?? data?.suggestion ?? '').toString().trim();
+        if (suggestion) {
+            setAnswer(suggestion);
             setShowAiPanel(false);
             setAiPrompt('');
         }

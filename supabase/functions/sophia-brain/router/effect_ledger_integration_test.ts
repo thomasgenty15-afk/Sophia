@@ -3,10 +3,8 @@ import {
   createEffectLedger,
   hasCommittedEffect,
   recordBlockedEffect,
-  recordCommittedEffect,
   recordFailedEffect,
   recordRequestedEffect,
-  rewriteUncommittedEffectClaims,
 } from "./effect_ledger.ts";
 import {
   executedToolsForStatus,
@@ -28,7 +26,7 @@ Deno.test("executed_tools_requires_committed_effect", () => {
   );
 });
 
-Deno.test("blocked_effect_does_not_authorize_success_reply", () => {
+Deno.test("blocked_effect_does_not_count_as_commit", () => {
   const ledger = createEffectLedger("turn-blocked");
   recordBlockedEffect(ledger, {
     effect_id: "blocked-plan",
@@ -37,11 +35,6 @@ Deno.test("blocked_effect_does_not_authorize_success_reply", () => {
     source: "executor",
     reason_code: "confirmation_required",
   });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Plan ajusté.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
   assertEquals(
     hasCommittedEffect(
       ledger,
@@ -51,7 +44,7 @@ Deno.test("blocked_effect_does_not_authorize_success_reply", () => {
   );
 });
 
-Deno.test("failed_effect_does_not_authorize_success_reply", () => {
+Deno.test("failed_effect_does_not_count_as_commit", () => {
   const ledger = createEffectLedger("turn-failed");
   recordFailedEffect(ledger, {
     effect_id: "failed-preference",
@@ -60,45 +53,13 @@ Deno.test("failed_effect_does_not_authorize_success_reply", () => {
     source: "executor",
     reason_code: "db_down",
   });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "C'est fait, préférence enregistrée.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, "C'est fait, préférence enregistrée.");
-});
-
-Deno.test("final_guard_traces_uncommitted_plan_claim_without_rewrite", () => {
-  const ledger = createEffectLedger("turn-plan");
-  recordRequestedEffect(ledger, {
-    effect_id: "requested-plan",
-    effect_type: "plan_item.adjust",
-    operation_type: "adjust_plan_item",
-    source: "tool_skill",
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Plan modifié pour la semaine.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, "Plan modifié pour la semaine.");
-});
-
-Deno.test("final_guard_keeps_committed_plan_claim", () => {
-  const ledger = createEffectLedger("turn-plan-committed");
-  recordCommittedEffect(ledger, {
-    effect_id: "committed-plan",
-    effect_type: "plan_item.adjust",
-    operation_type: "adjust_plan_item",
-    committed_id: "patch_1",
-    source: "executor",
-    db_ref: { table: "plan_patches", id: "patch_1" },
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Plan modifié pour la semaine.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, false);
+  assertEquals(
+    hasCommittedEffect(
+      ledger,
+      (entry) => entry.effect_type === "coach_preferences.update",
+    ),
+    false,
+  );
 });
 
 Deno.test("memory_candidate_is_not_memory_commit", () => {
@@ -228,6 +189,7 @@ Deno.test("all_tool_runtime_results_map_to_ledger", () => {
       toolExecution: "success",
       toolSkillRun: {
         selected_handler: testCase.handler,
+        mode: "local_write_flow",
         operation_id: `op-${testCase.handler}`,
         committed_effects: [{
           type: testCase.rawType,

@@ -433,16 +433,3 @@ export function summarizeEffectLedgerForTrace(
     })),
   };
 }
-
-export function rewriteUncommittedEffectClaims(args: {
-  reply: string;
-  ledger: EffectLedger;
-}): {
-  reply: string;
-  changed: boolean;
-  reason_codes: string[];
-} {
-  const reply = String(args.reply ?? "");
-  void args.ledger;
-  return { reply, changed: false, reason_codes: [] };
-}

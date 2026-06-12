@@ -89,7 +89,7 @@ async function input(
     }],
     available_surfaces: registry.surfaces,
     recent_recommendations: [],
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
     ...patch,
   };
 }
@@ -100,7 +100,7 @@ Deno.test("recommendation_tool covers recommend, operations, clarification, defe
     {
       name: "safety-block-no-llm",
       patch: {
-        safety_pregate_risk_band: "medium" as const,
+        safety_context_risk_band: "medium" as const,
         llm_runner: async () => {
           llmCalls++;
           return {};

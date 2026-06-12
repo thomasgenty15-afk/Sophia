@@ -283,7 +283,7 @@ If the user only wants to stop the reminder flow without another subject :
 - `on annule` ;
 - `pas maintenant` ;
 
-the local dispatcher should return `stop_local_no_handoff` or `cancel_flow`.
+the local dispatcher should return `exit_to_global_dispatcher` or `cancel_flow`.
 
 The reducer should :
 

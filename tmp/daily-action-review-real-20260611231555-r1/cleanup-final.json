@@ -1,0 +1,41 @@
+{
+  "run_id": "daily-action-review-real-20260611231555-r1",
+  "link_deleted": [
+    "+33600003346"
+  ],
+  "verified_at": "2026-06-11T23:21:09.060Z",
+  "verify": {
+    "profile": [
+      {
+        "id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "phone_number": null,
+        "phone_verified_at": null,
+        "phone_invalid": false,
+        "whatsapp_last_inbound_at": null,
+        "whatsapp_last_outbound_at": null,
+        "whatsapp_opted_in": true
+      }
+    ],
+    "pending": [],
+    "checkin": [],
+    "entries": [],
+    "continuation_occurrences": [],
+    "continuation_plan_items": [],
+    "chat_messages": [],
+    "target_occurrences": [
+      {
+        "id": "91831b6e-782b-489b-88a3-6bc44a00fa67",
+        "status": "planned",
+        "validated_at": null,
+        "source": "default_generated"
+      },
+      {
+        "id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+        "status": "planned",
+        "validated_at": null,
+        "source": "default_generated"
+      }
+    ],
+    "link_requests": []
+  }
+}

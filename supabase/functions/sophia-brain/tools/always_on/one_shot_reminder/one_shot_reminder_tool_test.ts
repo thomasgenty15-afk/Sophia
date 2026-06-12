@@ -17,6 +17,7 @@ import {
 import {
   parseOneShotReminderRequest,
   parseReminderFromMessageDeterministic,
+  parseScheduledForFromMessage,
 } from "./time_parser.ts";
 import {
   buildOneShotReminderAddon,
@@ -26,29 +27,9 @@ import {
   classifyOneShotReminderDirectIntent,
   localTextAddonForOneShotReminder,
   maybeRunOneShotReminderDirectEffect,
-  oneShotReminderDirectEffectBlockForNonMutationContext,
-  oneShotReminderStatusBlocksToolFlow,
 } from "./router.ts";
 import { buildOneShotReminderIntake } from "./intake.ts";
-import type {
-  ToolSkillOpportunity,
-  TurnFrame,
-} from "../../../contracts/turn_frame.v1.ts";
-
-const noToolSkillOpportunity: ToolSkillOpportunity = {
-  type: "none",
-  operation_type: null,
-  surface_id: null,
-  confidence_band: "low",
-  should_offer: false,
-  prop_reason: null,
-  source_span: null,
-  target_hint: null,
-  target_status: "none",
-  suggested_question_intent: null,
-  offer_timing: "never",
-  must_not_execute: true,
-};
+import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {
@@ -65,7 +46,6 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
       payload_hint: {},
     }],
     tool_skill_intents: [],
-    tool_skill_opportunity: noToolSkillOpportunity,
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -131,6 +111,49 @@ Deno.test("parseOneShotReminderRequest parses tomorrow local hour", () => {
   assertEquals(parsed.reminderInstruction, "appeler Paul");
   assertEquals(parsed.eventContext, "one_shot_reminder:appeler_paul");
   assertEquals(parsed.scheduledFor, "2026-03-19T07:00:00.000Z");
+});
+
+Deno.test("QA R1: parses explicit tomorrow HH:mm one-shot reminder", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Peux-tu me rappeler demain à 8h40 de sortir le tapis et faire le sas de décompression sans fumer ?",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-11T19:25:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "sortir le tapis et faire le sas de décompression sans fumer",
+  );
+  assertEquals(parsed.scheduledFor, "2026-06-12T06:40:00.000Z");
+});
+
+Deno.test("QA R1: parses absolute French date with Paris timezone", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Vendredi 12 juin 2026 à 08:40, rappelle-moi de sortir le tapis et faire le sas de décompression sans fumer.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-11T19:27:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "sortir le tapis et faire le sas de décompression sans fumer",
+  );
+  assertEquals(parsed.scheduledFor, "2026-06-12T06:40:00.000Z");
+});
+
+Deno.test("QA R1: parses absolute French date even when instruction is contextual", () => {
+  const scheduledFor = parseScheduledForFromMessage({
+    message:
+      "Demain vendredi 12 juin 2026 à 08:40, heure de Paris. Tu peux le programmer.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-11T19:27:00.000Z",
+  });
+
+  assertEquals(scheduledFor, "2026-06-12T06:40:00.000Z");
 });
 
 Deno.test("parseOneShotReminderRequest preserves colon instruction after programme-moi", () => {
@@ -956,6 +979,86 @@ Deno.test("G2: le texte exact donné en T6 est récupérable et non dégénéré
   assertEquals(isDegenerateReminderInstruction(t6Instruction), false);
 });
 
+function makeFakeSupabaseForCreate(opts: {
+  profile?: { timezone?: string; locale?: string } | null;
+  onUpsert?: (row: any) => void;
+}) {
+  return {
+    from(table: string) {
+      if (table === "profiles") {
+        const chain: any = {
+          select() {
+            return chain;
+          },
+          eq() {
+            return chain;
+          },
+          maybeSingle() {
+            return Promise.resolve({ data: opts.profile ?? null, error: null });
+          },
+        };
+        return chain;
+      }
+      if (table === "scheduled_checkins") {
+        const state: { row: any } = { row: null };
+        const chain: any = {
+          upsert(row: any) {
+            state.row = row;
+            opts.onUpsert?.(row);
+            return chain;
+          },
+          select() {
+            return chain;
+          },
+          single() {
+            return Promise.resolve({
+              data: {
+                id: "checkin-qa-r1",
+                scheduled_for: state.row?.scheduled_for,
+                event_context: state.row?.event_context,
+              },
+              error: null,
+            });
+          },
+        };
+        return chain;
+      }
+      throw new Error(`unexpected table ${table}`);
+    },
+  } as any;
+}
+
+Deno.test("QA R1: create runner recovers instruction from context when current turn only gives date", async () => {
+  let written: any = null;
+  const supabase = makeFakeSupabaseForCreate({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    onUpsert: (row) => {
+      written = row;
+    },
+  });
+  const outcome = await maybeCreateOneShotReminder({
+    supabase,
+    userId: "u1",
+    message:
+      "Demain vendredi 12 juin 2026 à 08:40, heure de Paris. Tu peux le programmer.",
+    contextMessages: [
+      "Peux-tu me rappeler demain à 8h40 de sortir le tapis et faire le sas de décompression sans fumer ?",
+    ],
+    now: new Date("2026-06-11T19:27:00.000Z"),
+    forceCreate: true,
+  });
+
+  if (!outcome.detected || outcome.status !== "success") {
+    throw new Error(`expected success, got ${JSON.stringify(outcome)}`);
+  }
+  assertEquals(outcome.scheduled_for, "2026-06-12T06:40:00.000Z");
+  assertEquals(
+    outcome.reminder_instruction,
+    "sortir le tapis et faire le sas de décompression sans fumer",
+  );
+  assertEquals(written?.scheduled_for, "2026-06-12T06:40:00.000Z");
+});
+
 // ===========================================================================
 // CHANTIER G3 (2026-05-29) — Annulation effective d'un rappel ponctuel. Voir
 // edgecases-r3 T9/T10.
@@ -1397,31 +1500,7 @@ Deno.test("router: raw text alone never creates one-shot business intent", () =>
   assertEquals(classified.intent, "off_topic");
 });
 
-Deno.test("router helpers: route guards centralize one-shot non-mutation decisions", () => {
-  const statusGuard = oneShotReminderStatusBlocksToolFlow({
-    routeIsProductHelp: false,
-    explicitProductHelp: false,
-    activeCardDrafting: false,
-    explicitOperationCommand: false,
-    statusRecapReadOnly: true,
-  });
-  assertEquals(statusGuard.blocked, true);
-  assertEquals(
-    statusGuard.reason_code,
-    "status_recap_request_blocks_tool_start",
-  );
-
-  const directBlock = oneShotReminderDirectEffectBlockForNonMutationContext({
-    routeIsProductHelp: true,
-    statusRecapReadOnly: false,
-    recapOnly: false,
-  });
-  assertEquals(directBlock.blocked, true);
-  assertEquals(
-    directBlock.reason_code,
-    "product_help_blocks_one_shot_direct_effect",
-  );
-
+Deno.test("router helpers: local text addon stays explicit", () => {
   assertEquals(
     localTextAddonForOneShotReminder(
       "Rappelle-moi à 16h05, formule une phrase courte pour Noa",

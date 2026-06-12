@@ -51,7 +51,7 @@ Etat parent:
 - `repeat_handoff`: user demande de redire;
 - `revise_handoff`: user corrige un champ ou la potion;
 - `apply_attempt`: user demande de lancer depuis le chat;
-- `stop_local_no_handoff`: user veut arreter sans nouveau sujet;
+- `exit_to_global_dispatcher`: user veut arreter sans nouveau sujet;
 - `exit_to_global_dispatcher`: nouveau sujet clair;
 - `handoff_to_local_flow`: autre flow local explicitement demande;
 - `safety_preempt`: risque prioritaire;
@@ -109,7 +109,7 @@ source, detail sufficiency si utile.
 
 ### Signaux d'exit
 
-- `stop_local_no_handoff`: abandon sans nouveau sujet. Reponse locale courte,
+- `exit_to_global_dispatcher`: abandon sans nouveau sujet. Reponse locale courte,
   pas de global sur le meme tour.
 - `exit_to_global_dispatcher`: sujet clair hors potion. Note information
   obligatoire vers global.
@@ -218,7 +218,7 @@ Exception possible plus tard:
   obligatoires.
 - `safety_preempt` produit un blocage local visible, mais ne route pas encore
   explicitement vers le dispatcher local `safety_crisis`.
-- `stop_local_no_handoff` n'est pas distingue de `cancel_flow`.
+- `exit_to_global_dispatcher` n'est pas distingue de `cancel_flow`.
 - `handoff_to_local_flow` n'existe pas comme action de sortie dediee.
 - `runSelectStatePotionHandoffSkill` continue a recevoir une `routeDecision`
   globale et contient des exceptions de type `product_help_interrupts...` ou
@@ -387,7 +387,7 @@ Chaque prompt recoit seulement `conversation_context`.
 
 - `get_info_product`: inline product_help, parent garde state.
 - `get_info_db`: inline status_recap, parent garde state.
-- `stop_local_no_handoff`: message local court, clear/defer state, pas global.
+- `exit_to_global_dispatcher`: message local court, clear/defer state, pas global.
 - `exit_to_global_dispatcher`: note information vers global.
 - `handoff_to_local_flow`: note information vers target dispatcher local.
 - `safety_preempt`: note information vers `safety_crisis`.
@@ -407,7 +407,7 @@ type SelectStatePotionLocalFlowAction =
   | "apply_attempt"
   | "get_info_product"
   | "get_info_db"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "cancel_flow"
   | "defer_flow"
   | "exit_to_global_dispatcher"
@@ -423,7 +423,7 @@ Pour compat, les actions actuelles peuvent etre mappees:
 - `repeat_handoff` -> `repeat`;
 - `platform_destination_followup` -> `get_info_product` ou `repeat` selon
   question;
-- `cancel_flow` -> `stop_local_no_handoff` ou `cancel_flow` selon intention.
+- `cancel_flow` -> `exit_to_global_dispatcher` ou `cancel_flow` selon intention.
 
 ### Sortie dispatcher cible
 
@@ -722,7 +722,7 @@ Unitaires et architecture:
 - no deterministic renderer nominal;
 - no single generic conversation agent;
 - every `flow_action` has exact continuation;
-- `stop_local_no_handoff` does not call global;
+- `exit_to_global_dispatcher` does not call global;
 - `exit_to_global_dispatcher` includes full `note_information`;
 - `safety_preempt` routes to `safety_crisis` local dispatcher with note;
 - conversation agent only receives `conversation_context`;
@@ -770,7 +770,7 @@ Dispatchers/reducers:
 - `select_state_potion/subskills/state_potion_subskill_flow.ts`
   - produire `conversation_context`;
   - produire `note_information`;
-  - ajouter `stop_local_no_handoff`, `handoff_to_local_flow`;
+  - ajouter `exit_to_global_dispatcher`, `handoff_to_local_flow`;
   - renforcer precedence message courant pour champs fermes;
   - extraire builder de context visible.
 
@@ -819,7 +819,7 @@ Docs/tests:
    - `compactStatePotionDbContextPack`.
 3. Adapter reducer commun pour remplir `conversation_context` sur chaque
    `visible_task`.
-4. Ajouter `stop_local_no_handoff`, `handoff_to_local_flow`,
+4. Ajouter `exit_to_global_dispatcher`, `handoff_to_local_flow`,
    `safety_preempt -> note`.
 5. Adapter Clarte ou la migrer dans le commun.
 6. Refondre visible agent en registry stage-specific.
@@ -840,7 +840,7 @@ Docs/tests:
 - every visible task maps to a stage-specific prompt;
 - exit_to_global has full note_information;
 - safety_preempt has note_information target `safety_crisis`;
-- stop_local_no_handoff clears/defer state and does not global reroute;
+- exit_to_global_dispatcher clears/defer state and does not global reroute;
 - inline product/status preserves parent state;
 - Courage vague global enters select_state_potion;
 - Guerison "surtout honte" locks/selects honte;

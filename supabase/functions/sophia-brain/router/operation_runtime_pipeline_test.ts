@@ -208,7 +208,7 @@ Deno.test("operation_runtime_pipeline safety route blocks operation runtime", as
       response_owner: "safety_crisis",
       selected_handler: "safety_crisis",
     }),
-    safetyPregateOutput: { risk_band: "high" },
+    safetyContextOutput: { risk_band: "high" },
     sourceMessageId: "msg_1",
     requestId: "turn_op_1",
     v2Runtime: null,
@@ -239,7 +239,7 @@ function basePipelineInput(overrides: Record<string, unknown> = {}) {
     planItemSnapshot: [],
     turnFrame: baseTurnFrame(),
     routeDecision: baseRouteDecision(),
-    safetyPregateOutput: { risk_band: "low" },
+    safetyContextOutput: { risk_band: "low" },
     sourceMessageId: "msg_1",
     requestId: "turn_op_1",
     v2Runtime: null,
@@ -392,58 +392,60 @@ Deno.test("operation_runtime_pipeline non-complex operation is not converted to 
   );
 });
 
-Deno.test("operation_runtime_pipeline active status_recap flow runs status runtime without route signal", async () => {
-  let statusRuntimeCalls = 0;
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    routeDecision: baseRouteDecision({
-      response_owner: "normal_reply",
-      selected_handler: undefined,
-      reason_code: "normal_reply",
-    }),
-    tempMemory: {
-      [STATUS_RECAP_FLOW_STATE_KEY]: {
-        skill_id: "status_recap",
-        mode: "local_readonly_flow",
-        status: "active",
-        last_intent: "durable_status",
-        last_target_objects: ["unknown"],
-        last_projection_summary: {
-          attack_card_count: 0,
-          defense_card_count: 0,
-          one_shot_pending_count: 0,
-          one_shot_cancelled_recent_count: 0,
-          recurring_reminder_count: 0,
-          potion_session_count: 0,
-          coach_preference_count: 0,
-          recent_effect_history_count: 0,
+Deno.test("operation_runtime_pipeline active or closing status_recap flow runs status runtime without route signal", async () => {
+  for (const status of ["active", "closing"] as const) {
+    let statusRuntimeCalls = 0;
+    const result = await runOperationRuntimePipeline(basePipelineInput({
+      routeDecision: baseRouteDecision({
+        response_owner: "normal_reply",
+        selected_handler: undefined,
+        reason_code: "normal_reply",
+      }),
+      tempMemory: {
+        [STATUS_RECAP_FLOW_STATE_KEY]: {
+          skill_id: "status_recap",
+          mode: "local_readonly_flow",
+          status,
+          last_intent: "durable_status",
+          last_target_objects: ["unknown"],
+          last_projection_summary: {
+            attack_card_count: 0,
+            defense_card_count: 0,
+            one_shot_pending_count: 0,
+            one_shot_cancelled_recent_count: 0,
+            recurring_reminder_count: 0,
+            potion_session_count: 0,
+            coach_preference_count: 0,
+            recent_effect_history_count: 0,
+          },
+          last_answer_summary: "status précédent",
+          turn_count: 1,
+          max_turns: 3,
+          created_at: "2026-06-08T08:00:00.000Z",
+          updated_at: "2026-06-08T08:00:00.000Z",
         },
-        last_answer_summary: "status précédent",
-        turn_count: 1,
-        max_turns: 3,
-        created_at: "2026-06-08T08:00:00.000Z",
-        updated_at: "2026-06-08T08:00:00.000Z",
       },
-    },
-    runStatusRecapRuntime: async (input: any) => {
-      statusRuntimeCalls += 1;
-      assertEquals(input.routeDecision?.reason_code, "normal_reply");
-      return {
-        content: "status local",
-        nextTempMemory: input.tempMemory,
-        toolExecution: "none",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "status_recap",
-          flow_action: "answer_object_status",
-        },
-      };
-    },
-  }));
+      runStatusRecapRuntime: async (input: any) => {
+        statusRuntimeCalls += 1;
+        assertEquals(input.routeDecision?.reason_code, "normal_reply");
+        return {
+          content: `status local ${status}`,
+          nextTempMemory: input.tempMemory,
+          toolExecution: "none",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "status_recap",
+            flow_action: "answer_object_status",
+          },
+        };
+      },
+    }));
 
-  assertEquals(statusRuntimeCalls, 1);
-  assertEquals(result.operationRuntime?.content, "status local");
-  assertEquals(result.operationRuntime?.toolExecution, "none");
-  assertEquals(result.operationRuntime?.executedTools, []);
+    assertEquals(statusRuntimeCalls, 1);
+    assertEquals(result.operationRuntime?.content, `status local ${status}`);
+    assertEquals(result.operationRuntime?.toolExecution, "none");
+    assertEquals(result.operationRuntime?.executedTools, []);
+  }
 });
 
 Deno.test("operation_runtime_pipeline passes turn frame direct effect to one-shot reminder", async () => {
@@ -475,5 +477,50 @@ Deno.test("operation_runtime_pipeline passes turn frame direct effect to one-sho
   assertEquals(
     (result.operationRuntime?.toolSkillRun as any)?.committed_effects.length,
     1,
+  );
+});
+
+Deno.test("operation_runtime_pipeline runs one-shot reminder direct effect while safety owns visible route", async () => {
+  const message =
+    "D'accord, elle est au telephone avec moi. Mets-moi un rappel dans 30 minutes pour verifier que je tiens.";
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    supabase: fakeOneShotSupabase(),
+    userMessage: message,
+    routeDecision: baseRouteDecision({
+      response_owner: "safety",
+      selected_handler: "safety_crisis",
+      reason_code: "safety_crisis_create_one_shot_reminder_direct_effect",
+      direct_effects_to_run: ["create_one_shot_reminder"],
+    }),
+    turnFrame: baseTurnFrame({
+      safety: {
+        risk_band: "medium",
+        reason_codes: ["active_safety_flow_caution"],
+        evidence: [],
+      },
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: message },
+      }],
+    }),
+    safetyContextOutput: {
+      risk_band: "medium",
+      reason_codes: ["active_safety_flow_caution"],
+    },
+    clientNow: new Date("2026-06-12T08:10:00.000Z"),
+  }));
+
+  assertEquals(result.routeSafetyActive, true);
+  assertEquals(result.operationRuntime?.toolExecution, "success");
+  assertEquals(result.operationRuntime?.executedTools, [
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(
+    (result.operationRuntime?.toolSkillRun as any)?.committed_effects[0]
+      ?.type,
+    "create_one_shot_reminder",
   );
 });

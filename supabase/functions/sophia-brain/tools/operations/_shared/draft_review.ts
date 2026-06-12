@@ -119,6 +119,7 @@ export async function reviewToolSkillDraftWithAi(input: {
   operation_input?: Record<string, unknown> | null;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   request_id?: string | null;
+  user_id?: string | null;
 }): Promise<ToolSkillDraftReviewDecision | null> {
   if (!shouldUseToolSkillAiDraftReview()) return null;
   const operationSpecificRules = input.operation_type === "select_state_potion"
@@ -170,6 +171,7 @@ export async function reviewToolSkillDraftWithAi(input: {
       {
         model: getGeminiFallbackModel("gemini-2.5-flash"),
         requestId: input.request_id ?? undefined,
+        userId: input.user_id ?? undefined,
         source: "tool_skill_draft_review",
         forceRealAi: true,
         maxRetries: 1,

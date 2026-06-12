@@ -50,7 +50,7 @@ Le dispatcher local retourne uniquement ce JSON :
 
 ```json
 {
-  "flow_action": "answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|revise|recap_daily_state|repeat_current_question|user_stopped|stop_local_no_handoff|cancel_flow|defer_flow|inline_product_help|inline_status_recap|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|revise|recap_daily_state|repeat_current_question|user_stopped|exit_to_global_dispatcher|cancel_flow|defer_flow|inline_product_help|inline_status_recap|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "target_resolution": {
@@ -226,7 +226,7 @@ Ce n'est pas un status_recap DB global.
 9. repeat_current_question
 Le user demande de redire la question daily courante.
 
-10. user_stopped / stop_local_no_handoff / cancel_flow / defer_flow
+10. user_stopped / exit_to_global_dispatcher / cancel_flow / defer_flow
 Le user demande d'arreter le daily, dit pas maintenant, ou refuse la collecte
 sans nouveau sujet.
 
@@ -317,7 +317,7 @@ Field Completion Rules :
 
 Transition rules :
 
-- `stop_local_no_handoff`, `cancel_flow` ou `defer_flow` : arret ou report du
+- `exit_to_global_dispatcher`, `cancel_flow` ou `defer_flow` : arret ou report du
   daily sans nouveau sujet clair. Pas de dispatcher global sur le meme tour.
 - `exit_to_global_dispatcher` : nouveau sujet global clair. `note_information`
   obligatoire, cible `global`.
@@ -489,7 +489,7 @@ Exemples JSON non visibles :
 
 Sortie JSON :
 {
-  "flow_action": "answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|revise|recap_daily_state|repeat_current_question|user_stopped|stop_local_no_handoff|cancel_flow|defer_flow|inline_product_help|inline_status_recap|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|revise|recap_daily_state|repeat_current_question|user_stopped|exit_to_global_dispatcher|cancel_flow|defer_flow|inline_product_help|inline_status_recap|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "target_resolution": {

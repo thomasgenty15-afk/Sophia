@@ -28,6 +28,7 @@ export interface TopicCompactionProviderInput {
   user_payload: string;
   model_name: string;
   request_id?: string | null;
+  user_id?: string | null;
 }
 
 export type TopicCompactionProvider = (
@@ -37,6 +38,7 @@ export type TopicCompactionProvider = (
 export type TopicSearchDocEmbedder = (
   text: string,
   requestId?: string | null,
+  userId?: string | null,
 ) => Promise<number[]>;
 
 export class SupabaseTopicCompactionRepository
@@ -168,6 +170,10 @@ export async function defaultTopicCompactionProvider(
     jsonMode: true,
     model: input.model_name,
     requestId: input.request_id ?? undefined,
+    userId: input.user_id ?? undefined,
+    source: "memory-v2:topic_compaction",
+    operationFamily: "memorizer",
+    operationName: "memory_v2.topic_compaction",
   });
   if (typeof out !== "string") {
     throw new Error("memory_v2_compaction_unexpected_tool_call");
@@ -178,8 +184,13 @@ export async function defaultTopicCompactionProvider(
 export async function defaultTopicSearchDocEmbedder(
   text: string,
   requestId?: string | null,
+  userId?: string | null,
 ): Promise<number[]> {
-  return await geminiEmbed(text, requestId ?? undefined);
+  return await geminiEmbed(text, requestId ?? undefined, {
+    userId: userId ?? undefined,
+    source: "memory-v2:topic_search_doc_embedding",
+    operationName: "embedding.memory_v2_topic_search_doc",
+  });
 }
 
 export function buildTopicCompactionPatch(args: {
@@ -266,6 +277,7 @@ export async function compactTopic(
     }),
     model_name: modelName,
     request_id: args.request_id ?? null,
+    user_id: topic.user_id,
   });
   let output: TopicCompactionOutput;
   try {
@@ -302,7 +314,7 @@ export async function compactTopic(
   }
 
   const embedding = args.embedder
-    ? await args.embedder(output.search_doc, args.request_id ?? null)
+    ? await args.embedder(output.search_doc, args.request_id ?? null, topic.user_id)
     : null;
   const patch = buildTopicCompactionPatch({
     topic,

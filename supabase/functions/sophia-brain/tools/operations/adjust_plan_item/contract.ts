@@ -305,7 +305,7 @@ export type AdjustPlanRouterContext = {
   planItemSnapshot?: AdjustPlanRouterPlanItemSnapshot[];
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: { risk_band: RiskBand };
+  safetyContextOutput: { risk_band: RiskBand };
   sourceMessageId: string | null;
   requestId?: string | null;
   forceFullAi?: boolean;

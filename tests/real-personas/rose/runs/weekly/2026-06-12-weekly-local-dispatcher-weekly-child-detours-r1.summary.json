@@ -1,0 +1,147 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, la fatigue c'est bien le sujet. J'ai quand meme l'impression d'avoir avance vers l'objectif: j'ai moins fume certains soirs, mais je me sens encore fragile. Peut-etre qu'une carte d'attaque aiderait plus tard, mais pour l'instant j'aimerais surtout comprendre quoi alleger.",
+    "assistant": "Tu as réussi à maintenir le cap sur le rangement du matériel et à entamer un travail sur les réflexes, malgré une fatigue bien présente en fin de semaine. C'est encourageant, même si cette fragilité demande de la prudence. Pour alléger la suite, on pourrait simplifier tes objectifs pour te laisser plus d'espace de récupération. Est-ce que c'est le 'sas de décompression' qui te semble le plus difficile à tenir en ce moment ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_reading",
+        "flow_action": "confirm_weekly_reading",
+        "visible_task": "weekly_reading",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, c'est le sas de decompression qui craque. Ajuste cette action pour la semaine prochaine: je veux la rendre plus petite, juste 5 minutes sans fumer avant de decider quoi faire, pas un gros sas complet.",
+    "assistant": "Comme ton sas de décompression actuel est devenu trop difficile à tenir avec la fatigue, on va réduire sa durée. L'idée est de passer à 5 minutes sans fumer pour la semaine prochaine, afin que ce soit plus gérable pour toi. Pour effectuer ce changement, rends-toi dans ton Plan : sous le niveau actif, tu trouveras l'option 'Ajuster mon plan' où tu pourras simplement saisir '5 minutes'.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "adjust_plan_item",
+      "route_reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "adjust_plan_item",
+        "status": "draft_delivered",
+        "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+        "flow_action": "prepare_plan_handoff",
+        "visible_task": {
+          "kind": "plan_handoff_ready"
+        },
+        "toolExecution": null,
+        "executedTools": [],
+        "platform_handoff": {
+          "operation_type": "adjust_plan_item",
+          "status": "delivered",
+          "surface_id": "plan",
+          "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "draft": {
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "user_blocker_summary": "le sas actuel craque, trop difficile à tenir avec la fatigue",
+            "suggested_platform_input": "5 minutes",
+            "preserve": [
+              "ne pas fumer pendant le sas"
+            ],
+            "avoid": [
+              "gros sas complet"
+            ],
+            "destination": {
+              "product_area": "Plan",
+              "instruction": "Reprendre cette proposition dans la surface Plan."
+            },
+            "missing_clarity": []
+          }
+        },
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, on revient au weekly. Vu comme ca, cette version plus petite me rassure et je pense que ca suffit pour conclure le bilan de la semaine.",
+    "assistant": "C'est entendu pour le sas de 5 minutes, c'est une approche plus douce pour tes moments de fatigue. On termine ce bilan ici. Rien n'est changé depuis notre discussion, mais tu as désormais une piste claire pour la suite. Prêt à démarrer ta nouvelle semaine ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "closed",
+        "reason_code": "weekly_review_local_complete_weekly_no_change",
+        "flow_action": "complete_weekly_no_change",
+        "visible_task": "complete_no_change",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  }
+]

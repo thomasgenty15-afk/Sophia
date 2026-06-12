@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   appendOperationFollowup,
   ensureActiveConversationSkillStateBeforePersist,
+  restoreWeeklyParentAfterChildDetour,
   routeDecisionForOperationTrace,
 } from "./operation_runtime_response_handler.ts";
 
@@ -114,6 +115,61 @@ Deno.test("operation runtime persist guard does not overwrite different active s
   assertEquals(result.restored, false);
   assertEquals(result.reasonCode, "local_flow_continue_different_active_state");
   assertEquals(result.tempMemory.__active_skill_state.skill_id, "product_help");
+});
+
+Deno.test("operation response restores suspended weekly parent after child handoff", () => {
+  const result = restoreWeeklyParentAfterChildDetour({
+    tempMemory: {
+      __suspended_flow_v1: {
+        owner: "conversation_skill",
+        target_flow: "adjust_plan_item",
+        state_snapshot: {
+          skill_id: "weekly_adaptive_review_v1",
+          status: "open",
+          weekly_flow_state: {
+            child_flow: {
+              status: "active",
+              flow_id: "adjust_plan_item",
+              reason: "Plan detour",
+              expected_return_focus: "weekly_synthesis_and_closure",
+              result_summary: null,
+            },
+          },
+        },
+      },
+      __adjust_plan_handoff_state: {
+        operation_type: "adjust_plan_item",
+        mode: "platform_handoff",
+      },
+    },
+    operationRuntime: {
+      toolExecution: "platform_handoff",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "adjust_plan_item",
+        operation_type: "adjust_plan_item",
+        status: "handoff_delivered",
+        reason_code: "platform_handoff_delivered",
+        platform_handoff: {
+          operation_type: "adjust_plan_item",
+          status: "delivered",
+        },
+      },
+    },
+  });
+
+  assertEquals(result.restored, true);
+  assertEquals(result.childFlowId, "adjust_plan_item");
+  assertEquals(result.tempMemory.__suspended_flow_v1, undefined);
+  assertEquals(result.tempMemory.__adjust_plan_handoff_state, undefined);
+  assertEquals(
+    result.tempMemory.__active_skill_state.skill_id,
+    "weekly_adaptive_review_v1",
+  );
+  assertEquals(
+    result.tempMemory.__active_skill_state.weekly_flow_state.child_flow.status,
+    "completed",
+  );
 });
 
 Deno.test("operation response does not append handoff when operation failed", () => {

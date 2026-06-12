@@ -307,7 +307,7 @@ export async function generateQuestionnaireDraft(params: {
 }): Promise<QuestionnaireSchemaV2> {
   const rawSchema = await generateQuestionnaireWithLlm({
     requestId: params.requestId,
-    userId: params.userId ?? null,
+    userId: params.userId ?? undefined,
     transformation: {
       id: params.transformationId,
       title: params.title,

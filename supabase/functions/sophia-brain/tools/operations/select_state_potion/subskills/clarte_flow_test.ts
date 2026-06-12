@@ -239,30 +239,31 @@ Deno.test("clarte reducer exposes local safety risk assessment", () => {
   assertEquals(reduced.risk_assessment.safety_preempt, true);
 });
 
-Deno.test("clarte reducer stop local does not exit to global dispatcher", () => {
+Deno.test("clarte reducer stop exits to global dispatcher with note", () => {
   const previous = createInitialClarteState(null);
   const reduced = reduceClarteDispatcherOutput({
     previous,
     decision: decision({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       visible_task: {
         kind: "exit",
       },
       exit_memo: {
-        needed: false,
-        reason: "none",
-        flow_summary: null,
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "Potion de clarté arrêtée.",
         collected_value: null,
-        handoff_hint_for_global_dispatcher: null,
+        handoff_hint_for_global_dispatcher:
+          "Le user demande d'arreter le sous-flow clarté.",
       },
     }),
   });
 
-  assertEquals(reduced.status, "cancelled");
+  assertEquals(reduced.status, "topic_change");
   assertEquals(reduced.visible_task, "exit");
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-  assertEquals(reduced.clarte_state, null);
-  assertEquals(reduced.reason_code, "clarte_flow_stopped_local_no_handoff");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.clarte_state?.last_visible_task, "exit");
+  assertEquals(reduced.reason_code, "clarte_flow_topic_change");
 });
 
 Deno.test("clarte reducer topic change exits to global dispatcher", () => {

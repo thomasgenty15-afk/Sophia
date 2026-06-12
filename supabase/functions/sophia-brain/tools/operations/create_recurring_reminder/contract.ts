@@ -63,7 +63,7 @@ export type CreateRecurringReminderLocalFlowAction =
   | "handoff_to_one_shot"
   | "get_info_product"
   | "get_info_db"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "cancel_flow"
   | "exit_to_global_dispatcher"
   | "safety_preempt";

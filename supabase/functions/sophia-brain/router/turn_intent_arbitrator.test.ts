@@ -28,20 +28,6 @@ function turnFrame(overrides: Partial<TurnFrame> = {}): TurnFrame {
     safety: { risk_band: "low", reason_codes: [], evidence: [] },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
     skill_signals: { entry: {}, lifecycle: {}, exit: {} },
     memory_plan: {
       context_need: "minimal",
@@ -138,7 +124,10 @@ Deno.test("L3 routes attack card from structured tool_skill_intents", () => {
     tempMemory: {},
   });
 
-  assertEquals(result.routeDecision.response_owner, "orientation_clarification");
+  assertEquals(
+    result.routeDecision.response_owner,
+    "orientation_clarification",
+  );
   assertEquals(
     result.routeDecision.reason_code,
     "central_arbitrator_structured_product_help_operation_conflict",
@@ -170,8 +159,14 @@ Deno.test("L3 asks clarification when attack and defense card intents compete", 
     tempMemory: {},
   });
 
-  assertEquals(result.routeDecision.response_owner, "orientation_clarification");
-  assertEquals(result.routeDecision.selected_handler, "orientation_clarification");
+  assertEquals(
+    result.routeDecision.response_owner,
+    "orientation_clarification",
+  );
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "orientation_clarification",
+  );
   assertEquals(
     result.routeDecision.reason_code,
     "central_arbitrator_attack_defense_card_ambiguity",
@@ -181,4 +176,102 @@ Deno.test("L3 asks clarification when attack and defense card intents compete", 
     ["prepare_attack_card", "prepare_defense_card"],
   );
   assertEquals(result.routeDecision.direct_effects_to_run, []);
+});
+
+Deno.test("L3 keeps active prepare_defense_card owner for local exit decision", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "En fait je veux plutôt une carte d'attaque pour me lancer demain",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      reason_code: "tool_skill_intent_start",
+    }),
+    turnFrame: turnFrame({
+      skill_signals: {
+        entry: {},
+        lifecycle: {},
+        exit: {
+          prepare_defense_card: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user switches owner",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: "me lancer demain",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_defense_card",
+        skill_id: "prepare_defense_card",
+        mode: "platform_handoff",
+        status: "handoff_delivered",
+      },
+    },
+  });
+
+  assertEquals(result.routeDecision.response_owner, "tool_skill");
+  assertEquals(result.routeDecision.selected_handler, "prepare_defense_card");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_active_defense_card_local_exit_required",
+  );
+  assertEquals(
+    result.tempMemory.__active_tool_skill_intake?.operation_type,
+    "prepare_defense_card",
+  );
+  assertEquals(
+    result.turnFrame.tool_skill_intents.map((intent) => intent.operation_type),
+    ["prepare_attack_card"],
+  );
+});
+
+Deno.test("L3 does not clear active prepare_defense_card when route already owns it", () => {
+  const result = arbitrateTurnIntent({
+    userMessage: "laisse tomber cette carte",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+      reason_code: "active_prepare_defense_card_local_dispatcher",
+    }),
+    turnFrame: turnFrame({
+      skill_signals: {
+        entry: {},
+        lifecycle: {},
+        exit: {
+          prepare_defense_card: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user stops active flow",
+          },
+        },
+      },
+    }),
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_defense_card",
+        skill_id: "prepare_defense_card",
+        mode: "platform_handoff",
+        status: "collecting",
+      },
+    },
+  });
+
+  assertEquals(result.routeDecision.selected_handler, "prepare_defense_card");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_active_defense_card_local_exit_required",
+  );
+  assertEquals(
+    result.tempMemory.__active_tool_skill_intake?.operation_type,
+    "prepare_defense_card",
+  );
 });

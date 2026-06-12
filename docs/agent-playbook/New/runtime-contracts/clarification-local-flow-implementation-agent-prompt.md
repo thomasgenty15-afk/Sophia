@@ -87,7 +87,7 @@ Objectif architecture :
    - get_info_product/get_info_db :
      - inline roundtrip avec note_information ;
      - reprise du flow clarification parent.
-   - stop_local_no_handoff/cancel :
+   - exit_to_global_dispatcher/cancel :
      - ack visible ;
      - clear state ;
      - pas de global sur le meme tour.
@@ -102,7 +102,7 @@ Contraintes non negociables :
 - Pas de tool execution.
 - Pas de pending confirmation executable.
 - Pas de global dispatcher pendant active clarification sauf exit_to_global_dispatcher.
-- Pas de global dispatcher sur stop_local_no_handoff.
+- Pas de global dispatcher sur exit_to_global_dispatcher.
 - Ne pas executer supabase db reset.
 - Ne pas faire de commandes Supabase destructives.
 

@@ -264,7 +264,7 @@ export function clarteVisibleTaskInstruction(
     case "ask_deeper":
       return "Clarté / champ pas clair: pose une seule question naturelle centree sur ce qui s'est deconnecte entre le plan, les actions et le pourquoi profond.";
     case "confirm_proposal":
-      return "Clarté / proposition: demande si la formulation proposee correspond, sans dire champ, slot ou valeur, et sans handoff final.";
+      return "Clarté / proposition: demande si la formulation proposee correspond, sans dire champ, slot ou valeur, et sans finaliser la potion.";
     case "handoff_ready":
       return "Clarté / handoff pret: donne naturellement Potion de clarté, le chemin État / Potions, puis recopie verbatim la question plateforme exacte et la valeur exacte a saisir. Ne remplace jamais la question par un résumé ou par l'id technique.";
     case "revision_done":
@@ -276,7 +276,7 @@ export function clarteVisibleTaskInstruction(
     case "repeat_handoff":
       return "Clarté / repetition: redis quoi mettre dans la plateforme sans refaire une longue justification; recopie la question plateforme exacte et la valeur exacte.";
     case "exit":
-      return "Clarté / sortie: reponds court, sans forcer la potion et sans handoff.";
+      return "Clarté / sortie: reponds court, sans forcer la potion et sans finalisation.";
     case "safety":
       return "Clarté / safety: ne pousse pas vers une potion et laisse la prise en charge safety reprendre.";
     default:
@@ -291,7 +291,7 @@ export function potionSubskillVisibleTaskInstruction(
     case "ask_deeper":
       return "Potion / champ pas clair ou pas assez riche: pose une seule question naturelle sur le champ courant. Si conversation_context contient detail_sufficiency.followup_question pour le champ courant, utilise cette intention de question. Ne récite pas le label plateforme comme un formulaire.";
     case "confirm_proposal":
-      return "Potion / proposition: demande si la formulation ou l'option proposée correspond, sans dire champ, slot ou valeur, et sans handoff final.";
+      return "Potion / proposition: demande si la formulation ou l'option proposée correspond, sans dire champ, slot ou valeur, et sans finaliser la potion.";
     case "handoff_ready":
       return "Potion / handoff prêt: donne naturellement le nom exact de la potion, le chemin État / Potions, puis recopie verbatim chaque question plateforme exacte et sa valeur exacte.";
     case "revision_done":
@@ -303,7 +303,7 @@ export function potionSubskillVisibleTaskInstruction(
     case "repeat_handoff":
       return "Potion / répétition: redis quoi mettre dans la plateforme sans refaire une longue justification; recopie les champs exacts et leurs valeurs.";
     case "exit":
-      return "Potion / sortie: réponds court, sans forcer la potion et sans handoff.";
+      return "Potion / sortie: réponds court, sans forcer la potion et sans finalisation.";
     case "safety":
       return "Potion / safety: ne pousse pas vers une potion et laisse la prise en charge safety reprendre.";
     default:

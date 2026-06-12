@@ -52,9 +52,97 @@ function valueForStatus(status: TrackProgressStatus, raw: unknown): number {
 }
 
 export function isTrackProgressFutureIntent(message: string): boolean {
-  void message;
-  return false;
+  const normalized = normalizeIntentText(message);
+  if (!normalized) return false;
+  if (containsAnyPhrase(normalized, completedProgressPhrases)) return false;
+  return containsAnyPhrase(normalized, futureProgressPhrases);
 }
+
+function normalizeIntentText(value: string): string {
+  const stripped = value
+    .toLowerCase()
+    .normalize("NFD")
+    .replaceAll("\u0300", "")
+    .replaceAll("\u0301", "")
+    .replaceAll("\u0302", "")
+    .replaceAll("\u0303", "")
+    .replaceAll("\u0308", "")
+    .replaceAll("\u0327", "");
+  let out = "";
+  let previousWasSpace = true;
+  for (const char of stripped) {
+    const isAsciiLetterOrDigit =
+      (char >= "a" && char <= "z") || (char >= "0" && char <= "9");
+    if (isAsciiLetterOrDigit) {
+      out += char;
+      previousWasSpace = false;
+    } else if (!previousWasSpace) {
+      out += " ";
+      previousWasSpace = true;
+    }
+  }
+  return ` ${out.trim()} `;
+}
+
+function containsAnyPhrase(message: string, phrases: string[]): boolean {
+  return phrases.some((phrase) => message.includes(` ${phrase} `));
+}
+
+const completedProgressPhrases = [
+  "c est fait",
+  "cest fait",
+  "j ai fait",
+  "je l ai fait",
+  "je lai fait",
+  "j ai termine",
+  "j ai fini",
+  "je viens de faire",
+  "je viens d avancer",
+  "j ai avance",
+  "j ai marche",
+  "j ai reussi",
+];
+
+const futureProgressPhrases = [
+  "je vais faire",
+  "je vais le faire",
+  "je vais la faire",
+  "je vais m y mettre",
+  "je vais essayer",
+  "je vais tenter",
+  "j vais faire",
+  "jvais faire",
+  "je compte faire",
+  "je prevois de faire",
+  "je prevois faire",
+  "je pense faire",
+  "je dois faire",
+  "je devrais faire",
+  "je le ferai",
+  "je la ferai",
+  "je ferai",
+  "je vais pas faire",
+  "je ne vais pas faire",
+  "je ne vais pas le faire",
+  "je ne vais pas la faire",
+];
+
+const statusQuestionPhrases = [
+  "est ce que tu as note",
+  "est ce que tu l as note",
+  "est ce que tu as enregistre",
+  "est ce que tu l as enregistre",
+  "est ce que c est note",
+  "est ce que c est enregistre",
+  "tu as note",
+  "tu l as note",
+  "tu as enregistre",
+  "tu l as enregistre",
+  "c est note",
+  "c est enregistre",
+  "tu as pris en compte",
+  "tu l as pris en compte",
+];
 
 export function isTrackProgressStatusQuestion(
   message: string,
@@ -62,8 +150,10 @@ export function isTrackProgressStatusQuestion(
 ): boolean {
   const payload = payloadFromTurnFrame(turnFrame);
   if (payload.intent_hint === "status_question") return true;
-  void message;
-  return false;
+  return containsAnyPhrase(
+    normalizeIntentText(message),
+    statusQuestionPhrases,
+  );
 }
 
 export function runTrackProgressIntake(args: {

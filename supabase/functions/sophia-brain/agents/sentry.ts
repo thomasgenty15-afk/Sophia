@@ -196,6 +196,7 @@ export async function runSentry(
   message: string,
   meta?: {
     requestId?: string;
+    userId?: string | null;
     forceRealAi?: boolean;
     channel?: "web" | "whatsapp";
     model?: string;
@@ -253,6 +254,7 @@ RÈGLES ABSOLUES:
       "auto",
       {
         requestId: meta?.requestId,
+        userId: meta?.userId ?? undefined,
         model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
         source: "sophia-brain:sentry",
         forceRealAi: meta?.forceRealAi,

@@ -143,7 +143,7 @@ Used only for a clear topic change.
 - Local dispatcher returns JSON only.
 - Visible agent receives only `conversation_context`.
 - Every dispatcher change includes `note_information`.
-- `stop_local_no_handoff` stays local.
+- `exit_to_global_dispatcher` stays local.
 - Safety does not pass through normal global routing.
 - No product/DB status request is handled by keyword routing.
 - No durable effect can be committed by this flow.

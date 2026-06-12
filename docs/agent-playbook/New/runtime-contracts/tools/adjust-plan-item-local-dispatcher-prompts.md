@@ -87,7 +87,7 @@ catalog presentation.
 Do not produce it for local actions such as `cancel_flow`, `apply_attempt`,
 `repeat_plan_handoff`, `explain_handoff`, or
 `platform_destination_followup` when no new dispatcher is called. Those are
-`stop_local_no_handoff` or local continuation actions, and global must not run
+`exit_to_global_dispatcher` or local continuation actions, and global must not run
 on the same turn.
 
 Choose `target_dispatcher` as `global` for a clear out-of-flow request,
@@ -228,7 +228,7 @@ Actions possibles :
 - inline_tool_roundtrip
 - handoff_to_local_flow
 - apply_attempt
-- stop_local_no_handoff
+- exit_to_global_dispatcher
 - cancel_flow
 - defer_flow
 - complete_flow
@@ -239,7 +239,7 @@ Actions possibles :
 Priorite des actions :
 1. safety_preempt
 2. apply_attempt
-3. stop_local_no_handoff / cancel_flow / defer_flow / complete_flow
+3. exit_to_global_dispatcher / cancel_flow / defer_flow / complete_flow
 4. exit_to_global_dispatcher
 5. handoff_to_local_flow
 6. get_info_db / get_info_product / inline_tool_roundtrip
@@ -339,7 +339,7 @@ Ces regles concernent le JSON reel `AdjustPlanLocalDispatcherOutput`.
 
 Regles de transition :
 
-- `stop_local_no_handoff`, `cancel_flow`, `defer_flow`, `complete_flow` :
+- `exit_to_global_dispatcher`, `cancel_flow`, `defer_flow`, `complete_flow` :
   arret/report sans nouveau sujet clair. Pas de global sur le meme tour, pas
   d'outil, pas de question finale.
 - `exit_to_global_dispatcher` : nouveau sujet clair. `note_information` et
@@ -533,7 +533,7 @@ Transition critique :
 
 Sortie JSON :
 {
-  "flow_action": "answer_current_field|clarify_scope|clarify_adjustment_need|clarify_constraints|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|platform_destination_followup|explain_handoff|get_info_db|get_info_product|inline_tool_roundtrip|handoff_to_local_flow|apply_attempt|stop_local_no_handoff|cancel_flow|defer_flow|complete_flow|exit_to_global_dispatcher|safety_preempt|contract_recovery",
+  "flow_action": "answer_current_field|clarify_scope|clarify_adjustment_need|clarify_constraints|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|platform_destination_followup|explain_handoff|get_info_db|get_info_product|inline_tool_roundtrip|handoff_to_local_flow|apply_attempt|exit_to_global_dispatcher|cancel_flow|defer_flow|complete_flow|exit_to_global_dispatcher|safety_preempt|contract_recovery",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "adjust_plan_intent": {

@@ -28,6 +28,10 @@ import {
   type DemotivationRepairVisibleTaskKind,
   normalizeDemotivationRepairConstraints,
 } from "./contract.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../router/direct_effect_local_context.ts";
 
 export type DemotivationRepairLocalDispatcherInput = {
   user_id: string;
@@ -85,7 +89,7 @@ const FLOW_ACTIONS: readonly DemotivationRepairLocalFlowAction[] = [
   "get_info_product",
   "get_info_db",
   "apply_attempt",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "cancel_flow",
   "complete_flow",
   "defer_flow",
@@ -303,7 +307,6 @@ function normalizeNoteInformation(
     : "select_state_potion";
   const note = normalizeCanonicalNoteInformation(root, {
     source_flow_id: "demotivation_repair",
-    source_flow_state_summary: fallbackSummary,
     handoff_reason: targetFlow === "safety"
       ? "safety"
       : targetFlow === "select_state_potion"
@@ -311,9 +314,14 @@ function normalizeNoteInformation(
       : "topic_change",
     target_dispatcher: targetDispatcher,
     handoff_context_for_next_dispatcher: fallbackSummary,
-    target_local_dispatcher_hint: targetFlow === "select_state_potion"
-      ? "Entrer directement dans la potion sélectionnée, consommer les candidats fournis, et ne pas refaire diagnostiquer la démotivation."
-      : null,
+    user_words: [],
+    structured_context: {
+      source_flow: "demotivation_repair",
+      active_flow_summary: fallbackSummary,
+      collected_state: {},
+      unresolved_questions: [],
+      recommended_next_focus: targetDispatcher,
+    },
   });
   return {
     ...note,
@@ -550,7 +558,7 @@ function parseJsonObject(raw: unknown): unknown {
 function localDispatcherFieldCompletionRules(): string {
   return [
     "Field Completion Rules pour demotivation_repair:",
-    "- flow_action: decision principale du tour courant. Utilise answer_repair, ask_gentle_clarification, reduce_friction, restore_meaning, stabilize_energy, smaller_step, action_card_candidate ou repeat_last_repair pour continuer localement; stop_local_no_handoff/cancel_flow/complete_flow/defer_flow pour arreter localement sans autre sujet; exit_to_global_dispatcher seulement pour nouveau sujet clair; safety_preempt pour safety; get_info_product/get_info_db pour une question inline; potion_bridge_offer/confirm_potion_bridge/handoff_to_local_flow seulement pour le bridge potion autorise.",
+    "- flow_action: decision principale du tour courant. Utilise answer_repair, ask_gentle_clarification, reduce_friction, restore_meaning, stabilize_energy, smaller_step, action_card_candidate ou repeat_last_repair pour continuer localement; exit_to_global_dispatcher si le user veut arreter ce flow ou apporte un nouveau sujet clair; cancel_flow/complete_flow/defer_flow seulement pour une issue metier locale deja prevue par le flow; safety_preempt pour safety; get_info_product/get_info_db pour une question inline; potion_bridge_offer/confirm_potion_bridge/handoff_to_local_flow seulement pour le bridge potion autorise.",
     "- confidence: high si l'intention du tour et le prochain stage sont clairs; medium si le sens est probable mais incomplet; low si tu dois clarifier, ralentir ou proteger contre une hypothese fragile.",
     "- risk_score: score 0..10 utile au flow local. Ne fabrique pas de safety. Si le risque safety est reel, flow_action=safety_preempt et visible_task.kind=safety.",
     "- repair_state.intent: classification locale de la demotivation du tour. Ne conserve que ce qui aide ce flow; si la cause est une hypothese, garde unclear ou un intent prudent.",
@@ -577,16 +585,17 @@ function localDispatcherFieldCompletionRules(): string {
     "- potion_bridge.missing_before_handoff: questions encore faibles avant bridge. Vide seulement si le handoff est exploitable.",
     "- potion_bridge.why_ready_or_blocked: raison courte expliquant pourquoi le bridge est pret, candidat interne ou bloque.",
     "- potion_bridge.note_information: obligatoire quand confirm_potion_bridge/handoff_to_local_flow transfere vers select_state_potion; null hors transition.",
-    "- visible_task.kind: stage visible exact. Utilise diagnose, reduce_friction, restore_meaning, stabilize_energy, smaller_step, action_card_candidate, potion_bridge_offer, potion_bridge_choice, potion_bridge_handoff, ask_gentle_clarification, inline_tool_return, apply_attempt, repeat_repair, exit_or_cancel ou safety selon la suite exacte. En stop/cancel/defer/complete/exit, utilise exit_or_cancel. N'utilise action_card_candidate que si flow_action=action_card_candidate, repair_state.phase=action_card_ready, action_readiness=ready/already_chosen, allow_attack_card_suggestion=true et la demande de support/action est presente dans evidence.",
+    "- visible_task.kind: stage visible exact. Utilise diagnose, reduce_friction, restore_meaning, stabilize_energy, smaller_step, action_card_candidate, potion_bridge_offer, potion_bridge_choice, potion_bridge_handoff, ask_gentle_clarification, inline_tool_return, apply_attempt, repeat_repair, exit_or_cancel ou safety selon la suite exacte. En cancel/defer/complete/exit, utilise exit_or_cancel. N'utilise action_card_candidate que si flow_action=action_card_candidate, repair_state.phase=action_card_ready, action_readiness=ready/already_chosen, allow_attack_card_suggestion=true et la demande de support/action est presente dans evidence.",
     "- visible_task.conversation_context: seul contexte du prompt visible. Mets state_summary, user_words, known_values, missing_or_weak_values, selected_candidate, handoff_data, tone_constraints, do_not_say, context_summary, evidence_used et max_questions. Ne transmets pas DB brute, memoire brute ou note_information brute.",
     "- visible_task.conversation_context.selected_candidate: null si aucune offre visible persistable. Ne mets une potion que si le stage visible peut la mentionner.",
     "- visible_task.conversation_context.handoff_data: target_dispatcher seulement pour transition ou roundtrip inline; null sinon; no_chat_mutation reste true.",
     "- visible_task.conversation_context.do_not_say: contraintes visibles importantes, surtout pas de promesse de creation, activation, rappel ou DB write.",
     "- exit_memo.needed: true seulement pour exit_to_global_dispatcher, safety_preempt ou transition qui a besoin d'un memo; false sinon.",
-    "- exit_memo.reason: topic_change pour nouveau sujet clair; explicit_tool_request si le user demande explicitement une capacite hors flow; inline_product/inline_status pour roundtrip; cancelled/safety/potion_handoff selon le cas; none sinon.",
+    "- exit_memo.reason: cancelled quand le user veut arreter ce flow sans autre demande; topic_change pour nouveau sujet clair; explicit_tool_request si le user demande explicitement une capacite hors flow; inline_product/inline_status pour roundtrip; safety/potion_handoff selon le cas; none sinon.",
     "- exit_memo.flow_summary et handoff_hint_for_global_dispatcher: utiles pour le dispatcher cible; null si le flow continue localement.",
     "- exit_memo.potion_bridge_context: object seulement si le contexte bridge doit etre transmis; null sinon.",
-    "- exit_memo.note_information: obligatoire pour exit_to_global_dispatcher; null si pas de changement de dispatcher.",
+    "- exit_memo.note_information: obligatoire pour exit_to_global_dispatcher; null si pas de changement de dispatcher. Structure conservee: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context doit etre succinct et non vide: user_message_summary, active_flow_summary, micro-geste ou sens retrouve, contraintes explicites comme stop/no_tool/no_potion/no_questions, unresolved_questions, recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    ...directEffectLocalDispatcherPromptLines(),
     "- no_chat_mutation: tous les champs doivent rester false. Le dispatcher ne cree rien, n'active rien, ne programme rien et ne confirme aucun write.",
     "- evidence: indices semantiques vraiment utilises pour la decision. Pas de pseudo-preuve, pas de chaine de pensee, pas de mots isoles sans contexte.",
   ].join("\n");
@@ -595,8 +604,8 @@ function localDispatcherFieldCompletionRules(): string {
 function localDispatcherTransitionRules(): string {
   return [
     "Transition Rules:",
-    "- stop_local_no_handoff/cancel_flow/defer_flow/complete_flow: le user arrete, repousse ou clot le flow sans nouveau sujet clair; pas de global sur le meme tour; visible_task.kind=exit_or_cancel; note_information null.",
-    "- exit_to_global_dispatcher: nouveau sujet clair hors demotivation_repair; exit_memo.note_information obligatoire; le global peut reprendre avec cette note.",
+    "- exit_to_global_dispatcher: le user veut arreter ce flow ou apporte un nouveau sujet clair hors demotivation_repair; exit_memo.note_information obligatoire; le global peut reprendre seulement apres cette note.",
+    "- cancel_flow/defer_flow/complete_flow: issue metier locale sans changement de dispatcher, visible_task.kind=exit_or_cancel, note_information null.",
     "- safety_preempt: safety prioritaire; note_information vers safety_crisis; le global normal ne fonctionne pas.",
     "- get_info_product/get_info_db: question inline produit ou statut; produire le contexte necessaire et conserver l'etat parent.",
     "- handoff_to_local_flow/confirm_potion_bridge: seulement vers select_state_potion apres offre locale persistable et consentement; note_information demotivation_repair obligatoire.",
@@ -778,13 +787,22 @@ export function demotivationRepairDispatcherOutputExamples() {
           handoff_hint_for_global_dispatcher: null,
           potion_bridge_context: null,
           note_information: {
-            source_flow_presentation:
-              "demotivation_repair interrompt le flow pour safety.",
+            source_flow_id: "demotivation_repair",
+            target_dispatcher: "safety_crisis",
+            handoff_reason: "safety",
             handoff_context_for_next_dispatcher:
               "Risque safety prioritaire; safety_crisis doit reprendre.",
+            user_words: ["risque de dommage a soi"],
+            structured_context: {
+              user_message_summary: "risque safety prioritaire",
+              active_flow_summary:
+                "demotivation_repair interrompt le flow pour safety.",
+              collected_state: {},
+              unresolved_questions: [],
+              recommended_next_focus: "safety_crisis",
+            },
+            confidence: "high",
             target_flow: "safety",
-            target_local_dispatcher_hint:
-              "Prioriser la securite et ne pas continuer le repair motivationnel.",
           },
         },
         no_chat_mutation: {
@@ -828,7 +846,7 @@ export const runDemotivationRepairLocalDispatcher:
       task: "dispatch_demotivation_repair_local_flow",
       required_json_shape: {
         flow_action:
-          "answer_repair|ask_gentle_clarification|reduce_friction|restore_meaning|stabilize_energy|smaller_step|action_card_candidate|potion_bridge_offer|confirm_potion_bridge|revise_repair_context|repeat_last_repair|get_info_product|get_info_db|apply_attempt|stop_local_no_handoff|cancel_flow|complete_flow|defer_flow|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt",
+          "answer_repair|ask_gentle_clarification|reduce_friction|restore_meaning|stabilize_energy|smaller_step|action_card_candidate|potion_bridge_offer|confirm_potion_bridge|revise_repair_context|repeat_last_repair|get_info_product|get_info_db|apply_attempt|exit_to_global_dispatcher|cancel_flow|complete_flow|defer_flow|handoff_to_local_flow|safety_preempt",
         confidence: "low|medium|high",
         risk_score: "number 0..10",
         repair_state: {
@@ -884,10 +902,16 @@ export const runDemotivationRepairLocalDispatcher:
           missing_before_handoff: ["string"],
           why_ready_or_blocked: "string",
           note_information: {
-            source_flow_presentation: "string|null",
+            source_flow_id: "demotivation_repair",
+            target_dispatcher:
+              "global|select_state_potion|safety_crisis|null",
+            handoff_reason:
+              "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|null",
             handoff_context_for_next_dispatcher: "string|null",
+            user_words: ["string"],
+            structured_context: "object",
+            confidence: "low|medium|high|null",
             target_flow: "select_state_potion|null",
-            target_local_dispatcher_hint: "string|null",
           },
         },
         visible_task: {
@@ -941,10 +965,16 @@ export const runDemotivationRepairLocalDispatcher:
           handoff_hint_for_global_dispatcher: "string|null",
           potion_bridge_context: "object|null",
           note_information: {
-            source_flow_presentation: "string|null",
+            source_flow_id: "demotivation_repair",
+            target_dispatcher:
+              "global|select_state_potion|safety_crisis|null",
+            handoff_reason:
+              "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|null",
             handoff_context_for_next_dispatcher: "string|null",
+            user_words: ["string"],
+            structured_context: "object",
+            confidence: "low|medium|high|null",
             target_flow: "global|select_state_potion|safety|null",
-            target_local_dispatcher_hint: "string|null",
           },
         },
         no_chat_mutation: {
@@ -964,7 +994,12 @@ export const runDemotivationRepairLocalDispatcher:
       note_information_inbound: input.note_information_inbound ?? null,
       db_context_pack: input.db_context_pack ?? null,
       micro_memory_context: input.micro_memory_context ?? null,
-      platform_context: input.platform_context ?? null,
+      platform_context: withDirectEffectLocalContext(
+        input.platform_context ?? null,
+        (input.turn_frame as any)?.plan_snapshot ??
+          (input.platform_context as any)?.plan_snapshot ??
+          null,
+      ),
       risk_context: input.risk_context ?? null,
       available_inline_tools: input.available_inline_tools ?? [
         "product_help",
@@ -1175,9 +1210,10 @@ function noteInformation(args: {
   output: DemotivationRepairLocalDispatcherOutput;
   selectedPotion: DemotivationRepairBridgePotion;
 }): DemotivationRepairNoteInformation {
-  if (args.output.potion_bridge.note_information) {
-    return args.output.potion_bridge.note_information;
-  }
+  const providedNote = args.output.potion_bridge.note_information;
+  const providedStructuredContext = isRecord(providedNote?.structured_context)
+    ? providedNote.structured_context
+    : {};
   const structuredContext = {
     origin_flow: "demotivation_repair",
     selected_potion: args.selectedPotion,
@@ -1191,19 +1227,21 @@ function noteInformation(args: {
     prefill_candidates: args.output.potion_bridge.prefill_candidates,
     instruction:
       "Utiliser cette note comme contexte pour remplir le JSON du sous-flow potion, sans faire répéter l'épisode de décrochage.",
+    ...providedStructuredContext,
   };
   return {
     ...createNoteInformation({
       source_flow_id: "demotivation_repair",
-      source_flow_state_summary: args.output.repair_state.summary,
       handoff_reason: "bridge",
       target_dispatcher: "select_state_potion",
-      handoff_context_for_next_dispatcher: JSON.stringify(structuredContext),
-      target_local_dispatcher_hint:
-        "Entrer directement dans la potion sélectionnée, consommer les candidats fournis, et ne pas refaire diagnostiquer la démotivation.",
-      user_words: args.output.repair_state.user_words,
+      handoff_context_for_next_dispatcher:
+        providedNote?.handoff_context_for_next_dispatcher ??
+          JSON.stringify(structuredContext),
+      user_words: providedNote?.user_words?.length
+        ? providedNote.user_words
+        : args.output.repair_state.user_words,
       structured_context: structuredContext,
-      risk_score: args.output.risk_score,
+      confidence: providedNote?.confidence,
     }),
     target_flow: "select_state_potion",
   };
@@ -1271,10 +1309,8 @@ function visibleKindForOutput(
   if (output.flow_action === "safety_preempt") return "safety";
   if (
     output.flow_action === "cancel_flow" ||
-    output.flow_action === "stop_local_no_handoff" ||
     output.flow_action === "complete_flow" ||
-    output.flow_action === "defer_flow" ||
-    output.flow_action === "exit_to_global_dispatcher"
+    output.flow_action === "defer_flow"
   ) return "exit_or_cancel";
   if (
     output.flow_action === "get_info_product" ||
@@ -1466,11 +1502,10 @@ function maxQuestionsForVisibleTask(args: {
     args.visibleTaskKind === "potion_bridge_handoff" ||
     args.visibleTaskKind === "inline_tool_return" ||
     args.visibleTaskKind === "apply_attempt" ||
-    args.output.flow_action === "stop_local_no_handoff" ||
+    args.output.flow_action === "exit_to_global_dispatcher" ||
     args.output.flow_action === "cancel_flow" ||
     args.output.flow_action === "complete_flow" ||
     args.output.flow_action === "defer_flow" ||
-    args.output.flow_action === "exit_to_global_dispatcher" ||
     args.output.flow_action === "safety_preempt"
   ) {
     return 0;
@@ -1512,21 +1547,12 @@ function transitionNoteInformation(args: {
   return {
     ...createNoteInformation({
       source_flow_id: "demotivation_repair",
-      source_flow_state_summary: args.output.repair_state.summary,
       handoff_reason: args.reason,
       target_dispatcher: targetDispatcher,
       handoff_context_for_next_dispatcher: args.contextSummary ??
         JSON.stringify(structuredContext),
-      target_local_dispatcher_hint: args.target === "product_help"
-        ? "Repondre a la question produit inline puis rendre le parent demotivation_repair intact."
-        : args.target === "status_recap"
-        ? "Lire le statut demande inline puis rendre le parent demotivation_repair intact."
-        : args.target === "safety"
-        ? "Safety owns the next turn; demotivation context is background only."
-        : null,
       user_words: args.output.repair_state.user_words,
       structured_context: structuredContext,
-      risk_score: args.output.risk_score,
     }),
     target_flow: args.target === "safety" ? "safety" : args.target,
   };
@@ -1671,7 +1697,6 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
   }
   if (
     args.output.flow_action === "cancel_flow" ||
-    args.output.flow_action === "stop_local_no_handoff" ||
     args.output.flow_action === "complete_flow" ||
     args.output.flow_action === "defer_flow"
   ) {
@@ -1679,7 +1704,7 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       status: "complete",
       response_intent: args.output.flow_action === "cancel_flow"
         ? "cancelled"
-        : "stop_local_no_handoff",
+        : "exit_to_global_dispatcher",
       local_state: null,
       visible_task: visibleTask,
       potion_bridge_context: null,
@@ -1687,7 +1712,7 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       reason_code: args.output.flow_action === "cancel_flow"
         ? "demotivation_repair_cancelled"
-        : "demotivation_repair_stop_local_no_handoff",
+        : "demotivation_repair_exit_to_global_dispatcher",
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,

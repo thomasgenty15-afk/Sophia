@@ -1361,7 +1361,7 @@ export async function runSelectStatePotionIntake(input: {
   message: string;
   source?: "direct_user_request" | "recommendation_tool";
   trigger_message_id: string;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
   turn_count?: number;
   operation_input?: Record<string, unknown> | null;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
@@ -1371,8 +1371,8 @@ export async function runSelectStatePotionIntake(input: {
 }): Promise<SelectStatePotionOperationOutput> {
   const source = input.source ?? "direct_user_request";
   if (
-    input.safety_pregate_risk_band === "high" ||
-    input.safety_pregate_risk_band === "critical"
+    input.safety_context_risk_band === "high" ||
+    input.safety_context_risk_band === "critical"
   ) {
     return {
       operation_type: "select_state_potion",

@@ -24,7 +24,7 @@ export async function executeCreateRecurringReminder(input: {
   user_id: string;
   draft: RecurringReminderDraftV1;
   token?: ConfirmationToken | null;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
   pending_confirmation_lookup: (
     id: string,
   ) => Promise<{ consumed: boolean } | null>;
@@ -54,7 +54,7 @@ export async function executeCreateRecurringReminder(input: {
     operation_type: "create_recurring_reminder",
     pending_confirmation_lookup: input.pending_confirmation_lookup,
     token_consumption_check: input.token_consumption_check,
-    safety_pregate_risk_band: input.safety_pregate_risk_band,
+    safety_context_risk_band: input.safety_context_risk_band,
     now_iso: input.now_iso,
     secret: input.secret,
   });

@@ -65,7 +65,7 @@ function visibleTaskInstruction(stage: WeeklyReviewVisibleTaskKind): string {
     case "forgotten_progress_blocked":
       return "Explique sobrement que la correction de progression n'a pas pu etre notee et demande la cible ou le niveau manquant.";
     case "complete_no_change":
-      return "Ferme le weekly sans handoff Plan. Indique que rien n'est modifie depuis le chat.";
+      return "Ferme le weekly sans proposition Plan. Indique que rien n'est modifie depuis le chat.";
     case "stop_close":
     case "stop_or_cancel":
       return "Ferme ou met de cote le weekly sans culpabiliser et sans proposer d'outil.";

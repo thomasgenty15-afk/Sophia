@@ -15,7 +15,6 @@ import {
   shouldDeferConversationRiskFlowExitToLocalDispatcher,
 } from "./run.ts";
 import { isExplicitPendingApplyConfirmation } from "../skills/weekly_review/runtime.ts";
-import { resolveWeeklyForgottenProgressCandidate } from "../tools/operations/adjust_plan_item/weekly_bridge.ts";
 import { logPlanItemProgressV2 } from "../tools/always_on/track_progress_plan_item/db.ts";
 import { getGlobalAiModel } from "../../_shared/gemini.ts";
 import { writeMomentumStateV2 } from "../momentum_state.ts";
@@ -232,7 +231,7 @@ Deno.test("safety active ownership builds direct local frame without global rout
       status: "active",
       working_state: { phase: "support_contact" },
     },
-    safetyPregateOutput: {
+    safetyContextOutput: {
       detected: true,
       risk_band: "medium",
       reason_codes: ["active_safety_flow_caution"],
@@ -269,11 +268,11 @@ Deno.test("safety first activation direct local frame carries activation note", 
     userId: "user-safety-first",
     channel: "web",
     activeSkillState: null,
-    safetyPregateOutput: {
+    safetyContextOutput: {
       detected: true,
       risk_band: "high",
       reason_codes: ["explicit_suicidal_thoughts"],
-      evidence: ["pregate evidence"],
+      evidence: ["safety context evidence"],
       allow_side_effects: false,
       layer_contributions: {},
     } as any,
@@ -572,75 +571,6 @@ Deno.test("orientation clarification: explicit current tool signal prevents conv
   );
 });
 
-Deno.test("resolveWeeklyForgottenProgressCandidate: fills action count and weekly date", () => {
-  const candidate = resolveWeeklyForgottenProgressCandidate({
-    activeSkillState: {
-      skill_id: "weekly_adaptive_review_v1",
-      weekly_progress_review: {
-        week_start_date: "2026-05-11",
-        week_end_date: "2026-05-17",
-        transformations: [{
-          actions: [{
-            plan_item_id: "walk",
-            title: "Marche 20 minutes",
-            deviation: "missed",
-            status: "missed",
-          }],
-        }],
-      },
-      weekly_adaptive_review: {
-        item_decisions: [{
-          plan_item_id: "walk",
-          title: "Marche 20 minutes",
-          current_week_status: "missed",
-          family: "habit",
-        }],
-      },
-    },
-    userMessage:
-      "Ah oui j'ai oublie de dire que j'avais fait Marche 20 minutes mercredi, 2 fois",
-  });
-
-  assertEquals(candidate.ready, true);
-  assertEquals(candidate.plan_item_id, "walk");
-  assertEquals(candidate.count, 2);
-  assertEquals(candidate.date_hint, "2026-05-13");
-});
-
-Deno.test("resolveWeeklyForgottenProgressCandidate: refuses ambiguous weekly corrections", () => {
-  const candidate = resolveWeeklyForgottenProgressCandidate({
-    activeSkillState: {
-      skill_id: "weekly_adaptive_review_v1",
-      weekly_progress_review: {
-        week_start_date: "2026-05-11",
-        week_end_date: "2026-05-17",
-        transformations: [{
-          actions: [
-            {
-              plan_item_id: "walk",
-              title: "Marche 20 minutes",
-              deviation: "missed",
-              status: "missed",
-            },
-            {
-              plan_item_id: "journal",
-              title: "Journal du soir",
-              deviation: "missed",
-              status: "missed",
-            },
-          ],
-        }],
-      },
-      weekly_adaptive_review: { item_decisions: [] },
-    },
-    userMessage: "Ah oui j'ai oublie de cocher que je l'avais fait",
-  });
-
-  assertEquals(candidate.detected, true);
-  assertEquals(candidate.ready, false);
-  assertEquals(candidate.reason_code, "missing_or_ambiguous_action");
-});
-
 Deno.test("resolveAgentChatModel: explicit override wins", () => {
   const selected = resolveAgentChatModel({
     effectiveMode: "companion",
@@ -774,7 +704,7 @@ Deno.test("adjust plan routing: ambivalent reflection does not start adjustment 
       response_owner: "tool_skill",
       selected_handler: "adjust_plan_item",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-ambivalent",
     requestId: "req-ambivalent",
     planItemSnapshot: [],
@@ -920,7 +850,7 @@ Deno.test("adjust plan draft review answers pre-confirmation detail request with
       }],
     } as any,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-adjust",
     requestId: "req-adjust",
     planItemSnapshot: [],
@@ -1005,7 +935,7 @@ Deno.test("adjust plan whole-plan detail request answers directly without repeat
       }],
     } as any,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-whole-detail",
     requestId: "req-whole-detail",
     planItemSnapshot: [],
@@ -1079,7 +1009,7 @@ Deno.test("adjust plan whole-plan pre-validation progression concern gets coachi
       }],
     } as any,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-whole-progression",
     requestId: "req-whole-progression",
     planItemSnapshot: [],
@@ -1156,7 +1086,7 @@ Deno.test("adjust plan whole-plan no-extra-actions confirmation is concrete", as
       }],
     } as any,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-whole-no-extra-actions",
     requestId: "req-whole-no-extra-actions",
     planItemSnapshot: [],
@@ -1233,7 +1163,7 @@ Deno.test("adjust plan whole-plan repair progression concern stays specific", as
       }],
     } as any,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-whole-repair-progression",
     requestId: "req-whole-repair-progression",
     planItemSnapshot: [],
@@ -1309,7 +1239,7 @@ Deno.test("adjust plan whole-plan pre-validation nuance updates draft without ex
       }],
     } as any,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-whole-nuance",
     requestId: "req-whole-nuance",
     planItemSnapshot: [],
@@ -1381,7 +1311,7 @@ Deno.test("adjust plan whole-plan pre-validation nuance strips command wrapper",
       }],
     } as any,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "msg-whole-clean-nuance",
     requestId: "req-whole-clean-nuance",
     planItemSnapshot: [],

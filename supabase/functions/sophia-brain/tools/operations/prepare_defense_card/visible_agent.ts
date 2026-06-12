@@ -192,7 +192,7 @@ const VISIBLE_STAGE_PROMPTS: Record<PrepareDefenseCardVisibleTaskKind, string> =
     ask_support_need:
       "Support need: pose une question naturelle pour obtenir une phrase utilisable dans le champ support_need, sans recopier le label comme un formulaire si une question naturelle suffit.",
     confirm_support_need_proposal:
-      "Proposition support_need: demande si la formulation proposée correspond, sans dire champ ou slot et sans handoff final.",
+      "Proposition support_need: demande si la formulation proposée correspond, sans dire champ ou slot et sans finaliser la carte.",
     handoff_ready:
       "Handoff prêt: donne naturellement la destination Cartes de défense, le label exact support_need et la valeur exacte à recopier. Ajoute une phrase douce indiquant que la carte n'est pas créée depuis le chat. Si c'est une révision, n'écris pas que tu as pris en compte, noté, gardé, mémorisé ou enregistré la correction.",
     revision_done:

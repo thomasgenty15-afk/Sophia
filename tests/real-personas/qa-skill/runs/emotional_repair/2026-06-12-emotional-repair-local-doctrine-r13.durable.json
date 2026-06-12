@@ -1,0 +1,192 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "5c15d200-0638-46c4-8ed0-7c106553f3f8",
+        "role": "user",
+        "content": "Je sors d’un échange où je me suis senti humilié. Depuis, j’ai une boule dans la poitrine et je me répète que je suis trop fragile pour gérer les choses.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:38:47.037466+00:00"
+      },
+      {
+        "id": "7b80c880-8181-4d59-a693-a2073c440d2a",
+        "role": "assistant",
+        "content": "C'est vraiment éprouvant de porter cette sensation d'humiliation et cette tension dans ta poitrine. Ce que tu ressens n'est pas un signe de fragilité, c'est simplement la marque d'un moment très difficile à traverser. Tu as le droit de te sentir ainsi, sans que cela ne définisse qui tu es.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:39:48.932218+00:00"
+      },
+      {
+        "id": "17e0582a-de71-4561-b12d-b94ef189dcb8",
+        "role": "user",
+        "content": "Oui, je veux rester là-dessus. Pas d’action, pas de potion maintenant : juste m’aider à ne pas croire que cette humiliation dit quelque chose de définitif sur moi.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:40:11.150477+00:00"
+      },
+      {
+        "id": "cc409ef9-4563-40da-bbc0-2836eecbf269",
+        "role": "assistant",
+        "content": "C'est une sensation étouffante quand l'humiliation essaie de te faire croire qu'elle définit qui tu es. Ce que tu ressens en ce moment est une réaction à un événement, mais ce n'est pas ta nature profonde. Tu restes bien plus vaste que ce sentiment, et cette épreuve ne change en rien ta valeur essentielle.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "answer_repair",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "de_shame",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "separate_fact_from_identity",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-11T22:40:24.437591+00:00"
+      },
+      {
+        "id": "9ae4a21a-04da-48f4-ac8a-1d5192739c20",
+        "role": "user",
+        "content": "Ça commence à se desserrer. Donne-moi juste une phrase très simple que je peux répéter quand la honte revient.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:40:42.245289+00:00"
+      },
+      {
+        "id": "d378162e-703f-40ec-8bd8-1c5c05fb5f61",
+        "role": "assistant",
+        "content": "Je ressens de la honte en ce moment, mais cette émotion ne définit pas qui je suis.",
+        "scope": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-12-emotional-repair-local-doctrine-r13-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "provide_concrete_phrase",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "concrete_phrase",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "separate_fact_from_identity",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-11T22:41:36.458532+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

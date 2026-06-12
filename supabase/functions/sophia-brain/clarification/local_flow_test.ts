@@ -98,12 +98,10 @@ function output(
     note_information: {
       needed: false,
       source_flow_id: "clarification",
-      source_flow_presentation:
-        "clarification arbitre un conflit entre plusieurs signaux forts avant de rendre l'ownership au bon dispatcher.",
       handoff_reason: "none",
       target_dispatcher: null,
       handoff_context_for_next_dispatcher: null,
-      target_local_dispatcher_hint: null,
+      user_words: [],
       structured_context: {},
       ...(overrides.note_information ?? {}),
     },
@@ -164,7 +162,7 @@ Deno.test("clarification local dispatcher prompt documents real output field rul
   assertStringIncludes(prompt, "conversation_context.question_constraints");
   assertStringIncludes(prompt, "note_information.needed");
   assertStringIncludes(prompt, "evidence");
-  assertStringIncludes(prompt, "stop_local_no_handoff");
+  assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");
   assertEquals(prompt.split("(not visible)").length - 1, 2);
@@ -230,16 +228,16 @@ Deno.test("clarification reducer rejects low-confidence resolution", () => {
   assertEquals(result.note_information, null);
 });
 
-Deno.test("clarification reducer stop local clears state without global handoff", () => {
+Deno.test("clarification reducer stop request exits to global with note", () => {
   const result = reduceClarificationLocalDispatcherOutput({
     previous: previous(),
-    output: output("stop_local_no_handoff"),
+    output: output("exit_to_global_dispatcher"),
   });
-  assertEquals(result.status, "cancelled");
+  assertEquals(result.status, "topic_change");
   assertEquals(result.local_state, null);
-  assertEquals(result.exit_to_global_dispatcher, false);
-  assertEquals(result.note_information, null);
-  assertEquals(result.visible_task.kind, "stop_or_cancel");
+  assertEquals(result.exit_to_global_dispatcher, true);
+  assertEquals(result.note_information?.target_dispatcher, "global");
+  assertEquals(result.visible_task.kind, "exit_ack");
 });
 
 Deno.test("clarification reducer preserves visible conversation constraints", () => {

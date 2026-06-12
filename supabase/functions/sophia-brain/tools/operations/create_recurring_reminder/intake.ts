@@ -166,6 +166,7 @@ export function reviewCreateRecurringReminderDraft(input: {
   operation_input?: Record<string, unknown> | null;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   request_id?: string | null;
+  user_id?: string | null;
 }): Promise<ToolSkillDraftReviewDecision | null> {
   return reviewToolSkillDraftWithAi({
     operation_type: "create_recurring_reminder",
@@ -174,6 +175,7 @@ export function reviewCreateRecurringReminderDraft(input: {
     operation_input: input.operation_input,
     recent_messages: input.recent_messages,
     request_id: input.request_id,
+    user_id: input.user_id,
   });
 }
 
@@ -935,7 +937,7 @@ export async function runCreateRecurringReminderIntake(input: {
   message: string;
   source?: "direct_user_request" | "recommendation_tool";
   trigger_message_id: string;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
   turn_count?: number;
   operation_input?: Record<string, unknown> | null;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
@@ -945,9 +947,9 @@ export async function runCreateRecurringReminderIntake(input: {
 }): Promise<CreateRecurringReminderOperationOutput> {
   const source = input.source ?? "direct_user_request";
   if (
-    input.safety_pregate_risk_band === "medium" ||
-    input.safety_pregate_risk_band === "high" ||
-    input.safety_pregate_risk_band === "critical"
+    input.safety_context_risk_band === "medium" ||
+    input.safety_context_risk_band === "high" ||
+    input.safety_context_risk_band === "critical"
   ) {
     return {
       operation_type: "create_recurring_reminder",

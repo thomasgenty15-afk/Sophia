@@ -323,7 +323,7 @@ Deno.test("adjust_plan_item prompt explains real dispatcher fields and transitio
   assertStringIncludes(prompt, "- note_information:");
   assertStringIncludes(prompt, "- evidence:");
   assertStringIncludes(prompt, "Transition Rules:");
-  assertStringIncludes(prompt, "stop_local_no_handoff/cancel_flow");
+  assertStringIncludes(prompt, "exit_to_global_dispatcher pour arreter ce flow");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");
   assertStringIncludes(prompt, "handoff_to_local_flow");
@@ -334,38 +334,74 @@ Deno.test("adjust_plan_item prompt explains real dispatcher fields and transitio
   );
 });
 
-Deno.test("adjust_plan_item stop_local_no_handoff closes locally without global", () => {
+Deno.test("adjust_plan_item stop exits through global note", () => {
   const reduced = reduceAdjustPlanLocalDispatcherOutput({
     previous: createInitialAdjustPlanLocalState(),
     output: dispatcherOutput({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       adjust_plan_intent: {
         kind: "cancel",
-        summary: "Le user veut arreter l'ajustement sans nouveau sujet.",
+        summary: "Le user veut arreter l'ajustement.",
       },
       state_updates: {
-        status: "cancelled",
+        status: "exit_to_global",
         stage: "closing",
         turn_count_increment: 1,
         close_after_visible: true,
       },
       visible_task: {
-        kind: "cancel_close",
-        instruction: "Close locally.",
+        kind: "exit_or_cancel",
+        instruction: "Exit through global note.",
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        user_intent_summary: "Le user veut arreter l'ajustement.",
+        local_flow_context: {
+          skill_id: "adjust_plan_item",
+          no_chat_mutation: true,
+          committed_effects: [],
+        },
+        handoff_hint_for_global_dispatcher: {
+          likely_intent: "normal_coaching",
+          why: "Arret du flow adjust_plan_item.",
+        },
       },
       note_information: {
-        needed: false,
-        value: null,
+        needed: true,
+        value: {
+          source_flow_id: "adjust_plan_item",
+          source_flow_state_summary: "Adjust plan flow stopped.",
+          handoff_reason: "topic_change",
+          target_dispatcher: "global",
+          handoff_context_for_next_dispatcher:
+            "The user stopped the active adjust_plan_item flow.",
+          target_local_dispatcher_hint: null,
+          user_words: ["arreter l'ajustement"],
+          structured_context: {
+            collected_state: { status: "exit_to_global" },
+            unresolved_questions: [],
+            recommended_next_focus: "resume global routing",
+          },
+          risk_score: 0,
+          no_chat_mutation: {
+            db_write_committed: false,
+            potion_session_created: false,
+            scheduled_checkin_created: false,
+            recurring_reminder_created: false,
+            executable_confirmation_generated: false,
+          },
+        },
       },
     }),
   });
 
-  assertEquals(reduced.status, "cancelled");
-  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.status, "topic_change");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
   assertEquals(reduced.handoff_to_local_flow, false);
-  assertEquals(reduced.visible_task, "cancel_close");
+  assertEquals(reduced.visible_task, "exit_or_cancel");
   assertEquals(reduced.local_state, null);
-  assertEquals(reduced.note_information, null);
+  assertEquals(reduced.note_information?.target_dispatcher, "global");
 });
 
 Deno.test("adjust_plan_item continuation keeps user constraints in visible context", () => {

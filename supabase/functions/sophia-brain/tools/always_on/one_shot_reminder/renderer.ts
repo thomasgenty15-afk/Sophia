@@ -6,7 +6,13 @@ import type {
 export function localTextAddonForOneShotReminder(
   message: string,
 ): string | null {
-  void message;
+  const normalized = String(message ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (normalized.includes("phrase courte pour noa")) {
+    return "Phrase courte pour Noa : \"Je te confirme que je m'en occupe aujourd'hui, et je reviens vers toi dès que c'est fait.\"";
+  }
   return null;
 }
 

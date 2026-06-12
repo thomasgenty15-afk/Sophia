@@ -16,6 +16,10 @@ import type {
   AdjustPlanHandoffStatus,
   AdjustPlanScopeKind,
 } from "./contract.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../../router/direct_effect_local_context.ts";
 
 export type AdjustPlanLocalStage =
   | "scope"
@@ -39,11 +43,10 @@ export type AdjustPlanLocalFlowAction =
   | "inline_tool_roundtrip"
   | "handoff_to_local_flow"
   | "apply_attempt"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "cancel_flow"
   | "defer_flow"
   | "complete_flow"
-  | "exit_to_global_dispatcher"
   | "safety_preempt"
   | "contract_recovery";
 
@@ -283,7 +286,6 @@ const FLOW_ACTIONS = new Set([
   "inline_tool_roundtrip",
   "handoff_to_local_flow",
   "apply_attempt",
-  "stop_local_no_handoff",
   "cancel_flow",
   "defer_flow",
   "complete_flow",
@@ -590,14 +592,12 @@ function normalizeAdjustPlanNoteInformation(
   if (needed && value && typeof value === "object" && !Array.isArray(value)) {
     const normalized = normalizeNoteInformation(value, {
       source_flow_id: "adjust_plan_item",
-      source_flow_state_summary: fallback.state_summary,
       handoff_reason: fallback.handoff_reason,
       target_dispatcher: fallback.target_dispatcher,
       handoff_context_for_next_dispatcher: JSON.stringify(
         fallback.structured_context,
       ),
       structured_context: fallback.structured_context,
-      risk_score: fallback.risk_score,
     });
     return { needed: true, value: normalized };
   }
@@ -606,14 +606,12 @@ function normalizeAdjustPlanNoteInformation(
     needed: true,
     value: createNoteInformation({
       source_flow_id: "adjust_plan_item",
-      source_flow_state_summary: fallback.state_summary,
       handoff_reason: fallback.handoff_reason,
       target_dispatcher: fallback.target_dispatcher,
       handoff_context_for_next_dispatcher: JSON.stringify(
         fallback.structured_context,
       ),
       structured_context: fallback.structured_context,
-      risk_score: fallback.risk_score,
     }),
   };
 }
@@ -943,12 +941,8 @@ function missingHandoffCoreFields(state: AdjustPlanLocalState): string[] {
   return [
     ...(!hasTargetToModify(state) ? ["target_to_modify"] : []),
     ...(!state.adjustment_need.reason_change ? ["reason_change"] : []),
-    ...(!state.adjustment_need.requested_change
-      ? ["requested_change"]
-      : []),
-    ...(!hasActionableChangeKind(state.adjustment_need)
-      ? ["change_kind"]
-      : []),
+    ...(!state.adjustment_need.requested_change ? ["requested_change"] : []),
+    ...(!hasActionableChangeKind(state.adjustment_need) ? ["change_kind"] : []),
   ];
 }
 
@@ -1005,9 +999,7 @@ function buildConversationContext(args: {
   const seed = args.output.visible_task.conversation_context;
   const missing = [
     ...args.state.adjustment_need.missing,
-    ...(!hasTargetToModify(args.state)
-      ? ["target_to_modify"]
-      : []),
+    ...(!hasTargetToModify(args.state) ? ["target_to_modify"] : []),
     ...(!args.state.adjustment_need.reason_change ? ["reason_change"] : []),
     ...(!args.state.adjustment_need.requested_change
       ? ["requested_change"]
@@ -1093,7 +1085,6 @@ function visibleTaskForOutput(
   if (output.flow_action === "safety_preempt") return "safety";
   if (
     output.flow_action === "cancel_flow" ||
-    output.flow_action === "stop_local_no_handoff" ||
     output.flow_action === "defer_flow" ||
     output.flow_action === "complete_flow"
   ) return "cancel_close";
@@ -1195,7 +1186,6 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
   }
   if (
     output.flow_action === "cancel_flow" ||
-    output.flow_action === "stop_local_no_handoff" ||
     output.flow_action === "defer_flow" ||
     output.flow_action === "complete_flow"
   ) {
@@ -1378,7 +1368,9 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       note_information: output.note_information.value,
     };
   }
-  if (output.flow_action === "apply_attempt" && visibleTask === "apply_attempt") {
+  if (
+    output.flow_action === "apply_attempt" && visibleTask === "apply_attempt"
+  ) {
     return {
       status: "apply_attempt",
       reason_code: "adjust_plan_item_apply_attempt_no_chat_mutation",
@@ -1496,38 +1488,38 @@ export function dispatcherSystemPrompt(): string {
     "Si le user pose une question produit/navigation limitée au Plan, retourne get_info_product, visible_task.kind=none, subskill_call.skill_id=product_help. Le flow adjust_plan_item reste actif.",
     "Si le user demande une carte d'attaque ou de défense directement liée à l'action collectée, retourne handoff_to_local_flow avec note_information vers prepare_attack_card ou prepare_defense_card.",
     "Si le user demande une potion, une preference, un rappel ou un autre sujet clair hors flow, retourne exit_to_global_dispatcher avec note_information.",
-    "Si le user veut seulement arrêter ou reporter sans nouveau sujet clair, retourne stop_local_no_handoff, cancel_flow, defer_flow ou complete_flow. Ne sors pas vers global.",
+    "Si le user veut arrêter ou reporter ce flow, retourne exit_to_global_dispatcher avec note_information vers global.",
+    ...directEffectLocalDispatcherPromptLines(),
     "Toute sortie vers un autre dispatcher ou inline tool doit inclure note_information canonique.",
     "visible_task.conversation_context doit être filtré: pas de dump DB brut, pas de mémoire brute, seulement les éléments utiles au prompt visible.",
     "",
     "Field Completion Rules:",
-    "- flow_action: decision principale du tour courant. Choisis une action autorisee par ce contrat, pas une action generique. Utilise answer_current_field quand le user continue a remplir le champ courant; clarify_scope, clarify_adjustment_need ou clarify_constraints quand une information manque; prepare_plan_handoff seulement quand quoi_modifier + reason_change + requested_change + change_kind exploitable sont stabilises; revise_plan_handoff quand le user corrige une proposition deja complete; repeat_plan_handoff quand il demande de redire une proposition complete; platform_destination_followup quand il demande ou le reprendre dans le produit; explain_handoff quand il demande pourquoi; apply_attempt quand il demande d'appliquer/valider depuis le chat et que la proposition complete existe, sinon clarifie ce qui manque; get_info_db/get_info_product/inline_tool_roundtrip pour un roundtrip temporaire; handoff_to_local_flow seulement vers un flow local autorise; stop_local_no_handoff/cancel_flow/defer_flow/complete_flow pour arreter sans nouveau sujet; exit_to_global_dispatcher pour un nouveau sujet clair; safety_preempt pour safety reelle; contract_recovery si tu ne peux pas produire une sortie coherente. Ne choisis jamais une action par mot-cle isole.",
+    "- flow_action: decision principale du tour courant. Choisis une action autorisee par ce contrat, pas une action generique. Utilise answer_current_field quand le user continue a remplir le champ courant; clarify_scope, clarify_adjustment_need ou clarify_constraints quand une information manque; prepare_plan_handoff seulement quand quoi_modifier + reason_change + requested_change + change_kind exploitable sont stabilises; revise_plan_handoff quand le user corrige une proposition deja complete; repeat_plan_handoff quand il demande de redire une proposition complete; platform_destination_followup quand il demande ou le reprendre dans le produit; explain_handoff quand il demande pourquoi; apply_attempt quand il demande d'appliquer/valider depuis le chat et que la proposition complete existe, sinon clarifie ce qui manque; get_info_db/get_info_product/inline_tool_roundtrip pour un roundtrip temporaire; handoff_to_local_flow seulement vers un flow local autorise; exit_to_global_dispatcher pour arreter ce flow ou pour un nouveau sujet clair; safety_preempt pour safety reelle; contract_recovery si tu ne peux pas produire une sortie coherente. Ne choisis jamais une action par mot-cle isole.",
     "- confidence: high si l'intention et la prochaine action sont claires; medium si l'intention est probable mais qu'un champ reste incomplet; low si clarification, prudence ou recovery sont necessaires. La confidence ne remplace pas evidence.",
     "- risk_score: score local 0..10. Garde 0 pour une demande normale d'ajustement. Monte seulement si le message courant porte un risque reel. Ne cree pas de safety par hypothese; si safety est reelle, flow_action=safety_preempt et note_information vers safety_crisis.",
     "- adjust_plan_intent.kind: etiquette semantique du message courant dans ce flow. start_or_continue pour une continuation globale; scope_answer, need_answer ou constraint_answer pour une reponse de slot; handoff_request pour une demande de proposition Plan; handoff_revision pour correction; repeat, destination, explain, apply_attempt, cancel, off_topic, safety ou unclear selon le tour. Le summary explique en une phrase ce qui vient d'etre compris.",
     "- scope: represente seulement la cible Plan, c'est le quoi modifier. Renseigne plan_id, plan_title, level_id, level_title et plan_item_ids uniquement depuis db_context_pack, plan_snapshot, note_information ou mots user resolus avec confiance. target_summary doit dire l'element a changer en langage produit/humain. needs_scope_clarification=true si la cible reste ambigue. Ne transforme jamais une memoire ou une hypothese en id verrouille.",
     "- adjustment_need: contient le pourquoi, le quoi changer et la nature du changement. reason_change explique pourquoi le plan doit bouger; requested_change explique le resultat attendu; change_kind encode la nature de modification avec reduce, increase, pause, resume, replace, split, reschedule, copy_forward ou bridge_action. Utilise clarify/unknown/null seulement si la nature est insuffisante, puis clarifie au lieu de handoff. constraints, preserve et avoid conservent les limites explicites du user; missing liste uniquement les informations utiles qui manquent. Ne fabrique pas de profil global ni de preference durable.",
     "- platform_handoff: brouillon non-mutant a reprendre dans Plan. status=none tant qu'aucune proposition n'existe; draft_ready seulement quand target_summary/cible + reason_change + requested_change + change_kind exploitable sont presents; delivered apres proposition deja donnee; revised apres correction; repeat pour repetition; apply_attempt quand le user veut appliquer depuis chat; cancelled quand le flow est abandonne. destination vaut Plan seulement si la proposition est a reprendre dans la surface Plan. grouped_by_plan est obligatoire si plusieurs plans sont touches; sinon laisse []. previous_value/revised_value servent aux revisions, sinon null.",
-    "- state_updates: status et stage de l'etat local apres ce tour. turn_count_increment vaut 1 en general, 0 seulement pour recovery sans progression, jamais plus de 3. close_after_visible=true uniquement pour stop_local_no_handoff, cancel_flow, defer_flow, complete_flow ou sortie definitive. N'utilise pas close_after_visible pour une clarification ou un repeat.",
-    "- visible_task.kind: stage visible exact pour le reducer et le prompt visible. Choisis clarify_scope, clarify_adjustment_need, clarify_constraints, plan_handoff_ready, revise_plan_handoff, repeat_plan_handoff, destination_short, explain_handoff, inline_tool_return, apply_attempt, cancel_close, exit_or_cancel, safety, contract_recovery ou none. Utilise none pour les transitions sans message visible local et pour les inline tools avant retour. En stop/cancel/defer/complete, utilise cancel_close ou exit_or_cancel selon le contrat local, pas un stage generique.",
+    "- state_updates: status et stage de l'etat local apres ce tour. turn_count_increment vaut 1 en general, 0 seulement pour recovery sans progression, jamais plus de 3. close_after_visible=true uniquement pour exit_to_global_dispatcher ou sortie definitive. N'utilise pas close_after_visible pour une clarification ou un repeat.",
+    "- visible_task.kind: stage visible exact pour le reducer et le prompt visible. Choisis clarify_scope, clarify_adjustment_need, clarify_constraints, plan_handoff_ready, revise_plan_handoff, repeat_plan_handoff, destination_short, explain_handoff, inline_tool_return, apply_attempt, cancel_close, exit_or_cancel, safety, contract_recovery ou none. Utilise none pour les transitions sans message visible local et pour les inline tools avant retour. Pour cancel_flow, defer_flow ou complete_flow, utilise cancel_close ou exit_or_cancel selon le contrat local, pas un stage generique.",
     "- visible_task.instruction: consigne courte pour le reducer/observabilite, pas un message visible. Elle ne doit pas contenir un template complet pour le user.",
     "- visible_task.conversation_context: seul contexte que l'agent visible peut utiliser. Remplis state_summary, user_words, field_or_stage, known_values, missing_or_weak_values, selected_candidate, handoff_data, tone_constraints, do_not_say, context_summary et evidence_used avec des donnees filtrees. Pour tout stage de handoff, known_values doit permettre de lire quoi_modifier via scope.target_summary/selected_candidate, pourquoi via reason_change, et nature via change_kind; sinon mets le champ manquant dans missing_or_weak_values et choisis une clarification. N'y mets jamais DB brute, memoire brute, route_decision brute, turn_frame brut ou note_information brute. Ajoute toujours dans do_not_say l'interdiction de dire que le Plan est applique, modifie, sauvegarde ou disponible si aucune mutation n'a eu lieu.",
     "- subskill_call: needed=true seulement pour get_info_db, get_info_product ou inline_tool_roundtrip. skill_id=status_recap pour etat DB; product_help pour navigation/usage produit. context_for_subskill doit inclure active_flow='adjust_plan_item', question_to_answer, et active_flow_context compact. L'inline tool ne doit pas effacer l'etat parent.",
     "- exit_memo: needed=true pour exit_to_global_dispatcher et safety_preempt; utile aussi pour handoff_to_local_flow si le prochain dispatcher doit comprendre l'etat quitte. reason doit expliquer topic_change, product_help, status_question, explicit_tool_request, preference_update, normal_coaching, safety, unknown ou none. local_flow_context resume scope, besoin, dernier handoff, no_chat_mutation et incertitudes. handoff_hint_for_global_dispatcher aide le global sans imposer sa decision.",
-    "- note_information: obligatoire pour exit_to_global_dispatcher, safety_preempt, handoff_to_local_flow, get_info_db, get_info_product et inline_tool_roundtrip. needed=false et value=null pour les continuations locales, repeat, destination_short, apply_attempt et stop local sans handoff. La note est consommee par le dispatcher cible; elle ne va jamais brute au prompt visible.",
+    "- note_information: obligatoire pour exit_to_global_dispatcher, safety_preempt, handoff_to_local_flow, get_info_db, get_info_product et inline_tool_roundtrip. needed=false et value=null seulement pour les continuations locales, repeat, destination_short et apply_attempt. La note est consommee par le dispatcher cible; elle ne va jamais brute au prompt visible.",
     "- evidence: indices semantiques reels utilises dans ce tour, par exemple mots du user ou faits DB compacts. Pas de pseudo-preuves, pas de raisonnement invente, pas de citation de champs que tu n'as pas utilises.",
     "",
     "Transition Rules:",
-    "- stop_local_no_handoff/cancel_flow/defer_flow/complete_flow: le user arrete ou reporte sans nouveau sujet clair. Ferme ou suspend le state local, visible_task.kind=cancel_close ou exit_or_cancel, note_information false, pas de global sur le meme tour, pas de question finale.",
-    "- exit_to_global_dispatcher: seulement si nouveau sujet clair hors ajustement Plan. Produis exit_memo et note_information vers global; visible_task.kind=none ou exit_or_cancel selon reprise attendue; le global peut reanalyser le meme message.",
+    "- exit_to_global_dispatcher: le user arrete/reporte ce flow ou apporte un nouveau sujet clair. Produis exit_memo et note_information vers global; visible_task.kind=none ou exit_or_cancel selon reprise attendue; le global peut reanalyser le meme message.",
     "- safety_preempt: safety prioritaire. Produis risk_score raccord, note_information vers safety_crisis, visible_task.kind=safety ou none selon pipeline, et n'appelle pas le global normal.",
     "- handoff_to_local_flow: seulement si le contrat local l'autorise et que le nouveau flow est explicitement pertinent, par exemple prepare_attack_card ou prepare_defense_card lie a l'action collectee. Produis note_information avec source_flow, etat collecte, incertitudes et recommended_next_focus.",
     "",
     "Exemples JSON non visibles (2 seulement):",
     "Continuation normale:",
-    "{\"flow_action\":\"prepare_plan_handoff\",\"confidence\":\"high\",\"risk_score\":0,\"adjust_plan_intent\":{\"kind\":\"handoff_request\",\"summary\":\"Le user veut alleger l'action du soir sans l'abandonner.\"},\"scope\":{\"kind\":\"specific_plan_item\",\"confidence\":\"high\",\"plan_id\":\"plan-1\",\"plan_title\":\"Plan principal\",\"level_id\":null,\"level_title\":null,\"plan_item_ids\":[\"item-1\"],\"target_summary\":\"Action du soir\",\"needs_scope_clarification\":false},\"adjustment_need\":{\"reason_change\":\"trop lourd cette semaine\",\"requested_change\":\"passer en version 5 minutes\",\"change_kind\":\"reduce\",\"constraints\":[\"cette semaine\"],\"preserve\":[\"signal de pause\"],\"avoid\":[\"abandonner\"],\"missing\":[]},\"platform_handoff\":{\"status\":\"draft_ready\",\"destination\":\"Plan\",\"suggested_platform_input\":\"Alleger l'action du soir en version 5 minutes, en gardant le signal de pause.\",\"grouped_by_plan\":[],\"previous_value\":null,\"revised_value\":null},\"state_updates\":{\"status\":\"handoff_ready\",\"stage\":\"handoff\",\"turn_count_increment\":1,\"close_after_visible\":false},\"visible_task\":{\"kind\":\"plan_handoff_ready\",\"instruction\":\"Donner la proposition a reprendre dans Plan.\",\"conversation_context\":{\"state_summary\":\"Action du soir a alleger cette semaine.\",\"user_words\":[\"version 5 minutes\"],\"field_or_stage\":\"handoff\",\"known_values\":{\"scope\":{\"kind\":\"specific_plan_item\",\"confidence\":\"high\",\"plan_id\":\"plan-1\",\"plan_title\":\"Plan principal\",\"level_id\":null,\"level_title\":null,\"plan_item_ids\":[\"item-1\"],\"target_summary\":\"Action du soir\",\"needs_scope_clarification\":false},\"adjustment_need\":{\"reason_change\":\"trop lourd cette semaine\",\"requested_change\":\"passer en version 5 minutes\",\"change_kind\":\"reduce\",\"constraints\":[\"cette semaine\"],\"preserve\":[\"signal de pause\"],\"avoid\":[\"abandonner\"],\"missing\":[]},\"constraints\":[\"cette semaine\"],\"preserve\":[\"signal de pause\"],\"avoid\":[\"abandonner\"]},\"missing_or_weak_values\":[],\"selected_candidate\":{\"plan_id\":\"plan-1\",\"plan_item_ids\":[\"item-1\"]},\"handoff_data\":{\"destination\":\"Plan\",\"suggested_platform_input\":\"Alleger l'action du soir en version 5 minutes, en gardant le signal de pause.\",\"grouped_by_plan\":[],\"previous_value\":null,\"revised_value\":null},\"tone_constraints\":[],\"do_not_say\":[\"Ne dis pas que le Plan est applique ou modifie.\"],\"context_summary\":\"Proposition non-mutante a reprendre dans Plan.\",\"evidence_used\":[\"version 5 minutes\",\"sans abandonner\"]}},\"subskill_call\":{\"needed\":false,\"skill_id\":null,\"reason\":null,\"context_for_subskill\":{}},\"exit_memo\":{\"needed\":false,\"reason\":\"none\",\"user_intent_summary\":null,\"local_flow_context\":null,\"handoff_hint_for_global_dispatcher\":null},\"note_information\":{\"needed\":false,\"value\":null},\"evidence\":[\"version 5 minutes\",\"sans abandonner\"]}",
+    '{"flow_action":"prepare_plan_handoff","confidence":"high","risk_score":0,"adjust_plan_intent":{"kind":"handoff_request","summary":"Le user veut alleger l\'action du soir sans l\'abandonner."},"scope":{"kind":"specific_plan_item","confidence":"high","plan_id":"plan-1","plan_title":"Plan principal","level_id":null,"level_title":null,"plan_item_ids":["item-1"],"target_summary":"Action du soir","needs_scope_clarification":false},"adjustment_need":{"reason_change":"trop lourd cette semaine","requested_change":"passer en version 5 minutes","change_kind":"reduce","constraints":["cette semaine"],"preserve":["signal de pause"],"avoid":["abandonner"],"missing":[]},"platform_handoff":{"status":"draft_ready","destination":"Plan","suggested_platform_input":"Alleger l\'action du soir en version 5 minutes, en gardant le signal de pause.","grouped_by_plan":[],"previous_value":null,"revised_value":null},"state_updates":{"status":"handoff_ready","stage":"handoff","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"plan_handoff_ready","instruction":"Donner la proposition a reprendre dans Plan.","conversation_context":{"state_summary":"Action du soir a alleger cette semaine.","user_words":["version 5 minutes"],"field_or_stage":"handoff","known_values":{"scope":{"kind":"specific_plan_item","confidence":"high","plan_id":"plan-1","plan_title":"Plan principal","level_id":null,"level_title":null,"plan_item_ids":["item-1"],"target_summary":"Action du soir","needs_scope_clarification":false},"adjustment_need":{"reason_change":"trop lourd cette semaine","requested_change":"passer en version 5 minutes","change_kind":"reduce","constraints":["cette semaine"],"preserve":["signal de pause"],"avoid":["abandonner"],"missing":[]},"constraints":["cette semaine"],"preserve":["signal de pause"],"avoid":["abandonner"]},"missing_or_weak_values":[],"selected_candidate":{"plan_id":"plan-1","plan_item_ids":["item-1"]},"handoff_data":{"destination":"Plan","suggested_platform_input":"Alleger l\'action du soir en version 5 minutes, en gardant le signal de pause.","grouped_by_plan":[],"previous_value":null,"revised_value":null},"tone_constraints":[],"do_not_say":["Ne dis pas que le Plan est applique ou modifie."],"context_summary":"Proposition non-mutante a reprendre dans Plan.","evidence_used":["version 5 minutes","sans abandonner"]}},"subskill_call":{"needed":false,"skill_id":null,"reason":null,"context_for_subskill":{}},"exit_memo":{"needed":false,"reason":"none","user_intent_summary":null,"local_flow_context":null,"handoff_hint_for_global_dispatcher":null},"note_information":{"needed":false,"value":null},"evidence":["version 5 minutes","sans abandonner"]}',
     "Transition critique:",
-    "{\"flow_action\":\"exit_to_global_dispatcher\",\"confidence\":\"high\",\"risk_score\":0,\"adjust_plan_intent\":{\"kind\":\"off_topic\",\"summary\":\"Le user quitte l'ajustement et demande un rappel.\"},\"scope\":{\"kind\":\"unknown\",\"confidence\":\"low\",\"plan_id\":null,\"plan_title\":null,\"level_id\":null,\"level_title\":null,\"plan_item_ids\":[],\"target_summary\":null,\"needs_scope_clarification\":true},\"adjustment_need\":{\"reason_change\":null,\"requested_change\":null,\"change_kind\":null,\"constraints\":[],\"preserve\":[],\"avoid\":[],\"missing\":[]},\"platform_handoff\":{\"status\":\"none\",\"destination\":null,\"suggested_platform_input\":null,\"grouped_by_plan\":[],\"previous_value\":null,\"revised_value\":null},\"state_updates\":{\"status\":\"exit_to_global\",\"stage\":\"closing\",\"turn_count_increment\":1,\"close_after_visible\":true},\"visible_task\":{\"kind\":\"none\",\"instruction\":\"Laisser le global reanalyser le nouveau sujet.\",\"conversation_context\":null},\"subskill_call\":{\"needed\":false,\"skill_id\":null,\"reason\":null,\"context_for_subskill\":{}},\"exit_memo\":{\"needed\":true,\"reason\":\"explicit_tool_request\",\"user_intent_summary\":\"Demande de rappel hors ajustement Plan.\",\"local_flow_context\":{\"skill_id\":\"adjust_plan_item\",\"stage\":\"handoff\",\"no_chat_mutation\":true,\"uncertainties\":[]},\"handoff_hint_for_global_dispatcher\":{\"likely_intent\":\"create_reminder\",\"why\":\"Le message courant demande un rappel.\"}},\"note_information\":{\"needed\":true,\"value\":{\"source_flow_id\":\"adjust_plan_item\",\"source_flow_presentation\":\"Prepare un ajustement non-mutant a reprendre dans Plan.\",\"source_flow_state_summary\":\"Flow ajuste Plan quitte pour un nouveau sujet.\",\"handoff_reason\":\"topic_change\",\"target_dispatcher\":\"global\",\"handoff_context_for_next_dispatcher\":\"Le user demande un rappel hors ajustement Plan.\",\"target_local_dispatcher_hint\":null,\"user_words\":[\"fais-moi un rappel\"],\"structured_context\":{\"source_flow\":\"adjust_plan_item\",\"no_chat_mutation\":true},\"risk_score\":0,\"no_chat_mutation\":{\"db_write_committed\":false}}},\"evidence\":[\"demande un rappel\"]}",
+    '{"flow_action":"exit_to_global_dispatcher","confidence":"high","risk_score":0,"adjust_plan_intent":{"kind":"off_topic","summary":"Le user quitte l\'ajustement et demande un rappel."},"scope":{"kind":"unknown","confidence":"low","plan_id":null,"plan_title":null,"level_id":null,"level_title":null,"plan_item_ids":[],"target_summary":null,"needs_scope_clarification":true},"adjustment_need":{"reason_change":null,"requested_change":null,"change_kind":null,"constraints":[],"preserve":[],"avoid":[],"missing":[]},"platform_handoff":{"status":"none","destination":null,"suggested_platform_input":null,"grouped_by_plan":[],"previous_value":null,"revised_value":null},"state_updates":{"status":"exit_to_global","stage":"closing","turn_count_increment":1,"close_after_visible":true},"visible_task":{"kind":"none","instruction":"Laisser le global reanalyser le nouveau sujet.","conversation_context":null},"subskill_call":{"needed":false,"skill_id":null,"reason":null,"context_for_subskill":{}},"exit_memo":{"needed":true,"reason":"explicit_tool_request","user_intent_summary":"Demande de rappel hors ajustement Plan.","local_flow_context":{"skill_id":"adjust_plan_item","stage":"handoff","no_chat_mutation":true,"uncertainties":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"create_reminder","why":"Le message courant demande un rappel."}},"note_information":{"needed":true,"value":{"source_flow_id":"adjust_plan_item","handoff_reason":"topic_change","target_dispatcher":"global","handoff_context_for_next_dispatcher":"Le user demande un rappel hors ajustement Plan.","user_words":["fais-moi un rappel"],"structured_context":{"source_flow":"adjust_plan_item","active_flow_summary":"Flow ajuste Plan quitte pour un nouveau sujet.","collected_state":{"no_chat_mutation":true},"unresolved_questions":[],"recommended_next_focus":"global"},"confidence":"high"}},"evidence":["demande un rappel"]}',
     "Retourne uniquement le JSON strict conforme au schema fourni.",
   ].join("\n");
 }
@@ -1561,10 +1553,11 @@ export async function runAdjustPlanLocalDispatcher(
       budget: { max_items: 0, reason: "not_needed_or_unavailable" },
     },
     plan_snapshot_legacy_context_only: input.plan_snapshot ?? null,
+    platform_context: withDirectEffectLocalContext({}, input.plan_snapshot),
     platform_destination: "Plan",
     required_json_shape: {
       flow_action:
-        "answer_current_field|clarify_scope|clarify_adjustment_need|clarify_constraints|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|platform_destination_followup|explain_handoff|get_info_db|get_info_product|inline_tool_roundtrip|handoff_to_local_flow|apply_attempt|stop_local_no_handoff|cancel_flow|defer_flow|complete_flow|exit_to_global_dispatcher|safety_preempt|contract_recovery",
+        "answer_current_field|clarify_scope|clarify_adjustment_need|clarify_constraints|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|platform_destination_followup|explain_handoff|get_info_db|get_info_product|inline_tool_roundtrip|handoff_to_local_flow|apply_attempt|cancel_flow|defer_flow|complete_flow|exit_to_global_dispatcher|safety_preempt|contract_recovery",
       confidence: "low|medium|high",
       risk_score: "number 0..10",
       adjust_plan_intent: "object",

@@ -87,7 +87,7 @@ function flowAction(value: unknown): ClarteFlowAction {
       "platform_destination_followup",
       "apply_attempt",
       "repeat_handoff",
-      "stop_local_no_handoff",
+      "exit_to_global_dispatcher",
       "handoff_to_local_flow",
       "cancel_flow",
       "exit_to_global_dispatcher",
@@ -461,15 +461,10 @@ export function reduceClarteDispatcherOutput(args: {
     };
   }
 
-  if (
-    decision.flow_action === "cancel_flow" ||
-    decision.flow_action === "stop_local_no_handoff"
-  ) {
+  if (decision.flow_action === "cancel_flow") {
     return {
       status: "cancelled",
-      reason_code: decision.flow_action === "stop_local_no_handoff"
-        ? "clarte_flow_stopped_local_no_handoff"
-        : "clarte_flow_cancelled",
+      reason_code: "clarte_flow_cancelled",
       clarte_state: null,
       draft: current.locked_value ? lockedDraft(current.locked_value) : null,
       visible_task: "exit",
@@ -751,8 +746,8 @@ function actionFromStructuredSignal(value: unknown): ClarteFlowAction | null {
     case "active_handoff_revise_handoff":
       return "revise_current_field";
     case "cancel_handoff":
-    case "stop_local_no_handoff":
-      return "stop_local_no_handoff";
+    case "exit_to_global_dispatcher":
+      return "exit_to_global_dispatcher";
     case "cancel_flow":
       return "cancel_flow";
     case "handoff_to_local_flow":
@@ -780,7 +775,6 @@ function outputFromState(args: {
     : args.action === "repeat_handoff"
     ? "repeat_handoff"
     : args.action === "cancel_flow" ||
-        args.action === "stop_local_no_handoff" ||
         args.action === "handoff_to_local_flow" ||
         args.action === "exit_to_global_dispatcher"
     ? "exit"
@@ -819,13 +813,11 @@ function outputFromState(args: {
         args.action === "safety_preempt",
       reason: args.action === "cancel_flow"
         ? "cancelled"
-        : args.action === "stop_local_no_handoff"
-        ? "cancelled"
-        : args.action === "safety_preempt"
-        ? "safety"
         : args.action === "exit_to_global_dispatcher" ||
             args.action === "handoff_to_local_flow"
         ? "topic_change"
+        : args.action === "safety_preempt"
+        ? "safety"
         : "none",
       flow_summary: null,
       collected_value: field.locked_value ?? field.candidate_value,
@@ -939,7 +931,7 @@ const DISPATCHER_SYSTEM_PROMPT = [
   "Objectif du champ : obtenir une phrase utile pour rappeler au user ce qui s’est déconnecté entre son plan, ses actions, son pourquoi profond, et ce qu’il veut retrouver comme sens.",
   "Le but n’est pas de remplir vite. Le but est d’obtenir une formulation juste, contextualisée, et utilisable dans la plateforme.",
   "",
-  "Actions possibles : answer_current_field, confirm_proposed_field, revise_current_field, get_info_product, get_info_db, platform_destination_followup, apply_attempt, repeat_handoff, stop_local_no_handoff, handoff_to_local_flow, cancel_flow, exit_to_global_dispatcher, safety_preempt.",
+  "Actions possibles : answer_current_field, confirm_proposed_field, revise_current_field, get_info_product, get_info_db, platform_destination_followup, apply_attempt, repeat_handoff, exit_to_global_dispatcher, handoff_to_local_flow, cancel_flow, safety_preempt.",
   "Si le user pose une question produit pendant ce flow (c'est quoi une potion, comment ça marche, où est-ce, limites), retourne flow_action=get_info_product, visible_task.kind=none, subskill_call.skill_id=product_help.",
   "Si le user pose une question sur ses potions/sessions existantes ou l'état DB pendant ce flow, retourne flow_action=get_info_db, visible_task.kind=none, subskill_call.skill_id=status_recap.",
   "Pour get_info_product/get_info_db, remplis subskill_call.context_for_subskill avec active_flow='select_state_potion.clarte', question_to_answer reformulée, active_flow_context utile (selected_potion, field_state, platform_destination).",
@@ -952,7 +944,7 @@ const DISPATCHER_SYSTEM_PROMPT = [
   "Si le user demande ok lance-la, classe en apply_attempt, jamais en confirmation.",
   "Si le user demande où la lancer, classe en platform_destination_followup.",
   "Si le user reformule explicitement la phrase à utiliser, classe en revise_current_field.",
-  "Si le user veut seulement arrêter ou laisser tomber cette potion sans nouveau sujet clair, retourne stop_local_no_handoff. Le dispatcher global ne doit pas reprendre sur ce même tour.",
+  "Si le user veut arrêter ou laisser tomber cette potion, retourne exit_to_global_dispatcher avec note_information vers global.",
   "Si le user demande explicitement un autre flow local, retourne handoff_to_local_flow avec exit_memo.needed=true.",
   "Si le user annule explicitement l'objet potion en cours, retourne cancel_flow.",
   "Si le user change clairement de sujet, retourne exit_to_global_dispatcher avec exit_memo.needed=true.",
@@ -960,10 +952,10 @@ const DISPATCHER_SYSTEM_PROMPT = [
   "Ne crée aucune session potion, aucun rappel récurrent, aucun scheduled_checkin, aucune confirmation exécutable.",
   "Renseigne toujours risk_assessment. Si safety_preempt, risk_assessment.safety_preempt=true et risk_score eleve.",
   "",
-  "Priorité des actions : safety_preempt, apply_attempt, stop_local_no_handoff, cancel_flow, handoff_to_local_flow, exit_to_global_dispatcher, revise_current_field, platform_destination_followup, repeat_handoff, confirm_proposed_field, answer_current_field.",
+  "Priorité des actions : safety_preempt, apply_attempt, exit_to_global_dispatcher, cancel_flow, handoff_to_local_flow, exit_to_global_dispatcher, revise_current_field, platform_destination_followup, repeat_handoff, confirm_proposed_field, answer_current_field.",
   "",
   "Field Completion Rules:",
-  "- flow_action: decision principale du tour courant. answer_current_field pour une reponse au champ clarté; confirm_proposed_field pour validation d'une candidate; revise_current_field pour correction; get_info_product/get_info_db pour inline tools; platform_destination_followup, apply_attempt ou repeat_handoff apres handoff; stop_local_no_handoff pour arret local simple; cancel_flow pour annulation de la potion; exit_to_global_dispatcher pour nouveau sujet clair; handoff_to_local_flow pour autre flow local explicite; safety_preempt pour safety reelle.",
+  "- flow_action: decision principale du tour courant. answer_current_field pour une reponse au champ clarté; confirm_proposed_field pour validation d'une candidate; revise_current_field pour correction; get_info_product/get_info_db pour inline tools; platform_destination_followup, apply_attempt ou repeat_handoff apres handoff; exit_to_global_dispatcher pour arret local simple; cancel_flow pour annulation de la potion; exit_to_global_dispatcher pour nouveau sujet clair; handoff_to_local_flow pour autre flow local explicite; safety_preempt pour safety reelle.",
   "- confidence: high si l'intention et le statut du champ sont clairs; medium si exploitable mais partiel; low si clarification prudente necessaire.",
   "- selected_potion: toujours clarte. Ne jamais le changer dans ce sous-flow.",
   "- field_id: toujours plan_meaning_loss_reason. Ne pas inventer d'autre champ.",
@@ -972,14 +964,14 @@ const DISPATCHER_SYSTEM_PROMPT = [
   "- visible_task.kind: choisir le prompt visible exact. ask_deeper si champ insuffisant; confirm_proposal si proposed; handoff_ready si locked complet; revision_done apres revision; destination_short pour destination seule; apply_attempt pour demande de creation chat; repeat_handoff pour repetition; exit pour stop/cancel/exit/handoff; safety pour safety_preempt; none pour inline product/status. Ne pas utiliser un stage generique.",
   "- visible_task.conversation_context: optionnel dans ce JSON; le reducer produit le contexte visible final. Si tu le remplis, il doit rester compact et visible-agent-safe: valeurs connues, incertitudes, limites, evidence courte; jamais DB brute, memoire brute ou note_information brute.",
   "- subskill_call: needed=true seulement pour get_info_product/get_info_db. skill_id doit etre product_help ou status_recap, reason court, context_for_subskill limite au flow actif, question reformulee, field_state et platform_destination utiles. Sinon needed=false, skill_id=null.",
-  "- exit_memo: needed=true pour exit_to_global_dispatcher, handoff_to_local_flow, cancel_flow et safety_preempt. reason=topic_change, cancelled ou safety. flow_summary resume le sous-flow quitte; collected_value contient la valeur champ si utile; handoff_hint_for_global_dispatcher explique la suite. Pour stop_local_no_handoff, needed=false.",
+  "- exit_memo: needed=true pour exit_to_global_dispatcher, handoff_to_local_flow, cancel_flow et safety_preempt. reason=topic_change, cancelled ou safety. flow_summary resume le sous-flow quitte; collected_value contient la valeur champ si utile; handoff_hint_for_global_dispatcher explique la suite. Pour exit_to_global_dispatcher, needed=false.",
   "- note_information: champ optionnel du contrat. Ne construis pas une note complete dans le prompt; le reducer la cree depuis exit_memo pour les transitions. Laisse absent ou needed=false sauf contexte explicite.",
   "- no_chat_mutation: toujours false pour potion_session_created, recurring_reminder_created, scheduled_checkin_created, executable_confirmation_generated. Une demande apply_attempt ne change pas ces valeurs.",
   "- risk_assessment/risk_score: score 0..10 du risque du tour. N'invente pas de safety; si safety reelle, flow_action=safety_preempt, safety_preempt=true, risk_score haut et reason_codes courts.",
   "- evidence: mots ou indices semantiques reels utilises. Pas de pseudo-preuves, pas de chaines longues, pas de mot-cle isole hors contexte.",
   "",
   "Transition Rules:",
-  "- stop_local_no_handoff: arret local, visible_task.kind=exit, exit_memo.needed=false, pas de dispatcher global.",
+  "- exit_to_global_dispatcher: arret local, visible_task.kind=exit, exit_memo.needed=false, pas de dispatcher global.",
   "- exit_to_global_dispatcher: nouveau sujet clair, visible_task.kind=exit, exit_memo.needed=true, note_information creee par le reducer.",
   "- safety_preempt: prioritaire, visible_task.kind=safety, exit_memo.needed=true, handoff safety via note_information.",
   "- handoff_to_local_flow: seulement si un autre flow local est explicitement vise, avec exit_memo exploitable.",
@@ -1093,7 +1085,7 @@ export async function runClarteLocalDispatcher(
     task: "dispatch_select_state_potion_clarte_flow",
     required_json_shape: {
       flow_action:
-        "answer_current_field|confirm_proposed_field|revise_current_field|get_info_product|get_info_db|platform_destination_followup|apply_attempt|repeat_handoff|stop_local_no_handoff|handoff_to_local_flow|cancel_flow|exit_to_global_dispatcher|safety_preempt",
+        "answer_current_field|confirm_proposed_field|revise_current_field|get_info_product|get_info_db|platform_destination_followup|apply_attempt|repeat_handoff|exit_to_global_dispatcher|handoff_to_local_flow|cancel_flow|safety_preempt",
       confidence: "low|medium|high",
       selected_potion: "clarte",
       field_id: CLARTE_FIELD_ID,

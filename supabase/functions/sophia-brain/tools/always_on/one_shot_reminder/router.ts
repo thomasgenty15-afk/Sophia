@@ -14,16 +14,6 @@ import {
   maybeCancelOneShotReminder,
   maybeCreateOneShotReminder,
 } from "./executor.ts";
-export {
-  hasExplicitOneShotReminderDirectEffectOverride,
-  oneShotReminderDirectEffectBlockForNonMutationContext,
-  oneShotReminderStatusBlocksToolFlow,
-} from "./route_guards.ts";
-import {
-  hasExplicitOneShotReminderDirectEffectOverride,
-  oneShotReminderDirectEffectBlockForNonMutationContext,
-  oneShotReminderStatusBlocksToolFlow,
-} from "./route_guards.ts";
 import { oneShotReminderManagementReply } from "./renderer.ts";
 export {
   buildMinuteByMinuteSequenceAddonForOneShotReminder
@@ -32,12 +22,30 @@ export {
   oneShotReminderManagementReply,
 } from "./renderer.ts";
 
-export const hasExplicitOneShotReminderDirectEffectOverrideForTest =
-  hasExplicitOneShotReminderDirectEffectOverride;
-export const oneShotReminderDirectEffectBlockForNonMutationContextForTest =
-  oneShotReminderDirectEffectBlockForNonMutationContext;
-export const oneShotReminderStatusBlocksToolFlowForTest =
-  oneShotReminderStatusBlocksToolFlow;
+export function hasExplicitOneShotReminderDirectEffectOverride(args: {
+  directEffectsToRun: string[];
+  directEffects:
+    | Array<{
+      effect_type?: string;
+      explicitness?: string;
+      target_status?: string;
+      confidence_band?: string;
+    }>
+    | null
+    | undefined;
+  pendingToolSkillConfirmation: unknown;
+}): boolean {
+  if (!args.pendingToolSkillConfirmation) return false;
+  if (!args.directEffectsToRun.includes("create_one_shot_reminder")) {
+    return false;
+  }
+  return (args.directEffects ?? []).some((effect) =>
+    effect.effect_type === "create_one_shot_reminder" &&
+    effect.explicitness === "explicit" &&
+    effect.target_status === "identified" &&
+    effect.confidence_band === "high"
+  );
+}
 
 export function classifyOneShotReminderDirectIntent(
   message: string,

@@ -6,7 +6,7 @@ import {
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import { runDispatcher } from "../dispatcher/dispatcher.v2.ts";
 import { runConversationRouters } from "../routers/routers.ts";
-import { runSafetyPregate } from "../safety/safety_pregate.ts";
+import { initialSafetyContext } from "../safety/safety_context.ts";
 import {
   clearActiveSkill,
   InMemoryActiveSkillStateRepository,
@@ -1669,15 +1669,7 @@ Deno.test("product_help explanation then ok fais-le routes through dispatcher to
   assertEquals(help.status, "complete");
   assertEquals(help.recommendation_need?.needed, false);
 
-  const safety = runSafetyPregate({
-    user_message: "ok fais-le",
-    recent_messages: [
-      { role: "user", content: "comment je cree une carte d'attaque ?" },
-      { role: "assistant", content: help.reply ?? "" },
-    ],
-    user_id: "user-s3",
-    channel: "whatsapp",
-  });
+  const safety = initialSafetyContext({ channel: "whatsapp" });
   const frame = await runDispatcher({
     user_message: "ok fais-le",
     recent_messages: [
@@ -1688,12 +1680,12 @@ Deno.test("product_help explanation then ok fais-le routes through dispatcher to
     channel: "whatsapp",
     active_skill_state: { skill_id: "product_help" },
     plan_snapshot: {},
-    safety_pregate_output: safety,
+    safety_context_output: safety,
   });
   const route = runConversationRouters({
     turn_frame: frame,
     active_skill_state: { skill_id: "product_help" },
-    safety_pregate_risk_band: safety.risk_band,
+    safety_context_risk_band: safety.risk_band,
   });
   assertEquals(route.response_owner, "tool_skill");
   assertEquals(route.selected_handler, "prepare_attack_card");

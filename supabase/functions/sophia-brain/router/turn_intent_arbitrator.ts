@@ -413,6 +413,17 @@ export function arbitrateTurnIntent(
   const pendingType = pendingOperationType(input.pendingOperationConfirmation);
   const activeExit = activeType &&
     input.turnFrame.skill_signals.exit?.[activeType]?.detected === true;
+  if (
+    activeExit &&
+    activeType === "prepare_defense_card" &&
+    !input.safetyBlocksTools
+  ) {
+    return rewriteForToolIntent(
+      input,
+      "prepare_defense_card",
+      "central_arbitrator_active_defense_card_local_exit_required",
+    );
+  }
   if (activeExit && activeType !== pendingType) {
     return rewriteForNormalReply({
       input,

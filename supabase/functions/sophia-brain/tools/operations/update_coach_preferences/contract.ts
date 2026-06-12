@@ -29,7 +29,7 @@ export type CoachPreferenceLocalFlowAction =
   | "repeat_saved_preferences"
   | "repeat_current_state"
   | "inline_tool_roundtrip"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "complete_flow"
   | "handoff_to_local_flow"
   | "cancel_flow"

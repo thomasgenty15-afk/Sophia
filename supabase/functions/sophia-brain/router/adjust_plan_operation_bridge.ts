@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
-import { runSafetyPregate } from "../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../safety/safety_context.ts";
 import {
   reviewToolSkillConfirmationWithAi,
   type ToolSkillConfirmationKind,
@@ -53,6 +53,7 @@ export async function detectConfirmationKind(args: {
   operationType?: string;
   pendingContext?: unknown;
   requestId?: string | null;
+  userId?: string | null;
   structuredOnly?: boolean;
 }): Promise<ToolSkillConfirmationKind> {
   void args.structuredOnly;
@@ -61,6 +62,7 @@ export async function detectConfirmationKind(args: {
     message: args.userMessage,
     pending_context: args.pendingContext ?? null,
     request_id: args.requestId ?? null,
+    user_id: args.userId ?? null,
   });
 }
 
@@ -153,7 +155,7 @@ export async function maybeRunAdjustPlanItemOperation(args: {
   planItemSnapshot?: V2PlanItemSnapshotItem[];
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId: string | null;
   requestId?: string | null;
   forceFullAi?: boolean;
@@ -171,7 +173,7 @@ export async function maybeRunAdjustPlanItemOperation(args: {
       planItemSnapshot: args.planItemSnapshot,
       turnFrame: args.turnFrame,
       routeDecision: args.routeDecision,
-      safetyPregateOutput: args.safetyPregateOutput,
+      safetyContextOutput: args.safetyContextOutput,
       sourceMessageId: args.sourceMessageId,
       requestId: args.requestId ?? null,
       forceFullAi: args.forceFullAi,

@@ -41,7 +41,6 @@ export type SafetyCrisisLocalFlowAction =
   | "repeat_current_step"
   | "product_or_tool_attempt"
   | "wants_to_exit"
-  | "stop_local_no_handoff"
   | "exit_to_global_dispatcher"
   | "safety_escalate";
 
@@ -64,6 +63,18 @@ export type SafetyCrisisProductToolAttemptKind =
   | "plan_work"
   | "status_request"
   | "none";
+
+export type SafetyCrisisDirectEffectRequest = {
+  requested: boolean;
+  effect_type: "create_one_shot_reminder" | null;
+  explicitness: "explicit" | "implied" | "weak" | "none";
+  target_status: "identified" | "ambiguous" | "missing" | "none";
+  confidence_band: "low" | "medium" | "high";
+  payload_hint: {
+    raw_text: string | null;
+  };
+  reason: string | null;
+};
 
 export type SafetyCrisisResolutionFact =
   | "immediate_danger_absent"
@@ -94,6 +105,7 @@ export type SafetyCrisisLocalDispatcherOutput = {
     attempt_kind: SafetyCrisisProductToolAttemptKind;
     defer_reason: string | null;
   };
+  direct_effect_request: SafetyCrisisDirectEffectRequest;
   exit_request: {
     requested: boolean;
     why_user_thinks_safe: string | null;

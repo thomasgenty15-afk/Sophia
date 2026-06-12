@@ -233,7 +233,7 @@ If the user says only that they do not want to answer or continue :
 - `je sais pas, oublie` ;
 - `on s'en fout` ;
 
-the dispatcher should return `stop_local_no_handoff` or
+the dispatcher should return `exit_to_global_dispatcher` or
 `cancel_clarification`.
 
 The reducer should :

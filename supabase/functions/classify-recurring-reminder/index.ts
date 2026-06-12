@@ -13,7 +13,7 @@ type PersonalizationLevel = 1 | 2 | 3;
 type WeekdayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 const RDV_GENERATION_MODEL = "gpt-5.2";
 const LIVE_TARGET_STATUSES = ["active", "in_maintenance"];
-type SupabaseAdminClient = ReturnType<typeof createClient<any>>;
+type SupabaseAdminClient = ReturnType<typeof createClient>;
 
 type RecurringReminderRow = {
   id: string;
@@ -98,6 +98,7 @@ async function generateDraftsWithExactCount(params: {
   expectedCount: number;
   reminderInstruction: string;
   requestId: string;
+  userId?: string | null;
 }): Promise<
   {
     drafts: string[];
@@ -122,6 +123,7 @@ async function generateDraftsWithExactCount(params: {
       "auto",
       {
         requestId: params.requestId,
+        userId: params.userId ?? undefined,
         source: "classify-recurring-reminder",
         model: RDV_GENERATION_MODEL,
         maxRetries: 2,
@@ -154,6 +156,7 @@ async function generateDraftsWithExactCount(params: {
         "auto",
         {
           requestId: `${params.requestId}:repair`,
+          userId: params.userId ?? undefined,
           source: "classify-recurring-reminder",
           model: RDV_GENERATION_MODEL,
           maxRetries: 2,
@@ -539,6 +542,7 @@ async function seedReminderUntilNextSunday(params: {
     expectedCount: slots.length,
     reminderInstruction: reminder.message_instruction,
     requestId: generationRequestId,
+    userId: reminder.user_id,
   });
   const drafts = generated.drafts;
 
@@ -757,8 +761,9 @@ async function classifyWithAI(params: {
   instruction: string;
   rationale: string;
   requestId: string;
+  userId?: string | null;
 }): Promise<{ level: PersonalizationLevel; reason: string }> {
-  const { instruction, rationale, requestId } = params;
+  const { instruction, rationale, requestId, userId } = params;
   const systemPrompt = `
 Tu classes un rendez-vous WhatsApp de Sophia en niveau de personnalisation.
 
@@ -793,6 +798,7 @@ Rendez-vous:
     "auto",
     {
       requestId,
+      userId: userId ?? undefined,
       source: "classify-recurring-reminder",
       model: getGlobalAiModel("gpt-5.2"),
       maxRetries: 2,
@@ -899,7 +905,7 @@ Deno.serve(async (req) => {
     let level: PersonalizationLevel = heuristicLevel(instruction, rationale);
     let reason = "Classification heuristique.";
     try {
-      const ai = await classifyWithAI({ instruction, rationale, requestId });
+      const ai = await classifyWithAI({ instruction, rationale, requestId, userId });
       level = ai.level;
       reason = ai.reason || reason;
     } catch (e) {

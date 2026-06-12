@@ -162,11 +162,15 @@ function dbRefForCommittedEffect(
   effect: Record<string, unknown>,
 ): EffectLedgerEntry["db_ref"] {
   if (effectType === "coach_preferences.update") {
-    const keys = Array.isArray(effect.preferences_update_ids)
-      ? effect.preferences_update_ids
-      : Array.isArray(effect.preference_keys)
-      ? effect.preference_keys
+    const updateIds = Array.isArray(effect.preferences_update_ids)
+      ? effect.preferences_update_ids.filter((item) =>
+        String(item ?? "").trim()
+      )
       : [];
+    const preferenceKeys = Array.isArray(effect.preference_keys)
+      ? effect.preference_keys.filter((item) => String(item ?? "").trim())
+      : [];
+    const keys = updateIds.length > 0 ? updateIds : preferenceKeys;
     return {
       table: "user_profile_facts",
       key: keys.length > 0 ? String(keys[0]) : null,
@@ -192,12 +196,14 @@ export function recordToolSkillEffectsInLedger(args: {
   const selectedHandler = String(run.selected_handler ?? "").trim() || null;
   const operationId = String(run.operation_id ?? "").trim() || null;
   const status = String(run.status ?? "").trim() || null;
-  const hasExplicitEffectArrays =
-    Array.isArray(run.requested_effects) ||
-    Array.isArray(run.allowed_effects) ||
-    Array.isArray(run.committed_effects) ||
-    Array.isArray(run.failed_effects) ||
-    Array.isArray(run.blocked_effects);
+  const runMode = String(run.mode ?? "").trim() || null;
+  const hasNonEmptyEffectArray = [
+    run.requested_effects,
+    run.allowed_effects,
+    run.committed_effects,
+    run.failed_effects,
+    run.blocked_effects,
+  ].some((value) => Array.isArray(value) && value.length > 0);
 
   if (isRecord(run.platform_handoff)) {
     const handoff = run.platform_handoff;
@@ -242,7 +248,9 @@ export function recordToolSkillEffectsInLedger(args: {
 
   if (
     selectedHandler &&
-    isPlatformHandoffOperation(selectedHandler)
+    isPlatformHandoffOperation(selectedHandler) &&
+    selectedHandler !== "update_coach_preferences" &&
+    runMode !== "local_write_flow"
   ) {
     const nonTerminalIntakeStatuses = new Set([
       "ask_question",
@@ -252,6 +260,12 @@ export function recordToolSkillEffectsInLedger(args: {
     if (
       String(args.toolExecution ?? "") === "blocked" &&
       nonTerminalIntakeStatuses.has(status ?? "")
+    ) {
+      return;
+    }
+    if (
+      nonTerminalIntakeStatuses.has(status ?? "") &&
+      !hasNonEmptyEffectArray
     ) {
       return;
     }

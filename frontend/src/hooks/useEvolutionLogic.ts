@@ -3,7 +3,18 @@ import { supabase } from '../lib/supabase';
 import type { SystemModule } from './useEvolutionData';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 
-export const useEvolutionLogic = (user: any, coreIdentity: any, setCoreIdentity: (data: any) => void) => {
+type UserLike = { id: string } | null;
+type CoreIdentityModules = Record<string, Record<string, string>>;
+type CoreIdentity = {
+  modules?: CoreIdentityModules;
+  [key: string]: unknown;
+};
+
+export const useEvolutionLogic = (
+  user: UserLike,
+  coreIdentity: CoreIdentity | null,
+  setCoreIdentity: (data: CoreIdentity) => void,
+) => {
   const [selectedModule, setSelectedModule] = useState<SystemModule | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
@@ -40,7 +51,7 @@ export const useEvolutionLogic = (user: any, coreIdentity: any, setCoreIdentity:
         const qId = selectedModule.rowId; // 0, 1...
 
         // Clone profond pour éviter la mutation directe
-        const newIdentity = JSON.parse(JSON.stringify(coreIdentity));
+        const newIdentity = JSON.parse(JSON.stringify(coreIdentity)) as CoreIdentity;
         
         // Init structure if missing
         if (!newIdentity.modules) newIdentity.modules = {};
@@ -79,26 +90,29 @@ export const useEvolutionLogic = (user: any, coreIdentity: any, setCoreIdentity:
 
     try {
         const clientRequestId = newRequestId();
-        // On utilise l'Edge Function existante 'sophia-brain' ou 'update-core-identity'
-        // Ici on veut juste une suggestion, pas une écriture directe
-        
+        const contextOverride = [
+            'Aide à reformuler un module d’identité sans écrire en base.',
+            `Module: ${selectedModule.originalWeekTitle}`,
+            `Question: ${selectedModule.originalQuestion}`,
+            editContent ? `Contenu actuel: ${editContent}` : '',
+            'Réponds uniquement avec le contenu reformulé à insérer.',
+        ].filter(Boolean).join('\n');
+
         const { data, error } = await supabase.functions.invoke('sophia-brain', {
             body: {
-                mode: 'refine_module',
-                context: {
-                    moduleTitle: selectedModule.originalWeekTitle,
-                    question: selectedModule.originalQuestion,
-                    currentContent: editContent,
-                    userPrompt: aiPrompt
-                }
+                message: aiPrompt.trim(),
+                channel: 'web',
+                scope: `evolution:${selectedModule.id}`,
+                contextOverride,
             },
             headers: requestHeaders(clientRequestId)
         });
 
         if (error) throw error;
 
-        if (data?.suggestion) {
-            setEditContent(data.suggestion);
+        const suggestion = (data?.content ?? data?.suggestion ?? '').toString().trim();
+        if (suggestion) {
+            setEditContent(suggestion);
             setShowAiPrompt(false);
             setAiPrompt('');
         }
@@ -130,4 +144,3 @@ export const useEvolutionLogic = (user: any, coreIdentity: any, setCoreIdentity:
     handleAskSophia
   };
 };
-

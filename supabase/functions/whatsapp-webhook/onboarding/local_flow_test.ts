@@ -12,6 +12,7 @@ import {
   reduceWhatsAppOnboardingDecision,
 } from "./state.ts";
 import {
+  buildWhatsAppOnboardingConversationTrace,
   buildWhatsAppOnboardingLocalDispatcherSystemPrompt,
   normalizeWhatsAppOnboardingDecision,
 } from "./local_flow.ts";
@@ -191,7 +192,7 @@ Deno.test("whatsapp_onboarding local dispatcher prompt documents real output fie
       "risk_assessment",
       "evidence",
       "Transition Rules:",
-      "stop_local_no_handoff",
+      "exit_to_global_dispatcher",
       "exit_to_global_dispatcher",
       "safety_preempt",
       "handoff_to_local_flow",
@@ -305,12 +306,86 @@ Deno.test("plan ready resumes preference onboarding and blocks progress item", (
   );
 });
 
-Deno.test("plan ready frustration without new topic stops locally without handoff", () => {
+Deno.test("whatsapp_onboarding trace captures local dispatcher decision and blocked effects", () => {
+  const localDecision = decision({
+    flow_action: "plan_ready_resume_preferences",
+    confidence: "high",
+    stage: "plan_ready_resume",
+    evidence: ["plan actif detecte", "user veut continuer"],
+  });
+  const reduced = reduce({
+    state: "awaiting_plan_finalization",
+    plan: readyPlan,
+    decision: localDecision,
+  });
+  const trace = buildWhatsAppOnboardingConversationTrace({
+    requestId: "qa-request-1",
+    userId: "00000000-0000-0000-0000-000000000001",
+    sourceMessageId: "wamid.test",
+    whatsappState: "awaiting_plan_finalization",
+    webOnboardingCompleted: true,
+    whatsappPreferencesDone: false,
+    planProjection: readyPlan,
+    decision: localDecision,
+    reduced,
+    dispatcherLatencyMs: 123,
+    totalLatencyMs: 456,
+    visibleStatus: "completed",
+  });
+
+  assertEquals(trace.turn_id, "qa-request-1");
+  assertEquals(trace.source_message_id, "wamid.test");
+  assertEquals(trace.response_owner, "tool_skill");
+  assertEquals(trace.route_decision.selected_handler, "whatsapp_onboarding");
+  assertEquals(
+    trace.route_decision.reason_code,
+    "whatsapp_onboarding_plan_ready_resume_preferences",
+  );
+  assertEquals(
+    trace.route_decision.active_flow_arbitration?.decision,
+    "local_flow_owns_turn",
+  );
+  assertEquals(
+    (trace.skill_run as any).local_flow.flow_action,
+    "plan_ready_resume_preferences",
+  );
+  assertEquals(
+    (trace.skill_run as any).local_flow.visible_task,
+    "plan_ready_resume_preferences",
+  );
+  assertEquals(
+    (trace.skill_run as any).local_flow.next_whatsapp_state,
+    "onboarding_pref_tone",
+  );
+  assertEquals(
+    (trace.skill_run as any).local_flow.allow_track_progress_plan_item,
+    false,
+  );
+  assertEquals(
+    (trace.effect_ledger as any).blocked_effects.some((effect: any) =>
+      effect.type === "track_progress_plan_item"
+    ),
+    true,
+  );
+});
+
+Deno.test("plan ready frustration exits through global note", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    source_flow_state_summary: "preferences active; plan ready",
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher:
+      "User refuses onboarding questions after plan ready.",
+    user_words: ["tes questions me saoulent"],
+    risk_score: 0,
+  });
   const result = reduce({
     state: "onboarding_pref_tone",
     plan: readyPlan,
     decision: {
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
+      note_information: note,
       exit_memo_request: {
         needed: true,
         exit_reason: "frustration",
@@ -322,14 +397,14 @@ Deno.test("plan ready frustration without new topic stops locally without handof
       },
     },
   });
-  assertEquals(result.status, "stop_local_no_handoff");
+  assertEquals(result.status, "exit_to_global_dispatcher");
   assertEquals(result.next_whatsapp_state, null);
   assertEquals(result.mark_done, true);
-  assertEquals(result.completion_mode, "stopped_after_plan_ready");
-  assertEquals(result.visible_task, "stop_after_plan_ready");
-  assertEquals(result.allow_global_dispatcher, false);
-  assertEquals(result.exit_memo, null);
-  assertEquals(result.note_information, null);
+  assertEquals(result.completion_mode, "deferred_after_plan_ready");
+  assertEquals(result.visible_task, "complete_to_global");
+  assertEquals(result.allow_global_dispatcher, true);
+  assertEquals(result.exit_memo?.reason, "frustration");
+  assertEquals(result.note_information?.target_dispatcher, "global");
 });
 
 Deno.test("clear topic change after plan ready exits with note_information", () => {
@@ -404,7 +479,7 @@ Deno.test("handoff to another local flow requires note and blocks global normal"
   );
 });
 
-Deno.test("progress attempt during onboarding blocks plan progress logging", () => {
+Deno.test("progress attempt during onboarding exits for direct track progress", () => {
   const result = reduce({
     state: "onboarding_pref_tone",
     plan: readyPlan,
@@ -412,16 +487,16 @@ Deno.test("progress attempt during onboarding blocks plan progress logging", () 
       flow_action: "progress_attempt_during_onboarding",
     },
   });
-  assertEquals(result.status, "owned");
-  assertEquals(result.visible_task, "progress_attempt_blocked");
+  assertEquals(result.status, "exit_to_global_dispatcher");
+  assertEquals(result.visible_task, "stop_after_plan_ready");
   assertEquals(result.next_whatsapp_state, "onboarding_pref_tone");
-  assertEquals(result.allow_global_dispatcher, false);
-  assertEquals(result.allow_track_progress_plan_item, false);
+  assertEquals(result.allow_global_dispatcher, true);
+  assertEquals(result.allow_track_progress_plan_item, true);
   assertEquals(
     result.blocked_effects.some((effect) =>
       effect.type === "track_progress_plan_item"
     ),
-    true,
+    false,
   );
 });
 

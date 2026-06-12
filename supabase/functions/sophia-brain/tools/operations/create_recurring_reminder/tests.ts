@@ -179,31 +179,26 @@ function localDispatcherOutput(input: {
       },
     },
     note_information: {
-      needed: action === "handoff_to_one_shot",
+      needed: action === "handoff_to_one_shot" ||
+        action === "exit_to_global_dispatcher",
       source_flow_id: "create_recurring_reminder",
-      source_flow_presentation:
-        "create_recurring_reminder prépare un rappel récurrent à reprendre dans la plateforme.",
-      source_flow_state_summary: "rappel récurrent",
       handoff_reason: action === "handoff_to_one_shot"
         ? "one_shot_boundary"
+        : action === "exit_to_global_dispatcher"
+        ? "topic_change"
         : "none",
       target_dispatcher: action === "handoff_to_one_shot"
         ? "one_shot_reminder"
+        : action === "exit_to_global_dispatcher"
+        ? "global"
         : null,
       handoff_context_for_next_dispatcher: action === "handoff_to_one_shot"
         ? "demande ponctuelle claire"
+        : action === "exit_to_global_dispatcher"
+        ? "sortie du flow create_recurring_reminder avant mutation"
         : null,
-      target_local_dispatcher_hint: null,
       user_words: [],
       structured_context: {},
-      risk_score: 0,
-      no_chat_mutation: {
-        recurring_reminder_created: false,
-        db_write_committed: false,
-        scheduled_checkin_created: false,
-        potion_session_created: false,
-        executable_confirmation_generated: false,
-      },
     },
     no_chat_mutation: {
       recurring_reminder_created: false,
@@ -251,7 +246,7 @@ function baseRuntime(overrides: Record<string, unknown> = {}) {
     tempMemory: {},
     turnFrame: null,
     routeDecision: routeDecision(),
-    safetyPregateOutput: { risk_band: "none" as const },
+    safetyContextOutput: { risk_band: "none" as const },
     sourceMessageId: "m1",
     requestId: "r1",
     buildPlatformContext: () => ({}),
@@ -281,7 +276,7 @@ Deno.test("create_recurring_reminder dispatcher prompt documents field completio
   assertEquals(prompt.includes("visible_task.conversation_context:"), true);
   assertEquals(prompt.includes("note_information:"), true);
   assertEquals(prompt.includes("## Transition Rules"), true);
-  assertEquals(prompt.includes("stop_local_no_handoff/cancel_flow"), true);
+  assertEquals(prompt.includes("exit_to_global_dispatcher/cancel_flow"), true);
   assertEquals(prompt.includes("exit_to_global_dispatcher"), true);
   assertEquals(prompt.includes("safety_preempt"), true);
   assertEquals((prompt.match(/Example [12] -/g) ?? []).length, 2);
@@ -308,6 +303,40 @@ Deno.test("create_recurring_reminder router delivers handoff and never creates e
     (runtime?.toolSkillRun.platform_handoff as any)?.draft
       ?.operation_type,
     "create_recurring_reminder",
+  );
+});
+
+Deno.test("create_recurring_reminder surfaces local dispatcher failure diagnostics", async () => {
+  const runtime = await maybeRunCreateRecurringReminderOperation(baseRuntime({
+    runLocalDispatcher: async (input: any) => {
+      input.report_failure?.({
+        source: "create_recurring_reminder.local_dispatcher",
+        phase: "normalize",
+        request_id: "r1",
+        user_id: "u1",
+        error_name: "SyntaxError",
+        error_message: "Unexpected token",
+        error_code: "Unexpected",
+        raw_output_present: true,
+        raw_output_type: "string",
+        raw_output_excerpt: "not json",
+      });
+      return null;
+    },
+    runVisibleAgent: async () =>
+      "Je n'arrive pas à traiter correctement ce tour.",
+  }));
+
+  assertEquals(runtime?.toolExecution, "blocked");
+  assertEquals(runtime?.toolSkillRun.reason_code, "local_dispatcher_failed");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.local_dispatcher_failure?.phase,
+    "normalize",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.blocked_effects?.[0]?.diagnostic
+      ?.raw_output_excerpt,
+    "not json",
   );
 });
 
@@ -658,7 +687,7 @@ Deno.test("create_recurring_reminder one-shot clarification exits to one-shot ow
   );
 });
 
-Deno.test("create_recurring_reminder local stop clears state and does not call global", async () => {
+Deno.test("create_recurring_reminder local stop exits to global with note", async () => {
   const initial = await maybeRunCreateRecurringReminderOperation(baseRuntime());
   const runtime = await maybeRunCreateRecurringReminderOperation(baseRuntime({
     userMessage: "laisse tomber",
@@ -666,7 +695,7 @@ Deno.test("create_recurring_reminder local stop clears state and does not call g
     routeDecision: null,
     runLocalDispatcher: async () =>
       localDispatcherOutput({
-        flow_action: "stop_local_no_handoff",
+        flow_action: "exit_to_global_dispatcher",
         frequency: "weekly",
         days: ["lundi"],
         time: "09:00",
@@ -682,7 +711,12 @@ Deno.test("create_recurring_reminder local stop clears state and does not call g
   );
   assertEquals(
     (runtime?.toolSkillRun.local_reducer as any)?.exit_to_global_dispatcher,
-    false,
+    true,
+  );
+  assertEquals(
+    (runtime?.toolSkillRun.local_reducer as any)?.note_information
+      ?.target_dispatcher,
+    "global",
   );
 });
 

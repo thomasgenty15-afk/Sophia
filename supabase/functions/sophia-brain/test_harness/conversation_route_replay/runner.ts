@@ -8,9 +8,9 @@ import type {
   TurnFrame,
 } from "../../contracts/turn_frame.v1.ts";
 import {
-  runSafetyPregate,
-  type SafetyPregateOutput,
-} from "../../safety/safety_pregate.ts";
+  initialSafetyContext,
+  type SafetySignalContext,
+} from "../../safety/safety_context.ts";
 import { runDispatcher } from "../../dispatcher/dispatcher.v2.ts";
 import { runConversationRouters } from "../../routers/routers.ts";
 
@@ -27,7 +27,7 @@ export type ReplayFixture = {
     plan_snapshot_fixture?: unknown;
   };
   expected: {
-    safety_pregate_risk_band: RiskBand;
+    safety_context_risk_band: RiskBand;
     response_owner: ResponseOwner;
     selected_handler?: string;
     blocked_paths_codes?: string[];
@@ -38,7 +38,7 @@ export type ReplayFixture = {
 };
 
 export type ReplayActual = Partial<RouteDecision> & {
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
 };
 
 export type ReplayResult = {
@@ -50,7 +50,7 @@ export type ReplayResult = {
 
 type DispatcherInput = {
   fixture: ReplayFixture;
-  safety_pregate_output: SafetyPregateOutput;
+  safety_context_output: SafetySignalContext;
 };
 
 type DispatcherRunner = (input: DispatcherInput) => Promise<TurnFrame>;
@@ -62,7 +62,7 @@ function asChannel(value: unknown): ConversationChannel {
 
 function makeBaseTurnFrame(
   fixture: ReplayFixture,
-  safety: SafetyPregateOutput,
+  safety: SafetySignalContext,
 ): TurnFrame {
   const frame = {
     turn_id: `${fixture.fixture_id}:turn`,
@@ -111,7 +111,7 @@ export async function mockDispatcher(
 ): Promise<TurnFrame> {
   const turnFrame = makeBaseTurnFrame(
     input.fixture,
-    input.safety_pregate_output,
+    input.safety_context_output,
   );
   const expected = input.fixture.expected;
   const message = input.fixture.input.user_message;
@@ -231,9 +231,9 @@ function compareFixture(
   const expected = fixture.expected;
   const checks: Array<[string, unknown, unknown]> = [
     [
-      "safety_pregate_risk_band",
-      expected.safety_pregate_risk_band,
-      actual.safety_pregate_risk_band,
+      "safety_context_risk_band",
+      expected.safety_context_risk_band,
+      actual.safety_context_risk_band,
     ],
     ["response_owner", expected.response_owner, actual.response_owner],
     ["selected_handler", expected.selected_handler, actual.selected_handler],
@@ -277,12 +277,7 @@ export async function runReplayFixture(
   fixture: ReplayFixture,
   opts: { dispatcher?: DispatcherRunner; mode?: ReplayRuntimeMode } = {},
 ): Promise<ReplayResult> {
-  const safety = runSafetyPregate({
-    user_message: fixture.input.user_message,
-    recent_messages: fixture.input.recent_messages,
-    user_id: "route-replay-user",
-    channel: "whatsapp",
-  });
+  const safety = initialSafetyContext({ channel: "whatsapp" });
   const dispatcher = opts.dispatcher ?? mockDispatcher;
   const turnFrame = opts.mode === "s2"
     ? await runDispatcher({
@@ -295,13 +290,13 @@ export async function runReplayFixture(
       pending_tool_skill_confirmation:
         fixture.input.pending_tool_skill_confirmation,
       plan_snapshot: fixture.input.plan_snapshot_fixture ?? {},
-      safety_pregate_output: safety,
+      safety_context_output: safety,
       source_message_id: `${fixture.fixture_id}:message`,
       turn_id: `${fixture.fixture_id}:turn`,
     })
     : await dispatcher({
       fixture,
-      safety_pregate_output: safety,
+      safety_context_output: safety,
     });
   const routeDecision = opts.mode === "s2"
     ? runConversationRouters({
@@ -310,12 +305,12 @@ export async function runReplayFixture(
       active_tool_skill_intake: fixture.input.active_tool_skill_intake,
       pending_tool_skill_confirmation:
         fixture.input.pending_tool_skill_confirmation,
-      safety_pregate_risk_band: safety.risk_band,
+      safety_context_risk_band: safety.risk_band,
     })
     : routeFromMockTurnFrame(fixture, turnFrame);
   const actual: ReplayActual = {
     ...routeDecision,
-    safety_pregate_risk_band: safety.risk_band,
+    safety_context_risk_band: safety.risk_band,
   };
   const diff = compareFixture(fixture, actual);
   return {

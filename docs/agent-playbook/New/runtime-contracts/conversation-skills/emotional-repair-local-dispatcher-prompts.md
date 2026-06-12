@@ -127,7 +127,7 @@ for `safety_preempt`. Use `source_flow_id="emotional_repair"` and copy
 
 Do not produce it for local support/close actions such as `soft_presence`,
 `regulation_without_potion`, `repeat_last_repair`, or `cancel_flow` when no new
-topic or handoff exists. Those are `stop_local_no_handoff`: the reducer chooses
+topic or handoff exists. Those are `exit_to_global_dispatcher`: the reducer chooses
 a local `visible_task`, closes or defers the state, and global is not called on
 the same turn.
 

@@ -54,7 +54,7 @@ Passages vers un autre dispatcher:
 - `handoff_to_local_flow`: acceptation du target flow;
 - `exit_to_global_dispatcher`: nouveau sujet clair;
 - `safety_preempt`: dispatcher local safety;
-- `stop_local_no_handoff`: aucun autre dispatcher sur le meme tour.
+- `exit_to_global_dispatcher`: aucun autre dispatcher sur le meme tour.
 
 Passages entrants:
 - dispatcher global choisit une `flow_opportunity`;
@@ -86,7 +86,7 @@ Ce qui diverge:
 - visible agent unique generaliste avec `stageInstruction` et fallback template;
 - visible agent recoit `local_state` brut au lieu d'un `conversation_context`
   filtre;
-- `stop_local_no_handoff` n'existe pas explicitement;
+- `exit_to_global_dispatcher` n'existe pas explicitement;
 - `safety_preempt` devient un blocage/local visible, pas une transition vers
   `safety_crisis` avec note;
 - acceptation du target flow lance directement le runtime cible avec TurnFrame
@@ -168,7 +168,7 @@ Transitions:
 - `handoff_to_local_flow`: note vers target flow;
 - `exit_to_global_dispatcher`: note vers global;
 - `safety_preempt`: note vers `safety_crisis`;
-- `stop_local_no_handoff`: message local court, clear/defer state, pas de global.
+- `exit_to_global_dispatcher`: message local court, clear/defer state, pas de global.
 
 ## 3. Contrat JSON Du Dispatcher Local
 
@@ -182,7 +182,7 @@ Actions V1:
 - `get_info_product`
 - `get_info_db`
 - `handoff_to_local_flow`
-- `stop_local_no_handoff`
+- `exit_to_global_dispatcher`
 - `cancel_flow`
 - `defer_flow`
 - `complete_flow`
@@ -268,7 +268,7 @@ unresolved_questions, confidence, evidence, recommended_next_focus.
 - `handoff_ready`: court message optionnel si le target flow ne rend pas le meme
   tour; ne revendique aucun effet final.
 - `launch_blocked`: explique que le transfert n'est pas possible maintenant.
-- `stop_local_no_handoff`: acknowledgement court, pas de question finale.
+- `exit_to_global_dispatcher`: acknowledgement court, pas de question finale.
 - `exit_ack`: seulement si le meme message ne sera pas reprocess par global.
 - `safety_transition`: met le flow de cote et transmet a safety.
 
@@ -312,7 +312,7 @@ Packs par cible:
 - No deterministic visible renderer/template in the nominal path.
 - No single generic conversation agent for all stages.
 - Every `flow_action` has one exact continuation.
-- `stop_local_no_handoff` does not call global.
+- `exit_to_global_dispatcher` does not call global.
 - `exit_to_global_dispatcher` includes note_information.
 - `safety_preempt` routes to safety local dispatcher with note_information.
 - `handoff_to_local_flow` includes note_information consumed by target.
@@ -340,7 +340,7 @@ Ordre recommande:
      `note_information_inbound`, `db_context_pack`, `micro_memory_context`,
      `platform_context`, `risk_context`, `available_inline_tools`, `timezone`,
      `channel`.
-   - Ajouter les actions manquantes: `stop_local_no_handoff`,
+   - Ajouter les actions manquantes: `exit_to_global_dispatcher`,
      `handoff_to_local_flow`, `defer_flow`, `complete_flow`.
 
 3. Reducer
@@ -381,7 +381,7 @@ Tests unitaires:
 - product_help inline preserves anchor;
 - status_recap inline preserves anchor;
 - late yes launches target via note;
-- stop_local_no_handoff does not call global;
+- exit_to_global_dispatcher does not call global;
 - exit global requires note;
 - safety requires note to `safety_crisis`;
 - state counters/origin stable;

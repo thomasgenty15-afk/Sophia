@@ -43,7 +43,7 @@ export async function runSafetyCrisisSkill(
     request_id: input.context.turn_frame.source_message_id,
     user_message: input.user_message,
     recent_messages: input.context.recent_messages,
-    source_safety_pregate: {
+    source_safety_context: {
       risk_band: snapshot.source_risk_band,
       reason_codes: input.context.turn_frame.safety.reason_codes ?? [],
       evidence: input.context.turn_frame.safety.evidence ?? [],

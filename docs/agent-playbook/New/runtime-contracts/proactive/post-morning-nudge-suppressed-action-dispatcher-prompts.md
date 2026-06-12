@@ -43,7 +43,7 @@ presentation.
 
 Do not produce it for `protective_close`, `confirm_no_action_today`,
 `negative_nudge_feedback`, `cancel_flow`, or other local close/support actions
-when no new dispatcher is called. Those are `stop_local_no_handoff` actions and
+when no new dispatcher is called. Those are `exit_to_global_dispatcher` actions and
 global must not run on the same turn.
 
 Choose `target_dispatcher` as `global` for an explicit other tool, product,

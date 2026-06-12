@@ -80,7 +80,7 @@ Objectif architecture :
 
 7. Stop local
    - Si le user veut juste arreter le flow sans nouveau sujet :
-     - stop_local_no_handoff ou cancel_flow ;
+     - exit_to_global_dispatcher ou cancel_flow ;
      - clear/defer recurring state ;
      - visible ack court ;
      - pas de global dispatcher sur le meme tour.
@@ -97,7 +97,7 @@ Contraintes non negociables :
 - Pas de recurring reminder created depuis chat.
 - Pas de wording "c'est cree", "programme", "active", "je te relancerai".
 - Pas de global dispatcher pendant active flow sauf exit_to_global_dispatcher.
-- Pas de global dispatcher sur stop_local_no_handoff.
+- Pas de global dispatcher sur exit_to_global_dispatcher.
 - Ne pas executer supabase db reset.
 - Ne pas faire de commande Supabase destructive.
 
@@ -184,7 +184,7 @@ Dispatcher :
 - clear one-shot -> handoff_to_one_shot with note_information.
 - product question -> get_info_product with note_information.
 - DB/status question -> get_info_db with note_information.
-- stop local wording -> stop_local_no_handoff, no global.
+- stop local wording -> exit_to_global_dispatcher, no global.
 - topic change -> exit_to_global_dispatcher with note_information.
 - safety -> safety_preempt with note_information.
 
@@ -194,7 +194,7 @@ Reducer :
 - revise_handoff updates structured draft.
 - repeat_handoff stays local.
 - handoff_to_one_shot clears recurring draft or marks no recurring draft.
-- stop_local_no_handoff clears/defer state and does not call global.
+- exit_to_global_dispatcher clears/defer state and does not call global.
 - exit_to_global_dispatcher carries note.
 
 Visible :

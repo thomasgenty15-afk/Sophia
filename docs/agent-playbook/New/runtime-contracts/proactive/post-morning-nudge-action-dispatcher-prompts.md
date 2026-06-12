@@ -41,7 +41,7 @@ Produce `note_information` for `exit_to_global_dispatcher`,
 
 Do not produce it for `quick_close_ready`, `cancel_flow`,
 `negative_nudge_feedback`, `support_not_today`, or other local close/support
-actions when no new dispatcher is called. Those are `stop_local_no_handoff`
+actions when no new dispatcher is called. Those are `exit_to_global_dispatcher`
 actions and global must not run on the same turn.
 
 Choose `target_dispatcher` as `global` for an explicit other tool, product,

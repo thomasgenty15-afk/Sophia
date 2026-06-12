@@ -63,11 +63,10 @@ export type EmotionalRepairLocalFlowAction =
   | "confirm_potion_bridge"
   | "revise_repair_context"
   | "repeat_last_repair"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "cancel_flow"
   | "complete_flow"
   | "defer_flow"
-  | "exit_to_global_dispatcher"
   | "safety_preempt";
 
 export type EmotionalRepairVisibleTaskKind =

@@ -107,7 +107,7 @@ Pendant le flow actif, le user peut :
 
 ### Signaux d'exit
 
-- `stop_local_no_handoff`: le user veut arreter/annuler sans nouveau sujet.
+- `exit_to_global_dispatcher`: le user veut arreter/annuler sans nouveau sujet.
   Reponse locale courte, pas de dispatcher global sur ce tour.
 - `exit_to_global_dispatcher`: nouveau sujet clair. Note obligatoire, le meme
   message peut etre reanalyse par le dispatcher global.
@@ -404,7 +404,7 @@ raw temp memory, ou state complet.
 - `inline_tool_roundtrip` -> `product_help`: explication reglages coach.
 - `safety_preempt` -> `safety_crisis.local_dispatcher`.
 - `exit_to_global_dispatcher` -> global normal, uniquement nouveau sujet clair.
-- `stop_local_no_handoff` / `cancel_flow`: pas de dispatcher cible.
+- `exit_to_global_dispatcher` / `cancel_flow`: pas de dispatcher cible.
 
 Chaque transition sauf stop local porte une `note_information`.
 
@@ -424,7 +424,7 @@ Actions locales :
 - `unsupported_preference`
 - `revise_preferences`
 - `repeat_current_state`
-- `stop_local_no_handoff`
+- `exit_to_global_dispatcher`
 - `cancel_flow`
 - `complete_flow`
 
@@ -447,7 +447,7 @@ Compatibilite legacy possible :
 
 ```json
 {
-  "flow_action": "write_preferences|clarify_durable_vs_punctual|clarify_supported_setting|clarify_value|propose_supported_mapping|confirm_proposed_mapping|punctual_instruction|unsupported_preference|revise_preferences|repeat_current_state|stop_local_no_handoff|cancel_flow|complete_flow|inline_tool_roundtrip|exit_to_global_dispatcher|safety_preempt|handoff_to_local_flow",
+  "flow_action": "write_preferences|clarify_durable_vs_punctual|clarify_supported_setting|clarify_value|propose_supported_mapping|confirm_proposed_mapping|punctual_instruction|unsupported_preference|revise_preferences|repeat_current_state|exit_to_global_dispatcher|cancel_flow|complete_flow|inline_tool_roundtrip|exit_to_global_dispatcher|safety_preempt|handoff_to_local_flow",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "preference_intent": {
@@ -524,7 +524,7 @@ Obligatoire si :
 
 Interdite ou `needed=false` si :
 
-- `stop_local_no_handoff`
+- `exit_to_global_dispatcher`
 - `cancel_flow` sans nouveau sujet
 - `punctual_instruction`
 - `unsupported_preference`
@@ -703,7 +703,7 @@ Si une variante future l'active :
 - No single generic conversation agent for all stages.
 - Every `flow_action` has exact continuation: visible prompt, inline tool,
   local stop, global exit, safety preempt, or local handoff.
-- `stop_local_no_handoff` does not call global on the same turn.
+- `exit_to_global_dispatcher` does not call global on the same turn.
 - `exit_to_global_dispatcher` includes canonical `note_information`.
 - `safety_preempt` routes to `safety_crisis.local_dispatcher` with
   `note_information`.
@@ -819,7 +819,7 @@ Dispatcher/reducer :
 - invalid key/value/status -> blocked.
 - confidence low -> blocked.
 - risk high -> blocked.
-- stop_local_no_handoff -> no global flag, local state cleared/cancelled.
+- exit_to_global_dispatcher -> no global flag, local state cleared/cancelled.
 - exit_to_global_dispatcher -> canonical note required.
 - safety_preempt -> canonical note target `safety_crisis`.
 - inline status -> canonical note target `status_recap`, parent preserved.
@@ -916,7 +916,7 @@ Cleanup DB targeted after run for supported coach keys only.
 - `update_coach_preferences.note_information_consumed`
 - `update_coach_preferences.inline_tool_roundtrip`
 - `update_coach_preferences.global_dispatcher_skipped`
-- `update_coach_preferences.stop_local_no_handoff`
+- `update_coach_preferences.exit_to_global_dispatcher`
 - `update_coach_preferences.safety_preempt`
 - `update_coach_preferences.write_attempted`
 - `update_coach_preferences.write_committed`

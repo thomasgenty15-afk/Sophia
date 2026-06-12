@@ -65,11 +65,7 @@ export function coachPreferenceLabel(
       : "Bienveillant ferme";
   }
   if (key === "coach.challenge_level") {
-    return value === "low"
-      ? "Léger"
-      : value === "high"
-      ? "Élevé"
-      : "Équilibré";
+    return value === "low" ? "Léger" : value === "high" ? "Élevé" : "Équilibré";
   }
   if (key === "coach.question_tendency") {
     return value === "low"
@@ -153,9 +149,8 @@ export function reduceWhatsAppOnboardingDecision(
         flow_summary: decision.exit_memo_request.flow_summary,
         handoff_hint_for_global_dispatcher:
           decision.exit_memo_request.handoff_hint_for_global_dispatcher,
-        handoff_justification_for_global_dispatcher:
-          decision.exit_memo_request
-            .handoff_justification_for_global_dispatcher,
+        handoff_justification_for_global_dispatcher: decision.exit_memo_request
+          .handoff_justification_for_global_dispatcher,
         at: nowIso,
       },
       note_information: decision.note_information,
@@ -189,21 +184,31 @@ export function reduceWhatsAppOnboardingDecision(
 
   if (decision.flow_action === "progress_attempt_during_onboarding") {
     return {
-      status: "owned",
-      reason_code: "whatsapp_onboarding_progress_attempt_blocked",
+      status: "exit_to_global_dispatcher",
+      reason_code: "whatsapp_onboarding_progress_attempt_direct_effect_allowed",
       next_whatsapp_state: input.whatsappState,
-      visible_task: "progress_attempt_blocked",
+      visible_task: "stop_after_plan_ready",
       preference_writes: [],
       mark_done: false,
       completion_mode: "not_done",
-      exit_memo: null,
-      note_information: null,
-      allow_global_dispatcher: false,
-      allow_track_progress_plan_item: false,
-      blocked_effects: [
-        { type: "track_progress_plan_item", reason_code: "onboarding_active" },
-        { type: "global_dispatcher", reason_code: "onboarding_active" },
-      ],
+      exit_memo: decision.exit_memo_request.needed
+        ? {
+          reason: "topic_change",
+          flow_summary: decision.exit_memo_request.flow_summary,
+          handoff_hint_for_global_dispatcher:
+            decision.exit_memo_request.handoff_hint_for_global_dispatcher ??
+              "track_progress_plan_item",
+          handoff_justification_for_global_dispatcher:
+            decision.exit_memo_request
+              .handoff_justification_for_global_dispatcher ??
+              "User reported completed progress during WhatsApp onboarding.",
+          at: nowIso,
+        }
+        : null,
+      note_information: decision.note_information,
+      allow_global_dispatcher: true,
+      allow_track_progress_plan_item: true,
+      blocked_effects: [],
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -234,9 +239,9 @@ export function reduceWhatsAppOnboardingDecision(
   }
 
   const requestedExit = decision.flow_action === "exit_to_global_dispatcher";
-  const requestedLocalHandoff = decision.flow_action === "handoff_to_local_flow";
-  const requestedStop = decision.flow_action === "stop_local_no_handoff";
-  if ((requestedExit || requestedLocalHandoff || requestedStop) && !planReady) {
+  const requestedLocalHandoff =
+    decision.flow_action === "handoff_to_local_flow";
+  if ((requestedExit || requestedLocalHandoff) && !planReady) {
     return {
       status: "owned",
       reason_code: "whatsapp_onboarding_exit_blocked_before_plan_ready",
@@ -271,9 +276,8 @@ export function reduceWhatsAppOnboardingDecision(
         handoff_hint_for_global_dispatcher:
           decision.exit_memo_request.handoff_hint_for_global_dispatcher ||
           decision.topic_choice.handoff_hint_for_global_dispatcher,
-        handoff_justification_for_global_dispatcher:
-          decision.exit_memo_request
-            .handoff_justification_for_global_dispatcher ||
+        handoff_justification_for_global_dispatcher: decision.exit_memo_request
+          .handoff_justification_for_global_dispatcher ||
           decision.topic_choice.handoff_justification_for_global_dispatcher,
         at: nowIso,
       },
@@ -283,27 +287,6 @@ export function reduceWhatsAppOnboardingDecision(
       blocked_effects: [
         { type: "track_progress_plan_item", reason_code: "onboarding_handoff" },
         { type: "global_dispatcher", reason_code: "handoff_to_local_flow" },
-      ],
-      risk_assessment: decision.risk_assessment,
-    };
-  }
-
-  if (requestedStop && planReady) {
-    return {
-      status: "stop_local_no_handoff",
-      reason_code: "whatsapp_onboarding_local_stop_after_plan_ready",
-      next_whatsapp_state: null,
-      visible_task: "stop_after_plan_ready",
-      preference_writes: [],
-      mark_done: true,
-      completion_mode: "stopped_after_plan_ready",
-      exit_memo: null,
-      note_information: null,
-      allow_global_dispatcher: false,
-      allow_track_progress_plan_item: false,
-      blocked_effects: [
-        { type: "track_progress_plan_item", reason_code: "onboarding_local_stop" },
-        { type: "global_dispatcher", reason_code: "stop_local_no_handoff" },
       ],
       risk_assessment: decision.risk_assessment,
     };
@@ -326,16 +309,18 @@ export function reduceWhatsAppOnboardingDecision(
         handoff_hint_for_global_dispatcher:
           decision.exit_memo_request.handoff_hint_for_global_dispatcher ||
           decision.topic_choice.handoff_hint_for_global_dispatcher,
-        handoff_justification_for_global_dispatcher:
-          decision.exit_memo_request
-            .handoff_justification_for_global_dispatcher ||
+        handoff_justification_for_global_dispatcher: decision.exit_memo_request
+          .handoff_justification_for_global_dispatcher ||
           decision.topic_choice.handoff_justification_for_global_dispatcher,
         at: nowIso,
       },
       note_information: decision.note_information,
       allow_global_dispatcher: true,
       allow_track_progress_plan_item: false,
-      blocked_effects: [{ type: "track_progress_plan_item", reason_code: "onboarding_exit" }],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "onboarding_exit",
+      }],
       risk_assessment: decision.risk_assessment,
     };
   }
@@ -486,7 +471,10 @@ export function reduceWhatsAppOnboardingDecision(
       allow_global_dispatcher: toGlobal,
       allow_track_progress_plan_item: false,
       blocked_effects: toGlobal
-        ? [{ type: "track_progress_plan_item", reason_code: "onboarding_complete_exit" }]
+        ? [{
+          type: "track_progress_plan_item",
+          reason_code: "onboarding_complete_exit",
+        }]
         : blockedEffects,
       risk_assessment: decision.risk_assessment,
     };

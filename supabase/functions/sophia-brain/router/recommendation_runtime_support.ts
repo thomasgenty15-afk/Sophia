@@ -87,45 +87,50 @@ function initialActivationNoteInformation(args: {
   turnFrame: TurnFrame | null;
   activeSkillState: unknown;
 }) {
-  if (args.activeSkillState) return null;
-  if (
-    args.routeDecision?.response_owner !== "conversation_handler" ||
-    args.routeDecision.selected_handler !== args.skillId
-  ) return null;
   const raw = args.turnFrame?.note_information ?? null;
-  if (raw) {
+  const selectedByRoute =
+    args.routeDecision?.response_owner === "conversation_handler"
+      ? args.routeDecision.selected_handler === args.skillId
+      : args.routeDecision?.response_owner === "product_help" &&
+        args.skillId === "product_help";
+  if (raw && selectedByRoute) {
     return normalizeNoteInformation(raw, {
       source_flow_id: "global_dispatcher",
-      source_flow_state_summary: `Premiere activation de ${args.skillId}.`,
       handoff_reason: "explicit_user_request",
       target_dispatcher: args.skillId as any,
       handoff_context_for_next_dispatcher: args.userMessage,
+      user_words: [args.userMessage.slice(0, 240)],
       structured_context: {
         user_message_summary: args.userMessage.slice(0, 240),
-        route_reason: args.routeDecision.reason_code,
+        active_flow_summary: `Premiere activation de ${args.skillId}.`,
+        route_reason: args.routeDecision?.reason_code ?? null,
+        unresolved_questions: [],
+        recommended_next_focus: args.skillId,
       },
-      risk_score: 0,
+      current_user_message: args.userMessage,
     });
   }
+  if (args.activeSkillState) return null;
+  if (!selectedByRoute) return null;
   return createNoteInformation({
     source_flow_id: "global_dispatcher",
-    source_flow_state_summary: `Premiere activation de ${args.skillId}.`,
     handoff_reason: "explicit_user_request",
     target_dispatcher: args.skillId as any,
     handoff_context_for_next_dispatcher: JSON.stringify({
       user_message_summary: args.userMessage.slice(0, 240),
-      route_reason: args.routeDecision.reason_code,
-      selected_handler: args.routeDecision.selected_handler,
+      route_reason: args.routeDecision?.reason_code ?? null,
+      selected_handler: args.routeDecision?.selected_handler ?? null,
     }),
-    target_local_dispatcher_hint:
-      "Treat this as initial ownership context, not as a visible message.",
     user_words: [args.userMessage.slice(0, 240)],
     structured_context: {
+      source_flow: "global_dispatcher",
       user_message_summary: args.userMessage.slice(0, 240),
-      route_reason: args.routeDecision.reason_code,
-      selected_handler: args.routeDecision.selected_handler,
+      active_flow_summary: `Premiere activation de ${args.skillId}.`,
+      route_reason: args.routeDecision?.reason_code ?? null,
+      selected_handler: args.routeDecision?.selected_handler ?? null,
+      unresolved_questions: [],
+      recommended_next_focus: args.skillId,
     },
-    risk_score: 0,
   });
 }
 
@@ -160,6 +165,39 @@ function conversationExplicitConstraints(tempMemory: unknown): string[] {
 function activeRecommendationSkillId(activeSkillState: unknown): string {
   const skillId = String((activeSkillState as any)?.skill_id ?? "").trim();
   return skillId === DEPRECATED_ACTION_BREAKDOWN_SKILL_ID ? "" : skillId;
+}
+
+export function localFlowExitParentStateForProductHelp(args: {
+  routeDecision: RouteDecision | null;
+  turnFrame: TurnFrame | null;
+}): Record<string, unknown> | null {
+  const handoff = (args.routeDecision as any)?.local_flow_exit_handoff ??
+    (args.turnFrame as any)?.local_flow_exit_handoff ?? null;
+  if (!handoff || typeof handoff !== "object" || Array.isArray(handoff)) {
+    return null;
+  }
+  const note = (handoff as any).note_information;
+  const sourceFlowId = String(
+    (note as any)?.source_flow_id ?? (handoff as any).source_flow_id ?? "",
+  ).trim();
+  if (
+    !sourceFlowId ||
+    sourceFlowId === "global" ||
+    sourceFlowId === "global_dispatcher" ||
+    sourceFlowId === "product_help"
+  ) return null;
+  return {
+    skill_id: sourceFlowId,
+    status: "exited_to_global",
+    mode: "local_exit_parent_context",
+    working_state: {
+      local_flow_exit_handoff: handoff,
+      note_information: note && typeof note === "object" &&
+          !Array.isArray(note)
+        ? note
+        : null,
+    },
+  };
 }
 
 export async function runConversationSkillForRecommendation(args: {
@@ -249,6 +287,13 @@ export async function prepareRecommendationRuntimeForTurn(args: {
           inlineActiveFlow.pendingToolSkillConfirmation ??
           null
         : null;
+      const localExitParentState =
+        selectedSkillForRecommendation === "product_help"
+          ? localFlowExitParentStateForProductHelp({
+            routeDecision: args.routeDecision,
+            turnFrame: args.turnFrame,
+          })
+          : null;
       recommendationSkillOutput = selectedSkillForRecommendation
         ? await runConversationSkillForRecommendation({
           skillId: selectedSkillForRecommendation,
@@ -260,7 +305,7 @@ export async function prepareRecommendationRuntimeForTurn(args: {
           planItemSnapshot: args.planItemSnapshot,
           productSurfaces: registry.surfaces,
           explicitConstraints: conversationExplicitConstraints(args.tempMemory),
-          activeSkillStateOverride: inlineParentState,
+          activeSkillStateOverride: inlineParentState ?? localExitParentState,
           routeDecision: args.routeDecision,
         })
         : null;
@@ -313,7 +358,7 @@ export async function prepareRecommendationRuntimeForTurn(args: {
           available_surfaces: registry.surfaces,
           recent_recommendations: [],
           user_preferences: {},
-          safety_pregate_risk_band: args.turnFrame.safety.risk_band,
+          safety_context_risk_band: args.turnFrame.safety.risk_band,
           model_name: String(
             Deno.env.get("SOPHIA_RECOMMENDATION_TOOL_MODEL") ??
               "gemini-3-flash-preview",
@@ -415,6 +460,7 @@ export function shouldRunRecommendationTool(args: {
   userMessage: string;
   turnFrame: TurnFrame;
 }): boolean {
+  if (isConversationSkillExitToGlobal(args.skillOutput)) return false;
   if (args.skillOutput?.skill_id === "demotivation_repair") return false;
   if ((args.skillOutput?.operation_suggestions ?? []).length > 0) {
     return false;
@@ -489,6 +535,33 @@ export function directConversationSkillReplyOverride(args: {
   if (!routeMatchesSkill) return null;
   const reply = String(skillOutput.reply ?? "").trim();
   return reply || null;
+}
+
+export function isConversationSkillExitToGlobal(
+  skillOutput: ConversationSkillOutput | null | undefined,
+): boolean {
+  if (!skillOutput) return false;
+  const diagnosis = skillOutput.diagnosis &&
+      typeof skillOutput.diagnosis === "object"
+    ? skillOutput.diagnosis as Record<string, unknown>
+    : {};
+  const statePatch = skillOutput.state_patch &&
+      typeof skillOutput.state_patch === "object"
+    ? skillOutput.state_patch as Record<string, unknown>
+    : {};
+  const responseIntent = String(skillOutput.response_intent ?? "").trim();
+  const flowAction = String(diagnosis.flow_action ?? "").trim();
+  const exitMemo = diagnosis.exit_memo &&
+      typeof diagnosis.exit_memo === "object"
+    ? diagnosis.exit_memo as Record<string, unknown>
+    : {};
+  return responseIntent === "exit_to_global_dispatcher" ||
+    flowAction === "exit_to_global_dispatcher" ||
+    skillOutput.status === "exit" &&
+      (
+        Object.keys(exitMemo).length > 0 ||
+        Object.keys(statePatch).some((key) => key.endsWith("_exit_memo"))
+      );
 }
 
 export function enforceRecommendationToolVisibleReply(args: {

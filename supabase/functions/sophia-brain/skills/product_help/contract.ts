@@ -56,11 +56,9 @@ export type ProductHelpLocalFlowAction =
   | "apply_attempt"
   | "inline_status_roundtrip"
   | "inline_tool_return"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "close_product_help"
   | "return_to_parent_flow"
-  | "handoff_to_local_dispatcher"
-  | "exit_to_global_dispatcher"
   | "safety_preempt";
 
 export type ProductHelpVisibleTaskKind =

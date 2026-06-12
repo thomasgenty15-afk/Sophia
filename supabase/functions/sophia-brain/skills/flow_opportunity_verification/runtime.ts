@@ -29,7 +29,7 @@ import { maybeRunUpdateCoachPreferencesOperation } from "../../tools/operations/
 import { maybeRunPrepareAttackCardOperation } from "../../tools/operations/prepare_attack_card/router.ts";
 import { maybeRunPrepareDefenseCardOperation } from "../../tools/operations/prepare_defense_card/router.ts";
 import { maybeRunCreateRecurringReminderOperation } from "../../tools/operations/create_recurring_reminder/router.ts";
-import type { runSafetyPregate } from "../../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../../safety/safety_context.ts";
 import type {
   FlowOpportunityDispatcherOutput,
   FlowOpportunityLocalState,
@@ -332,7 +332,7 @@ function syntheticLocalTurnFrame(args: {
   userId: string;
   channel: "web" | "whatsapp";
   sourceMessageId?: string | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
 }): TurnFrame {
   return {
     turn_id: args.turnFrame?.turn_id ?? args.sourceMessageId ??
@@ -342,9 +342,9 @@ function syntheticLocalTurnFrame(args: {
     user_id: args.userId,
     channel: args.channel,
     safety: {
-      risk_band: args.safetyPregateOutput.risk_band,
-      reason_codes: args.safetyPregateOutput.reason_codes ?? [],
-      evidence: args.safetyPregateOutput.evidence ?? [],
+      risk_band: args.safetyContextOutput.risk_band,
+      reason_codes: args.safetyContextOutput.reason_codes ?? [],
+      evidence: args.safetyContextOutput.evidence ?? [],
     },
     conversation_risk: {
       score: 0,
@@ -806,7 +806,7 @@ async function handoffToTargetFlow(args: {
   state: FlowOpportunityLocalState;
   noteInformation: NoteInformation | null;
   turnFrame: TurnFrame | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId?: string | null;
   requestId?: string | null;
   runPrepareAttackCardOperation?: typeof maybeRunPrepareAttackCardOperation;
@@ -821,7 +821,7 @@ async function handoffToTargetFlow(args: {
     userId: args.userId,
     channel: args.channel,
     sourceMessageId: args.sourceMessageId ?? null,
-    safetyPregateOutput: args.safetyPregateOutput,
+    safetyContextOutput: args.safetyContextOutput,
   });
   localTurnFrame.note_information = args.noteInformation ?? undefined;
   const targetRoute: RouteDecision = {
@@ -876,7 +876,7 @@ async function handoffToTargetFlow(args: {
         }],
       },
       routeDecision: targetRoute,
-      safetyPregateOutput: args.safetyPregateOutput,
+      safetyContextOutput: args.safetyContextOutput,
       sourceMessageId: args.sourceMessageId ?? null,
       requestId: args.requestId ?? null,
       history: args.history,
@@ -918,7 +918,7 @@ async function handoffToTargetFlow(args: {
           }],
         },
         routeDecision: targetRoute,
-        safetyPregateOutput: args.safetyPregateOutput,
+        safetyContextOutput: args.safetyContextOutput,
         sourceMessageId: args.sourceMessageId ?? null,
         requestId: args.requestId ?? null,
         history: args.history,
@@ -947,7 +947,7 @@ async function handoffToTargetFlow(args: {
           }],
         },
         routeDecision: targetRoute,
-        safetyPregateOutput: args.safetyPregateOutput,
+        safetyContextOutput: args.safetyContextOutput,
         sourceMessageId: args.sourceMessageId ?? null,
         requestId: args.requestId ?? null,
         history: args.history,
@@ -976,7 +976,7 @@ async function handoffToTargetFlow(args: {
           }],
         },
         routeDecision: targetRoute,
-        safetyPregateOutput: args.safetyPregateOutput,
+        safetyContextOutput: args.safetyContextOutput,
         sourceMessageId: args.sourceMessageId ?? null,
         requestId: args.requestId ?? null,
         history: args.history,
@@ -1062,20 +1062,18 @@ function initialActivationNote(args: {
 }): NoteInformation {
   return createNoteInformation({
     source_flow_id: "global_dispatcher",
-    source_flow_presentation:
-      "Global dispatcher selected an implicit opportunity and delegated verification to the local flow.",
-    source_flow_state_summary:
-      `Opportunity ${args.opportunity.opportunity_id}; target=${args.opportunity.target_flow}; confidence=${args.opportunity.confidence}.`,
     handoff_reason: "bridge",
     target_dispatcher: "verification_opportunities",
     handoff_context_for_next_dispatcher: args.opportunity.reason ||
       "Verify an implicit opportunity before handoff to the target dispatcher.",
-    target_local_dispatcher_hint:
-      "Offer the selected opportunity without repicking all flows.",
     user_words: [args.userMessage, ...args.opportunity.evidence].filter(
       Boolean,
     ),
     structured_context: {
+      source_flow: "global_dispatcher",
+      user_message_summary: args.userMessage,
+      active_flow_summary:
+        `Opportunity ${args.opportunity.opportunity_id}; target=${args.opportunity.target_flow}; confidence=${args.opportunity.confidence}.`,
       opportunity_id: args.opportunity.opportunity_id,
       target_kind: args.opportunity.target_kind,
       target_flow: args.opportunity.target_flow,
@@ -1089,7 +1087,7 @@ function initialActivationNote(args: {
         stringValue(args.opportunity.seed_context.target_hint) ||
         args.opportunity.target_flow,
     },
-    risk_score: 0,
+    confidence: args.opportunity.confidence,
   });
 }
 
@@ -1103,7 +1101,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
   tempMemory: any;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId?: string | null;
   requestId?: string | null;
   runLocalDispatcher?: FlowOpportunityLocalDispatcher;
@@ -1114,7 +1112,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
     typeof maybeRunCreateRecurringReminderOperation;
   runConversationTargetFlow?: ConversationTargetFlowRunner;
 }): Promise<OperationRuntimeResult | null> {
-  if (String(args.safetyPregateOutput.risk_band ?? "none") === "critical") {
+  if (String(args.safetyContextOutput.risk_band ?? "none") === "critical") {
     return null;
   }
   const previous = readFlowOpportunityState(args.tempMemory);
@@ -1169,7 +1167,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       platform_context: { channel: args.channel, timezone: args.userTimezone },
       turn_frame: args.turnFrame,
       route_decision: args.routeDecision,
-      safety: args.safetyPregateOutput,
+      safety: args.safetyContextOutput,
       channel: args.channel,
       timezone: args.userTimezone,
     })
@@ -1343,7 +1341,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       state: previous,
       noteInformation: reduced.note_information,
       turnFrame: args.turnFrame,
-      safetyPregateOutput: args.safetyPregateOutput,
+      safetyContextOutput: args.safetyContextOutput,
       sourceMessageId: args.sourceMessageId ?? null,
       requestId: args.requestId ?? null,
       runPrepareAttackCardOperation: args.runPrepareAttackCardOperation,

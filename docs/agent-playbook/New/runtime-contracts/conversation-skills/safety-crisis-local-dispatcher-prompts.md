@@ -103,7 +103,7 @@ The safety dispatcher itself does not call product/status/tool inline. If the
 reducer later resolves safety and immediately transfers to global, the resolved
 exit must carry `note_information` with `source_flow_id="safety_crisis"` and
 `target_dispatcher="global"`. If safety closes locally and waits for the next
-user turn, that is `stop_local_no_handoff` and no same-turn global call occurs.
+user turn, that is `exit_to_global_dispatcher` and no same-turn global call occurs.
 
 ## Prompt 01 - Local Dispatcher
 

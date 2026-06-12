@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r3-t01",
+    "status": 502,
+    "ok": null,
+    "user": "Je voudrais préparer une carte de défense pour le moment où je sors du bureau crevé, je passe près des fast-foods et je bascule dans un achat impulsif au lieu de rentrer manger simplement.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r3-t01",
+    "trace_error": null
+  }
+]

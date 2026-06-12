@@ -27,7 +27,7 @@ The dispatcher returns only this JSON :
 
 ```json
 {
-  "flow_action": "ask_disambiguation|answer_clarification|still_ambiguous|resolved_to_candidate|revise_understanding|explain_candidate_options|get_info_product|get_info_db|stop_local_no_handoff|cancel_clarification|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "ask_disambiguation|answer_clarification|still_ambiguous|resolved_to_candidate|revise_understanding|explain_candidate_options|get_info_product|get_info_db|exit_to_global_dispatcher|cancel_clarification|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "clarification_state": {
@@ -101,7 +101,7 @@ Rules :
 - `ask_disambiguation` and `still_ambiguous` must ask one question only.
 - `exit_to_global_dispatcher`, `safety_preempt`, `resolved_to_candidate`,
   `get_info_product`, and `get_info_db` require `note_information`.
-- `stop_local_no_handoff` and `cancel_clarification` do not call global on the
+- `exit_to_global_dispatcher` and `cancel_clarification` do not call global on the
   same turn.
 - The dispatcher never writes a visible message.
 - The dispatcher never invents a candidate.
@@ -151,7 +151,7 @@ Actions :
 - explain_candidate_options : le user veut comprendre la difference entre options.
 - get_info_product : question produit inline utile pour choisir.
 - get_info_db : question statut/DB inline utile pour choisir.
-- stop_local_no_handoff : le user veut juste arreter sans nouveau sujet.
+- exit_to_global_dispatcher : le user veut juste arreter sans nouveau sujet.
 - cancel_clarification : le user refuse cette clarification.
 - exit_to_global_dispatcher : le user apporte un autre sujet clair.
 - safety_preempt : safety doit prendre l'ownership.

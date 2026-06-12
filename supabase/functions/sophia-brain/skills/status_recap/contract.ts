@@ -24,9 +24,8 @@ export type StatusRecapLocalFlowAction =
   | "explain_sources"
   | "no_source_status"
   | "human_recap_no_db"
-  | "stop_local_no_handoff"
-  | "cancel_flow"
   | "exit_to_global_dispatcher"
+  | "cancel_flow"
   | "handoff_to_local_flow"
   | "safety_preempt";
 

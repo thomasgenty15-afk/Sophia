@@ -232,9 +232,10 @@ Deno.test("emotional_repair dispatcher prompt teaches field completion and trans
     ) => rule.includes("message courant")),
   );
   assert(
-    EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.stop_local_no_handoff.some((
-      rule,
-    ) => rule.includes("exit_memo.needed=false")),
+    EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.exit_to_global_dispatcher
+      .some((
+        rule,
+      ) => rule.includes("exit_memo.needed=true")),
   );
   assert(
     EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.exit_to_global_dispatcher
@@ -252,7 +253,7 @@ Deno.test("emotional_repair dispatcher prompt keeps exactly two decision example
   assertEquals(
     EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[1].expected_decision
       .flow_action,
-    "stop_local_no_handoff",
+    "exit_to_global_dispatcher",
   );
   assertEquals(
     EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[1].expected_decision
@@ -484,9 +485,11 @@ Deno.test("emotional_repair confirmed bridge emits potion context without mutati
     "select_state_potion",
   );
   assertEquals(
-    confirmed.potion_bridge_context?.note_information.no_chat_mutation
-      .potion_session_created,
-    false,
+    Object.keys(
+      confirmed.potion_bridge_context?.note_information.structured_context ??
+        {},
+    ).length > 0,
+    true,
   );
   assertEquals(
     confirmed.potion_bridge_context?.prefill_candidates.recent_hurt
@@ -515,11 +518,21 @@ Deno.test("emotional_repair safety preempt wins over local bridge", () => {
   );
 });
 
-Deno.test("emotional_repair stop_local_no_handoff closes locally without global exit", () => {
+Deno.test("emotional_repair exit_to_global_dispatcher exits to global", () => {
   const reduced = reduceEmotionalRepairLocalDispatcherOutput({
     previous: null,
     output: dispatcherOutput({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
+      repair_state: {
+        intent: "unclear",
+        phase: "exit",
+        emotional_dominance: "low",
+        context_domain: "unknown",
+        summary: "Le user arrete le flow.",
+        user_words: ["stop"],
+        identity_freeze_risk: false,
+        emotion_stabilized_enough_for_tool: false,
+      },
       exit_memo: {
         needed: true,
         reason: "cancelled",
@@ -531,10 +544,10 @@ Deno.test("emotional_repair stop_local_no_handoff closes locally without global 
     turn_frame: turnFrame(),
   });
 
-  assertEquals(reduced.status, "complete");
-  assertEquals(reduced.response_intent, "stop_local_no_handoff");
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.response_intent, "exit_to_global_dispatcher");
   assertEquals(reduced.local_state, null);
-  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.exit_to_global_dispatcher, true);
   assertEquals(reduced.potion_bridge_context, null);
   assertEquals(reduced.visible_task.kind, "exit_or_cancel");
 });
@@ -572,7 +585,7 @@ Deno.test("emotional_repair visible agent receives only conversation_context tas
   assertEquals((seenInput as any)?.local_state, undefined);
 });
 
-Deno.test("emotional_repair safety pregate hands off without local visible message", async () => {
+Deno.test("emotional_repair safety context hands off without local visible message", async () => {
   const output = await runEmotionalRepairSkill({
     user_message: "je risque de me faire du mal",
     context: {
@@ -587,7 +600,7 @@ Deno.test("emotional_repair safety pregate hands off without local visible messa
       exclusions: [],
     } as any,
     local_dispatcher: async () => {
-      throw new Error("local_dispatcher_should_not_run_after_safety_pregate");
+      throw new Error("local_dispatcher_should_not_run_after_safety_context");
     },
     visible_agent: async () => {
       throw new Error("visible_agent_should_not_run_on_safety_handoff");

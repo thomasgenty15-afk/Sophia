@@ -37,7 +37,7 @@ export type GenerateWithGeminiMeta = {
   // If true, do not append our internal provider/model fallback chain.
   // Useful when the caller already implements an external model cycle (e.g. judge loops).
   disableFallbackChain?: boolean;
-  // Eval-only: when present, we emit structured runtime trace events into conversation_eval_events.
+  // Structured trace: when present, emit runtime trace events into the historical trace table.
   evalRunId?: string | null;
 };
 
@@ -240,10 +240,9 @@ export async function generateWithGemini(
         safeEnvGet("GEMINI_31_PRO_HTTP_TIMEOUT_MS"),
         Math.max(GEMINI_HTTP_TIMEOUT_MS, 150_000),
       );
-  // Separate (looser) timeout for eval-like traffic. Keep it configurable without affecting normal chat latency.
-  // Note: run-evals also has its own wall-clock chunking (`max_wall_clock_ms_per_request`) so do not set this absurdly high.
-  const GEMINI_EVAL_HTTP_TIMEOUT_MS = parsePositiveTimeoutMs(
-    safeEnvGet("GEMINI_EVAL_HTTP_TIMEOUT_MS"),
+  // Separate (looser) timeout for tool-heavy traces. Keep it configurable without affecting normal chat latency.
+  const GEMINI_LONG_TOOL_HTTP_TIMEOUT_MS = parsePositiveTimeoutMs(
+    safeEnvGet("GEMINI_LONG_TOOL_HTTP_TIMEOUT_MS"),
     240_000,
   );
 
@@ -265,7 +264,7 @@ export async function generateWithGemini(
         .trim();
       if (!url || !serviceKey) return;
       if (!traceClient) {
-        // Dynamic import avoids extra overhead for non-eval calls.
+        // Dynamic import avoids extra overhead for calls that do not trace.
         const mod: any = await import("jsr:@supabase/supabase-js@2");
         traceClient = mod.createClient(url, serviceKey, {
           auth: { persistSession: false, autoRefreshToken: false },
@@ -316,11 +315,8 @@ export async function generateWithGemini(
   const requestId = String(meta?.requestId ?? "").trim();
   const source = String(meta?.source ?? "").trim();
   const startedAtMs = Date.now();
-  // Evals are extremely sensitive to wall-clock time (edge runtime early termination).
-  // We treat any requestId that contains ":tools:" (run-evals scenarios) as an eval-like request.
-  const isEvalLikeRequest = requestId.includes(":tools:") ||
-    source.includes("run-evals") ||
-    source.includes("simulate-user");
+  // Tool-heavy traces are sensitive to edge-runtime wall-clock termination.
+  const isLongToolTraceRequest = requestId.includes(":tools:");
 
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
@@ -477,13 +473,8 @@ export async function generateWithGemini(
   // - Otherwise, use GLOBAL_AI_MODEL.
   const defaultModel = getGlobalAiModel("gemini-2.5-flash");
   let baseModel = (meta?.model ?? defaultModel).trim();
-  const sourceLower = String(meta?.source ?? "").toLowerCase();
-  const isEvalJudgeCall = sourceLower === "eval-judge" ||
-    sourceLower.includes("eval-judge") ||
-    String(meta?.requestId ?? "").includes(":judge:");
   let model = baseModel;
   // If we detect rate limiting/overload during this call, stick to a stable model (reduces warning spam + thrash).
-  // In eval-like calls, default stickiness is to go to 2.0 after first failure.
   let stickyModel: string | null = null;
 
   // Fallback policy:
@@ -527,29 +518,28 @@ export async function generateWithGemini(
       return Math.floor(Number(meta?.httpTimeoutMs));
     }
     const mm = String(m ?? "").trim();
-    // Tight timeouts in evals to avoid edge-runtime early termination → run-evals 500 → "restart from beginning".
-    if (isEvalLikeRequest) {
-      const evalTimeout = GEMINI_EVAL_HTTP_TIMEOUT_MS;
-      // Evals can have large prompts (dashboard + vectors + tool schemas) and intermittent provider latency.
+    // Tool-heavy traces can have large prompts (dashboard + vectors + tool schemas) and intermittent provider latency.
+    if (isLongToolTraceRequest) {
+      const longToolTimeout = GEMINI_LONG_TOOL_HTTP_TIMEOUT_MS;
       // If timeouts are too tight we end up thrashing into fallbacks and generating noisy warning logs.
-      // "Very loose" policy: allow long provider latency up to GEMINI_EVAL_HTTP_TIMEOUT_MS (default 240s),
+      // "Very loose" policy: allow long provider latency up to GEMINI_LONG_TOOL_HTTP_TIMEOUT_MS (default 240s),
       // with generous per-model caps, unless the caller explicitly set meta.httpTimeoutMs (handled above).
       if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) {
-        return Math.min(evalTimeout, 240_000);
+        return Math.min(longToolTimeout, 240_000);
       }
       if (/\bgemini-3\.1[-.]pro(?:-preview)?\b/i.test(mm)) {
-        return Math.min(evalTimeout, 240_000);
+        return Math.min(longToolTimeout, 240_000);
       }
       if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) {
-        return Math.min(evalTimeout, 240_000);
+        return Math.min(longToolTimeout, 240_000);
       }
       if (/\bgemini-2\.5-flash\b/i.test(mm)) {
-        return Math.min(evalTimeout, 220_000);
+        return Math.min(longToolTimeout, 220_000);
       }
       if (/\bgemini-2\.0-flash\b/i.test(mm)) {
-        return Math.min(evalTimeout, 180_000);
+        return Math.min(longToolTimeout, 180_000);
       }
-      return evalTimeout;
+      return longToolTimeout;
     }
     if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) {
       return Math.min(GEMINI_HTTP_TIMEOUT_MS, 60_000);
@@ -563,19 +553,17 @@ export async function generateWithGemini(
     return GEMINI_HTTP_TIMEOUT_MS;
   };
 
-  // OpenAI timeout: in eval-like requests we still want a bit more breathing room than Gemini,
-  // because OpenAI may take longer when validating tool schemas + producing tool_calls.
+  // OpenAI timeout: allow long generations by default.
   const OPENAI_HTTP_TIMEOUT_MS = (() => {
     const raw = (Deno.env.get("OPENAI_HTTP_TIMEOUT_MS") ?? "").trim();
     const n = Number(raw);
     if (Number.isFinite(n) && n > 0) return Math.floor(n);
     // Increased default to 240s to reduce timeout-related fallbacks on long generations.
-    return isEvalLikeRequest ? 240_000 : 240_000;
+    return 240_000;
   })();
 
   // Even when callers set maxRetries=1 (common for "follow-up phrasing" steps),
   // we still want a robust provider fallback chain to avoid hard failures that abort the whole request
-  // (which looks like an "eval restart" when the runner retries).
   const pickFallbackChainForAttempt = (
     startModel: string,
     attempt: number,
@@ -602,8 +590,7 @@ export async function generateWithGemini(
     // - Standard Gemini: alternating primary/fallback first, then OpenAI safety nets.
     //
     push(primary);
-    const isCritical = isGpt52(startModel) ||
-      (isEvalJudgeCall && isGpt52(primary));
+    const isCritical = isGpt52(startModel) || isGpt52(primary);
     if (isCritical) {
       push(geminiFallbackModel);
       push("gpt-5.4-mini");
@@ -699,15 +686,15 @@ export async function generateWithGemini(
     payload.generationConfig.responseMimeType = "application/json";
   }
 
-  // Eval stability guard:
-  // In "MODE TEST PARKING LOT" (run-evals), we want to test the post-bilan/deferred state machine,
+  // Parking-lot test guard:
+  // In "MODE TEST PARKING LOT", we want to test the post-bilan/deferred state machine,
   // not perform DB writes or plan mutations. Tool calls also increase CPU and
   // risk Edge Runtime "wall clock" / "CPU time" terminations.
-  const disableToolsInEval =
+  const disableToolsForParkingLotTest =
     (systemPrompt ?? "").includes("MODE TEST PARKING LOT") ||
     (systemPrompt ?? "").includes("CONSIGNE TEST PARKING LOT");
 
-  if (!disableToolsInEval && tools && tools.length > 0) {
+  if (!disableToolsForParkingLotTest && tools && tools.length > 0) {
     payload.tools = [{ function_declarations: tools }];
 
     // Support for tool_config to force tool use
@@ -720,9 +707,9 @@ export async function generateWithGemini(
         },
       };
     }
-  } else if (disableToolsInEval && tools && tools.length > 0) {
+  } else if (disableToolsForParkingLotTest && tools && tools.length > 0) {
     console.log(
-      `[Gemini] Tools disabled for eval parking-lot request_id=${
+      `[Gemini] Tools disabled for parking-lot test request_id=${
         meta?.requestId ?? "n/a"
       } source=${meta?.source ?? "n/a"}`,
     );
@@ -733,9 +720,9 @@ export async function generateWithGemini(
     if (Number.isFinite(fromMeta) && fromMeta >= 1) return Math.floor(fromMeta);
     const raw = (Deno.env.get("GEMINI_MAX_RETRIES") ?? "").trim();
     const n = Number(raw);
-    // Default: keep retries short in evals (edge-runtime wall clock), longer in prod.
+    // Default: keep retries short for long tool traces, longer in prod.
     if (Number.isFinite(n) && n >= 1) return Math.floor(n);
-    return isEvalLikeRequest ? 4 : 10;
+    return isLongToolTraceRequest ? 4 : 10;
   })();
   let response: Response | null = null;
   let data: any = null;
@@ -1056,7 +1043,7 @@ export async function generateWithGemini(
               attempt,
               maxRetries: MAX_RETRIES,
               source,
-              isEvalLikeRequest,
+              isLongToolTraceRequest,
             },
           );
           await traceInsert({
@@ -1068,7 +1055,7 @@ export async function generateWithGemini(
               attempt,
               max_retries: MAX_RETRIES,
               source: meta?.source ?? null,
-              is_eval_like: isEvalLikeRequest,
+              is_long_tool_trace: isLongToolTraceRequest,
               global: semStore.global.snapshot(),
               per_model: getModelSem(model).snapshot(),
             },
@@ -1184,7 +1171,7 @@ export async function generateWithGemini(
           lastInnerErr = new Error(`Erreur Gemini: ${msg}`);
           if (response.status === 429 || response.status === 503) {
             // After rate limiting / overload, prefer configured Gemini fallback.
-            if (isEvalLikeRequest) {
+            if (isLongToolTraceRequest) {
               stickyModel = getGeminiFallbackModel("gemini-2.5-flash");
             }
             openBreaker("gemini", model, 20_000, msg);
@@ -1264,7 +1251,7 @@ export async function generateWithGemini(
             "H2",
             "gemini.ts:outer_backoff",
             "outer backoff before next attempt",
-            { attempt, ms: backoffMs(attempt), source, isEvalLikeRequest },
+            { attempt, ms: backoffMs(attempt), source, isLongToolTraceRequest },
           );
           // #endregion
           await sleep(backoffMs(attempt));

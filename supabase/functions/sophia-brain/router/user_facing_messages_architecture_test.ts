@@ -1,10 +1,4 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { applyUnexecutedEffectClaimGuard } from "./final_response_guards.ts";
-import {
-  createEffectLedger,
-  recordCommittedEffect,
-  rewriteUncommittedEffectClaims,
-} from "./effect_ledger.ts";
 import {
   containsDurableSuccessClaim,
   renderNonCommittedReply,
@@ -18,76 +12,14 @@ function stripComments(source: string): string {
     .join("\n");
 }
 
-Deno.test("final guards trace plan modified without rewriting visible reply", () => {
-  const ledger = createEffectLedger("turn-plan");
-  const reply = "Plan ajusté pour la semaine.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("final guards trace coach preference saved without rewriting visible reply", () => {
-  const ledger = createEffectLedger("turn-preference");
-  const reply = "C'est fait, préférence enregistrée.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("final guards trace potion activated without rewriting visible reply", () => {
-  const ledger = createEffectLedger("turn-potion");
-  const reply = "Potion activée.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("final guards keep committed potion activation claim", () => {
-  const ledger = createEffectLedger("turn-potion-committed");
-  recordCommittedEffect(ledger, {
-    effect_id: "potion-commit",
-    effect_type: "state_potion.activate",
-    operation_type: "select_state_potion",
-    committed_id: "session_1",
-    source: "executor",
-    db_ref: { table: "potion_sessions", id: "session_1" },
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Potion activée.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, false);
-});
-
-Deno.test("legacy final guard rewrites intended but unexecuted reminder success", () => {
-  const guarded = applyUnexecutedEffectClaimGuard({
-    responseContent: "C'est programmé ✅",
-    intendedTools: ["create_one_shot_reminder"],
-    executedTools: [],
-  });
-  assertEquals(
-    guarded,
-    "Je préfère être clair : je n'ai pas encore programmé ce rappel. Dis-moi le moment exact (et le texte) et je le programme tout de suite.",
-  );
-});
-
 Deno.test("run_ts_does_not_add_inline_business_success_blocks", async () => {
   const runText = await Deno.readTextFile(new URL("./run.ts", import.meta.url));
   const knownLegacy = [{
     name: "short technical fallback content strings",
     reason:
-      "run.ts still has orchestration fallbacks, but migrated durable success copy belongs in renderers/final guards.",
+      "run.ts still has orchestration fallbacks, but durable success copy belongs in operation/sflow renderers.",
     removal_criteria:
-      "Final response pipeline owns all durable success/failure user-facing text.",
+      "Operation runtimes own durable success/failure user-facing text.",
   }];
   assertEquals(
     knownLegacy.every((item) => item.reason && item.removal_criteria),

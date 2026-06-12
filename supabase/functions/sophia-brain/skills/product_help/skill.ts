@@ -4,6 +4,7 @@ import {
   createNoteInformation,
   type NoteInformation,
   noteInformationForTrace,
+  noteInformationSummary,
 } from "../../contracts/note_information.v1.ts";
 import {
   type ProductHelpLocalDispatcher,
@@ -77,9 +78,6 @@ function inboundProductHelpNote(args: {
     : "global";
   return createNoteInformation({
     source_flow_id: sourceFlowId,
-    source_flow_state_summary: args.mode === "inline"
-      ? `Parent flow ${sourceFlowId} asked product_help inline.`
-      : "Global dispatcher selected product_help for a product question.",
     handoff_reason: args.mode === "inline"
       ? "inline_tool"
       : "explicit_user_request",
@@ -89,15 +87,19 @@ function inboundProductHelpNote(args: {
       mode: args.mode,
       parent_flow_context: args.mode === "inline" ? args.activeFlow : null,
     }),
-    target_local_dispatcher_hint:
-      "Classify the product question locally; do not mutate product state.",
     user_words: [args.input.user_message],
     structured_context: {
+      source_flow: sourceFlowId,
       user_message: args.input.user_message,
+      user_message_summary: args.input.user_message,
+      active_flow_summary: args.mode === "inline"
+        ? `Parent flow ${sourceFlowId} asked product_help inline.`
+        : "Global dispatcher selected product_help for a product question.",
       mode: args.mode,
       parent_flow_context: args.mode === "inline" ? args.activeFlow : null,
+      unresolved_questions: [],
+      recommended_next_focus: "product_help",
     },
-    risk_score: 0,
   });
 }
 
@@ -207,7 +209,9 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       },
     },
     note_information_inbound: inboundNote,
-    platform_context: {},
+    platform_context: {
+      plan_snapshot: { items: input.context.plan_items ?? [] },
+    },
     risk_context: { turn_safety: (input.context.turn_frame as any)?.safety },
     available_inline_tools: ["status_recap"],
     active_flow_context: activeFlow,
@@ -289,7 +293,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
           at: new Date().toISOString(),
           reducer_reason_code: reduced.reason_code,
         },
-        summary: reduced.note_information?.source_flow_state_summary ??
+        summary: noteInformationSummary(reduced.note_information) ??
           decision.exit_memo.user_intent_summary ??
           "Product help exited to global dispatcher.",
       },

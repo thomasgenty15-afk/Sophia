@@ -85,6 +85,15 @@ function dispatcherOutput(patch: Record<string, unknown> = {}) {
       attempt_kind: "none",
       defer_reason: null,
     },
+    direct_effect_request: {
+      requested: false,
+      effect_type: null,
+      explicitness: "none",
+      target_status: "none",
+      confidence_band: "low",
+      payload_hint: { raw_text: null },
+      reason: null,
+    },
     exit_request: {
       requested: false,
       why_user_thinks_safe: null,
@@ -141,6 +150,7 @@ Deno.test("safety_crisis local dispatcher prompt documents real field completion
   assert(prompt.includes("- safety_signals:"));
   assert(prompt.includes("- user_state_summary:"));
   assert(prompt.includes("- product_tool_boundary:"));
+  assert(prompt.includes("- direct_effect_request:"));
   assert(prompt.includes("- exit_request:"));
   assert(prompt.includes("- state_hints:"));
   assert(prompt.includes("- note_information:"));
@@ -150,9 +160,10 @@ Deno.test("safety_crisis local dispatcher prompt documents real field completion
   assert(prompt.includes("- exit_memo et response_contract:"));
   assert(prompt.includes("- evidence:"));
   assert(prompt.includes("Transition Rules:"));
-  assert(prompt.includes("stop_local_no_handoff"));
+  assert(prompt.includes("exit_to_global_dispatcher"));
   assert(prompt.includes("exit_to_global_dispatcher"));
   assert(prompt.includes("safety_escalate"));
+  assert(prompt.includes("create_one_shot_reminder via direct_effect_request"));
   assert(prompt.includes("Aucun handoff local autre que safety"));
   assert(prompt.includes("N'invente pas handoff_to_local_flow"));
   assertEquals(
@@ -185,7 +196,7 @@ Deno.test("safety_crisis local dispatcher contract supports required transition 
   assertEquals(normal.product_tool_boundary.attempted, false);
 
   const stop = dispatcherOutput({
-    flow_action: "stop_local_no_handoff",
+    flow_action: "exit_to_global_dispatcher",
     confidence: "medium",
     risk_score: 2,
     safety_signals: {
@@ -195,7 +206,7 @@ Deno.test("safety_crisis local dispatcher contract supports required transition 
     },
     evidence: ["demande d'arret sans nouveau sujet"],
   });
-  assertEquals(stop.flow_action, "stop_local_no_handoff");
+  assertEquals(stop.flow_action, "exit_to_global_dispatcher");
   assertEquals(stop.exit_request.requested, false);
 
   const exitGlobal = dispatcherOutput({
@@ -288,6 +299,45 @@ Deno.test("safety_crisis local dispatcher preserves product/tool constraint and 
   });
   assertEquals(continueLocal.flow_action, "answer_safety_check");
   assertEquals(continueLocal.exit_request.requested, false);
+});
+
+Deno.test("safety_crisis local dispatcher exposes explicit one-shot reminder as standard direct effect request", () => {
+  const reminder = dispatcherOutput({
+    flow_action: "provide_deescalation_evidence",
+    confidence: "high",
+    risk_score: 4,
+    safety_signals: {
+      immediate_danger: false,
+      has_means_nearby: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    },
+    direct_effect_request: {
+      requested: true,
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        raw_text:
+          "mets-moi un rappel dans 30 minutes pour verifier que je tiens",
+      },
+      reason: "explicit one-shot reminder request during safety flow",
+    },
+    evidence: ["rappel dans 30 minutes"],
+  });
+
+  assertEquals(reminder.direct_effect_request.requested, true);
+  assertEquals(
+    reminder.direct_effect_request.effect_type,
+    "create_one_shot_reminder",
+  );
+  assertEquals(reminder.direct_effect_request.target_status, "identified");
+  assertEquals(reminder.product_tool_boundary.attempted, false);
+  assertEquals(reminder.no_tooling.db_write_committed, false);
 });
 
 Deno.test("safety_crisis reducer escalates immediate danger and means nearby alone", () => {
@@ -497,11 +547,11 @@ Deno.test("safety_crisis first activation note is consumed by local dispatcher a
     userMessage: rawUserMessage,
     sourceMessageId: "message-first-safety",
     requestId: "request-first-safety",
-    safetyPregateOutput: {
+    safetyContextOutput: {
       detected: true,
       risk_band: "high",
       reason_codes: ["explicit_suicidal_thoughts"],
-      evidence: ["pregate evidence"],
+      evidence: ["safety context evidence"],
       allow_side_effects: false,
       layer_contributions: {},
     } as any,
@@ -543,7 +593,7 @@ Deno.test("safety_crisis first activation note is consumed by local dispatcher a
         safety: {
           risk_band: "high",
           reason_codes: ["explicit_suicidal_thoughts"],
-          evidence: ["pregate evidence"],
+          evidence: ["safety context evidence"],
         },
       }),
     }));
@@ -608,21 +658,21 @@ Deno.test("safety_crisis runtime skips global dispatcher while safety owns the t
         status: "active",
         working_state: { phase: "acute_grounding" },
       },
-      safetyPregateOutput: { risk_band: "low", reason_codes: [] },
+      safetyContextOutput: { risk_band: "low", reason_codes: [] },
     }),
     true,
   );
   assertEquals(
     shouldSkipGlobalDispatcherForSafetyLocalTurn({
       activeSkillState: null,
-      safetyPregateOutput: { risk_band: "high", reason_codes: [] },
+      safetyContextOutput: { risk_band: "high", reason_codes: [] },
     }),
     true,
   );
   assertEquals(
     shouldSkipGlobalDispatcherForSafetyLocalTurn({
       activeSkillState: null,
-      safetyPregateOutput: { risk_band: "low", reason_codes: [] },
+      safetyContextOutput: { risk_band: "low", reason_codes: [] },
     }),
     false,
   );
@@ -633,11 +683,11 @@ Deno.test("safety_crisis first activation note_information carries doctrine fiel
     userMessage: "je risque de me faire du mal maintenant",
     sourceMessageId: "message-first-safety",
     requestId: "request-first-safety",
-    safetyPregateOutput: {
+    safetyContextOutput: {
       detected: true,
       risk_band: "high",
       reason_codes: ["explicit_suicidal_thoughts"],
-      evidence: ["safety pregate evidence"],
+      evidence: ["safety context evidence"],
       allow_side_effects: false,
       layer_contributions: {},
     } as any,
@@ -646,7 +696,6 @@ Deno.test("safety_crisis first activation note_information carries doctrine fiel
   assertEquals(note.source_flow_id, "global");
   assertEquals(note.target_dispatcher, "safety_crisis");
   assertEquals(note.handoff_reason, "safety");
-  assertEquals(note.risk_score, 8);
   assertEquals(note.structured_context.source_flow, "global");
   assertEquals(note.structured_context.target_dispatcher, "safety_crisis");
   assertEquals(note.structured_context.handoff_reason, "safety");

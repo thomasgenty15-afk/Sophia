@@ -109,14 +109,14 @@ export async function verifyConfirmationToken(input: {
     id: string,
   ) => Promise<{ consumed: boolean } | null>;
   token_consumption_check: (token_id: string) => Promise<boolean>;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
   now_iso?: string;
   secret?: string;
 }): Promise<ConfirmationTokenVerifyResult> {
   if (
-    input.safety_pregate_risk_band === "medium" ||
-    input.safety_pregate_risk_band === "high" ||
-    input.safety_pregate_risk_band === "critical"
+    input.safety_context_risk_band === "medium" ||
+    input.safety_context_risk_band === "high" ||
+    input.safety_context_risk_band === "critical"
   ) {
     return { ok: false, reason_code: "safety_override" };
   }

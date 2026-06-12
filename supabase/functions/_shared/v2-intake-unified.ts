@@ -188,7 +188,7 @@ export async function previewUnifiedIntake(params: {
 }): Promise<UnifiedIntakeOutput> {
   const raw = await generateUnifiedIntakeWithLlm({
     requestId: params.requestId,
-    userId: params.userId ?? null,
+    userId: params.userId ?? undefined,
     rawIntakeText: params.rawIntakeText,
   });
   console.log(JSON.stringify({

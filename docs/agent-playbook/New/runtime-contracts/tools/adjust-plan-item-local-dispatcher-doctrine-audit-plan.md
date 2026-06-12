@@ -103,7 +103,7 @@ The dispatcher must classify at least:
 
 ### Exit Signals
 
-- `stop_local_no_handoff`: user abandons the flow without a new topic. Local
+- `exit_to_global_dispatcher`: user abandons the flow without a new topic. Local
   short acknowledgement. No global on the same turn.
 - `exit_to_global_dispatcher`: user clearly changes subject. Requires
   `note_information`; global may reanalyse the same message.
@@ -397,7 +397,7 @@ A shared transport helper is fine. A single generic visible-agent prompt is not.
 
 ### Transitions To Other Dispatchers
 
-- `stop_local_no_handoff`: local prompt only, no global.
+- `exit_to_global_dispatcher`: local prompt only, no global.
 - `exit_to_global_dispatcher`: canonical note, clear/suspend local state,
   reroute same user message to global.
 - `safety_preempt`: canonical note to `safety_crisis.local_dispatcher`, no
@@ -439,7 +439,7 @@ A shared transport helper is fine. A single generic visible-agent prompt is not.
 
 ```json
 {
-  "flow_action": "continue_local|missing_info|confirm_candidate|handoff_ready|revise|repeat|apply_attempt|inline_tool_roundtrip|handoff_to_local_flow|exit_to_global_dispatcher|stop_local_no_handoff|cancel_flow|defer_flow|complete_flow|safety_preempt|contract_recovery",
+  "flow_action": "continue_local|missing_info|confirm_candidate|handoff_ready|revise|repeat|apply_attempt|inline_tool_roundtrip|handoff_to_local_flow|exit_to_global_dispatcher|exit_to_global_dispatcher|cancel_flow|defer_flow|complete_flow|safety_preempt|contract_recovery",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "safety": {
@@ -486,7 +486,7 @@ A shared transport helper is fine. A single generic visible-agent prompt is not.
 - `inline_tool_roundtrip`: bounded status/product answer, parent state kept.
 - `handoff_to_local_flow`: target local flow takes over with note.
 - `exit_to_global_dispatcher`: clear new subject, global may reanalyse.
-- `stop_local_no_handoff`: stop/defer/cancel locally, no global.
+- `exit_to_global_dispatcher`: stop/defer/cancel locally, no global.
 - `cancel_flow`, `defer_flow`, `complete_flow`: local closure variants.
 - `safety_preempt`: target `safety_crisis`.
 - `contract_recovery`: invalid/insufficient dispatcher output recovery.
@@ -600,7 +600,7 @@ Each prompt receives only `conversation_context` and returns strict JSON:
 
 ### `stop_or_cancel`
 
-- Called for `stop_local_no_handoff`, cancel, defer.
+- Called for `exit_to_global_dispatcher`, cancel, defer.
 - Receives: closure type and whether state is cleared/deferred.
 - Produces: short acknowledgement, no final question.
 - Never: call global, coach further, or reopen the flow.
@@ -709,7 +709,7 @@ Minimum invariants:
 - Every `flow_action` has an exact continuation.
 - Every `visible_task.kind` has a stage-specific prompt.
 - `visible_task.conversation_context` is non-empty and sufficient.
-- `stop_local_no_handoff` does not call global on the same turn.
+- `exit_to_global_dispatcher` does not call global on the same turn.
 - `exit_to_global_dispatcher` includes canonical `note_information`.
 - `safety_preempt` routes to `safety_crisis.local_dispatcher` with note.
 - `handoff_to_local_flow` includes note and does not call global.

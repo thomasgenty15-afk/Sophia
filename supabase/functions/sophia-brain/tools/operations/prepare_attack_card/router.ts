@@ -9,7 +9,7 @@ import {
   normalizeNoteInformation,
   type NoteInformation,
 } from "../../../contracts/note_information.v1.ts";
-import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../../../safety/safety_context.ts";
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 import type {
   AttackCardHandoffDraft,
@@ -282,8 +282,6 @@ function buildPrepareAttackCardInboundNote(args: {
   if (args.turnFrame?.note_information) {
     return normalizeNoteInformation(args.turnFrame.note_information, {
       source_flow_id: "global",
-      source_flow_state_summary: String(args.routeDecision.reason_code ?? "")
-        .trim() || "prepare_attack_card selected by prior dispatcher.",
       handoff_reason: "explicit_user_request",
       target_dispatcher: "prepare_attack_card",
       handoff_context_for_next_dispatcher: JSON.stringify({
@@ -296,16 +294,15 @@ function buildPrepareAttackCardInboundNote(args: {
         operation_input: args.operationInput ?? null,
         selected_handler: args.routeDecision.selected_handler,
         first_local_activation: true,
+        active_flow_summary: String(args.routeDecision.reason_code ?? "")
+          .trim() || "prepare_attack_card selected by prior dispatcher.",
+        unresolved_questions: [],
+        recommended_next_focus: "prepare_attack_card",
       },
-      risk_score: 0,
     });
   }
   return createNoteInformation({
     source_flow_id: "global",
-    source_flow_presentation:
-      "Global dispatcher selected the initial local flow owner for this turn.",
-    source_flow_state_summary: String(args.routeDecision.reason_code ?? "")
-      .trim() || "prepare_attack_card selected by global dispatcher.",
     handoff_reason: "explicit_user_request",
     target_dispatcher: "prepare_attack_card",
     handoff_context_for_next_dispatcher: JSON.stringify({
@@ -314,20 +311,16 @@ function buildPrepareAttackCardInboundNote(args: {
       blocked_paths: args.routeDecision.blocked_paths ?? [],
       selected_handler: args.routeDecision.selected_handler,
     }),
-    target_local_dispatcher_hint:
-      "Own this flow locally from now on. Do not call the global dispatcher unless you later return exit_to_global_dispatcher.",
     structured_context: {
+      source_flow: "global",
+      active_flow_summary: String(args.routeDecision.reason_code ?? "")
+        .trim() || "prepare_attack_card selected by global dispatcher.",
       route_reason: args.routeDecision.reason_code ?? null,
       operation_input: args.operationInput ?? null,
       selected_handler: args.routeDecision.selected_handler,
       first_local_activation: true,
-    },
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
+      unresolved_questions: [],
+      recommended_next_focus: "prepare_attack_card",
     },
   });
 }
@@ -891,10 +884,10 @@ async function runPrepareAttackCardLocalRuntime(args: {
       draftReview: null,
       active: null,
       recommendation: null,
-      handoff: reduced.stop_local_no_handoff ? null : nextHandoff,
+      handoff: reduced.exit_to_global_dispatcher ? null : nextHandoff,
     },
   );
-  const deliversPlatformHandoff = !reduced.stop_local_no_handoff &&
+  const deliversPlatformHandoff = !reduced.exit_to_global_dispatcher &&
     (Boolean(reduced.draft) ||
       [
         "apply_attempt",
@@ -1054,7 +1047,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   tempMemory: any;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId: string | null;
   requestId?: string | null;
   planSnapshot?: unknown;
@@ -1065,7 +1058,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
 }): Promise<OperationRuntimeResult | null> {
   void args.runIntake;
   void args.sourceMessageId;
-  void args.safetyPregateOutput;
+  void args.safetyContextOutput;
   const routeSelected = operationRouteIsSelected({
     routeDecision: args.routeDecision,
     turnFrame: args.turnFrame,

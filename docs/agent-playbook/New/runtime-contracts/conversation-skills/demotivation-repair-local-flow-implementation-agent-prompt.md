@@ -35,7 +35,7 @@ When the flow is active, the normal global dispatcher must not run.
 - The local dispatcher returns structured output only.
 - The visible agent writes only from `visible_task.conversation_context`.
 - Every dispatcher change includes `note_information`.
-- `stop_local_no_handoff` does not call global.
+- `exit_to_global_dispatcher` does not call global.
 - `exit_to_global_dispatcher` is only for clear topic change.
 - `safety_preempt` goes to the safety local dispatcher.
 - `handoff_to_local_flow` explains origin, collected state, unresolved

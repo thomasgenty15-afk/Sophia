@@ -161,7 +161,7 @@ Deno.test("prepare_attack_card local dispatcher prompt documents transition rule
   const prompt = dispatcherSystemPrompt();
   for (
     const action of [
-      "stop_local_no_handoff",
+      "exit_to_global_dispatcher",
       "exit_to_global_dispatcher",
       "safety_preempt",
       "handoff_to_local_flow",
@@ -788,7 +788,7 @@ Deno.test("prepare_attack_card local runtime exit stores memo for global dispatc
       response_owner: "tool_skill",
       selected_handler: "prepare_attack_card",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-exit",
     runLocalDispatcher: async () =>
       decision({
@@ -837,7 +837,7 @@ Deno.test("prepare_attack_card local runtime returns no executable confirmation"
       response_owner: "tool_skill",
       selected_handler: "prepare_attack_card",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-local",
     runLocalDispatcher: async () => output,
     runVisibleAgent: async () => "Je te prépare ça dans Cartes d'attaque.",
@@ -868,7 +868,7 @@ Deno.test("prepare_attack_card local runtime blocks apply attempt", async () => 
       response_owner: "tool_skill",
       selected_handler: "prepare_attack_card",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-apply",
     runLocalDispatcher: async () =>
       decision({
@@ -1034,22 +1034,27 @@ Deno.test("prepare_attack_card get_info_db preserves local flow context", () => 
   );
 });
 
-Deno.test("prepare_attack_card stop_local_no_handoff does not call global", () => {
+Deno.test("prepare_attack_card exit_to_global_dispatcher emits global note", () => {
   const result = reducePrepareAttackCardLocalDispatcherOutput({
     previous: createInitialPrepareAttackCardLocalState(),
     output: decision({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       visible_task: {
         kind: "stop_or_cancel",
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "prepare_attack_card stopped before handoff.",
+        handoff_hint_for_global_dispatcher: "resume global routing",
       },
     }),
   });
 
-  assertEquals(result.stop_local_no_handoff, true);
-  assertEquals(result.exit_to_global_dispatcher, false);
+  assertEquals(result.exit_to_global_dispatcher, true);
   assertEquals(result.handoff_to_local_flow, false);
-  assertEquals(result.note_information, null);
-  assertEquals(result.visible_task, "stop_or_cancel");
+  assertEquals(result.note_information?.target_dispatcher, "global");
+  assertEquals(result.visible_task, "exit_ack");
   assertEquals(result.local_state, null);
 });
 
@@ -1165,7 +1170,7 @@ Deno.test("prepare_attack_card local runtime passes only conversation_context to
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
     },
-    safetyPregateOutput: {
+    safetyContextOutput: {
       detected: false,
       risk_band: "none",
       reason_codes: [],

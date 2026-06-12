@@ -74,9 +74,8 @@ export type ClarificationLocalFlowAction =
   | "explain_candidate_options"
   | "get_info_product"
   | "get_info_db"
-  | "stop_local_no_handoff"
-  | "cancel_clarification"
   | "exit_to_global_dispatcher"
+  | "cancel_clarification"
   | "safety_preempt";
 
 export type ClarificationVisibleTaskKind =
@@ -214,7 +213,6 @@ export type ClarificationLocalDispatcherOutput = {
   note_information: {
     needed: boolean;
     source_flow_id: "clarification";
-    source_flow_presentation: string;
     handoff_reason:
       | "clarification_resolved"
       | "topic_change"
@@ -223,8 +221,9 @@ export type ClarificationLocalDispatcherOutput = {
       | "none";
     target_dispatcher: string | null;
     handoff_context_for_next_dispatcher: string | null;
-    target_local_dispatcher_hint: string | null;
+    user_words: string[];
     structured_context: Record<string, unknown>;
+    confidence?: "low" | "medium" | "high";
   };
   evidence: string[];
 };

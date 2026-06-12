@@ -98,19 +98,20 @@ function conversationPotionHandoffPatch(
   const noteInformation = rawNote
     ? normalizeNoteInformation(rawNote, {
       source_flow_id: source_flow,
-      source_flow_state_summary: String(
-        (context as any).origin_turn_summary ??
-          (context as any).demotivation_episode?.summary ??
-          (context as any).emotional_episode?.summary ??
-          "Conversation repair bridge to select_state_potion.",
-      ),
       handoff_reason: "bridge",
       target_dispatcher: "select_state_potion",
       handoff_context_for_next_dispatcher: JSON.stringify(context),
-      target_local_dispatcher_hint:
-        "Use the origin bridge context as candidates and do not make the user repeat the episode.",
-      structured_context: context as Record<string, unknown>,
-      risk_score: 0,
+      structured_context: {
+        ...(context as Record<string, unknown>),
+        active_flow_summary: String(
+          (context as any).origin_turn_summary ??
+            (context as any).demotivation_episode?.summary ??
+            (context as any).emotional_episode?.summary ??
+            "Conversation repair bridge to select_state_potion.",
+        ),
+        unresolved_questions: [],
+        recommended_next_focus: "select_state_potion",
+      },
     })
     : null;
   return {

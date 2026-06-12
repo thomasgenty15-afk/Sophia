@@ -1,6 +1,9 @@
 import { DOMAIN_KEYS_V1_DEFINITIONS } from "../../_shared/memory/domain_keys.ts";
 import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 import { getActiveSkillStableDescriptionContext } from "./active_skill_descriptions.ts";
+import {
+  activeActionCandidatesForDirectEffects,
+} from "../router/direct_effect_local_context.ts";
 
 export const DISPATCHER_V2_PROMPT_VERSION =
   "dispatcher_v2_prompt_2026_06_s29_status_recap_entry";
@@ -50,7 +53,8 @@ Champs d'entree et incidence:
 - active_topic_state: sujet actif; aide les references implicites et le memory_plan, mais ne route pas un skill a lui seul.
 - flow_state_context: flow produit/onboarding actif; respecte le flow en cours sauf intention claire de changer. Si flow_state_context.active_runtime_context existe, utilise-le comme contexte de supervision seulement: il indique qu'un runtime skill/tool-skill est actif ou attend une confirmation, mais le runtime reste proprietaire des slots, corrections, confirmations et executions.
 - flow_state_context.last_local_flow_exit: si present, le message courant a deja ete vu par le dispatcher local du flow indique, qui a explicitement rendu la main au dispatcher global. Utilise operation_type, reason, flow_summary, handoff_hint_for_global_dispatcher et note_information comme contexte seulement; note_information n'est pas une decision de routing et ne doit jamais te forcer a choisir une route. Ne remets pas automatiquement le user dans ce flow sauf nouvelle intention explicite.
-- plan_snapshot: items de plan visibles; seule source autorisee pour recopier un target_item_id. Si la cible n'est pas claire, utilise target_status=ambiguous ou missing.
+- plan_snapshot: items de plan visibles.
+- active_action_candidates_for_direct_effects: projection filtree des actions actives; seule source autorisee pour recopier un target_item_id de track_progress_plan_item. Si la cible n'est pas claire, utilise target_status=ambiguous ou missing.
 
 Structure de sortie:
 - Retourne un objet JSON, sans markdown, qui suit ce squelette compact:
@@ -102,28 +106,19 @@ Structure de sortie:
   },
   "note_information": {
     "source_flow_id": "global_dispatcher",
-    "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
-    "source_flow_state_summary": "signal=tool_skill_intent; target=adjust_plan_item; confidence=high",
-    "handoff_reason": "explicit_user_request",
     "target_dispatcher": "adjust_plan_item",
+    "handoff_reason": "explicit_user_request",
     "handoff_context_for_next_dispatcher": "User explicitly asks to adjust the current plan block. Use operation_input and evidence; do not reinterpret as normal conversation.",
-    "target_local_dispatcher_hint": "Run the local dispatcher for the selected target. Preserve dispatcher evidence and ask for missing slots if needed.",
     "user_words": ["ajuster mon bloc du soir"],
     "structured_context": {
       "primary_signal_path": "tool_skill_intents[0]",
       "target_kind": "tool_skill",
       "target_flow": "adjust_plan_item",
       "confidence_band": "high",
-      "evidence": ["ajuster mon bloc du soir"]
+      "evidence": ["ajuster mon bloc du soir"],
+      "recommended_next_focus": "Run the local dispatcher for the selected target. Preserve dispatcher evidence and ask for missing slots if needed."
     },
-    "risk_score": 0,
-    "no_chat_mutation": {
-      "db_write_committed": false,
-      "potion_session_created": false,
-      "scheduled_checkin_created": false,
-      "recurring_reminder_created": false,
-      "executable_confirmation_generated": false
-    }
+    "confidence": "high"
   },
   "skill_signals": {
     "entry": {},
@@ -174,6 +169,9 @@ Structure de sortie:
 - Les champs safety, direct_effects, tool_skill_intents, skill_signals, needs_research et memory_plan sont toujours presents.
 - note_information est obligatoire des qu'un signal produit probablement un routing autre que conversation normale. Elle est null uniquement quand la route attendue est normal_reply/conversation normale.
 - Un signal non-normal inclut: safety high/critical, direct_effects non vide, tool_skill_intents non vide, flow_opportunity non null, skill_signals.entry/lifecycle/exit non vide, active_handoff_action non null, confirmation_response non null, ou needs_research.value=true.
+- Le contrat canonique de note_information contient seulement: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, et confidence si utile.
+- structured_context est obligatoire pour toute note_information. Il peut etre compact, mais il doit porter les valeurs utiles, contraintes, incertitudes, evidence, signal principal et prochain focus. Ne le laisse pas vide si un signal non-normal existe.
+- Ne mets pas dans note_information: source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score, no_chat_mutation, preuve DB ou preuve d'effet. Ces informations appartiennent aux traces/runtime ou a structured_context si elles sont semantiques.
 - Pour tool_skill_intents, note_information.target_dispatcher = operation_type du signal principal. Pour skill_signals, target_dispatcher = skill id principal. Pour flow_opportunity, target_dispatcher="verification_opportunities" et structured_context doit contenir target_kind, target_flow, opportunity_id et evidence. Pour direct_effects, target_dispatcher = effect_type. Pour plusieurs signaux concurrents forts, target_dispatcher="clarification" et structured_context.candidate_signals liste les candidats.
 - La note_information ne choisit pas une nouvelle route: elle explique au dispatcher local cible pourquoi le signal existe, quelles preuves viennent du message, quels champs sont deja structurés, et ce qui ne doit pas etre reinterprete.
 - active_handoff_action est null sauf si flow_state_context.active_runtime_context ou active_tool_skill_intake indique un platform_handoff actif et que le message courant porte une action sur ce handoff.
@@ -192,9 +190,9 @@ Structure de sortie:
 - needs_research.value=true signifie: le router doit lancer une recherche web et injecter les resultats frais dans le contexte Sophia avant la reponse finale.
 
 Contraintes:
-- Le safety_pregate fourni est un plancher: tu peux elever le risk_band, jamais l'abaisser.
+- Le safety_context fourni est un plancher: tu peux elever le risk_band, jamais l'abaisser.
 - Utilise des bandes interpretables: low, medium, high, critical.
-- N'invente jamais un target_id. Recopie uniquement depuis plan_snapshot.
+- N'invente jamais un target_id. Pour track_progress_plan_item, recopie uniquement active_action_candidates_for_direct_effects[].plan_item_id.
 - Chaque signal detecte doit avoir une evidence concise.
 - La memoire informe la resolution de reference, mais ne route jamais seule un skill humain.
 - Si pending_tool_skill_confirmation existe, classe la reponse utilisateur en yes/no/correction/topic_change/unknown.
@@ -412,6 +410,8 @@ export function buildDispatcherPrompt(input: {
     active_topic_state: input.active_topic_state ?? null,
     flow_state_context: input.flow_state_context ?? null,
     plan_snapshot: input.plan_snapshot ?? null,
+    active_action_candidates_for_direct_effects:
+      activeActionCandidatesForDirectEffects(input.plan_snapshot ?? null),
     critical_routing_examples: [
       {
         user_message:

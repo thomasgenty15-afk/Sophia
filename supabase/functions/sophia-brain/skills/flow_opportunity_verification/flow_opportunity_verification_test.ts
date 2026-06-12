@@ -117,7 +117,7 @@ Deno.test("flow opportunity local dispatcher prompt explains real output fields"
     assert(systemPrompt.includes(field), `missing field rule: ${field}`);
   }
   assert(systemPrompt.includes("Transition Rules"));
-  assert(systemPrompt.includes("`stop_local_no_handoff`"));
+  assert(systemPrompt.includes("`exit_to_global_dispatcher`"));
   assert(systemPrompt.includes("`exit_to_global_dispatcher`"));
   assert(systemPrompt.includes("`safety_preempt`"));
   assert(systemPrompt.includes("`handoff_to_local_flow`"));
@@ -422,26 +422,23 @@ Deno.test("flow opportunity normalizer accepts contractual note_information.note
       needed: true,
       note: {
         source_flow_id: "flow_opportunity_verification",
-        source_flow_presentation:
-          "Verification flow handing off after topic change.",
-        source_flow_state_summary: "User changed topic.",
         handoff_reason: "topic_change",
         target_dispatcher: "global",
         handoff_context_for_next_dispatcher:
           "User is asking for a separate planning topic.",
-        target_local_dispatcher_hint: null,
         user_words: ["aide-moi plutot a revoir mon plan"],
         structured_context: {
+          user_message_summary: "User is asking for a separate planning topic.",
+          active_flow_summary: "Flow opportunity verification was active.",
+          collected_state: {
+            target_flow: "status_recap",
+          },
+          unresolved_questions: [],
+          evidence: ["aide-moi plutot a revoir mon plan"],
+          recommended_next_focus: "global",
           source_flow: "flow_opportunity_verification",
         },
-        risk_score: 0,
-        no_chat_mutation: {
-          db_write_committed: false,
-          potion_session_created: false,
-          scheduled_checkin_created: false,
-          recurring_reminder_created: false,
-          executable_confirmation_generated: false,
-        },
+        confidence: "high",
       },
     },
   });
@@ -572,7 +569,7 @@ Deno.test("flow opportunity runtime initial offer creates active state without t
     tempMemory: {},
     turnFrame: turnFrame({ flow_opportunity: opportunity }),
     routeDecision: routeDecision(),
-    safetyPregateOutput: {
+    safetyContextOutput: {
       risk_band: "low",
       reason_codes: [],
       evidence: [],
@@ -604,7 +601,7 @@ Deno.test("flow opportunity runtime initial offer creates active state without t
   assert(state?.confirmation_anchor);
 });
 
-Deno.test("flow opportunity runtime stop_local_no_handoff clears flow without global exit", async () => {
+Deno.test("flow opportunity runtime exit_to_global_dispatcher stores note for global", async () => {
   const previous = createFlowOpportunityState({
     opportunity,
     userMessage: "Je sais plus ce qu'il y a dans ma carte.",
@@ -629,29 +626,31 @@ Deno.test("flow opportunity runtime stop_local_no_handoff clears flow without gl
       response_owner: "tool_skill",
       selected_handler: "flow_opportunity_verification",
     }),
-    safetyPregateOutput: {
+    safetyContextOutput: {
       risk_band: "low",
       reason_codes: [],
       evidence: [],
     } as any,
     runLocalDispatcher: async () => ({
       ...output,
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       visible_task: visibleTask("stop_or_cancel"),
     }),
-    runVisibleAgent: (input) => {
-      assertEquals(input.stage, "stop_or_cancel");
-      return Promise.resolve("Ok, je laisse ca de cote.");
+    runVisibleAgent: () => {
+      throw new Error("visible agent should not run on exit_to_global");
     },
   });
   assert(runtime);
-  assertEquals(runtime.content, "Ok, je laisse ca de cote.");
+  assertEquals(runtime.content, "");
   assertEquals(runtime.toolExecution, "none");
   assertEquals(
     (runtime.toolSkillRun as any).flow_action,
-    "stop_local_no_handoff",
+    "exit_to_global_dispatcher",
   );
-  assertEquals((runtime.toolSkillRun as any).note_information, null);
+  assertEquals(
+    (runtime.toolSkillRun as any).note_information.target_dispatcher,
+    "global",
+  );
   assertEquals(readFlowOpportunityState(runtime.nextTempMemory), null);
 });
 
@@ -695,7 +694,7 @@ Deno.test("flow opportunity runtime hands off accepted prepare_attack_card oppor
       response_owner: "tool_skill",
       selected_handler: "flow_opportunity_verification",
     }),
-    safetyPregateOutput: {
+    safetyContextOutput: {
       risk_band: "low",
       reason_codes: [],
       evidence: [],
@@ -789,7 +788,7 @@ Deno.test("flow opportunity runtime hands off accepted conversation skill target
         response_owner: "tool_skill",
         selected_handler: "flow_opportunity_verification",
       }),
-      safetyPregateOutput: {
+      safetyContextOutput: {
         risk_band: "low",
         reason_codes: [],
         evidence: [],
@@ -867,7 +866,7 @@ Deno.test("flow opportunity runtime hands off accepted create_recurring_reminder
       response_owner: "tool_skill",
       selected_handler: "flow_opportunity_verification",
     }),
-    safetyPregateOutput: {
+    safetyContextOutput: {
       risk_band: "low",
       reason_codes: [],
       evidence: [],

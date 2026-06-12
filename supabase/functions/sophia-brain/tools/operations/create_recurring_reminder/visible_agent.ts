@@ -195,7 +195,7 @@ function stopOrCancelPrompt(): string {
   return [
     "Tu es l'agent visible local stage-specific stop_or_cancel du flow create_recurring_reminder.",
     ...baseStageRules(),
-    "Fonction: accuser réception de l'arrêt local sans handoff.",
+    "Fonction: accuser réception de la sortie du flow si un message local est requis.",
     "Données reçues: conversation_context.current_user_message_summary et active_flow_summary.",
     "Sortie attendue: une phrase courte, sans question.",
     "Ne jamais faire: relancer le dispatcher global ou proposer un nouveau sujet.",

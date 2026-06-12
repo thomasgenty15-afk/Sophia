@@ -309,7 +309,7 @@ When `emotional_repair` is active :
 - safety can still interrupt above all flows.
 - `exit_to_global_dispatcher`, `safety_preempt`, and
   `handoff_to_potion_flow` require `note_information` ;
-- `stop_local_no_handoff` actions close or defer locally with a visible
+- `exit_to_global_dispatcher` actions close or defer locally with a visible
   acknowledgement and no global reroute.
 
 When a bridge to potion is consented :

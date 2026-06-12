@@ -4,6 +4,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { badRequest, getRequestId, jsonResponse, parseJsonBody, serverError, z } from "../_shared/http.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
 import { intervalFromStripePriceId, tierFromStripePriceId } from "../_shared/billing-tier.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
 
 const BodySchema = z
   .object({
@@ -59,6 +60,7 @@ const deno = (globalThis as any)?.Deno;
 
 deno.serve(async (req: Request) => {
   const requestId = getRequestId(req);
+  let currentUserId: string | null = null;
 
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsErr = enforceCors(req);
@@ -98,6 +100,7 @@ deno.serve(async (req: Request) => {
     if (authError || !user) {
       return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
     }
+    currentUserId = user.id;
 
     const admin = createClient(supabaseUrl, supabaseServiceRole);
 
@@ -108,6 +111,15 @@ deno.serve(async (req: Request) => {
       .maybeSingle();
     if (profErr) {
       console.error("[stripe-change-plan] profile read error", profErr);
+      await logEdgeFunctionError({
+        functionName: "stripe-change-plan",
+        error: profErr,
+        severity: "error",
+        title: "profile_read_failed",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+      });
       return serverError(req, requestId);
     }
 
@@ -159,6 +171,15 @@ deno.serve(async (req: Request) => {
       .maybeSingle();
     if (subErr) {
       console.error("[stripe-change-plan] subscriptions read error", subErr);
+      await logEdgeFunctionError({
+        functionName: "stripe-change-plan",
+        error: subErr,
+        severity: "error",
+        title: "subscription_read_failed",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+      });
       return serverError(req, requestId);
     }
     const mirroredId = String((subRow as any)?.stripe_subscription_id ?? "").trim();
@@ -236,6 +257,23 @@ deno.serve(async (req: Request) => {
         },
       });
 
+      await logEdgeFunctionError({
+        functionName: "stripe-change-plan",
+        error: "Stripe subscription change scheduled",
+        severity: "info",
+        title: "subscription_change_scheduled",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+        metadata: {
+          stripe_subscription_id: subId,
+          schedule_id: scheduleId,
+          requested_tier: body.tier,
+          requested_interval: body.interval,
+          current_period_end: unixToIso(currentPeriodEnd),
+        },
+      });
+
       return jsonResponse(req, {
         ok: true,
         scheduled: true,
@@ -305,8 +343,36 @@ deno.serve(async (req: Request) => {
     );
     if (upsertErr) {
       console.error("[stripe-change-plan] subscriptions upsert error", upsertErr);
+      await logEdgeFunctionError({
+        functionName: "stripe-change-plan",
+        error: upsertErr,
+        severity: "error",
+        title: "subscription_upsert_failed",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+        metadata: { stripe_subscription_id: subId, stripe_price_id: stripePriceId },
+      });
       return serverError(req, requestId);
     }
+
+    await logEdgeFunctionError({
+      functionName: "stripe-change-plan",
+      error: "Stripe subscription changed immediately",
+      severity: "info",
+      title: "subscription_change_applied",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+      metadata: {
+        stripe_subscription_id: subId,
+        stripe_price_id: stripePriceId,
+        requested_tier: body.tier,
+        requested_interval: body.interval,
+        status,
+        current_period_end: currentPeriodEnd,
+      },
+    });
 
     return jsonResponse(req, {
       ok: true,
@@ -320,11 +386,19 @@ deno.serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("[stripe-change-plan] error", err);
+    await logEdgeFunctionError({
+      functionName: "stripe-change-plan",
+      error: err,
+      severity: "error",
+      title: "subscription_change_failed",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+    });
     const msg = err instanceof Error ? err.message : "Internal Server Error";
     if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
     if (msg.toLowerCase().includes("stripe")) return badRequest(req, requestId, msg);
     return serverError(req, requestId);
   }
 });
-
 

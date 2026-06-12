@@ -18,7 +18,7 @@
 - Symptôme visible: Sophia repond correctement a la question produit, mais sans transition doctrinale depuis `emotional_repair`.
 - Preuve système: T2 route `active_emotional_repair_local_dispatcher`, `flow_action=provide_concrete_phrase`, `global_dispatcher_skipped=true`; T3 route `product_help` avec `active_flow_arbitration.reason_code=no_active_flow`, `operation_flow_run=null`, `note_information=null`; DB apres T3: `__active_skill_state.skill_id=product_help`, `previous_skill_id=null`, `product_help_note_information=null`.
 - Correction attendue: apres tout `skillOutput.status=continue` de `emotional_repair`, persister et recharger `__active_skill_state.skill_id=emotional_repair` au tour suivant; un changement de sujet doit d'abord repasser par `emotional_repair.local_dispatcher`, qui doit produire `exit_to_global_dispatcher` + `note_information`.
-- Statut: `fixed`, en attente de re-validation QA reelle.
+- Statut: `verified`, vérifié par le run reel `emotional-repair-local-doctrine-r8`. La DB contient `emotional_repair` apres T2, et le T3 conserve maintenant `local_exit_source=emotional_repair`, `turn_note_source=emotional_repair`, `local_exit_consumed_by=global_dispatcher_second_pass`, puis `product_help.mode=inline`.
 - Fix reference:
   - `supabase/functions/sophia-brain/router/operation_runtime_response_handler.ts`: garde-fou `ensureActiveConversationSkillStateBeforePersist` avant `updateUserState`, qui restaure l'active state pour les local flows conversationnels stateful en `status=continue`.
   - `supabase/functions/sophia-brain/router/operation_runtime_response_handler.ts`: trace `brain:active_conversation_skill_state_restored_before_persist` quand le runtime repare un `nextTempMemory` sans active state.

@@ -83,7 +83,7 @@ export async function sendWhatsAppGraph(payload: unknown): Promise<WhatsAppGraph
     }
   }
 
-  // Eval-only transport: loopback means "pretend we sent it to WhatsApp", but do not call Meta/Graph.
+  // Test-only transport: loopback means "pretend we sent it to WhatsApp", but do not call Meta/Graph.
   if (Boolean((globalThis as any).__SOPHIA_WA_LOOPBACK)) {
     const wamid = "wamid_LOOPBACK"
     return { ok: true, data: { messages: [{ id: wamid }], loopback: true }, wamid_out: wamid, skipped: false, skip_reason: null, transport: "loopback" }
@@ -144,7 +144,6 @@ export async function sendWhatsAppGraph(payload: unknown): Promise<WhatsAppGraph
     }
   }
 }
-
 
 
 

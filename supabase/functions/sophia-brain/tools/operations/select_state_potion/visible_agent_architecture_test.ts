@@ -221,3 +221,23 @@ Deno.test("select_state_potion architecture: local dispatcher prompts document r
     }
   }
 });
+
+Deno.test("select_state_potion architecture: potion free-text sufficiency requires concrete detail", async () => {
+  const source = await Deno.readTextFile(
+    "supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts",
+  );
+  for (
+    const snippet of [
+      "ce qui s'est passé ou ce qui se rejoue",
+      "pourquoi ça pèse maintenant",
+      "mon échec de vendredi et je me parle très durement",
+      "Ne compense jamais un champ free_text pauvre",
+      "love_lack_context='mon échec de vendredi' + love_state='Dur avec moi'",
+    ]
+  ) {
+    assert(
+      source.includes(snippet),
+      `missing potion sufficiency prompt guard: ${snippet}`,
+    );
+  }
+});

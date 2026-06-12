@@ -1,0 +1,913 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux ajuster mon plan : ma routine du soir me prend trop d'énergie cette semaine, et je veux garder le rituel.",
+    "assistant": "Je comprends, il faut que ta routine du soir reste gérable cette semaine. Pour garder ton rituel tout en économisant ton énergie, qu'est-ce que tu aimerais simplifier ou raccourcir concrètement ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_clarify_adjustment_need",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "clarifying",
+      "operation_id": null,
+      "input_draft": null,
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "skill_result": {
+        "handled": true,
+        "status": "ask_question",
+        "user_intent": "clarify",
+        "reply": "Je comprends, il faut que ta routine du soir reste gérable cette semaine. Pour garder ton rituel tout en économisant ton énergie, qu'est-ce que tu aimerais simplifier ou raccourcir concrètement ?",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_clarify_adjustment_need"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "clarify_adjustment_need",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "clarifying",
+        "stage": "adjustment_need",
+        "scope": {
+          "kind": "current_level",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "prend trop d'énergie cette semaine",
+          "requested_change": null,
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel"
+          ],
+          "avoid": [],
+          "missing": [
+            "requested_change"
+          ]
+        },
+        "platform_handoff": {
+          "status": "none",
+          "destination": "Plan",
+          "suggested_platform_input": null,
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "last_visible_task": "clarify_adjustment_need",
+        "last_handoff_summary": null,
+        "turn_count": 1,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "clarify_adjustment_need"
+      },
+      "conversation_context": {
+        "state_summary": "Le user veut alléger sa routine du soir car elle est trop énergivore cette semaine, tout en gardant le rituel.",
+        "user_words": [
+          "trop d'énergie cette semaine",
+          "garder le rituel"
+        ],
+        "field_or_stage": "adjustment_need",
+        "known_values": {
+          "scope": {
+            "kind": "current_level",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "prend trop d'énergie cette semaine",
+            "requested_change": null,
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine"
+            ],
+            "preserve": [
+              "le rituel"
+            ],
+            "avoid": [],
+            "missing": [
+              "requested_change"
+            ]
+          },
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel"
+          ],
+          "avoid": []
+        },
+        "missing_or_weak_values": [
+          "requested_change"
+        ],
+        "selected_candidate": {
+          "level_title": "Casser l'automatisme du soir",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "plan_item_ids": [
+            "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+          "scope_kind": "current_level",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": null,
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le plan est déjà modifié.",
+          "Ne dis pas que c'est sauvegardé."
+        ],
+        "context_summary": "Cible identifiée (niveau actuel), raison claire (énergie), mais la modalité d'allègement reste à définir.",
+        "evidence_used": [
+          "ma routine du soir",
+          "trop d'énergie cette semaine",
+          "garder le rituel",
+          "ma routine du soir",
+          "trop d'énergie cette semaine",
+          "garder le rituel"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "clarify_adjustment_need",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux réduire la routine du soir : garder seulement le déclencheur après le dîner, faire trois respirations, puis écrire une seule ligne dans le carnet. Rien autour du téléphone.",
+    "assistant": "Comme ta routine du soir te demande trop d'énergie en ce moment, on va l'alléger pour ne garder que l'essentiel dans ton niveau 'Casser l'automatisme du soir'.\n\nPour faire ce changement, va dans l'onglet Plan sur la plateforme. Juste sous ton niveau actif, utilise le bouton Ajuster mon plan et saisis cette proposition :\n\nRéduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "draft_delivered",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "prend trop d'énergie cette semaine",
+        "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+        "preserve": [
+          "le rituel",
+          "déclencheur après dîner",
+          "respirations",
+          "carnet"
+        ],
+        "avoid": [
+          "téléphone"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_blocker_summary": "prend trop d'énergie cette semaine",
+          "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+          "preserve": [
+            "le rituel",
+            "déclencheur après dîner",
+            "respirations",
+            "carnet"
+          ],
+          "avoid": [
+            "téléphone"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "start",
+        "reply": "Comme ta routine du soir te demande trop d'énergie en ce moment, on va l'alléger pour ne garder que l'essentiel dans ton niveau 'Casser l'automatisme du soir'.\n\nPour faire ce changement, va dans l'onglet Plan sur la plateforme. Juste sous ton niveau actif, utilise le bouton Ajuster mon plan et saisis cette proposition :\n\nRéduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "prepare_plan_handoff",
+      "local_flow_state": {
+        "mode": "platform_handoff",
+        "scope": {
+          "kind": "current_level",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+          "needs_scope_clarification": false
+        },
+        "stage": "handoff",
+        "status": "handoff_delivered",
+        "skill_id": "adjust_plan_item",
+        "turn_count": 2,
+        "operation_type": "adjust_plan_item",
+        "adjustment_need": {
+          "reason_change": "prend trop d'énergie cette semaine",
+          "requested_change": "Garder seulement le déclencheur après dîner, 3 respirations, et une ligne dans le carnet. Supprimer tout ce qui touche au téléphone.",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel",
+            "déclencheur après dîner",
+            "respirations",
+            "carnet"
+          ],
+          "avoid": [
+            "téléphone"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "delivered",
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "subskill_history": [],
+        "last_visible_task": "plan_handoff_ready",
+        "last_handoff_summary": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone."
+      },
+      "visible_task": {
+        "kind": "plan_handoff_ready"
+      },
+      "conversation_context": {
+        "state_summary": "Le user précise la réduction souhaitée pour sa routine du soir : déclencheur après dîner, 3 respirations et une ligne de carnet, sans téléphone.",
+        "user_words": [
+          "réduire la routine",
+          "après le dîner",
+          "trois respirations",
+          "une seule ligne dans le carnet",
+          "rien autour du téléphone"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "current_level",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "prend trop d'énergie cette semaine",
+            "requested_change": "Garder seulement le déclencheur après dîner, 3 respirations, et une ligne dans le carnet. Supprimer tout ce qui touche au téléphone.",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine"
+            ],
+            "preserve": [
+              "le rituel",
+              "déclencheur après dîner",
+              "respirations",
+              "carnet"
+            ],
+            "avoid": [
+              "téléphone"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel",
+            "déclencheur après dîner",
+            "respirations",
+            "carnet"
+          ],
+          "avoid": [
+            "téléphone"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_id": null,
+          "plan_title": null,
+          "plan_item_ids": [
+            "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+          "scope_kind": "current_level",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le plan est déjà modifié.",
+          "Ne dis pas que c'est enregistré en base de données."
+        ],
+        "context_summary": "Le user a fourni tous les détails pour une version allégée de sa routine.",
+        "evidence_used": [
+          "réduire la routine",
+          "trois respirations",
+          "une seule ligne dans le carnet",
+          "rien autour du téléphone",
+          "réduire la routine",
+          "trois respirations",
+          "une seule ligne dans le carnet",
+          "rien autour du téléphone"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "plan_handoff_ready",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok fais-le directement dans mon plan maintenant.",
+    "assistant": "Je ne peux pas modifier ton plan directement depuis notre discussion. Comme ta routine du soir te demande trop d'énergie en ce moment, l'idée est de l'alléger pour cette semaine en retirant ce qui touche au téléphone. Pour valider ça, va dans ton Plan : juste sous ton niveau actuel, tu trouveras 'Ajuster mon plan'. Tu n'auras qu'à saisir : Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_apply_attempt_no_chat_mutation",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "apply_attempt",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "prend trop d'énergie cette semaine",
+        "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+        "preserve": [
+          "le rituel",
+          "déclencheur après dîner",
+          "respirations",
+          "carnet"
+        ],
+        "avoid": [
+          "téléphone"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "adjust_plan_item",
+          "reason_code": "chat_plan_mutation_disabled_platform_handoff"
+        }
+      ],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_apply_attempt_no_chat_mutation",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_blocker_summary": "prend trop d'énergie cette semaine",
+          "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+          "preserve": [
+            "le rituel",
+            "déclencheur après dîner",
+            "respirations",
+            "carnet"
+          ],
+          "avoid": [
+            "téléphone"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "approve",
+        "reply": "Je ne peux pas modifier ton plan directement depuis notre discussion. Comme ta routine du soir te demande trop d'énergie en ce moment, l'idée est de l'alléger pour cette semaine en retirant ce qui touche au téléphone. Pour valider ça, va dans ton Plan : juste sous ton niveau actuel, tu trouveras 'Ajuster mon plan'. Tu n'auras qu'à saisir : Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_apply_attempt_no_chat_mutation"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "apply_attempt",
+      "local_flow_state": {
+        "mode": "platform_handoff",
+        "scope": {
+          "kind": "current_level",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+          "needs_scope_clarification": false
+        },
+        "stage": "handoff",
+        "status": "apply_attempt",
+        "skill_id": "adjust_plan_item",
+        "turn_count": 3,
+        "operation_type": "adjust_plan_item",
+        "adjustment_need": {
+          "reason_change": "prend trop d'énergie cette semaine",
+          "requested_change": "Garder seulement le déclencheur après dîner, 3 respirations, et une ligne dans le carnet. Supprimer tout ce qui touche au téléphone.",
+          "change_kind": "reduce",
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel",
+            "déclencheur après dîner",
+            "respirations",
+            "carnet"
+          ],
+          "avoid": [
+            "téléphone"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "apply_attempt",
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "subskill_history": [],
+        "last_visible_task": "apply_attempt",
+        "last_handoff_summary": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone."
+      },
+      "visible_task": {
+        "kind": "apply_attempt"
+      },
+      "conversation_context": {
+        "state_summary": "Le user demande d'appliquer l'ajustement directement depuis le chat.",
+        "user_words": [
+          "fais-le directement dans mon plan maintenant"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "current_level",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": "phase-1",
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "prend trop d'énergie cette semaine",
+            "requested_change": "Garder seulement le déclencheur après dîner, 3 respirations, et une ligne dans le carnet. Supprimer tout ce qui touche au téléphone.",
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine"
+            ],
+            "preserve": [
+              "le rituel",
+              "déclencheur après dîner",
+              "respirations",
+              "carnet"
+            ],
+            "avoid": [
+              "téléphone"
+            ],
+            "missing": []
+          },
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel",
+            "déclencheur après dîner",
+            "respirations",
+            "carnet"
+          ],
+          "avoid": [
+            "téléphone"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "level_id": "phase-1",
+          "plan_id": null,
+          "plan_title": null,
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+          "scope_kind": "current_level",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan est appliqué, modifié ou sauvegardé.",
+          "Ne dis pas que tu as accès en écriture à la base de données."
+        ],
+        "context_summary": "Le user demande une action impossible au chat (mutation directe).",
+        "evidence_used": [
+          "fais-le directement dans mon plan maintenant",
+          "fais-le directement"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "apply_attempt",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Non stop, laisse tomber l'ajustement pour maintenant.",
+    "assistant": "Entendu, on s'arrête là pour le moment.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_item_local_dispatcher",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_cancelled",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "cancelled",
+      "operation_id": null,
+      "input_draft": {
+        "mode": "platform_handoff",
+        "avoid": [
+          "téléphone"
+        ],
+        "preserve": [
+          "le rituel",
+          "déclencheur après dîner",
+          "respirations",
+          "carnet"
+        ],
+        "destination": {
+          "instruction": "Reprendre cette proposition dans la surface Plan.",
+          "product_area": "Plan"
+        },
+        "operation_type": "adjust_plan_item",
+        "missing_clarity": [],
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "prend trop d'énergie cette semaine",
+        "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone."
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "skill_result": {
+        "handled": true,
+        "status": "cancelled",
+        "user_intent": "cancel",
+        "reply": "Entendu, on s'arrête là pour le moment.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_cancelled"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "cancel_flow",
+      "local_flow_state": null,
+      "visible_task": {
+        "kind": "cancel_close"
+      },
+      "conversation_context": {
+        "state_summary": "Le user souhaite arrêter l'ajustement du plan pour le moment.",
+        "user_words": [
+          "Non stop",
+          "laisse tomber l'ajustement pour maintenant"
+        ],
+        "field_or_stage": "closing",
+        "known_values": {
+          "scope": {
+            "kind": "current_level",
+            "plan_id": null,
+            "level_id": "phase-1",
+            "confidence": "high",
+            "plan_title": null,
+            "level_title": "Casser l'automatisme du soir",
+            "plan_item_ids": [
+              "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+              "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+            ],
+            "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "avoid": [
+              "téléphone"
+            ],
+            "missing": [],
+            "preserve": [
+              "le rituel",
+              "déclencheur après dîner",
+              "respirations",
+              "carnet"
+            ],
+            "change_kind": "reduce",
+            "constraints": [
+              "cette semaine"
+            ],
+            "reason_change": "prend trop d'énergie cette semaine",
+            "requested_change": "Garder seulement le déclencheur après dîner, 3 respirations, et une ligne dans le carnet. Supprimer tout ce qui touche au téléphone."
+          },
+          "constraints": [
+            "cette semaine"
+          ],
+          "preserve": [
+            "le rituel",
+            "déclencheur après dîner",
+            "respirations",
+            "carnet"
+          ],
+          "avoid": [
+            "téléphone"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": "phase-1",
+          "level_title": "Casser l'automatisme du soir",
+          "plan_item_ids": [
+            "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+            "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+          ],
+          "target_summary": "Routine du soir (Niveau : Casser l'automatisme du soir)",
+          "scope_kind": "current_level",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Réduire la routine du soir cette semaine : après le dîner, faire 3 respirations et écrire une ligne dans le carnet. Retirer les éléments liés au téléphone.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le plan est modifié.",
+          "Ne propose pas de nouvelle action."
+        ],
+        "context_summary": "Arrêt du flow à la demande du user.",
+        "evidence_used": [
+          "Non stop",
+          "laisse tomber l'ajustement",
+          "Non stop",
+          "laisse tomber"
+        ]
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "cancel_close",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2-t04",
+    "trace_error": null
+  }
+]

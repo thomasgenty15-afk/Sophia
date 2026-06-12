@@ -61,7 +61,7 @@ export type RecommendationToolInput = {
   available_surfaces: ProductSurfaceDefinition[];
   recent_recommendations: Array<Record<string, unknown>>;
   user_preferences?: unknown;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
   llm_runner?: RecommendationLlmRunner;
   model_name?: string;
   on_stats?: (stats: {

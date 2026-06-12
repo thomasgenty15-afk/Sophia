@@ -47,6 +47,38 @@ Deno.test("effect_ledger_adapter direct committed effect gets db ref when availa
   assertEquals(ledger.entries[0].committed_id, "rem_1");
 });
 
+Deno.test("effect_ledger_adapter local write coach preferences records commit not legacy platform handoff", () => {
+  const ledger = createEffectLedger("turn_local_pref");
+  recordToolSkillEffectsInLedger({
+    ledger,
+    toolExecution: "success",
+    toolSkillRun: {
+      selected_handler: "update_coach_preferences",
+      operation_type: "update_coach_preferences",
+      mode: "local_write_flow",
+      status: "executed",
+      operation_id: "op_pref_1",
+      committed_effects: [{
+        type: "update_coach_preferences",
+        operation_id: "op_pref_1",
+        preference_keys: ["coach.tone", "coach.question_tendency"],
+        preferences_update_ids: [],
+      }],
+    },
+  });
+
+  assertEquals(ledger.entries.length, 1);
+  assertEquals(ledger.entries[0].kind, "durable_effect");
+  assertEquals(ledger.entries[0].status, "committed");
+  assertEquals(ledger.entries[0].effect_type, "coach_preferences.update");
+  assertEquals(ledger.entries[0].operation_type, "update_coach_preferences");
+  assertEquals(ledger.entries[0].tool_id, "update_coach_preferences");
+  assertEquals(ledger.entries[0].db_ref, {
+    table: "user_profile_facts",
+    key: "coach.tone",
+  });
+});
+
 Deno.test("effect_ledger_adapter failed runtime produces failed effect", () => {
   const ledger = createEffectLedger("turn_2");
   recordToolSkillEffectsInLedger({
@@ -132,6 +164,27 @@ Deno.test("effect_ledger_adapter does not flag complex intake clarification as m
       selected_handler: "prepare_attack_card",
       status: "ask_question",
       missing_slots: ["technique"],
+      committed_effects: [],
+    },
+  });
+
+  assertEquals(ledger.entries.length, 0);
+});
+
+Deno.test("effect_ledger_adapter does not flag non-mutant adjust_plan clarification as missing handoff", () => {
+  const ledger = createEffectLedger("turn_adjust_plan_clarifying");
+  recordToolSkillEffectsInLedger({
+    ledger,
+    toolExecution: "none",
+    toolSkillRun: {
+      selected_handler: "adjust_plan_item",
+      operation_type: "adjust_plan_item",
+      mode: "platform_handoff",
+      status: "clarifying",
+      reason_code: "adjust_plan_item_get_info_db",
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
       committed_effects: [],
     },
   });

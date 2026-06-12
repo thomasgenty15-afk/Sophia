@@ -5,7 +5,9 @@ import { runToolSkillRouter } from "./tool_skill_router.ts";
 import { runConversationRouters } from "./routers.ts";
 import { runSkillRouter } from "./skill_router.ts";
 
-function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
+function frame(
+  patch: Partial<TurnFrame> & Record<string, unknown> = {},
+): TurnFrame {
   return {
     turn_id: "t1",
     source_message_id: "m1",
@@ -50,7 +52,7 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
       plan_confidence: 0.7,
     },
     ...patch,
-  };
+  } as unknown as TurnFrame;
 }
 
 Deno.test("skill_router covers start, continue, handoff, none and safety", () => {
@@ -243,7 +245,7 @@ Deno.test("tool_skill_router covers start, continue, confirmation paths, blocked
           user_intent: "create",
         }],
       }),
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).status,
     "start",
   );
@@ -251,7 +253,7 @@ Deno.test("tool_skill_router covers start, continue, confirmation paths, blocked
     runToolSkillRouter({
       turn_frame: frame(),
       active_tool_skill_intake: { operation_type: "prepare_attack_card" },
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).status,
     "continue",
   );
@@ -263,9 +265,9 @@ Deno.test("tool_skill_router covers start, continue, confirmation paths, blocked
       pending_tool_skill_confirmation: {
         operation_type: "prepare_attack_card",
       },
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).status,
-    "execute_confirmed",
+    "wait_for_confirmation",
   );
   assertEquals(
     runToolSkillRouter({
@@ -275,7 +277,7 @@ Deno.test("tool_skill_router covers start, continue, confirmation paths, blocked
       pending_tool_skill_confirmation: {
         operation_type: "prepare_attack_card",
       },
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).status,
     "cancel",
   );
@@ -290,7 +292,7 @@ Deno.test("tool_skill_router covers start, continue, confirmation paths, blocked
       pending_tool_skill_confirmation: {
         operation_type: "prepare_attack_card",
       },
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).status,
     "continue",
   );
@@ -305,14 +307,14 @@ Deno.test("tool_skill_router covers start, continue, confirmation paths, blocked
           user_intent: "create",
         }],
       }),
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).status,
     "blocked",
   );
   assertEquals(
     runToolSkillRouter({
       turn_frame: frame(),
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).status,
     "none",
   );
@@ -328,7 +330,7 @@ Deno.test("conversation routers assign response owner priority", () => {
           evidence: [],
         },
       }),
-      safety_pregate_risk_band: "medium",
+      safety_context_risk_band: "medium",
     }).response_owner,
     "safety",
   );
@@ -340,7 +342,7 @@ Deno.test("conversation routers assign response owner priority", () => {
       pending_tool_skill_confirmation: {
         operation_type: "prepare_attack_card",
       },
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     }).response_owner,
     "pending_confirmation",
   );
@@ -356,7 +358,7 @@ Deno.test("conversation routers assign response owner priority", () => {
         },
       },
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
   assertEquals(productRoute.response_owner, "product_help");
   assertEquals(productRoute.selected_handler, "product_help");
@@ -382,7 +384,7 @@ Deno.test("conversation routers keep emotional_repair owner over new tool skill 
         user_intent: "update",
       }],
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
   assertEquals(route.response_owner, "conversation_handler");
   assertEquals(route.selected_handler, "emotional_repair");
@@ -415,14 +417,14 @@ Deno.test("conversation routers keep active safety owner while deferring tool sk
         user_intent: "create",
       }],
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
   assertEquals(route.response_owner, "safety");
   assertEquals(route.selected_handler, "safety_crisis");
   assertEquals(route.direct_effects_to_run, []);
 });
 
-Deno.test("conversation routers let explicit tool skill interrupt active emotional repair continuation", () => {
+Deno.test("conversation routers block explicit tool skill during active emotional repair continuation", () => {
   const route = runConversationRouters({
     active_skill_state: { skill_id: "emotional_repair" },
     turn_frame: frame({
@@ -443,13 +445,17 @@ Deno.test("conversation routers let explicit tool skill interrupt active emotion
         user_intent: "create",
       }],
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
-  assertEquals(route.response_owner, "tool_skill");
-  assertEquals(route.selected_handler, "create_recurring_reminder");
+  assertEquals(route.response_owner, "conversation_handler");
+  assertEquals(route.selected_handler, "emotional_repair");
+  assertEquals(
+    route.reason_code,
+    "explicit_tool_intent_blocked_by_active_conversation_skill",
+  );
 });
 
-Deno.test("conversation routers let explicit tool skill supersede an active conversation exit", () => {
+Deno.test("conversation routers keep active conversation local flow before explicit tool skill", () => {
   const route = runConversationRouters({
     active_skill_state: { skill_id: "demotivation_repair" },
     turn_frame: frame({
@@ -477,14 +483,22 @@ Deno.test("conversation routers let explicit tool skill supersede an active conv
         user_intent: "create",
       }],
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
 
-  assertEquals(route.response_owner, "tool_skill");
-  assertEquals(route.selected_handler, "prepare_attack_card");
+  assertEquals(route.response_owner, "conversation_handler");
+  assertEquals(route.selected_handler, "demotivation_repair");
   assertEquals(
     route.reason_code,
-    "explicit_tool_intent_supersedes_active_conversation_skill",
+    "explicit_tool_intent_blocked_by_active_conversation_skill",
+  );
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "tool_skill.prepare_attack_card" &&
+      path.reason_code ===
+        "active_conversation_skill_requires_local_dispatcher_handoff"
+    ),
+    true,
   );
 });
 
@@ -509,7 +523,7 @@ Deno.test("active tool flow answers product_help inline and keeps direct effects
         },
       },
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
 
   assertEquals(route.response_owner, "product_help");
@@ -522,6 +536,29 @@ Deno.test("active tool flow answers product_help inline and keeps direct effects
     "inline_answer_then_resume",
   );
   assertEquals(route.direct_effects_to_run, ["track_progress_plan_item"]);
+});
+
+Deno.test("active conversation skill exit signal routes through active local dispatcher", () => {
+  const route = runConversationRouters({
+    active_skill_state: { skill_id: "demotivation_repair" },
+    turn_frame: frame({
+      skill_signals: {
+        exit: {
+          demotivation_repair: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user_asks_to_stop_flow",
+          },
+        },
+      },
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "conversation_handler");
+  assertEquals(route.selected_handler, "demotivation_repair");
+  assertEquals(route.reason_code, "active_skill_exit_requested");
+  assertEquals(route.active_flow_arbitration?.decision, "continue_active");
 });
 
 Deno.test("active tool flow blocks weak product_help and continues active operation", () => {
@@ -538,7 +575,7 @@ Deno.test("active tool flow blocks weak product_help and continues active operat
         },
       },
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
 
   assertEquals(route.response_owner, "tool_skill");
@@ -566,7 +603,7 @@ Deno.test("active tool flow lets high emotional repair suspend it", () => {
         },
       },
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
   assertEquals(emotionalRoute.response_owner, "conversation_handler");
   assertEquals(emotionalRoute.selected_handler, "emotional_repair");
@@ -602,7 +639,7 @@ Deno.test("active flow defers tool skill opportunity without blocking direct eff
         must_not_execute: true,
       },
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
 
   assertEquals(route.response_owner, "tool_skill");
@@ -613,7 +650,7 @@ Deno.test("active flow defers tool skill opportunity without blocking direct eff
       path.path === "tool_skill_opportunity" &&
       path.reason_code === "active_flow_blocks_tool_opportunity"
     ),
-    true,
+    false,
   );
 });
 
@@ -629,7 +666,7 @@ Deno.test("active tool flow can be superseded by explicit high-confidence differ
         user_intent: "create",
       }],
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
 
   assertEquals(route.response_owner, "tool_skill");
@@ -649,7 +686,7 @@ Deno.test("active tool flow lets explicit different tool intent supersede active
         user_intent: "create",
       }],
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
 
   assertEquals(route.response_owner, "tool_skill");
@@ -672,7 +709,7 @@ Deno.test("pending confirmation answers product_help inline when confirmation is
         },
       },
     }),
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
 
   assertEquals(route.response_owner, "product_help");

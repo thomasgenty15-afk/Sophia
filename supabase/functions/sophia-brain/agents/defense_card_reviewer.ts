@@ -15,6 +15,7 @@ import type {
 
 type DefenseCardReviewMeta = {
   requestId?: string;
+  userId?: string | null;
   forceRealAi?: boolean;
   model?: string;
 };
@@ -202,6 +203,7 @@ export async function checkDefenseCardSignals(
     "auto",
     {
       requestId: meta?.requestId,
+      userId: meta?.userId ?? userId,
       model,
       source: "sophia-brain:defense_card_review",
       forceRealAi: meta?.forceRealAi,
@@ -244,6 +246,7 @@ export async function checkDefenseCardSignals(
             requestId: meta?.requestId
               ? `${meta.requestId}:followup`
               : undefined,
+            userId: meta?.userId ?? userId,
             model,
             source: "sophia-brain:defense_card_review:followup",
             forceRealAi: meta?.forceRealAi,
@@ -303,6 +306,7 @@ export async function checkDefenseCardSignals(
             requestId: meta?.requestId
               ? `${meta.requestId}:followup`
               : undefined,
+            userId: meta?.userId ?? userId,
             model,
             source: "sophia-brain:defense_card_review:followup",
             forceRealAi: meta?.forceRealAi,

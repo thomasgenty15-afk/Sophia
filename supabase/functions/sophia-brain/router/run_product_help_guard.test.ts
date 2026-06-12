@@ -8,11 +8,16 @@ import { isActiveCardDraftingOperation } from "./active_operation_guards.ts";
 import { createEffectLedger, hasCommittedEffect } from "./effect_ledger.ts";
 import {
   directSafetyCrisisReplyOverride,
-  runtimeSafetyPregateForTurn,
+  runtimeSafetyContextForTurn,
   suppressToolSignalsForSafetyRoute,
   withActiveSafetyFlowCaution,
 } from "./safety_crisis_runtime.ts";
 import { persistConversationSkillRoute } from "./conversation_route_runtime_support.ts";
+import {
+  isConversationSkillExitToGlobal,
+  localFlowExitParentStateForProductHelp,
+  shouldRunRecommendationTool,
+} from "./recommendation_runtime_support.ts";
 import { upsertCoachPreferencesFromDraftForTest } from "../tools/operations/update_coach_preferences/status.ts";
 
 Deno.test("effect ledger maps update_coach_preferences executor commit", () => {
@@ -84,6 +89,87 @@ Deno.test("conversation skill reply override lets product_help own its factual a
   );
 });
 
+Deno.test("conversation skill exit to global is detected centrally", () => {
+  assertEquals(
+    isConversationSkillExitToGlobal({
+      skill_id: "demotivation_repair",
+      status: "exit",
+      response_intent: "exit_to_global_dispatcher",
+      reply: "",
+      diagnosis: {
+        flow_action: "exit_to_global_dispatcher",
+        note_information: { target_dispatcher: "global" },
+      },
+      state_patch: {
+        demotivation_repair_exit_memo: {
+          reason: "cancelled",
+        },
+      },
+      memory_trace: {
+        memory_used_for_response: false,
+        memory_item_ids_used: [],
+        correction_detected: false,
+        correction_target_item_ids: [],
+      },
+    }),
+    true,
+  );
+});
+
+Deno.test("conversation skill normal exit does not force global reroute", () => {
+  assertEquals(
+    isConversationSkillExitToGlobal({
+      skill_id: "safety_crisis",
+      status: "exit",
+      response_intent: "complete",
+      reply: "On s'arrete ici.",
+      diagnosis: { flow_action: "complete_flow" },
+      memory_trace: {
+        memory_used_for_response: false,
+        memory_item_ids_used: [],
+        correction_detected: false,
+        correction_target_item_ids: [],
+      },
+    }),
+    false,
+  );
+});
+
+Deno.test("conversation skill exit to global suppresses recommendation tools", () => {
+  assertEquals(
+    shouldRunRecommendationTool({
+      skillOutput: {
+        skill_id: "emotional_repair",
+        status: "exit",
+        response_intent: "exit_to_global_dispatcher",
+        reply: "",
+        recommendation_need: {
+          needed: true,
+          type: "state_regulation",
+          urgency: "medium",
+          constraints: [],
+        },
+        state_patch: {
+          emotional_repair_exit_memo: {
+            reason: "cancelled",
+          },
+        },
+        memory_trace: {
+          memory_used_for_response: false,
+          memory_item_ids_used: [],
+          correction_detected: false,
+          correction_target_item_ids: [],
+        },
+      },
+      userMessage: "stop ici",
+      turnFrame: {
+        skill_signals: { entry: { product_help: { detected: true } } },
+      } as any,
+    }),
+    false,
+  );
+});
+
 Deno.test("safety reply override lets safety_crisis own the visible answer", () => {
   const reply = "Je reste sur la securite immediate.";
   const overridden = directSafetyCrisisReplyOverride({
@@ -112,7 +198,7 @@ Deno.test("safety reply override lets safety_crisis own the visible answer", () 
   assertEquals(overridden, reply);
 });
 
-Deno.test("safety route suppresses tool signals and direct effects", () => {
+Deno.test("safety route suppresses tool signals but preserves one-shot reminder direct effect", () => {
   const result = suppressToolSignalsForSafetyRoute({
     routeDecision: {
       route_version: "v1",
@@ -127,7 +213,13 @@ Deno.test("safety route suppresses tool signals and direct effects", () => {
     } as any,
     turnFrame: {
       tool_skill_intents: [{ operation_type: "select_state_potion" }],
-      direct_effects: [{ effect_type: "create_one_shot_reminder" }],
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {},
+      }],
       flow_opportunity: {
         opportunity_id: "select_state_potion.safety_suppressed",
         target_kind: "tool_skill",
@@ -143,9 +235,17 @@ Deno.test("safety route suppresses tool signals and direct effects", () => {
   });
 
   assertEquals(result.changed, true);
-  assertEquals(result.routeDecision.direct_effects_to_run, []);
+  assertEquals(result.routeDecision.direct_effects_to_run, [
+    "create_one_shot_reminder",
+  ]);
   assertEquals(result.turnFrame?.tool_skill_intents, []);
-  assertEquals(result.turnFrame?.direct_effects, []);
+  assertEquals(result.turnFrame?.direct_effects, [{
+    effect_type: "create_one_shot_reminder",
+    explicitness: "explicit",
+    target_status: "identified",
+    confidence_band: "high",
+    payload_hint: {},
+  }]);
   assertEquals(result.turnFrame?.flow_opportunity, null);
   assertEquals(
     result.routeDecision.blocked_paths.some((path) =>
@@ -153,6 +253,62 @@ Deno.test("safety route suppresses tool signals and direct effects", () => {
     ),
     true,
   );
+});
+
+Deno.test("product_help gets parent context after local flow exit second pass", () => {
+  const note = {
+    source_flow_id: "emotional_repair",
+    source_flow_presentation: "Emotional repair was active.",
+    source_flow_state_summary:
+      "User changed topic after a short emotional repair phrase.",
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher: "{}",
+    target_local_dispatcher_hint: null,
+    user_words: [],
+    structured_context: {},
+    risk_score: 0,
+    no_chat_mutation: {
+      db_write_committed: false,
+      potion_session_created: false,
+      scheduled_checkin_created: false,
+      recurring_reminder_created: false,
+      executable_confirmation_generated: false,
+    },
+  };
+  const parent = localFlowExitParentStateForProductHelp({
+    routeDecision: {
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      local_flow_exit_handoff: {
+        source_flow_id: "emotional_repair",
+        note_information: note,
+      },
+    } as any,
+    turnFrame: null,
+  });
+
+  assertEquals(parent?.skill_id, "emotional_repair");
+  assertEquals(parent?.status, "exited_to_global");
+  assertEquals(
+    (parent?.working_state as any)?.note_information?.source_flow_id,
+    "emotional_repair",
+  );
+});
+
+Deno.test("product_help does not synthesize parent context for normal global entry", () => {
+  const parent = localFlowExitParentStateForProductHelp({
+    routeDecision: {
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      local_flow_exit_handoff: {
+        source_flow_id: "global_dispatcher",
+      },
+    } as any,
+    turnFrame: null,
+  });
+
+  assertEquals(parent, null);
 });
 
 Deno.test("active safety flow caution keeps at least medium risk", () => {
@@ -181,8 +337,8 @@ Deno.test("active safety flow caution keeps at least medium risk", () => {
 });
 
 Deno.test("active safety flow cannot be downgraded by safe reminder exception", () => {
-  const result = runtimeSafetyPregateForTurn({
-    safetyPregateOutput: {
+  const result = runtimeSafetyContextForTurn({
+    safetyContextOutput: {
       detected: true,
       risk_band: "medium",
       reason_codes: ["active_safety_flow_caution"],
@@ -211,7 +367,7 @@ Deno.test("active safety flow cannot be downgraded by safe reminder exception", 
   });
 
   assertEquals(result.riskBand, "medium");
-  assertEquals(result.pregateOutput.risk_band, "medium");
+  assertEquals(result.safetyContextOutput.risk_band, "medium");
 });
 
 Deno.test("state potion opportunity does not append mechanical product copy", () => {

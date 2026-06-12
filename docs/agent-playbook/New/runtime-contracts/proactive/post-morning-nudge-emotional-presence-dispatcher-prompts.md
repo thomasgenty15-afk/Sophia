@@ -45,7 +45,7 @@ presentation.
 
 Do not produce it for `presence_ack_close`, `negative_nudge_feedback`,
 `cancel_flow`, or local soft support when no new dispatcher is called. Those are
-`stop_local_no_handoff` actions and global must not run on the same turn.
+`exit_to_global_dispatcher` actions and global must not run on the same turn.
 
 Choose `target_dispatcher` as `global` for explicit other tool/product/status
 or topic change when not inline, `safety_crisis` for safety, and

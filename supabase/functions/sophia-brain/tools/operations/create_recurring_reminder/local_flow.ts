@@ -3,6 +3,10 @@ import {
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../../router/direct_effect_local_context.ts";
 import type {
   CreateRecurringReminderConversationContext,
   CreateRecurringReminderLocalDispatcherOutput,
@@ -35,11 +39,27 @@ export type CreateRecurringReminderLocalDispatcherInput = {
   channel?: "web" | "whatsapp" | string | null;
   timezone: string;
   safety_risk_band?: string | null;
+  report_failure?: (
+    diagnostic: CreateRecurringReminderLocalDispatcherFailureDiagnostic,
+  ) => void;
 };
 
 export type CreateRecurringReminderLocalDispatcher = (
   input: CreateRecurringReminderLocalDispatcherInput,
 ) => Promise<CreateRecurringReminderLocalDispatcherOutput | null>;
+
+export type CreateRecurringReminderLocalDispatcherFailureDiagnostic = {
+  source: "create_recurring_reminder.local_dispatcher";
+  phase: "ai_call" | "normalize";
+  request_id: string | null;
+  user_id: string;
+  error_name: string;
+  error_message: string;
+  error_code: string | null;
+  raw_output_present: boolean;
+  raw_output_type: string | null;
+  raw_output_excerpt: string | null;
+};
 
 export type CreateRecurringReminderReducerResult = {
   status:
@@ -76,7 +96,7 @@ const FLOW_ACTIONS = new Set([
   "handoff_to_one_shot",
   "get_info_product",
   "get_info_db",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "cancel_flow",
   "exit_to_global_dispatcher",
   "safety_preempt",
@@ -148,6 +168,65 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function rawOutputType(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (Array.isArray(value)) return "array";
+  return typeof value;
+}
+
+function rawOutputExcerpt(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  let text = "";
+  if (typeof value === "string") {
+    text = value;
+  } else {
+    try {
+      text = JSON.stringify(value);
+    } catch {
+      text = String(value);
+    }
+  }
+  const trimmed = text.trim();
+  return trimmed ? trimmed.slice(0, 1200) : null;
+}
+
+function errorName(error: unknown): string {
+  return error instanceof Error ? error.name : typeof error;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function errorCodeFromMessage(message: string): string | null {
+  const text = message.trim();
+  if (!text) return null;
+  const match = text.match(/^([a-zA-Z0-9_.:-]+)/);
+  return match?.[1] ?? null;
+}
+
+function dispatcherFailureDiagnostic(args: {
+  phase: CreateRecurringReminderLocalDispatcherFailureDiagnostic["phase"];
+  requestId: string | null;
+  userId: string;
+  error: unknown;
+  rawOutput?: unknown;
+}): CreateRecurringReminderLocalDispatcherFailureDiagnostic {
+  const message = errorMessage(args.error);
+  return {
+    source: "create_recurring_reminder.local_dispatcher",
+    phase: args.phase,
+    request_id: args.requestId,
+    user_id: args.userId,
+    error_name: errorName(args.error),
+    error_message: message,
+    error_code: errorCodeFromMessage(message),
+    raw_output_present: args.rawOutput !== undefined && args.rawOutput !== null,
+    raw_output_type: rawOutputType(args.rawOutput),
+    raw_output_excerpt: rawOutputExcerpt(args.rawOutput),
+  };
 }
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
@@ -523,26 +602,13 @@ function defaultNote(
   return {
     needed: target !== null,
     source_flow_id: "create_recurring_reminder",
-    source_flow_presentation:
-      "create_recurring_reminder prépare un rappel récurrent à reprendre dans la plateforme, sans le créer depuis le chat.",
-    source_flow_state_summary:
-      "Flow de rappel récurrent actif; aucune création ou mutation depuis le chat.",
     handoff_reason: reason,
     target_dispatcher: target,
     handoff_context_for_next_dispatcher: target
       ? "Le flow recurring reste non-mutant; reprendre seulement le besoin courant utile au dispatcher cible."
       : null,
-    target_local_dispatcher_hint: null,
     user_words: [],
     structured_context: context,
-    risk_score: 0,
-    no_chat_mutation: {
-      db_write_committed: false,
-      potion_session_created: false,
-      scheduled_checkin_created: false,
-      recurring_reminder_created: false,
-      executable_confirmation_generated: false,
-    },
   };
 }
 
@@ -556,10 +622,6 @@ function normalizeNote(
   return {
     needed: root.needed === true || fallback.needed,
     source_flow_id: "create_recurring_reminder",
-    source_flow_presentation: stringValue(root.source_flow_presentation) ||
-      fallback.source_flow_presentation,
-    source_flow_state_summary: stringValue(root.source_flow_state_summary) ||
-      fallback.source_flow_state_summary,
     handoff_reason: enumValue(
       root.handoff_reason,
       new Set([
@@ -585,23 +647,13 @@ function normalizeNote(
     handoff_context_for_next_dispatcher:
       nullableString(root.handoff_context_for_next_dispatcher) ??
         fallback.handoff_context_for_next_dispatcher,
-    target_local_dispatcher_hint: nullableString(
-      root.target_local_dispatcher_hint,
-    ),
     user_words: Array.isArray(root.user_words)
       ? root.user_words.map((item) => String(item ?? "").trim()).filter(Boolean)
         .slice(0, 8)
       : fallback.user_words,
-    structured_context: objectValue(root.structured_context),
-    risk_score: riskScore(root.risk_score),
-    no_chat_mutation: {
-      ...objectValue(root.no_chat_mutation),
-      db_write_committed: false,
-      potion_session_created: false,
-      scheduled_checkin_created: false,
-      recurring_reminder_created: false,
-      executable_confirmation_generated: false,
-    },
+    structured_context: Object.keys(objectValue(root.structured_context)).length
+      ? objectValue(root.structured_context)
+      : fallback.structured_context,
   };
 }
 
@@ -749,7 +801,7 @@ function visibleKindForAction(
     case "get_info_product":
     case "get_info_db":
       return "inline_tool_return";
-    case "stop_local_no_handoff":
+    case "exit_to_global_dispatcher":
     case "cancel_flow":
       return "stop_or_cancel";
     case "exit_to_global_dispatcher":
@@ -777,7 +829,7 @@ function statusForAction(
     case "handoff_to_one_shot":
       return "handoff_to_one_shot";
     case "cancel_flow":
-    case "stop_local_no_handoff":
+    case "exit_to_global_dispatcher":
       return "cancelled";
     case "exit_to_global_dispatcher":
       return "topic_change";
@@ -902,8 +954,6 @@ function reducerVisibleTask(args: {
       handoff_reason: args.note.handoff_reason,
       handoff_context_for_next_dispatcher:
         args.note.handoff_context_for_next_dispatcher,
-      source_flow_state_summary: args.note.source_flow_state_summary,
-      target_local_dispatcher_hint: args.note.target_local_dispatcher_hint,
       structured_context: args.note.structured_context,
     }
     : context.note_information_summary;
@@ -976,14 +1026,7 @@ export function reduceCreateRecurringReminderLocalDispatcherOutput(args: {
     return {
       status: "exit",
       reason_code: "create_recurring_reminder_exit_to_global_dispatcher",
-      local_state: createLocalState({
-        previous: args.previous,
-        status,
-        fields,
-        draft: null,
-        visibleTask,
-        note,
-      }),
+      local_state: null,
       visible_task: visibleTask,
       handoff_draft: null,
       note_information: note,
@@ -993,7 +1036,7 @@ export function reduceCreateRecurringReminderLocalDispatcherOutput(args: {
     };
   }
 
-  if (action === "stop_local_no_handoff" || action === "cancel_flow") {
+  if (action === "cancel_flow") {
     return {
       status: "cancelled",
       reason_code: "create_recurring_reminder_local_cancelled",
@@ -1166,15 +1209,16 @@ export function buildCreateRecurringReminderLocalDispatcherSystemPrompt(): strin
     "Stabilise recurrence, heure locale, contenu exact et destination/binding. Pour une routine générale sans ancrage plan explicite, utilise destination base_de_vie au lieu de demander une destination inutile.",
     "Si la demande est clairement ponctuelle, retourne handoff_to_one_shot avec note_information vers one_shot_reminder et aucun draft récurrent. Si c'est ambigu, reste dans ce flow avec clarify_one_shot_vs_recurring.",
     "Utilise get_info_product ou get_info_db pour les questions inline pendant le flow actif; ajoute une note_information vers product_help ou status_recap et conserve l'état parent.",
-    "Utilise stop_local_no_handoff/cancel_flow si le user arrête juste ce flow. Utilise exit_to_global_dispatcher uniquement pour un nouveau sujet clair. Utilise safety_preempt pour safety; le global normal ne doit pas intervenir.",
+    "Utilise exit_to_global_dispatcher/cancel_flow si le user arrête juste ce flow. Utilise exit_to_global_dispatcher uniquement pour un nouveau sujet clair. Utilise safety_preempt pour safety; le global normal ne doit pas intervenir.",
     "db_context_pack est compact et sert à raisonner. micro_memory_context est optionnelle, 0 à 4 items, et ne doit jamais être copiée brute dans visible_task.conversation_context.",
     "visible_task.conversation_context est le seul contexte filtré destiné à l'agent visible. Il doit contenir seulement ce que l'agent peut dire, demander ou résumer.",
-    "note_information est obligatoire dès qu'un autre dispatcher intervient. Elle doit résumer source_flow, target_dispatcher, handoff_reason, user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence et recommended_next_focus dans structured_context/handoff_context_for_next_dispatcher.",
+    "note_information est obligatoire dès qu'un autre dispatcher intervient. Ne change pas sa structure: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 à 3 fragments du message courant. structured_context est succinct et non vide: user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    ...directEffectLocalDispatcherPromptLines(),
     "Stages visibles autorisés: ask_recurrence, ask_time, ask_content, ask_destination_binding, clarify_one_shot_vs_recurring, handoff_ready, revise_handoff, repeat_handoff, platform_destination_followup, apply_attempt, handoff_to_one_shot, inline_tool_return, stop_or_cancel, exit_ack, safety, contract_recovery.",
     [
       "## Field Completion Rules",
       "",
-      "flow_action: décision principale du tour. Elle reflète le message courant avec l'état actif, pas seulement l'état précédent. Utilise answer_or_update_slots quand le user fournit une réponse exploitable mais que le prochain stage dépend encore des champs. Utilise ask_recurrence, ask_time, ask_content ou ask_destination_binding uniquement quand ce champ précis manque ou est ambigu. Utilise handoff_ready quand recurrence, heure, contenu et destination sont assez stables. Utilise revise_handoff pour corriger une valeur déjà présentée, repeat_handoff pour redire la version, platform_destination_followup pour expliquer où reprendre la version, apply_attempt quand le user demande de programmer depuis le chat. Utilise get_info_product/get_info_db pour une question inline temporaire. Utilise handoff_to_one_shot seulement si la demande est clairement ponctuelle. Utilise stop_local_no_handoff/cancel_flow si le user arrête ce flow sans nouveau sujet. Utilise exit_to_global_dispatcher seulement pour un nouveau sujet clair. Utilise safety_preempt pour risque safety réel. N'invente aucune action absente du contrat.",
+      "flow_action: décision principale du tour. Elle reflète le message courant avec l'état actif, pas seulement l'état précédent. Utilise answer_or_update_slots quand le user fournit une réponse exploitable mais que le prochain stage dépend encore des champs. Utilise ask_recurrence, ask_time, ask_content ou ask_destination_binding uniquement quand ce champ précis manque ou est ambigu. Utilise handoff_ready quand recurrence, heure, contenu et destination sont assez stables. Utilise revise_handoff pour corriger une valeur déjà présentée, repeat_handoff pour redire la version, platform_destination_followup pour expliquer où reprendre la version, apply_attempt quand le user demande de programmer depuis le chat. Utilise get_info_product/get_info_db pour une question inline temporaire. Utilise handoff_to_one_shot seulement si la demande est clairement ponctuelle. Utilise exit_to_global_dispatcher si le user arrête ce flow ou apporte un nouveau sujet clair. Utilise safety_preempt pour risque safety réel. N'invente aucune action absente du contrat.",
       "",
       "confidence: high si l'intention et les valeurs structurantes sont claires. medium si le flow probable est correct mais un champ manque ou une révision reste partielle. low si clarification, prudence safety, ou conflit ponctuel/récurrent. La confidence n'autorise jamais une mutation chat.",
       "",
@@ -1198,14 +1242,14 @@ export function buildCreateRecurringReminderLocalDispatcherSystemPrompt(): strin
       "",
       "visible_task.conversation_context: seul contexte utilisable par l'agent visible. source_flow vaut create_recurring_reminder. stage_goal explique le but du stage. current_user_message_summary résume le message courant sans le copier brut si inutile. active_flow_summary résume l'état du flow. collected_state inclut seulement champs filtrés et limites no_chat_mutation, pas de DB brute ni mémoire brute. known_values contient les valeurs que le visible peut dire. missing_or_weak_values et unresolved_questions contiennent les incertitudes. question_to_ask est null sauf stage question. handoff contient le brouillon visible-agent-safe si pertinent. inline_tool_result reste null sauf retour inline. note_information_summary peut résumer la transition, jamais copier la note brute. evidence_used contient les indices réellement utilisés. tone_constraints et do_not_say cadrent le style et les interdits.",
       "",
-      "note_information: needed false pour continuation locale, repeat, revise, apply_attempt, stop_local_no_handoff sans handoff. needed true pour exit_to_global_dispatcher, safety_preempt, handoff_to_one_shot, get_info_product et get_info_db. source_flow_id vaut create_recurring_reminder. target_dispatcher vaut global, safety_crisis, one_shot_reminder, product_help ou status_recap selon l'action. handoff_context_for_next_dispatcher et structured_context doivent être exploitables par le dispatcher cible: user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus. La note ne va jamais brute au prompt visible.",
+      "note_information: needed false pour continuation locale, repeat, revise et apply_attempt. needed true pour exit_to_global_dispatcher, safety_preempt, handoff_to_one_shot, get_info_product et get_info_db. source_flow_id vaut create_recurring_reminder. target_dispatcher vaut global, safety_crisis, one_shot_reminder, product_help ou status_recap selon l'action. handoff_context_for_next_dispatcher et structured_context doivent être exploitables par le dispatcher cible: user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus. La note ne va jamais brute au prompt visible et ne contient pas de champs legacy.",
       "",
       "no_chat_mutation: tous les champs restent false. Ce flow ne crée pas de rappel récurrent, n'écrit pas en DB, ne crée pas scheduled_checkin, potion_session ni confirmation exécutable. Toute sortie qui suggère une mutation est invalide.",
       "",
       "evidence: indices sémantiques courts réellement utilisés: mots du user, état actif, db_context_pack ou note inbound. Pas de pseudo-preuves, pas de justification inventée.",
       "",
       "## Transition Rules",
-      "stop_local_no_handoff/cancel_flow: arrêter localement, visible_task.kind stop_or_cancel, note_information.needed false, pas de global sur le même tour.",
+      "exit_to_global_dispatcher: arrêter le flow ou changer de sujet, visible_task.kind stop_or_cancel ou exit_ack, note_information.needed true vers global.",
       "exit_to_global_dispatcher: nouveau sujet clair, visible_task.kind exit_ack, note_information.needed true vers global avec contexte exploitable.",
       "safety_preempt: risque prioritaire, visible_task.kind safety, note_information.needed true vers safety_crisis, aucun global normal.",
       "handoff_to_one_shot: seulement si ponctuel clair, visible_task.kind handoff_to_one_shot, note_information.needed true vers one_shot_reminder.",
@@ -1214,11 +1258,11 @@ export function buildCreateRecurringReminderLocalDispatcherSystemPrompt(): strin
       "",
       "## JSON Examples",
       "Example 1 - normal continuation:",
-      '{"flow_action":"ask_time","confidence":"medium","risk_score":0,"recurring_state":{"phase":"recurrence_resolution","user_intent":"provide_slot","summary":"Cadence et contenu connus, heure manquante.","user_words":["tous les matins","boire de l eau"],"one_shot_conflict":"none","minimum_fields_ready":false},"fields":{"recurrence":{"status":"identified","frequency":"daily","days":[],"time":null,"timezone":"Europe/Paris","cadence_label":"tous les matins","confidence":"high","evidence":["tous les matins"]},"reminder_content":{"status":"identified","message":"boire de l eau","subject_hint":"hydratation","confidence":"high","evidence":["boire de l eau"]},"destination":{"status":"identified","value":"base_de_vie","related_plan_item_id":null,"target_kind":"none","target_plan_item_id":null,"target_action_family_key":null,"target_generated_temp_id":null,"target_binding_policy":"none","target_lifecycle_policy":"independent","target_label":null,"confidence":"medium","evidence":["routine personnelle générale"]}},"missing_fields":["time"],"handoff_draft":{"ready":false,"reminder_summary":"boire de l eau","cadence_summary":"tous les matins","time_summary":null,"content_summary":"boire de l eau","platform_destination":"Rappels","preserve":["rappel récurrent"],"avoid":["création depuis le chat"]},"inline_tool":{"requested":false,"tool_name":null,"question_to_answer":null,"active_flow_context":null},"visible_task":{"kind":"ask_time","conversation_context":{"source_flow":"create_recurring_reminder","stage_goal":"ask_time","current_user_message_summary":"Le user veut un rappel récurrent quotidien pour boire de l eau.","active_flow_summary":"Cadence et contenu connus, heure manquante.","collected_state":{"recurrence":"daily","content":"boire de l eau","destination":"base_de_vie"},"known_values":{"cadence_summary":"tous les matins","content_summary":"boire de l eau","platform_destination":"Rappels"},"missing_or_weak_values":["time"],"question_to_ask":"Demander l heure du rappel.","handoff":{"ready":false},"inline_tool_result":null,"note_information_summary":null,"unresolved_questions":["time"],"evidence_used":["tous les matins","boire de l eau"],"tone_constraints":["court","une seule question"],"do_not_say":["créé","programmé","actif"]}},"note_information":{"needed":false,"source_flow_id":"create_recurring_reminder","source_flow_presentation":"Prépare un rappel récurrent à reprendre dans Rappels, sans le créer depuis le chat.","source_flow_state_summary":"Cadence et contenu connus, heure manquante.","handoff_reason":"none","target_dispatcher":null,"handoff_context_for_next_dispatcher":null,"target_local_dispatcher_hint":null,"user_words":["tous les matins","boire de l eau"],"structured_context":{},"risk_score":0},"no_chat_mutation":{"recurring_reminder_created":false,"db_write_committed":false,"scheduled_checkin_created":false,"potion_session_created":false,"executable_confirmation_generated":false},"evidence":["tous les matins","boire de l eau"]}',
+      '{"flow_action":"ask_time","confidence":"medium","risk_score":0,"recurring_state":{"phase":"recurrence_resolution","user_intent":"provide_slot","summary":"Cadence et contenu connus, heure manquante.","user_words":["tous les matins","boire de l eau"],"one_shot_conflict":"none","minimum_fields_ready":false},"fields":{"recurrence":{"status":"identified","frequency":"daily","days":[],"time":null,"timezone":"Europe/Paris","cadence_label":"tous les matins","confidence":"high","evidence":["tous les matins"]},"reminder_content":{"status":"identified","message":"boire de l eau","subject_hint":"hydratation","confidence":"high","evidence":["boire de l eau"]},"destination":{"status":"identified","value":"base_de_vie","related_plan_item_id":null,"target_kind":"none","target_plan_item_id":null,"target_action_family_key":null,"target_generated_temp_id":null,"target_binding_policy":"none","target_lifecycle_policy":"independent","target_label":null,"confidence":"medium","evidence":["routine personnelle générale"]}},"missing_fields":["time"],"handoff_draft":{"ready":false,"reminder_summary":"boire de l eau","cadence_summary":"tous les matins","time_summary":null,"content_summary":"boire de l eau","platform_destination":"Rappels","preserve":["rappel récurrent"],"avoid":["création depuis le chat"]},"inline_tool":{"requested":false,"tool_name":null,"question_to_answer":null,"active_flow_context":null},"visible_task":{"kind":"ask_time","conversation_context":{"source_flow":"create_recurring_reminder","stage_goal":"ask_time","current_user_message_summary":"Le user veut un rappel récurrent quotidien pour boire de l eau.","active_flow_summary":"Cadence et contenu connus, heure manquante.","collected_state":{"recurrence":"daily","content":"boire de l eau","destination":"base_de_vie"},"known_values":{"cadence_summary":"tous les matins","content_summary":"boire de l eau","platform_destination":"Rappels"},"missing_or_weak_values":["time"],"question_to_ask":"Demander l heure du rappel.","handoff":{"ready":false},"inline_tool_result":null,"note_information_summary":null,"unresolved_questions":["time"],"evidence_used":["tous les matins","boire de l eau"],"tone_constraints":["court","une seule question"],"do_not_say":["créé","programmé","actif"]}},"note_information":{"needed":false},"no_chat_mutation":{"recurring_reminder_created":false,"db_write_committed":false,"scheduled_checkin_created":false,"potion_session_created":false,"executable_confirmation_generated":false},"evidence":["tous les matins","boire de l eau"]}',
       "Example 2 - critical transition:",
-      '{"flow_action":"exit_to_global_dispatcher","confidence":"high","risk_score":0,"recurring_state":{"phase":"exit","user_intent":"topic_change","summary":"Le user quitte le rappel et demande une priorisation.","user_words":["laisse ça","aide-moi à prioriser"],"one_shot_conflict":"none","minimum_fields_ready":false},"fields":{"recurrence":{"status":"missing","frequency":null,"days":[],"time":null,"timezone":"Europe/Paris","cadence_label":null,"confidence":"low","evidence":[]},"reminder_content":{"status":"missing","message":null,"subject_hint":null,"confidence":"low","evidence":[]},"destination":{"status":"missing","value":null,"related_plan_item_id":null,"target_kind":null,"target_plan_item_id":null,"target_action_family_key":null,"target_generated_temp_id":null,"target_binding_policy":null,"target_lifecycle_policy":null,"target_label":null,"confidence":"low","evidence":[]}},"missing_fields":[],"handoff_draft":{"ready":false,"reminder_summary":null,"cadence_summary":null,"time_summary":null,"content_summary":null,"platform_destination":"Rappels","preserve":[],"avoid":["ne pas traiter le nouveau sujet dans le visible local"]},"inline_tool":{"requested":false,"tool_name":null,"question_to_answer":null,"active_flow_context":null},"visible_task":{"kind":"exit_ack","conversation_context":{"source_flow":"create_recurring_reminder","stage_goal":"exit_ack","current_user_message_summary":"Le user change clairement de sujet vers la priorisation.","active_flow_summary":"Le brouillon de rappel est mis de côté.","collected_state":{"exit_reason":"topic_change"},"known_values":{},"missing_or_weak_values":[],"question_to_ask":null,"handoff":{"ready":false},"inline_tool_result":null,"note_information_summary":{"target_dispatcher":"global","handoff_reason":"topic_change"},"unresolved_questions":[],"evidence_used":["laisse ça","aide-moi à prioriser"],"tone_constraints":["court"],"do_not_say":["je vais prioriser ici"]}},"note_information":{"needed":true,"source_flow_id":"create_recurring_reminder","source_flow_presentation":"Prépare un rappel récurrent à reprendre dans Rappels, sans le créer depuis le chat.","source_flow_state_summary":"Flow de rappel quitté avant handoff final.","handoff_reason":"topic_change","target_dispatcher":"global","handoff_context_for_next_dispatcher":"user_message_summary: demande de priorisation; active_flow_summary: rappel mis de côté; collected_state: aucun effet commis; unresolved_questions: nouveau sujet à analyser; confidence: high; evidence: laisse ça, aide-moi à prioriser; recommended_next_focus: priorisation.","target_local_dispatcher_hint":null,"user_words":["laisse ça","aide-moi à prioriser"],"structured_context":{"user_message_summary":"demande de priorisation","active_flow_summary":"rappel mis de côté","collected_state":{"no_chat_mutation":true},"unresolved_questions":["priorisation à traiter"],"confidence":"high","evidence":["laisse ça","aide-moi à prioriser"],"recommended_next_focus":"priorisation"},"risk_score":0},"no_chat_mutation":{"recurring_reminder_created":false,"db_write_committed":false,"scheduled_checkin_created":false,"potion_session_created":false,"executable_confirmation_generated":false},"evidence":["laisse ça","aide-moi à prioriser"]}',
+      '{"flow_action":"exit_to_global_dispatcher","confidence":"high","risk_score":0,"recurring_state":{"phase":"exit","user_intent":"topic_change","summary":"Le user quitte le rappel et demande une priorisation.","user_words":["laisse ça","aide-moi à prioriser"],"one_shot_conflict":"none","minimum_fields_ready":false},"fields":{"recurrence":{"status":"missing","frequency":null,"days":[],"time":null,"timezone":"Europe/Paris","cadence_label":null,"confidence":"low","evidence":[]},"reminder_content":{"status":"missing","message":null,"subject_hint":null,"confidence":"low","evidence":[]},"destination":{"status":"missing","value":null,"related_plan_item_id":null,"target_kind":null,"target_plan_item_id":null,"target_action_family_key":null,"target_generated_temp_id":null,"target_binding_policy":null,"target_lifecycle_policy":null,"target_label":null,"confidence":"low","evidence":[]}},"missing_fields":[],"handoff_draft":{"ready":false,"reminder_summary":null,"cadence_summary":null,"time_summary":null,"content_summary":null,"platform_destination":"Rappels","preserve":[],"avoid":["ne pas traiter le nouveau sujet dans le visible local"]},"inline_tool":{"requested":false,"tool_name":null,"question_to_answer":null,"active_flow_context":null},"visible_task":{"kind":"exit_ack","conversation_context":{"source_flow":"create_recurring_reminder","stage_goal":"exit_ack","current_user_message_summary":"Le user change clairement de sujet vers la priorisation.","active_flow_summary":"Le brouillon de rappel est mis de côté.","collected_state":{"exit_reason":"topic_change"},"known_values":{},"missing_or_weak_values":[],"question_to_ask":null,"handoff":{"ready":false},"inline_tool_result":null,"note_information_summary":{"target_dispatcher":"global","handoff_reason":"topic_change"},"unresolved_questions":[],"evidence_used":["laisse ça","aide-moi à prioriser"],"tone_constraints":["court"],"do_not_say":["je vais prioriser ici"]}},"note_information":{"needed":true,"source_flow_id":"create_recurring_reminder","handoff_reason":"topic_change","target_dispatcher":"global","handoff_context_for_next_dispatcher":"user_message_summary: demande de priorisation; active_flow_summary: rappel mis de côté; collected_state: aucun effet commis; unresolved_questions: nouveau sujet à analyser; confidence: high; evidence: laisse ça, aide-moi à prioriser; recommended_next_focus: priorisation.","user_words":["laisse ça","aide-moi à prioriser"],"structured_context":{"user_message_summary":"demande de priorisation","active_flow_summary":"rappel mis de côté","collected_state":{"no_chat_mutation":true},"unresolved_questions":["priorisation à traiter"],"confidence":"high","evidence":["laisse ça","aide-moi à prioriser"],"recommended_next_focus":"priorisation"},"confidence":"high"},"no_chat_mutation":{"recurring_reminder_created":false,"db_write_committed":false,"scheduled_checkin_created":false,"potion_session_created":false,"executable_confirmation_generated":false},"evidence":["laisse ça","aide-moi à prioriser"]}',
     ].join("\n"),
-    'Retourne exactement un JSON avec: {"flow_action":"answer_or_update_slots|ask_recurrence|ask_time|ask_content|ask_destination_binding|clarify_one_shot_vs_recurring|handoff_ready|revise_handoff|repeat_handoff|platform_destination_followup|apply_attempt|handoff_to_one_shot|get_info_product|get_info_db|stop_local_no_handoff|cancel_flow|exit_to_global_dispatcher|safety_preempt","confidence":"low|medium|high","risk_score":0,"recurring_state":{"phase":"intake|recurrence_resolution|content_intake|destination_binding|handoff_ready|handoff_delivered|revision|inline_tool|exit","user_intent":"start|provide_slot|draft_only|create|cancel|reject|revise|explain|topic_change|status_question|one_shot_handoff|clarify|unknown","summary":"string","user_words":["string"],"one_shot_conflict":"none|ambiguous|clear_one_shot","minimum_fields_ready":true},"fields":{"recurrence":{"status":"missing|ambiguous|identified","frequency":"daily|weekly|specific_days|weekdays|custom|null","days":["lundi"],"time":"HH:mm|null","timezone":"string","cadence_label":"string|null","confidence":"low|medium|high","evidence":["string"]},"reminder_content":{"status":"missing|ambiguous|identified","message":"string|null","subject_hint":"string|null","confidence":"low|medium|high","evidence":["string"]},"destination":{"status":"missing|ambiguous|identified","value":"base_de_vie|current_plan|null","related_plan_item_id":"string|null","target_kind":"none|transformation|plan_item|action_family|null","target_plan_item_id":"string|null","target_action_family_key":"string|null","target_generated_temp_id":"string|null","target_binding_policy":"none|snapshot|live_action|live_action_family|null","target_lifecycle_policy":"independent|while_target_active|while_family_in_current_plan|null","target_label":"string|null","confidence":"low|medium|high","evidence":["string"]}},"missing_fields":["recurrence|time|message|destination|binding_boundary"],"handoff_draft":{"ready":true,"reminder_summary":"string|null","cadence_summary":"string|null","time_summary":"string|null","content_summary":"string|null","platform_destination":"string|null","preserve":["string"],"avoid":["string"]},"inline_tool":{"requested":false,"tool_name":"get_info_product|get_info_db|null","question_to_answer":"string|null","active_flow_context":"string|null"},"visible_task":{"kind":"ask_recurrence|ask_time|ask_content|ask_destination_binding|clarify_one_shot_vs_recurring|handoff_ready|revise_handoff|repeat_handoff|platform_destination_followup|apply_attempt|handoff_to_one_shot|inline_tool_return|stop_or_cancel|exit_ack|safety|contract_recovery","conversation_context":{"source_flow":"create_recurring_reminder","stage_goal":"string","current_user_message_summary":"string|null","active_flow_summary":"string","collected_state":{},"known_values":{},"missing_or_weak_values":["string"],"question_to_ask":"string|null","handoff":{},"inline_tool_result":{},"note_information_summary":{},"unresolved_questions":["string"],"evidence_used":["string"],"tone_constraints":["string"],"do_not_say":["string"]}},"note_information":{"needed":false,"source_flow_id":"create_recurring_reminder","source_flow_presentation":"create_recurring_reminder prépare un rappel récurrent à reprendre dans la plateforme, sans le créer depuis le chat.","source_flow_state_summary":"string","handoff_reason":"topic_change|safety|inline_tool|one_shot_boundary|flow_interruption|none","target_dispatcher":"global|safety_crisis|one_shot_reminder|product_help|status_recap|null","handoff_context_for_next_dispatcher":"string|null","target_local_dispatcher_hint":"string|null","user_words":["string"],"structured_context":{},"risk_score":0},"no_chat_mutation":{"recurring_reminder_created":false,"db_write_committed":false,"scheduled_checkin_created":false,"potion_session_created":false,"executable_confirmation_generated":false},"evidence":["string"]}',
+    'Retourne exactement un JSON avec: {"flow_action":"answer_or_update_slots|ask_recurrence|ask_time|ask_content|ask_destination_binding|clarify_one_shot_vs_recurring|handoff_ready|revise_handoff|repeat_handoff|platform_destination_followup|apply_attempt|handoff_to_one_shot|get_info_product|get_info_db|exit_to_global_dispatcher|cancel_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"recurring_state":{"phase":"intake|recurrence_resolution|content_intake|destination_binding|handoff_ready|handoff_delivered|revision|inline_tool|exit","user_intent":"start|provide_slot|draft_only|create|cancel|reject|revise|explain|topic_change|status_question|one_shot_handoff|clarify|unknown","summary":"string","user_words":["string"],"one_shot_conflict":"none|ambiguous|clear_one_shot","minimum_fields_ready":true},"fields":{"recurrence":{"status":"missing|ambiguous|identified","frequency":"daily|weekly|specific_days|weekdays|custom|null","days":["lundi"],"time":"HH:mm|null","timezone":"string","cadence_label":"string|null","confidence":"low|medium|high","evidence":["string"]},"reminder_content":{"status":"missing|ambiguous|identified","message":"string|null","subject_hint":"string|null","confidence":"low|medium|high","evidence":["string"]},"destination":{"status":"missing|ambiguous|identified","value":"base_de_vie|current_plan|null","related_plan_item_id":"string|null","target_kind":"none|transformation|plan_item|action_family|null","target_plan_item_id":"string|null","target_action_family_key":"string|null","target_generated_temp_id":"string|null","target_binding_policy":"none|snapshot|live_action|live_action_family|null","target_lifecycle_policy":"independent|while_target_active|while_family_in_current_plan|null","target_label":"string|null","confidence":"low|medium|high","evidence":["string"]}},"missing_fields":["recurrence|time|message|destination|binding_boundary"],"handoff_draft":{"ready":true,"reminder_summary":"string|null","cadence_summary":"string|null","time_summary":"string|null","content_summary":"string|null","platform_destination":"string|null","preserve":["string"],"avoid":["string"]},"inline_tool":{"requested":false,"tool_name":"get_info_product|get_info_db|null","question_to_answer":"string|null","active_flow_context":"string|null"},"visible_task":{"kind":"ask_recurrence|ask_time|ask_content|ask_destination_binding|clarify_one_shot_vs_recurring|handoff_ready|revise_handoff|repeat_handoff|platform_destination_followup|apply_attempt|handoff_to_one_shot|inline_tool_return|stop_or_cancel|exit_ack|safety|contract_recovery","conversation_context":{"source_flow":"create_recurring_reminder","stage_goal":"string","current_user_message_summary":"string|null","active_flow_summary":"string","collected_state":{},"known_values":{},"missing_or_weak_values":["string"],"question_to_ask":"string|null","handoff":{},"inline_tool_result":{},"note_information_summary":{},"unresolved_questions":["string"],"evidence_used":["string"],"tone_constraints":["string"],"do_not_say":["string"]}},"note_information":{"needed":false,"source_flow_id":"create_recurring_reminder","handoff_reason":"topic_change|safety|inline_tool|one_shot_boundary|flow_interruption|none","target_dispatcher":"global|safety_crisis|one_shot_reminder|product_help|status_recap|null","handoff_context_for_next_dispatcher":"string|null","user_words":["string"],"structured_context":{},"confidence":"low|medium|high"},"no_chat_mutation":{"recurring_reminder_created":false,"db_write_committed":false,"scheduled_checkin_created":false,"potion_session_created":false,"executable_confirmation_generated":false},"evidence":["string"]}',
   ].join("\n");
 }
 
@@ -1235,7 +1279,12 @@ export async function runCreateRecurringReminderLocalDispatcher(
     recent_messages: input.recent_messages,
     active_state: input.active_state,
     db_context_pack: input.db_context_pack ?? {
-      platform_context: input.platform_context,
+      platform_context: withDirectEffectLocalContext(
+        input.platform_context,
+        (input.platform_context as any)?.plan_snapshot ??
+          (input.db_context_pack as any)?.plan_snapshot ??
+          null,
+      ),
       active_state_summary: input.active_state
         ? {
           status: input.active_state.status,
@@ -1257,8 +1306,9 @@ export async function runCreateRecurringReminderLocalDispatcher(
     timezone: input.timezone,
     safety_risk_band: input.safety_risk_band ?? null,
   });
+  let raw: unknown;
   try {
-    const raw = await generateWithGemini(
+    raw = await generateWithGemini(
       dispatcherSystemPrompt(),
       userPrompt,
       0.1,
@@ -1276,13 +1326,39 @@ export async function runCreateRecurringReminderLocalDispatcher(
         maxRetries: 1,
       },
     );
+  } catch (error) {
+    const diagnostic = dispatcherFailureDiagnostic({
+      phase: "ai_call",
+      requestId: input.request_id ?? null,
+      userId: input.user_id,
+      error,
+    });
+    input.report_failure?.(diagnostic);
+    console.warn(
+      "[CreateRecurringReminder] local dispatcher ai call failed",
+      diagnostic,
+    );
+    return null;
+  }
+  try {
     return normalizeCreateRecurringReminderLocalDispatcherOutput(
       raw,
       input.active_state,
       input.timezone,
     );
   } catch (error) {
-    console.warn("[CreateRecurringReminder] local dispatcher failed", error);
+    const diagnostic = dispatcherFailureDiagnostic({
+      phase: "normalize",
+      requestId: input.request_id ?? null,
+      userId: input.user_id,
+      error,
+      rawOutput: raw,
+    });
+    input.report_failure?.(diagnostic);
+    console.warn(
+      "[CreateRecurringReminder] local dispatcher normalize failed",
+      diagnostic,
+    );
     return null;
   }
 }

@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { badRequest, getRequestId, jsonResponse, parseJsonBody, serverError, z } from "../_shared/http.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
 
 const BodySchema = z
   .object({
@@ -18,6 +19,7 @@ function requireEnv(name: string): string {
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
+  let currentUserId: string | null = null;
 
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsErr = enforceCors(req);
@@ -49,6 +51,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
     }
+    currentUserId = user.id;
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
     const { data: profile, error: profileErr } = await supabaseAdmin
@@ -58,6 +61,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (profileErr) {
       console.error("[stripe-create-portal-session] profile read error", profileErr);
+      await logEdgeFunctionError({
+        functionName: "stripe-create-portal-session",
+        error: profileErr,
+        severity: "error",
+        title: "profile_read_failed",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+      });
       return serverError(req, requestId);
     }
 
@@ -78,14 +90,33 @@ Deno.serve(async (req) => {
       },
     });
 
+    await logEdgeFunctionError({
+      functionName: "stripe-create-portal-session",
+      error: "Stripe portal session created",
+      severity: "info",
+      title: "billing_portal_created",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+      metadata: { stripe_customer_id: customerId },
+    });
+
     return jsonResponse(req, { url: portal.url, request_id: requestId });
   } catch (err) {
     console.error("[stripe-create-portal-session] error", err);
+    await logEdgeFunctionError({
+      functionName: "stripe-create-portal-session",
+      error: err,
+      severity: "error",
+      title: "billing_portal_failed",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+    });
     const msg = err instanceof Error ? err.message : "Internal Server Error";
     // Helpful diagnostics for misconfigured Edge secrets.
     if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
     return serverError(req, requestId);
   }
 });
-
 

@@ -14,14 +14,6 @@ import type {
   StatePotionVisibleFieldContext,
 } from "./contract.ts";
 
-const NO_CHAT_MUTATION = {
-  db_write_committed: false,
-  potion_session_created: false,
-  scheduled_checkin_created: false,
-  recurring_reminder_created: false,
-  executable_confirmation_generated: false,
-} as const;
-
 const DO_NOT_SAY = [
   "ne dis jamais que la potion est activée",
   "ne dis jamais que la potion est lancée",
@@ -242,21 +234,21 @@ export function buildStatePotionNoteInformation(args: {
 }): NoteInformation {
   return createNoteInformation({
     source_flow_id: args.sourceFlowId,
-    source_flow_state_summary: args.context.state_summary,
     handoff_reason: args.handoffReason,
     target_dispatcher: args.targetDispatcher,
     handoff_context_for_next_dispatcher: args.context.context_summary ??
       args.context.state_summary,
-    target_local_dispatcher_hint: args.targetHint ?? null,
     user_words: [args.userMessage],
     structured_context: {
+      source_flow: args.sourceFlowId,
+      user_message_summary: args.userMessage,
+      active_flow_summary: args.context.state_summary,
       selected_potion: args.context.selected_candidate,
       collected_fields: args.context.known_values,
       unresolved_questions: args.context.missing_or_weak_values,
       handoff_data: args.context.handoff_data,
       evidence_used: args.context.evidence_used,
+      recommended_next_focus: args.targetHint ?? args.targetDispatcher,
     },
-    risk_score: args.riskScore ?? 0,
-    no_chat_mutation: NO_CHAT_MUTATION,
   });
 }

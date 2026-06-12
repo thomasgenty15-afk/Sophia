@@ -56,11 +56,11 @@ serve(async (req) => {
       throw new Error("Aucun email destinataire trouvé");
     }
 
-    // Skip ephemeral test users created by run-evals (avoid sending real emails / noisy logs).
+    // Skip ephemeral example.com users (avoid sending real emails / noisy logs).
     const normalizedEmail = String(targetEmail).trim().toLowerCase();
-    if (normalizedEmail.startsWith("run-evals+") && normalizedEmail.endsWith("@example.com")) {
-      console.log(`Skip welcome email for eval user: ${targetEmail} (${userId})`);
-      return new Response(JSON.stringify({ message: "Skipped (run-evals test user)" }), {
+    if (normalizedEmail.endsWith("@example.com")) {
+      console.log(`Skip welcome email for ephemeral test user: ${targetEmail} (${userId})`);
+      return new Response(JSON.stringify({ message: "Skipped (ephemeral test user)" }), {
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -153,4 +153,3 @@ serve(async (req) => {
     });
   }
 });
-

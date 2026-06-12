@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 export type BrainTraceLevel = "debug" | "info" | "warn" | "error";
 export type BrainTracePhase =
@@ -15,7 +15,10 @@ export type BrainTracePhase =
 export type BrainTraceMeta = {
   requestId?: string;
   evalRunId?: string | null;
-  // Debug escape hatch (non-prod usage): allow enabling traces outside evals.
+  turnId?: string | null;
+  channel?: "web" | "whatsapp" | null;
+  scope?: string | null;
+  // Debug escape hatch (non-prod usage): allow enabling traces outside normal request flow.
   forceBrainTrace?: boolean;
 };
 
@@ -26,7 +29,12 @@ function parseBoolEnv(v: string | undefined): boolean {
 
 function truncateDeep(
   input: unknown,
-  opts?: { maxLen?: number; maxDepth?: number; maxKeys?: number; maxArray?: number },
+  opts?: {
+    maxLen?: number;
+    maxDepth?: number;
+    maxKeys?: number;
+    maxArray?: number;
+  },
 ): unknown {
   const maxLen = Math.max(64, Math.floor(opts?.maxLen ?? 1400));
   const maxDepth = Math.max(1, Math.floor(opts?.maxDepth ?? 8));
@@ -34,7 +42,9 @@ function truncateDeep(
   const maxArray = Math.max(10, Math.floor(opts?.maxArray ?? 50));
   const seen = new WeakSet<object>();
 
-  const clamp = (s: string) => (s.length > maxLen ? s.slice(0, maxLen) + "…" : s);
+  const clamp = (
+    s: string,
+  ) => (s.length > maxLen ? s.slice(0, maxLen) + "…" : s);
   const rec = (v: any, depth: number): any => {
     if (v == null) return v;
     const t = typeof v;
@@ -44,7 +54,9 @@ function truncateDeep(
     if (depth >= maxDepth) return "[truncated_depth]";
     if (seen.has(v)) return "[circular]";
     seen.add(v);
-    if (Array.isArray(v)) return v.slice(0, maxArray).map((x) => rec(x, depth + 1));
+    if (Array.isArray(v)) {
+      return v.slice(0, maxArray).map((x) => rec(x, depth + 1));
+    }
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(v).slice(0, maxKeys)) {
       out[k] = rec(v[k], depth + 1);
@@ -54,12 +66,34 @@ function truncateDeep(
   return rec(input, 0);
 }
 
+function serviceRoleClient(): SupabaseClient | null {
+  try {
+    const url = String(
+      (globalThis as any)?.Deno?.env?.get?.("SUPABASE_URL") ?? "",
+    )
+      .trim();
+    const key = String(
+      (globalThis as any)?.Deno?.env?.get?.("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    ).trim();
+    if (!url || !key) return null;
+    return createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function shouldBrainTrace(meta?: BrainTraceMeta): boolean {
   if (meta?.forceBrainTrace) return true;
-  // Primary mode: eval runs (run-evals passes meta.evalRunId)
+  // Primary mode: structured trace runs pass meta.evalRunId.
   if (meta?.evalRunId) return true;
   // Manual override (staging only): set SOPHIA_BRAIN_TRACE_ENABLED=1
-  if (parseBoolEnv((globalThis as any)?.Deno?.env?.get?.("SOPHIA_BRAIN_TRACE_ENABLED"))) return true;
+  if (
+    parseBoolEnv(
+      (globalThis as any)?.Deno?.env?.get?.("SOPHIA_BRAIN_TRACE_ENABLED"),
+    )
+  ) return true;
   return false;
 }
 
@@ -85,7 +119,36 @@ export async function logBrainTrace(opts: {
       ...(opts.payload ? { payload: opts.payload } : {}),
     });
 
-    // Canonical stream (for bundling): always write into conversation_eval_events during eval runs.
+    const runtimeRow = {
+      request_id: requestId,
+      turn_id: opts.meta?.turnId ? String(opts.meta.turnId).trim() : null,
+      user_id: opts.userId,
+      channel: opts.meta?.channel ?? null,
+      scope: opts.meta?.scope ? String(opts.meta.scope).trim() : null,
+      source: "brain-trace",
+      level: String(opts.level ?? "info"),
+      event,
+      phase: opts.phase ?? null,
+      payload: safePayload,
+    };
+    try {
+      const { error } = await (opts.supabase as any)
+        .from("conversation_runtime_events")
+        .insert(runtimeRow);
+      if (error) {
+        const admin = serviceRoleClient();
+        if (admin) {
+          await (admin as any).from("conversation_runtime_events").insert(
+            runtimeRow,
+          );
+        }
+      }
+    } catch {
+      // Runtime traces are audit-only. Missing migrations or transient write failures
+      // must not break user-facing turns.
+    }
+
+    // Canonical stream (for bundling): write into the historical trace table during structured trace runs.
     // This table is already consumed by the eval bundle and is the most reliable place to persist
     // high-granularity structured traces without relying on external log drains.
     if (evalRunId && requestId) {
@@ -106,7 +169,9 @@ export async function logBrainTrace(opts: {
     // One-time ping (per isolate + request_id) to confirm tracing is active and evalRunId is wired.
     try {
       const anyGlobalThis = globalThis as any;
-      if (!anyGlobalThis.__sophiaBrainTracePinged) anyGlobalThis.__sophiaBrainTracePinged = new Set();
+      if (!anyGlobalThis.__sophiaBrainTracePinged) {
+        anyGlobalThis.__sophiaBrainTracePinged = new Set();
+      }
       const key = `${evalRunId ?? "no_eval"}:${requestId}`;
       if (!anyGlobalThis.__sophiaBrainTracePinged.has(key)) {
         anyGlobalThis.__sophiaBrainTracePinged.add(key);
@@ -128,7 +193,11 @@ export async function logBrainTrace(opts: {
     // If something throws (serialization/fetch), try to surface it into the eval event stream for debugging.
     try {
       const msg = String((e as any)?.message ?? e ?? "unknown").slice(0, 1200);
-      const exceptionPayload = { event, phase: opts.phase ?? null, message: msg };
+      const exceptionPayload = {
+        event,
+        phase: opts.phase ?? null,
+        message: msg,
+      };
       if (evalRunId && requestId) {
         await (opts.supabase as any).from("conversation_eval_events").insert({
           eval_run_id: evalRunId,
@@ -144,5 +213,3 @@ export async function logBrainTrace(opts: {
     }
   }
 }
-
-

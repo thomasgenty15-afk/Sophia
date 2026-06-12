@@ -400,7 +400,7 @@ Deno.test("direct clear write commits user_profile_facts and emits committed eff
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
     },
-    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    safetyContextOutput: { risk_band: "none", evidence: [] } as any,
     sourceMessageId: "m1",
     requestId: "op1",
     runLocalDispatcher: () => Promise.resolve(baseDecision()),
@@ -477,7 +477,7 @@ Deno.test("punctual and unsupported requests do not write or claim durable succe
         memory_item_ids_used_for_route: [],
         memory_use_kind: "none",
       },
-      safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+      safetyContextOutput: { risk_band: "none", evidence: [] } as any,
       sourceMessageId: "m2",
       runLocalDispatcher: () => Promise.resolve(decision),
       runVisibleAgent: visibleAgent("Pas de stockage durable."),
@@ -509,7 +509,7 @@ Deno.test("proposed mapping writes only after local confirmation", async () => {
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
     },
-    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    safetyContextOutput: { risk_band: "none", evidence: [] } as any,
     sourceMessageId: "m3",
     runLocalDispatcher: () =>
       Promise.resolve(baseDecision({
@@ -551,7 +551,7 @@ Deno.test("proposed mapping writes only after local confirmation", async () => {
     tempMemory: first?.nextTempMemory,
     turnFrame: null,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    safetyContextOutput: { risk_band: "none", evidence: [] } as any,
     sourceMessageId: "m4",
     requestId: "op-confirm",
     runLocalDispatcher: () =>
@@ -596,7 +596,7 @@ Deno.test("status question inside coach preference flow delegates to status_reca
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
     },
-    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    safetyContextOutput: { risk_band: "none", evidence: [] } as any,
     sourceMessageId: "m-status",
     runLocalDispatcher: () =>
       Promise.resolve(baseDecision({
@@ -656,7 +656,7 @@ Deno.test("preference explanation inside coach preference flow delegates to prod
     tempMemory: { __coach_preference_flow_state_v1: activeState },
     turnFrame: null,
     routeDecision: null,
-    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    safetyContextOutput: { risk_band: "none", evidence: [] } as any,
     sourceMessageId: "m-explain",
     runLocalDispatcher: () =>
       Promise.resolve(baseDecision({
@@ -800,23 +800,56 @@ Deno.test("local exit, safety and stop actions follow note_information doctrine"
       proposedUpdates: [baseDecision().preference_updates[0]],
     }),
     output: baseDecision({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       preference_intent: {
-        kind: "cancel",
+        kind: "topic_change",
         durability: "not_applicable",
         support_status: "not_applicable",
-        summary: "Stop local sans nouveau sujet.",
+        summary: "Stop du flow preferences avec reprise globale.",
       },
       preference_updates: [],
       visible_task: {
-        kind: "stop_or_cancel",
-        instruction: "Ack local court.",
+        kind: "exit_ack",
+        instruction: "Sortir vers le global avec note.",
+      },
+      note_information: {
+        needed: true,
+        source_flow_id: "update_coach_preferences",
+        source_flow_presentation: "Flow local de préférences coach.",
+        source_flow_state_summary:
+          "Proposition non écrite; sortie demandée.",
+        handoff_reason: "topic_change",
+        target_dispatcher: "global",
+        handoff_context_for_next_dispatcher:
+          "Le user demande d'arrêter le flow de préférences.",
+        target_local_dispatcher_hint: null,
+        user_words: ["stop"],
+        structured_context: {
+          source_flow: "update_coach_preferences",
+          collected_updates: [],
+          unresolved_questions: [],
+          recommended_next_focus: "resume global routing",
+        },
+        risk_score: 0,
+        no_chat_mutation: {
+          db_write_committed: false,
+          potion_session_created: false,
+          scheduled_checkin_created: false,
+          recurring_reminder_created: false,
+          executable_confirmation_generated: false,
+        },
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "Sortie preferences sans write.",
+        handoff_hint_for_global_dispatcher: "resume global routing",
       },
     }),
   });
-  assertEquals(stopReduced.status, "cancelled");
-  assertEquals(stopReduced.exit_to_global_dispatcher, false);
-  assertEquals(stopReduced.note_information, null);
+  assertEquals(stopReduced.status, "exit");
+  assertEquals(stopReduced.exit_to_global_dispatcher, true);
+  assertEquals(stopReduced.note_information?.target_dispatcher, "global");
 });
 
 Deno.test("local dispatcher prompt explains real field completion rules", () => {
@@ -831,14 +864,14 @@ Deno.test("local dispatcher prompt explains real field completion rules", () => 
   assert(prompt.includes("- missing_decisions: mets durability"));
   assert(prompt.includes("- visible_task.kind: stage visible exact"));
   assert(prompt.includes("- visible_task.conversation_context: seul contexte"));
-  assert(prompt.includes("- note_information: {needed:false}"));
+  assert(prompt.includes("- note_information: obligatoire"));
   assert(prompt.includes("- exit_memo: présent seulement"));
   assert(prompt.includes("- safety: remplir quand risk_score"));
   assert(
     prompt.includes("- evidence: indices sémantiques réellement utilisés"),
   );
   assert(prompt.includes("Transition Rules:"));
-  assert(prompt.includes("stop_local_no_handoff/cancel_flow"));
+  assert(prompt.includes("exit_to_global_dispatcher"));
   assert(prompt.includes("exit_to_global_dispatcher"));
   assert(prompt.includes("safety_preempt"));
   assert(prompt.includes("handoff_to_local_flow"));
@@ -895,7 +928,7 @@ Deno.test("runtime passes only conversation_context to visible agent and records
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
     },
-    safetyPregateOutput: { risk_band: "none", evidence: [] } as any,
+    safetyContextOutput: { risk_band: "none", evidence: [] } as any,
     sourceMessageId: "m-note",
     requestId: "op-note",
     runLocalDispatcher: (input) => {

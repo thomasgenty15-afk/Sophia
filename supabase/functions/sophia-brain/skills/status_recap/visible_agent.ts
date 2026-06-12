@@ -148,6 +148,7 @@ function visibleSystemPrompt(input: StatusRecapVisibleAgentInput): string {
     "Ne mentionne jamais JSON, dispatcher, reducer, DB, table, prompt ou outil interne.",
     "Ne donne pas d'aide produit détaillée du type où cliquer ou où changer.",
     "N'écris pas un template fixe sauf pour fait/prévu/fragile qui doit avoir exactement trois lignes.",
+    "Ne nomme pas une catégorie en introduction si tu ne rends pas au moins un fait ou un non-claim clair sur cette catégorie dans le message.",
     "Si une source manque, préfère une phrase de non-claim plutôt qu'une supposition.",
     VISIBLE_OUTPUT_STYLE_RULES,
     STATUS_RECAP_STAGE_PROMPTS[input.stage].instruction,

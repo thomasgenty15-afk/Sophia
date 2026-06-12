@@ -43,18 +43,6 @@ import {
   createEffectLedger,
   summarizeEffectLedgerForTrace,
 } from "./effect_ledger.ts";
-import {
-  applyCompactStartGuard,
-  applyIncompleteRecapGuard,
-  applyNonDurableMemoryPromiseGuard,
-  applyUnexecutedEffectClaimGuard,
-} from "./final_response_guards.ts";
-export {
-  applyCompactStartGuard,
-  applyIncompleteRecapGuard,
-  applyNonDurableMemoryPromiseGuard,
-  applyUnexecutedEffectClaimGuard,
-} from "./final_response_guards.ts";
 
 const ORIENTATION_CLARIFICATION_TOOL_SKILL_HANDLERS = new Set([
   "adjust_plan_item",
@@ -229,12 +217,6 @@ function targetToolSkillFromHandoffInterrupt(
     : null;
 }
 
-import {
-  applyCoachResponseStylePreferences,
-  loadCoachResponseStylePreferences,
-  userRequestsShortStyle,
-} from "./response_style_policy.ts";
-export { applyCoachResponseStylePreferences } from "./response_style_policy.ts";
 import { isActiveCardDraftingOperation } from "./active_operation_guards.ts";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
 import { runMemoryV2ActiveLoader } from "../../_shared/memory/runtime/active_loader.ts";
@@ -258,7 +240,10 @@ import {
 } from "../routers/effect_gate_orchestrator.ts";
 import { runConversationRouters } from "../routers/routers.ts";
 import { arbitrateTurnIntent } from "./turn_intent_arbitrator.ts";
-import { runSafetyPregate } from "../safety/safety_pregate.ts";
+import {
+  initialSafetyContext,
+  type SafetySignalContext,
+} from "../safety/safety_context.ts";
 import {
   blocksDirectEffects,
   blocksToolSkills,
@@ -279,7 +264,7 @@ import {
   directSafetyCrisisReplyOverride as directSafetyCrisisReplyOverrideRuntime,
   isActiveSafetyCrisisSkillState,
   isSafetyRoute,
-  runtimeSafetyPregateForTurn,
+  runtimeSafetyContextForTurn,
   selectedConversationSkillForRoute,
   shouldSkipGlobalDispatcherForSafetyLocalTurn,
   suppressToolSignalsForSafetyRoute,
@@ -298,6 +283,7 @@ import {
 import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
 import { maybeRunPrepareDefenseCardOperation } from "../tools/operations/prepare_defense_card/router.ts";
 import { isAttackCardHandoffState } from "../tools/operations/prepare_attack_card/state.ts";
+import { maybeRunCreateRecurringReminderOperation } from "../tools/operations/create_recurring_reminder/router.ts";
 import {
   readPostMorningNudgeActiveState,
   runPostMorningNudgeLocalRuntime,
@@ -308,20 +294,14 @@ import {
 import {
   hasActiveFlowOpportunityState,
 } from "../skills/flow_opportunity_verification/state.ts";
-import { clearConversationFlowForCoachPreference } from "../tools/operations/update_coach_preferences/route_guards.ts";
 import { maybeRunUpdateCoachPreferencesOperation } from "../tools/operations/update_coach_preferences/router.ts";
 import { loadCoachPreferenceRuntimeContext } from "../tools/operations/update_coach_preferences/runtime_policy.ts";
 import { createConfirmationToken } from "../confirmation/confirmation_token.ts";
 import {
-  applyWeeklyConclusionGuard,
-  applyWeeklyConcreteOrganizationGuard,
-  applyWeeklyForgottenProgressAckGuard,
-  applyWeeklyRepeatedClarificationGuard,
   buildWeeklyTurnSlotAddon,
   cleanWeeklyVisibleResponse,
   hasPendingOrActiveAdjustPlanOperation,
   isWeeklyAdaptiveReviewActive,
-  maybeLogWeeklyForgottenProgressParallel,
   runWeeklyReviewLocalRuntime,
   shouldKeepWeeklyAdaptiveReviewInConversation,
   summarizeWeeklyAdaptiveReviewForAddon,
@@ -380,7 +360,6 @@ import { maybeRunStatusRecapRuntime } from "../skills/status_recap/runtime.ts";
 import { hasActiveStatusRecapFlow } from "../skills/status_recap/local_flow.ts";
 import { runOperationRuntimePipeline } from "./operation_runtime_pipeline.ts";
 import { runFinalResponsePipeline } from "./final_response_pipeline.ts";
-import { applyMemoryV2ResponseGroundingGuardrail } from "./memory_response_grounding_guard.ts";
 import { resolveAgentChatModel } from "./agent_model_selection.ts";
 export { resolveAgentChatModel } from "./agent_model_selection.ts";
 import { classifyStaleBilanResponse } from "./stale_bilan_runtime.ts";
@@ -405,6 +384,7 @@ export { operationInputFromLastPlanItem } from "./plan_targeting_support.ts";
 import {
   directConversationSkillReplyOverride,
   enforceRecommendationToolVisibleReply,
+  isConversationSkillExitToGlobal,
   normalizeRecommendationText,
   prepareRecommendationRuntimeForTurn,
   runConversationSkillForRecommendation,
@@ -438,7 +418,6 @@ export {
 import {
   buildConversationRiskFlowExitAddon,
   buildRecentConversationContinuityAddon,
-  normalizeRouteText,
   persistConversationSkillRoute,
 } from "./conversation_route_runtime_support.ts";
 import {
@@ -548,6 +527,32 @@ function sourceFlowSummaryFromLocalExitMemo(
     "Local flow explicitly exited to another dispatcher.";
 }
 
+function localExitUserWords(args: {
+  userMessage?: string | null;
+  memo: Record<string, unknown>;
+  localRuntime: Record<string, unknown>;
+}): string[] {
+  const words: string[] = [];
+  const push = (value: unknown) => {
+    if (Array.isArray(value)) {
+      for (const item of value) push(item);
+      return;
+    }
+    const text = String(value ?? "").trim();
+    if (!text || words.includes(text)) return;
+    words.push(text);
+  };
+  push(runtimeRecord(args.memo).user_words);
+  push(runtimeRecord(args.localRuntime).user_words);
+  push(
+    runtimeRecord(
+      runtimeRecord(args.localRuntime.visible_task).conversation_context,
+    ).user_words,
+  );
+  push(args.userMessage);
+  return words.slice(0, 3);
+}
+
 function handoffReasonFromLocalExitMemo(
   memo: Record<string, unknown>,
   targetDispatcher: NoteInformationTargetDispatcher,
@@ -604,6 +609,7 @@ function attachNoteInformationToLocalExitMemo(args: {
   targetDispatcher?: NoteInformationTargetDispatcher;
   localRuntime: unknown;
   requestId?: string | null;
+  userMessage?: string | null;
 }): Record<string, unknown> {
   const key = localExitMemoKeyForSourceFlow(args.sourceFlowId);
   const noteKey = localNoteInformationKeyForSourceFlow(args.sourceFlowId);
@@ -627,7 +633,23 @@ function attachNoteInformationToLocalExitMemo(args: {
   const existingNote = Object.keys(localRuntimeNote).length
     ? localRuntimeNote
     : runtimeRecord(memo.note_information);
+  const userWords = localExitUserWords({
+    userMessage: args.userMessage,
+    memo,
+    localRuntime,
+  });
+  const sourceFlowSummary = sourceFlowSummaryFromLocalExitMemo(
+    memo,
+    localRuntime,
+  );
   const fallbackContext = {
+    user_message_summary: userWords[0] ?? null,
+    active_flow_summary: sourceFlowSummary,
+    constraints: runtimeRecord(
+      runtimeRecord(localRuntime.visible_task).conversation_context,
+    ).do_not_say ?? [],
+    unresolved_questions: [],
+    recommended_next_focus: targetDispatcher,
     local_handoff_note: memo,
     local_runtime: {
       selected_handler: localRuntime.selected_handler ?? null,
@@ -641,30 +663,20 @@ function attachNoteInformationToLocalExitMemo(args: {
   const note: NoteInformation = Object.keys(existingNote).length
     ? normalizeNoteInformation(existingNote, {
       source_flow_id: args.sourceFlowId,
-      source_flow_state_summary: sourceFlowSummaryFromLocalExitMemo(
-        memo,
-        localRuntime,
-      ),
       handoff_reason: handoffReasonFromLocalExitMemo(memo, targetDispatcher),
       target_dispatcher: targetDispatcher,
       handoff_context_for_next_dispatcher: JSON.stringify(fallbackContext),
       structured_context: fallbackContext,
-      risk_score: Number(localRuntime.risk_score ?? 0),
+      user_words: userWords,
+      current_user_message: args.userMessage ?? undefined,
     })
     : createNoteInformation({
       source_flow_id: args.sourceFlowId,
-      source_flow_state_summary: sourceFlowSummaryFromLocalExitMemo(
-        memo,
-        localRuntime,
-      ),
       handoff_reason: handoffReasonFromLocalExitMemo(memo, targetDispatcher),
       target_dispatcher: targetDispatcher,
       handoff_context_for_next_dispatcher: JSON.stringify(fallbackContext),
-      target_local_dispatcher_hint: targetDispatcher === "safety_crisis"
-        ? "Safety owns the next turn; use source flow context only as background."
-        : null,
+      user_words: userWords,
       structured_context: fallbackContext,
-      risk_score: Number(localRuntime.risk_score ?? 0),
     });
   const memoWithNote = {
     ...memo,
@@ -700,7 +712,10 @@ function localToolHandoffOperationInput(
 ): Record<string, unknown> {
   return {
     source_flow_id: noteInformation.source_flow_id,
-    source_flow_state_summary: noteInformation.source_flow_state_summary,
+    source_flow_summary: String(
+      (noteInformation.structured_context as any)?.active_flow_summary ??
+        noteInformation.handoff_context_for_next_dispatcher,
+    ).trim(),
     handoff_reason: noteInformation.handoff_reason,
     handoff_context_for_next_dispatcher:
       noteInformation.handoff_context_for_next_dispatcher,
@@ -735,7 +750,7 @@ function buildLocalToolHandoffTurnFrame(args: {
   sourceMessageId: string;
   userId: string;
   channel: "web" | "whatsapp";
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   conversationRiskHistory: number[];
   targetDispatcher: NoteInformationTargetDispatcher;
   noteInformation: NoteInformation;
@@ -747,9 +762,9 @@ function buildLocalToolHandoffTurnFrame(args: {
     user_id: args.userId,
     channel: args.channel,
     safety: {
-      risk_band: args.safetyPregateOutput.risk_band,
-      reason_codes: args.safetyPregateOutput.reason_codes ?? [],
-      evidence: args.safetyPregateOutput.evidence ?? [],
+      risk_band: args.safetyContextOutput.risk_band,
+      reason_codes: args.safetyContextOutput.reason_codes ?? [],
+      evidence: args.safetyContextOutput.evidence ?? [],
     },
     conversation_risk: {
       score: 0,
@@ -799,7 +814,7 @@ export function buildSafetyLocalOwnershipFrame(args: {
   userId: string;
   channel: "web" | "whatsapp";
   activeSkillState: unknown;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   conversationRiskHistory: number[];
   userMessage: string;
   requestId?: string | null;
@@ -816,7 +831,7 @@ export function buildSafetyLocalOwnershipFrame(args: {
       userMessage: args.userMessage,
       sourceMessageId: args.sourceMessageId,
       requestId: args.requestId ?? null,
-      safetyPregateOutput: args.safetyPregateOutput,
+      safetyContextOutput: args.safetyContextOutput,
     })
     : null;
   const turnFrame: TurnFrame = {
@@ -825,9 +840,9 @@ export function buildSafetyLocalOwnershipFrame(args: {
     user_id: args.userId,
     channel: args.channel,
     safety: {
-      risk_band: args.safetyPregateOutput.risk_band,
-      reason_codes: args.safetyPregateOutput.reason_codes ?? [],
-      evidence: args.safetyPregateOutput.evidence ?? [],
+      risk_band: args.safetyContextOutput.risk_band,
+      reason_codes: args.safetyContextOutput.reason_codes ?? [],
+      evidence: args.safetyContextOutput.evidence ?? [],
     },
     conversation_risk: {
       score: 0,
@@ -896,6 +911,100 @@ export function activeConversationSkillId(
   return skillId || null;
 }
 
+function activeLocalConversationSkillThatOwnsTurn(
+  activeSkillState: unknown,
+): "demotivation_repair" | "emotional_repair" | "product_help" | null {
+  const skillId = activeConversationSkillId(activeSkillState);
+  if (
+    skillId === "demotivation_repair" ||
+    skillId === "emotional_repair" ||
+    skillId === "product_help"
+  ) {
+    return skillId;
+  }
+  return null;
+}
+
+function buildActiveConversationLocalOwnershipFrame(args: {
+  skillId: "demotivation_repair" | "emotional_repair" | "product_help";
+  turnId: string;
+  sourceMessageId: string;
+  userId: string;
+  channel: "web" | "whatsapp";
+  safetyContextOutput: SafetySignalContext;
+  conversationRiskHistory: number[];
+}): {
+  turnFrame: TurnFrame;
+  routeDecision: RouteDecision;
+} {
+  const responseOwner = args.skillId === "product_help"
+    ? "product_help"
+    : "conversation_handler";
+  const reasonCode = `active_${args.skillId}_local_dispatcher`;
+  return {
+    turnFrame: {
+      turn_id: args.turnId,
+      source_message_id: args.sourceMessageId,
+      user_id: args.userId,
+      channel: args.channel,
+      safety: {
+        risk_band: args.safetyContextOutput.risk_band,
+        reason_codes: args.safetyContextOutput.reason_codes ?? [],
+        evidence: args.safetyContextOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: args.conversationRiskHistory,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [],
+      flow_opportunity: null,
+      skill_signals: {
+        lifecycle: {
+          [args.skillId]: {
+            detected: true,
+            confidence_band: "high",
+            reason: "active_local_conversation_skill_owns_turn",
+          },
+        },
+      },
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    },
+    routeDecision: {
+      route_version: "v1",
+      response_owner: responseOwner,
+      selected_handler: args.skillId,
+      blocked_paths: [
+        {
+          path: "global_dispatcher",
+          reason_code: "active_local_conversation_skill_owns_turn",
+        },
+        {
+          path: "global_router",
+          reason_code: "active_local_conversation_skill_owns_turn",
+        },
+      ],
+      direct_effects_to_run: [],
+      reason_code: reasonCode,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: {
+        decision: "continue_active",
+        active_owner: "conversation_skill",
+        selected_owner: "conversation_skill",
+        resume_policy: "none",
+        reason_code: "active_local_conversation_skill_owns_turn",
+      },
+    },
+  };
+}
+
 export function shouldDeferConversationRiskFlowExitToLocalDispatcher(args: {
   activeSkillState: unknown;
   conversationRisk: TurnFrame["conversation_risk"] | null | undefined;
@@ -908,6 +1017,7 @@ export function shouldDeferConversationRiskFlowExitToLocalDispatcher(args: {
 
 function buildDispatcherLlmRunner(meta?: {
   requestId?: string;
+  userId?: string | null;
   model?: string;
   forceRealAi?: boolean;
 }) {
@@ -936,6 +1046,7 @@ function buildDispatcherLlmRunner(meta?: {
         "auto",
         {
           requestId: meta?.requestId,
+          userId: meta?.userId ?? undefined,
           model,
           source: "dispatcher-v2-llm",
           forceRealAi: true,
@@ -967,6 +1078,291 @@ function envInt(name: string, fallback: number): number {
   } catch {
     return fallback;
   }
+}
+
+function activeFlowDebugRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function summarizeActiveSkillForDebug(value: unknown): Record<string, unknown> {
+  const record = activeFlowDebugRecord(value);
+  if (!record) {
+    return {
+      present: false,
+      value_type: value === null ? "null" : typeof value,
+    };
+  }
+  const workingState = activeFlowDebugRecord(record.working_state);
+  return {
+    present: true,
+    skill_id: String(record.skill_id ?? "").trim() || null,
+    status: String(record.status ?? "").trim() || null,
+    mode: String(record.mode ?? "").trim() || null,
+    has_working_state: Boolean(workingState),
+    state_keys: Object.keys(record).sort().slice(0, 30),
+    working_state_keys: workingState
+      ? Object.keys(workingState).sort().slice(0, 30)
+      : [],
+    updated_at: typeof record.updated_at === "string"
+      ? record.updated_at
+      : null,
+  };
+}
+
+function summarizeTempMemoryActiveFlowForDebug(
+  tempMemory: unknown,
+): Record<string, unknown> {
+  const temp = activeFlowDebugRecord(tempMemory);
+  if (!temp) {
+    return {
+      temp_memory_type: tempMemory === null ? "null" : typeof tempMemory,
+      has_temp_memory: false,
+      flow_keys: [],
+      raw_active_key: null,
+      raw_active_skill: summarizeActiveSkillForDebug(null),
+    };
+  }
+  const rawActiveKey = temp.__active_skill_state !== undefined
+    ? "__active_skill_state"
+    : temp.active_skill_state !== undefined
+    ? "active_skill_state"
+    : null;
+  const rawActive = rawActiveKey ? temp[rawActiveKey] : null;
+  return {
+    temp_memory_type: "object",
+    has_temp_memory: true,
+    temp_memory_key_count: Object.keys(temp).length,
+    flow_keys: Object.keys(temp).filter((key) =>
+      key.includes("active") || key.includes("flow") ||
+      key.includes("skill") || key.includes("conversation_risk")
+    ).sort().slice(0, 60),
+    raw_active_key: rawActiveKey,
+    raw_active_skill: summarizeActiveSkillForDebug(rawActive),
+    conversation_risk_last: activeFlowDebugRecord(temp.__conversation_risk_last)
+      ? {
+        should_exit_flows: Boolean(
+          (temp.__conversation_risk_last as any).should_exit_flows,
+        ),
+        score: Number((temp.__conversation_risk_last as any).score ?? 0),
+        reason_codes: Array.isArray(
+            (temp.__conversation_risk_last as any).reason_codes,
+          )
+          ? (temp.__conversation_risk_last as any).reason_codes.slice(0, 12)
+          : [],
+      }
+      : null,
+  };
+}
+
+function pushActiveFlowDebugSnapshot(args: {
+  snapshots: Record<string, unknown>[];
+  phase: string;
+  scope: string;
+  tempMemory: unknown;
+  activeSkillState?: unknown;
+  activeOperationIntake?: unknown;
+  pendingOperationConfirmation?: unknown;
+  routeReasonCode?: string | null;
+  routeActiveFlowReasonCode?: string | null;
+}) {
+  args.snapshots.push({
+    phase: args.phase,
+    scope: args.scope,
+    temp_memory: summarizeTempMemoryActiveFlowForDebug(args.tempMemory),
+    active_skill_state: summarizeActiveSkillForDebug(args.activeSkillState),
+    active_tool_skill_id: String(
+      (args.activeOperationIntake as any)?.operation_type ??
+        (args.activeOperationIntake as any)?.skill_id ??
+        "",
+    ).trim() || null,
+    pending_confirmation_id: String(
+      (args.pendingOperationConfirmation as any)?.operation_type ??
+        (args.pendingOperationConfirmation as any)?.skill_id ??
+        "",
+    ).trim() || null,
+    route_reason_code: args.routeReasonCode ?? null,
+    route_active_flow_reason_code: args.routeActiveFlowReasonCode ?? null,
+  });
+}
+
+function attachActiveFlowDebugToRouteDecision<T extends RouteDecision | null>(
+  routeDecision: T,
+  snapshots: Record<string, unknown>[],
+): T {
+  if (!routeDecision || snapshots.length === 0) return routeDecision;
+  return {
+    ...(routeDecision as any),
+    active_flow_debug: {
+      version: "active_flow_debug_v1",
+      snapshots: snapshots.slice(-8),
+    },
+  } as T;
+}
+
+function localFlowExitContextRecord(
+  value: unknown,
+): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function localFlowExitNoteInformation(
+  localFlowExitContext: unknown,
+): NoteInformation | null {
+  const context = localFlowExitContextRecord(localFlowExitContext);
+  const note = localFlowExitContextRecord(context?.note_information);
+  return note ? note as NoteInformation : null;
+}
+
+function shouldPromoteLocalExitNote(args: {
+  turnFrame: TurnFrame | null;
+  noteInformation: NoteInformation | null;
+}): boolean {
+  if (!args.turnFrame || !args.noteInformation) return false;
+  const existing = localFlowExitContextRecord(
+    (args.turnFrame as any)
+      .note_information,
+  );
+  const existingSource = String(existing?.source_flow_id ?? "").trim();
+  return !existingSource || existingSource === "global_dispatcher";
+}
+
+function attachLocalFlowExitContextToSecondPass(args: {
+  turnFrame: TurnFrame | null;
+  routeDecision: RouteDecision | null;
+  localFlowExitContext: unknown;
+}): { turnFrame: TurnFrame | null; routeDecision: RouteDecision | null } {
+  if (!args.turnFrame || !args.routeDecision || !args.localFlowExitContext) {
+    return { turnFrame: args.turnFrame, routeDecision: args.routeDecision };
+  }
+  const context = localFlowExitContextRecord(args.localFlowExitContext);
+  if (!context) {
+    return { turnFrame: args.turnFrame, routeDecision: args.routeDecision };
+  }
+  const noteInformation = localFlowExitNoteInformation(context);
+  const sourceFlowId = String(
+    noteInformation?.source_flow_id ?? context.operation_type ?? "",
+  ).trim();
+  if (!sourceFlowId) {
+    return { turnFrame: args.turnFrame, routeDecision: args.routeDecision };
+  }
+  const handoffTrace = {
+    source_flow_id: sourceFlowId,
+    source_flow_summary: String(
+      (noteInformation?.structured_context as any)?.active_flow_summary ??
+        noteInformation?.handoff_context_for_next_dispatcher ??
+        "",
+    ).trim() ||
+      (String(context.flow_summary ?? "").trim() || null),
+    handoff_reason: noteInformation?.handoff_reason ??
+      (String(context.reason ?? "").trim() || null),
+    target_dispatcher: noteInformation?.target_dispatcher ?? "global",
+    consumed_by: "global_dispatcher_second_pass",
+    response_owner: args.routeDecision.response_owner,
+    selected_handler: args.routeDecision.selected_handler ?? null,
+    note_information: noteInformation,
+  };
+  const previousNoteInformation = (args.turnFrame as any).note_information ??
+    null;
+  const nextTurnFrame = {
+    ...(args.turnFrame as any),
+    ...(shouldPromoteLocalExitNote({
+        turnFrame: args.turnFrame,
+        noteInformation,
+      })
+      ? {
+        note_information: noteInformation,
+        global_dispatcher_note_information: previousNoteInformation,
+      }
+      : {}),
+    local_flow_exit_handoff: handoffTrace,
+  } as TurnFrame;
+  const blockedPaths = [...args.routeDecision.blocked_paths];
+  const localReplyPath = `${sourceFlowId}.local_visible_reply`;
+  if (!blockedPaths.some((entry) => entry.path === localReplyPath)) {
+    blockedPaths.push({
+      path: localReplyPath,
+      reason_code: "local_exit_to_global_dispatcher_blocks_local_reply",
+    });
+  }
+  const nextRouteDecision = {
+    ...(args.routeDecision as any),
+    blocked_paths: blockedPaths,
+    local_flow_exit_handoff: handoffTrace,
+  } as RouteDecision;
+  return { turnFrame: nextTurnFrame, routeDecision: nextRouteDecision };
+}
+
+function compactHandoffStructuredContext(
+  value: unknown,
+): Record<string, unknown> | null {
+  const record = localFlowExitContextRecord(value);
+  if (!record || Object.keys(record).length === 0) return null;
+  const blockedKeys = new Set([
+    "no_chat_mutation",
+    "risk_score",
+    "target_dispatcher",
+  ]);
+  const compact: Record<string, unknown> = {};
+  for (const [key, rawValue] of Object.entries(record)) {
+    if (blockedKeys.has(key)) continue;
+    if (rawValue === null || rawValue === undefined) continue;
+    compact[key] = rawValue;
+  }
+  return Object.keys(compact).length ? compact : null;
+}
+
+function noteForNormalReplyHandoffContext(
+  turnFrame: TurnFrame | null,
+): NoteInformation | null {
+  if (!turnFrame) return null;
+  const handoff = localFlowExitContextRecord(
+    (turnFrame as any).local_flow_exit_handoff,
+  );
+  const handoffNote = localFlowExitContextRecord(handoff?.note_information);
+  if (handoffNote) return handoffNote as NoteInformation;
+  const note = localFlowExitContextRecord((turnFrame as any).note_information);
+  if (note) return note as NoteInformation;
+  const globalNote = localFlowExitContextRecord(
+    (turnFrame as any).global_dispatcher_note_information,
+  );
+  return globalNote ? globalNote as NoteInformation : null;
+}
+
+function buildNormalReplyHandoffContextAddon(args: {
+  turnFrame: TurnFrame | null;
+  routeDecision: RouteDecision | null;
+}): string | null {
+  if (args.routeDecision?.response_owner !== "normal_reply") return null;
+  const note = noteForNormalReplyHandoffContext(args.turnFrame);
+  if (!note) return null;
+  const handoffContext = String(
+    note.handoff_context_for_next_dispatcher ?? "",
+  ).trim();
+  const structuredContext = compactHandoffStructuredContext(
+    note.structured_context,
+  );
+  const userWords = Array.isArray(note.user_words) && note.user_words.length
+    ? `Mots utilisateur utiles: ${note.user_words.slice(0, 3).join(" / ")}`
+    : null;
+  if (!handoffContext && !structuredContext) return null;
+  return [
+    "=== CONTEXTE DE REPRISE ===",
+    "Ce contexte est prioritaire pour respecter la transition qui vient d'avoir lieu.",
+    "Le dernier message utilisateur reste la source principale pour comprendre la limite conversationnelle du tour. Si ce message indique une cloture, une intention de faire seulement une chose, un arret apres un micro-geste, ou une demande de ne rien ajouter, la reponse visible doit clore sans nouvelle question ni relance.",
+    userWords,
+    handoffContext ? `Contexte: ${handoffContext.slice(0, 900)}` : null,
+    structuredContext
+      ? `Contexte structure utile: ${
+        JSON.stringify(structuredContext).slice(0, 1200)
+      }`
+      : null,
+    "Utilise ce contexte pour repondre naturellement en respectant les contraintes utilisateur, y compris celles que tu dois inferer du dernier message. Ne mentionne pas la note, le dispatcher, le routing, les champs JSON, ni les details techniques.",
+    "=== FIN CONTEXTE DE REPRISE ===",
+  ].filter(Boolean).join("\n");
 }
 
 export async function processMessage(
@@ -1027,6 +1423,9 @@ export async function processMessage(
       meta: {
         requestId: meta?.requestId,
         evalRunId: (meta as any)?.evalRunId ?? null,
+        turnId: meta?.requestId ?? null,
+        channel,
+        scope,
         forceBrainTrace: (meta as any)?.forceBrainTrace,
       },
       event,
@@ -1035,6 +1434,7 @@ export async function processMessage(
       payload,
     });
   };
+  const activeFlowDebugSnapshots: Record<string, unknown>[] = [];
 
   const logMessages = opts?.logMessages !== false;
 
@@ -1114,7 +1514,7 @@ export async function processMessage(
           user_id: userId,
           source_message_id: loggedMessageId,
           ts: new Date().toISOString(),
-          safety_pregate: {
+          safety_context: {
             detected: false,
             evidence: [],
             risk_band: "none",
@@ -1168,11 +1568,26 @@ export async function processMessage(
 
   let state = await getUserState(supabase, userId, scope);
   let tempMemory: any = (state as any)?.temp_memory ?? {};
+  pushActiveFlowDebugSnapshot({
+    snapshots: activeFlowDebugSnapshots,
+    phase: "user_state_loaded",
+    scope,
+    tempMemory,
+  });
   await trace("brain:user_state_loaded", "context", {
     current_mode: (state as any)?.current_mode ?? null,
     has_temp_memory: Boolean(tempMemory && typeof tempMemory === "object"),
     has_investigation_state: Boolean((state as any)?.investigation_state),
   }, "debug");
+  await trace(
+    "brain:active_flow_temp_memory_loaded_from_user_state",
+    "context",
+    {
+      scope,
+      ...summarizeTempMemoryActiveFlowForDebug(tempMemory),
+    },
+    "debug",
+  );
 
   const onboarding = stabilizeOnboardingFlag(tempMemory);
   tempMemory = onboarding.tempMemory;
@@ -1193,6 +1608,16 @@ export async function processMessage(
   const coachingMemoryAfterReconcile = readCoachingInterventionMemory(
     tempMemory,
   );
+  pushActiveFlowDebugSnapshot({
+    snapshots: activeFlowDebugSnapshots,
+    phase: "after_onboarding_and_reconcile",
+    scope,
+    tempMemory,
+  });
+  await trace("brain:active_flow_temp_memory_after_preprocessors", "context", {
+    scope,
+    ...summarizeTempMemoryActiveFlowForDebug(tempMemory),
+  }, "debug");
   const coachingFollowUpAudit = deriveCoachingFollowUpAudit({
     before: coachingMemoryBeforeReconcile,
     after: coachingMemoryAfterReconcile,
@@ -1346,21 +1771,24 @@ export async function processMessage(
       __last_resolved_plan_item: preContextualPlanTarget,
     };
   }
-  const recentMessagesForTurnFrame = history.slice(-8).map((message: any) => ({
-    role: message?.role === "assistant"
-      ? "assistant" as const
-      : "user" as const,
-    content: String(message?.content ?? ""),
-  }));
-  const safetyPregateOutput = withActiveSafetyFlowCaution(
-    runSafetyPregate({
-      user_message: userMessage,
-      recent_messages: recentMessagesForTurnFrame,
-      user_id: userId,
-      channel,
-    }),
+  const safetyContextOutput = withActiveSafetyFlowCaution(
+    initialSafetyContext({ channel }),
     tempMemory,
   );
+  const recentMessagesForTurnFrame: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }> = [
+    ...(Array.isArray(history) ? history : []).slice(-8).flatMap((message) => {
+      const role = String((message as any)?.role ?? "");
+      const content = String((message as any)?.content ?? "").trim();
+      if ((role !== "user" && role !== "assistant") || !content) return [];
+      return [{ role: role as "user" | "assistant", content }];
+    }),
+    ...(userMessage.trim()
+      ? [{ role: "user" as const, content: userMessage.trim() }]
+      : []),
+  ];
   let turnFrame: TurnFrame | null = null;
   let routeDecision: RouteDecision | null = null;
   let orientationClarificationReply: string | null = null;
@@ -1385,6 +1813,16 @@ export async function processMessage(
   let activeSkillState = activeFlowStateForTurn.activeSkillState;
   let activeOperationIntake = activeFlowStateForTurn.activeToolSkillIntake;
   const activeSkillIdAtTurnStart = activeConversationSkillId(activeSkillState);
+  pushActiveFlowDebugSnapshot({
+    snapshots: activeFlowDebugSnapshots,
+    phase: "read_active_flow_state",
+    scope,
+    tempMemory,
+    activeSkillState,
+    activeOperationIntake,
+    pendingOperationConfirmation:
+      activeFlowStateForTurn.pendingToolSkillConfirmation,
+  });
   await trace("brain:active_flow_state_loaded", "routing", {
     active_skill_id: activeSkillIdAtTurnStart,
     active_skill_status: String((activeSkillState as any)?.status ?? "") ||
@@ -1402,7 +1840,18 @@ export async function processMessage(
       key.includes("active") || key.includes("flow") ||
       key.includes("skill")
     ).slice(0, 30),
+    active_flow_debug: activeFlowDebugSnapshots.slice(-3),
   }, "debug");
+  if (
+    (tempMemory as any)?.__active_skill_state &&
+    !activeSkillIdAtTurnStart
+  ) {
+    await trace("brain:active_flow_state_loaded_mismatch", "routing", {
+      reason_code: "raw_active_skill_present_but_read_active_skill_missing",
+      scope,
+      active_flow_debug: activeFlowDebugSnapshots.slice(-3),
+    }, "warn");
+  }
   const activeOperationTypeForLocalFlow = String(
     (activeOperationIntake as any)?.operation_type ??
       ((activeOperationIntake as any)?.mode === "platform_handoff"
@@ -1449,6 +1898,8 @@ export async function processMessage(
     ? "active_prepare_defense_card_local_dispatcher"
     : activeLocalFlowOperationType === "update_coach_preferences"
     ? "active_update_coach_preferences_local_dispatcher"
+    : activeLocalFlowOperationType === "create_recurring_reminder"
+    ? "active_create_recurring_reminder_local_dispatcher"
     : activePotionSubskillName
     ? `active_${activePotionSubskillName}_local_dispatcher`
     : "active_select_state_potion_local_dispatcher";
@@ -1461,6 +1912,8 @@ export async function processMessage(
     ? "active_prepare_defense_card_uses_local_dispatcher"
     : activeLocalFlowOperationType === "update_coach_preferences"
     ? "active_update_coach_preferences_uses_local_dispatcher"
+    : activeLocalFlowOperationType === "create_recurring_reminder"
+    ? "active_create_recurring_reminder_uses_local_dispatcher"
     : activePotionSubskillName
     ? `active_${activePotionSubskillName}_uses_local_dispatcher`
     : "active_select_state_potion_uses_local_dispatcher";
@@ -1471,6 +1924,15 @@ export async function processMessage(
     pendingConfirmationOwnedByToolSkill(pendingOperationConfirmation)
       ? null
       : pendingOperationConfirmation;
+  pushActiveFlowDebugSnapshot({
+    snapshots: activeFlowDebugSnapshots,
+    phase: "after_pending_confirmation_reload",
+    scope,
+    tempMemory,
+    activeSkillState,
+    activeOperationIntake,
+    pendingOperationConfirmation,
+  });
   const activePostMorningNudgeState = readPostMorningNudgeActiveState(
     tempMemory,
   );
@@ -1500,9 +1962,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -1556,6 +2018,7 @@ export async function processMessage(
           targetDispatcher: weeklyTargetDispatcher,
           localRuntime: weeklyRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         const handoffNote = noteInformationFromLocalExitMemo({
           tempMemory,
@@ -1584,13 +2047,44 @@ export async function processMessage(
               crypto.randomUUID(),
             userId,
             channel,
-            safetyPregateOutput,
+            safetyContextOutput,
             conversationRiskHistory: conversationRiskHistoryForPersist,
             targetDispatcher: weeklyTargetDispatcher,
             noteInformation: targetNote,
           })
           : null;
-        const targetRuntime = targetTurnFrame &&
+        const targetRuntimeRouteDecision: RouteDecision =
+          weeklyTargetDispatcher === "create_one_shot_reminder"
+            ? {
+              ...targetRouteDecision,
+              response_owner: "tool_skill",
+              selected_handler: "create_one_shot_reminder",
+              direct_effects_to_run: ["create_one_shot_reminder"],
+              reason_code: "weekly_review_handoff_to_create_one_shot_reminder",
+            }
+            : targetRouteDecision;
+        const targetRuntimeTurnFrame: TurnFrame | null = targetTurnFrame &&
+            weeklyTargetDispatcher === "create_one_shot_reminder"
+          ? {
+            ...targetTurnFrame,
+            direct_effects: [
+              ...targetTurnFrame.direct_effects.filter((effect) =>
+                effect.effect_type !== "create_one_shot_reminder"
+              ),
+              {
+                effect_type: "create_one_shot_reminder",
+                explicitness: "explicit",
+                target_status: "missing",
+                confidence_band: "high",
+                payload_hint: {
+                  raw_text: userMessage,
+                  note_information: targetNote,
+                },
+              },
+            ],
+          }
+          : targetTurnFrame;
+        const targetRuntime = targetRuntimeTurnFrame &&
             weeklyTargetDispatcher === "prepare_attack_card"
           ? await maybeRunPrepareAttackCardOperation({
             supabase,
@@ -1599,9 +2093,9 @@ export async function processMessage(
             channel,
             userTimezone: userTime?.user_timezone ?? "Europe/Paris",
             tempMemory,
-            turnFrame: targetTurnFrame,
-            routeDecision: targetRouteDecision,
-            safetyPregateOutput,
+            turnFrame: targetRuntimeTurnFrame,
+            routeDecision: targetRuntimeRouteDecision,
+            safetyContextOutput,
             sourceMessageId: loggedMessageId,
             requestId: meta?.requestId ?? null,
             history,
@@ -1615,14 +2109,106 @@ export async function processMessage(
             channel,
             userTimezone: userTime?.user_timezone ?? "Europe/Paris",
             tempMemory,
-            turnFrame: targetTurnFrame,
-            routeDecision: targetRouteDecision,
-            safetyPregateOutput,
+            turnFrame: targetRuntimeTurnFrame,
+            routeDecision: targetRuntimeRouteDecision,
+            safetyContextOutput,
             sourceMessageId: loggedMessageId,
             requestId: meta?.requestId ?? null,
             history,
             planSnapshot: { items: planItemSnapshot ?? [] },
           })
+          : targetTurnFrame && weeklyTargetDispatcher === "adjust_plan_item"
+          ? await maybeRunAdjustPlanItemOperation({
+            supabase,
+            userId,
+            userMessage,
+            channel,
+            userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+            tempMemory,
+            turnFrame: targetRuntimeTurnFrame,
+            routeDecision: targetRuntimeRouteDecision,
+            safetyContextOutput,
+            sourceMessageId: loggedMessageId,
+            requestId: meta?.requestId ?? null,
+            history,
+            planItemSnapshot: planItemSnapshot ?? [],
+            forceFullAi: meta?.forceRealAi === true ||
+              (opts?.messageMetadata as Record<string, unknown> | undefined)
+                  ?.force_full_ai === true,
+          })
+          : targetTurnFrame &&
+              weeklyTargetDispatcher === "create_recurring_reminder"
+          ? await maybeRunCreateRecurringReminderOperation({
+            supabase,
+            userId,
+            userMessage,
+            channel,
+            userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+            tempMemory,
+            turnFrame: targetRuntimeTurnFrame,
+            routeDecision: targetRuntimeRouteDecision,
+            safetyContextOutput,
+            sourceMessageId: loggedMessageId,
+            requestId: meta?.requestId ?? null,
+            history,
+            planItemSnapshot: planItemSnapshot ?? [],
+          })
+          : targetTurnFrame && weeklyTargetDispatcher === "select_state_potion"
+          ? await runSelectStatePotionHandoffSkill({
+            supabase,
+            userId,
+            userMessage,
+            channel,
+            userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+            tempMemory,
+            turnFrame: targetRuntimeTurnFrame,
+            routeDecision: targetRuntimeRouteDecision,
+            safetyContextOutput,
+            sourceMessageId: loggedMessageId,
+            requestId: meta?.requestId ?? null,
+            history,
+          })
+          : targetRuntimeTurnFrame &&
+              weeklyTargetDispatcher === "create_one_shot_reminder"
+          ? await (async (): Promise<OperationRuntimeResult | null> => {
+            const pipeline = await runOperationRuntimePipeline({
+              supabase,
+              userId,
+              userMessage,
+              channel,
+              userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+              history,
+              tempMemory,
+              state,
+              planItemSnapshot: planItemSnapshot ?? [],
+              turnFrame: targetRuntimeTurnFrame,
+              routeDecision: targetRuntimeRouteDecision,
+              safetyContextOutput,
+              sourceMessageId: loggedMessageId,
+              requestId: meta?.requestId ?? null,
+              v2Runtime: v2Runtime ?? null,
+              activeSkillState: null,
+              activeOperationIntake: null,
+              pendingOperationConfirmation: null,
+              fullAiRequested: meta?.forceRealAi === true ||
+                (opts?.messageMetadata as Record<string, unknown> | undefined)
+                    ?.force_full_ai === true,
+              clientNow: clientNow && Number.isFinite(clientNow.getTime())
+                ? clientNow
+                : null,
+              enableAdjustPlanCoachGuidance:
+                meta?.enableAdjustPlanCoachGuidance === true,
+              runAdjustPlanItemOperation: maybeRunAdjustPlanItemOperation,
+              guards: { isActiveCardDraftingOperation },
+            });
+            if (pipeline.statePatch) {
+              state = {
+                ...(state ?? {}),
+                ...pipeline.statePatch,
+              } as any;
+            }
+            return pipeline.operationRuntime;
+          })()
           : null;
         const operationRuntime = targetRuntime ?? {
           content:
@@ -1679,9 +2265,9 @@ export async function processMessage(
           activeSkillState: null,
           operationRuntime,
           effectLedger,
-          turnFrame: targetTurnFrame ?? localTurnFrame,
-          routeDecision: targetRouteDecision,
-          safetyPregateOutput,
+          turnFrame: targetRuntimeTurnFrame ?? localTurnFrame,
+          routeDecision: targetRuntimeRouteDecision,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -1704,6 +2290,7 @@ export async function processMessage(
           targetDispatcher: "safety_crisis",
           localRuntime: weeklyRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         const safetyNote = noteInformationFromLocalExitMemo({
           tempMemory,
@@ -1802,7 +2389,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: safetyTurnFrame,
           routeDecision: safetyRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -1828,6 +2415,7 @@ export async function processMessage(
           targetDispatcher: "global",
           localRuntime: weeklyRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -1890,7 +2478,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: weeklyAdaptiveReviewStateForTurn({
             activeSkillState: null,
             tempMemory: weeklyRuntime.nextTempMemory,
@@ -1951,7 +2539,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: activeWeeklyReviewLocalState,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -1995,9 +2583,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -2033,6 +2621,7 @@ export async function processMessage(
           targetDispatcher: "safety_crisis",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         const safetyNote = noteInformationFromLocalExitMemo({
           tempMemory,
@@ -2132,7 +2721,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: safetyTurnFrame,
           routeDecision: safetyRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -2162,6 +2751,7 @@ export async function processMessage(
               : "global",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -2228,7 +2818,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -2294,7 +2884,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: null,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -2332,9 +2922,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -2367,6 +2957,7 @@ export async function processMessage(
       turnFrame: localTurnFrame,
       routeDecision: localRouteDecision,
       activeOperationIntake: null,
+      planItemSnapshot,
       history,
       requestId: meta?.requestId ?? null,
     });
@@ -2388,6 +2979,7 @@ export async function processMessage(
             : "global",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -2448,7 +3040,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -2512,7 +3104,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: null,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -2553,9 +3145,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -2604,6 +3196,7 @@ export async function processMessage(
             ?.emotional_repair_exit_memo ?? null,
         },
         requestId: meta?.requestId ?? null,
+        userMessage,
       });
       state = { ...(state ?? {}), temp_memory: tempMemory } as any;
       activeSkillState = null;
@@ -2725,7 +3318,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: safetyRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -2799,7 +3392,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: null,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -2839,9 +3432,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -2868,7 +3461,7 @@ export async function processMessage(
       tempMemory,
       turnFrame: localTurnFrame,
       routeDecision: localRouteDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
     });
@@ -2886,6 +3479,7 @@ export async function processMessage(
           targetDispatcher: "safety_crisis",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         const safetyNote = noteInformationFromLocalExitMemo({
           tempMemory,
@@ -2987,7 +3581,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: safetyTurnFrame,
           routeDecision: safetyRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -3013,6 +3607,7 @@ export async function processMessage(
           targetDispatcher: "global",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -3064,7 +3659,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -3079,6 +3674,275 @@ export async function processMessage(
           trace,
         });
       }
+    }
+  }
+  if (activeLocalFlowOperationType === "create_recurring_reminder") {
+    const localRouteDecision: RouteDecision = {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "create_recurring_reminder",
+      blocked_paths: [{
+        path: "global_dispatcher",
+        reason_code: activeLocalFlowBlockedReasonCode,
+      }],
+      direct_effects_to_run: [],
+      reason_code: activeLocalFlowReasonCode,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    };
+    const localTurnFrame: TurnFrame = {
+      turn_id: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+      source_message_id: loggedMessageId ?? meta?.requestId ??
+        crypto.randomUUID(),
+      user_id: userId,
+      channel,
+      safety: {
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
+      },
+      conversation_risk: {
+        score: 0,
+        threshold: 8,
+        should_exit_flows: false,
+        reason_codes: [],
+        previous_scores: conversationRiskHistoryForPersist,
+        matrix: [],
+        context_summary: null,
+      },
+      direct_effects: [],
+      tool_skill_intents: [{
+        operation_type: "create_recurring_reminder",
+        confidence_band: "high",
+        explicitness: "implied",
+        user_intent: "create",
+        ambiguity: "none",
+      }],
+      skill_signals: {},
+      memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
+    };
+    let continueToGlobalAfterLocalExit = false;
+    const operationRuntime = await maybeRunCreateRecurringReminderOperation({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      tempMemory,
+      turnFrame: localTurnFrame,
+      routeDecision: localRouteDecision,
+      safetyContextOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      history,
+      v2Runtime: v2Runtime ?? null,
+      planItemSnapshot: planItemSnapshot ?? null,
+    });
+    if (operationRuntime) {
+      const localRuntimeReason = String(
+        (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
+      );
+      if (
+        localRuntimeReason ===
+          "create_recurring_reminder_exit_to_global_dispatcher"
+      ) {
+        tempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+        tempMemory = attachNoteInformationToLocalExitMemo({
+          tempMemory,
+          sourceFlowId: "create_recurring_reminder",
+          targetDispatcher: "global",
+          localRuntime: operationRuntime.toolSkillRun,
+          requestId: meta?.requestId ?? null,
+          userMessage,
+        });
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+        activeSkillState = null;
+        activeOperationIntake = null;
+        activeOperationIntakeForDispatcher = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        await updateUserState(supabase, userId, scope, {
+          temp_memory: tempMemory,
+        });
+        await trace(
+          "brain:active_create_recurring_reminder_local_exit_to_global_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher_before_local: true,
+            same_user_message_rerouted_to_global_after_local_exit: true,
+            local_runtime: operationRuntime.toolSkillRun,
+          },
+          "info",
+        );
+        continueToGlobalAfterLocalExit = true;
+      } else {
+        await trace(
+          "brain:active_create_recurring_reminder_local_dispatcher",
+          "routing",
+          {
+            skipped_global_dispatcher: true,
+            active_operation_type: activeLocalFlowOperationType,
+            active_handler: activeLocalFlowHandler,
+            tool_status: (operationRuntime.toolSkillRun as any)?.status ?? null,
+            reason_code: (operationRuntime.toolSkillRun as any)?.reason_code ??
+              null,
+          },
+          "info",
+        );
+        const localRiskScore = Number(
+          (operationRuntime.toolSkillRun as any)?.risk_score ?? 0,
+        );
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime,
+          effectLedger,
+          turnFrame: localTurnFrame,
+          routeDecision: localRouteDecision,
+          safetyContextOutput,
+          weeklyReviewStateForTurn: null,
+          dispatcherSignals: DEFAULT_SIGNALS,
+          dispatcherV2Stats,
+          dispatcherLatencyMs: 0,
+          targetMode: "companion",
+          riskScore: Number.isFinite(localRiskScore) ? localRiskScore : 0,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    } else {
+      await trace(
+        "brain:active_create_recurring_reminder_local_runtime_null",
+        "routing",
+        {
+          global_dispatcher_skipped: true,
+          skipped_global_dispatcher: true,
+          active_operation_type: activeLocalFlowOperationType,
+          active_handler: activeLocalFlowHandler,
+          reason_code: "active_create_recurring_reminder_local_runtime_null",
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde le rappel récurrent en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "create_recurring_reminder",
+            operation_type: "create_recurring_reminder",
+            mode: "local_write_flow",
+            status: "blocked",
+            reason_code: "active_create_recurring_reminder_local_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code:
+                "active_create_recurring_reminder_local_runtime_null",
+            }],
+            runtime_trace: [{
+              component: "create_recurring_reminder",
+              event: "local_runtime_null",
+              global_dispatcher_skipped: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        safetyContextOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+    if (!continueToGlobalAfterLocalExit) {
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde le rappel récurrent en cours, mais je n'arrive pas à produire la suite locale correctement. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "create_recurring_reminder",
+            operation_type: "create_recurring_reminder",
+            mode: "local_write_flow",
+            status: "blocked",
+            reason_code:
+              "active_create_recurring_reminder_local_runtime_incomplete",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code:
+                "active_create_recurring_reminder_local_runtime_incomplete",
+            }],
+            runtime_trace: [{
+              component: "create_recurring_reminder",
+              event: "local_runtime_incomplete",
+              global_dispatcher_skipped: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        safetyContextOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
     }
   }
   if (activeLocalFlowOperationType === "adjust_plan_item") {
@@ -3103,9 +3967,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -3139,7 +4003,7 @@ export async function processMessage(
       planItemSnapshot: planItemSnapshot ?? [],
       turnFrame: localTurnFrame,
       routeDecision: localRouteDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
       forceFullAi: meta?.forceRealAi === true ||
@@ -3161,6 +4025,7 @@ export async function processMessage(
           targetDispatcher: "global",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -3213,7 +4078,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -3282,7 +4147,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: null,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -3320,9 +4185,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -3348,7 +4213,7 @@ export async function processMessage(
       tempMemory,
       turnFrame: localTurnFrame,
       routeDecision: localRouteDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
       history,
@@ -3379,6 +4244,7 @@ export async function processMessage(
           targetDispatcher: targetDispatcher as any,
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -3478,7 +4344,7 @@ export async function processMessage(
                 crypto.randomUUID(),
               userId,
               channel,
-              safetyPregateOutput,
+              safetyContextOutput,
               conversationRiskHistory: conversationRiskHistoryForPersist,
               targetDispatcher,
               noteInformation: targetNote,
@@ -3543,7 +4409,7 @@ export async function processMessage(
               tempMemory,
               turnFrame: targetTurnFrame,
               routeDecision: targetRouteDecision,
-              safetyPregateOutput,
+              safetyContextOutput,
               sourceMessageId: loggedMessageId,
               requestId: meta?.requestId ?? null,
               history,
@@ -3559,6 +4425,7 @@ export async function processMessage(
               turnFrame: targetTurnFrame,
               routeDecision: targetRouteDecision,
               activeOperationIntake: null,
+              planItemSnapshot,
               history,
               requestId: meta?.requestId ?? null,
             })
@@ -3620,7 +4487,7 @@ export async function processMessage(
               tempMemory,
               turnFrame: targetTurnFrame,
               routeDecision: targetRouteDecision,
-              safetyPregateOutput,
+              safetyContextOutput,
               sourceMessageId: loggedMessageId,
               requestId: meta?.requestId ?? null,
               history,
@@ -3684,7 +4551,7 @@ export async function processMessage(
             effectLedger,
             turnFrame: targetTurnFrame,
             routeDecision: targetRouteDecision,
-            safetyPregateOutput,
+            safetyContextOutput,
             weeklyReviewStateForTurn: null,
             dispatcherSignals: DEFAULT_SIGNALS,
             dispatcherV2Stats,
@@ -3731,7 +4598,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -3800,7 +4667,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: null,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -3838,9 +4705,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -3866,7 +4733,7 @@ export async function processMessage(
       tempMemory,
       turnFrame: localTurnFrame,
       routeDecision: localRouteDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
       history,
@@ -3892,6 +4759,7 @@ export async function processMessage(
           targetDispatcher,
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -3952,7 +4820,7 @@ export async function processMessage(
                 crypto.randomUUID(),
               userId,
               channel,
-              safetyPregateOutput,
+              safetyContextOutput,
               conversationRiskHistory: conversationRiskHistoryForPersist,
               targetDispatcher: "safety_crisis",
               noteInformation: safetyNote as NoteInformation,
@@ -4025,7 +4893,7 @@ export async function processMessage(
             effectLedger,
             turnFrame: safetyTurnFrame,
             routeDecision: safetyRouteDecision,
-            safetyPregateOutput,
+            safetyContextOutput,
             weeklyReviewStateForTurn: null,
             dispatcherSignals: DEFAULT_SIGNALS,
             dispatcherV2Stats,
@@ -4073,7 +4941,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -4141,7 +5009,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: null,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -4179,9 +5047,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -4207,7 +5075,7 @@ export async function processMessage(
       tempMemory,
       turnFrame: null,
       routeDecision: localRouteDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
       history,
@@ -4227,6 +5095,7 @@ export async function processMessage(
           targetDispatcher: "global",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -4284,7 +5153,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -4361,7 +5230,7 @@ export async function processMessage(
         effectLedger,
         turnFrame: localTurnFrame,
         routeDecision: localRouteDecision,
-        safetyPregateOutput,
+        safetyContextOutput,
         weeklyReviewStateForTurn: null,
         dispatcherSignals: DEFAULT_SIGNALS,
         dispatcherV2Stats,
@@ -4399,9 +5268,9 @@ export async function processMessage(
       user_id: userId,
       channel,
       safety: {
-        risk_band: safetyPregateOutput.risk_band,
-        reason_codes: safetyPregateOutput.reason_codes ?? [],
-        evidence: safetyPregateOutput.evidence ?? [],
+        risk_band: safetyContextOutput.risk_band,
+        reason_codes: safetyContextOutput.reason_codes ?? [],
+        evidence: safetyContextOutput.evidence ?? [],
       },
       conversation_risk: {
         score: 0,
@@ -4426,7 +5295,7 @@ export async function processMessage(
       tempMemory,
       turnFrame: localTurnFrame,
       routeDecision: localRouteDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
       history,
@@ -4446,6 +5315,7 @@ export async function processMessage(
           targetDispatcher: "global",
           localRuntime: operationRuntime.toolSkillRun,
           requestId: meta?.requestId ?? null,
+          userMessage,
         });
         state = { ...(state ?? {}), temp_memory: tempMemory } as any;
         activeSkillState = null;
@@ -4494,7 +5364,7 @@ export async function processMessage(
           effectLedger,
           turnFrame: localTurnFrame,
           routeDecision: localRouteDecision,
-          safetyPregateOutput,
+          safetyContextOutput,
           weeklyReviewStateForTurn: null,
           dispatcherSignals: DEFAULT_SIGNALS,
           dispatcherV2Stats,
@@ -4560,7 +5430,7 @@ export async function processMessage(
       effectLedger,
       turnFrame: localTurnFrame,
       routeDecision: localRouteDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       weeklyReviewStateForTurn: null,
       dispatcherSignals: DEFAULT_SIGNALS,
       dispatcherV2Stats,
@@ -4608,13 +5478,16 @@ export async function processMessage(
         ?.force_full_ai === true;
   const safetyLocalFlowOwnsTurn = shouldSkipGlobalDispatcherForSafetyLocalTurn({
     activeSkillState,
-    safetyPregateOutput,
+    safetyContextOutput,
   });
+  const activeLocalConversationSkillOwnsTurn = safetyLocalFlowOwnsTurn
+    ? null
+    : activeLocalConversationSkillThatOwnsTurn(activeSkillState);
   if (safetyLocalFlowOwnsTurn) {
     await trace("brain:safety_crisis.global_dispatcher_skipped", "routing", {
       active_safety_flow: isActiveSafetyCrisisSkillState(activeSkillState),
-      safety_risk_band: safetyPregateOutput.risk_band,
-      safety_reason_codes: safetyPregateOutput.reason_codes ?? [],
+      safety_risk_band: safetyContextOutput.risk_band,
+      safety_reason_codes: safetyContextOutput.reason_codes ?? [],
       reason_code: "safety_local_flow_owns_turn",
       global_dispatcher_skipped: true,
       global_router_skipped: true,
@@ -4622,13 +5495,25 @@ export async function processMessage(
         activeSkillState,
       ),
     }, "info");
+  } else if (activeLocalConversationSkillOwnsTurn) {
+    await trace(
+      `brain:${activeLocalConversationSkillOwnsTurn}.global_dispatcher_skipped`,
+      "routing",
+      {
+        active_skill_id: activeLocalConversationSkillOwnsTurn,
+        reason_code: "active_local_conversation_skill_owns_turn",
+        global_dispatcher_skipped: true,
+        global_router_skipped: true,
+      },
+      "info",
+    );
   }
   const dispatcherLlmRunner = safetyLocalFlowOwnsTurn
     ? undefined
     : opts?.messageMetadata?.test_endpoint === "test-send-message" &&
         !fullAiRequested
     ? undefined
-    : buildDispatcherLlmRunner({ ...meta, forceRealAi: fullAiRequested });
+    : buildDispatcherLlmRunner({ ...meta, userId, forceRealAi: fullAiRequested });
   const turnFrameStartMs = Date.now();
   try {
     if (safetyLocalFlowOwnsTurn) {
@@ -4639,7 +5524,7 @@ export async function processMessage(
         userId,
         channel,
         activeSkillState,
-        safetyPregateOutput,
+        safetyContextOutput,
         conversationRiskHistory: conversationRiskHistoryForPersist,
         userMessage,
         requestId: meta?.requestId ?? null,
@@ -4660,6 +5545,37 @@ export async function processMessage(
           global_router_skipped: true,
         }, "info");
       }
+    } else if (activeLocalConversationSkillOwnsTurn) {
+      const localOwnership = buildActiveConversationLocalOwnershipFrame({
+        skillId: activeLocalConversationSkillOwnsTurn,
+        turnId: meta?.requestId ?? loggedMessageId ?? crypto.randomUUID(),
+        sourceMessageId: loggedMessageId ?? meta?.requestId ??
+          crypto.randomUUID(),
+        userId,
+        channel,
+        safetyContextOutput,
+        conversationRiskHistory: conversationRiskHistoryForPersist,
+      });
+      turnFrame = localOwnership.turnFrame;
+      routeDecision = localOwnership.routeDecision;
+      dispatcherLatencyMs = 0;
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+      pushActiveFlowDebugSnapshot({
+        snapshots: activeFlowDebugSnapshots,
+        phase: "active_local_conversation_skill_owns_turn",
+        scope,
+        tempMemory,
+        activeSkillState,
+        activeOperationIntake,
+        pendingOperationConfirmation:
+          pendingOperationConfirmationForGlobalRouting,
+        routeReasonCode: routeDecision.reason_code,
+        routeActiveFlowReasonCode:
+          routeDecision.active_flow_arbitration?.reason_code ?? null,
+      });
     } else {
       turnFrame = await runDispatcher({
         user_message: userMessage,
@@ -4710,7 +5626,7 @@ export async function processMessage(
               : null,
           })),
         },
-        safety_pregate_output: safetyPregateOutput,
+        safety_context_output: safetyContextOutput,
         conversation_risk_history: conversationRiskHistoryForPersist,
         source_message_id: loggedMessageId ?? undefined,
         turn_id: meta?.requestId ?? loggedMessageId ?? undefined,
@@ -4776,6 +5692,16 @@ export async function processMessage(
           "info",
         );
       } else if (conversationRisk?.should_exit_flows) {
+        pushActiveFlowDebugSnapshot({
+          snapshots: activeFlowDebugSnapshots,
+          phase: "before_conversation_risk_flow_exit_clear",
+          scope,
+          tempMemory,
+          activeSkillState,
+          activeOperationIntake,
+          pendingOperationConfirmation:
+            pendingOperationConfirmationForGlobalRouting,
+        });
         const { tempMemory: cleared, clearedKeys } =
           clearMachineStateTempMemory({
             tempMemory,
@@ -4808,18 +5734,67 @@ export async function processMessage(
           flow_exit_context: conversationRisk.flow_exit_context ?? null,
           cleared_keys_count: clearedKeys.length,
           cleared_keys: clearedKeys.slice(0, 40),
+          active_flow_debug: activeFlowDebugSnapshots.slice(-8),
         }, "warn");
       }
+      pushActiveFlowDebugSnapshot({
+        snapshots: activeFlowDebugSnapshots,
+        phase: "before_run_conversation_routers",
+        scope,
+        tempMemory,
+        activeSkillState,
+        activeOperationIntake,
+        pendingOperationConfirmation:
+          pendingOperationConfirmationForGlobalRouting,
+      });
+      await trace("brain:active_flow_state_before_global_router", "routing", {
+        scope,
+        active_flow_debug: activeFlowDebugSnapshots.slice(-6),
+      }, activeConversationSkillId(activeSkillState) ? "debug" : "warn");
       routeDecision = runConversationRouters({
         turn_frame: turnFrame,
         active_skill_state: activeSkillState,
         active_tool_skill_intake: activeOperationIntake,
         pending_tool_skill_confirmation:
           pendingOperationConfirmationForGlobalRouting,
-        safety_pregate_risk_band: safetyPregateOutput.risk_band,
+        safety_context_risk_band: safetyContextOutput.risk_band,
       });
+      pushActiveFlowDebugSnapshot({
+        snapshots: activeFlowDebugSnapshots,
+        phase: "after_run_conversation_routers",
+        scope,
+        tempMemory,
+        activeSkillState,
+        activeOperationIntake,
+        pendingOperationConfirmation:
+          pendingOperationConfirmationForGlobalRouting,
+        routeReasonCode: routeDecision.reason_code,
+        routeActiveFlowReasonCode:
+          routeDecision.active_flow_arbitration?.reason_code ?? null,
+      });
+      routeDecision = attachActiveFlowDebugToRouteDecision(
+        routeDecision,
+        activeFlowDebugSnapshots,
+      );
+      if (
+        routeDecision.active_flow_arbitration?.reason_code ===
+          "no_active_flow" &&
+        ((tempMemory as any)?.__active_skill_state ||
+          (tempMemory as any)?.active_skill_state)
+      ) {
+        await trace(
+          "brain:active_flow_no_active_flow_despite_temp_memory",
+          "routing",
+          {
+            scope,
+            active_flow_debug: activeFlowDebugSnapshots.slice(-8),
+          },
+          "error",
+        );
+      }
     }
-    const centralArbitration = safetyLocalFlowOwnsTurn
+    const centralArbitration = safetyLocalFlowOwnsTurn ||
+        activeLocalConversationSkillOwnsTurn
       ? null
       : arbitrateTurnIntent({
         userMessage,
@@ -4829,7 +5804,7 @@ export async function processMessage(
         activeOperationIntake,
         pendingOperationConfirmation:
           pendingOperationConfirmationForGlobalRouting,
-        safetyBlocksTools: blocksToolSkills(safetyPregateOutput.risk_band),
+        safetyBlocksTools: blocksToolSkills(safetyContextOutput.risk_band),
       });
     if (centralArbitration?.changed) {
       routeDecision = centralArbitration.routeDecision;
@@ -4933,7 +5908,7 @@ export async function processMessage(
     if (
       !isSafetyRoute(routeDecision) &&
       Boolean(pendingOperationConfirmation || activeOperationIntake) &&
-      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      !blocksToolSkills(safetyContextOutput.risk_band) &&
       (
         routeDecision.direct_effects_to_run.includes(
           "create_one_shot_reminder",
@@ -5067,13 +6042,11 @@ export async function processMessage(
       );
     if (
       !isSafetyRoute(routeDecision) &&
-      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      !blocksToolSkills(safetyContextOutput.risk_band) &&
       !pendingOperationConfirmationForGlobalRouting &&
       structuredCoachPreferenceIntent &&
       routeDecision.selected_handler !== "update_coach_preferences"
     ) {
-      tempMemory = clearConversationFlowForCoachPreference(tempMemory);
-      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
       activeOperationIntake = null;
       routeDecision = {
         ...routeDecision,
@@ -5115,7 +6088,7 @@ export async function processMessage(
       );
     if (
       !isSafetyRoute(routeDecision) &&
-      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      !blocksToolSkills(safetyContextOutput.risk_band) &&
       !pendingOperationConfirmationForGlobalRouting &&
       structuredDefenseCardIntent &&
       routeDecision.selected_handler !== "prepare_defense_card"
@@ -5143,7 +6116,7 @@ export async function processMessage(
     }
     if (
       !isSafetyRoute(routeDecision) &&
-      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      !blocksToolSkills(safetyContextOutput.risk_band) &&
       structuredCoachPreferenceIntent &&
       (
         routeDecision.selected_handler === "create_recurring_reminder" ||
@@ -5191,7 +6164,7 @@ export async function processMessage(
         routeDecision.selected_handler === "product_help"
       ) &&
       structuredCoachPreferenceIntent &&
-      !blocksToolSkills(safetyPregateOutput.risk_band)
+      !blocksToolSkills(safetyContextOutput.risk_band)
     ) {
       routeDecision = {
         ...routeDecision,
@@ -5501,7 +6474,7 @@ export async function processMessage(
         userMessage,
         sourceMessageId: loggedMessageId ?? null,
         requestId: meta?.requestId ?? null,
-        safetyPregateOutput,
+        safetyContextOutput,
       });
       turnFrame = {
         ...turnFrame,
@@ -5886,6 +6859,7 @@ export async function processMessage(
       lastAssistantMessage,
       history,
       requestId: meta?.requestId,
+      userId,
     });
     const staleInvestigationMode = String(
       (state as any)?.investigation_state?.mode ?? "",
@@ -6201,25 +7175,13 @@ export async function processMessage(
     },
   });
 
-  const [weeklyForgottenProgressRuntime] = await Promise
-    .all([
-      maybeLogWeeklyForgottenProgressParallel({
-        supabase,
-        userId,
-        tempMemory,
-        activeSkillState,
-        v2Runtime,
-        loggedMessageId,
-        userMessage,
-      }),
-      maybeLogDefenseCardWinParallel({
-        supabase,
-        userId,
-        dispatcherSignals,
-        v2Runtime,
-        tempMemory,
-      }),
-    ]);
+  await maybeLogDefenseCardWinParallel({
+    supabase,
+    userId,
+    dispatcherSignals,
+    v2Runtime,
+    tempMemory,
+  });
 
   if (riskScore !== Number((state as any)?.risk_level ?? 0)) {
     await updateUserState(supabase, userId, scope, { risk_level: riskScore });
@@ -6236,7 +7198,7 @@ export async function processMessage(
       tempMemory,
       turnFrame,
       routeDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
     });
@@ -6268,7 +7230,7 @@ export async function processMessage(
       effectLedger,
       turnFrame,
       routeDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       weeklyReviewStateForTurn: null,
       dispatcherSignals,
       dispatcherV2Stats,
@@ -6296,7 +7258,7 @@ export async function processMessage(
     planItemSnapshot,
     turnFrame,
     routeDecision,
-    safetyPregateOutput,
+    safetyContextOutput,
     sourceMessageId: loggedMessageId,
     requestId: meta?.requestId ?? null,
     v2Runtime: v2Runtime ?? null,
@@ -6330,8 +7292,8 @@ export async function processMessage(
   }
   const routeSafetyActive = operationRuntimePipeline.routeSafetyActive;
   const runtimeSafetyRiskBand = operationRuntimePipeline.runtimeSafetyRiskBand;
-  const runtimeSafetyPregateOutput =
-    operationRuntimePipeline.runtimeSafetyPregateOutput;
+  const runtimeSafetySignalContext =
+    operationRuntimePipeline.runtimeSafetySignalContext;
   const weeklyReviewStateForTurn =
     operationRuntimePipeline.weeklyReviewStateForTurn;
   const weeklyReviewBlocksToolSkillRuntime =
@@ -6351,7 +7313,7 @@ export async function processMessage(
       effectLedger,
       turnFrame,
       routeDecision,
-      safetyPregateOutput,
+      safetyContextOutput,
       weeklyReviewStateForTurn,
       dispatcherSignals,
       dispatcherV2Stats,
@@ -6375,6 +7337,19 @@ export async function processMessage(
     plan_feedback_detected: dispatcherSignals.plan_feedback?.detected ?? false,
   };
 
+  if (lastLocalFlowExitContextForDispatcher && turnFrame && routeDecision) {
+    const annotated = attachLocalFlowExitContextToSecondPass({
+      turnFrame,
+      routeDecision,
+      localFlowExitContext: lastLocalFlowExitContextForDispatcher,
+    });
+    turnFrame = annotated.turnFrame;
+    routeDecision = attachActiveFlowDebugToRouteDecision(
+      annotated.routeDecision,
+      activeFlowDebugSnapshots,
+    );
+  }
+
   let context = "";
   const recommendationRuntime = await prepareRecommendationRuntimeForTurn({
     userId,
@@ -6389,13 +7364,523 @@ export async function processMessage(
     requestId: meta?.requestId ?? loggedMessageId ?? null,
     trace,
   });
-  const recommendationSkillOutput =
+  let recommendationSkillOutput =
     recommendationRuntime.recommendationSkillOutput;
-  const recommendationToolRun = recommendationRuntime.recommendationToolRun;
-  const recommendationToolStats = recommendationRuntime.recommendationToolStats;
-  const recommendationToolAddon = recommendationRuntime.recommendationToolAddon;
-  const recommendationSurfaceLabel =
+  let recommendationToolRun = recommendationRuntime.recommendationToolRun;
+  let recommendationToolStats = recommendationRuntime.recommendationToolStats;
+  let recommendationToolAddon = recommendationRuntime.recommendationToolAddon;
+  let recommendationSurfaceLabel =
     recommendationRuntime.recommendationSurfaceLabel;
+  const safetyDirectEffectRequest = runtimeRecord(
+    runtimeRecord(
+      runtimeRecord(recommendationSkillOutput?.diagnosis)
+        .local_dispatcher_output,
+    ).direct_effect_request,
+  );
+  const safetyRequestsOneShotReminder =
+    recommendationSkillOutput?.skill_id === "safety_crisis" &&
+    safetyDirectEffectRequest.requested === true &&
+    safetyDirectEffectRequest.effect_type === "create_one_shot_reminder" &&
+    turnFrame &&
+    routeDecision;
+  if (safetyRequestsOneShotReminder && turnFrame && routeDecision) {
+    const oneShotTurnFrame: TurnFrame = {
+      ...turnFrame,
+      direct_effects: [
+        ...turnFrame.direct_effects.filter((effect) =>
+          effect.effect_type !== "create_one_shot_reminder"
+        ),
+        {
+          effect_type: "create_one_shot_reminder",
+          explicitness: safetyDirectEffectRequest.explicitness === "explicit"
+            ? "explicit"
+            : safetyDirectEffectRequest.explicitness === "implied"
+            ? "implied"
+            : "weak",
+          target_status:
+            safetyDirectEffectRequest.target_status === "identified" ||
+              safetyDirectEffectRequest.target_status === "ambiguous" ||
+              safetyDirectEffectRequest.target_status === "missing"
+              ? safetyDirectEffectRequest.target_status
+              : "missing",
+          confidence_band:
+            safetyDirectEffectRequest.confidence_band === "high" ||
+              safetyDirectEffectRequest.confidence_band === "medium" ||
+              safetyDirectEffectRequest.confidence_band === "low"
+              ? safetyDirectEffectRequest.confidence_band
+              : "medium",
+          payload_hint: {
+            raw_text: String(
+              runtimeRecord(safetyDirectEffectRequest.payload_hint).raw_text ??
+                userMessage,
+            ).trim() || userMessage,
+          },
+        },
+      ],
+    };
+    const oneShotRouteDecision: RouteDecision = {
+      ...routeDecision,
+      direct_effects_to_run: [
+        ...new Set([
+          ...routeDecision.direct_effects_to_run,
+          "create_one_shot_reminder",
+        ]),
+      ],
+      reason_code: "safety_crisis_create_one_shot_reminder_direct_effect",
+      blocked_paths: [
+        ...routeDecision.blocked_paths,
+        {
+          path: "safety_crisis.visible_reply",
+          reason_code:
+            "create_one_shot_reminder_direct_effect_uses_standard_runtime",
+        },
+      ],
+    };
+    const oneShotGate = await runEffectGateOrchestrator({
+      turn_frame: oneShotTurnFrame,
+      direct_effects_to_run: oneShotRouteDecision.direct_effects_to_run,
+      pending_tool_skill_confirmation: pendingOperationConfirmation,
+    });
+    const gatedRouteDecision: RouteDecision = {
+      ...oneShotRouteDecision,
+      direct_effects_to_run: oneShotRouteDecision.direct_effects_to_run.filter(
+        (effect) => oneShotGate.allowed.includes(effect as any),
+      ),
+      blocked_paths: [
+        ...oneShotRouteDecision.blocked_paths,
+        ...oneShotGate.additional_blocked_paths,
+      ],
+    };
+    if (gatedRouteDecision.direct_effects_to_run.length > 0) {
+      await trace(
+        "brain:safety_crisis.one_shot_reminder_direct_effect",
+        "routing",
+        {
+          source_dispatcher_local: "safety_crisis.local_dispatcher",
+          global_dispatcher_skipped: true,
+          effect_type: "create_one_shot_reminder",
+          gate_allowed: oneShotGate.allowed,
+        },
+        "info",
+      );
+      const safetyOneShotRuntime = await runOperationRuntimePipeline({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        history,
+        tempMemory,
+        state,
+        planItemSnapshot,
+        turnFrame: oneShotTurnFrame,
+        routeDecision: gatedRouteDecision,
+        safetyContextOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        v2Runtime: v2Runtime ?? null,
+        activeSkillState,
+        activeOperationIntake,
+        pendingOperationConfirmation,
+        trackProgressBlockedReasonCode: attackKeywordContextOverride
+          ? "attack_keyword_trigger_is_not_completion"
+          : null,
+        fullAiRequested,
+        clientNow: clientNow && Number.isFinite(clientNow.getTime())
+          ? clientNow
+          : null,
+        enableAdjustPlanCoachGuidance:
+          meta?.enableAdjustPlanCoachGuidance === true,
+        runAdjustPlanItemOperation: maybeRunAdjustPlanItemOperation,
+        guards: {
+          isActiveCardDraftingOperation,
+        },
+      });
+      if (safetyOneShotRuntime.operationRuntime) {
+        tempMemory = safetyOneShotRuntime.tempMemory;
+        if (safetyOneShotRuntime.statePatch) {
+          state = {
+            ...(state ?? {}),
+            ...safetyOneShotRuntime.statePatch,
+          } as any;
+        }
+        return await handleOperationRuntimeResponse({
+          supabase,
+          userId,
+          channel,
+          scope,
+          userMessage,
+          history,
+          state,
+          activeSkillState,
+          operationRuntime: safetyOneShotRuntime.operationRuntime,
+          effectLedger,
+          turnFrame: safetyOneShotRuntime.turnFrame,
+          routeDecision: safetyOneShotRuntime.routeDecision,
+          safetyContextOutput,
+          weeklyReviewStateForTurn:
+            safetyOneShotRuntime.weeklyReviewStateForTurn,
+          dispatcherSignals,
+          dispatcherV2Stats,
+          dispatcherLatencyMs,
+          targetMode,
+          riskScore,
+          loggedMessageId,
+          requestId: meta?.requestId ?? null,
+          messageMetadata: opts?.messageMetadata,
+          logMessages,
+          turnStartMs,
+          trace,
+        });
+      }
+    }
+  }
+  const productHelpLocalHandoffDiagnosis = runtimeRecord(
+    recommendationSkillOutput?.diagnosis,
+  );
+  const productHelpLocalHandoffRequest = runtimeRecord(
+    (recommendationSkillOutput as any)?.handoff_request,
+  );
+  const productHelpLocalHandoffNote = runtimeRecord(
+    productHelpLocalHandoffDiagnosis.note_information,
+  );
+  const productHelpLocalHandoffTarget = String(
+    productHelpLocalHandoffRequest.target_skill_id ??
+      productHelpLocalHandoffNote.target_dispatcher ?? "",
+  ).trim();
+  const productHelpLocalHandoffTargets = new Set([
+    "prepare_attack_card",
+    "prepare_defense_card",
+    "select_state_potion",
+    "create_recurring_reminder",
+    "adjust_plan_item",
+    "update_coach_preferences",
+  ]);
+  if (
+    recommendationSkillOutput?.skill_id === "product_help" &&
+    recommendationSkillOutput.status === "handoff" &&
+    productHelpLocalHandoffDiagnosis.flow_action ===
+      "handoff_to_local_dispatcher" &&
+    productHelpLocalHandoffDiagnosis.handoff_to_local_dispatcher === true &&
+    productHelpLocalHandoffTargets.has(productHelpLocalHandoffTarget) &&
+    Object.keys(productHelpLocalHandoffNote).length > 0 &&
+    productHelpLocalHandoffNote.target_dispatcher ===
+      productHelpLocalHandoffTarget &&
+    turnFrame &&
+    routeDecision &&
+    !isSafetyRoute(routeDecision)
+  ) {
+    tempMemory = persistConversationSkillRoute(
+      tempMemory,
+      routeDecision,
+      recommendationSkillOutput,
+    );
+    state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+    activeSkillState = null;
+    activeOperationIntake = null;
+    activeOperationIntakeForDispatcher = null;
+    pendingOperationConfirmation = null;
+    pendingOperationConfirmationForGlobalRouting = null;
+    await updateUserState(supabase, userId, scope, {
+      temp_memory: tempMemory,
+    });
+    const handoffNote = Object.keys(productHelpLocalHandoffNote).length
+      ? productHelpLocalHandoffNote
+      : null;
+    const handoffTurnFrame = {
+      ...turnFrame,
+      note_information: handoffNote,
+      tool_skill_intents: (turnFrame.tool_skill_intents ?? []).filter((
+        intent,
+      ) => intent.operation_type === productHelpLocalHandoffTarget),
+    } as TurnFrame;
+    const handoffRouteDecision: RouteDecision = {
+      ...routeDecision,
+      response_owner: "tool_skill",
+      selected_handler: productHelpLocalHandoffTarget,
+      reason_code: "product_help_handoff_to_local_dispatcher",
+      direct_effects_to_run: [],
+      blocked_paths: [
+        ...routeDecision.blocked_paths,
+        {
+          path: "product_help.visible_reply",
+          reason_code:
+            "product_help_handoff_visible_reply_owned_by_target_dispatcher",
+        },
+        {
+          path: "global_dispatcher",
+          reason_code: "product_help_handoff_to_local_dispatcher_skips_global",
+        },
+      ],
+      note_information: handoffNote,
+      product_help_handoff: {
+        target_dispatcher: productHelpLocalHandoffTarget,
+        source_flow_id: "product_help",
+        note_information: handoffNote,
+      },
+    } as RouteDecision;
+    await trace("brain:product_help_handoff_to_local_dispatcher", "routing", {
+      skipped_global_dispatcher_before_local: true,
+      same_user_message_handoff_to_local_dispatcher: true,
+      source_dispatcher_local: "product_help.local_dispatcher",
+      target_dispatcher: productHelpLocalHandoffTarget,
+      note_information_present: Boolean(handoffNote),
+      local_runtime: {
+        skill_id: "product_help",
+        status: recommendationSkillOutput.status,
+        response_intent: recommendationSkillOutput.response_intent,
+        reason_code: productHelpLocalHandoffDiagnosis.reason_code ?? null,
+        flow_action: productHelpLocalHandoffDiagnosis.flow_action ?? null,
+      },
+    }, "info");
+    const productHelpHandoffRuntime = await runOperationRuntimePipeline({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      history,
+      tempMemory,
+      state,
+      planItemSnapshot,
+      turnFrame: handoffTurnFrame,
+      routeDecision: handoffRouteDecision,
+      safetyContextOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      v2Runtime: v2Runtime ?? null,
+      activeSkillState: null,
+      activeOperationIntake: null,
+      pendingOperationConfirmation: null,
+      trackProgressBlockedReasonCode: attackKeywordContextOverride
+        ? "attack_keyword_trigger_is_not_completion"
+        : null,
+      fullAiRequested,
+      clientNow: clientNow && Number.isFinite(clientNow.getTime())
+        ? clientNow
+        : null,
+      enableAdjustPlanCoachGuidance:
+        meta?.enableAdjustPlanCoachGuidance === true,
+      runAdjustPlanItemOperation: maybeRunAdjustPlanItemOperation,
+      guards: {
+        isActiveCardDraftingOperation,
+      },
+    });
+    if (productHelpHandoffRuntime.operationRuntime) {
+      tempMemory = productHelpHandoffRuntime.tempMemory;
+      if (productHelpHandoffRuntime.statePatch) {
+        state = {
+          ...(state ?? {}),
+          ...productHelpHandoffRuntime.statePatch,
+        } as any;
+      }
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState: null,
+        operationRuntime: productHelpHandoffRuntime.operationRuntime,
+        effectLedger,
+        turnFrame: productHelpHandoffRuntime.turnFrame,
+        routeDecision: productHelpHandoffRuntime.routeDecision,
+        safetyContextOutput,
+        weeklyReviewStateForTurn:
+          productHelpHandoffRuntime.weeklyReviewStateForTurn,
+        dispatcherSignals,
+        dispatcherV2Stats,
+        dispatcherLatencyMs,
+        targetMode,
+        riskScore,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
+    }
+    routeDecision = productHelpHandoffRuntime.routeDecision ??
+      handoffRouteDecision;
+    turnFrame = productHelpHandoffRuntime.turnFrame ?? handoffTurnFrame;
+    tempMemory = productHelpHandoffRuntime.tempMemory;
+    if (productHelpHandoffRuntime.statePatch) {
+      state = {
+        ...(state ?? {}),
+        ...productHelpHandoffRuntime.statePatch,
+      } as any;
+    }
+  }
+  if (isConversationSkillExitToGlobal(recommendationSkillOutput)) {
+    const exitedSkillId = String(recommendationSkillOutput?.skill_id ?? "")
+      .trim();
+    const diagnosis = runtimeRecord(recommendationSkillOutput?.diagnosis);
+    const statePatch = runtimeRecord(recommendationSkillOutput?.state_patch);
+    const exitMemo = runtimeRecord(
+      diagnosis.exit_memo ??
+        statePatch[`${exitedSkillId}_exit_memo`] ??
+        null,
+    );
+    const noteInformation = runtimeRecord(
+      diagnosis.note_information ?? exitMemo.note_information ?? null,
+    );
+    tempMemory = persistConversationSkillRoute(
+      tempMemory,
+      routeDecision,
+      recommendationSkillOutput,
+    );
+    tempMemory = attachNoteInformationToLocalExitMemo({
+      tempMemory,
+      sourceFlowId: exitedSkillId,
+      targetDispatcher: "global",
+      localRuntime: {
+        selected_handler: exitedSkillId,
+        skill_id: exitedSkillId,
+        status: recommendationSkillOutput?.status ?? null,
+        response_intent: recommendationSkillOutput?.response_intent ?? null,
+        reason_code: diagnosis.reason_code ??
+          `${exitedSkillId}_exit_to_global_dispatcher`,
+        flow_action: diagnosis.flow_action ?? "exit_to_global_dispatcher",
+        visible_task: diagnosis.visible_task ?? null,
+        exit_memo: Object.keys(exitMemo).length ? exitMemo : null,
+        note_information: Object.keys(noteInformation).length
+          ? noteInformation
+          : null,
+        risk_score: diagnosis.risk_score ?? 0,
+      },
+      requestId: meta?.requestId ?? null,
+      userMessage,
+    });
+    const localExitContextForSecondPass = buildLastLocalFlowExitContext(
+      tempMemory,
+    );
+    tempMemory = clearLastLocalFlowExitContext(tempMemory);
+    state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+    activeSkillState = null;
+    activeOperationIntake = null;
+    activeOperationIntakeForDispatcher = null;
+    pendingOperationConfirmation = null;
+    pendingOperationConfirmationForGlobalRouting = null;
+    await updateUserState(supabase, userId, scope, {
+      temp_memory: tempMemory,
+    });
+    await trace("brain:generic_local_exit_to_global_dispatcher", "routing", {
+      skipped_global_dispatcher_before_local: true,
+      same_user_message_rerouted_to_global_after_local_exit: true,
+      source_dispatcher_local: `${exitedSkillId}.local_dispatcher`,
+      flow_action: diagnosis.flow_action ?? "exit_to_global_dispatcher",
+      exit_to_global_dispatcher: true,
+      global_dispatcher_second_pass_after_local_exit: true,
+      note_information_present: Boolean(
+        localExitContextForSecondPass?.note_information,
+      ),
+      local_runtime: {
+        skill_id: exitedSkillId,
+        status: recommendationSkillOutput?.status ?? null,
+        response_intent: recommendationSkillOutput?.response_intent ?? null,
+        reason_code: diagnosis.reason_code ?? null,
+      },
+    }, "info");
+    const secondPassStartMs = Date.now();
+    turnFrame = await runDispatcher({
+      user_message: userMessage,
+      recent_messages: recentMessagesForTurnFrame,
+      user_id: userId,
+      channel,
+      active_skill_state: null,
+      active_tool_skill_intake: null,
+      pending_tool_skill_confirmation: null,
+      active_topic_state: (tempMemory as any)?.memory_v2_active_topic ?? null,
+      flow_state_context: {
+        channel,
+        scope,
+        user_time: userTime
+          ? {
+            user_timezone: userTime.user_timezone,
+            user_local_date: userTime.user_local_date,
+            user_local_datetime: userTime.user_local_datetime,
+            user_local_human: userTime.user_local_human,
+          }
+          : null,
+        whatsapp_mode: meta?.whatsappMode ?? null,
+        forced_mode: opts?.forceMode ?? null,
+        force_onboarding_flow: Boolean(opts?.forceOnboardingFlow),
+        onboarding_active: meta?.whatsappMode === "onboarding" ||
+          Boolean(opts?.forceOnboardingFlow),
+        active_runtime_context: buildDispatcherActiveRuntimeContext({
+          tempMemory,
+          activeSkillState: null,
+          activeOperationIntake: null,
+          pendingOperationConfirmation: null,
+        }),
+        last_local_flow_exit: localExitContextForSecondPass,
+      },
+      plan_snapshot: {
+        items: (planItemSnapshot ?? []).map((item: any) => ({
+          id: item?.id,
+          title: item?.title,
+          status: item?.status,
+          kind: item?.item_type,
+          dimension: item?.dimension,
+          cadence_label: item?.cadence_label ?? null,
+          target_reps: item?.target_reps ?? null,
+          current_reps: item?.current_reps ?? null,
+          item_nature: item?.item_nature ?? null,
+          available_this_week: item?.available_this_week ?? false,
+          availability_status: item?.availability_status ?? null,
+          week_scope: item?.week_scope ?? null,
+          source_kind: item?.source_kind ?? null,
+          payload: item?.payload && typeof item.payload === "object"
+            ? item.payload
+            : null,
+        })),
+      },
+      safety_context_output: safetyContextOutput,
+      conversation_risk_history: conversationRiskHistoryForPersist,
+      source_message_id: loggedMessageId ?? undefined,
+      turn_id: meta?.requestId ?? loggedMessageId ?? undefined,
+      llm_runner: dispatcherLlmRunner,
+      model_name: String(
+        Deno.env.get("SOPHIA_DISPATCHER_LLM_MODEL") ??
+          Deno.env.get("GEMINI_FALLBACK_MODEL") ??
+          "gemini-2.5-flash",
+      ).trim(),
+      on_stats: (stats) => {
+        dispatcherV2Stats.push(stats);
+      },
+    });
+    dispatcherLatencyMs = (dispatcherLatencyMs ?? 0) +
+      (Date.now() - secondPassStartMs);
+    dispatcherSignals = dispatcherSignalsFromTurnFrame({
+      turnFrame,
+      userMessage,
+    });
+    routeDecision = runConversationRouters({
+      turn_frame: turnFrame,
+      active_skill_state: null,
+      active_tool_skill_intake: null,
+      pending_tool_skill_confirmation: null,
+      safety_context_risk_band: safetyContextOutput.risk_band,
+    });
+    const annotatedSecondPass = attachLocalFlowExitContextToSecondPass({
+      turnFrame,
+      routeDecision,
+      localFlowExitContext: localExitContextForSecondPass,
+    });
+    turnFrame = annotatedSecondPass.turnFrame;
+    routeDecision = attachActiveFlowDebugToRouteDecision(
+      annotatedSecondPass.routeDecision,
+      activeFlowDebugSnapshots,
+    );
+    recommendationSkillOutput = null;
+    recommendationToolRun = null;
+    recommendationToolStats = null;
+    recommendationToolAddon = null;
+    recommendationSurfaceLabel = null;
+  }
   if (recommendationToolRun) {
     recordRecommendationEffectInLedger({
       ledger: effectLedger,
@@ -6419,6 +7904,7 @@ export async function processMessage(
     }),
     buildResolvedPlanTargetAddon(tempMemory),
     buildConversationRiskFlowExitAddon(conversationRiskForPersist),
+    buildNormalReplyHandoffContextAddon({ turnFrame, routeDecision }),
     recommendationToolAddon,
     buildRecentConversationContinuityAddon({
       userMessage,
@@ -6445,12 +7931,12 @@ export async function processMessage(
     v2Intent: "answer_user_now",
     v2Runtime,
     requestId: meta?.requestId,
+    turnId: turnFrame?.turn_id,
     channel,
   });
   contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
 
   let memoryV2RuntimeTempMemory: Record<string, unknown> | null = null;
-  let memoryV2ActiveContextBlock = "";
   try {
     const active = await runMemoryV2ActiveLoader({
       supabase,
@@ -6467,7 +7953,6 @@ export async function processMessage(
     });
     if (active) {
       memoryV2RuntimeTempMemory = active.tempMemory;
-      memoryV2ActiveContextBlock = active.context_block;
       contextLoadResult.context.eventMemories = undefined;
       contextLoadResult.context.globalMemories = undefined;
       contextLoadResult.context.topicMemories = undefined;
@@ -6692,41 +8177,12 @@ export async function processMessage(
     Array.isArray(agentOut.executedTools) ? agentOut.executedTools : [],
     [],
   );
-  const directEffectToolRuntimes = [
-    weeklyForgottenProgressRuntime,
-  ].filter(Boolean);
-  for (const runtime of directEffectToolRuntimes) {
-    const toolSkillRun = (runtime as any)?.toolSkillRun;
-    if (toolSkillRun) {
-      recordToolSkillEffectsInLedger({
-        ledger: effectLedger,
-        toolSkillRun,
-        toolExecution: String((runtime as any)?.toolExecution ?? "none"),
-      });
-    }
-  }
-  const directEffectExecutedTools = directEffectToolRuntimes.flatMap(
-    (runtime) =>
-      runtime.toolExecution === "success" &&
-        Array.isArray((runtime as any).toolSkillRun?.committed_effects) &&
-        (runtime as any).toolSkillRun.committed_effects.length > 0
-        ? runtime.executedTools
-        : [],
+  const combinedExecutedTools = agentExecutedTools;
+  const combinedToolExecution = agentToolExecution;
+  routeDecision = attachActiveFlowDebugToRouteDecision(
+    routeDecision,
+    activeFlowDebugSnapshots,
   );
-  const combinedExecutedTools = [
-    ...new Set([...agentExecutedTools, ...directEffectExecutedTools]),
-  ];
-  const combinedToolExecution = combinedExecutedTools.length > 0
-    ? "success"
-    : directEffectToolRuntimes.some((runtime) =>
-        runtime.toolExecution === "failed"
-      )
-    ? "failed"
-    : directEffectToolRuntimes.some((runtime) =>
-        runtime.toolExecution === "blocked"
-      )
-    ? "blocked"
-    : agentToolExecution;
   const normalConversationTurnTrace = turnFrame && routeDecision
     ? {
       turn_frame: turnFrame,
@@ -6768,7 +8224,7 @@ export async function processMessage(
         user_id: userId,
         source_message_id: turnFrame.source_message_id,
         ts: new Date().toISOString(),
-        safety_pregate: safetyPregateOutput,
+        safety_context: safetyContextOutput,
         dispatcher_run: {
           latency_ms: dispatcherV2Stat?.latency_ms ?? 0,
           tokens_in: dispatcherV2Stat?.tokens_in ?? 0,
@@ -6828,10 +8284,6 @@ export async function processMessage(
     }
   }
 
-  const responseStylePreferences = await loadCoachResponseStylePreferences({
-    supabase,
-    userId,
-  });
   const finalResponse = runFinalResponsePipeline({
     baseResponseContent: String(agentOut.responseContent ?? "").trim(),
     userMessage,
@@ -6842,11 +8294,7 @@ export async function processMessage(
     effectLedger,
     activeSkillState,
     tempMemory,
-    history,
-    memoryV2ActiveContextBlock,
-    loggedMessageId,
     planItemSnapshot,
-    stylePreferences: responseStylePreferences,
     deps: {
       directSafetyCrisisReplyOverride: directSafetyCrisisReplyOverrideRuntime,
       directConversationSkillReplyOverride,
@@ -6866,36 +8314,10 @@ export async function processMessage(
       stripDeprecatedProductVocabulary,
       weeklyAdaptiveReviewStateForTurn,
       cleanWeeklyVisibleResponse,
-      applyMemoryV2ResponseGroundingGuardrail,
-      applyNonDurableMemoryPromiseGuard,
-      applyWeeklyForgottenProgressAckGuard: (input) =>
-        applyWeeklyForgottenProgressAckGuard({
-          responseContent: input.responseContent,
-          tempMemory: input.tempMemory,
-          loggedMessageId: input.loggedMessageId ?? null,
-        }),
-      applyWeeklyRepeatedClarificationGuard,
-      applyWeeklyConcreteOrganizationGuard,
-      applyWeeklyConclusionGuard,
-      applyCompactStartGuard,
-      applyIncompleteRecapGuard,
-      applyUnexecutedEffectClaimGuard,
-      applyCoachResponseStylePreferences: (input) =>
-        applyCoachResponseStylePreferences({
-          userMessage: input.userMessage,
-          responseContent: input.responseContent,
-          preferences: input.preferences as any,
-        }),
-      userRequestsShortStyle,
-      normalizeRouteText,
       ensureVisibleSophiaEmoji,
     },
   });
   let responseContent = finalResponse.responseContent;
-  if (finalResponse.effectLedgerTrace && normalConversationTurnTrace) {
-    (normalConversationTurnTrace as any).effect_ledger =
-      finalResponse.effectLedgerTrace;
-  }
   return await persistNormalReplyTurn({
     supabase,
     userId,

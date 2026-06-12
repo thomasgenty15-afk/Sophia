@@ -136,6 +136,7 @@ export interface ContextLoaderOptions {
   supabase: SupabaseClient;
   userId: string;
   requestId?: string;
+  turnId?: string;
   channel?: "web" | "whatsapp";
   mode: AgentMode;
   message: string;
@@ -926,6 +927,7 @@ export async function loadContextForMode(
     supabase: opts.supabase,
     userId: opts.userId,
     requestId: opts.requestId,
+    turnId: opts.turnId,
     channel: opts.channel,
     scope: opts.scope,
     sourceComponent: "context_loader",

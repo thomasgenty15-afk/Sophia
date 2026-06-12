@@ -8,7 +8,6 @@ import {
   recordFailedEffect,
   recordPlatformHandoffInLedger,
   recordRequestedEffect,
-  rewriteUncommittedEffectClaims,
   summarizeEffectLedgerForTrace,
 } from "./effect_ledger.ts";
 
@@ -91,35 +90,6 @@ Deno.test("summarizeEffectLedgerForTrace ne leak pas de payload massif", () => {
   assertEquals(summary.entries[0].payload_summary.nested, "[object]");
 });
 
-Deno.test("rewriteUncommittedEffectClaims trace preference enregistree sans commit sans reecrire", () => {
-  const ledger = createEffectLedger("turn-1");
-  const reply = "C'est fait, préférence enregistrée.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_coach_preferences_update_claim",
-  ]);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("rewriteUncommittedEffectClaims ne touche pas une reponse si commit present", () => {
-  const ledger = createEffectLedger("turn-1");
-  recordCommittedEffect(ledger, {
-    effect_id: "effect-1",
-    effect_type: "coach_preferences.update",
-    source: "executor",
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "C'est fait, préférence enregistrée.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, false);
-  assertEquals(rewritten.reply, "C'est fait, préférence enregistrée.");
-});
-
 Deno.test("failed ne compte pas comme committed", () => {
   const ledger = createEffectLedger("turn-1");
   recordFailedEffect(ledger, {
@@ -152,132 +122,6 @@ Deno.test("blocked ne compte pas comme committed", () => {
     ),
     false,
   );
-});
-
-Deno.test("rewriteUncommittedEffectClaims trace rappel programme sans commit sans reecrire", () => {
-  const ledger = createEffectLedger("turn-1");
-  const reply = "Rappel programmé pour demain.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_reminder_create_claim",
-  ]);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("rewriteUncommittedEffectClaims ne transforme pas carte preparee en carte creee", () => {
-  const ledger = createEffectLedger("turn-1");
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Carte préparée, mais pas encore créée.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, false);
-});
-
-Deno.test("rewriteUncommittedEffectClaims trace potion activee sans commit sans reecrire", () => {
-  const ledger = createEffectLedger("turn-1");
-  const reply = "Potion activée.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_state_potion_activate_claim",
-  ]);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("rewriteUncommittedEffectClaims trace plan modifie sans commit sans reecrire", () => {
-  const ledger = createEffectLedger("turn-1");
-  const reply = "Plan ajusté pour la semaine.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_plan_adjust_claim",
-  ]);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("rewriteUncommittedEffectClaims trace progres note sans commit sans reecrire", () => {
-  const ledger = createEffectLedger("turn-1");
-  const reply = "Progression notée.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_progress_track_claim",
-  ]);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("rewriteUncommittedEffectClaims trace memoire enregistree sans commit sans reecrire", () => {
-  const ledger = createEffectLedger("turn-1");
-  const reply = "Je garde ça en mémoire, je m'en souviens.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_memory_write_claim",
-  ]);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("rewriteUncommittedEffectClaims trace success generique sans commit sans reecrire", () => {
-  const ledger = createEffectLedger("turn-1");
-  const reply = "C'est fait.";
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply,
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_generic_success_claim",
-  ]);
-  assertEquals(rewritten.reply, reply);
-});
-
-Deno.test("rewriteUncommittedEffectClaims neutralise success generique avec effet bloque", () => {
-  const ledger = createEffectLedger("turn-1");
-  recordBlockedEffect(ledger, {
-    effect_id: "effect-1",
-    effect_type: "plan_item.adjust",
-    source: "tool_skill",
-    reason_code: "missing_confirmation",
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "C'est fait.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, [
-    "uncommitted_generic_success_claim",
-  ]);
-});
-
-Deno.test("rewriteUncommittedEffectClaims conserve success generique avec commit", () => {
-  const ledger = createEffectLedger("turn-1");
-  recordCommittedEffect(ledger, {
-    effect_id: "effect-1",
-    effect_type: "plan_item.adjust",
-    source: "executor",
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "C'est fait.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, false);
-  assertEquals(rewritten.reply, "C'est fait.");
 });
 
 Deno.test("platform handoff proposed is a first-class ledger entry", () => {
@@ -354,40 +198,4 @@ Deno.test("durable effect blocked remains distinct from platform handoff", () =>
   assertEquals(ledger.entries[0].status, "blocked");
   assertEquals(ledger.entries[1].kind, "platform_handoff");
   assertEquals(ledger.entries[1].status, "delivered");
-});
-
-Deno.test("handoff wording is allowed without commit", () => {
-  const ledger = createEffectLedger("turn-handoff-wording");
-  recordPlatformHandoffInLedger(ledger, {
-    effect_id: "handoff-wording",
-    operation_type: "adjust_plan_item",
-    status: "delivered",
-    source: "dispatcher",
-    surface_id: "plan",
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply:
-      "Je te conseille de le faire dans la section Plan. Je ne le modifie pas depuis le chat.",
-    ledger,
-  });
-
-  assertEquals(rewritten.changed, false);
-});
-
-Deno.test("done language for handoff is blocked without commit", () => {
-  const ledger = createEffectLedger("turn-handoff-done");
-  recordPlatformHandoffInLedger(ledger, {
-    effect_id: "handoff-done",
-    operation_type: "adjust_plan_item",
-    status: "delivered",
-    source: "dispatcher",
-    surface_id: "plan",
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "J'ai modifié ton plan.",
-    ledger,
-  });
-
-  assertEquals(rewritten.changed, true);
-  assertEquals(rewritten.reason_codes, ["uncommitted_plan_adjust_claim"]);
 });

@@ -511,6 +511,38 @@ Deno.test("V2 morning nudge: medium emotional load → support_softly", () => {
   );
 });
 
+Deno.test("V2 morning nudge: includes morning commitments in anti-redundancy context", () => {
+  const input = makeV2Input({
+    morningScheduledCommitments: [{
+      id: "checkin-1",
+      scheduled_for: "2026-03-24T08:30:00.000Z",
+      event_context: "one_shot_reminder",
+      status: "pending",
+      origin: "direct_effect",
+      summary: "Rappel: prendre des nouvelles doucement",
+      instruction_hint: "message de soutien, sans citer les details",
+    }],
+  });
+
+  const plan = buildMorningNudgePlanV2(input);
+  const payload = buildMorningNudgePayloadV2({
+    plan,
+    sentAtIso: NOW_ISO,
+  });
+
+  assertEquals(plan.decision, "send");
+  assertStringIncludes(
+    String(plan.instruction ?? ""),
+    "N'en fais pas doublon",
+  );
+  assertStringIncludes(
+    String(plan.event_grounding ?? ""),
+    "morning_scheduled_commitments=",
+  );
+  assertEquals(payload?.morning_scheduled_commitments?.length, 1);
+  assertEquals(payload?.coordination_notes?.length, 1);
+});
+
 // ── Test 4: upcoming event → pre_event_grounding ────────────────────────────
 
 Deno.test("V2 morning nudge: upcoming_event in pulse → pre_event_grounding", () => {

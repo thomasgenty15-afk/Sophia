@@ -74,9 +74,9 @@ processMessage
   effets mutatifs chat nominaux. `status_recap` reste read-only.
 - Tout changement d'ownership entre dispatchers doit transporter une
   `note_information` conforme a `09-note-information-contract.md`.
-- Un stop local sans nouveau sujet ne rappelle pas le dispatcher global sur le
-  meme tour : le reducer local choisit une `visible_task` d'acknowledgement et
-  ferme ou differe l'etat actif.
+- Un arret de flow local actif passe d'abord par le dispatcher local actif :
+  `exit_to_global_dispatcher` + `note_information`, puis le dispatcher global
+  peut reprendre a partir de cette note.
 
 ## Integration Points
 

@@ -11,7 +11,7 @@ import {
 } from "../safety/safety_thresholds.ts";
 import {
   isSafetyRoute,
-  runtimeSafetyPregateForTurn,
+  runtimeSafetyContextForTurn,
 } from "./safety_crisis_runtime.ts";
 import type { OperationRuntimeResult } from "./effect_ledger_adapter.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
@@ -58,7 +58,7 @@ type RunAdjustPlanItemOperation = (input: {
   planItemSnapshot?: V2PlanItemSnapshotItem[];
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: any;
+  safetyContextOutput: any;
   sourceMessageId: string | null;
   requestId?: string | null;
   forceFullAi?: boolean;
@@ -81,7 +81,7 @@ export type OperationRuntimePipelineInput = {
   planItemSnapshot?: V2PlanItemSnapshotItem[];
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: any;
+  safetyContextOutput: any;
   sourceMessageId: string | null;
   requestId?: string | null;
   v2Runtime: ActiveTransformationRuntime | null;
@@ -275,7 +275,6 @@ function isPlatformHandoffOperation(operationType: string): boolean {
   return Boolean(getHandoffTargetForOperation(operationType));
 }
 
-
 function platformHandoffRuntimeResult(args: {
   operationType: string;
   tempMemory: any;
@@ -314,7 +313,7 @@ export type OperationRuntimePipelineResult = {
   statePatch?: { temp_memory: any };
   routeSafetyActive: boolean;
   runtimeSafetyRiskBand: RiskBand;
-  runtimeSafetyPregateOutput: any;
+  runtimeSafetySignalContext: any;
   weeklyReviewStateForTurn: unknown;
   weeklyReviewBlocksToolSkillRuntime: boolean;
   routeOrFrameChanged: boolean;
@@ -413,9 +412,9 @@ export async function runOperationRuntimePipeline(
     const routeSafetyActive = isSafetyRoute(clarificationRoute);
     const {
       riskBand: runtimeSafetyRiskBand,
-      pregateOutput: runtimeSafetyPregateOutput,
-    } = runtimeSafetyPregateForTurn({
-      safetyPregateOutput: args.safetyPregateOutput,
+      safetyContextOutput: runtimeSafetySignalContext,
+    } = runtimeSafetyContextForTurn({
+      safetyContextOutput: args.safetyContextOutput,
       routeDecision: clarificationRoute,
       turnFrame,
       tempMemory,
@@ -429,7 +428,7 @@ export async function runOperationRuntimePipeline(
       statePatch,
       routeSafetyActive,
       runtimeSafetyRiskBand,
-      runtimeSafetyPregateOutput,
+      runtimeSafetySignalContext,
       weeklyReviewStateForTurn,
       weeklyReviewBlocksToolSkillRuntime,
       routeOrFrameChanged: true,
@@ -439,9 +438,9 @@ export async function runOperationRuntimePipeline(
   const routeSafetyActive = isSafetyRoute(routeDecision);
   const {
     riskBand: runtimeSafetyRiskBand,
-    pregateOutput: runtimeSafetyPregateOutput,
-  } = runtimeSafetyPregateForTurn({
-    safetyPregateOutput: args.safetyPregateOutput,
+    safetyContextOutput: runtimeSafetySignalContext,
+  } = runtimeSafetyContextForTurn({
+    safetyContextOutput: args.safetyContextOutput,
     routeDecision,
     turnFrame,
     tempMemory,
@@ -478,7 +477,7 @@ export async function runOperationRuntimePipeline(
         tempMemory,
         turnFrame,
         routeDecision,
-        safetyPregateOutput: runtimeSafetyPregateOutput,
+        safetyContextOutput: runtimeSafetySignalContext,
         sourceMessageId: args.sourceMessageId,
         requestId: args.requestId ?? null,
         history: args.history,
@@ -492,7 +491,7 @@ export async function runOperationRuntimePipeline(
           statePatch,
           routeSafetyActive,
           runtimeSafetyRiskBand,
-          runtimeSafetyPregateOutput,
+          runtimeSafetySignalContext,
           weeklyReviewStateForTurn,
           weeklyReviewBlocksToolSkillRuntime,
           routeOrFrameChanged,
@@ -510,7 +509,7 @@ export async function runOperationRuntimePipeline(
       statePatch,
       routeSafetyActive,
       runtimeSafetyRiskBand,
-      runtimeSafetyPregateOutput,
+      runtimeSafetySignalContext,
       weeklyReviewStateForTurn,
       weeklyReviewBlocksToolSkillRuntime,
       routeOrFrameChanged,
@@ -529,7 +528,7 @@ export async function runOperationRuntimePipeline(
       planItemSnapshot: args.planItemSnapshot,
       turnFrame,
       routeDecision,
-      safetyPregateOutput: runtimeSafetyPregateOutput,
+      safetyContextOutput: runtimeSafetySignalContext,
       sourceMessageId: args.sourceMessageId,
       requestId: args.requestId ?? null,
       forceFullAi: args.fullAiRequested,
@@ -587,7 +586,7 @@ export async function runOperationRuntimePipeline(
         tempMemory,
         turnFrame,
         routeDecision,
-        safetyPregateOutput: runtimeSafetyPregateOutput,
+        safetyContextOutput: runtimeSafetySignalContext,
         sourceMessageId: args.sourceMessageId,
         requestId: args.requestId ?? null,
         history: args.history,
@@ -657,8 +656,7 @@ export async function runOperationRuntimePipeline(
       effectType: "create_one_shot_reminder",
     });
   const oneShotReminderDirectEffect = shouldRunOneShotReminderDirectEffect &&
-      !routeSafetyActive &&
-      !blocksDirectEffects(runtimeSafetyRiskBand as any)
+      (!blocksDirectEffects(runtimeSafetyRiskBand as any) || routeSafetyActive)
     ? await maybeRunOneShotReminderDirectEffect({
       supabase: args.supabase,
       userId: args.userId,
@@ -772,92 +770,92 @@ export async function runOperationRuntimePipeline(
       turnFrame,
       routeDecision,
       activeOperationIntake: args.activeOperationIntake,
+      planItemSnapshot: args.planItemSnapshot ?? [],
       history: args.history,
       requestId: args.requestId ?? null,
     })
     : null;
 
-  const operationRuntime =
-    routeSafetyActive || weeklyReviewBlocksToolSkillRuntime ||
+  const operationRuntime = weeklyReviewBlocksToolSkillRuntime ||
       (routeIsProductHelp(routeDecision) && !activeStatusRecapFlow)
-      ? null
-      : pendingAdjustPlanRuntime ??
-        trackProgressRuntime ??
-        oneShotReminderOperationRuntime ??
-        (activeRecurringReminderHandoff && shouldRunRecurringReminder
-          ? await runRecurringReminder()
-          : null) ??
-        statusRecapRuntime ??
-        (!activeRecurringReminderHandoff && shouldRunRecurringReminder
-          ? await runRecurringReminder()
-          : null) ??
-        (shouldRunSelectStatePotion
-          ? await runSelectStatePotionHandoffSkill({
-            supabase: args.supabase,
-            userId: args.userId,
-            userMessage: args.userMessage,
-            channel: args.channel,
-            userTimezone: args.userTimezone,
-            tempMemory,
-            turnFrame,
-            routeDecision,
-            safetyPregateOutput: runtimeSafetyPregateOutput,
-            sourceMessageId: args.sourceMessageId,
-            requestId: args.requestId ?? null,
-            history: args.history,
-          })
-          : null) ??
-        (shouldRunAdjustRuntime ? await runAdjust() : null) ??
-        (shouldRunPrepareAttackCard
-          ? await maybeRunPrepareAttackCardOperation({
-            supabase: args.supabase,
-            userId: args.userId,
-            userMessage: args.userMessage,
-            channel: args.channel,
-            userTimezone: args.userTimezone,
-            tempMemory,
-            turnFrame,
-            routeDecision,
-            safetyPregateOutput: runtimeSafetyPregateOutput,
-            sourceMessageId: args.sourceMessageId,
-            requestId: args.requestId ?? null,
-            planSnapshot: { items: args.planItemSnapshot ?? [] },
-            history: args.history,
-          })
-          : null) ??
-        (shouldRunPrepareDefenseCard
-          ? await maybeRunPrepareDefenseCardOperation({
-            supabase: args.supabase,
-            userId: args.userId,
-            userMessage: args.userMessage,
-            channel: args.channel,
-            userTimezone: args.userTimezone,
-            tempMemory,
-            turnFrame,
-            routeDecision,
-            safetyPregateOutput: runtimeSafetyPregateOutput,
-            sourceMessageId: args.sourceMessageId,
-            requestId: args.requestId ?? null,
-            planSnapshot: { items: args.planItemSnapshot ?? [] },
-            history: args.history,
-          })
-          : null) ??
-        (shouldRunUpdateCoachPreferences
-          ? await maybeRunUpdateCoachPreferencesOperation({
-            supabase: args.supabase,
-            userId: args.userId,
-            userMessage: args.userMessage,
-            channel: args.channel,
-            userTimezone: args.userTimezone,
-            tempMemory,
-            turnFrame,
-            routeDecision,
-            safetyPregateOutput: runtimeSafetyPregateOutput,
-            sourceMessageId: args.sourceMessageId,
-            requestId: args.requestId ?? null,
-            history: args.history,
-          })
-          : null);
+    ? null
+    : oneShotReminderOperationRuntime ??
+      (routeSafetyActive ? null : pendingAdjustPlanRuntime) ??
+      trackProgressRuntime ??
+      (activeRecurringReminderHandoff && shouldRunRecurringReminder
+        ? await runRecurringReminder()
+        : null) ??
+      statusRecapRuntime ??
+      (!activeRecurringReminderHandoff && shouldRunRecurringReminder
+        ? await runRecurringReminder()
+        : null) ??
+      (shouldRunSelectStatePotion
+        ? await runSelectStatePotionHandoffSkill({
+          supabase: args.supabase,
+          userId: args.userId,
+          userMessage: args.userMessage,
+          channel: args.channel,
+          userTimezone: args.userTimezone,
+          tempMemory,
+          turnFrame,
+          routeDecision,
+          safetyContextOutput: runtimeSafetySignalContext,
+          sourceMessageId: args.sourceMessageId,
+          requestId: args.requestId ?? null,
+          history: args.history,
+        })
+        : null) ??
+      (shouldRunAdjustRuntime ? await runAdjust() : null) ??
+      (shouldRunPrepareAttackCard
+        ? await maybeRunPrepareAttackCardOperation({
+          supabase: args.supabase,
+          userId: args.userId,
+          userMessage: args.userMessage,
+          channel: args.channel,
+          userTimezone: args.userTimezone,
+          tempMemory,
+          turnFrame,
+          routeDecision,
+          safetyContextOutput: runtimeSafetySignalContext,
+          sourceMessageId: args.sourceMessageId,
+          requestId: args.requestId ?? null,
+          planSnapshot: { items: args.planItemSnapshot ?? [] },
+          history: args.history,
+        })
+        : null) ??
+      (shouldRunPrepareDefenseCard
+        ? await maybeRunPrepareDefenseCardOperation({
+          supabase: args.supabase,
+          userId: args.userId,
+          userMessage: args.userMessage,
+          channel: args.channel,
+          userTimezone: args.userTimezone,
+          tempMemory,
+          turnFrame,
+          routeDecision,
+          safetyContextOutput: runtimeSafetySignalContext,
+          sourceMessageId: args.sourceMessageId,
+          requestId: args.requestId ?? null,
+          planSnapshot: { items: args.planItemSnapshot ?? [] },
+          history: args.history,
+        })
+        : null) ??
+      (shouldRunUpdateCoachPreferences
+        ? await maybeRunUpdateCoachPreferencesOperation({
+          supabase: args.supabase,
+          userId: args.userId,
+          userMessage: args.userMessage,
+          channel: args.channel,
+          userTimezone: args.userTimezone,
+          tempMemory,
+          turnFrame,
+          routeDecision,
+          safetyContextOutput: runtimeSafetySignalContext,
+          sourceMessageId: args.sourceMessageId,
+          requestId: args.requestId ?? null,
+          history: args.history,
+        })
+        : null);
 
   return {
     operationRuntime,
@@ -867,7 +865,7 @@ export async function runOperationRuntimePipeline(
     statePatch,
     routeSafetyActive,
     runtimeSafetyRiskBand,
-    runtimeSafetyPregateOutput,
+    runtimeSafetySignalContext,
     weeklyReviewStateForTurn,
     weeklyReviewBlocksToolSkillRuntime,
     routeOrFrameChanged,

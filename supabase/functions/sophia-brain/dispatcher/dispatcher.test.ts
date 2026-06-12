@@ -2,7 +2,7 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { runSafetyPregate } from "../safety/safety_pregate.ts";
+import { initialSafetyContext } from "../safety/safety_context.ts";
 import {
   loadReplayFixtures,
   runReplayFixtures,
@@ -15,12 +15,7 @@ import {
 import { type DispatcherRunStats, runDispatcher } from "./dispatcher.v2.ts";
 
 async function dispatch(message: string, extra: Record<string, unknown> = {}) {
-  const safety = runSafetyPregate({
-    user_message: message,
-    recent_messages: [],
-    user_id: "u1",
-    channel: "whatsapp",
-  });
+  const safety = initialSafetyContext({ channel: "whatsapp" });
   const stats: DispatcherRunStats[] = [];
   const frame = await runDispatcher({
     user_message: message,
@@ -28,7 +23,7 @@ async function dispatch(message: string, extra: Record<string, unknown> = {}) {
     user_id: "u1",
     channel: "whatsapp",
     plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
-    safety_pregate_output: safety,
+    safety_context_output: safety,
     source_message_id: "m1",
     turn_id: "t1",
     on_stats: (entry) => stats.push(entry),
@@ -123,7 +118,7 @@ Deno.test("dispatcher prompt injects active handoff stable description", () => {
   );
 });
 
-Deno.test("dispatcher v2 never lowers safety pregate risk", async () => {
+Deno.test("dispatcher v2 never lowers safety context risk", async () => {
   const { frame } = await dispatch("je veux me faire du mal ce soir");
   assertEquals(frame.safety.risk_band, "critical");
 });
@@ -626,19 +621,14 @@ Deno.test("dispatcher v2 detects confirmation after option prefix", async () => 
 });
 
 Deno.test("dispatcher v2 supports injectable LLM runner with sanitization", async () => {
-  const safety = runSafetyPregate({
-    user_message: "message neutre",
-    recent_messages: [],
-    user_id: "u1",
-    channel: "whatsapp",
-  });
+  const safety = initialSafetyContext({ channel: "whatsapp" });
   const frame = await runDispatcher({
     user_message: "message neutre",
     recent_messages: [],
     user_id: "u1",
     channel: "whatsapp",
     plan_snapshot: {},
-    safety_pregate_output: { ...safety, risk_band: "medium" },
+    safety_context_output: { ...safety, risk_band: "medium" },
     llm_runner: async () => ({
       safety: { risk_band: "none", reason_codes: [], evidence: [] },
       direct_effects: [],
@@ -652,19 +642,14 @@ Deno.test("dispatcher v2 supports injectable LLM runner with sanitization", asyn
 Deno.test("dispatcher v2 preserves explicit attack and defense card intents for clarification", async () => {
   const message =
     "J'aimerais créer une carte de défense et une carte d'attaque.";
-  const safety = runSafetyPregate({
-    user_message: message,
-    recent_messages: [],
-    user_id: "u1",
-    channel: "web",
-  });
+  const safety = initialSafetyContext({ channel: "web" });
   const frame = await runDispatcher({
     user_message: message,
     recent_messages: [],
     user_id: "u1",
     channel: "web",
     plan_snapshot: {},
-    safety_pregate_output: safety,
+    safety_context_output: safety,
     llm_runner: async () => ({
       safety: { risk_band: "low", reason_codes: [], evidence: [] },
       direct_effects: [],
@@ -705,12 +690,7 @@ Deno.test("dispatcher v2 preserves explicit attack and defense card intents for 
 Deno.test("dispatcher v2 repairs partial composite coverage with LLM, without keyword routing", async () => {
   const message =
     "J'aimerais que tous me rappelle dans 10 minutes de prendr mes médicaments, et là tout de suite j'aimerais qu'on crée une carte d'attaque";
-  const safety = runSafetyPregate({
-    user_message: message,
-    recent_messages: [],
-    user_id: "u1",
-    channel: "web",
-  });
+  const safety = initialSafetyContext({ channel: "web" });
   let calls = 0;
   let repairPrompt = "";
   const frame = await runDispatcher({
@@ -719,7 +699,7 @@ Deno.test("dispatcher v2 repairs partial composite coverage with LLM, without ke
     user_id: "u1",
     channel: "web",
     plan_snapshot: {},
-    safety_pregate_output: safety,
+    safety_context_output: safety,
     llm_runner: async (llmInput) => {
       calls += 1;
       if (calls === 1) {
@@ -791,12 +771,7 @@ Deno.test("dispatcher v2 repairs partial composite coverage with LLM, without ke
 
 Deno.test("dispatcher v2 does not repair when the direct effect already covers the message", async () => {
   const message = "Rappelle-moi dans 10 minutes de prendre mes médicaments";
-  const safety = runSafetyPregate({
-    user_message: message,
-    recent_messages: [],
-    user_id: "u1",
-    channel: "web",
-  });
+  const safety = initialSafetyContext({ channel: "web" });
   let calls = 0;
   const frame = await runDispatcher({
     user_message: message,
@@ -804,7 +779,7 @@ Deno.test("dispatcher v2 does not repair when the direct effect already covers t
     user_id: "u1",
     channel: "web",
     plan_snapshot: {},
-    safety_pregate_output: safety,
+    safety_context_output: safety,
     llm_runner: async () => {
       calls += 1;
       return {

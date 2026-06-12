@@ -19,6 +19,10 @@ import {
   type CoachPreferenceVisibleTaskKind,
 } from "./contract.ts";
 import type { CoachPreferenceLocalFlowState } from "./state.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../../router/direct_effect_local_context.ts";
 
 export type CoachPreferenceLocalDispatcherInput = {
   user_id: string;
@@ -82,7 +86,7 @@ const FLOW_ACTIONS = new Set([
   "repeat_saved_preferences",
   "repeat_current_state",
   "inline_tool_roundtrip",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "complete_flow",
   "handoff_to_local_flow",
   "cancel_flow",
@@ -455,24 +459,14 @@ function ensureNoteInformation(args: {
   };
   const fallback = {
     source_flow_id: "update_coach_preferences",
-    source_flow_state_summary: args.output.preference_intent.summary ||
-      args.output.exit_memo?.flow_summary ||
-      "update_coach_preferences local flow transition.",
     handoff_reason: handoffReasonForTarget(target),
     target_dispatcher: target,
     handoff_context_for_next_dispatcher: JSON.stringify(
       fallbackStructuredContext,
     ),
-    target_local_dispatcher_hint: target === "status_recap"
-      ? "Read only coach preference status; do not mutate parent flow."
-      : target === "product_help"
-      ? "Answer product help for coach preference settings; preserve parent flow."
-      : target === "safety_crisis"
-      ? "Safety owns the next response; preference update is suspended."
-      : "Reanalyse the same user message outside update_coach_preferences.",
-    user_words: [],
+    user_words: args.output.visible_task.conversation_context.user_words,
     structured_context: fallbackStructuredContext,
-    risk_score: args.output.risk_score,
+    confidence: args.output.confidence,
   };
   if (args.output.note_information?.needed === true) {
     return normalizeNoteInformation(args.output.note_information, fallback);
@@ -593,15 +587,37 @@ export function normalizeCoachPreferenceLocalDispatcherOutput(
         needed: true,
         ...normalizeNoteInformation(noteRoot, {
           source_flow_id: "update_coach_preferences",
-          source_flow_state_summary: stringValue(exitRoot.flow_summary) ||
-            "update_coach_preferences local transition.",
           handoff_reason: "explicit_user_request",
           target_dispatcher: "global",
           handoff_context_for_next_dispatcher:
             stringValue(exitRoot.handoff_hint_for_global_dispatcher) ||
             "No handoff context provided.",
-          structured_context: {},
-          risk_score: riskScore(root.risk_score),
+          user_words: normalizeConversationContext(
+            visibleRoot.conversation_context,
+          ).user_words,
+          structured_context: {
+            source_flow: "update_coach_preferences",
+            user_message_summary: stringValue(
+              intentRoot.summary,
+            ),
+            active_flow_summary: stringValue(exitRoot.flow_summary) ||
+              "update_coach_preferences local transition.",
+            collected_state: {
+              preference_updates: Array.isArray(root.preference_updates)
+                ? root.preference_updates
+                : [],
+              unsupported_parts: Array.isArray(root.unsupported_parts)
+                ? root.unsupported_parts
+                : [],
+            },
+            unresolved_questions: Array.isArray(root.missing_decisions)
+              ? root.missing_decisions
+              : [],
+            recommended_next_focus:
+              stringValue(exitRoot.handoff_hint_for_global_dispatcher) ||
+              "global",
+          },
+          confidence: confidence(root.confidence),
         }),
       }
       : { needed: false },
@@ -741,7 +757,6 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
   }
   if (
     output.flow_action === "cancel_flow" ||
-    output.flow_action === "stop_local_no_handoff" ||
     output.flow_action === "complete_flow"
   ) {
     return {
@@ -752,9 +767,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
         status: "cancelled",
         currentStage: "done",
       }),
-      visible_task: output.flow_action === "stop_local_no_handoff"
-        ? "stop_or_cancel"
-        : "exit_or_cancel",
+      visible_task: "exit_or_cancel",
       conversation_context: mergeConversationContext(conversationContext, {
         field_or_stage: "done",
       }),
@@ -1066,15 +1079,16 @@ export function dispatcherSystemPrompt(): string {
     "Si une demande hors support peut se traduire partiellement vers un réglage supporté, propose un mapping avec status=proposed et needs_user_confirmation=true.",
     "Si une demande est claire, durable et supportée, utilise flow_action=write_preferences et des preference_updates status=locked.",
     "Si le user confirme une proposition active, utilise flow_action=confirm_proposed_mapping; tu peux retourner l'update locked ou laisser preference_updates vide si l'état actif porte déjà la proposition.",
-    "Si le user veut juste arrêter ou annuler sans nouveau sujet, utilise stop_local_no_handoff ou cancel_flow; ne demande pas au global de reprendre.",
+    "Si le user veut arrêter ce flow, utilise exit_to_global_dispatcher avec note_information target_dispatcher=global. Utilise cancel_flow seulement pour une annulation locale de préférence sans changement de dispatcher.",
     "Si le user change clairement de sujet, utilise exit_to_global_dispatcher avec note_information.needed=true target_dispatcher=global.",
     "Si safety préempte, utilise safety_preempt avec note_information.needed=true target_dispatcher=safety_crisis.",
     "Si le user demande les préférences actives pendant ce flow, utilise status_question avec visible_task.kind=get_info_db et note_information target_dispatcher=status_recap.",
     "Si le user demande une explication produit des réglages, utilise explain_preferences avec visible_task.kind=get_info_product et note_information target_dispatcher=product_help.",
     "conversation_context doit être filtré pour l'agent visible: pas de DB brute, pas de mémoire brute, seulement les valeurs/propositions nécessaires.",
+    ...directEffectLocalDispatcherPromptLines(),
     "",
     "Field Completion Rules:",
-    "- flow_action: décision principale du tour courant. Choisis l'action qui reflète le dernier message user, pas seulement active_state. Utilise write_preferences seulement pour une préférence durable, supportée, claire et lockable. Utilise clarify_durable_vs_punctual quand la durée est incertaine; clarify_supported_setting ou clarify_value quand le réglage ou l'intensité manque. Utilise propose_supported_mapping pour une demande partiellement représentable, confirm_proposed_mapping quand le user confirme une proposition active, revise_preferences quand il corrige une proposition ou une valeur, punctual_instruction pour une consigne valable seulement maintenant, unsupported_preference quand aucun réglage durable supporté ne couvre la demande, status_question pour une demande d'état DB, explain_preferences pour une explication produit, repeat_saved_preferences ou repeat_current_state pour répétition, inline_tool_roundtrip seulement au retour d'un inline tool, stop_local_no_handoff ou cancel_flow pour arrêter sans nouveau sujet, complete_flow quand le flow est fini, exit_to_global_dispatcher pour un nouveau sujet clair, handoff_to_local_flow seulement si une autre flow local doit reprendre, safety_preempt pour safety réelle.",
+    "- flow_action: décision principale du tour courant. Choisis l'action qui reflète le dernier message user, pas seulement active_state. Utilise write_preferences seulement pour une préférence durable, supportée, claire et lockable. Utilise clarify_durable_vs_punctual quand la durée est incertaine; clarify_supported_setting ou clarify_value quand le réglage ou l'intensité manque. Utilise propose_supported_mapping pour une demande partiellement représentable, confirm_proposed_mapping quand le user confirme une proposition active, revise_preferences quand il corrige une proposition ou une valeur, punctual_instruction pour une consigne valable seulement maintenant, unsupported_preference quand aucun réglage durable supporté ne couvre la demande, status_question pour une demande d'état DB, explain_preferences pour une explication produit, repeat_saved_preferences ou repeat_current_state pour répétition, exit_to_global_dispatcher pour arrêter le flow ou pour un nouveau sujet clair, cancel_flow pour annulation locale, complete_flow quand le flow est fini, handoff_to_local_flow seulement si une autre flow local doit reprendre, safety_preempt pour safety réelle.",
     "- confidence: high si l'intention et la valeur sont claires; medium si l'intention est probable mais une décision manque; low si le dispatcher doit surtout clarifier ou se protéger. Le reducer bloque les writes low confidence.",
     "- risk_score: score numérique local de risque. Mets 0 pour absence de risque observé. N'invente pas de safety. Si risque réel élevé/critique, choisis safety_preempt et remplis safety + note_information.",
     "- preference_intent: état métier local du tour. kind classe l'intention utilisateur; durability décrit durable/punctual/ambiguous/not_applicable; support_status décrit supported/unsupported/partial/ambiguous/not_applicable; summary résume sans inventer de profil global. Ce champ guide le reducer pour autoriser ou bloquer l'écriture.",
@@ -1084,21 +1098,21 @@ export function dispatcherSystemPrompt(): string {
     "- visible_task.kind: stage visible exact. Utilise preference_saved seulement après write commit possible; ask_durable_vs_punctual pour durée ambiguë; ask_setting_or_value pour réglage/intensité manquant; confirm_supported_mapping pour mapping proposé; punctual_instruction_ack pour ponctuel; unsupported_preference pour non stockable; get_info_db pour status_recap; get_info_product pour product_help; repeat_* pour répétition; write_failed_or_blocked pour blocage; stop_or_cancel ou exit_or_cancel/exit_ack pour arrêt/sortie; safety_transition ou safety pour safety. Évite un stage générique si un stage précis existe.",
     "- visible_task.instruction: instruction courte pour l'agent visible, jamais un texte final à copier. Elle doit dire l'objectif du stage et les limites importantes.",
     "- visible_task.conversation_context: seul contexte utilisable par l'agent visible. Remplis state_summary, user_words, field_or_stage, known_values.current_preferences/proposed_updates/committed_updates, missing_or_weak_values, selected_candidate, unsupported_parts, write_result, inline_tool_result, tone_constraints, do_not_say, context_summary, evidence_used. Ne transmets jamais DB brute, mémoire brute, prompt interne ou note_information brute. Mets write_result.committed=false avant commit; le router/reducer le mettra à true seulement après DB commit.",
-    "- note_information: {needed:false} sauf changement de dispatcher. Obligatoire avec needed=true pour exit_to_global_dispatcher, safety_preempt, status_question/get_info_db, explain_preferences/get_info_product, handoff_to_local_flow. Elle est consommée par le dispatcher cible et ne va jamais brute au prompt visible. Inclure source_flow_id=update_coach_preferences, target_dispatcher, handoff_reason, user_words, structured_context utile, risk_score et no_chat_mutation.",
+    "- note_information: obligatoire avec needed=true pour exit_to_global_dispatcher, safety_preempt, status_question/get_info_db, explain_preferences/get_info_product, handoff_to_local_flow. Utilise needed=false seulement pour une continuation locale sans changement de dispatcher. Elle est consommée par le dispatcher cible et ne va jamais brute au prompt visible. Structure canonique: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context non vide, confidence si utile. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
     "- exit_memo: présent seulement pour compatibilité/trace de sortie. needed=true pour topic_change, cancelled ou safety; reason doit correspondre. Laisser needed=false ou null-like quand le flow continue localement.",
     "- safety: remplir quand risk_score ou message indique un risque. should_preempt=true seulement avec safety_preempt. Sinon risk_band none/low, reason_codes vide, should_preempt=false.",
     "- evidence: indices sémantiques réellement utilisés: mots user, état actif, proposition précédente, note inbound, DB context compact. Pas de pseudo-preuves ni de mots-clés inventés. Le reducer et les logs s'en servent pour expliquer la décision.",
     "",
     "Transition Rules:",
-    "- stop_local_no_handoff/cancel_flow: user veut arrêter ou annuler ce flow sans nouveau sujet clair. Répondre ensuite par stage stop_or_cancel, pas de global dispatcher, pas de question finale, pas de write.",
-    "- exit_to_global_dispatcher: nouveau sujet clair hors préférences coach. note_information.needed=true target_dispatcher=global; aucun write; le global pourra réanalyser le même message.",
+    "- exit_to_global_dispatcher: user veut arrêter ce flow ou apporte un nouveau sujet clair hors préférences coach. note_information.needed=true target_dispatcher=global; aucun write; le global pourra réanalyser le même message.",
+    "- cancel_flow: annulation locale sans changement de dispatcher; aucun write; pas de question finale.",
     "- safety_preempt: safety réelle. note_information.needed=true target_dispatcher=safety_crisis; aucun dispatcher global normal; aucun write.",
-    "- handoff_to_local_flow: seulement si le contrat cible est nécessaire et autorisé. Produis note_information complète; ne l'utilise pas pour status_recap/product_help, qui passent par status_question/explain_preferences + inline tool boundary.",
+    "- handoff_to_local_flow: seulement si le contrat cible est nécessaire et autorisé. Produis une note_information canonique complète; ne l'utilise pas pour status_recap/product_help, qui passent par status_question/explain_preferences + inline tool boundary.",
     "- Anti-faux-positif: ne sors pas du flow quand le user répond à une clarification, confirme une proposition, révise une préférence, demande une répétition ou donne une consigne ponctuelle liée au flow.",
     "",
     'Example JSON 1 - continuation normale: {"flow_action":"write_preferences","confidence":"high","risk_score":0,"preference_intent":{"kind":"durable_supported","durability":"durable","support_status":"supported","summary":"Le user demande durablement moins de questions."},"preference_updates":[{"key":"coach.question_tendency","value":"low","status":"locked","user_facing_label":"Questions","user_facing_value":"Peu de questions","reason":"Demande durable claire.","needs_user_confirmation":false,"source":"user_message","confidence":"high","evidence":["à partir de maintenant","moins de questions"]}],"unsupported_parts":[],"missing_decisions":[],"visible_task":{"kind":"preference_saved","instruction":"Confirmer naturellement seulement après commit DB.","conversation_context":{"state_summary":"Préférence durable prête à écrire.","user_words":["à partir de maintenant","moins de questions"],"field_or_stage":"done","known_values":{"current_preferences":[],"proposed_updates":[],"committed_updates":[]},"missing_or_weak_values":[],"selected_candidate":{"key":"coach.question_tendency","value":"low"},"unsupported_parts":[],"write_result":{"committed":false,"preference_keys":["coach.question_tendency"],"blocked_reason":null},"inline_tool_result":{"skill_id":null,"summary":null},"tone_constraints":[],"do_not_say":["Ne pas dire enregistré si committed=false."],"context_summary":"Le user veut durablement réduire les questions.","evidence_used":["à partir de maintenant","moins de questions"]}},"note_information":{"needed":false},"exit_memo":{"needed":false,"reason":"none","flow_summary":null,"handoff_hint_for_global_dispatcher":null},"safety":{"risk_band":"none","reason_codes":[],"should_preempt":false},"evidence":["à partir de maintenant","moins de questions"]}',
-    'Example JSON 2 - transition critique exit global: {"flow_action":"exit_to_global_dispatcher","confidence":"high","risk_score":0,"preference_intent":{"kind":"topic_change","durability":"not_applicable","support_status":"not_applicable","summary":"Le user abandonne les préférences et demande un autre sujet."},"preference_updates":[],"unsupported_parts":[],"missing_decisions":[],"visible_task":{"kind":"exit_ack","instruction":"Ne pas répondre au nouveau sujet; laisser le global reprendre.","conversation_context":{"state_summary":"Sortie du flow préférences vers un nouveau sujet.","user_words":["laisse ça","aide-moi à revoir mon plan"],"field_or_stage":null,"known_values":{"current_preferences":[],"proposed_updates":[],"committed_updates":[]},"missing_or_weak_values":[],"selected_candidate":{},"unsupported_parts":[],"write_result":{"committed":false,"preference_keys":[],"blocked_reason":null},"inline_tool_result":{"skill_id":null,"summary":null},"tone_constraints":[],"do_not_say":["Ne pas prétendre avoir écrit une préférence."],"context_summary":"Le user change clairement de sujet.","evidence_used":["laisse ça","revoir mon plan"]}},"note_information":{"needed":true,"source_flow_id":"update_coach_preferences","source_flow_presentation":"Flow local de préférences coach.","source_flow_state_summary":"Aucun write en cours; sortie demandée.","handoff_reason":"topic_change","target_dispatcher":"global","handoff_context_for_next_dispatcher":"Le user veut quitter les préférences coach et revoir son plan.","target_local_dispatcher_hint":null,"user_words":["laisse ça","aide-moi à revoir mon plan"],"structured_context":{"source_flow":"update_coach_preferences","collected_updates":[]},"risk_score":0,"no_chat_mutation":{"db_write_committed":false,"potion_session_created":false,"scheduled_checkin_created":false,"recurring_reminder_created":false,"executable_confirmation_generated":false}},"exit_memo":{"needed":true,"reason":"topic_change","flow_summary":"Sortie sans write.","handoff_hint_for_global_dispatcher":"Reprendre sur la demande de revue de plan."},"safety":{"risk_band":"none","reason_codes":[],"should_preempt":false},"evidence":["laisse ça","revoir mon plan"]}',
-    'Retourne exactement ce JSON: {"flow_action":"write_preferences|clarify_durable_vs_punctual|clarify_supported_setting|clarify_value|propose_supported_mapping|confirm_proposed_mapping|punctual_instruction|unsupported_preference|status_question|explain_preferences|revise_preferences|repeat_saved_preferences|repeat_current_state|inline_tool_roundtrip|stop_local_no_handoff|complete_flow|handoff_to_local_flow|cancel_flow|exit_to_global_dispatcher|safety_preempt","confidence":"low|medium|high","risk_score":0,"preference_intent":{"kind":"durable_supported|durable_unsupported|punctual_instruction|ambiguous|status_question|explain|cancel|topic_change|safety","durability":"durable|punctual|ambiguous|not_applicable","support_status":"supported|unsupported|partial|ambiguous|not_applicable","summary":"string"},"preference_updates":[{"key":"coach.tone|coach.challenge_level|coach.question_tendency","value":"soft|warm_direct|direct|low|balanced|high|normal","status":"missing|proposed|locked|rejected","user_facing_label":"string","user_facing_value":"string","reason":"string","needs_user_confirmation":true,"source":"user_message|db_context|note_information|inference","confidence":"low|medium|high","evidence":["string"]}],"unsupported_parts":["string"],"missing_decisions":["durability|setting|value|confirmation"],"visible_task":{"kind":"preference_saved|ask_durable_vs_punctual|ask_setting_or_value|confirm_supported_mapping|punctual_instruction_ack|unsupported_preference|get_info_db|get_info_product|repeat_saved_preferences|repeat_current_state|write_failed_or_blocked|inline_tool_return|exit_or_cancel|stop_or_cancel|exit_ack|safety|safety_transition","instruction":"string","conversation_context":{"state_summary":"string","user_words":["string"],"field_or_stage":"durability|setting|value|confirmation|done|null","known_values":{"current_preferences":[],"proposed_updates":[],"committed_updates":[]},"missing_or_weak_values":[],"selected_candidate":{},"unsupported_parts":[],"write_result":{"committed":false,"preference_keys":[],"blocked_reason":null},"inline_tool_result":{"skill_id":"status_recap|product_help|null","summary":null},"tone_constraints":[],"do_not_say":[],"context_summary":"string|null","evidence_used":["string"]}},"note_information":{"needed":false,"source_flow_id":"update_coach_preferences","source_flow_presentation":"string","source_flow_state_summary":"string","handoff_reason":"topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request","target_dispatcher":"global|safety_crisis|product_help|status_recap|other_local","handoff_context_for_next_dispatcher":"string","target_local_dispatcher_hint":"string|null","user_words":["string"],"structured_context":{},"risk_score":0,"no_chat_mutation":{"db_write_committed":false,"potion_session_created":false,"scheduled_checkin_created":false,"recurring_reminder_created":false,"executable_confirmation_generated":false}},"exit_memo":{"needed":true,"reason":"topic_change|cancelled|safety|none","flow_summary":"string|null","handoff_hint_for_global_dispatcher":"string|null"},"safety":{"risk_band":"none|low|medium|high|critical","reason_codes":[],"should_preempt":false},"evidence":["string"]}',
+    'Example JSON 2 - transition critique exit global: {"flow_action":"exit_to_global_dispatcher","confidence":"high","risk_score":0,"preference_intent":{"kind":"topic_change","durability":"not_applicable","support_status":"not_applicable","summary":"Le user abandonne les préférences et demande un autre sujet."},"preference_updates":[],"unsupported_parts":[],"missing_decisions":[],"visible_task":{"kind":"exit_ack","instruction":"Ne pas répondre au nouveau sujet; laisser le global reprendre.","conversation_context":{"state_summary":"Sortie du flow préférences vers un nouveau sujet.","user_words":["laisse ça","aide-moi à revoir mon plan"],"field_or_stage":null,"known_values":{"current_preferences":[],"proposed_updates":[],"committed_updates":[]},"missing_or_weak_values":[],"selected_candidate":{},"unsupported_parts":[],"write_result":{"committed":false,"preference_keys":[],"blocked_reason":null},"inline_tool_result":{"skill_id":null,"summary":null},"tone_constraints":[],"do_not_say":["Ne pas prétendre avoir écrit une préférence."],"context_summary":"Le user change clairement de sujet.","evidence_used":["laisse ça","revoir mon plan"]}},"note_information":{"needed":true,"source_flow_id":"update_coach_preferences","handoff_reason":"topic_change","target_dispatcher":"global","handoff_context_for_next_dispatcher":"Le user veut quitter les préférences coach et revoir son plan.","user_words":["laisse ça","aide-moi à revoir mon plan"],"structured_context":{"source_flow":"update_coach_preferences","user_message_summary":"Le user change de sujet vers la revue de plan.","active_flow_summary":"Aucun write en cours; sortie demandée.","collected_state":{"collected_updates":[]},"unresolved_questions":[],"recommended_next_focus":"revoir le plan"},"confidence":"high"},"exit_memo":{"needed":true,"reason":"topic_change","flow_summary":"Sortie sans write.","handoff_hint_for_global_dispatcher":"Reprendre sur la demande de revue de plan."},"safety":{"risk_band":"none","reason_codes":[],"should_preempt":false},"evidence":["laisse ça","revoir mon plan"]}',
+    'Retourne exactement ce JSON: {"flow_action":"write_preferences|clarify_durable_vs_punctual|clarify_supported_setting|clarify_value|propose_supported_mapping|confirm_proposed_mapping|punctual_instruction|unsupported_preference|status_question|explain_preferences|revise_preferences|repeat_saved_preferences|repeat_current_state|inline_tool_roundtrip|exit_to_global_dispatcher|complete_flow|handoff_to_local_flow|cancel_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"preference_intent":{"kind":"durable_supported|durable_unsupported|punctual_instruction|ambiguous|status_question|explain|cancel|topic_change|safety","durability":"durable|punctual|ambiguous|not_applicable","support_status":"supported|unsupported|partial|ambiguous|not_applicable","summary":"string"},"preference_updates":[{"key":"coach.tone|coach.challenge_level|coach.question_tendency","value":"soft|warm_direct|direct|low|balanced|high|normal","status":"missing|proposed|locked|rejected","user_facing_label":"string","user_facing_value":"string","reason":"string","needs_user_confirmation":true,"source":"user_message|db_context|note_information|inference","confidence":"low|medium|high","evidence":["string"]}],"unsupported_parts":["string"],"missing_decisions":["durability|setting|value|confirmation"],"visible_task":{"kind":"preference_saved|ask_durable_vs_punctual|ask_setting_or_value|confirm_supported_mapping|punctual_instruction_ack|unsupported_preference|get_info_db|get_info_product|repeat_saved_preferences|repeat_current_state|write_failed_or_blocked|inline_tool_return|exit_or_cancel|stop_or_cancel|exit_ack|safety|safety_transition","instruction":"string","conversation_context":{"state_summary":"string","user_words":["string"],"field_or_stage":"durability|setting|value|confirmation|done|null","known_values":{"current_preferences":[],"proposed_updates":[],"committed_updates":[]},"missing_or_weak_values":[],"selected_candidate":{},"unsupported_parts":[],"write_result":{"committed":false,"preference_keys":[],"blocked_reason":null},"inline_tool_result":{"skill_id":"status_recap|product_help|null","summary":null},"tone_constraints":[],"do_not_say":[],"context_summary":"string|null","evidence_used":["string"]}},"note_information":{"needed":false,"source_flow_id":"update_coach_preferences","handoff_reason":"topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request","target_dispatcher":"global|safety_crisis|product_help|status_recap|other_local","handoff_context_for_next_dispatcher":"string","user_words":["string"],"structured_context":{},"confidence":"low|medium|high"},"exit_memo":{"needed":true,"reason":"topic_change|cancelled|safety|none","flow_summary":"string|null","handoff_hint_for_global_dispatcher":"string|null"},"safety":{"risk_band":"none|low|medium|high|critical","reason_codes":[],"should_preempt":false},"evidence":["string"]}',
   ].join("\n");
 }
 
@@ -1124,7 +1138,12 @@ export async function runCoachPreferenceLocalDispatcher(
           "Current coach preferences and local state are enough for this closed write-skill.",
       },
     },
-    platform_context: input.platform_context ?? null,
+    platform_context: withDirectEffectLocalContext(
+      input.platform_context ?? null,
+      (input.platform_context as any)?.plan_snapshot ??
+        (input.db_context_pack as any)?.plan_snapshot ??
+        null,
+    ),
     available_inline_tools: input.available_inline_tools ?? [
       "status_recap",
       "product_help",

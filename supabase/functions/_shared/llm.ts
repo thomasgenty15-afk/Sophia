@@ -13,6 +13,11 @@ type GeminiGenerateParams = {
   toolChoice?: GeminiToolChoice;
   model?: string; // ex: "gemini-2.5-flash"
   requestId?: string;
+  source?: string;
+  userId?: string | null;
+  operationFamily?: string;
+  operationName?: string;
+  channel?: string;
 };
 
 function safeStr(v: unknown): string {
@@ -124,6 +129,55 @@ export async function geminiGenerate(
       }
 
       const data = await resp.json();
+      try {
+        const usage = data?.usageMetadata;
+        const promptTokens = Number(usage?.promptTokenCount ?? 0) || 0;
+        const outputTokens = Number(usage?.candidatesTokenCount ?? 0) || 0;
+        const totalTokens = Number(
+          usage?.totalTokenCount ?? (promptTokens + outputTokens),
+        ) || 0;
+        if (promptTokens > 0 || outputTokens > 0 || totalTokens > 0) {
+          const { computeCostUsd, logLlmUsageEvent, resolvePricing } =
+            await import("./llm-usage.ts");
+          const price = await resolvePricing("gemini", model);
+          const costUsd = await computeCostUsd(
+            "gemini",
+            model,
+            promptTokens,
+            outputTokens,
+          );
+          await logLlmUsageEvent({
+            user_id: params.userId ?? null,
+            request_id: requestId,
+            source: params.source ?? "legacy-gemini-generate",
+            provider: "gemini",
+            model,
+            kind: "generate",
+            prompt_tokens: promptTokens,
+            output_tokens: outputTokens,
+            total_tokens: totalTokens,
+            cost_usd: costUsd,
+            operation_family: params.operationFamily ?? null,
+            operation_name: params.operationName ?? null,
+            pricing_version: price?.pricing_version ?? null,
+            input_price_per_1k_tokens_usd:
+              price?.input_per_1k_tokens_usd ?? null,
+            output_price_per_1k_tokens_usd:
+              price?.output_per_1k_tokens_usd ?? null,
+            cost_unpriced: !price,
+            currency: price?.currency ?? "USD",
+            channel: params.channel ?? "system",
+            status: "success",
+            metadata: {
+              legacy_wrapper: "_shared/llm.ts",
+              jsonMode,
+              hasTools: Array.isArray(tools) && tools.length > 0,
+            },
+          });
+        }
+      } catch {
+        // Best-effort cost telemetry.
+      }
       const out = extractGeminiTextOrToolCall(data);
       if (typeof out === "string" && jsonMode) return out.replace(/```json\n?|```/g, "").trim();
       return out;
@@ -140,7 +194,16 @@ export async function geminiGenerate(
   throw new Error("Gemini retry loop failed");
 }
 
-export async function geminiEmbed(text: string, requestId: string = crypto.randomUUID()): Promise<number[]> {
+export async function geminiEmbed(
+  text: string,
+  requestId: string = crypto.randomUUID(),
+  meta?: {
+    source?: string;
+    userId?: string | null;
+    operationName?: string;
+    channel?: string;
+  },
+): Promise<number[]> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) throw new Error("Clé API Gemini manquante");
 
@@ -182,6 +245,47 @@ export async function geminiEmbed(text: string, requestId: string = crypto.rando
           `Embedding invalide (dimension=${Array.isArray(values) ? values.length : "unknown"}, attendu=${outputDimensionality})`,
         );
       }
+      try {
+        const usage = data?.usageMetadata;
+        const promptTokens = Number(usage?.promptTokenCount ?? 0) ||
+          estimatePromptTokens(text);
+        const totalTokens = Number(usage?.totalTokenCount ?? promptTokens) ||
+          promptTokens;
+        const { computeCostUsd, logLlmUsageEvent, resolvePricing } =
+          await import("./llm-usage.ts");
+        const price = await resolvePricing("gemini", model);
+        const costUsd = await computeCostUsd("gemini", model, promptTokens, 0);
+        await logLlmUsageEvent({
+          user_id: meta?.userId ?? null,
+          request_id: requestId,
+          source: meta?.source ?? "legacy-gemini-embed",
+          provider: "gemini",
+          model,
+          kind: "embed",
+          prompt_tokens: promptTokens,
+          output_tokens: 0,
+          total_tokens: totalTokens,
+          cost_usd: costUsd,
+          operation_family: "embedding",
+          operation_name: meta?.operationName ?? "embedding.legacy_vectorize",
+          pricing_version: price?.pricing_version ?? null,
+          input_price_per_1k_tokens_usd:
+            price?.input_per_1k_tokens_usd ?? null,
+          output_price_per_1k_tokens_usd:
+            price?.output_per_1k_tokens_usd ?? null,
+          cost_unpriced: !price,
+          currency: price?.currency ?? "USD",
+          channel: meta?.channel ?? "system",
+          status: "success",
+          metadata: {
+            legacy_wrapper: "_shared/llm.ts",
+            embedding: true,
+            token_source: usage ? "provider" : "estimated",
+          },
+        });
+      } catch {
+        // Best-effort cost telemetry.
+      }
       return values;
     } catch (err) {
       const isLast = attempt === MAX_RETRIES;
@@ -195,4 +299,7 @@ export async function geminiEmbed(text: string, requestId: string = crypto.rando
   throw new Error("Gemini embedding retry loop failed");
 }
 
-
+function estimatePromptTokens(text: string): number {
+  const chars = String(text ?? "").trim().length;
+  return Math.max(1, Math.ceil(chars / 4));
+}

@@ -240,25 +240,16 @@ function bridgeOfferOutput(
       why_ready_or_blocked: "Le diagnostic est assez clair.",
       note_information: {
         source_flow_id: "demotivation_repair",
-        source_flow_presentation:
-          "demotivation_repair a clarifié le décrochage motivationnel.",
-        source_flow_state_summary: "Le décrochage a été clarifié.",
         handoff_reason: "bridge",
         target_dispatcher: "select_state_potion",
         handoff_context_for_next_dispatcher:
           "Utiliser les candidats fournis sans refaire diagnostiquer l'épisode.",
         target_flow: "select_state_potion",
-        target_local_dispatcher_hint:
-          "Entrer directement dans la potion sélectionnée.",
         user_words: ["je décroche"],
-        structured_context: {},
-        risk_score: 0,
-        no_chat_mutation: {
-          db_write_committed: false,
-          potion_session_created: false,
-          scheduled_checkin_created: false,
-          recurring_reminder_created: false,
-          executable_confirmation_generated: false,
+        structured_context: {
+          active_flow_summary: "Le décrochage a été clarifié.",
+          recommended_next_focus:
+            "Entrer directement dans la potion sélectionnée.",
         },
       },
     },
@@ -602,11 +593,11 @@ Deno.test("demotivation_repair no_tool blocks action card candidate", () => {
   );
 });
 
-Deno.test("demotivation_repair stop local does not call global", () => {
+Deno.test("demotivation_repair stop request exits to global with note", () => {
   const result = reduceDemotivationRepairLocalDispatcherOutput({
     previous: null,
     output: dispatcherOutput({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       repair_state: {
         intent: "unclear",
         phase: "exit",
@@ -636,10 +627,14 @@ Deno.test("demotivation_repair stop local does not call global", () => {
     }),
   });
 
-  assertEquals(result.status, "complete");
-  assertEquals(result.response_intent, "stop_local_no_handoff");
-  assertEquals(result.exit_to_global_dispatcher, false);
-  assertEquals(result.note_information, null);
+  assertEquals(result.status, "exit");
+  assertEquals(result.response_intent, "exit_to_global_dispatcher");
+  assertEquals(result.exit_to_global_dispatcher, true);
+  assertEquals(result.note_information?.target_dispatcher, "global");
+  assertEquals(result.note_information?.user_words, ["pas maintenant"]);
+  assert(
+    Object.keys(result.note_information?.structured_context ?? {}).length > 0,
+  );
   assertEquals(result.local_state, null);
   assertEquals(result.visible_task.kind, "exit_or_cancel");
 });
@@ -689,6 +684,16 @@ Deno.test("demotivation_repair clear topic change exits with note information", 
   assertEquals(result.local_state, null);
   assertEquals(result.note_information?.source_flow_id, "demotivation_repair");
   assertEquals(result.note_information?.target_dispatcher, "global");
+  assertEquals(result.note_information?.user_words, [
+    "aide-moi plutot a prioriser mes mails",
+  ]);
+  assertEquals(
+    (result.note_information?.structured_context as any)?.recommended_next_focus,
+    undefined,
+  );
+  assert(
+    Object.keys(result.note_information?.structured_context ?? {}).length > 0,
+  );
 });
 
 Deno.test("demotivation_repair anti false positive keeps owner on local revision", () => {
@@ -805,7 +810,7 @@ Deno.test("demotivation_repair confirmed clarte bridge carries note and candidat
   );
   assertEquals(context.note_information.target_flow, "select_state_potion");
   assert(
-    context.note_information.source_flow_presentation.length > 0,
+    Object.keys(context.note_information.structured_context).length > 0,
   );
   assert(
     context.note_information.handoff_context_for_next_dispatcher.length > 0,

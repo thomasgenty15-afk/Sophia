@@ -1,0 +1,288 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "47a2802b-068e-4898-b938-9e90c069e190",
+        "role": "user",
+        "content": "Je bloque devant mon bureau depuis vingt minutes. Je sais que ce dossier compte, mais là je me sens vidé et j’ai juste envie de tout laisser tomber.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:43:14.283052+00:00"
+      },
+      {
+        "id": "699561bc-1640-4306-bc9d-dcba16ef9e6a",
+        "role": "assistant",
+        "content": "C'est épuisant de rester bloqué ainsi devant ton bureau. Quand on se sent vidé, la priorité est de ne plus rien exiger de soi-même pour l'instant. Tu as le droit de laisser la pression retomber.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:43:41.078222+00:00"
+      },
+      {
+        "id": "0eceec42-8d7a-4699-8c0e-b9af527343af",
+        "role": "user",
+        "content": "Oui, c’est surtout que je ne vois plus pourquoi je fais ce dossier. Ne me propose pas encore une potion ou une carte, j’ai besoin de retrouver le fil avant.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:43:56.38842+00:00"
+      },
+      {
+        "id": "49956109-97ca-4b19-b80b-0b304babe5a1",
+        "role": "assistant",
+        "content": "C'est tout à fait compréhensible, on laisse les outils de côté pour se concentrer sur l'essentiel. C'est épuisant de ramer sans voir la rive ou de perdre de vue l'utilité réelle de ce qu'on produit.\n\nPour essayer de retrouver ce fil, qu'est-ce qui te semblait le plus important ou le plus motivant quand tu as commencé ce dossier ?",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:44:12.895905+00:00"
+      },
+      {
+        "id": "c1a89434-92b5-4281-803a-619e2de7fea5",
+        "role": "user",
+        "content": "Au départ, c’était pour clarifier une décision importante et éviter que l’équipe avance dans le flou. Là j’ai perdu ça, je ne vois plus que le poids du document.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:44:27.889906+00:00"
+      },
+      {
+        "id": "9d4c7400-a473-480c-96b1-c27461531039",
+        "role": "assistant",
+        "content": "C'est tout à fait compréhensible que la lourdeur de ce document finisse par masquer ton intention initiale d'aider l'équipe à y voir clair. Quand la tâche devient un poids, on perd souvent de vue l'impact réel et positif de notre action.\n\nQu'est-ce qui, dans la rédaction de ce document, te semble le plus déconnecté de l'utilité que tu voulais apporter à tes collègues ?",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:44:43.723652+00:00"
+      },
+      {
+        "id": "6834de15-77a3-4be7-afdd-d92014052305",
+        "role": "user",
+        "content": "Le plus déconnecté, c’est la forme. Je passe mon énergie à faire un document propre alors que ce qui compte, c’est juste de nommer les deux options et le risque de chacune.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:44:59.417748+00:00"
+      },
+      {
+        "id": "1965f73a-0ae8-4a72-9330-2f07f546b24d",
+        "role": "assistant",
+        "content": "Laisse de côté l'idée d'un document propre pour le moment. Prends un simple brouillon ou un fichier texte vide et note uniquement le nom de la première option, sans chercher à rédiger davantage.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:45:11.841621+00:00"
+      },
+      {
+        "id": "e4b91142-48d9-486c-b628-d34a76f98f01",
+        "role": "user",
+        "content": "Ok, je fais juste ça et après j’arrête pour aujourd’hui. Garde seulement l’idée : deux options, un risque chacune, pas de joli document.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T22:45:27.029307+00:00"
+      },
+      {
+        "id": "9bd9308f-6b5f-4270-8573-dc30d700085e",
+        "role": "assistant",
+        "content": "Parfait. Tu fais juste ça : 2 lignes pour 2 options, puis 1 phrase pour le risque de chacune. Pas de mise en forme, pas de perfection 😌\n\nDès que c’est écrit, stop net et tu t’arrêtes pour aujourd’hui. Fais-le maintenant ?",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r10-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T22:45:41.023318+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

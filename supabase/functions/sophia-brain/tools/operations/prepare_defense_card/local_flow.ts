@@ -10,6 +10,10 @@ import {
   type NoteInformationTargetDispatcher,
 } from "../../../contracts/note_information.v1.ts";
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../../router/direct_effect_local_context.ts";
 import type {
   DefenseCardHandoffDraft,
   DefenseCardHandoffState,
@@ -58,7 +62,7 @@ export type PrepareDefenseCardLocalFlowAction =
   | "repeat_handoff"
   | "platform_destination_followup"
   | "apply_attempt"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "cancel_flow"
   | "defer_flow"
   | "exit_to_global_dispatcher"
@@ -303,7 +307,7 @@ export type PrepareDefenseCardLocalDispatcherOutput = {
       | "cancelled"
       | "safety"
       | "handoff_to_attack_card"
-      | "stop_local_no_handoff";
+      | "exit_to_global_dispatcher";
     flow_summary: string | null;
     handoff_hint_for_global_dispatcher: string | null;
     note_information?: NoteInformation | null;
@@ -361,7 +365,6 @@ export type PrepareDefenseCardReducerResult = {
   visible_task_context: PrepareDefenseCardConversationContext;
   note_information: NoteInformation | null;
   exit_to_global_dispatcher: boolean;
-  stop_local_no_handoff: boolean;
   target_dispatcher: NoteInformationTargetDispatcher | null;
   safety_preempt: boolean;
   get_info_product: boolean;
@@ -464,7 +467,7 @@ function flowAction(value: unknown): PrepareDefenseCardLocalFlowAction {
       "repeat_handoff",
       "platform_destination_followup",
       "apply_attempt",
-      "stop_local_no_handoff",
+      "exit_to_global_dispatcher",
       "cancel_flow",
       "defer_flow",
       "exit_to_global_dispatcher",
@@ -584,9 +587,9 @@ function normalizeDispatcherNoteInformation(args: {
     ? args.targetDispatcher
     : normalizeTargetDispatcher(raw.target_dispatcher, args.targetDispatcher);
   return createNoteInformation({
-    source_flow_id: stringValue(raw.source_flow) || "prepare_defense_card",
-    source_flow_state_summary: stringValue(raw.active_flow_summary) ||
-      args.fallbackStateSummary,
+    source_flow_id: stringValue(raw.source_flow_id) ||
+      stringValue(raw.source_flow) ||
+      "prepare_defense_card",
     handoff_reason: target === "safety_crisis"
       ? "safety"
       : target === "global"
@@ -599,18 +602,9 @@ function normalizeDispatcherNoteInformation(args: {
       stringValue(raw.handoff_context_for_next_dispatcher) ||
       stringValue(raw.user_message_summary) ||
       JSON.stringify(structuredContext),
-    target_local_dispatcher_hint: stringValue(raw.recommended_next_focus) ||
-      null,
     user_words: stringArray(raw.user_words),
     structured_context: structuredContext,
-    risk_score: args.riskScore,
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-    },
+    confidence: confidence(raw.confidence),
   });
 }
 
@@ -1077,7 +1071,7 @@ export function normalizePrepareDefenseCardLocalDispatcherOutput(
           "cancelled",
           "safety",
           "handoff_to_attack_card",
-          "stop_local_no_handoff",
+          "exit_to_global_dispatcher",
         ] as const,
         "none",
       ),
@@ -1331,7 +1325,6 @@ function fallbackNoteInformationForTransition(args: {
     ].join("; ");
   return createNoteInformation({
     source_flow_id: "prepare_defense_card",
-    source_flow_state_summary: summary,
     handoff_reason: args.targetDispatcher === "safety_crisis"
       ? "safety"
       : args.targetDispatcher === "global"
@@ -1343,16 +1336,16 @@ function fallbackNoteInformationForTransition(args: {
       JSON.stringify({
         source_flow: "prepare_defense_card",
         target_dispatcher: args.targetDispatcher,
+        active_flow_summary: summary,
         flow_action: args.output.flow_action,
         collected_state: collectedState,
         evidence: args.output.evidence,
       }),
-    target_local_dispatcher_hint:
-      args.output.exit_memo.handoff_hint_for_global_dispatcher ?? null,
     user_words: args.output.evidence,
     structured_context: {
       source_flow: "prepare_defense_card",
       target_dispatcher: args.targetDispatcher,
+      active_flow_summary: summary,
       handoff_reason: args.targetDispatcher === "safety_crisis"
         ? "safety"
         : args.targetDispatcher === "global"
@@ -1365,14 +1358,7 @@ function fallbackNoteInformationForTransition(args: {
       recommended_next_focus:
         args.output.exit_memo.handoff_hint_for_global_dispatcher,
     },
-    risk_score: args.output.risk_assessment.risk_score,
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-    },
+    confidence: args.output.confidence,
   });
 }
 
@@ -1445,7 +1431,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
             ? "safety_crisis"
             : "global",
         }),
-      stop_local_no_handoff: false,
+      exit_to_global_dispatcher: false,
       target_dispatcher: transitionTarget,
       safety_preempt: false,
     };
@@ -1465,7 +1451,6 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
     };
   }
   if (
-    output.flow_action === "stop_local_no_handoff" ||
     output.flow_action === "defer_flow"
   ) {
     return {
@@ -1478,7 +1463,6 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       visible_task: "stop_or_cancel",
       ...shared(previous, null, "stop_or_cancel"),
       exit_to_global_dispatcher: false,
-      stop_local_no_handoff: true,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
@@ -1493,7 +1477,6 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       visible_task: "exit_or_cancel",
       ...shared(previous, null, "exit_or_cancel"),
       exit_to_global_dispatcher: false,
-      stop_local_no_handoff: true,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
@@ -1532,32 +1515,26 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
     [
       "confirm_proposed_field",
       "handoff_ready",
-      "revise_support_need",
-      "revise_current_field",
     ].includes(output.flow_action) &&
     reduced.tool_fit_state.status === "defense" &&
-    reduced.support_need_state.status !== "locked"
+    reduced.support_need_state.status !== "locked" &&
+    previous.support_need_state.status === "proposed" &&
+    Boolean(previous.support_need_state.candidate_value)
   ) {
-    const valueToLock = output.support_need_state.locked_value ??
-      output.support_need_state.candidate_value ??
-      previous.support_need_state.candidate_value ??
-      previous.support_need_state.locked_value;
-    if (valueToLock) {
-      reduced = {
-        ...reduced,
-        support_need_state: {
-          ...reduced.support_need_state,
-          status: "locked",
-          candidate_value: null,
-          locked_value: valueToLock,
-          previous_value: previous.support_need_state.locked_value ??
-            previous.support_need_state.candidate_value,
-          needs_user_confirmation: false,
-          why_status: reduced.support_need_state.why_status ??
-            "Verrouillé par confirmation ou handoff_ready du dispatcher local.",
-        },
-      };
-    }
+    reduced = {
+      ...reduced,
+      support_need_state: {
+        ...reduced.support_need_state,
+        status: "locked",
+        candidate_value: null,
+        locked_value: previous.support_need_state.candidate_value,
+        previous_value: previous.support_need_state.locked_value ??
+          previous.support_need_state.previous_value,
+        needs_user_confirmation: false,
+        why_status: reduced.support_need_state.why_status ??
+          "Verrouillé par confirmation de la candidate précédente.",
+      },
+    };
   }
   const ready = supportNeedReady(reduced);
   const visibleTask = ready
@@ -1710,12 +1687,12 @@ export function localDispatcherSystemPrompt(): string {
     "Contraintes strictes: aucune regex métier, aucun mot-clé isolé, aucune décision par template, aucune création DB, aucun pending confirmation executable, aucun token de confirmation, aucun effet durable.",
     `Champ plateforme unique: field_id=support_need, question_label=${DEFENSE_CARD_SUPPORT_NEED_LABEL}.`,
     "N'expose jamais entry_need, risk_moment, first_signal, defense_response ou fallback_plan comme champs plateforme.",
-    "Actions possibles: answer_current_field, confirm_proposed_field, clarify_attack_vs_defense, confirm_attachment_candidate, revise_current_field, revise_attachment, revise_risk, revise_support_need, get_info_product, get_info_db, handoff_ready, repeat_handoff, platform_destination_followup, apply_attempt, stop_local_no_handoff, cancel_flow, defer_flow, exit_to_global_dispatcher, safety_preempt.",
-    "Priorité des actions: safety_preempt, apply_attempt, stop_local_no_handoff, cancel_flow, defer_flow, exit_to_global_dispatcher, get_info_product, get_info_db, revise_attachment, revise_risk, revise_support_need, revise_current_field, platform_destination_followup, repeat_handoff, confirm_attachment_candidate, confirm_proposed_field, clarify_attack_vs_defense, answer_current_field, handoff_ready.",
+    "Actions possibles: answer_current_field, confirm_proposed_field, clarify_attack_vs_defense, confirm_attachment_candidate, revise_current_field, revise_attachment, revise_risk, revise_support_need, get_info_product, get_info_db, handoff_ready, repeat_handoff, platform_destination_followup, apply_attempt, exit_to_global_dispatcher, cancel_flow, defer_flow, safety_preempt.",
+    "Priorité des actions: safety_preempt, apply_attempt, exit_to_global_dispatcher, cancel_flow, defer_flow, exit_to_global_dispatcher, get_info_product, get_info_db, revise_attachment, revise_risk, revise_support_need, revise_current_field, platform_destination_followup, repeat_handoff, confirm_attachment_candidate, confirm_proposed_field, clarify_attack_vs_defense, answer_current_field, handoff_ready.",
     "Règles tool_fit: defense si le user protège un moment où il risque de craquer; attack_better si le besoin est principalement démarrer/enlever une friction; ambiguous si la demande de défense décrit surtout un démarrage; not_applicable si hors sujet.",
     "Il ne peut jamais y avoir de handoff vers un dispatcher local depuis prepare_defense_card.",
     "Si le user corrige explicitement vers une carte d'attaque ou si le besoin relève clairement d'une carte d'attaque pendant le flow actif, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global et recommended_next_focus='prepare_attack_card'. Le même message sera réanalysé par le dispatcher global.",
-    "Si le user arrête simplement ce flow sans nouveau sujet clair, retourne stop_local_no_handoff. Ne repasse pas par le dispatcher global.",
+    "Si le user arrête ce flow ou change de sujet, retourne exit_to_global_dispatcher avec note_information vers global.",
     "Si le user change clairement de sujet hors flows locaux connus, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global.",
     "Si le message devient safety, retourne safety_preempt avec note_information.target_dispatcher=safety_crisis. Ne repasse pas par le dispatcher global normal.",
     "Ne verrouille jamais support_need si la phrase ne décrit pas clairement une situation, un contexte, un environnement ou une pulsion.",
@@ -1725,13 +1702,14 @@ export function localDispatcherSystemPrompt(): string {
     "Si le user demande où la mettre, retourne platform_destination_followup.",
     "Si le user pose une question produit pendant ce flow (c'est quoi, comment ça marche, différence attaque/défense, où est-ce), retourne flow_action=get_info_product, visible_task.kind=none, subskill_call.skill_id=product_help.",
     "Si le user pose une question sur ses objets existants ou l'état DB pendant ce flow (cartes de défense actives/libres déjà créées, ce qui existe déjà), retourne flow_action=get_info_db, visible_task.kind=none, subskill_call.skill_id=status_recap.",
+    ...directEffectLocalDispatcherPromptLines(),
     "Pour get_info_product/get_info_db, remplis subskill_call.context_for_subskill avec active_flow='prepare_defense_card', question_to_answer reformulée, active_flow_context utile (tool_fit_state, attachment_state, risk_state, support_need_state, route_kind).",
     "visible_task.conversation_context doit être compact et filtré pour l'agent visible: pas de DB brute, pas de mémoire brute, pas d'état local complet inutile.",
-    "Pour tout changement de dispatcher (exit_to_global_dispatcher, safety_preempt), fournis note_information canonique avec source_flow, target_dispatcher, handoff_reason, user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus.",
+    "Pour tout changement de dispatcher (exit_to_global_dispatcher, safety_preempt), fournis note_information canonique avec source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context non vide et confidence si utile.",
     "Sortie JSON stricte avec les clés: flow_action, confidence, risk_score, tool_fit, current_stage, slot_updates, platform_field_updates, visible_task, subskill_call, handoff_state, exit_memo, note_information, evidence, et les états structurés tool_fit_state, attachment_state, risk_state, trigger_state, defense_goal_state, defense_response_hint_state, support_need_state, revision, no_chat_mutation, risk_assessment.",
     "",
     "Field Completion Rules:",
-    "- flow_action: décision principale du tour courant. Utilise answer_current_field pour avancer dans la collecte, confirm_proposed_field pour confirmer une valeur proposed, clarify_attack_vs_defense si le besoin attaque/défense reste ambigu, handoff_ready quand support_need est locked et tool_fit=defense, platform_destination_followup pour 'où je la mets ?', apply_attempt pour créer/ajouter/activer/lancer, stop_local_no_handoff/cancel_flow/defer_flow si le user arrête sans nouveau sujet, exit_to_global_dispatcher si le user change clairement d'owner, safety_preempt pour safety réelle. Ne choisis jamais une action seulement parce qu'elle était le dernier état.",
+    "- flow_action: décision principale du tour courant. Utilise answer_current_field pour avancer dans la collecte, confirm_proposed_field pour confirmer une valeur proposed, clarify_attack_vs_defense si le besoin attaque/défense reste ambigu, handoff_ready quand support_need est locked et tool_fit=defense, platform_destination_followup pour 'où je la mets ?', apply_attempt pour créer/ajouter/activer/lancer, exit_to_global_dispatcher si le user arrête ce flow ou change clairement d'owner, safety_preempt pour safety réelle. Ne choisis jamais une action seulement parce qu'elle était le dernier état.",
     "- confidence: high si l'intention et la prochaine action sont claires; medium si le sens est probable mais incomplet ou proposé; low si tu dois clarifier ou rester prudent. N'utilise pas high pour une hypothèse.",
     "- risk_score: score local 0-10 utile à ce flow. 0-2 hors safety, 3-6 tension ou risque non imminent, 7+ seulement si le message porte un risque sérieux. N'invente pas de safety; si safety réelle, flow_action=safety_preempt et risk_assessment.safety_preempt=true.",
     "- tool_fit et tool_fit_state: tool_fit résume le statut métier; tool_fit_state détaille reason, needs_user_confirmation et why_status. defense si le besoin protège un moment de craquage; attack_better si le besoin est démarrer une action; ambiguous si les deux lectures restent possibles; not_applicable si hors sujet. Ne force pas defense pour une action à démarrer.",
@@ -1745,18 +1723,18 @@ export function localDispatcherSystemPrompt(): string {
     "- defense_response_hint_state: réponse défensive possible uniquement si le user l'a donnée ou si elle aide à formuler support_need. Ne fabrique pas un plan rigide.",
     `- support_need_state: seul champ plateforme canonique. field_id doit toujours être support_need et question_label exactement '${DEFENSE_CARD_SUPPORT_NEED_LABEL}'. missing si la situation n'est pas formulable; proposed si tu proposes une phrase déduite; locked uniquement si le user confirme ou donne une formulation claire. candidate_value et locked_value ne doivent pas diverger du message utile.`,
     "- revision: is_revision=true seulement si le user corrige/remplace une valeur. revision_target indique le slot remplacé, replacement_value la nouvelle formulation, replaces_previous_value=true si l'ancienne valeur principale doit être remplacée. Laisse false/null hors révision.",
-    "- visible_task.kind: choisis le prompt stage-specific exact. Utilise confirm_support_need_proposal pour une proposition à valider, ask_support_need pour une situation manquante, handoff_ready quand le handoff est prêt, destination_short pour la destination courte, apply_attempt pour refus de création, stop_or_cancel pour stop local, exit_or_cancel pour exit global, safety pour safety_preempt, none pour get_info_product/get_info_db.",
+    "- visible_task.kind: choisis le prompt stage-specific exact. Utilise confirm_support_need_proposal pour une proposition à valider, ask_support_need pour une situation manquante, handoff_ready quand le handoff est prêt, destination_short pour la destination courte, apply_attempt pour refus de création, stop_or_cancel pour sortie/annulation, exit_or_cancel pour exit global, safety pour safety_preempt, none pour get_info_product/get_info_db.",
     "- visible_task.conversation_context: contexte filtré pour l'agent visible seulement. Inclure valeurs connues, incertitudes, contraintes de ton, no_chat_mutation, destination et label support_need si utile. Ne jamais inclure DB brute, mémoire brute, note_information brute, historique brut ou état local complet.",
     "- subskill_call: needed=true seulement pour get_info_product ou get_info_db. skill_id doit être product_help ou status_recap. context_for_subskill doit contenir active_flow='prepare_defense_card', question_to_answer et un active_flow_context compact. Laisse needed=false, skill_id=null, context_for_subskill={} sinon.",
     "- handoff_state: ce dispatcher ne crée pas d'état de handoff dans sa sortie JSON; laisse null. Le reducer construit le handoff plateforme quand support_need est locked.",
-    "- exit_memo: needed=true pour exit_to_global_dispatcher, safety_preempt, cancel_flow ou stop_local_no_handoff si un résumé aide. reason doit rester dans le contrat. handoff_hint_for_global_dispatcher peut valoir prepare_attack_card si le user demande explicitement une carte d'attaque; ce n'est pas un handoff local.",
-    "- note_information: obligatoire pour exit_to_global_dispatcher et safety_preempt. target_dispatcher=global pour changement de sujet ou carte d'attaque; target_dispatcher=safety_crisis pour safety. La note est consommée par le dispatcher cible et ne va jamais brute au prompt visible.",
+    "- exit_memo: needed=true pour exit_to_global_dispatcher, safety_preempt, cancel_flow ou exit_to_global_dispatcher si un résumé aide. reason doit rester dans le contrat. handoff_hint_for_global_dispatcher peut valoir prepare_attack_card si le user demande explicitement une carte d'attaque; ce n'est pas un handoff local.",
+    "- note_information: obligatoire pour exit_to_global_dispatcher et safety_preempt. target_dispatcher=global pour changement de sujet ou carte d'attaque; target_dispatcher=safety_crisis pour safety. Structure canonique: source_flow_id='prepare_defense_card', target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context non vide, confidence si utile. Mets user_message_summary, active_flow_summary, collected_state, unresolved_questions, evidence et recommended_next_focus dans structured_context. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note. La note est consommée par le dispatcher cible et ne va jamais brute au prompt visible.",
     "- no_chat_mutation: toujours defense_card_created=false, pending_confirmation_created=false, confirmation_token_created=false, db_write_committed=false. Si le user demande 'crée-la', utilise apply_attempt et blocked_effects seront ajoutés par le reducer.",
     "- risk_assessment: doit être cohérent avec risk_score. safety_preempt=true seulement avec flow_action=safety_preempt; reason_codes contient des raisons utiles, pas de pseudo-preuves.",
     "- evidence: fragments sémantiques réellement utilisés pour décider. 0 à 5 items courts. Pas de pseudo-preuves ni de paraphrases inventées.",
     "",
     "Transition Rules:",
-    "- stop_local_no_handoff/cancel_flow/defer_flow: user arrête ce flow sans nouveau sujet clair; visible_task.kind=stop_or_cancel; pas de global sur le même tour.",
+    "- exit_to_global_dispatcher: user arrête ce flow ou change de sujet; visible_task.kind=stop_or_cancel ou exit_or_cancel; note_information obligatoire vers global.",
     "- exit_to_global_dispatcher: user change clairement de sujet ou demande un autre owner, y compris prepare_attack_card; note_information.target_dispatcher=global; le même message sera réanalysé par le dispatcher global.",
     "- safety_preempt: safety réelle; note_information.target_dispatcher=safety_crisis; ne passe pas par le dispatcher global normal.",
     "- get_info_product/get_info_db: inline subskill seulement; le flow parent conserve son état.",
@@ -1765,7 +1743,7 @@ export function localDispatcherSystemPrompt(): string {
     "Example JSON 1 - continuation normale non visible:",
     `{"flow_action":"confirm_proposed_field","confidence":"medium","risk_score":0,"tool_fit":"defense","current_stage":"support_need_intake","stage":"support_need_intake","route_kind":"free_card","slot_updates":{},"platform_field_updates":{},"tool_fit_state":{"status":"defense","reason":"moment de risque décrit","needs_user_confirmation":false,"why_status":"défense adaptée"},"attachment_state":{"status":"proposed","kind":"free_risk_context","plan_item_id":null,"candidate_value":"retour à la maison le soir","locked_value":null,"candidate_options":[],"needs_user_confirmation":true,"why_status":"déduit du message"},"risk_state":{"status":"proposed","label":"retour fatigué le soir","description":"risque de commander automatiquement","timing_hint":"soir","context_hint":"retour maison","needs_user_confirmation":true,"why_status":"formulation proposée"},"trigger_state":{"status":"proposed","type":"fatigue","candidate_value":"fatigue au retour","locked_value":null,"needs_user_confirmation":true,"why_status":"signal probable"},"defense_goal_state":{"status":"proposed","value":"interrupt_impulse","candidate_value":"ne pas commander par automatisme","locked_value":null,"needs_user_confirmation":true,"why_status":"objectif probable"},"defense_response_hint_state":{"status":"missing","strategy_hint":null,"candidate_value":null,"locked_value":null,"needs_user_confirmation":false,"why_status":"non nécessaire"},"support_need_state":{"field_id":"support_need","question_label":"${DEFENSE_CARD_SUPPORT_NEED_LABEL}","status":"proposed","candidate_value":"les soirs où je rentre rincé et que j'ouvre les applis de livraison automatiquement","locked_value":null,"previous_value":null,"needs_user_confirmation":true,"why_status":"phrase utile mais à confirmer"},"revision":{"is_revision":false,"revision_target":null,"replacement_value":null,"replaces_previous_value":false},"visible_task":{"kind":"confirm_support_need_proposal","conversation_context":{"field_or_stage":"support_need_intake","known_values":{},"tone_constraints":["une seule question"],"do_not_say":["ne dis pas que la carte est créée"]}},"subskill_call":{"needed":false,"skill_id":null,"reason":null,"context_for_subskill":{}},"handoff_state":null,"exit_memo":{"needed":false,"reason":"none","flow_summary":null,"handoff_hint_for_global_dispatcher":null},"note_information":null,"no_chat_mutation":{"defense_card_created":false,"pending_confirmation_created":false,"confirmation_token_created":false,"db_write_committed":false},"risk_assessment":{"risk_score":0,"risk_band":"none","safety_preempt":false,"reason_codes":[]},"evidence":["rentre rincé","ouvre les applis de livraison"]}`,
     "Example JSON 2 - transition critique non visible:",
-    `{"flow_action":"exit_to_global_dispatcher","confidence":"high","risk_score":0,"tool_fit":"attack_better","current_stage":"exit","stage":"exit","route_kind":"free_card","slot_updates":{},"platform_field_updates":{},"tool_fit_state":{"status":"attack_better","reason":"le user demande explicitement une carte d'attaque","needs_user_confirmation":false,"why_status":"nouvel owner demandé"},"attachment_state":{"status":"missing","kind":null,"plan_item_id":null,"candidate_value":null,"locked_value":null,"candidate_options":[],"needs_user_confirmation":false,"why_status":"hors flow défense"},"risk_state":{"status":"missing","label":null,"description":null,"timing_hint":null,"context_hint":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"trigger_state":{"status":"missing","type":null,"candidate_value":null,"locked_value":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"defense_goal_state":{"status":"missing","value":null,"candidate_value":null,"locked_value":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"defense_response_hint_state":{"status":"missing","strategy_hint":null,"candidate_value":null,"locked_value":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"support_need_state":{"field_id":"support_need","question_label":"${DEFENSE_CARD_SUPPORT_NEED_LABEL}","status":"missing","candidate_value":null,"locked_value":null,"previous_value":null,"needs_user_confirmation":false,"why_status":"pas de nouveau champ défense"},"revision":{"is_revision":false,"revision_target":null,"replacement_value":null,"replaces_previous_value":false},"visible_task":{"kind":"exit_or_cancel","conversation_context":{"field_or_stage":"exit","known_values":{},"tone_constraints":["pas de réponse visible source"],"do_not_say":["ne fais pas de handoff local"]}},"subskill_call":{"needed":false,"skill_id":null,"reason":null,"context_for_subskill":{}},"handoff_state":null,"exit_memo":{"needed":true,"reason":"handoff_to_attack_card","flow_summary":"le user quitte la carte de défense pour une carte d'attaque","handoff_hint_for_global_dispatcher":"prepare_attack_card"},"note_information":{"source_flow":"prepare_defense_card","target_dispatcher":"global","handoff_reason":"topic_change","user_message_summary":"demande explicite de carte d'attaque","active_flow_summary":"flow défense arrêté","collected_state":{},"unresolved_questions":[],"confidence":"high","evidence":["carte d'attaque"],"recommended_next_focus":"prepare_attack_card"},"no_chat_mutation":{"defense_card_created":false,"pending_confirmation_created":false,"confirmation_token_created":false,"db_write_committed":false},"risk_assessment":{"risk_score":0,"risk_band":"none","safety_preempt":false,"reason_codes":[]},"evidence":["carte d'attaque"]}`,
+    `{"flow_action":"exit_to_global_dispatcher","confidence":"high","risk_score":0,"tool_fit":"attack_better","current_stage":"exit","stage":"exit","route_kind":"free_card","slot_updates":{},"platform_field_updates":{},"tool_fit_state":{"status":"attack_better","reason":"le user demande explicitement une carte d'attaque","needs_user_confirmation":false,"why_status":"nouvel owner demandé"},"attachment_state":{"status":"missing","kind":null,"plan_item_id":null,"candidate_value":null,"locked_value":null,"candidate_options":[],"needs_user_confirmation":false,"why_status":"hors flow défense"},"risk_state":{"status":"missing","label":null,"description":null,"timing_hint":null,"context_hint":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"trigger_state":{"status":"missing","type":null,"candidate_value":null,"locked_value":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"defense_goal_state":{"status":"missing","value":null,"candidate_value":null,"locked_value":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"defense_response_hint_state":{"status":"missing","strategy_hint":null,"candidate_value":null,"locked_value":null,"needs_user_confirmation":false,"why_status":"hors flow défense"},"support_need_state":{"field_id":"support_need","question_label":"${DEFENSE_CARD_SUPPORT_NEED_LABEL}","status":"missing","candidate_value":null,"locked_value":null,"previous_value":null,"needs_user_confirmation":false,"why_status":"pas de nouveau champ défense"},"revision":{"is_revision":false,"revision_target":null,"replacement_value":null,"replaces_previous_value":false},"visible_task":{"kind":"exit_or_cancel","conversation_context":{"field_or_stage":"exit","known_values":{},"tone_constraints":["pas de réponse visible source"],"do_not_say":["ne fais pas de handoff local"]}},"subskill_call":{"needed":false,"skill_id":null,"reason":null,"context_for_subskill":{}},"handoff_state":null,"exit_memo":{"needed":true,"reason":"handoff_to_attack_card","flow_summary":"le user quitte la carte de défense pour une carte d'attaque","handoff_hint_for_global_dispatcher":"prepare_attack_card"},"note_information":{"source_flow_id":"prepare_defense_card","target_dispatcher":"global","handoff_reason":"topic_change","handoff_context_for_next_dispatcher":"demande explicite de carte d'attaque","user_words":["carte d'attaque"],"structured_context":{"user_message_summary":"demande explicite de carte d'attaque","active_flow_summary":"flow défense arrêté","collected_state":{},"unresolved_questions":[],"evidence":["carte d'attaque"],"recommended_next_focus":"prepare_attack_card"},"confidence":"high"},"no_chat_mutation":{"defense_card_created":false,"pending_confirmation_created":false,"confirmation_token_created":false,"db_write_committed":false},"risk_assessment":{"risk_score":0,"risk_band":"none","safety_preempt":false,"reason_codes":[]},"evidence":["carte d'attaque"]}`,
   ].join("\n");
 }
 
@@ -1798,11 +1776,14 @@ export async function runPrepareDefenseCardLocalDispatcher(
       ],
       budget: { max_items: 0 },
     },
-    platform_context: input.platform_context ?? {
-      destination: DEFENSE_CARD_PLATFORM_DESTINATION,
-      support_need_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
-      no_chat_mutation: true,
-    },
+    platform_context: withDirectEffectLocalContext(
+      input.platform_context ?? {
+        destination: DEFENSE_CARD_PLATFORM_DESTINATION,
+        support_need_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        no_chat_mutation: true,
+      },
+      input.plan_snapshot ?? null,
+    ),
     parent_flow_context: input.parent_flow_context ?? null,
     risk_context: input.risk_context ?? null,
     available_inline_tools: input.available_inline_tools ?? [

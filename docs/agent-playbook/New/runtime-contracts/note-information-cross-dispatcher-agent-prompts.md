@@ -14,26 +14,24 @@ Principe cible :
 - exception explicite : le passage interne `select_state_potion -> sous-skill
   potion` peut rester sur son contrat specialise deja structure.
 
-La `note_information` contient toujours deux parties :
-
-```json
-{
-  "source_flow_presentation": "Presentation succincte du flow quitte, deux lignes maximum.",
-  "handoff_context_for_next_dispatcher": "Contexte utile au prochain dispatcher pour remplir son JSON."
-}
-```
-
-Elle peut aussi porter des metadonnees structurelles non visibles :
+La `note_information` canonique contient toujours :
 
 ```json
 {
   "source_flow_id": "string",
-  "target_dispatcher": "global|safety_crisis|select_state_potion|product_help|status_recap|...",
-  "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|...",
-  "target_local_dispatcher_hint": "string|null",
-  "risk_score": 0
+  "target_dispatcher": "global|safety_crisis|select_state_potion|product_help|status_recap|verification_opportunities|other_local",
+  "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|clarification_resolved",
+  "handoff_context_for_next_dispatcher": "Contexte utile au prochain dispatcher pour remplir son JSON.",
+  "user_words": ["string"],
+  "structured_context": {},
+  "confidence": "low|medium|high"
 }
 ```
+
+`confidence` est optionnel si le flow n'a pas de champ equivalent.
+`structured_context` est obligatoire. Les champs `source_flow_presentation`,
+`source_flow_state_summary`, `target_local_dispatcher_hint`, `risk_score` et
+`no_chat_mutation` ne font plus partie du contrat canonique.
 
 ## Agent 1 - Catalogue Des Flows Et Presentations
 
@@ -81,21 +79,23 @@ Tache :
    - type : tool_flow, conversation_skill, proactive_followup, safety_flow, inline_info_flow ;
    - dispatcher local attendu ;
    - etat actif attendu ;
-   - sorties locales sans handoff ;
+   - continuations locales sans changement de dispatcher ;
    - sorties vers global ;
    - sorties vers un dispatcher local specifique ;
    - signaux safety ;
    - outils inline disponibles ;
    - notes deja presentes ou manquantes.
 5. Distinguer clairement :
-   - stop local / acknowledge / no handoff this turn ;
    - exit_to_global_dispatcher ;
    - handoff_to_local_dispatcher ;
    - safety_preempt ;
    - inline_tool_roundtrip.
 
 Cas important :
-Si le user dit une phrase du type "laisse tomber", "arrete tes questions", "ca me saoule tes questions", sans nouveau sujet clair, ce n'est pas forcement exit_to_global_dispatcher. Le flow local doit pouvoir produire un stop local + ack, fermer/deferer le flow, et ne pas appeler le global sur le meme tour.
+Si le user dit une phrase du type "laisse tomber", "arrete tes questions" ou
+"ca me saoule tes questions" pendant un flow local actif, le dispatcher local
+actif doit d'abord produire `exit_to_global_dispatcher` avec une
+`note_information` exploitable vers `target_dispatcher="global"`.
 
 Livrable attendu :
 Creer ou proposer un document :
@@ -116,7 +116,7 @@ Format recommande :
   - product_help inline: yes/no
   - status_recap inline: yes/no
   - select_state_potion: yes/no
-- Stop local actions:
+- Local non-transfer actions:
 - Required note_information on ownership transfer:
 - Missing work:
 ```
@@ -133,7 +133,7 @@ Validation :
 - Le catalogue couvre tous les fichiers de prompts locaux trouves.
 - Chaque flow a une presentation de deux lignes maximum.
 - Chaque changement potentiel de dispatcher est visible.
-- Les cas "stop local sans handoff" sont distingues des sorties globales.
+- Les continuations locales sont distinguees des sorties globales.
 - Le passage select_state_potion -> sous-skill potion est marque comme exception deja specialisee.
 ```
 
@@ -168,35 +168,31 @@ Definir un contrat unique pour toutes les transitions de dispatcher :
 6. demotivation_repair -> select_state_potion ;
 7. proactive local flow -> global dispatcher ;
 8. tool local flow -> global dispatcher ;
-9. stop local sans nouveau dispatcher.
+9. arret du flow local actif vers global via note_information.
 
 Important :
-Une note_information est obligatoire des qu'il y a changement de dispatcher. Elle n'est pas obligatoire quand le flow se ferme localement sans nouveau sujet et sans handoff. Dans ce cas le reducer doit produire une visible_task d'acknowledgement et stopper/deferer l'etat actif sans appeler le global sur le meme tour.
+Une note_information est obligatoire des qu'il y a changement de dispatcher.
+Quand le user veut arreter un flow local actif, cela compte comme une sortie
+vers le dispatcher global : `exit_to_global_dispatcher` + `note_information`
+obligatoire avant toute reprise globale.
 
 Contrat JSON cible recommande :
 ```json
 {
   "note_information": {
     "source_flow_id": "string",
-    "source_flow_presentation": "string",
-    "source_flow_state_summary": "string",
-    "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request",
     "target_dispatcher": "global|safety_crisis|select_state_potion|product_help|status_recap|verification_opportunities|other_local",
+    "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|clarification_resolved",
     "handoff_context_for_next_dispatcher": "string",
-    "target_local_dispatcher_hint": "string|null",
     "user_words": ["string"],
     "structured_context": {},
-    "risk_score": 0,
-    "no_chat_mutation": {
-      "db_write_committed": false,
-      "potion_session_created": false,
-      "scheduled_checkin_created": false,
-      "recurring_reminder_created": false,
-      "executable_confirmation_generated": false
-    }
+    "confidence": "low|medium|high"
   }
 }
 ```
+
+`confidence` est optionnel si le flow n'a pas de champ equivalent.
+`structured_context` est obligatoire.
 
 Tache :
 1. Mettre a jour la doctrine docs pour rendre la note_information transverse.
@@ -205,20 +201,16 @@ Tache :
    - quand produire note_information ;
    - quand ne pas la produire ;
    - comment choisir target_dispatcher ;
-   - quoi mettre dans source_flow_presentation depuis le catalogue ;
    - quoi mettre dans handoff_context_for_next_dispatcher.
-4. Ajouter explicitement les actions locales qui ne sont pas des handoffs :
-   - stop_local_and_ack
-   - complete_and_stop
-   - defer_and_ack
-   - cancel_flow_without_reroute
-   Les noms exacts peuvent varier par flow, mais la categorie doit etre claire.
+   - quoi mettre dans structured_context obligatoire.
+4. Ajouter explicitement les actions locales qui ne changent pas d'ownership
+   et ne doivent pas etre utilisees pour arreter un flow actif.
 5. Standardiser les exits :
    - exit_to_global_dispatcher = autre sujet clair ou demande hors flow ;
    - safety_preempt = passage a safety_crisis ;
    - handoff_to_local_dispatcher = bridge vers un flow local cible ;
    - inline_tool_roundtrip = product/help/status puis retour au flow parent ;
-   - stop_local_no_handoff = arret local sans rerouting.
+   - exit_to_global_dispatcher = arret local sans rerouting.
 
 Contraintes non negociables :
 - Pas de regex metier.
@@ -236,12 +228,13 @@ Livrables attendus :
    docs/agent-playbook/New/runtime-contracts/09-note-information-contract.md
 2. Patches docs sur les contrats locaux existants pour mentionner la note.
 3. Une matrice des transitions :
-   source_flow -> target_dispatcher -> note required yes/no -> stop local yes/no.
+   source_flow -> target_dispatcher -> note required yes/no -> source ownership.
 4. Une liste de questions ouvertes si certains flows sont ambigus.
 
 Validation :
 - Tous les changements de dispatcher ont note_information required.
-- Les stops locaux sans nouveau sujet n'appellent pas le global sur le meme tour.
+- Les arrets de flow local actif passent par `exit_to_global_dispatcher` avec
+  `note_information` avant toute reprise globale.
 - Safety local recoit une note quand il est pickup par un dispatcher local.
 - Product help/status recap recoivent une note quand appeles inline.
 - Emotional repair et demotivation repair transmettent une note a select_state_potion.
@@ -287,29 +280,32 @@ Objectif runtime :
    - emotional_repair -> select_state_potion ;
    - demotivation_repair -> select_state_potion ;
    - proactive/tool local flow -> autre dispatcher.
-5. Ne pas propager vers le global quand le flow fait un stop local sans nouveau sujet.
+5. Ne pas propager vers le global tant que le dispatcher local actif n'a pas
+   produit `exit_to_global_dispatcher` avec `note_information`.
 6. Ajouter des logs/trace de transition :
    - source_flow_id
    - target_dispatcher
    - handoff_reason
    - has_note_information
+   - structured_context_present
    - risk_score
    - request_id
 7. Faire consommer la note par le prompt du prochain dispatcher comme contexte system/developer, pas comme message user.
 
 Cas critique a corriger :
-Si un flow local detecte "arrete tes questions", "laisse tomber", "ca me saoule tes questions" sans nouveau sujet clair :
-- le dispatcher local doit sortir une action locale de stop/defer/ack ;
-- le reducer ferme ou defer le flow ;
-- visible prompt ack court ;
-- pas de dispatcher global sur ce meme tour ;
-- pas de question finale ;
-- pas de tool ;
-- pas de coaching additionnel.
+Si un flow local detecte "arrete tes questions", "laisse tomber" ou
+"ca me saoule tes questions" :
+- le dispatcher local doit produire `exit_to_global_dispatcher` ;
+- `note_information.target_dispatcher` doit etre `global` ;
+- le reducer ferme l'etat actif source ;
+- le dispatcher global peut ensuite reprendre depuis cette note ;
+- pas de question finale locale ;
+- pas de tool ni effet durable emis par le flow source.
 
 Cas safety :
 Si un dispatcher local detecte safety_preempt :
-- il produit note_information avec source_flow_presentation et contexte safety utile ;
+- il produit note_information avec source_flow_id, target_dispatcher,
+  handoff_context_for_next_dispatcher et structured_context utile ;
 - le runtime passe au dispatcher local safety_crisis ;
 - le global dispatcher normal ne decide pas ;
 - risk_score reste connecte a la pipeline de surveillance.
@@ -337,17 +333,17 @@ Contraintes non negociables :
 - Ne pas ajouter de modele de routing deterministe.
 - Ne pas faire de DB write sauf flow explicitement autorise.
 - Ne pas appeler le global dispatcher pendant un flow actif sauf si le local dispatcher a produit exit_to_global_dispatcher.
-- Ne pas appeler le global dispatcher pour stop_local_no_handoff.
+- Ne pas appeler le global dispatcher pour exit_to_global_dispatcher.
 - Ne jamais lancer une potion depuis le chat.
 - Ne pas executer `supabase db reset`.
 - Ne pas faire de commandes Supabase destructives.
 
 Tests unitaires attendus :
-1. Active flow stop local :
-   - input user veut juste arreter les questions ;
-   - local dispatcher action stop/defer/ack ;
-   - no global dispatch ;
-   - active state cleared/deferred selon flow ;
+1. Active flow exit :
+   - input user veut arreter le flow ;
+   - local dispatcher action `exit_to_global_dispatcher` ;
+   - `note_information.target_dispatcher=global` ;
+   - active state source cleared selon flow ;
    - visible ack court.
 2. Active flow topic change :
    - local dispatcher exit_to_global_dispatcher ;
@@ -415,4 +411,3 @@ Livrable final :
   - global dispatcher normal non appele pendant active flow sauf exit_to_global_dispatcher ;
   - note_information presente sur chaque changement de dispatcher.
 ```
-

@@ -97,7 +97,7 @@ Etats conceptuels a stabiliser dans le contrat :
 
 Doctrine importante :
 
-- `stop_local_no_handoff` : user veut juste arreter le flow sans nouveau sujet
+- `exit_to_global_dispatcher` : user veut juste arreter le flow sans nouveau sujet
   clair. Reponse locale courte, pas de global sur le meme tour.
 - `exit_to_global_dispatcher` : nouveau sujet clair. Note information
   obligatoire, puis global reanalyse le message avec la note.
@@ -109,7 +109,7 @@ Doctrine importante :
 Application au flow :
 
 - plan pas pret + refus : rester local, `blocked_exit_before_plan_ready`.
-- plan pret + refus sans nouveau sujet : `stop_local_no_handoff` avec
+- plan pret + refus sans nouveau sujet : `exit_to_global_dispatcher` avec
   `stopped_after_plan_ready`, clear/defer onboarding, message local court.
 - plan pret + nouveau sujet clair : `exit_to_global_dispatcher` avec note.
 - safety : `safety_preempt` avec note vers safety.
@@ -242,8 +242,8 @@ n'est pas necessaire pour la V1.
 
 - `frustration_exit_after_plan_ready` est traite comme
   `exit_to_global_dispatcher`, alors que la doctrine classe "arrete tes
-  questions / laisse tomber" comme `stop_local_no_handoff` sans global.
-- Le contrat de sortie n'a pas de `stop_local_no_handoff`, `get_info_product`,
+  questions / laisse tomber" comme `exit_to_global_dispatcher` sans global.
+- Le contrat de sortie n'a pas de `exit_to_global_dispatcher`, `get_info_product`,
   `get_info_db`, `handoff_to_local_flow`, `apply_attempt/progress_attempt`.
 - Le JSON actuel expose `visible_task.required_data`, pas
   `visible_task.conversation_context`.
@@ -299,7 +299,7 @@ message WhatsApp
      visible_task.conversation_context
      -> whatsapp_onboarding.visible.<stage>
      -> assistant message
--> if stop_local_no_handoff:
+-> if exit_to_global_dispatcher:
      clear/defer local state
      visible_task.conversation_context
      -> whatsapp_onboarding.visible.stop_after_plan_ready
@@ -393,7 +393,7 @@ Il recoit seulement :
 - `safety_preempt` : note vers `safety_crisis`, global normal skip.
 - `handoff_to_local_flow` : cible explicite, note obligatoire.
 - `get_info_product|get_info_db` : inline, note obligatoire, parent conserve.
-- `stop_local_no_handoff` : aucune note, aucune reprise global.
+- `exit_to_global_dispatcher` : aucune note, aucune reprise global.
 
 ## 3. Contrat JSON Du Dispatcher Local
 
@@ -413,7 +413,7 @@ Il recoit seulement :
   "revise_preference",
   "progress_attempt_during_onboarding",
   "blocked_exit_before_plan_ready",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "complete_onboarding",
   "get_info_product",
   "get_info_db",
@@ -510,7 +510,7 @@ Il recoit seulement :
 
 ### Important
 
-- `stop_local_no_handoff` ne produit pas de note information et ne permet pas
+- `exit_to_global_dispatcher` ne produit pas de note information et ne permet pas
   global.
 - `exit_to_global_dispatcher`, `safety_preempt`, `handoff_to_local_flow`,
   `get_info_product`, `get_info_db` exigent une note information exploitable.
@@ -691,7 +691,7 @@ risque de sur-interpreter les preferences ou l'intention de topic.
 - No deterministic renderer.
 - No single generic conversation agent.
 - Every `flow_action` has exact continuation.
-- `stop_local_no_handoff` does not call global.
+- `exit_to_global_dispatcher` does not call global.
 - `exit_to_global_dispatcher` includes note_information.
 - `safety_preempt` routes to safety local dispatcher.
 - Conversation agent only uses `conversation_context`.
@@ -732,19 +732,19 @@ Optionnel selon integration note globale :
 
 1. Mettre a jour le contrat doc existant :
    - remplacer "frustration apres plan pret -> exit global" par
-     `stop_local_no_handoff` sauf nouveau sujet clair ;
+     `exit_to_global_dispatcher` sauf nouveau sujet clair ;
    - ajouter `conversation_context` et note information canonique.
 
 2. Etendre `contract.ts` :
    - actions communes doctrine ;
    - `visible_task.conversation_context` ;
    - `note_information` canonique ;
-   - statut reducer `stop_local_no_handoff`, `handoff_to_local_flow`,
+   - statut reducer `exit_to_global_dispatcher`, `handoff_to_local_flow`,
      `inline_tool`.
 
 3. Corriger le reducer :
    - `frustration_exit_after_plan_ready` devient
-     `stop_local_no_handoff` si pas de nouveau sujet clair ;
+     `exit_to_global_dispatcher` si pas de nouveau sujet clair ;
    - `exit_to_global_dispatcher` uniquement si clear topic + note valide ;
    - safety route vers safety local avec note ;
    - inline tool conserve parent state.
@@ -783,7 +783,7 @@ Optionnel selon integration note globale :
 ### Tests unitaires
 
 - Plan missing + stop attempt -> owned, blocked, no global.
-- Plan active + stop without clear topic -> `stop_local_no_handoff`,
+- Plan active + stop without clear topic -> `exit_to_global_dispatcher`,
   mark/defer done, visible `stop_after_plan_ready`, no global.
 - Plan active + clear topic -> `exit_to_global_dispatcher`, note info complete.
 - Plan active + clear topic but missing note -> reducer refuses / technical.

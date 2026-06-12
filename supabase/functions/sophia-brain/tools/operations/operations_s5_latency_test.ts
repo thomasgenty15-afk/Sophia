@@ -12,7 +12,7 @@ Deno.test("S5 operations latency smoke measures intake to platform handoff under
     timezone: "Europe/Paris",
     message: "rappelle-moi tous les jours a 18h de faire une pause",
     trigger_message_id: "latency-recurring",
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
     slot_filler: structuredRecurringReminderSlotFiller({
       frequency: "daily",
       time: "18:00",

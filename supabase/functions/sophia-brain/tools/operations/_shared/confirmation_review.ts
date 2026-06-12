@@ -44,6 +44,7 @@ export async function reviewToolSkillConfirmationWithAi(input: {
   pending_context?: unknown;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   request_id?: string | null;
+  user_id?: string | null;
 }): Promise<ToolSkillConfirmationKind> {
   const prompt = [
     "Tu es le sous-skill confirmation_validation d'un Tool Skill Sophia.",
@@ -77,6 +78,7 @@ export async function reviewToolSkillConfirmationWithAi(input: {
       {
         model: getGeminiFallbackModel("gemini-2.5-flash"),
         requestId: input.request_id ?? undefined,
+        userId: input.user_id ?? undefined,
         source: "tool_skill.confirmation_validation",
         forceRealAi: true,
         maxRetries: 1,

@@ -201,10 +201,6 @@ function buildInboundNoteInformation(args: {
   if (args.activeHandoff?.local_flow_state) return null;
   return createNoteInformation({
     source_flow_id: "global_dispatcher",
-    source_flow_presentation:
-      "Global dispatcher selected adjust_plan_item for a non-mutant Plan adjustment handoff.",
-    source_flow_state_summary:
-      "First activation of adjust_plan_item from global routing.",
     handoff_reason: "explicit_user_request",
     target_dispatcher: "adjust_plan_item",
     handoff_context_for_next_dispatcher: JSON.stringify({
@@ -217,10 +213,12 @@ function buildInboundNoteInformation(args: {
         : 0,
       no_chat_mutation: true,
     }),
-    target_local_dispatcher_hint:
-      "Start adjust_plan_item locally; do not execute Plan mutations from chat.",
     user_words: [args.context.userMessage],
     structured_context: {
+      source_flow: "global_dispatcher",
+      user_message_summary: args.context.userMessage,
+      active_flow_summary:
+        "First activation of adjust_plan_item from global routing.",
       selected_handler: args.context.routeDecision?.selected_handler ?? null,
       response_owner: args.context.routeDecision?.response_owner ?? null,
       reason_code: args.context.routeDecision?.reason_code ?? null,
@@ -229,11 +227,8 @@ function buildInboundNoteInformation(args: {
         ? args.context.planItemSnapshot.length
         : 0,
       no_chat_mutation: true,
-    },
-    risk_score: 0,
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
+      unresolved_questions: [],
+      recommended_next_focus: "adjust_plan_item",
     },
   });
 }
@@ -308,6 +303,40 @@ function withInlineToolConversationContext(args: {
         .trim(),
       args.answer ? `Reponse inline: ${args.answer.slice(0, 500)}` : "",
     ].filter(Boolean).join("\n"),
+  };
+}
+
+function handoffCoreTrace(context: any): Record<string, unknown> | null {
+  if (!context || typeof context !== "object") return null;
+  const scope = context.known_values?.scope ?? {};
+  const need = context.known_values?.adjustment_need ?? {};
+  const targetToModify = String(
+    scope.target_summary ??
+      context.selected_candidate?.target_summary ??
+      scope.level_title ??
+      scope.plan_title ??
+      "",
+  ).trim() || null;
+  const reasonChange = String(need.reason_change ?? "").trim() || null;
+  const requestedChange = String(need.requested_change ?? "").trim() || null;
+  const changeKind = String(need.change_kind ?? "").trim() || null;
+  const missing = Array.isArray(context.missing_or_weak_values)
+    ? context.missing_or_weak_values.map((item: unknown) => String(item))
+      .filter(Boolean).slice(0, 12)
+    : [];
+  const hasActionableChangeKind = Boolean(
+    changeKind && changeKind !== "unknown" && changeKind !== "clarify",
+  );
+  return {
+    target_to_modify: targetToModify,
+    reason_change: reasonChange,
+    requested_change: requestedChange,
+    change_kind: changeKind,
+    has_core_triptych: Boolean(
+      targetToModify && reasonChange && requestedChange &&
+        hasActionableChangeKind,
+    ),
+    missing_or_weak_values: missing,
   };
 }
 
@@ -608,6 +637,7 @@ async function runAdjustPlanLocalFlow(args: {
         flow_action: dispatcherOutput.flow_action,
         visible_task: { kind: "none" },
         conversation_context: inlineConversationContext,
+        handoff_core: handoffCoreTrace(inlineConversationContext),
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
@@ -680,6 +710,7 @@ async function runAdjustPlanLocalFlow(args: {
         flow_action: dispatcherOutput.flow_action,
         visible_task: { kind: "inline_tool_return" },
         conversation_context: inlineConversationContext,
+        handoff_core: handoffCoreTrace(inlineConversationContext),
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
@@ -741,6 +772,7 @@ async function runAdjustPlanLocalFlow(args: {
         local_flow_state: reduced.local_state,
         visible_task: { kind: reduced.visible_task },
         conversation_context: reduced.conversation_context,
+        handoff_core: handoffCoreTrace(reduced.conversation_context),
         runtime_trace: traceEvents,
       },
     });
@@ -781,6 +813,7 @@ async function runAdjustPlanLocalFlow(args: {
       local_flow_state: reduced.local_state,
       visible_task: { kind: reduced.visible_task },
       conversation_context: reduced.conversation_context,
+      handoff_core: handoffCoreTrace(reduced.conversation_context),
       risk_score: reduced.risk_score,
       runtime_trace: traceEvents,
       platform_handoff: reduced.draft

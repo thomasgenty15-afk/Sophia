@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { createEffectLedger } from "./effect_ledger.ts";
 import { runFinalResponsePipeline } from "./final_response_pipeline.ts";
 
@@ -18,32 +15,12 @@ function deps(overrides: Record<string, unknown> = {}) {
     weeklyAdaptiveReviewStateForTurn: () => null,
     cleanWeeklyVisibleResponse: (text: string) =>
       text.replace("Respiration de pause", "pause"),
-    applyMemoryV2ResponseGroundingGuardrail: ({ responseContent }: any) =>
-      responseContent,
-    applyNonDurableMemoryPromiseGuard: ({ responseContent }: any) =>
-      responseContent,
-    applyWeeklyForgottenProgressAckGuard: ({ responseContent }: any) =>
-      responseContent,
-    applyWeeklyRepeatedClarificationGuard: ({ responseContent }: any) =>
-      responseContent,
-    applyWeeklyConcreteOrganizationGuard: ({ responseContent }: any) =>
-      responseContent,
-    applyWeeklyConclusionGuard: ({ responseContent }: any) => responseContent,
-    applyCompactStartGuard: ({ responseContent }: any) => responseContent,
-    applyIncompleteRecapGuard: ({ responseContent }: any) => responseContent,
-    applyUnexecutedEffectClaimGuard: ({ responseContent }: any) =>
-      responseContent,
-    applyCoachResponseStylePreferences: ({ responseContent }: any) =>
-      responseContent,
-    userRequestsShortStyle: () => false,
-    normalizeRouteText: (text: string) =>
-      text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(),
     ensureVisibleSophiaEmoji: (text: unknown) => `${String(text)} 🙂`,
     ...overrides,
   } as any;
 }
 
-Deno.test("final_response_pipeline traces done claim without rewriting response", () => {
+Deno.test("final_response_pipeline leaves durable claims to operation contracts", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent: "C'est fait, le rappel est programmé.",
     userMessage: "programme un rappel",
@@ -53,31 +30,10 @@ Deno.test("final_response_pipeline traces done claim without rewriting response"
     effectLedger: createEffectLedger("turn_final_1"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({ ensureVisibleSophiaEmoji: (text: unknown) => String(text) }),
   });
-  assert(result.guardEvents.length > 0);
+  assertEquals(result.guardEvents, []);
   assertEquals(result.responseContent, "C'est fait, le rappel est programmé.");
-});
-
-Deno.test("final_response_pipeline respects no emoji short style", () => {
-  const result = runFinalResponsePipeline({
-    baseResponseContent: "Réponse courte.",
-    userMessage: "réponds court sans emoji",
-    routeDecision: null,
-    skillOutput: null,
-    recommendation: null,
-    effectLedger: createEffectLedger("turn_final_2"),
-    activeSkillState: null,
-    tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
-    deps: deps({ userRequestsShortStyle: () => true }),
-  });
-  assertEquals(result.responseContent, "Réponse courte.");
 });
 
 Deno.test("final_response_pipeline keeps safety replies sober and opaque", () => {
@@ -114,9 +70,6 @@ Deno.test("final_response_pipeline keeps safety replies sober and opaque", () =>
     effectLedger: createEffectLedger("turn_final_safety"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: {},
     deps: deps({
       directSafetyCrisisReplyOverride: ({ skillOutput }: any) =>
         String(skillOutput?.reply ?? "").trim() || null,
@@ -153,9 +106,6 @@ Deno.test("final_response_pipeline does not enforce recommendation on product_he
     effectLedger: createEffectLedger("turn_final_3"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({
       enforceRecommendationToolVisibleReply: (input: any) => {
         enforced = true;
@@ -170,7 +120,6 @@ Deno.test("final_response_pipeline does not enforce recommendation on product_he
 Deno.test("final_response_pipeline preserves orientation_clarification question", () => {
   let oneShotCalled = false;
   let enforced = false;
-  let unexecutedGuardCalled = false;
   const result = runFinalResponsePipeline({
     baseResponseContent:
       "Tu veux plutôt un rappel ponctuel, ou un rappel récurrent ?",
@@ -192,9 +141,6 @@ Deno.test("final_response_pipeline preserves orientation_clarification question"
     effectLedger: createEffectLedger("turn_final_4"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({
       oneShotReminderManagementReply: () => {
         oneShotCalled = true;
@@ -203,10 +149,6 @@ Deno.test("final_response_pipeline preserves orientation_clarification question"
       enforceRecommendationToolVisibleReply: (input: any) => {
         enforced = true;
         return input.responseContent;
-      },
-      applyUnexecutedEffectClaimGuard: ({ responseContent }: any) => {
-        unexecutedGuardCalled = true;
-        return responseContent;
       },
       ensureVisibleSophiaEmoji: (text: unknown) => String(text),
     }),
@@ -218,7 +160,6 @@ Deno.test("final_response_pipeline preserves orientation_clarification question"
   );
   assertEquals(oneShotCalled, false);
   assertEquals(enforced, false);
-  assertEquals(unexecutedGuardCalled, false);
 });
 
 Deno.test("final_response_pipeline allows honest platform handoff wording without commit", () => {
@@ -232,9 +173,6 @@ Deno.test("final_response_pipeline allows honest platform handoff wording withou
     effectLedger: createEffectLedger("turn_final_handoff_allowed"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({ ensureVisibleSophiaEmoji: (text: unknown) => String(text) }),
   });
 
@@ -245,7 +183,7 @@ Deno.test("final_response_pipeline allows honest platform handoff wording withou
   );
 });
 
-Deno.test("final_response_pipeline traces plan done language without rewriting response", () => {
+Deno.test("final_response_pipeline does not rewrite plan done language", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent: "J'ai modifié ton plan.",
     userMessage: "allège mon plan",
@@ -255,17 +193,14 @@ Deno.test("final_response_pipeline traces plan done language without rewriting r
     effectLedger: createEffectLedger("turn_final_handoff_done"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({ ensureVisibleSophiaEmoji: (text: unknown) => String(text) }),
   });
 
-  assertEquals(result.guardEvents, ["uncommitted_plan_adjust_claim"]);
+  assertEquals(result.guardEvents, []);
   assertEquals(result.responseContent, "J'ai modifié ton plan.");
 });
 
-Deno.test("final_response_pipeline traces state potion activation claim without rewriting response", () => {
+Deno.test("final_response_pipeline does not rewrite state potion activation claim", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent:
       'Yes, activée "Clarté" ✅🧭\n\nMaintenant, écris une phrase.',
@@ -276,22 +211,17 @@ Deno.test("final_response_pipeline traces state potion activation claim without 
     effectLedger: createEffectLedger("turn_final_potion_activation_claim"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({ ensureVisibleSophiaEmoji: (text: unknown) => String(text) }),
   });
 
-  assertEquals(result.guardEvents, [
-    "uncommitted_state_potion_activate_claim",
-  ]);
+  assertEquals(result.guardEvents, []);
   assertEquals(
     result.responseContent,
     'Yes, activée "Clarté" ✅🧭\n\nMaintenant, écris une phrase.',
   );
 });
 
-Deno.test("final_response_pipeline traces recurring creation done language without rewriting response", () => {
+Deno.test("final_response_pipeline does not rewrite recurring creation done language", () => {
   const result = runFinalResponsePipeline({
     baseResponseContent: "C'est créé, le rappel récurrent est en place.",
     userMessage: "crée un rappel récurrent",
@@ -301,13 +231,10 @@ Deno.test("final_response_pipeline traces recurring creation done language witho
     effectLedger: createEffectLedger("turn_final_recurring_done"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({ ensureVisibleSophiaEmoji: (text: unknown) => String(text) }),
   });
 
-  assert(result.guardEvents.length > 0);
+  assertEquals(result.guardEvents, []);
   assertEquals(result.responseContent, "C'est créé, le rappel récurrent est en place.");
 });
 
@@ -322,9 +249,6 @@ Deno.test("final_response_pipeline allows recurring platform redirect", () => {
     effectLedger: createEffectLedger("turn_final_recurring_redirect"),
     activeSkillState: null,
     tempMemory: {},
-    history: [],
-    memoryV2ActiveContextBlock: "",
-    stylePreferences: { noEmoji: true },
     deps: deps({ ensureVisibleSophiaEmoji: (text: unknown) => String(text) }),
   });
 

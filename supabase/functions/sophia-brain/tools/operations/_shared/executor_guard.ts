@@ -18,7 +18,7 @@ export async function verifyExecutorConfirmation(input: {
     id: string,
   ) => Promise<{ consumed: boolean } | null>;
   token_consumption_check: (token_id: string) => Promise<boolean>;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
   now_iso?: string;
   secret?: string;
 }): Promise<ExecutorGuardResult> {
@@ -43,7 +43,7 @@ export async function verifyExecutorConfirmation(input: {
     user_id: input.user_id,
     pending_confirmation_lookup: input.pending_confirmation_lookup,
     token_consumption_check: input.token_consumption_check,
-    safety_pregate_risk_band: input.safety_pregate_risk_band,
+    safety_context_risk_band: input.safety_context_risk_band,
     now_iso: input.now_iso,
     secret: input.secret,
   });

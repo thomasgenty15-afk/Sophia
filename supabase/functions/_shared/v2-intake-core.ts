@@ -43,7 +43,7 @@ export async function previewTransformationsFromIntake(params: {
 }) {
   const output = await previewUnifiedIntake({
     requestId: `${params.requestId}:guest-intake`,
-    userId: params.userId ?? null,
+    userId: params.userId ?? undefined,
     rawIntakeText: params.rawIntakeText,
   });
 

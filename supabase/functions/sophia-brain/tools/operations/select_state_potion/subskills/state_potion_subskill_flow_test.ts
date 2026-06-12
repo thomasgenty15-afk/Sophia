@@ -603,32 +603,33 @@ Deno.test("state potion subskill reducer apply_attempt does not mutate locked fi
   assert(reduced.draft === null);
 });
 
-Deno.test("state potion subskill stop local does not exit to global dispatcher", () => {
+Deno.test("state potion subskill stop exits to global dispatcher with note", () => {
   const previous = createInitialStatePotionSubskillState("amour", null);
   const reduced = reduceStatePotionSubskillDispatcherOutput({
     previous,
     decision: baseDecision({
       selected_potion: "amour",
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       current_field_id: null,
       visible_task: {
         kind: "exit",
       },
       exit_memo: {
-        needed: false,
-        reason: "none",
-        flow_summary: null,
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "Potion amour arrêtée.",
         collected_value: null,
-        handoff_hint_for_global_dispatcher: null,
+        handoff_hint_for_global_dispatcher:
+          "Le user demande d'arreter le sous-flow potion.",
       },
     }),
   });
 
-  assertEquals(reduced.status, "cancelled");
+  assertEquals(reduced.status, "topic_change");
   assertEquals(reduced.visible_task, "exit");
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-  assertEquals(reduced.potion_subskill_state, null);
-  assertEquals(reduced.reason_code, "amour_flow_stopped_local_no_handoff");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.potion_subskill_state?.last_visible_task, "exit");
+  assertEquals(reduced.reason_code, "amour_flow_topic_change");
 });
 
 Deno.test("state potion subskill topic change exits to global dispatcher", () => {

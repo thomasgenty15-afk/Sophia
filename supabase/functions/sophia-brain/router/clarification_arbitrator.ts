@@ -271,22 +271,23 @@ function inboundNoteForClarification(args: {
 }): NoteInformation {
   return createNoteInformation({
     source_flow_id: args.sourceFlowId,
-    source_flow_state_summary: args.sourceSummary,
     handoff_reason: "bridge",
     target_dispatcher: "clarification",
     handoff_context_for_next_dispatcher:
       "Plusieurs signaux forts coexistent. Le dispatcher clarification doit arbitrer sans executer et produire un conversation_context filtre pour le prompt visible.",
-    target_local_dispatcher_hint: args.targetHint ?? null,
     user_words: [args.userMessage].filter(Boolean),
     structured_context: {
+      source_flow: args.sourceFlowId,
+      user_message_summary: args.userMessage,
+      active_flow_summary: args.sourceSummary,
       candidate_labels: args.candidates.map((candidate) => candidate.label),
       candidate_operation_types: args.candidates.map((candidate) =>
         candidate.operation_type ?? candidate.id
       ),
       unresolved_questions: ["direction_or_target_to_select"],
       evidence: ["multiple_candidate_signals"],
+      recommended_next_focus: args.targetHint ?? "clarification",
     },
-    risk_score: 0,
   });
 }
 

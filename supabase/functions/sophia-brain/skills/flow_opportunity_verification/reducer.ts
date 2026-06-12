@@ -31,7 +31,7 @@ const FLOW_ACTIONS = new Set([
   "correct_target_flow",
   "handoff_to_local_flow",
   "blocked_or_unsupported",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "cancel_flow",
   "defer_flow",
   "complete_flow",
@@ -352,8 +352,6 @@ function buildNoteInformation(args: {
       args.output.note_information.note,
       {
         source_flow_id: "flow_opportunity_verification",
-        source_flow_state_summary: args.previous?.confirmation_anchor.meaning ??
-          args.output.opportunity.reason,
         handoff_reason: handoffReasonForAction(args.action),
         target_dispatcher: targetDispatcherForAction({
           action: args.action,
@@ -372,8 +370,12 @@ function buildNoteInformation(args: {
           target_context: args.targetContext,
           confirmation_anchor: args.previous?.confirmation_anchor ?? null,
           subskill_context: args.output.subskill_call.context_for_subskill,
+          active_flow_summary: args.previous?.confirmation_anchor.meaning ??
+            args.output.opportunity.reason,
+          unresolved_questions: [],
+          recommended_next_focus: args.targetFlow,
         },
-        risk_score: args.output.risk_score,
+        confidence: args.output.confidence,
       },
     );
   }
@@ -384,9 +386,6 @@ function buildNoteInformation(args: {
   });
   return createNoteInformation({
     source_flow_id: "flow_opportunity_verification",
-    source_flow_state_summary: args.previous
-      ? `Opportunity ${args.previous.opportunity_id}; target=${args.previous.target_flow}; status=${args.previous.status}.`
-      : `Opportunity ${args.opportunityId}; target=${args.targetFlow}.`,
     handoff_reason: handoffReasonForAction(args.action),
     target_dispatcher: targetDispatcher,
     handoff_context_for_next_dispatcher:
@@ -394,12 +393,12 @@ function buildNoteInformation(args: {
       args.output.subskill_call.reason ||
       args.output.opportunity.reason ||
       "Flow opportunity verification is transferring ownership.",
-    target_local_dispatcher_hint: targetDispatcher === "safety_crisis"
-      ? "Safety owns the next turn; source flow context is background only."
-      : null,
     user_words: [args.userMessage],
     structured_context: {
       source_flow: "flow_opportunity_verification",
+      active_flow_summary: args.previous
+        ? `Opportunity ${args.previous.opportunity_id}; target=${args.previous.target_flow}; status=${args.previous.status}.`
+        : `Opportunity ${args.opportunityId}; target=${args.targetFlow}.`,
       handoff_action: args.action,
       opportunity_id: args.opportunityId,
       target_kind: args.targetKind,
@@ -419,14 +418,7 @@ function buildNoteInformation(args: {
       recommended_next_focus: summarizeTargetContext(args.targetContext) ||
         args.targetFlow,
     },
-    risk_score: args.output.risk_score,
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
-      scheduled_checkin_created: false,
-      recurring_reminder_created: false,
-      potion_session_created: false,
-    },
+    confidence: args.output.confidence,
   });
 }
 
@@ -577,8 +569,6 @@ export function normalizeFlowOpportunityDispatcherOutput(
           notePayload ?? noteRoot,
           {
             source_flow_id: "flow_opportunity_verification",
-            source_flow_state_summary:
-              "Flow opportunity verification transition.",
             handoff_reason: handoffReasonForAction(flowAction),
             target_dispatcher: targetDispatcherForAction({
               action: flowAction,
@@ -593,8 +583,13 @@ export function normalizeFlowOpportunityDispatcherOutput(
               stringValue(noteRoot.handoff_context_for_next_dispatcher) ||
               stringValue(opportunityRoot.reason) ||
               "Flow opportunity verification transition.",
-            structured_context: recordValue(noteRoot.structured_context),
-            risk_score: riskScore(root.risk_score),
+            user_words: stringArray(noteRoot.user_words, 3),
+            structured_context: {
+              active_flow_summary:
+                "Flow opportunity verification transition.",
+              ...recordValue(noteRoot.structured_context),
+            },
+            confidence: confidence(root.confidence),
           },
         )
         : null,
@@ -971,7 +966,6 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   }
 
   if (
-    action === "stop_local_no_handoff" ||
     action === "cancel_flow" ||
     action === "defer_flow" ||
     action === "complete_flow"
@@ -979,7 +973,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
     return {
       status: "cancelled",
       reason_code: `flow_opportunity_verification_${action}`,
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       local_state: null,
       visible_task: mergedVisibleTask,
       exit_to_global_dispatcher: false,
@@ -1062,8 +1056,6 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
       },
       note_information: createNoteInformation({
         source_flow_id: "flow_opportunity_verification",
-        source_flow_state_summary:
-          "flow opportunity verification expired after max turns",
         handoff_reason: "topic_change",
         target_dispatcher: "global",
         handoff_context_for_next_dispatcher:
@@ -1073,8 +1065,12 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
           opportunity_id: opportunityId,
           target_flow: targetFlow,
           target_context: seedContext,
+          active_flow_summary:
+            "flow opportunity verification expired after max turns",
+          unresolved_questions: [],
+          recommended_next_focus: "global",
         },
-        risk_score: output.risk_score,
+        confidence: output.confidence,
       }),
       blocked_effects: [],
       evidence: output.evidence,

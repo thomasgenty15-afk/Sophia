@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
+import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
 import { DEFAULT_TIMEZONE } from "../_shared/v2-constants.ts";
 import { getMomentumPolicyDefinition } from "./momentum_policy.ts";
 import {
@@ -43,6 +44,7 @@ import type {
   MorningNudgeKind,
   MorningNudgePayloadV2,
   MorningNudgeSuppressionReason,
+  MorningScheduledCommitment,
   PostMorningNudgeFlowKind,
 } from "./morning_nudge_contract.ts";
 import { flowKindForMorningNudgeKind } from "./morning_nudge_contract.ts";
@@ -430,6 +432,7 @@ export interface MorningNudgeV2Input {
   activePlanItems: PlanItemRuntimeRow[];
   phaseContext?: CurrentPhaseRuntimeContext | null;
   conversationPulse: ConversationPulse | null;
+  morningScheduledCommitments?: MorningScheduledCommitment[];
   lastNudge: LastNudgeInfo | null;
   proactiveHistory?: ProactiveHistoryEntry[];
   recentVictories: RecentVictoryInfo[];
@@ -455,6 +458,8 @@ export interface MorningNudgePlanV2 {
   suppressed_plan_item_titles?: string[];
   suppression_reason?: MorningNudgeSuppressionReason;
   morning_anchor?: MorningNudgeAnchor;
+  morning_scheduled_commitments?: MorningScheduledCommitment[];
+  coordination_notes?: string[];
   instruction?: string;
   event_grounding?: string;
   fallback_text?: string;
@@ -848,6 +853,103 @@ async function loadLastMorningNudgeInfo(args: {
   };
 }
 
+function compactCommitmentSummary(row: Record<string, unknown>): string | null {
+  const payload = row.message_payload && typeof row.message_payload === "object"
+    ? row.message_payload as Record<string, unknown>
+    : {};
+  const nestedNudge = payload.morning_nudge_v2 &&
+      typeof payload.morning_nudge_v2 === "object"
+    ? payload.morning_nudge_v2 as Record<string, unknown>
+    : {};
+  const candidates = [
+    payload.event_grounding,
+    payload.source_grounding,
+    nestedNudge.source_grounding,
+    payload.note,
+    row.event_context,
+    row.draft_message,
+  ];
+  for (const candidate of candidates) {
+    const text = cleanText(candidate).replace(/\s+/g, " ").slice(0, 180);
+    if (text) return text;
+  }
+  return null;
+}
+
+function compactCommitmentInstruction(
+  row: Record<string, unknown>,
+): string | null {
+  const payload = row.message_payload && typeof row.message_payload === "object"
+    ? row.message_payload as Record<string, unknown>
+    : {};
+  const candidates = [
+    payload.instruction,
+    payload.instruction_hint,
+    payload.reminder_instruction,
+    payload.morning_nudge_posture,
+    payload.momentum_strategy,
+  ];
+  for (const candidate of candidates) {
+    const text = cleanText(candidate).replace(/\s+/g, " ").slice(0, 180);
+    if (text) return text;
+  }
+  return null;
+}
+
+async function loadMorningScheduledCommitments(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  timezone: string;
+  scheduledForIso: string;
+  currentCheckinId?: string | null;
+}): Promise<MorningScheduledCommitment[]> {
+  const scheduledDate = new Date(args.scheduledForIso);
+  const now = Number.isNaN(scheduledDate.getTime())
+    ? new Date()
+    : scheduledDate;
+  const windowStartIso = computeScheduledForFromLocal({
+    timezone: args.timezone,
+    dayOffset: 0,
+    localTimeHHMM: "07:00",
+    now,
+  });
+  const windowEndIso = computeScheduledForFromLocal({
+    timezone: args.timezone,
+    dayOffset: 0,
+    localTimeHHMM: "12:00",
+    now,
+  });
+
+  const { data, error } = await args.supabase
+    .from("scheduled_checkins")
+    .select(
+      "id,scheduled_for,status,event_context,origin,draft_message,message_payload",
+    )
+    .eq("user_id", args.userId)
+    .in("status", ["pending", "awaiting_user"])
+    .gte("scheduled_for", windowStartIso)
+    .lt("scheduled_for", windowEndIso)
+    .order("scheduled_for", { ascending: true })
+    .limit(12);
+  if (error) throw error;
+
+  const currentCheckinId = cleanText(args.currentCheckinId);
+  return (Array.isArray(data) ? data as Record<string, unknown>[] : [])
+    .filter((row) => cleanText(row.id) !== currentCheckinId)
+    .filter((row) => !isMorningNudgeEventContext(row.event_context))
+    .slice(0, 6)
+    .map((row) => ({
+      id: cleanText(row.id),
+      scheduled_for: cleanText(row.scheduled_for),
+      event_context: cleanText(row.event_context, "scheduled_checkin"),
+      status: cleanText(row.status),
+      origin: cleanText(row.origin) || null,
+      summary: compactCommitmentSummary(row),
+      instruction_hint: compactCommitmentInstruction(row),
+    }))
+    .filter((item) => item.id && item.scheduled_for);
+}
+
 export function listMorningNudgeEventContexts(): string[] {
   return [...MORNING_NUDGE_EVENT_CONTEXTS];
 }
@@ -861,6 +963,7 @@ export async function resolveMorningNudgePlanV2(args: {
   userId: string;
   tempMemory: any;
   scheduledForIso?: string | null;
+  scheduledCheckinId?: string | null;
   timezone?: string | null;
 }): Promise<ResolvedMorningNudgeV2Plan> {
   const nowIso = cleanText(args.scheduledForIso) || new Date().toISOString();
@@ -888,34 +991,46 @@ export async function resolveMorningNudgePlanV2(args: {
     isPlanItemRelevantToday(item, localDayCode)
   );
 
-  const [pulseResult, victoryResult, nudgeHistory, proactiveHistory] =
-    await Promise
-      .all([
-        loadFreshConversationPulseForMorning({
-          supabase: args.supabase,
-          userId: args.userId,
-          cycleId: runtime.cycle?.id ?? null,
-          transformationId: runtime.transformation?.id ?? null,
-          nowIso,
-        }),
-        loadRecentVictoriesForMorning({
-          supabase: args.supabase,
-          userId: args.userId,
-          cycleId: runtime.cycle?.id ?? null,
-          transformationId: runtime.transformation?.id ?? null,
-          nowIso,
-        }),
-        loadLastMorningNudgeInfo({
-          supabase: args.supabase,
-          userId: args.userId,
-          nowIso,
-        }),
-        loadProactiveHistory(
-          args.supabase,
-          args.userId,
-          nowIso,
-        ),
-      ]);
+  const [
+    pulseResult,
+    victoryResult,
+    nudgeHistory,
+    proactiveHistory,
+    morningScheduledCommitments,
+  ] = await Promise
+    .all([
+      loadFreshConversationPulseForMorning({
+        supabase: args.supabase,
+        userId: args.userId,
+        cycleId: runtime.cycle?.id ?? null,
+        transformationId: runtime.transformation?.id ?? null,
+        nowIso,
+      }),
+      loadRecentVictoriesForMorning({
+        supabase: args.supabase,
+        userId: args.userId,
+        cycleId: runtime.cycle?.id ?? null,
+        transformationId: runtime.transformation?.id ?? null,
+        nowIso,
+      }),
+      loadLastMorningNudgeInfo({
+        supabase: args.supabase,
+        userId: args.userId,
+        nowIso,
+      }),
+      loadProactiveHistory(
+        args.supabase,
+        args.userId,
+        nowIso,
+      ),
+      loadMorningScheduledCommitments({
+        supabase: args.supabase,
+        userId: args.userId,
+        timezone,
+        scheduledForIso: nowIso,
+        currentCheckinId: args.scheduledCheckinId,
+      }),
+    ]);
 
   const planDeepWhy = cleanText(
     runtime.transformation?.success_definition ??
@@ -931,6 +1046,7 @@ export async function resolveMorningNudgePlanV2(args: {
     activePlanItems,
     phaseContext,
     conversationPulse: pulseResult.pulse,
+    morningScheduledCommitments,
     lastNudge: nudgeHistory.lastNudge,
     proactiveHistory,
     recentVictories: victoryResult,
@@ -1151,6 +1267,7 @@ function buildGroundingV2(args: {
   planDeepWhy: string | null;
   phaseContext?: CurrentPhaseRuntimeContext | null;
   morningAnchor: MorningNudgeAnchor;
+  morningScheduledCommitments: MorningScheduledCommitment[];
 }): string {
   const lines = [
     `event=morning_nudge_v2`,
@@ -1184,6 +1301,18 @@ function buildGroundingV2(args: {
     args.morningAnchor.do_not_mention.length > 0
       ? `morning_anchor.do_not_mention=${
         args.morningAnchor.do_not_mention.join(" | ")
+      }`
+      : null,
+    args.morningScheduledCommitments.length > 0
+      ? `morning_scheduled_commitments=${
+        args.morningScheduledCommitments.map((item) =>
+          [
+            item.scheduled_for,
+            item.event_context,
+            item.summary,
+            item.instruction_hint,
+          ].filter(Boolean).join(" :: ")
+        ).join(" || ")
       }`
       : null,
     args.phaseContext?.current_phase_title
@@ -1348,6 +1477,29 @@ function applyMorningAnchorToContent(args: {
   };
 }
 
+function applyMorningCommitmentCoordinationToContent(args: {
+  content: PostureContent;
+  commitments: MorningScheduledCommitment[];
+}): PostureContent {
+  if (args.commitments.length === 0) return args.content;
+  const commitmentLines = args.commitments.map((item) =>
+    [
+      item.scheduled_for,
+      item.event_context,
+      item.summary,
+      item.instruction_hint,
+    ].filter(Boolean).join(" - ")
+  );
+  const coordinationInstruction =
+    ` Coordination matin: des check-ins ou rappels sont deja prevus entre 7h et 12h (${
+      commitmentLines.join(" | ")
+    }). N'en fais pas doublon: ne repete pas la meme intention, le meme sujet ou la meme action. Si tu envoies quand meme un morning nudge, il doit etre complementaire, plus leger, ou prendre un angle distinct. Ne mentionne pas au user l'existence interne de cette coordination.`;
+  return {
+    ...args.content,
+    instruction: `${args.content.instruction}${coordinationInstruction}`,
+  };
+}
+
 function suppressionReasonForPosture(
   posture: MorningNudgePosture,
   input: MorningNudgeV2Input,
@@ -1474,6 +1626,9 @@ export function buildMorningNudgePayloadV2(args: {
     suppressed_action_titles: args.plan.suppressed_plan_item_titles ?? [],
     suppression_reason: args.plan.suppression_reason ?? null,
     morning_anchor: args.plan.morning_anchor ?? emptyMorningNudgeAnchor(),
+    morning_scheduled_commitments: args.plan.morning_scheduled_commitments ??
+      [],
+    coordination_notes: args.plan.coordination_notes ?? [],
     source_reason: args.plan.reason,
     source_grounding: args.plan.event_grounding ?? null,
     sent_at: cleanText(args.sentAtIso) || new Date().toISOString(),
@@ -1535,13 +1690,16 @@ export function buildMorningNudgePlanV2(
   const content = applyMorningAnchorToContent({
     posture,
     anchor: morningAnchor,
-    content: buildPostureContent(
-      posture,
-      todayTitles,
-      upcomingEvent,
-      topVictory,
-      phaseCelebration,
-    ),
+    content: applyMorningCommitmentCoordinationToContent({
+      commitments: input.morningScheduledCommitments ?? [],
+      content: buildPostureContent(
+        posture,
+        todayTitles,
+        upcomingEvent,
+        topVictory,
+        phaseCelebration,
+      ),
+    }),
   });
   const nudgeClassification = classifyMorningNudgeV2({
     input,
@@ -1562,6 +1720,7 @@ export function buildMorningNudgePlanV2(
     planDeepWhy: input.planDeepWhy,
     phaseContext: input.phaseContext,
     morningAnchor,
+    morningScheduledCommitments: input.morningScheduledCommitments ?? [],
   });
 
   return {
@@ -1575,6 +1734,12 @@ export function buildMorningNudgePlanV2(
     target_plan_item_titles: primaryPlanItems.map((item) => item.title),
     ...nudgeClassification,
     morning_anchor: morningAnchor,
+    morning_scheduled_commitments: input.morningScheduledCommitments ?? [],
+    coordination_notes: (input.morningScheduledCommitments ?? []).length > 0
+      ? [
+        "Morning nudge generated with awareness of scheduled check-ins/reminders in the 07:00-12:00 local window. Visible message must avoid redundancy.",
+      ]
+      : [],
     instruction: content.instruction,
     fallback_text: content.fallback_text,
     event_grounding: grounding,

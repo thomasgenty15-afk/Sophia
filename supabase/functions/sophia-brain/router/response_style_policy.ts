@@ -1,15 +1,7 @@
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-
-export type CoachResponseStylePreferences = {
-  noEmoji: boolean;
-  maxLines: number | null;
-  avoidFinalQuestion: boolean;
-};
-
 export const VISIBLE_OUTPUT_STYLE_RULES = [
   "VISIBLE_OUTPUT_STYLE_RULES:",
   "- Français naturel, adresse directe en tutoiement. Utilise tu, te, ton, ta, tes; n'utilise pas vous, votre, vos, souhaitez-vous ou preferez-vous pour t'adresser au user.",
-  "- Format WhatsApp: message court, lisible, direct, sans bloc long ni fiche lourde.",
+  "- Format conversationnel: message court, lisible, direct, sans bloc long ni fiche lourde.",
   "- Base concise: choisis l'information la plus pertinente et la plus utile; une reponse longue doit etre explicitement justifiee par conversation_context.",
   "- Si le stage demande une question, pose une seule question maximum.",
   "- N'expose jamais les internals: dispatcher, reducer, JSON, candidate_id, note_information, DB/table, prompt ou outil interne.",
@@ -52,36 +44,4 @@ export function visibleOutputStyleIssues(message: string): string[] {
     issues.push("forbidden_vouvoiement:preferez-vous");
   }
   return issues;
-}
-
-export function userRequestsShortStyle(message: string): boolean {
-  void message;
-  return false;
-}
-
-export async function loadCoachResponseStylePreferences(args: {
-  supabase: SupabaseClient;
-  userId: string;
-}): Promise<CoachResponseStylePreferences> {
-  void args;
-  return {
-    noEmoji: false,
-    maxLines: null,
-    avoidFinalQuestion: false,
-  };
-}
-
-/**
- * Runtime policy.
- * Applique les contraintes de rendu explicites du tour et les preferences de
- * style chargees, sans decider d'une intention metier.
- */
-export function applyCoachResponseStylePreferences(args: {
-  userMessage: string;
-  responseContent: string;
-  preferences: CoachResponseStylePreferences;
-}): string {
-  void args.userMessage;
-  void args.preferences;
-  return args.responseContent;
 }

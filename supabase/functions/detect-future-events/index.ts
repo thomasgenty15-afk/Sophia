@@ -35,7 +35,11 @@ Deno.serve(async (req) => {
         .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
 
       if (usersError) throw usersError
-      const userIds = [...new Set((activeUsers ?? []).map(u => u.user_id))]
+      const userIds = [...new Set(
+        ((activeUsers ?? []) as Array<{ user_id: string | null }>)
+          .map((u) => String(u.user_id ?? "").trim())
+          .filter(Boolean),
+      )]
 
       const now = Date.now()
       const results = userIds.map((userId) => ({
@@ -70,7 +74,11 @@ Deno.serve(async (req) => {
     if (usersError) throw usersError
 
     // Deduplicate user IDs
-    const userIds = [...new Set(activeUsers.map(u => u.user_id))]
+    const userIds = [...new Set(
+      ((activeUsers ?? []) as Array<{ user_id: string | null }>)
+        .map((u) => String(u.user_id ?? "").trim())
+        .filter(Boolean),
+    )]
     console.log(`[detect-future-events] request_id=${requestId} active_users=${userIds.length}`)
 
     const results = []
@@ -100,7 +108,9 @@ Deno.serve(async (req) => {
       if (!messages || messages.length === 0) continue
 
       // Format transcript
-      const transcript = messages.map(m => `[${m.created_at}] ${m.role}: ${m.content}`).join('\n')
+      const transcript = (messages as Array<{ created_at: string; role: string; content: string }>)
+        .map((m) => `[${m.created_at}] ${m.role}: ${m.content}`)
+        .join('\n')
       const now = tctx.now_utc
 
       // 3. Prompt Gemini
@@ -161,7 +171,7 @@ Deno.serve(async (req) => {
             true, // JSON mode
             [],
             "auto",
-            { requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "detect-future-events" }
+            { requestId, userId, model: getGlobalAiModel("gemini-2.5-flash"), source: "detect-future-events" }
         )
 
         const events = JSON.parse(responseText as string)
@@ -229,4 +239,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

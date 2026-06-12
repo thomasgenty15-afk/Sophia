@@ -9,7 +9,9 @@ function assertEquals(actual: unknown, expected: unknown, msg?: string) {
   const e = JSON.stringify(expected);
   if (a !== e) {
     throw new Error(
-      `${msg ? msg + " — " : ""}Assertion failed.\nExpected: ${e}\nActual:   ${a}`,
+      `${
+        msg ? msg + " — " : ""
+      }Assertion failed.\nExpected: ${e}\nActual:   ${a}`,
     );
   }
 }
@@ -44,7 +46,40 @@ function makeFakeSupabase() {
   return { supabase, calls };
 }
 
-Deno.test("logBrainTrace: non-eval does not persist into conversation_eval_events (prod uses turn_summary_logs)", async () => {
+Deno.test("logBrainTrace: non-eval persists into conversation_runtime_events for real-user audit", async () => {
+  resetPing();
+  const { supabase, calls } = makeFakeSupabase();
+
+  await logBrainTrace({
+    supabase,
+    userId: "user-1",
+    meta: {
+      requestId: "req-1",
+      turnId: "turn-1",
+      channel: "web",
+      scope: "web",
+      forceBrainTrace: true,
+    },
+    event: "brain:request_start",
+    level: "info",
+    phase: "io",
+    payload: { hello: "world" },
+  });
+
+  assertEquals(calls.rpc.length, 0, "no rpc");
+  assertEquals(calls.insert.length, 1, "one runtime insert");
+  assertEquals(calls.insert[0]?.table, "conversation_runtime_events");
+  assertEquals(calls.insert[0]?.row?.request_id, "req-1");
+  assertEquals(calls.insert[0]?.row?.turn_id, "turn-1");
+  assertEquals(calls.insert[0]?.row?.user_id, "user-1");
+  assertEquals(calls.insert[0]?.row?.channel, "web");
+  assertEquals(calls.insert[0]?.row?.scope, "web");
+  assertEquals(calls.insert[0]?.row?.source, "brain-trace");
+  assertEquals(calls.insert[0]?.row?.event, "brain:request_start");
+  assertEquals(calls.insert[0]?.row?.phase, "io");
+});
+
+Deno.test("logBrainTrace: normal request does not write into conversation_eval_events", async () => {
   resetPing();
   const { supabase, calls } = makeFakeSupabase();
 
@@ -58,13 +93,14 @@ Deno.test("logBrainTrace: non-eval does not persist into conversation_eval_event
     payload: { hello: "world" },
   });
 
-  // Non-eval: should not do a direct insert into conversation_eval_events,
-  // and should not call RPC (we persist production traces inside turn_summary_logs).
-  assertEquals(calls.insert.length, 0, "no direct insert");
+  assert(
+    !calls.insert.some((c) => c.table === "conversation_eval_events"),
+    "non-eval should not write eval events",
+  );
   assertEquals(calls.rpc.length, 0, "no rpc");
 });
 
-Deno.test("logBrainTrace: eval persists via direct insert into conversation_eval_events", async () => {
+Deno.test("logBrainTrace: structured trace persists via direct insert into conversation_eval_events", async () => {
   resetPing();
   const { supabase, calls } = makeFakeSupabase();
 
@@ -81,8 +117,18 @@ Deno.test("logBrainTrace: eval persists via direct insert into conversation_eval
   // Eval: should not use RPC.
   assertEquals(calls.rpc.length, 0, "no rpc in eval mode");
 
-  // Should insert the event (and likely the ping) into conversation_eval_events.
+  // Should insert the event into runtime events and the event/ping into eval events.
   assert(calls.insert.length >= 1, "insert called");
+  assert(
+    calls.insert.some((c) =>
+      c.table === "conversation_runtime_events" &&
+      c.row?.request_id === "req-2" &&
+      c.row?.user_id === "user-1" &&
+      c.row?.source === "brain-trace" &&
+      c.row?.event === "brain:request_start"
+    ),
+    "insert contains runtime event",
+  );
   assert(
     calls.insert.some((c) =>
       c.table === "conversation_eval_events" &&
@@ -122,5 +168,3 @@ Deno.test("logBrainTrace: requestId missing -> does not persist", async () => {
   assertEquals(calls.rpc.length, 0, "no rpc");
   assertEquals(calls.insert.length, 0, "no insert");
 });
-
-

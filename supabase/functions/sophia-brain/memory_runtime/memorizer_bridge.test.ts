@@ -49,9 +49,9 @@ Deno.test("memorizer bridge validates strict MemoryWriteCandidate schema", () =>
   );
 });
 
-Deno.test("memorizer bridge rejects non-risk candidates when safety pregate is medium or higher", () => {
+Deno.test("memorizer bridge rejects non-risk candidates when safety context is medium or higher", () => {
   const rejected = validateMemoryWriteCandidate(candidate(), {
-    safety_pregate_risk_band: "medium",
+    safety_context_risk_band: "medium",
   });
   assertEquals(rejected.ok, false);
   if (!rejected.ok) {
@@ -64,7 +64,7 @@ Deno.test("memorizer bridge rejects non-risk candidates when safety pregate is m
       content_text: "risque de crise detecte dans le message",
       sensitivity_level: 4,
     }),
-    { safety_pregate_risk_band: "medium" },
+    { safety_context_risk_band: "medium" },
   );
   assertEquals(accepted.ok, true);
 });

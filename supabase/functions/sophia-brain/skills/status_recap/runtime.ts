@@ -4,6 +4,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.ts";
 import { clearToolSkillFlowForDirectReminder } from "../../router/active_flow_state.ts";
+import { withDirectEffectLocalContext } from "../../router/direct_effect_local_context.ts";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
 import {
@@ -122,10 +123,6 @@ function exitMemoForTempMemory(args: {
   const noteInformation = args.decision.note_information ??
     createNoteInformation({
       source_flow_id: "status_recap",
-      source_flow_state_summary:
-        args.decision.exit_memo.local_flow_context.last_answer_summary ??
-          args.decision.status_intent.summary ??
-          "Status recap local flow is handing off.",
       handoff_reason: targetDispatcher === "safety_crisis"
         ? "safety"
         : args.decision.exit_memo.reason === "product_help" ||
@@ -151,9 +148,6 @@ function exitMemoForTempMemory(args: {
             "Reprocess the current user message outside status_recap.",
         note_information_inbound: args.noteInformationInbound,
       }),
-      target_local_dispatcher_hint: targetDispatcher === "safety_crisis"
-        ? "Safety owns the next turn. Do not continue status_recap."
-        : "Reprocess the same user message. Status recap did not mutate anything.",
       user_words: [args.userMessage],
       structured_context: {
         source_flow: "status_recap",
@@ -171,7 +165,7 @@ function exitMemoForTempMemory(args: {
             args.decision.exit_memo.user_intent_summary ??
             "Reprocess the current user message outside status_recap.",
       },
-      risk_score: args.decision.risk_score,
+      confidence: args.decision.confidence,
     });
   return {
     ...args.decision.exit_memo,
@@ -190,6 +184,7 @@ export async function maybeRunStatusRecapRuntime(args: {
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
   activeOperationIntake: unknown;
+  planItemSnapshot?: unknown;
   history?: unknown;
   requestId?: string | null;
   runLocalDispatcher?: StatusRecapLocalDispatcher;
@@ -224,14 +219,10 @@ export async function maybeRunStatusRecapRuntime(args: {
     (!activeStatusFlow && statusRecapRouteSignal(args.routeDecision)
       ? createNoteInformation({
         source_flow_id: "global_dispatcher",
-        source_flow_state_summary:
-          "Global dispatcher selected status_recap for a read-only status request.",
         handoff_reason: "explicit_user_request",
         target_dispatcher: "status_recap",
         handoff_context_for_next_dispatcher:
           "Run status_recap local dispatcher. Read DB context only; do not mutate or answer from global.",
-        target_local_dispatcher_hint:
-          "Answer factual status from the status_recap db_context_pack and projection.",
         user_words: [args.userMessage],
         structured_context: {
           source_flow: "global_dispatcher",
@@ -246,7 +237,7 @@ export async function maybeRunStatusRecapRuntime(args: {
           recommended_next_focus:
             "Ground the answer in the target DB status projection.",
         },
-        risk_score: 0,
+        confidence: "medium",
       })
       : null);
   const dispatcher = args.runLocalDispatcher ?? runStatusRecapLocalDispatcher;
@@ -266,10 +257,10 @@ export async function maybeRunStatusRecapRuntime(args: {
     note_information_inbound: noteInformationInbound,
     db_context_pack: dbContextPack,
     micro_memory_context: [],
-    platform_context: {
+    platform_context: withDirectEffectLocalContext({
       timezone: args.userTimezone,
       channel: args.turnFrame?.channel ?? "web",
-    },
+    }, args.planItemSnapshot ?? null),
     risk_context: {
       safety_risk_band: args.turnFrame?.safety.risk_band ?? null,
       risk_score: 0,

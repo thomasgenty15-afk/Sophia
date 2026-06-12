@@ -4,6 +4,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
 import { intervalFromStripePriceId, tierFromStripePriceId } from "../_shared/billing-tier.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
 
 function requireEnv(name: string): string {
   const v = (globalThis as any)?.Deno?.env?.get?.(name);
@@ -40,6 +41,7 @@ function pickActiveSubscription(subs: StripeSub[]): StripeSub | null {
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
+  let currentUserId: string | null = null;
 
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsErr = enforceCors(req);
@@ -67,6 +69,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
     }
+    currentUserId = user.id;
 
     const admin = createClient(supabaseUrl, supabaseServiceRole);
 
@@ -77,6 +80,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (profErr) {
       console.error("[stripe-sync-subscription] profile read error", profErr);
+      await logEdgeFunctionError({
+        functionName: "stripe-sync-subscription",
+        error: profErr,
+        severity: "error",
+        title: "profile_read_failed",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+      });
       return serverError(req, requestId);
     }
     let customerId = (profile as any)?.stripe_customer_id as string | null | undefined;
@@ -162,8 +174,36 @@ Deno.serve(async (req) => {
     );
     if (upsertErr) {
       console.error("[stripe-sync-subscription] subscriptions upsert error", upsertErr);
+      await logEdgeFunctionError({
+        functionName: "stripe-sync-subscription",
+        error: upsertErr,
+        severity: "error",
+        title: "subscription_upsert_failed",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+        metadata: { stripe_subscription_id: picked.id, stripe_price_id: stripePriceId },
+      });
       return serverError(req, requestId);
     }
+
+    await logEdgeFunctionError({
+      functionName: "stripe-sync-subscription",
+      error: "Stripe subscription synced",
+      severity: "info",
+      title: "subscription_synced",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+      metadata: {
+        status,
+        stripe_subscription_id: picked.id,
+        stripe_price_id: stripePriceId,
+        tier,
+        interval,
+        current_period_end: currentPeriodEnd,
+      },
+    });
 
     return jsonResponse(req, {
       ok: true,
@@ -176,10 +216,18 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("[stripe-sync-subscription] error", err);
+    await logEdgeFunctionError({
+      functionName: "stripe-sync-subscription",
+      error: err,
+      severity: "error",
+      title: "subscription_sync_failed",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+    });
     const msg = err instanceof Error ? err.message : "Internal Server Error";
     if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
     return serverError(req, requestId);
   }
 });
-
 

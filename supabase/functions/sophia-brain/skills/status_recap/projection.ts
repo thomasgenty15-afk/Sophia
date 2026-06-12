@@ -152,12 +152,12 @@ export async function loadStatusRecapProjection(args: {
       args.supabase
         .from("scheduled_checkins")
         .select(
-          "id,scheduled_for,status,message_payload,event_context,draft_message,updated_at",
+          "id,scheduled_for,status,message_payload,event_context,draft_message",
         )
         .eq("user_id", args.userId)
         .eq("status", "cancelled")
         .like("event_context", "one_shot_reminder:%")
-        .order("updated_at", { ascending: false })
+        .order("scheduled_for", { ascending: false })
         .limit(5) as any,
     ),
     safeRows<Record<string, unknown>>(

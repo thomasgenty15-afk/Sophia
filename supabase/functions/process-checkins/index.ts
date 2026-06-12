@@ -2326,6 +2326,7 @@ Deno.serve(async (req) => {
             userId: String(checkin.user_id),
             tempMemory,
             scheduledForIso: String((checkin as any)?.scheduled_for ?? ""),
+            scheduledCheckinId: String((checkin as any)?.id ?? ""),
             timezone: userTimezone,
           });
           morningPlan = resolvedMorningPlan.plan;

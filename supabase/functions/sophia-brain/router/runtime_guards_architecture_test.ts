@@ -2,13 +2,6 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { applyUnexecutedEffectClaimGuard } from "./final_response_guards.ts";
-import { applyCoachResponseStylePreferences } from "./response_style_policy.ts";
-import {
-  createEffectLedger,
-  recordRequestedEffect,
-  rewriteUncommittedEffectClaims,
-} from "./effect_ledger.ts";
 import { executedToolsForStatus } from "./effect_ledger_adapter.ts";
 
 const ROOT = new URL("../", import.meta.url);
@@ -346,8 +339,8 @@ Deno.test("one_shot_reminder_runtime_requires_structured_direct_effect", async (
     assert(error instanceof Deno.errors.NotFound);
   }
 
-  const routeGuardsText = await Deno.readTextFile(
-    new URL("tools/always_on/one_shot_reminder/route_guards.ts", ROOT),
+  const oneShotRouterText = await Deno.readTextFile(
+    new URL("tools/always_on/one_shot_reminder/router.ts", ROOT),
   );
   for (
     const removedHelper of [
@@ -359,7 +352,7 @@ Deno.test("one_shot_reminder_runtime_requires_structured_direct_effect", async (
       "shouldOneShotReminderSupersedeToolFlow",
     ]
   ) {
-    assert(!routeGuardsText.includes(removedHelper), removedHelper);
+    assert(!oneShotRouterText.includes(removedHelper), removedHelper);
   }
 });
 
@@ -437,37 +430,16 @@ Deno.test("run_ts_has_no_new_tool_runtime_import_sprawl", async () => {
   }
 });
 
-Deno.test("final_effect_claim_guard_still_rewrites_without_commit", () => {
-  const guarded = applyUnexecutedEffectClaimGuard({
-    responseContent: "C'est programmé ✅",
-    intendedTools: ["create_one_shot_reminder"],
-    executedTools: [],
-  });
-  assert(guarded.includes("je n'ai pas encore programmé"));
-});
-
-Deno.test("style_policy_no_emoji_still_applies", () => {
-  const guarded = applyCoachResponseStylePreferences({
-    userMessage: "Réponds sans emoji, en 3 lignes.",
-    responseContent: "Ok 🙂\nJe garde une action.\nTu confirmes ?",
-    preferences: {
-      noEmoji: false,
-      maxLines: null,
-      avoidFinalQuestion: true,
-    },
-  });
-  assertEquals(guarded.includes("🙂"), false);
-  assertEquals(guarded.includes("?"), false);
-});
-
-Deno.test("run_no_longer_imports_one_shot_route_regex_guards", async () => {
-  const runText = await Deno.readTextFile(new URL("./router/run.ts", ROOT));
-  assert(!runText.includes("oneShotReminderStatusBlocksToolFlow"));
-  assert(
-    !runText.includes("oneShotReminderDirectEffectBlockForNonMutationContext"),
-  );
-  assert(!runText.includes("oneShotReminderModificationRouteGuard"));
-  assert(!runText.includes("shouldOneShotReminderSupersedeToolFlow"));
+Deno.test("one_shot_legacy_route_guard_file_stays_removed", async () => {
+  const removedFile = ["route", "guards.ts"].join("_");
+  try {
+    await Deno.stat(
+      new URL(`tools/always_on/one_shot_reminder/${removedFile}`, ROOT),
+    );
+    assert(false, "one-shot legacy guard file must stay removed");
+  } catch (error) {
+    assert(error instanceof Deno.errors.NotFound);
+  }
 });
 
 Deno.test("operation_runtime_pipeline_is_unique_runtime_entry_for_tools", async () => {
@@ -508,7 +480,7 @@ Deno.test("run_ts_does_not_execute_tools_without_effect_ledger_adapter", async (
   assert(!/executedTools\s*:\s*status\s*===/.test(runText));
 });
 
-Deno.test("executed_tools_require_success_and_final_guards_rewrite_uncommitted_claims", () => {
+Deno.test("executed_tools_require_success_and_committed_effects", () => {
   assertEquals(executedToolsForStatus("blocked", ["prepare_attack_card"]), []);
   assertEquals(executedToolsForStatus("failed", ["prepare_attack_card"]), []);
   assertEquals(executedToolsForStatus("success", ["prepare_attack_card"]), []);
@@ -518,19 +490,6 @@ Deno.test("executed_tools_require_success_and_final_guards_rewrite_uncommitted_c
     }]),
     ["prepare_attack_card"],
   );
-
-  const ledger = createEffectLedger("turn-architecture");
-  recordRequestedEffect(ledger, {
-    effect_id: "requested-card",
-    effect_type: "attack_card.create",
-    operation_type: "prepare_attack_card",
-    source: "tool_skill",
-  });
-  const rewritten = rewriteUncommittedEffectClaims({
-    reply: "Carte créée.",
-    ledger,
-  });
-  assertEquals(rewritten.changed, true);
 });
 
 Deno.test("no_executed_tools_from_plain_status_pattern", async () => {

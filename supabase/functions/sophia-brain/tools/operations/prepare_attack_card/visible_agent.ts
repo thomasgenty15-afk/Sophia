@@ -175,7 +175,7 @@ function visibleTaskInstruction(
     case "ask_platform_field":
       return "Champ plateforme: pose une seule question naturelle pour obtenir le champ courant, sans formulaire et sans inventer de valeur.";
     case "confirm_platform_field_proposal":
-      return "Proposition de champ: demande si la valeur proposée correspond, sans handoff final.";
+      return "Proposition de champ: demande si la valeur proposée correspond, sans finaliser la carte.";
     case "handoff_ready":
       return "Handoff prêt: donne naturellement la destination Cartes d'attaque, la technique exacte, puis recopie chaque champ plateforme exact et sa valeur exacte. Si c'est une révision, n'écris pas que tu as pris en compte, noté, gardé, mémorisé ou enregistré la correction.";
     case "revision_done":
@@ -189,7 +189,7 @@ function visibleTaskInstruction(
     case "inline_tool_return":
       return "Retour inline: formule une transition courte après la réponse produit/statut, en gardant le flow parent intact.";
     case "stop_or_cancel":
-      return "Stop local: confirme brièvement que la carte est mise de côté, sans question finale et sans relancer le flow.";
+      return "Sortie carte: confirme brièvement que la carte est mise de côté si un message local est requis, sans question finale et sans traiter un nouveau sujet.";
     case "exit_ack":
       return "Exit: si un message source est nécessaire, fais une transition très courte; sinon le dispatcher cible reprendra.";
     case "exit_or_cancel":

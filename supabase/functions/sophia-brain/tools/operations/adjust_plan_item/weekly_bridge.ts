@@ -16,53 +16,6 @@ export function weeklyAdaptiveReviewStateForTurn(args: {
   return isWeeklyAdaptiveReviewActive(active) ? active : null;
 }
 
-export type WeeklyForgottenProgressCandidate = {
-  detected: boolean;
-  ready: boolean;
-  plan_item_id: string | null;
-  title: string | null;
-  count: number | null;
-  date_hint: string | null;
-  reason_code: string;
-};
-
-const EMPTY_PROGRESS_CANDIDATE: WeeklyForgottenProgressCandidate = {
-  detected: false,
-  ready: false,
-  plan_item_id: null,
-  title: null,
-  count: null,
-  date_hint: null,
-  reason_code: "weekly_bridge_text_parsing_disabled",
-};
-
-export function weeklyForgottenProgressMentioned(message: string): boolean {
-  void message;
-  return false;
-}
-
-export function resolveWeeklyForgottenProgressCandidates(args: {
-  activeSkillState?: unknown;
-  tempMemory?: unknown;
-  userMessage: string;
-}): WeeklyForgottenProgressCandidate[] {
-  void args.activeSkillState;
-  void args.tempMemory;
-  void args.userMessage;
-  return [];
-}
-
-export function resolveWeeklyForgottenProgressCandidate(args: {
-  activeSkillState?: unknown;
-  tempMemory?: unknown;
-  userMessage: string;
-}): WeeklyForgottenProgressCandidate {
-  void args.activeSkillState;
-  void args.tempMemory;
-  void args.userMessage;
-  return EMPTY_PROGRESS_CANDIDATE;
-}
-
 export type WeeklyExactAdjustPlanProposal = Record<string, unknown>;
 export type WeeklyAdjustPlanPendingReview = Record<string, unknown>;
 

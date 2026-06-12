@@ -19,7 +19,7 @@ export type SafetyCrisisLocalDispatcherInput = {
   request_id?: string | null;
   user_message: string;
   recent_messages: RunSkillInput["context"]["recent_messages"];
-  source_safety_pregate: {
+  source_safety_context: {
     risk_band: SafetyCrisisSnapshot["source_risk_band"];
     reason_codes?: string[];
     evidence?: unknown[];
@@ -50,7 +50,7 @@ const FLOW_ACTIONS = new Set([
   "repeat_current_step",
   "product_or_tool_attempt",
   "wants_to_exit",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "exit_to_global_dispatcher",
   "safety_escalate",
 ]);
@@ -206,6 +206,12 @@ export function normalizeSafetyCrisisLocalDispatcherOutput(
   const boundaryRoot = isRecord(root.product_tool_boundary)
     ? root.product_tool_boundary
     : {};
+  const directEffectRoot = isRecord(root.direct_effect_request)
+    ? root.direct_effect_request
+    : {};
+  const payloadHintRoot = isRecord(directEffectRoot.payload_hint)
+    ? directEffectRoot.payload_hint
+    : {};
   const exitRoot = isRecord(root.exit_request) ? root.exit_request : {};
   const hintsRoot = isRecord(root.state_hints) ? root.state_hints : {};
   const flowAction = enumValue<SafetyCrisisLocalFlowAction>(
@@ -261,6 +267,31 @@ export function normalizeSafetyCrisisLocalDispatcherOutput(
       ),
       defer_reason: nullableString(boundaryRoot.defer_reason),
     },
+    direct_effect_request: {
+      requested: directEffectRoot.requested === true,
+      effect_type: directEffectRoot.effect_type === "create_one_shot_reminder"
+        ? "create_one_shot_reminder"
+        : null,
+      explicitness: directEffectRoot.explicitness === "explicit" ||
+          directEffectRoot.explicitness === "implied" ||
+          directEffectRoot.explicitness === "weak"
+        ? directEffectRoot.explicitness
+        : "none",
+      target_status: directEffectRoot.target_status === "identified" ||
+          directEffectRoot.target_status === "ambiguous" ||
+          directEffectRoot.target_status === "missing"
+        ? directEffectRoot.target_status
+        : "none",
+      confidence_band: directEffectRoot.confidence_band === "high" ||
+          directEffectRoot.confidence_band === "medium" ||
+          directEffectRoot.confidence_band === "low"
+        ? directEffectRoot.confidence_band
+        : "low",
+      payload_hint: {
+        raw_text: nullableString(payloadHintRoot.raw_text, 600),
+      },
+      reason: nullableString(directEffectRoot.reason),
+    },
     exit_request: {
       requested: exitRoot.requested === true ||
         flowAction === "wants_to_exit",
@@ -314,43 +345,43 @@ export function dispatcherSystemPrompt(): string {
     "Tu ne choisis pas la phase finale et tu ne declares jamais le flow resolved. Le reducer safety choisira la phase et la prochaine tache visible.",
     "L'assistant IA ne compte jamais comme aide humaine.",
     '"Je vais mieux" ne suffit pas a resoudre le flow sans faits sur danger immediat, moyens, solitude/support.',
-    "Si le user demande une potion, une carte, un plan, un rappel, une preference, un statut ou une aide produit pendant safety, retourne product_or_tool_attempt. Ne route pas.",
-    "Si le user veut seulement arreter le flow sans nouveau sujet clair et sans signal de danger frais, retourne stop_local_no_handoff.",
-    "Si le user apporte un nouveau sujet clair ET fournit aussi des faits solides de securite actuelle, retourne exit_to_global_dispatcher. Sinon, reste dans safety.",
-    "Ne propose aucun outil, ne cree aucun effet durable, ne cree aucune confirmation, ne baisse jamais le risque sur une formulation vague.",
+    "Si le user demande explicitement un rappel ponctuel pendant safety, remplis direct_effect_request pour create_one_shot_reminder. Pour potion, carte, plan, preference, statut ou aide produit, retourne product_or_tool_attempt. Ne route pas.",
+    "Si le user veut arreter le flow ou apporte un nouveau sujet clair, retourne exit_to_global_dispatcher seulement si les faits solides de securite actuelle permettent une sortie. Sinon, reste dans safety avec wants_to_exit ou une action safety.",
+    "Tu peux demander le direct_effect standard create_one_shot_reminder via direct_effect_request; tu ne l'executes jamais toi-meme, tu ne confirmes jamais sa creation, et tu ne crees aucune confirmation.",
     'Si une information est absente, retourne null. Si la formulation est contradictoire ou ambigue, uncertainty="high".',
     "no_tooling.* doit toujours etre false.",
     "",
     "Field Completion Rules:",
-    "- flow_action: decision principale de ce tour. Elle doit refleter le message courant dans l'etat safety, pas seulement prior_phase. Utilise answer_safety_check pour une reponse safety generale; provide_means_status quand le user donne une info sur moyens proches/eloignes; provide_alone_status pour solitude/presence; provide_support_status pour aide humaine; provide_emergency_status pour urgence appelee/contactee; provide_deescalation_evidence quand le user donne des preuves concretes de securite actuelle; needs_grounding quand il reste submerge sans fait exploitable; repeat_current_step quand il demande de repeter; product_or_tool_attempt quand il demande produit, statut, plan, potion, carte, rappel ou outil; wants_to_exit quand il veut sortir mais sans nouveau sujet clair; stop_local_no_handoff quand il veut juste arreter sans nouveau sujet et sans nouveau risque; exit_to_global_dispatcher seulement si nouveau sujet clair ET faits solides de securite actuelle; safety_escalate si danger immediat, moyen proche avec risque d'acte, ou besoin d'urgence. N'invente pas handoff_to_local_flow: cette action n'existe pas dans ce contrat.",
+    "- flow_action: decision principale de ce tour. Elle doit refleter le message courant dans l'etat safety, pas seulement prior_phase. Utilise answer_safety_check pour une reponse safety generale; provide_means_status quand le user donne une info sur moyens proches/eloignes; provide_alone_status pour solitude/presence; provide_support_status pour aide humaine; provide_emergency_status pour urgence appelee/contactee; provide_deescalation_evidence quand le user donne des preuves concretes de securite actuelle; needs_grounding quand il reste submerge sans fait exploitable; repeat_current_step quand il demande de repeter; product_or_tool_attempt quand il demande produit, statut, plan, potion, carte ou outil hors rappel ponctuel; wants_to_exit quand il veut sortir mais que les faits de resolution manquent; exit_to_global_dispatcher quand il veut arreter ou apporte un nouveau sujet clair ET que les faits solides de securite actuelle permettent une sortie; safety_escalate si danger immediat, moyen proche avec risque d'acte, ou besoin d'urgence. Pour un rappel ponctuel explicite, garde une action safety pertinente et remplis direct_effect_request. N'invente pas handoff_to_local_flow: cette action n'existe pas dans ce contrat.",
     "- confidence: high si l'intention et les faits safety sont explicites; medium si l'intention est probable mais incomplete; low si le message est vague, contradictoire, ou demande prudence. La confidence aide le reducer a rester conservateur via uncertainty/evidence; elle ne suffit jamais a resoudre le flow.",
     "- risk_score: score local 0-10 raccord avec le risque du tour. 0-2 seulement si absence de danger actuelle explicitement et aucun signal frais; 3-5 pour ideation passive, doute ou sortie incomplete; 6-7 pour risque actif non immediat ou moyens/incertitude; 8-10 pour danger immediat, moyens proches avec intention, urgence ou safety_escalate. Ne cree pas de safety fictive, mais ne minimise pas une formulation de danger.",
     "- safety_signals: faits safety extraits du message courant. suicidal_ideation/self_harm_intent true seulement si exprime ou clairement implique; immediate_danger true si risque maintenant/prochain geste; has_means_nearby true/false selon proximite actuelle des moyens; means_moved_away true seulement si le user dit les avoir eloignes/confies/rendus inaccessibles; user_currently_alone true/false selon presence humaine reelle; human_support_available true seulement pour personne humaine disponible/presente/en appel; emergency_help_contacted true seulement si urgences/3114/service d'urgence contacte; clarified_non_immediate true si le user clarifie explicitement pas d'acte immediat; deescalation_evidence true seulement avec faits concrets de securite. Laisse null/false quand absent; ne transforme pas une hypothese en fait.",
     "- safety_signals.uncertainty: low si les faits sont nets et coherents; medium si partiels; high si absents, contradictoires, vagues ou si le message peut cacher un danger. Le reducer utilise cette prudence pour choisir le stage visible.",
     "- user_state_summary: paraphrase courte du besoin safety courant, sans diagnostic. current_need doit etre le besoin dominant parmi immediate_risk_check, grounding, move_means_away, contact_human, stay_with_support, exit_request, unclear. what_changed_since_previous_turn resume seulement le changement utile pour le reducer/visible context. Null si rien de fiable.",
-    "- product_tool_boundary: attempted=true uniquement si le user essaie d'obtenir produit/statut/outil/plan/potion/carte/rappel pendant safety. attempt_kind doit etre product_question, tool_creation, plan_work ou status_request; none si aucun attempt. defer_reason explique en une phrase pourquoi c'est differe. Ce champ influence visible_task product_tool_boundary; il ne route jamais vers product_help/status/tool.",
+    "- product_tool_boundary: attempted=true uniquement si le user essaie d'obtenir produit/statut/outil/plan/potion/carte pendant safety. Ne l'utilise pas pour un rappel ponctuel explicite: utilise direct_effect_request. attempt_kind doit etre product_question, tool_creation, plan_work ou status_request; none si aucun attempt. defer_reason explique en une phrase pourquoi c'est differe. Ce champ influence visible_task product_tool_boundary; il ne route jamais vers product_help/status/tool.",
+    "- direct_effect_request: champ structure pour exposer le meme direct effect one-shot reminder que le dispatcher global. requested=true seulement si le user demande explicitement un rappel ponctuel ou une verification a une heure/delai precis. effect_type vaut create_one_shot_reminder. explicitness=explicit si la demande est imperative/directe; implied ou weak si elle n'est pas assez claire. target_status=identified si le message contient un moment exploitable ou un delai clair, ambiguous si le moment est flou, missing si absent. confidence_band suit la clarte de la demande. payload_hint.raw_text doit reprendre le message user complet ou la clause exacte du rappel; ne synthetise pas trop. Laisse requested=false, effect_type=null, explicitness=none, target_status=none si aucun rappel ponctuel. Ce champ influence seulement le runtime direct_effect standard; il ne donne jamais le droit au visible agent de dire que le rappel est cree avant commit.",
     "- exit_request: requested=true si le user veut partir, arreter, ou affirme que c'est bon. why_user_thinks_safe reprend seulement les raisons donnees. missing_resolution_facts liste les faits manquants parmi immediate_danger_absent, means_safe, human_support_available, not_alone, no_fresh_risk_signal. Ne marque pas resolved; le reducer decide.",
     "- state_hints: suggested_trigger_summary et suggested_last_user_safety_signal sont des resumes compacts pour l'etat local. Garde seulement ce qui aide le flow safety; pas de profil global, pas de diagnostic, pas de memoire brute.",
     '- note_information: dans ce contrat dispatcher, retourne {"needed":false}. Les notes de premiere activation et de sortie sont produites par le runtime/reducer safety. Ne mets jamais la note brute dans un message visible.',
-    "- no_tooling: tous les champs doivent rester false. Si le user demande une action, encode product_tool_boundary ou flow_action safety; ne cree aucun effet, confirmation, DB write, operation_suggestion ou pending.",
+    "- no_tooling: tous les champs doivent rester false. direct_effect_request n'est pas une execution: tu peux le remplir, mais tu ne crees aucun effet, confirmation, DB write, operation_suggestion ou pending.",
     "- visible_task.kind: ce champ n'est pas dans ta sortie JSON. Le reducer le choisit depuis flow_action, risk_score, safety_signals, product_tool_boundary et exit_request. Tes champs doivent donc permettre un stage precis: immediate_risk_check, acute_grounding, support_contact, stabilizing, exit_check, resolved_exit, repeat_current_step, product_tool_boundary, stop_or_cancel ou safety_escalation.",
     "- visible_task.conversation_context: tu ne le remplis pas directement. Le reducer le construit depuis tes signaux, summaries, boundary, exit_request, state_hints et evidence. Fournis des faits courts, pas de DB brute, pas de memoire brute, pas de note_information brute, pas de texte visible.",
     "- exit_memo et response_contract: absents de ta sortie JSON. Ils sont produits par le reducer uniquement quand les faits safety permettent une sortie ou quand le stage visible impose des contraintes. Ne les invente pas.",
     "- evidence: liste courte d'indices semantiques reellement utilises. Cite des fragments ou observations du message, pas de pseudo-preuves, pas de raisonnement cache, pas d'evidence inventee.",
     "",
     "Transition Rules:",
-    "- stop_local_no_handoff: user veut stopper/abandonner sans nouveau sujet clair, et aucun signal de danger frais. Cela mene au stage stop_or_cancel; pas de global sur ce tour.",
-    "- exit_to_global_dispatcher: nouveau sujet clair seulement apres faits solides de securite actuelle. Si les faits safety manquent, utilise wants_to_exit ou continue safety.",
+    "- exit_to_global_dispatcher: user veut stopper/abandonner ou apporte un nouveau sujet clair seulement apres faits solides de securite actuelle. Le reducer/runtime doit produire une note exploitable vers global avant toute reprise globale. Si les faits safety manquent, utilise wants_to_exit ou continue safety.",
     "- safety_escalate: danger immediat, intention d'acte, moyens dangereux proches avec solitude/incertitude, ou besoin d'urgence. Le global normal ne reprend jamais pour safety.",
-    "- product_or_tool_attempt: boundary interne pendant safety; differer produit/statut/outil et revenir a la securite.",
+    "- product_or_tool_attempt: boundary interne pendant safety; differer produit/statut/outil hors rappel ponctuel et revenir a la securite.",
+    "- create_one_shot_reminder via direct_effect_request: rappel ponctuel explicite. Le runtime direct_effect standard decide allow/clarify/commit. Le visible safety ne confirme jamais avant le ledger.",
     "- Aucun handoff local autre que safety n'est autorise par ce contrat.",
     "",
     "EXAMPLE_JSON_NORMAL_CONTINUATION:",
-    '{"flow_action":"provide_means_status","confidence":"high","risk_score":6,"safety_signals":{"suicidal_ideation":false,"self_harm_intent":false,"immediate_danger":false,"has_means_nearby":false,"means_moved_away":true,"user_currently_alone":null,"human_support_available":null,"emergency_help_contacted":null,"clarified_non_immediate":true,"deescalation_evidence":true,"uncertainty":"medium"},"user_state_summary":{"paraphrase":"Le user dit avoir eloigne les moyens et ne pas etre en danger immediat.","current_need":"contact_human","what_changed_since_previous_turn":"moyens eloignes; support humain encore inconnu"},"product_tool_boundary":{"attempted":false,"attempt_kind":"none","defer_reason":null},"exit_request":{"requested":false,"why_user_thinks_safe":null,"missing_resolution_facts":["human_support_available","not_alone"]},"state_hints":{"suggested_trigger_summary":null,"suggested_last_user_safety_signal":"moyens eloignes; danger immediat nie; support inconnu"},"note_information":{"needed":false},"no_tooling":{"product_help_called":false,"status_recap_called":false,"tool_skill_called":false,"operation_suggestion_created":false,"pending_confirmation_created":false,"db_write_committed":false},"evidence":["dit avoir eloigne les medicaments","dit ne pas etre en danger immediat"]}',
+    '{"flow_action":"provide_means_status","confidence":"high","risk_score":6,"safety_signals":{"suicidal_ideation":false,"self_harm_intent":false,"immediate_danger":false,"has_means_nearby":false,"means_moved_away":true,"user_currently_alone":null,"human_support_available":null,"emergency_help_contacted":null,"clarified_non_immediate":true,"deescalation_evidence":true,"uncertainty":"medium"},"user_state_summary":{"paraphrase":"Le user dit avoir eloigne les moyens et ne pas etre en danger immediat.","current_need":"contact_human","what_changed_since_previous_turn":"moyens eloignes; support humain encore inconnu"},"product_tool_boundary":{"attempted":false,"attempt_kind":"none","defer_reason":null},"direct_effect_request":{"requested":false,"effect_type":null,"explicitness":"none","target_status":"none","confidence_band":"low","payload_hint":{"raw_text":null},"reason":null},"exit_request":{"requested":false,"why_user_thinks_safe":null,"missing_resolution_facts":["human_support_available","not_alone"]},"state_hints":{"suggested_trigger_summary":null,"suggested_last_user_safety_signal":"moyens eloignes; danger immediat nie; support inconnu"},"note_information":{"needed":false},"no_tooling":{"product_help_called":false,"status_recap_called":false,"tool_skill_called":false,"operation_suggestion_created":false,"pending_confirmation_created":false,"db_write_committed":false},"evidence":["dit avoir eloigne les medicaments","dit ne pas etre en danger immediat"]}',
     "EXAMPLE_JSON_CRITICAL_TRANSITION:",
-    '{"flow_action":"safety_escalate","confidence":"high","risk_score":10,"safety_signals":{"suicidal_ideation":true,"self_harm_intent":true,"immediate_danger":true,"has_means_nearby":true,"means_moved_away":false,"user_currently_alone":true,"human_support_available":false,"emergency_help_contacted":false,"clarified_non_immediate":false,"deescalation_evidence":false,"uncertainty":"low"},"user_state_summary":{"paraphrase":"Le user indique un danger immediat avec moyens proches et solitude.","current_need":"move_means_away","what_changed_since_previous_turn":"danger immediat explicite avec moyens proches"},"product_tool_boundary":{"attempted":false,"attempt_kind":"none","defer_reason":null},"exit_request":{"requested":false,"why_user_thinks_safe":null,"missing_resolution_facts":["immediate_danger_absent","means_safe","human_support_available","not_alone","no_fresh_risk_signal"]},"state_hints":{"suggested_trigger_summary":"danger immediat avec moyens proches","suggested_last_user_safety_signal":"risque actif; seul; moyens proches"},"note_information":{"needed":false},"no_tooling":{"product_help_called":false,"status_recap_called":false,"tool_skill_called":false,"operation_suggestion_created":false,"pending_confirmation_created":false,"db_write_committed":false},"evidence":["danger immediat exprime","moyens proches","seul"]}',
+    '{"flow_action":"safety_escalate","confidence":"high","risk_score":10,"safety_signals":{"suicidal_ideation":true,"self_harm_intent":true,"immediate_danger":true,"has_means_nearby":true,"means_moved_away":false,"user_currently_alone":true,"human_support_available":false,"emergency_help_contacted":false,"clarified_non_immediate":false,"deescalation_evidence":false,"uncertainty":"low"},"user_state_summary":{"paraphrase":"Le user indique un danger immediat avec moyens proches et solitude.","current_need":"move_means_away","what_changed_since_previous_turn":"danger immediat explicite avec moyens proches"},"product_tool_boundary":{"attempted":false,"attempt_kind":"none","defer_reason":null},"direct_effect_request":{"requested":false,"effect_type":null,"explicitness":"none","target_status":"none","confidence_band":"low","payload_hint":{"raw_text":null},"reason":null},"exit_request":{"requested":false,"why_user_thinks_safe":null,"missing_resolution_facts":["immediate_danger_absent","means_safe","human_support_available","not_alone","no_fresh_risk_signal"]},"state_hints":{"suggested_trigger_summary":"danger immediat avec moyens proches","suggested_last_user_safety_signal":"risque actif; seul; moyens proches"},"note_information":{"needed":false},"no_tooling":{"product_help_called":false,"status_recap_called":false,"tool_skill_called":false,"operation_suggestion_created":false,"pending_confirmation_created":false,"db_write_committed":false},"evidence":["danger immediat exprime","moyens proches","seul"]}',
     "",
-    'Retourne exactement ce JSON: {"flow_action":"answer_safety_check|provide_means_status|provide_alone_status|provide_support_status|provide_emergency_status|provide_deescalation_evidence|needs_grounding|repeat_current_step|product_or_tool_attempt|wants_to_exit|stop_local_no_handoff|exit_to_global_dispatcher|safety_escalate","confidence":"low|medium|high","risk_score":0,"safety_signals":{"suicidal_ideation":false,"self_harm_intent":false,"immediate_danger":true,"has_means_nearby":true,"means_moved_away":false,"user_currently_alone":true,"human_support_available":false,"emergency_help_contacted":false,"clarified_non_immediate":false,"deescalation_evidence":false,"uncertainty":"low|medium|high"},"user_state_summary":{"paraphrase":"string|null","current_need":"immediate_risk_check|grounding|move_means_away|contact_human|stay_with_support|exit_request|unclear","what_changed_since_previous_turn":"string|null"},"product_tool_boundary":{"attempted":false,"attempt_kind":"product_question|tool_creation|plan_work|status_request|none","defer_reason":"string|null"},"exit_request":{"requested":false,"why_user_thinks_safe":"string|null","missing_resolution_facts":["immediate_danger_absent|means_safe|human_support_available|not_alone|no_fresh_risk_signal"]},"state_hints":{"suggested_trigger_summary":"string|null","suggested_last_user_safety_signal":"string|null"},"note_information":{"needed":false},"no_tooling":{"product_help_called":false,"status_recap_called":false,"tool_skill_called":false,"operation_suggestion_created":false,"pending_confirmation_created":false,"db_write_committed":false},"evidence":["string"]}',
+    'Retourne exactement ce JSON: {"flow_action":"answer_safety_check|provide_means_status|provide_alone_status|provide_support_status|provide_emergency_status|provide_deescalation_evidence|needs_grounding|repeat_current_step|product_or_tool_attempt|wants_to_exit|exit_to_global_dispatcher|safety_escalate","confidence":"low|medium|high","risk_score":0,"safety_signals":{"suicidal_ideation":false,"self_harm_intent":false,"immediate_danger":true,"has_means_nearby":true,"means_moved_away":false,"user_currently_alone":true,"human_support_available":false,"emergency_help_contacted":false,"clarified_non_immediate":false,"deescalation_evidence":false,"uncertainty":"low|medium|high"},"user_state_summary":{"paraphrase":"string|null","current_need":"immediate_risk_check|grounding|move_means_away|contact_human|stay_with_support|exit_request|unclear","what_changed_since_previous_turn":"string|null"},"product_tool_boundary":{"attempted":false,"attempt_kind":"product_question|tool_creation|plan_work|status_request|none","defer_reason":"string|null"},"direct_effect_request":{"requested":false,"effect_type":"create_one_shot_reminder|null","explicitness":"explicit|implied|weak|none","target_status":"identified|ambiguous|missing|none","confidence_band":"low|medium|high","payload_hint":{"raw_text":"string|null"},"reason":"string|null"},"exit_request":{"requested":false,"why_user_thinks_safe":"string|null","missing_resolution_facts":["immediate_danger_absent|means_safe|human_support_available|not_alone|no_fresh_risk_signal"]},"state_hints":{"suggested_trigger_summary":"string|null","suggested_last_user_safety_signal":"string|null"},"note_information":{"needed":false},"no_tooling":{"product_help_called":false,"status_recap_called":false,"tool_skill_called":false,"operation_suggestion_created":false,"pending_confirmation_created":false,"db_write_committed":false},"evidence":["string"]}',
   ].join("\n");
 }
 
@@ -362,7 +393,7 @@ export async function runSafetyCrisisLocalDispatcher(
     task: "dispatch_safety_crisis_local_flow",
     current_user_message: input.user_message,
     recent_messages: compactRecentMessages(input.recent_messages),
-    source_safety_pregate: input.source_safety_pregate,
+    source_safety_context: input.source_safety_context,
     previous_active_safety_state: input.previous_active_safety_state,
     note_information_inbound: input.note_information_inbound ?? null,
     prior_phase: input.prior_phase,
@@ -373,7 +404,8 @@ export async function runSafetyCrisisLocalDispatcher(
     no_tooling_constraints: {
       product_help: "blocked",
       status_recap: "blocked",
-      tool_skill_runtime: "blocked",
+      tool_skill_runtime:
+        "blocked_except_create_one_shot_reminder_direct_effect",
       operation_suggestions: "blocked",
       pending_confirmation: "blocked",
       db_write: "blocked",
@@ -382,7 +414,7 @@ export async function runSafetyCrisisLocalDispatcher(
   });
   try {
     console.info("safety_crisis.local_dispatcher_called", {
-      source_risk_band: input.source_safety_pregate.risk_band,
+      source_risk_band: input.source_safety_context.risk_band,
       prior_phase: input.prior_phase,
       no_tooling: true,
     });

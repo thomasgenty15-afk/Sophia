@@ -95,7 +95,7 @@ Chaque champ structure doit porter `source`, `evidence`, `confidence` et
 
 ### Signaux d'exit
 
-- `stop_local_no_handoff` : le user veut arreter ou repousser le weekly, sans
+- `exit_to_global_dispatcher` : le user veut arreter ou repousser le weekly, sans
   nouveau sujet clair. Reponse locale courte, pas de global.
 - `exit_to_global_dispatcher` : le user change clairement de sujet sans cible
   locale documentee. `note_information` obligatoire.
@@ -358,7 +358,7 @@ Responsabilites :
 - produire `platform_handoff` local si aucun dispatcher cible n'est appele ;
 - router vers dispatcher cible uniquement si `flow_action` le demande ;
 - garder le parent weekly sur inline roundtrip ;
-- stopper localement sans global sur `stop_local_no_handoff`.
+- stopper localement sans global sur `exit_to_global_dispatcher`.
 
 ### Conversation context
 
@@ -422,7 +422,7 @@ Le prompt visible ne recoit jamais :
 
 ```json
 {
-  "flow_action": "answer_current_stage|missing_info|confirm_weekly_reading|reject_weekly_reading|recap_weekly|explain_weekly_reasoning|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_correction|clarify_forgotten_progress|inline_tool_roundtrip|handoff_to_local_flow|complete_flow|stop_local_no_handoff|defer_flow|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_current_stage|missing_info|confirm_weekly_reading|reject_weekly_reading|recap_weekly|explain_weekly_reasoning|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_correction|clarify_forgotten_progress|inline_tool_roundtrip|handoff_to_local_flow|complete_flow|exit_to_global_dispatcher|defer_flow|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "safety": {
@@ -622,7 +622,7 @@ transmise brute au prompt visible.
 - Conversation agent only uses `conversation_context`.
 - `db_context_pack` is compact and source/evidence/confidence annotated.
 - `micro_memory_context` is minimal, 0-4 items max, and not leaked raw to visible prompt.
-- `stop_local_no_handoff` does not call global.
+- `exit_to_global_dispatcher` does not call global.
 - `defer_flow` does not call global.
 - `exit_to_global_dispatcher` includes canonical `note_information`.
 - `handoff_to_local_flow` includes canonical `note_information`.
@@ -645,7 +645,7 @@ transmise brute au prompt visible.
     `note_information_inbound`;
   - remplacer `exit_memo` par `note_information` canonique ;
   - ajouter `inline_tool_roundtrip`, `handoff_to_local_flow`,
-    `stop_local_no_handoff`, `defer_flow` ;
+    `exit_to_global_dispatcher`, `defer_flow` ;
   - produire `conversation_context_seed`, pas `instruction` visible.
 
 - `supabase/functions/sophia-brain/skills/weekly_review/visible_agent.ts`

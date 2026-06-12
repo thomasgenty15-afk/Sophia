@@ -34,7 +34,7 @@ function stageInstruction(input: WhatsAppOnboardingVisibleInput): string {
     case "blocked_exit_before_plan_ready":
       return "Blocked exit before plan ready: reduis la pression, reconnais le ras-le-bol ou l'incertitude, mais explique que le plan reste le seul point incompressible; propose une action simple liee au plan.";
     case "stop_after_plan_ready":
-      return "Stop local after plan ready: accuse reception que le user veut arreter les questions; ne pose aucune question; ne lance pas le global; dis seulement que le plan est pret et qu'on pourra reprendre quand elle voudra.";
+      return "Sortie apres plan pret: accuse reception tres court si un message local est requis; ne pose aucune question; ne traite pas le nouveau sujet dans ce prompt visible.";
     case "progress_attempt_blocked":
       return "Progress attempt blocked: explique sobrement que ce tour reste dans l'onboarding WhatsApp et qu'aucune progression de plan n'a ete loggee; ramene a la question courante en une seule phrase.";
     case "inline_product_return":

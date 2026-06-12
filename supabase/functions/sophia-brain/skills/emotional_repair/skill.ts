@@ -140,7 +140,7 @@ function microMemoryContext(input: RunEmotionalRepairSkillInput) {
   };
 }
 
-function pregateSafetyHandoffOutput(
+function safetyContextHandoffOutput(
   input: RunEmotionalRepairSkillInput,
 ): ConversationSkillOutput {
   const safety = input.context.turn_frame.safety;
@@ -149,7 +149,7 @@ function pregateSafetyHandoffOutput(
     : [];
   const structuredContext = {
     source_flow: "emotional_repair",
-    trigger: "turn_frame_safety_pregate",
+    trigger: "turn_frame_safety_context",
     user_message_summary: compactText(input.user_message, 240),
     active_flow_summary: compactText(
       (input.context.active_skill_working_state as any)?.summary ??
@@ -162,20 +162,18 @@ function pregateSafetyHandoffOutput(
   };
   const noteInformation = createNoteInformation({
     source_flow_id: "emotional_repair",
-    source_flow_state_summary:
-      "Safety pregate detected before emotional_repair local continuation.",
     handoff_reason: "safety",
     target_dispatcher: "safety_crisis",
     handoff_context_for_next_dispatcher: JSON.stringify(structuredContext),
     user_words: userWords,
     structured_context: structuredContext,
-    risk_score: safety.risk_band === "critical" ? 10 : 8,
+    confidence: safety.risk_band === "critical" ? "high" : "medium",
   });
   console.info("[EmotionalRepair] note_information_created", {
     ...noteInformationForTrace(noteInformation),
     request_id: input.request_id ??
       (input.context.turn_frame as any)?.source_message_id ?? null,
-    transition_tag: "pregate_to_safety_with_note",
+    transition_tag: "safety_context_to_safety_with_note",
   });
   return baseOutput("emotional_repair", {
     status: "handoff",
@@ -184,7 +182,7 @@ function pregateSafetyHandoffOutput(
     diagnosis: {
       local_flow: true,
       flow_action: "safety_preempt",
-      reason_code: "safety_pregate",
+      reason_code: "safety_context",
       evidence: safety.evidence ?? safety.reason_codes ?? [],
       note_information: noteInformation,
     },
@@ -219,7 +217,7 @@ export async function runEmotionalRepairSkill(
 ): Promise<ConversationSkillOutput> {
   const safetyRisk = input.context.turn_frame.safety.risk_band;
   if (safetyRisk === "high" || safetyRisk === "critical") {
-    return pregateSafetyHandoffOutput(input);
+    return safetyContextHandoffOutput(input);
   }
 
   const previous = readEmotionalRepairLocalState(
@@ -247,6 +245,7 @@ export async function runEmotionalRepairSkill(
     micro_memory_context: microMemoryContext(input),
     platform_context: {
       channel: input.context.turn_frame.channel,
+      plan_snapshot: { items: input.context.plan_items ?? [] },
     },
     risk_context: {
       safety: input.context.turn_frame.safety,
@@ -305,7 +304,6 @@ export async function runEmotionalRepairSkill(
   if (reduced.exit_to_global_dispatcher) {
     const noteInformation = createNoteInformation({
       source_flow_id: "emotional_repair",
-      source_flow_state_summary: decision.repair_state.summary,
       handoff_reason: decision.exit_memo.reason === "safety"
         ? "safety"
         : "topic_change",
@@ -316,7 +314,20 @@ export async function runEmotionalRepairSkill(
         .handoff_hint_for_global_dispatcher ??
         decision.repair_state.summary,
       user_words: decision.repair_state.user_words,
-      risk_score: decision.risk_score,
+      structured_context: {
+        source_flow: "emotional_repair",
+        user_message_summary: decision.repair_state.summary,
+        active_flow_summary: decision.repair_state.summary,
+        collected_state: {
+          flow_action: decision.flow_action,
+          repair_intent: decision.repair_state.intent,
+        },
+        unresolved_questions: [],
+        recommended_next_focus: decision.exit_memo.reason === "safety"
+          ? "safety_crisis"
+          : "global",
+      },
+      confidence: decision.confidence,
     });
     console.info("[EmotionalRepair] note_information_created", {
       ...noteInformationForTrace(noteInformation),
@@ -363,7 +374,6 @@ export async function runEmotionalRepairSkill(
   if (reduced.status === "safety") {
     const safetyNoteInformation = createNoteInformation({
       source_flow_id: "emotional_repair",
-      source_flow_state_summary: decision.repair_state.summary,
       handoff_reason: "safety",
       target_dispatcher: "safety_crisis",
       handoff_context_for_next_dispatcher: JSON.stringify({
@@ -375,7 +385,19 @@ export async function runEmotionalRepairSkill(
         safety_evidence: reduced.evidence,
       }),
       user_words: decision.repair_state.user_words,
-      risk_score: decision.risk_score,
+      structured_context: {
+        source_flow: "emotional_repair",
+        user_message_summary: decision.repair_state.summary,
+        active_flow_summary: decision.repair_state.summary,
+        collected_state: {
+          flow_action: decision.flow_action,
+          repair_intent: decision.repair_state.intent,
+        },
+        unresolved_questions: [],
+        evidence: reduced.evidence,
+        recommended_next_focus: "safety_crisis",
+      },
+      confidence: decision.confidence,
     });
     console.info("[EmotionalRepair] note_information_created", {
       ...noteInformationForTrace(safetyNoteInformation),

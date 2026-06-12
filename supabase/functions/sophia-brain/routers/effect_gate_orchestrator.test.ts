@@ -11,20 +11,6 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -84,7 +70,7 @@ Deno.test("orchestrator: gates each effect and partitions outcomes", async () =>
   ]);
 });
 
-Deno.test("orchestrator: safety band blocks every direct effect", async () => {
+Deno.test("orchestrator: safety band allows one-shot reminder and blocks other direct effects", async () => {
   const result = await runEffectGateOrchestrator({
     turn_frame: frame({
       safety: { risk_band: "medium", reason_codes: [], evidence: [] },
@@ -96,17 +82,31 @@ Deno.test("orchestrator: safety band blocks every direct effect", async () => {
           confidence_band: "high",
           payload_hint: {},
         },
+        {
+          effect_type: "track_progress_plan_item",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {},
+        },
       ],
     }),
-    direct_effects_to_run: ["create_one_shot_reminder"],
+    direct_effects_to_run: [
+      "create_one_shot_reminder",
+      "track_progress_plan_item",
+    ],
   });
-  assertEquals(result.allowed, []);
+  assertEquals(result.allowed, ["create_one_shot_reminder"]);
   assertEquals(
     result.outcomes.create_one_shot_reminder.decision,
+    "allow",
+  );
+  assertEquals(
+    result.outcomes.track_progress_plan_item.decision,
     "blocked",
   );
   assertEquals(result.additional_blocked_paths, [
-    { path: "create_one_shot_reminder", reason_code: "safety_high" },
+    { path: "track_progress_plan_item", reason_code: "safety_high" },
   ]);
 });
 

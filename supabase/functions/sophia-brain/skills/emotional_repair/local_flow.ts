@@ -24,6 +24,10 @@ import {
   type EmotionalRepairVisibleTaskKind,
   normalizeEmotionalRepairConstraints,
 } from "./contract.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../router/direct_effect_local_context.ts";
 
 export type EmotionalRepairLocalDispatcherInput = {
   user_id: string;
@@ -77,7 +81,7 @@ const FLOW_ACTIONS: readonly EmotionalRepairLocalFlowAction[] = [
   "confirm_potion_bridge",
   "revise_repair_context",
   "repeat_last_repair",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "cancel_flow",
   "complete_flow",
   "defer_flow",
@@ -482,8 +486,8 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES = {
     "Choisis l'action qui sert le message courant, pas seulement l'etat precedent.",
     "Ne continue pas emotional_repair si le user demande clairement d'arreter ou change de sujet.",
     "Utilise provide_concrete_phrase quand le user demande une phrase, une formulation courte ou une aide verbale precise.",
-    "Utilise stop_local_no_handoff/cancel_flow/defer_flow/complete_flow pour arreter localement sans nouveau sujet clair.",
-    "Utilise exit_to_global_dispatcher quand le user apporte un nouveau sujet clair hors emotional_repair.",
+    "Utilise exit_to_global_dispatcher quand le user veut arreter emotional_repair ou apporte un nouveau sujet clair hors emotional_repair.",
+    "Utilise cancel_flow/defer_flow/complete_flow seulement pour une issue metier locale deja prevue par le flow.",
     "Utilise safety_preempt si le message courant contient un signal safety prioritaire.",
     "N'invente pas handoff_to_local_flow: ce contrat utilise confirm_potion_bridge pour le bridge select_state_potion.",
   ],
@@ -529,11 +533,12 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES = {
     "Ne mets pas de DB brute, memoire brute ou note_information brute dans conversation_context.",
   ],
   exit_memo: [
-    "needed=false pour stop_local_no_handoff, cancel_flow, complete_flow ou defer_flow sans nouveau sujet.",
     "needed=true pour exit_to_global_dispatcher.",
-    "reason=topic_change si le user apporte un autre sujet clair.",
+    "needed=false pour cancel_flow, complete_flow ou defer_flow sans changement de dispatcher.",
+    "reason=cancelled si le user veut arreter ce flow; reason=topic_change si le user apporte un autre sujet clair.",
     "handoff_hint_for_global_dispatcher doit resumer le nouveau besoin et le contexte utile.",
     "Le downstream creera la note_information depuis exit_memo; remplis donc exit_memo avec soin.",
+    "Si tu fournis une note_information de bridge/safety, garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct, non vide, sans DB brute, memoire brute, diagnostic, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ni no_chat_mutation.",
   ],
   no_chat_mutation: [
     "Tous les champs doivent rester false: le dispatcher ne cree rien et ne mute pas la DB.",
@@ -545,18 +550,14 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES = {
 } as const;
 
 export const EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES = {
-  stop_local_no_handoff: [
-    "Le user veut arreter ce sujet, ce flow ou les questions sans nouveau sujet clair.",
-    "Cloture localement: visible_task.kind=exit_or_cancel, local state sera cleared par reducer.",
-    "Pas de dispatcher global sur le meme tour, pas de question finale, pas de coaching additionnel.",
-    "exit_memo.needed=false.",
-  ],
   exit_to_global_dispatcher: [
+    "Le user veut arreter ce sujet, ce flow ou les questions sans nouveau sujet clair.",
     "Le user change clairement de sujet ou demande une aide hors emotional_repair.",
     "Ne reponds pas au nouveau sujet dans emotional_repair.",
     "visible_task.kind=exit_or_cancel.",
     "exit_memo.needed=true avec reason=topic_change ou explicit_tool_request.",
     "handoff_hint_for_global_dispatcher doit permettre au dispatcher global de reanalyser le message courant.",
+    "Pas de question finale ni coaching additionnel dans emotional_repair.",
   ],
   safety_preempt: [
     "Safety gagne sur toute continuation, potion, produit ou statut.",
@@ -608,7 +609,7 @@ export const EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES = [
     current_user_message:
       "Ok on s'arrete la, pas besoin de continuer ce sujet.",
     expected_decision: {
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       constraints: ["short_reply", "no_questions", "no_plan", "no_technique"],
       response_contract: {
         max_questions: 0,
@@ -648,6 +649,7 @@ export function localDispatcherSystemPrompt(): string {
     "Un bridge potion exige stabilisation et consentement; confirm_potion_bridge signifie que le user consent a une offre deja faite.",
     "Si le user confirme une offre precedente, utilise confirm_potion_bridge uniquement si previous_potion_bridge_offer existe et correspond.",
     "La note d'information pour le flow suivant doit contenir un resume succinct du flow quitte et le contexte utile au dispatcher potion.",
+    ...directEffectLocalDispatcherPromptLines(),
     "Aucune session potion, aucun rappel, aucun scheduled_checkin, aucune confirmation executable, aucun write DB.",
   ].join("\n");
 }
@@ -670,7 +672,7 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
       decision_examples: EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES,
       required_json_shape: {
         flow_action:
-          "answer_repair|ask_gentle_clarification|repair_relationship|provide_concrete_phrase|soft_presence|regulation_without_potion|potion_bridge_offer|confirm_potion_bridge|revise_repair_context|repeat_last_repair|stop_local_no_handoff|cancel_flow|complete_flow|defer_flow|exit_to_global_dispatcher|safety_preempt",
+          "answer_repair|ask_gentle_clarification|repair_relationship|provide_concrete_phrase|soft_presence|regulation_without_potion|potion_bridge_offer|confirm_potion_bridge|revise_repair_context|repeat_last_repair|exit_to_global_dispatcher|cancel_flow|complete_flow|defer_flow|safety_preempt",
         confidence: "low|medium|high",
         risk_score: "number 0..10",
         repair_state: {
@@ -786,7 +788,12 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
         exclusions: ["not_loaded"],
         budget: { max_items: 4, reason: "not provided" },
       },
-      platform_context: input.platform_context ?? {},
+      platform_context: withDirectEffectLocalContext(
+        input.platform_context ?? {},
+        (input.turn_frame as any)?.plan_snapshot ??
+          (input.platform_context as any)?.plan_snapshot ??
+          null,
+      ),
       risk_context: input.risk_context ?? {},
       available_inline_tools: input.available_inline_tools ?? [
         "product_help",
@@ -1016,15 +1023,11 @@ function informationNote(args: {
   return {
     note_information: createNoteInformation({
       source_flow_id: "emotional_repair",
-      source_flow_state_summary: args.output.repair_state.summary,
       handoff_reason: "bridge",
       target_dispatcher: "select_state_potion",
       handoff_context_for_next_dispatcher: JSON.stringify(structuredContext),
-      target_local_dispatcher_hint:
-        "Enter the selected potion flow, consume candidates as candidates, and do not make the user repeat the emotional episode wholesale.",
       user_words: args.output.repair_state.user_words,
       structured_context: structuredContext,
-      risk_score: args.output.risk_score,
     }),
     departed_flow_summary: args.output.repair_state.summary,
     context_for_next_dispatcher: structuredContext,
@@ -1094,10 +1097,9 @@ function visibleKindForOutput(
   if (output.flow_action === "safety_preempt") return "safety";
   if (
     output.flow_action === "cancel_flow" ||
-    output.flow_action === "stop_local_no_handoff" ||
+    output.flow_action === "exit_to_global_dispatcher" ||
     output.flow_action === "complete_flow" ||
-    output.flow_action === "defer_flow" ||
-    output.flow_action === "exit_to_global_dispatcher"
+    output.flow_action === "defer_flow"
   ) {
     return "exit_or_cancel";
   }
@@ -1366,7 +1368,6 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
   }
   if (
     args.output.flow_action === "cancel_flow" ||
-    args.output.flow_action === "stop_local_no_handoff" ||
     args.output.flow_action === "complete_flow" ||
     args.output.flow_action === "defer_flow"
   ) {
@@ -1376,7 +1377,7 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
         ? "deferred"
         : args.output.flow_action === "complete_flow"
         ? "completed"
-        : "stop_local_no_handoff",
+        : "exit_to_global_dispatcher",
       local_state: null,
       visible_task: visibleTask,
       potion_bridge_context: null,

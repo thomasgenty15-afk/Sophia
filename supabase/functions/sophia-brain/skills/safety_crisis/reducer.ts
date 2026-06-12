@@ -1,6 +1,8 @@
 import {
   createNoteInformation,
   type NoteInformation,
+  noteInformationRecommendedNextFocus,
+  noteInformationSummary,
 } from "../../contracts/note_information.v1.ts";
 import {
   normalizeSafetyPhase,
@@ -100,13 +102,10 @@ function exitMemoForResolved(args: {
     flow_summary: activeFlowSummary,
     note_information: createNoteInformation({
       source_flow_id: "safety_crisis",
-      source_flow_state_summary:
-        "Safety crisis deescalated with immediate danger absent, means safe, and a human support path available.",
       handoff_reason: "flow_interruption",
       target_dispatcher: "global",
       handoff_context_for_next_dispatcher:
         "Immediate danger is absent, means are safe if relevant, and a human support path is available. Do not resume product/tool work automatically; reanalyze the next user message normally.",
-      target_local_dispatcher_hint: null,
       user_words: args.currentUserMessage ? [args.currentUserMessage] : [],
       structured_context: {
         source_flow: "safety_crisis",
@@ -124,8 +123,6 @@ function exitMemoForResolved(args: {
         deferred_product_or_tool_request: deferredProductOrToolRequest,
         dispatcher_evidence: args.dispatcherOutput?.evidence ?? [],
       },
-      risk_score: 0,
-      no_chat_mutation: noChatMutation(),
     }),
     handoff_hint_for_global_dispatcher: {
       likely_intent: "unknown",
@@ -179,7 +176,7 @@ function nextFocusFor(kind: SafetyCrisisVisibleTaskKind): string {
     case "product_tool_boundary":
       return "defer product or tool work and return to immediate safety";
     case "stop_or_cancel":
-      return "acknowledge the local stop without handing to global on this turn";
+      return "prepare a controlled safety exit only if resolution facts are sufficient";
     case "safety_transition":
       return "acknowledge the safety transition from the source flow";
     case "safety_escalation":
@@ -194,10 +191,10 @@ function summarizeInboundNote(
   return [
     `source=${noteInformation.source_flow_id}`,
     `reason=${noteInformation.handoff_reason}`,
-    noteInformation.source_flow_state_summary,
+    noteInformationSummary(noteInformation),
     noteInformation.handoff_context_for_next_dispatcher,
-    noteInformation.target_local_dispatcher_hint
-      ? `hint=${noteInformation.target_local_dispatcher_hint}`
+    noteInformationRecommendedNextFocus(noteInformation)
+      ? `focus=${noteInformationRecommendedNextFocus(noteInformation)}`
       : "",
   ].map((part) => String(part ?? "").replace(/\s+/g, " ").trim()).filter(
     Boolean,
@@ -320,10 +317,10 @@ function visibleTaskKindFor(args: {
       reasonCode: "safety_crisis.repeat_current_step",
     };
   }
-  if (output?.flow_action === "stop_local_no_handoff") {
+  if (output?.flow_action === "exit_to_global_dispatcher") {
     return {
       kind: "stop_or_cancel",
-      reasonCode: "safety_crisis.stop_local_no_handoff",
+      reasonCode: "safety_crisis.exit_to_global_dispatcher",
     };
   }
   if (

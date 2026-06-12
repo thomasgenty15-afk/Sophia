@@ -9,7 +9,7 @@ import {
   normalizeNoteInformation,
   type NoteInformation,
 } from "../../../contracts/note_information.v1.ts";
-import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../../../safety/safety_context.ts";
 import {
   type DefenseCardHandoffDraft,
   type DefenseCardHandoffState,
@@ -472,8 +472,6 @@ function buildPrepareDefenseCardInboundNote(args: {
   if (args.turnFrame?.note_information) {
     return normalizeNoteInformation(args.turnFrame.note_information, {
       source_flow_id: "global",
-      source_flow_state_summary: String(args.routeDecision.reason_code ?? "")
-        .trim() || "prepare_defense_card selected by prior dispatcher.",
       handoff_reason: "explicit_user_request",
       target_dispatcher: "prepare_defense_card",
       handoff_context_for_next_dispatcher: JSON.stringify({
@@ -486,14 +484,15 @@ function buildPrepareDefenseCardInboundNote(args: {
         operation_input: args.operationInput ?? null,
         selected_handler: args.routeDecision.selected_handler,
         first_local_activation: true,
+        active_flow_summary: String(args.routeDecision.reason_code ?? "")
+          .trim() || "prepare_defense_card selected by prior dispatcher.",
+        unresolved_questions: [],
+        recommended_next_focus: "prepare_defense_card",
       },
-      risk_score: 0,
     });
   }
   return createNoteInformation({
     source_flow_id: "global",
-    source_flow_state_summary:
-      "Global dispatcher selected the initial local flow owner for this turn.",
     handoff_reason: "explicit_user_request",
     target_dispatcher: "prepare_defense_card",
     handoff_context_for_next_dispatcher: JSON.stringify({
@@ -502,21 +501,17 @@ function buildPrepareDefenseCardInboundNote(args: {
       blocked_paths: args.routeDecision.blocked_paths ?? [],
       selected_handler: args.routeDecision.selected_handler,
     }),
-    target_local_dispatcher_hint:
-      "Own this flow locally from now on. Do not call the global dispatcher unless you later return exit_to_global_dispatcher.",
     user_words: [],
     structured_context: {
+      source_flow: "global",
+      active_flow_summary:
+        "Global dispatcher selected the initial local flow owner for this turn.",
       route_reason: args.routeDecision.reason_code ?? null,
       operation_input: args.operationInput ?? null,
       selected_handler: args.routeDecision.selected_handler,
       first_local_activation: true,
-    },
-    no_chat_mutation: {
-      db_write_committed: false,
-      executable_confirmation_generated: false,
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
+      unresolved_questions: [],
+      recommended_next_focus: "prepare_defense_card",
     },
   });
 }
@@ -971,7 +966,7 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
   tempMemory: any;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId: string | null;
   requestId?: string | null;
   planSnapshot?: unknown;

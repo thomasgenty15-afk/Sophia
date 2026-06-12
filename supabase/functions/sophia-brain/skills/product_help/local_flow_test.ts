@@ -113,7 +113,7 @@ Deno.test("product_help local dispatcher prompt documents field completion rules
   assert(source.includes("- product_help_intent.kind:"));
   assert(source.includes("- target: decrit la cible produit ou objet."));
   assert(source.includes("- grounding: liste uniquement les sources"));
-  assert(source.includes("- bridge: decrit la frontiere"));
+  assert(source.includes("- bridge: decrit une frontiere"));
   assert(source.includes("- state_updates: etat local minimal."));
   assert(source.includes("- visible_task.conversation_context:"));
   assert(source.includes("- return_to_parent:"));
@@ -121,10 +121,12 @@ Deno.test("product_help local dispatcher prompt documents field completion rules
   assert(source.includes("- note_information: obligatoire"));
   assert(source.includes("- evidence: indices semantiques"));
   assert(source.includes("Transition Rules:"));
-  assert(source.includes("- stop_local_no_handoff:"));
   assert(source.includes("- exit_to_global_dispatcher:"));
   assert(source.includes("- safety_preempt:"));
-  assert(source.includes("- handoff_to_local_dispatcher:"));
+  assert(source.includes(
+    "Ne fais jamais de handoff direct vers un dispatcher local operationnel depuis product_help.",
+  ));
+  assertEquals(source.includes("- handoff_to_local_dispatcher:"), false);
   assert(source.includes("- inline_status_roundtrip:"));
   assertEquals((source.match(/Example JSON [12]/g) ?? []).length, 2);
 });
@@ -139,13 +141,13 @@ Deno.test("product_help local dispatcher classifies expected visible actions", (
       "bridge_explanation_only",
       "apply_attempt",
       "inline_tool_return",
-      "stop_local_no_handoff",
+      "exit_to_global_dispatcher",
     ]
   ) {
     const output = localDecision({
       flow_action: action,
       visible_task: {
-        kind: action === "stop_local_no_handoff"
+        kind: action === "exit_to_global_dispatcher"
           ? "stop_or_cancel"
           : action === "inline_tool_return"
           ? "inline_tool_return"
@@ -229,6 +231,67 @@ Deno.test("product_help apply_attempt remains non-mutating", () => {
   assertEquals(reduced.exit_to_global_dispatcher, false);
 });
 
+Deno.test("product_help legacy direct handoff exits through global", () => {
+  const reduced = reduce({
+    flow_action: "handoff_to_local_dispatcher",
+    product_help_intent: {
+      kind: "tool_action_request",
+      summary: "user moves from attack card explanation to preparation",
+    },
+    target: {
+      kind: "tool_flow",
+      feature_id: "resources.attack_card",
+      object_type: "attack_card",
+      object_ref: null,
+      confidence: "high",
+    },
+    bridge: {
+      needed: true,
+      operation_type: "prepare_attack_card",
+      kind: "handoff_needed",
+      executable: false,
+      why: "user asked to prepare it",
+    },
+    state_updates: {
+      status: "handoff",
+      stage: "handoff",
+      turn_count_increment: 1,
+      close_after_visible: true,
+      preserve_parent_flow: true,
+    },
+    visible_task: {
+      kind: "handoff_transition",
+      instruction: "legacy handoff should be normalized",
+    },
+    note_information: {
+      source_flow_id: "product_help",
+      handoff_reason: "explicit_user_request",
+      target_dispatcher: "prepare_attack_card",
+      handoff_context_for_next_dispatcher:
+        "User chose to prepare the attack card after product explanation.",
+      user_words: ["on la prepare", "demain matin"],
+      structured_context: {
+        user_message_summary: "User wants to prepare an attack card.",
+        active_flow_summary: "product_help explained attack cards.",
+        collected_state: {
+          surface: "attack_card",
+          target_hint: "demain matin",
+        },
+        unresolved_questions: [],
+        evidence: ["on la prepare"],
+        recommended_next_focus: "prepare_attack_card",
+      },
+      confidence: "high",
+    },
+  });
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.handoff_to_local_dispatcher, false);
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.visible_task, "exit_ack");
+  assertEquals(reduced.note_information?.source_flow_id, "product_help");
+  assertEquals(reduced.note_information?.target_dispatcher, "global");
+});
+
 Deno.test("product_help inline returns to parent without durable product state", () => {
   const output = localDecision({
     mode: "inline",
@@ -269,13 +332,15 @@ Deno.test("product_help visible task carries conversation_context", () => {
   );
 });
 
-Deno.test("product_help exit_to_global_dispatcher requires note_information", () => {
+Deno.test("product_help exit_to_global_dispatcher creates fallback note_information", () => {
   const reduced = reduce({
     flow_action: "exit_to_global_dispatcher",
     exit_memo: { needed: false, reason: "none" },
   });
-  assertEquals(reduced.status, "blocked");
-  assertEquals(reduced.reason_code, "product_help_note_information_required");
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.note_information?.source_flow_id, "product_help");
+  assertEquals(reduced.note_information?.target_dispatcher, "global");
 });
 
 Deno.test("product_help exit_to_global_dispatcher creates standard note from exit memo", () => {
@@ -304,19 +369,54 @@ Deno.test("product_help exit_to_global_dispatcher creates standard note from exi
   assertEquals(reduced.exit_to_global_dispatcher, true);
   assertEquals(reduced.note_information?.source_flow_id, "product_help");
   assertEquals(reduced.note_information?.target_dispatcher, "global");
+  assertEquals(reduced.note_information?.user_words, [
+    "user wants another topic",
+    "test",
+  ]);
+  assert(
+    Object.keys(reduced.note_information?.structured_context ?? {}).length > 0,
+  );
+  assertEquals(
+    "risk_score" in ((reduced.note_information as any) ?? {}),
+    false,
+  );
+  assertEquals(
+    "no_chat_mutation" in ((reduced.note_information as any) ?? {}),
+    false,
+  );
 });
 
-Deno.test("product_help stop_local_no_handoff closes locally without global", () => {
+Deno.test("product_help exit_to_global_dispatcher exits to global", () => {
   const reduced = reduce({
-    flow_action: "stop_local_no_handoff",
+    flow_action: "exit_to_global_dispatcher",
     product_help_intent: {
       kind: "close",
       summary: "user stops product help",
     },
+    note_information: {
+      source_flow_id: "product_help",
+      source_flow_presentation: "Product help active.",
+      source_flow_state_summary: "User stops product help.",
+      handoff_reason: "topic_change",
+      target_dispatcher: "global",
+      handoff_context_for_next_dispatcher: "User wants to stop product help.",
+      target_local_dispatcher_hint: null,
+      user_words: ["stop"],
+      structured_context: {},
+      risk_score: 0,
+      no_chat_mutation: {
+        db_write_committed: false,
+        potion_session_created: false,
+        scheduled_checkin_created: false,
+        recurring_reminder_created: false,
+        executable_confirmation_generated: false,
+      },
+    },
   });
-  assertEquals(reduced.status, "closing");
-  assertEquals(reduced.visible_task, "stop_or_cancel");
-  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.visible_task, "exit_ack");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.note_information?.target_dispatcher, "global");
   assertEquals(reduced.handoff_to_local_dispatcher, false);
 });
 
@@ -369,7 +469,31 @@ Deno.test("product_help follow-up continuation does not exit falsely", () => {
   assertEquals(reduced.visible_task, "answer_product_question");
 });
 
-Deno.test("product_help handoff_to_local_dispatcher requires and carries note", () => {
+Deno.test("product_help anti-false-positive product question does not handoff", () => {
+  const reduced = reduce({
+    flow_action: "answer_product_question",
+    product_help_intent: {
+      kind: "explain_feature",
+      summary: "user only asks what attack cards are",
+    },
+    bridge: {
+      needed: false,
+      operation_type: "prepare_attack_card",
+      kind: "explain_only",
+      executable: false,
+      why: "the user asks for explanation, not preparation",
+    },
+    visible_task: {
+      kind: "answer_product_question",
+      instruction: "explain feature only",
+    },
+  });
+  assertEquals(reduced.status, "answered");
+  assertEquals(reduced.handoff_to_local_dispatcher, false);
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+});
+
+Deno.test("product_help direct handoff cannot bypass global", () => {
   const reduced = reduce({
     flow_action: "handoff_to_local_dispatcher",
     product_help_intent: {
@@ -383,30 +507,35 @@ Deno.test("product_help handoff_to_local_dispatcher requires and carries note", 
       executable: false,
       why: "target flow must take over",
     },
-    exit_memo: {
-      needed: true,
-      reason: "explicit_tool_request",
-      user_intent_summary: "prepare an attack card",
-      local_flow_context: {
-        skill_id: "product_help",
-        mode: "standalone",
-        stage: "bridge_explained",
-        last_answer_summary: "attack card explained",
-        parent_skill_id: null,
-        committed_effects: [],
-      },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: "prepare_attack_card",
-        why: "explicit tool request",
-        constraints: [],
+    visible_task: {
+      kind: "handoff_transition",
+      instruction: "legacy handoff should be normalized",
+    },
+    note_information: {
+      source_flow_id: "product_help",
+      handoff_reason: "explicit_user_request",
+      target_dispatcher: "prepare_attack_card",
+      handoff_context_for_next_dispatcher:
+        "User wants an attack card flow after product help.",
+      user_words: ["prepare an attack card"],
+      structured_context: {
+        user_message_summary: "prepare an attack card",
+        active_flow_summary: "product_help was active",
+        collected_state: {
+          likely_intent: "prepare_attack_card",
+        },
+        unresolved_questions: [],
+        recommended_next_focus: "prepare_attack_card",
       },
     },
   });
-  assertEquals(reduced.status, "handoff");
-  assertEquals(reduced.handoff_to_local_dispatcher, true);
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.handoff_to_local_dispatcher, false);
+  assertEquals(reduced.note_information?.target_dispatcher, "global");
   assertEquals(
-    reduced.note_information?.target_dispatcher,
-    "prepare_attack_card",
+    reduced.note_information?.handoff_reason,
+    "explicit_user_request",
   );
 });
 
@@ -494,6 +623,77 @@ Deno.test("product_help skill nominal path uses local dispatcher and visible age
   assertEquals("local_state" in ((visibleInput as any) ?? {}), false);
 });
 
+Deno.test("product_help skill direct handoff skips product visible agent", async () => {
+  let visibleCalled = false;
+  const output = await runProductHelpSkill({
+    user_message: "prepare-moi une carte d'attaque pour ranger mes papiers",
+    context: {
+      skill_id: "product_help",
+      user_id: "user_test",
+      recent_messages: [],
+      active_skill_working_state: null,
+      turn_frame: frame(),
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+    } as any,
+    local_dispatcher: async () =>
+      localDecision({
+        flow_action: "handoff_to_local_dispatcher",
+        product_help_intent: {
+          kind: "tool_action_request",
+          summary: "user asks to prepare an attack card",
+        },
+        bridge: {
+          needed: true,
+          operation_type: "prepare_attack_card",
+          kind: "handoff_needed",
+          executable: false,
+          why: "explicit operational request",
+        },
+        visible_task: {
+          kind: "handoff_transition",
+          instruction: "legacy handoff should be normalized",
+        },
+        note_information: {
+          source_flow_id: "product_help",
+          handoff_reason: "explicit_user_request",
+          target_dispatcher: "prepare_attack_card",
+          handoff_context_for_next_dispatcher:
+            "User wants to prepare an attack card for ranger mes papiers.",
+          user_words: ["prepare-moi une carte d'attaque"],
+          structured_context: {
+            user_message_summary:
+              "User wants to prepare an attack card for ranger mes papiers.",
+            active_flow_summary: "product_help was active.",
+            collected_state: {
+              target_hint: "ranger mes papiers",
+            },
+            unresolved_questions: [],
+            recommended_next_focus: "prepare_attack_card",
+          },
+        },
+      }),
+    visible_agent: async () => {
+      visibleCalled = true;
+      return "wrong";
+    },
+  });
+  assertEquals(output.status, "exit");
+  assertEquals(output.reply, "");
+  assertEquals(
+    (output.diagnosis as any).flow_action,
+    "exit_to_global_dispatcher",
+  );
+  assertEquals(
+    (output.diagnosis as any).note_information?.target_dispatcher,
+    "global",
+  );
+  assertEquals((output as any).handoff_request, undefined);
+  assertEquals(visibleCalled, false);
+});
+
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {
     turn_id: "t1",
@@ -555,7 +755,7 @@ Deno.test("active product_help routes to local owner on followup", () => {
         },
       },
     },
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
   });
   assertEquals(route.response_owner, "product_help");
   assertEquals(route.selected_handler, "product_help");

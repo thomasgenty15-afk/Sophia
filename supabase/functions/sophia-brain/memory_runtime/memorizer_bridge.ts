@@ -66,7 +66,7 @@ export type MemoryCandidateDispatchInput = {
   candidates: unknown[];
   skill_run_id?: string;
   operation_id?: string;
-  safety_pregate_risk_band?: RiskBand;
+  safety_context_risk_band?: RiskBand;
   immediate_payload?: {
     items: MemoryCandidateImmediatePayloadItem[];
   };
@@ -174,7 +174,7 @@ function relationCorrectionTerms(content: string): {
 
 export function validateMemoryWriteCandidate(
   value: unknown,
-  options: { safety_pregate_risk_band?: RiskBand } = {},
+  options: { safety_context_risk_band?: RiskBand } = {},
 ): { ok: true; candidate: MemoryWriteCandidate } | {
   ok: false;
   reason: MemoryCandidateRejectReason;
@@ -217,8 +217,8 @@ export function validateMemoryWriteCandidate(
     return { ok: false, reason: "identity_freeze_fact_rejected" };
   }
   if (
-    options.safety_pregate_risk_band &&
-    MEDIUM_OR_HIGHER_RISK.has(options.safety_pregate_risk_band) &&
+    options.safety_context_risk_band &&
+    MEDIUM_OR_HIGHER_RISK.has(options.safety_context_risk_band) &&
     candidate.kind !== "risk_signal"
   ) {
     return { ok: false, reason: "safety_risk_requires_risk_signal" };
@@ -309,7 +309,7 @@ export async function dispatchMemoryCandidates(
 
   for (const value of input.candidates) {
     const validation = validateMemoryWriteCandidate(value, {
-      safety_pregate_risk_band: input.safety_pregate_risk_band,
+      safety_context_risk_band: input.safety_context_risk_band,
     });
     if (!validation.ok) {
       rejected.push({

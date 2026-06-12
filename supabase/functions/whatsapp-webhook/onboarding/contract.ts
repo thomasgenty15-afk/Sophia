@@ -29,7 +29,7 @@ export type WhatsAppOnboardingFlowAction =
   | "repeat_current_question"
   | "progress_attempt_during_onboarding"
   | "blocked_exit_before_plan_ready"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "complete_onboarding"
   | "get_info_product"
   | "get_info_db"
@@ -107,6 +107,16 @@ export type WhatsAppOnboardingPlanProjection = {
   active_plan_summary: string | null;
   active_plan_item_count: number;
   active_plan_items_user_facing: string[];
+  active_action_candidates_for_direct_effects: Array<{
+    plan_item_id: string;
+    title: string;
+    status: string;
+    plan_id: string | null;
+    tracking_type: string | null;
+    dimension: string | null;
+    aliases: string[];
+    occurrence_id: string | null;
+  }>;
 };
 
 export type WhatsAppOnboardingExitMemo = {
@@ -204,7 +214,7 @@ export type WhatsAppOnboardingReducerInput = {
 export type WhatsAppOnboardingReducerResult = {
   status:
     | "owned"
-    | "stop_local_no_handoff"
+    | "exit_to_global_dispatcher"
     | "inline_tool"
     | "handoff_to_local_flow"
     | "exit_to_global_dispatcher"

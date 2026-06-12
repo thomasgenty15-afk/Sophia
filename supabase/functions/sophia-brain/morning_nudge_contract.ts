@@ -58,6 +58,16 @@ export type MorningNudgeAnchor = {
   };
 };
 
+export type MorningScheduledCommitment = {
+  id: string;
+  scheduled_for: string;
+  event_context: string;
+  status: string;
+  origin: string | null;
+  summary: string | null;
+  instruction_hint: string | null;
+};
+
 export type MorningNudgePayloadV2 = {
   event_context: "morning_nudge_v2";
   nudge_kind: MorningNudgeKind;
@@ -81,6 +91,8 @@ export type MorningNudgePayloadV2 = {
   suppressed_action_titles: string[];
   suppression_reason: MorningNudgeSuppressionReason;
   morning_anchor?: MorningNudgeAnchor;
+  morning_scheduled_commitments?: MorningScheduledCommitment[];
+  coordination_notes?: string[];
   source_reason: string;
   source_grounding: string | null;
   sent_at: string;

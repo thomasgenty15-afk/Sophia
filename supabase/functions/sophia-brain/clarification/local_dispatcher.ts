@@ -1,5 +1,9 @@
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import type { NoteInformation } from "../contracts/note_information.v1.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../router/direct_effect_local_context.ts";
 import type {
   ClarificationAmbiguityKind,
   ClarificationCandidateSignal,
@@ -52,7 +56,7 @@ const FLOW_ACTIONS = new Set([
   "explain_candidate_options",
   "get_info_product",
   "get_info_db",
-  "stop_local_no_handoff",
+  "exit_to_global_dispatcher",
   "cancel_clarification",
   "exit_to_global_dispatcher",
   "safety_preempt",
@@ -414,7 +418,7 @@ function visibleKindForAction(
     case "get_info_product":
     case "get_info_db":
       return "inline_info_return";
-    case "stop_local_no_handoff":
+    case "exit_to_global_dispatcher":
     case "cancel_clarification":
       return "stop_or_cancel";
     case "exit_to_global_dispatcher":
@@ -509,8 +513,7 @@ export function normalizeClarificationLocalDispatcherOutput(args: {
         LOCAL_STATUSES,
         action === "resolved_to_candidate"
           ? "resolved"
-          : action === "cancel_clarification" ||
-              action === "stop_local_no_handoff"
+          : action === "cancel_clarification"
           ? "cancelled"
           : action === "exit_to_global_dispatcher"
           ? "topic_change"
@@ -580,11 +583,6 @@ export function normalizeClarificationLocalDispatcherOutput(args: {
           "get_info_db",
         ].includes(action),
       source_flow_id: "clarification",
-      source_flow_presentation: stringValue(
-        noteRoot.source_flow_presentation ??
-          "clarification arbitre un conflit entre plusieurs signaux forts avant de rendre l'ownership au bon dispatcher.",
-        500,
-      ),
       handoff_reason: enumValue(
         noteRoot.handoff_reason,
         new Set([
@@ -609,11 +607,9 @@ export function normalizeClarificationLocalDispatcherOutput(args: {
         noteRoot.handoff_context_for_next_dispatcher,
         1200,
       ),
-      target_local_dispatcher_hint: nullableString(
-        noteRoot.target_local_dispatcher_hint,
-        500,
-      ),
+      user_words: stringArray(noteRoot.user_words, 3),
       structured_context: objectValue(noteRoot.structured_context),
+      confidence: confidence(noteRoot.confidence),
     },
     evidence: stringArray(root.evidence),
   };
@@ -691,11 +687,12 @@ export function localDispatcherSystemPrompt(): string {
     "Produis note_information pour resolved_to_candidate, exit_to_global_dispatcher, safety_preempt, get_info_product et get_info_db.",
     "",
     "Field Completion Rules",
-    "- flow_action: decision principale du tour courant. Choisis seulement une action du contrat clarification. Utilise ask_disambiguation pour poser la premiere question ciblee, still_ambiguous si la reponse ne suffit pas, answer_clarification si tu reponds a une demande de clarification sans changer d'owner, revise_understanding si le user corrige le cadrage, explain_candidate_options si les candidats fournis suffisent a expliquer les options, resolved_to_candidate si un candidat fourni est choisi avec confiance medium/high, get_info_product ou get_info_db pour un roundtrip inline, stop_local_no_handoff ou cancel_clarification pour arret sans nouveau sujet, exit_to_global_dispatcher pour nouveau sujet clair, safety_preempt pour safety reelle. Ne te base pas seulement sur l'etat precedent.",
+    ...directEffectLocalDispatcherPromptLines(),
+    "- flow_action: decision principale du tour courant. Choisis seulement une action du contrat clarification. Utilise ask_disambiguation pour poser la premiere question ciblee, still_ambiguous si la reponse ne suffit pas, answer_clarification si tu reponds a une demande de clarification sans changer d'owner, revise_understanding si le user corrige le cadrage, explain_candidate_options si les candidats fournis suffisent a expliquer les options, resolved_to_candidate si un candidat fourni est choisi avec confiance medium/high, get_info_product ou get_info_db pour un roundtrip inline, exit_to_global_dispatcher si le user veut arreter la clarification ou apporte un nouveau sujet clair, cancel_clarification seulement pour une annulation locale de l'objet de clarification, safety_preempt pour safety reelle. Ne te base pas seulement sur l'etat precedent.",
     "- confidence: high si l'intention et la cible sont claires; medium si la direction est probable mais encore incomplete; low si la clarification reste necessaire ou si une resolution serait prudente. Si confidence=low, flow_action ne doit pas etre resolved_to_candidate.",
     "- risk_score: nombre 0..10 lie au risque du tour. Garde 0 ou faible pour une simple ambiguite. N'invente pas de safety; si le message contient une safety reelle, utilise safety_preempt et un score coherent.",
     "- clarification_state.clarification_id: recopie l'id du flow actif. Ne cree pas un nouvel id.",
-    "- clarification_state.status: asking pour une question locale, still_ambiguous si la reponse ne tranche pas, resolved si selected_candidate_id est valide, cancelled pour stop_local_no_handoff/cancel_clarification, topic_change pour exit_to_global_dispatcher, safety pour safety_preempt.",
+    "- clarification_state.status: asking pour une question locale, still_ambiguous si la reponse ne tranche pas, resolved si selected_candidate_id est valide, cancelled pour exit_to_global_dispatcher/cancel_clarification, topic_change pour exit_to_global_dispatcher, safety pour safety_preempt.",
     "- clarification_state.source_dispatcher et source_flow_id: conserve l'origine recue. Ne les remplace pas par la cible choisie.",
     "- clarification_state.ambiguity_kind et ambiguity_axes: decris les axes utiles au conflit courant (intent, target, scope, surface, timing, confirmation, handoff_readiness). N'ajoute pas d'axe decoratif.",
     "- clarification_state.conflict_summary: resume le conflit produit en une phrase exploitable. Il doit aider le reducer et le prochain dispatcher, pas expliquer les internals au user.",
@@ -723,20 +720,18 @@ export function localDispatcherSystemPrompt(): string {
     "- conversation_context.user_words et evidence_used: mots et indices semantiques reellement utilises. Pas de pseudo-preuves.",
     "- conversation_context.do_not_say: termes a ne pas exposer (dispatcher, signal, candidate_id, JSON, note_information, internals).",
     "- conversation_context.tone_constraints: inclure whatsapp, court, tutoiement; ajouter une contrainte seulement si elle vient du contexte.",
-    "- note_information.needed: true pour tout changement d'owner ou roundtrip inline: resolved_to_candidate, exit_to_global_dispatcher, safety_preempt, get_info_product, get_info_db. false pour continuation locale et stop local sans handoff.",
+    "- note_information.needed: true pour tout changement d'owner ou roundtrip inline: resolved_to_candidate, exit_to_global_dispatcher, safety_preempt, get_info_product, get_info_db. false pour continuation locale et cancel_clarification sans changement de dispatcher.",
     "- note_information.source_flow_id: toujours clarification.",
-    "- note_information.source_flow_presentation: deux lignes maximum sur le role du flow quitte.",
     "- note_information.handoff_reason: clarification_resolved, topic_change, safety, inline_tool ou none selon flow_action.",
     "- note_information.target_dispatcher: dispatcher cible seulement si needed=true; global pour exit, safety_crisis pour safety, product_help/status_recap pour inline, target_dispatcher du candidat pour resolution. null sinon.",
     "- note_information.handoff_context_for_next_dispatcher: contexte exploitable par le dispatcher cible. Jamais un message visible.",
-    "- note_information.target_local_dispatcher_hint: hint court si le dispatcher cible doit reprendre un angle precis; null si inutile.",
-    "- note_information.structured_context: inclure candidate_signals, contexte compact utile, selected_candidate_payload_hint, evidence et questions non resolues. Ne transmets pas de DB brute.",
+    "- note_information.user_words: 1 a 3 fragments courts du message courant qui justifient le handoff; [] seulement si aucun mot user disponible.",
+    "- note_information.structured_context: obligatoire et non vide si needed=true. Inclure candidate_signals, contexte compact utile, selected_candidate_payload_hint, evidence, questions non resolues et recommended_next_focus. Ne transmets pas de DB brute. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
     "- evidence: indices courts et reels qui justifient la decision. Vide seulement si aucun indice fiable.",
     "",
     "Transition Rules",
-    "- stop_local_no_handoff: le user veut arreter la clarification sans nouveau sujet clair. visible_task.kind=stop_or_cancel, note_information.needed=false, pas de dispatcher global sur ce tour.",
-    "- cancel_clarification: le user annule explicitement l'objet ou la clarification. Meme suite que stop local.",
-    "- exit_to_global_dispatcher: le user apporte un nouveau sujet clair. note_information obligatoire vers global; visible_task.kind=exit_ack.",
+    "- exit_to_global_dispatcher: le user veut arreter la clarification ou apporte un nouveau sujet clair. note_information obligatoire vers global; visible_task.kind=exit_ack.",
+    "- cancel_clarification: le user annule explicitement l'objet de clarification sans changement de dispatcher. visible_task.kind=stop_or_cancel, note_information.needed=false.",
     "- safety_preempt: safety reelle prioritaire. note_information obligatoire vers safety_crisis; le dispatcher global normal ne reprend pas.",
     "- resolved_to_candidate: selectionne seulement un candidat existant, note_information obligatoire vers son target_dispatcher. Clarification ne lance pas l'action cible.",
     "- get_info_product/get_info_db: roundtrip inline temporaire avec note_information; le parent clarification doit pouvoir reprendre ensuite.",
@@ -800,11 +795,10 @@ export function localDispatcherSystemPrompt(): string {
       note_information: {
         needed: false,
         source_flow_id: "clarification",
-        source_flow_presentation: "Clarification locale d'un conflit.",
         handoff_reason: "none",
         target_dispatcher: null,
         handoff_context_for_next_dispatcher: null,
-        target_local_dispatcher_hint: null,
+        user_words: ["je parle de la carte"],
         structured_context: {},
       },
       evidence: ["reference incomplete"],
@@ -863,13 +857,19 @@ export function localDispatcherSystemPrompt(): string {
       note_information: {
         needed: true,
         source_flow_id: "clarification",
-        source_flow_presentation: "Clarification interrompue par safety.",
         handoff_reason: "safety",
         target_dispatcher: "safety_crisis",
         handoff_context_for_next_dispatcher:
           "Traiter le risque courant avant toute clarification.",
-        target_local_dispatcher_hint: "priorite_safety",
-        structured_context: { evidence: ["menace auto-dommage"] },
+        user_words: ["je vais me faire du mal"],
+        structured_context: {
+          user_message_summary: "menace auto-dommage",
+          active_flow_summary: "Clarification interrompue par safety.",
+          evidence: ["menace auto-dommage"],
+          unresolved_questions: [],
+          recommended_next_focus: "safety_crisis",
+        },
+        confidence: "high",
       },
       evidence: ["menace auto-dommage"],
     }),
@@ -900,7 +900,10 @@ export async function runClarificationLocalDispatcher(args: {
           "Clarification utilise le db_context_pack dynamique; pas de micro-memoire par defaut.",
       },
     },
-    platform_context: {},
+    platform_context: withDirectEffectLocalContext(
+      {},
+      (dbContextPack as any)?.plan_snapshot ?? dbContextPack,
+    ),
     risk_context: {},
     available_inline_tools: ["get_info_product", "get_info_db"],
     parent_flow_context: {
@@ -920,7 +923,7 @@ export async function runClarificationLocalDispatcher(args: {
     })),
     required_json_shape: {
       flow_action:
-        "ask_disambiguation|answer_clarification|still_ambiguous|resolved_to_candidate|revise_understanding|explain_candidate_options|get_info_product|get_info_db|stop_local_no_handoff|cancel_clarification|exit_to_global_dispatcher|safety_preempt",
+        "ask_disambiguation|answer_clarification|still_ambiguous|resolved_to_candidate|revise_understanding|explain_candidate_options|get_info_product|get_info_db|exit_to_global_dispatcher|cancel_clarification|safety_preempt",
       confidence: "low|medium|high",
       risk_score: "number 0..10",
       clarification_state: {
@@ -993,13 +996,13 @@ export async function runClarificationLocalDispatcher(args: {
       note_information: {
         needed: false,
         source_flow_id: "clarification",
-        source_flow_presentation: "string",
         handoff_reason:
           "clarification_resolved|topic_change|safety|inline_tool|none",
         target_dispatcher: "string|null",
         handoff_context_for_next_dispatcher: "string|null",
-        target_local_dispatcher_hint: "string|null",
+        user_words: ["string"],
         structured_context: {},
+        confidence: "low|medium|high",
       },
       evidence: ["string"],
     },

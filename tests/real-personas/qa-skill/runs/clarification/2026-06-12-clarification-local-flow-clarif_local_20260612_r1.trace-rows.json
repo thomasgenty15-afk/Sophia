@@ -1,0 +1,1674 @@
+{
+  "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+  "user_id": "a77cb176-cf55-479c-99ca-30abe8ef2ca2",
+  "traces": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "turn_id": "qa-clarification-local-clarif_local_20260612_r1-t01",
+        "user_id": "a77cb176-cf55-479c-99ca-30abe8ef2ca2",
+        "source_message_id": "9730327b-2f22-45a2-8e66-d969da181ad7",
+        "ts": "2026-06-11T23:15:53.068+00:00",
+        "created_at": "2026-06-11T23:15:53.069978+00:00",
+        "response_owner": "product_help",
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 0,
+                  "conversation_risk_last": null
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 1,
+                  "conversation_risk_last": null
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 1,
+                  "conversation_risk_last": null
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 1,
+                  "conversation_risk_last": null
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 3,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 3,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": "skill_entry_signal",
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          },
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-clarification-local-clarif_local_20260612_r1-t01",
+          "user_id": "a77cb176-cf55-479c-99ca-30abe8ef2ca2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": null,
+                "query_hint": "blocages du matin",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "user_also_asks_to_understand_attack_cards",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "semantic_inference_unavailable",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "semantic_inference_unavailable",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "flow_opportunity": {
+            "reason": "user_hesitates_between_product_help_and_preparation",
+            "evidence": [
+              "comprendre la carte attaque",
+              "en préparer une pour mon blocage de demain matin"
+            ],
+            "priority": 60,
+            "confidence": "medium",
+            "target_flow": "prepare_attack_card",
+            "target_kind": "tool_skill",
+            "seed_context": {
+              "surface": "attack_card",
+              "target_hint": "blocage de demain matin"
+            },
+            "opportunity_id": "prepare_attack_card.understand_or_prepare"
+          },
+          "note_information": {
+            "confidence": "high",
+            "user_words": [
+              "comprendre la carte attaque",
+              "en préparer une",
+              "Je ne sais pas si je veux juste comprendre la carte attaque ou en préparer une pour mon blocage de demain matin."
+            ],
+            "handoff_reason": "bridge",
+            "source_flow_id": "global_dispatcher",
+            "target_dispatcher": "clarification",
+            "structured_context": {
+              "evidence": [
+                "Je ne sais pas si je veux juste comprendre",
+                "ou en préparer une"
+              ],
+              "candidate_signals": [
+                "skill_signals.entry.product_help",
+                "flow_opportunity"
+              ],
+              "primary_signal_path": "clarification",
+              "recommended_next_focus": "Clarify if the user wants an explanation of the tool or to start the preparation flow for tomorrow's blockage."
+            },
+            "handoff_context_for_next_dispatcher": "User explicitly hesitates between understanding the attack card concept (product_help) and preparing one for a specific blockage tomorrow (prepare_attack_card). Provide both options to the user."
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "9730327b-2f22-45a2-8e66-d969da181ad7",
+          "tool_skill_intents": [],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Est-ce que tu préfères que je t'explique d'abord le principe de la carte d'attaque, ou on commence directement à en préparer une pour ton blocage de demain matin ?",
+            "status": "continue",
+            "effects": {
+              "allowed": [],
+              "blocked": [],
+              "committed": [],
+              "requested": []
+            },
+            "skill_id": "product_help",
+            "diagnosis": {
+              "mode": "standalone",
+              "bridge": {
+                "why": "The user explicitly mentions the possibility of preparing a card for tomorrow morning.",
+                "kind": "offer_with_consent",
+                "needed": true,
+                "executable": false,
+                "operation_type": "prepare_attack_card"
+              },
+              "target": {
+                "kind": "feature_catalog",
+                "confidence": "high",
+                "feature_id": "resources.attack_card",
+                "object_ref": null,
+                "object_type": "attack_card"
+              },
+              "evidence": [
+                "user hesitates between understanding and preparing",
+                "resources.attack_card",
+                "prepare_attack_card"
+              ],
+              "grounding": {
+                "surface_ids": [
+                  "attack_card"
+                ],
+                "db_sources_used": [],
+                "active_flow_used": false,
+                "catalog_feature_ids": [
+                  "resources.attack_card"
+                ],
+                "db_sources_required": false,
+                "missing_grounding_reason": null
+              },
+              "local_flow": true,
+              "flow_action": "clarify_product_question",
+              "reason_code": "product_help_local_clarify_product_question",
+              "visible_task": "clarify_product_question",
+              "note_information": null,
+              "return_to_parent_flow": false,
+              "handoff_to_local_dispatcher": false
+            },
+            "state_patch": {
+              "summary": "User hesitates between understanding the attack card concept and preparing one for a specific blockage tomorrow.",
+              "product_help_exit_memo": null,
+              "product_help_local_state": {
+                "mode": "standalone",
+                "status": "open",
+                "skill_id": "product_help",
+                "product_help_state": {
+                  "stage": "clarifying",
+                  "max_turns": 3,
+                  "turn_count": 1,
+                  "updated_at": "2026-06-11T23:15:49.978Z",
+                  "last_intent": "unclear",
+                  "last_target": {
+                    "kind": "feature_catalog",
+                    "confidence": "high",
+                    "feature_id": "resources.attack_card",
+                    "object_ref": null,
+                    "object_type": "attack_card"
+                  },
+                  "last_locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "last_answer_summary": "User hesitates between understanding the attack card concept and preparing one for a specific blockage tomorrow.",
+                  "parent_flow_context": null,
+                  "last_catalog_feature_ids": [
+                    "resources.attack_card"
+                  ]
+                }
+              },
+              "product_help_subskill_trace": null,
+              "product_help_note_information": null
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "unclear",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_suggestions_always_empty",
+                "requested_allowed_committed_effects_empty"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "tool_skill_run": null,
+        "total_latency_ms": 31899
+      },
+      {
+        "turn_id": "qa-clarification-local-clarif_local_20260612_r1-t02",
+        "user_id": "a77cb176-cf55-479c-99ca-30abe8ef2ca2",
+        "source_message_id": "16a54185-ef57-49a8-9c3e-e4f6cae5d676",
+        "ts": "2026-06-11T23:17:28.264+00:00",
+        "created_at": "2026-06-11T23:17:28.267326+00:00",
+        "response_owner": "product_help",
+        "route_decision": {
+          "reason_code": "active_product_help_local_dispatcher",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            },
+            {
+              "path": "global_router",
+              "reason_code": "active_local_conversation_skill_owns_turn"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "mode": null,
+                    "status": "active",
+                    "present": true,
+                    "skill_id": "product_help",
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "updated_at": "2026-06-11T23:15:53.073Z",
+                    "has_working_state": true,
+                    "working_state_keys": [
+                      "product_help_exit_memo",
+                      "product_help_local_state",
+                      "product_help_note_information",
+                      "product_help_subskill_trace",
+                      "summary"
+                    ]
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "mode": null,
+                    "status": "active",
+                    "present": true,
+                    "skill_id": "product_help",
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "updated_at": "2026-06-11T23:15:53.073Z",
+                    "has_working_state": true,
+                    "working_state_keys": [
+                      "product_help_exit_memo",
+                      "product_help_local_state",
+                      "product_help_note_information",
+                      "product_help_subskill_trace",
+                      "summary"
+                    ]
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "mode": null,
+                    "status": "active",
+                    "present": true,
+                    "skill_id": "product_help",
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "updated_at": "2026-06-11T23:15:53.073Z",
+                    "has_working_state": true,
+                    "working_state_keys": [
+                      "product_help_exit_memo",
+                      "product_help_local_state",
+                      "product_help_note_information",
+                      "product_help_subskill_trace",
+                      "summary"
+                    ]
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "mode": null,
+                  "status": "active",
+                  "present": true,
+                  "skill_id": "product_help",
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "updated_at": "2026-06-11T23:15:53.073Z",
+                  "has_working_state": true,
+                  "working_state_keys": [
+                    "product_help_exit_memo",
+                    "product_help_local_state",
+                    "product_help_note_information",
+                    "product_help_subskill_trace",
+                    "summary"
+                  ]
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "mode": null,
+                    "status": "active",
+                    "present": true,
+                    "skill_id": "product_help",
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "updated_at": "2026-06-11T23:15:53.073Z",
+                    "has_working_state": true,
+                    "working_state_keys": [
+                      "product_help_exit_memo",
+                      "product_help_local_state",
+                      "product_help_note_information",
+                      "product_help_subskill_trace",
+                      "summary"
+                    ]
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "mode": null,
+                  "status": "active",
+                  "present": true,
+                  "skill_id": "product_help",
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "updated_at": "2026-06-11T23:15:53.073Z",
+                  "has_working_state": true,
+                  "working_state_keys": [
+                    "product_help_exit_memo",
+                    "product_help_local_state",
+                    "product_help_note_information",
+                    "product_help_subskill_trace",
+                    "summary"
+                  ]
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "active_local_conversation_skill_owns_turn",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "mode": null,
+                    "status": "active",
+                    "present": true,
+                    "skill_id": "product_help",
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "updated_at": "2026-06-11T23:15:53.073Z",
+                    "has_working_state": true,
+                    "working_state_keys": [
+                      "product_help_exit_memo",
+                      "product_help_local_state",
+                      "product_help_note_information",
+                      "product_help_subskill_trace",
+                      "summary"
+                    ]
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": "active_product_help_local_dispatcher",
+                "active_skill_state": {
+                  "mode": null,
+                  "status": "active",
+                  "present": true,
+                  "skill_id": "product_help",
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "updated_at": "2026-06-11T23:15:53.073Z",
+                  "has_working_state": true,
+                  "working_state_keys": [
+                    "product_help_exit_memo",
+                    "product_help_local_state",
+                    "product_help_note_information",
+                    "product_help_subskill_trace",
+                    "summary"
+                  ]
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": "active_local_conversation_skill_owns_turn"
+              }
+            ]
+          },
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_local_conversation_skill_owns_turn",
+            "active_owner": "conversation_skill",
+            "resume_policy": "none",
+            "selected_owner": "conversation_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-clarification-local-clarif_local_20260612_r1-t02",
+          "user_id": "a77cb176-cf55-479c-99ca-30abe8ef2ca2",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "product_help": {
+                "reason": "active_local_conversation_skill_owns_turn",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "flow_opportunity": null,
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "should_exit_flows": false
+          },
+          "source_message_id": "16a54185-ef57-49a8-9c3e-e4f6cae5d676",
+          "tool_skill_intents": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Ça marche, on s'occupe de préparer ta carte d'attaque pour demain matin.",
+            "status": "handoff",
+            "effects": {
+              "allowed": [],
+              "blocked": [],
+              "committed": [],
+              "requested": []
+            },
+            "skill_id": "product_help",
+            "diagnosis": {
+              "mode": "standalone",
+              "bridge": {
+                "why": "The user explicitly chose to prepare the card rather than just receive an explanation.",
+                "kind": "handoff_needed",
+                "needed": true,
+                "executable": false,
+                "operation_type": "prepare_attack_card"
+              },
+              "target": {
+                "kind": "tool_flow",
+                "confidence": "high",
+                "feature_id": "resources.attack_card",
+                "object_ref": null,
+                "object_type": "attack_card"
+              },
+              "evidence": [
+                "On la prépare",
+                "demain matin",
+                "repousse le réveil"
+              ],
+              "grounding": {
+                "surface_ids": [
+                  "attack_card"
+                ],
+                "db_sources_used": [],
+                "active_flow_used": true,
+                "catalog_feature_ids": [
+                  "resources.attack_card"
+                ],
+                "db_sources_required": false,
+                "missing_grounding_reason": null
+              },
+              "local_flow": true,
+              "flow_action": "handoff_to_local_dispatcher",
+              "reason_code": "product_help_handoff_to_local_dispatcher",
+              "visible_task": "exit_ack",
+              "note_information": {
+                "confidence": "high",
+                "user_words": [
+                  "On la prépare",
+                  "demain matin",
+                  "repousse le réveil"
+                ],
+                "handoff_reason": "explicit_user_request",
+                "source_flow_id": "product_help",
+                "target_dispatcher": "prepare_attack_card",
+                "structured_context": {
+                  "source_flow": "product_help",
+                  "user_intent": "prepare_attack_card",
+                  "blockage_context": "snoozing alarm tomorrow morning"
+                },
+                "handoff_context_for_next_dispatcher": "User was in product_help and decided to prepare an attack card for a specific situation: snoozing the alarm tomorrow morning."
+              },
+              "return_to_parent_flow": false,
+              "handoff_to_local_dispatcher": true
+            },
+            "state_patch": {
+              "summary": "User wants to proceed with preparing an attack card for a specific morning blockage.",
+              "product_help_exit_memo": {
+                "at": "2026-06-11T23:17:28.212Z",
+                "needed": true,
+                "reason": "explicit_tool_request",
+                "note_information": {
+                  "confidence": "high",
+                  "user_words": [
+                    "On la prépare",
+                    "demain matin",
+                    "repousse le réveil"
+                  ],
+                  "handoff_reason": "explicit_user_request",
+                  "source_flow_id": "product_help",
+                  "target_dispatcher": "prepare_attack_card",
+                  "structured_context": {
+                    "source_flow": "product_help",
+                    "user_intent": "prepare_attack_card",
+                    "blockage_context": "snoozing alarm tomorrow morning"
+                  },
+                  "handoff_context_for_next_dispatcher": "User was in product_help and decided to prepare an attack card for a specific situation: snoozing the alarm tomorrow morning."
+                },
+                "local_flow_context": {
+                  "mode": "standalone",
+                  "stage": "handoff",
+                  "skill_id": "product_help",
+                  "parent_skill_id": null,
+                  "committed_effects": [],
+                  "last_answer_summary": "User chose preparation over explanation for the attack card."
+                },
+                "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+                "user_intent_summary": "User wants to prepare an attack card for tomorrow morning.",
+                "handoff_hint_for_global_dispatcher": {
+                  "why": "User explicitly asked to prepare the card.",
+                  "constraints": [],
+                  "likely_intent": "prepare_attack_card"
+                }
+              },
+              "product_help_local_state": {
+                "mode": "standalone",
+                "status": "handoff",
+                "skill_id": "product_help",
+                "product_help_state": {
+                  "stage": "handoff",
+                  "max_turns": 3,
+                  "turn_count": 2,
+                  "updated_at": "2026-06-11T23:17:25.171Z",
+                  "last_intent": "tool_action_request",
+                  "last_target": {
+                    "kind": "tool_flow",
+                    "confidence": "high",
+                    "feature_id": "resources.attack_card",
+                    "object_ref": null,
+                    "object_type": "attack_card"
+                  },
+                  "last_locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "last_answer_summary": "User wants to proceed with preparing an attack card for a specific morning blockage.",
+                  "parent_flow_context": null,
+                  "last_catalog_feature_ids": [
+                    "resources.attack_card"
+                  ]
+                }
+              },
+              "product_help_subskill_trace": null,
+              "product_help_note_information": {
+                "confidence": "high",
+                "user_words": [
+                  "On la prépare",
+                  "demain matin",
+                  "repousse le réveil"
+                ],
+                "handoff_reason": "explicit_user_request",
+                "source_flow_id": "product_help",
+                "target_dispatcher": "prepare_attack_card",
+                "structured_context": {
+                  "source_flow": "product_help",
+                  "user_intent": "prepare_attack_card",
+                  "blockage_context": "snoozing alarm tomorrow morning"
+                },
+                "handoff_context_for_next_dispatcher": "User was in product_help and decided to prepare an attack card for a specific situation: snoozing the alarm tomorrow morning."
+              }
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "handoff_request": {
+              "reason": "product_help_handoff_to_local_dispatcher",
+              "confidence_band": "high",
+              "target_skill_id": "prepare_attack_card"
+            },
+            "response_intent": "tool_action_request",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_suggestions_always_empty",
+                "requested_allowed_committed_effects_empty"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": []
+          },
+          "reason_code": "active_product_help_local_dispatcher",
+          "selected_skill_id": "product_help"
+        },
+        "tool_skill_run": null,
+        "total_latency_ms": 16010
+      },
+      {
+        "turn_id": "qa-clarification-local-clarif_local_20260612_r1-t03",
+        "user_id": "a77cb176-cf55-479c-99ca-30abe8ef2ca2",
+        "source_message_id": "24420402-b4aa-43da-9ba6-0153d0eb6522",
+        "ts": "2026-06-11T23:18:28.965+00:00",
+        "created_at": "2026-06-11T23:18:28.967552+00:00",
+        "response_owner": "tool_skill",
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 6,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 5,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": null,
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-clarification-local-flow-clarif_local_20260612_r1",
+                "temp_memory": {
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "has_temp_memory": true,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "temp_memory_type": "object",
+                  "temp_memory_key_count": 5,
+                  "conversation_risk_last": {
+                    "score": 0,
+                    "reason_codes": [],
+                    "should_exit_flows": false
+                  }
+                },
+                "route_reason_code": "tool_skill_intent_start",
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          },
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-clarification-local-clarif_local_20260612_r1-t03",
+          "user_id": "a77cb176-cf55-479c-99ca-30abe8ef2ca2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "snoozing alarm habits and morning routine",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "semantic_inference_unavailable",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "semantic_inference_unavailable",
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "flow_opportunity": null,
+          "note_information": {
+            "confidence": "high",
+            "user_words": [
+              "Oui, commence maintenant avec cette cible : repousser le réveil demain matin."
+            ],
+            "handoff_reason": "explicit_user_request",
+            "source_flow_id": "global_dispatcher",
+            "target_dispatcher": "prepare_attack_card",
+            "structured_context": {
+              "evidence": [
+                "commence maintenant avec cette cible",
+                "repousser le réveil demain matin"
+              ],
+              "target_flow": "prepare_attack_card",
+              "target_kind": "tool_skill",
+              "confidence_band": "high",
+              "primary_signal_path": "tool_skill_intents[0]",
+              "recommended_next_focus": "Run the local dispatcher for prepare_attack_card to start the slot filling for the card content."
+            },
+            "handoff_context_for_next_dispatcher": "User explicitly confirms starting the preparation of an attack card for snoozing the alarm tomorrow morning. The target is identified and the user wants to proceed immediately."
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "24420402-b4aa-43da-9ba6-0153d0eb6522",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "repousser le réveil demain matin",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "operation_input": {
+                "evidence": [
+                  "commence maintenant avec cette cible",
+                  "repousser le réveil demain matin"
+                ],
+                "target_action_hint": "repousser le réveil demain matin"
+              }
+            }
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "mode": "platform_handoff",
+          "status": "clarifying",
+          "flow_action": "continue_local",
+          "reason_code": "prepare_attack_card_local_ask_blocker",
+          "visible_task": "ask_blocker",
+          "handoff_state": {
+            "mode": "platform_handoff",
+            "draft": {
+              "mode": "platform_handoff",
+              "operation_type": "prepare_attack_card",
+              "recommendation": {
+                "avoid": [],
+                "preserve": [],
+                "platform_steps": [
+                  "ouvre la section Cartes",
+                  "choisis Carte d’attaque",
+                  "reprends le brouillon proposé"
+                ],
+                "technique_label": "",
+                "card_draft_summary": "",
+                "why_this_technique": "technique selection follows blocker intake",
+                "platform_destination": "dans la section Cartes d’attaque"
+              },
+              "target_summary": "repousser le réveil demain matin",
+              "blocker_summary": "",
+              "no_chat_mutation": true,
+              "missing_decisions": [],
+              "executable_from_chat": false
+            },
+            "status": "collecting",
+            "target": {
+              "kind": "personal_action",
+              "title": "repousser le réveil demain matin",
+              "plan_item_id": null
+            },
+            "skill_id": "prepare_attack_card",
+            "max_turns": 8,
+            "created_at": "2026-06-11T23:18:28.955Z",
+            "turn_count": 1,
+            "updated_at": "2026-06-11T23:18:28.955Z",
+            "local_state": {
+              "flow_id": "prepare_attack_card",
+              "flow_kind": "free_attack_card",
+              "target_state": {
+                "kind": "personal_action",
+                "status": "locked",
+                "why_status": "user explicitly confirmed the target in the current message",
+                "locked_value": "repousser le réveil demain matin",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "blocker_state": {
+                "status": "missing",
+                "why_status": "Piège manquant.",
+                "blocker_type": null,
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "technique_state": {
+                "status": "missing",
+                "why_status": "technique selection follows blocker intake",
+                "fit_warning": null,
+                "technique_key": null,
+                "technique_label": null,
+                "candidate_options": [],
+                "explicitly_requested": false,
+                "needs_user_confirmation": false
+              },
+              "current_field_id": null,
+              "subskill_history": [],
+              "last_visible_task": "ask_blocker",
+              "platform_destination": "dans la section Cartes d’attaque",
+              "platform_field_order": [],
+              "platform_field_states": {},
+              "last_handoff_delivered": false,
+              "activation_keyword_state": {
+                "status": "not_applicable",
+                "why_status": "not pre_engagement",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              }
+            },
+            "source_draft": null,
+            "no_chat_mutation": true
+          },
+          "runtime_trace": [
+            {
+              "event": "db_context_pack_loaded",
+              "component": "prepare_attack_card.local_flow",
+              "plan_items_count": 0,
+              "selected_handler": "prepare_attack_card",
+              "micro_memory_items_count": 0
+            },
+            {
+              "event": "global_dispatcher_skipped",
+              "component": "prepare_attack_card.local_flow",
+              "reason_code": "active_prepare_attack_card_uses_local_dispatcher",
+              "selected_handler": "prepare_attack_card"
+            },
+            {
+              "event": "note_information_consumed",
+              "component": "prepare_attack_card.local_flow",
+              "source_flow_id": "global_dispatcher",
+              "selected_handler": "prepare_attack_card",
+              "target_dispatcher": "prepare_attack_card"
+            },
+            {
+              "event": "local_dispatcher start",
+              "stage": null,
+              "component": "prepare_attack_card.local_flow",
+              "flow_action": null,
+              "target_status": "proposed",
+              "technique_key": null,
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": null,
+              "current_field_id": null,
+              "selected_handler": "prepare_attack_card",
+              "visible_task_kind": null
+            },
+            {
+              "event": "local_dispatcher decision",
+              "stage": "ask_blocker",
+              "component": "prepare_attack_card.local_flow",
+              "flow_action": "continue_local",
+              "target_status": "locked",
+              "technique_key": null,
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "current_field_id": null,
+              "selected_handler": "prepare_attack_card",
+              "visible_task_kind": "ask_blocker"
+            },
+            {
+              "event": "reducer reduced",
+              "stage": "ask_blocker",
+              "component": "prepare_attack_card.local_flow",
+              "flow_action": "continue_local",
+              "target_status": "locked",
+              "technique_key": null,
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "current_field_id": null,
+              "selected_handler": "prepare_attack_card",
+              "visible_task_kind": "ask_blocker"
+            },
+            {
+              "event": "visible_stage start",
+              "stage": "ask_blocker",
+              "component": "prepare_attack_card.local_flow",
+              "flow_action": "continue_local",
+              "target_status": "locked",
+              "technique_key": null,
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "current_field_id": null,
+              "selected_handler": "prepare_attack_card",
+              "visible_task_kind": "ask_blocker"
+            },
+            {
+              "stage": "ask_blocker",
+              "issues": [],
+              "attempt": 1,
+              "accepted": true,
+              "component": "visible_agent"
+            },
+            {
+              "event": "visible_stage complete",
+              "stage": "ask_blocker",
+              "component": "prepare_attack_card.local_flow",
+              "flow_action": "continue_local",
+              "target_status": "locked",
+              "technique_key": null,
+              "blocker_status": "missing",
+              "missing_fields": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "current_field_id": null,
+              "selected_handler": "prepare_attack_card",
+              "visible_task_kind": "ask_blocker"
+            }
+          ],
+          "operation_type": "prepare_attack_card",
+          "allowed_effects": [],
+          "blocked_effects": [],
+          "risk_assessment": {
+            "risk_band": "none",
+            "risk_score": 0,
+            "reason_codes": [],
+            "safety_preempt": false
+          },
+          "no_chat_mutation": true,
+          "selected_handler": "prepare_attack_card",
+          "committed_effects": [],
+          "requested_effects": [],
+          "executable_from_chat": false,
+          "visible_task_context": {
+            "do_not_say": [
+              "c'est cree",
+              "je l'ai creee",
+              "je l'ai ajoutee",
+              "c'est active",
+              "dis oui et je la cree",
+              "c'est créé",
+              "je l'ai ajoutée"
+            ],
+            "user_words": [
+              "repousser le réveil demain matin"
+            ],
+            "handoff_data": {
+              "flow_kind": "free_attack_card",
+              "target_value": "repousser le réveil demain matin",
+              "blocker_value": null,
+              "locked_fields": [],
+              "surface_label": "Cartes d'attaque",
+              "missing_fields": [
+                "blocker",
+                "technique"
+              ],
+              "operation_name": "prepare_attack_card",
+              "platform_steps": [],
+              "technique_label": null,
+              "no_chat_mutation": true,
+              "activation_keyword": null,
+              "platform_destination": ""
+            },
+            "known_values": {
+              "target": {
+                "kind": "personal_action",
+                "status": "locked",
+                "why_status": "user explicitly confirmed the target in the current message",
+                "locked_value": "repousser le réveil demain matin",
+                "plan_item_id": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "blocker": {
+                "status": "missing",
+                "why_status": "Piège manquant.",
+                "blocker_type": null,
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              },
+              "technique": {
+                "status": "missing",
+                "why_status": "technique selection follows blocker intake",
+                "fit_warning": null,
+                "technique_key": null,
+                "technique_label": null,
+                "candidate_options": [],
+                "explicitly_requested": false,
+                "needs_user_confirmation": false
+              },
+              "current_field": null,
+              "activation_keyword": {
+                "status": "not_applicable",
+                "why_status": "not pre_engagement",
+                "locked_value": null,
+                "candidate_value": null,
+                "needs_user_confirmation": false
+              }
+            },
+            "evidence_used": [
+              "commence maintenant avec cette cible",
+              "repousser le réveil demain matin"
+            ],
+            "state_summary": "Cible verrouillée sur le réveil de demain matin. Étape suivante : identifier le piège ou l'excuse.",
+            "field_or_stage": "blocker_intake",
+            "context_summary": "La cible est fixée. Je dois maintenant demander quel est le piège ou l'excuse qui fait que le réveil est repoussé.",
+            "tone_constraints": [],
+            "selected_candidate": {
+              "previous_value": null
+            },
+            "missing_or_weak_values": [
+              "blocker_value"
+            ]
+          }
+        },
+        "total_latency_ms": 19556
+      }
+    ]
+  }
+}

@@ -15,6 +15,7 @@ import {
 
 type ExecMeta = {
   requestId?: string;
+  userId?: string | null;
   forceRealAi?: boolean;
   channel?: "web" | "whatsapp";
   model?: string;
@@ -156,6 +157,7 @@ export async function runAgentAndVerify(opts: {
         const flowContext = toSentryContext(tempMemory);
         responseContent = await runSentry(userMessage, {
           ...(meta ?? {}),
+          userId,
           model: sophiaChatModel,
         }, flowContext);
         nextMode = "sentry";
@@ -183,7 +185,7 @@ export async function runAgentAndVerify(opts: {
           history,
           state,
           context,
-          { ...(meta ?? {}), model: sophiaChatModel },
+          { ...(meta ?? {}), userId, model: sophiaChatModel },
         );
         responseContent = out.text;
         tempMemory = out.temp_memory ?? tempMemory;

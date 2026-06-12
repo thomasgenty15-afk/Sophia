@@ -175,7 +175,10 @@ Deno.test("weekly_adaptive_review_delegates_to_weekly_review_reducer", () => {
 
   assertEquals(adaptive.skill_decision.week_strategy, decision.week_strategy);
   assertEquals(adaptive.skill_decision.plan_patch, decision.plan_patch);
-  assertEquals(adaptive.week_strategy.decision, decision.week_strategy.decision);
+  assertEquals(
+    adaptive.week_strategy.decision,
+    decision.week_strategy.decision,
+  );
 });
 
 Deno.test("weekly_adaptive_review_message_uses_weekly_review_renderer", () => {
@@ -200,7 +203,7 @@ Deno.test("weekly adaptive review opening guard rejects rigid builder-like copy"
   );
   assertEquals(
     weeklyAdaptiveReviewOpeningLooksValid(
-      "C'est le moment du bilan de la semaine. On va faire le point tranquillement sur ce qui a tenu et ce qui a coince, puis on verra quoi ajuster pour la suite.\n\nComment tu as vecu la semaine dans l'ensemble ?",
+      "C'est le moment du bilan de la semaine. On va faire le point tranquillement sur ce qui a tenu, ce qui a pese, et comment tu sens ton avancee par rapport a ton objectif.\n\nComment tu as vecu la semaine dans l'ensemble ?",
     ),
     true,
   );

@@ -2,25 +2,22 @@
 
 ## Scope
 
-`note_information` est le contrat transverse non visible transmis quand un
-dispatcher local transfere l'ownership du tour a un autre dispatcher.
+`note_information` est le contrat semantique non visible transmis quand un
+dispatcher transfere l'ownership du tour a un autre dispatcher.
 
-Elle s'applique a toutes les transitions suivantes :
+Elle s'applique notamment a :
 
 - flow local -> dispatcher global ;
 - flow local -> `safety_crisis.local_dispatcher` ;
-- flow local -> `product_help.local_dispatcher` appele inline ;
-- flow local -> `status_recap.local_dispatcher` / `get_info_db` appele inline ;
-- `emotional_repair` -> `select_state_potion.local_dispatcher` ;
-- `demotivation_repair` -> `select_state_potion.local_dispatcher` ;
-- proactive local flow -> dispatcher global ;
-- tool local flow -> dispatcher global ;
-- autre bridge direct vers un dispatcher local documente.
+- flow local -> `product_help.local_dispatcher` inline ;
+- flow local -> `status_recap.local_dispatcher` inline ;
+- flow local -> `select_state_potion.local_dispatcher` ;
+- flow local -> `verification_opportunities` ;
+- tool/proactive local flow -> dispatcher global ou autre dispatcher local.
 
-Elle ne s'applique pas quand le flow se ferme localement sans nouveau sujet et
-sans handoff. Dans ce cas, le reducer produit une `visible_task`
-d'acknowledgement, stoppe ou differe l'etat actif, et le dispatcher global ne
-doit pas etre appele sur le meme tour.
+Quand le user veut arreter, fermer, annuler ou quitter un flow local actif, le
+dispatcher local doit produire `exit_to_global_dispatcher` avec
+`note_information.target_dispatcher="global"`.
 
 Exception specialisee : le passage interne `select_state_potion -> sous-skill
 potion` peut conserver son contrat structure de sous-flow. Il ne requiert pas
@@ -33,250 +30,183 @@ runtime transverse.
 {
   "note_information": {
     "source_flow_id": "string",
-    "source_flow_presentation": "string",
-    "source_flow_state_summary": "string",
-    "handoff_reason": "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request",
-    "target_dispatcher": "global|safety_crisis|select_state_potion|product_help|status_recap|verification_opportunities|other_local",
+    "target_dispatcher": "global|safety_crisis|clarification|create_one_shot_reminder|create_recurring_reminder|prepare_attack_card|prepare_defense_card|adjust_plan_item|select_state_potion|track_progress_plan_item|update_coach_preferences|emotional_repair|demotivation_repair|product_help|status_recap|weekly_adaptive_review_v1|verification_opportunities|post_morning_nudge.action|post_morning_nudge.suppressed_action|post_morning_nudge.emotional_presence|other_local",
+    "handoff_reason": "clarification_resolved|topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request",
     "handoff_context_for_next_dispatcher": "string",
-    "target_local_dispatcher_hint": "string|null",
     "user_words": ["string"],
     "structured_context": {},
-    "risk_score": 0,
-    "no_chat_mutation": {
-      "db_write_committed": false,
-      "potion_session_created": false,
-      "scheduled_checkin_created": false,
-      "recurring_reminder_created": false,
-      "executable_confirmation_generated": false
-    }
+    "confidence": "low|medium|high"
   }
 }
 ```
 
-Minimum compatible legacy : si un ancien `exit_memo` existe, il doit porter ou
-etre normalise vers `note_information.source_flow_presentation` et
-`note_information.handoff_context_for_next_dispatcher`. Les autres champs
-deviennent obligatoires des que le flow est migre vers ce contrat.
+`confidence` est optionnel si le flow local n'a pas de notion de confiance.
 
-## Exit Taxonomy
+`structured_context` est obligatoire. Il peut etre minimal, mais il ne doit pas
+etre vide par defaut quand le dispatcher dispose d'informations utiles.
 
-`exit_to_global_dispatcher`
-: autre sujet clair, demande hors flow, demande explicite d'un autre owner, ou
-reprise globale autorisee par le contrat local. `note_information` obligatoire,
-`target_dispatcher="global"`, stop local oui.
+Format recommande :
 
-`safety_preempt`
-: passage prioritaire vers `safety_crisis.local_dispatcher`.
-`note_information` obligatoire, `target_dispatcher="safety_crisis"`, stop ou
-suspend local oui selon le flow source.
+```json
+{
+  "structured_context": {
+    "user_message_summary": "string",
+    "active_flow_summary": "string|null",
+    "collected_state": {},
+    "unresolved_questions": ["string"],
+    "evidence": ["string"],
+    "recommended_next_focus": "string|null"
+  }
+}
+```
 
-`handoff_to_local_dispatcher`
-: bridge direct vers un flow local cible, par exemple
-`emotional_repair -> select_state_potion` ou
-`flow_opportunity_verification -> prepare_attack_card`.
-`note_information` obligatoire, `target_dispatcher` cible, stop local oui.
+## What Is Not Part Of Note Information
 
-`inline_tool_roundtrip`
-: appel inline a `product_help`, `status_recap` ou
-`verification_opportunities` pour repondre a une question d'information, puis
-retour au flow parent. `note_information` obligatoire pour l'appel entrant et
-pour le retour si le sous-skill rend un resume structure. Stop local non :
-l'ownership parent est preserve.
+Ces champs ne font pas partie du contrat semantique `note_information` :
 
-`stop_local_no_handoff`
-: arret, fermeture, acknowledgement ou defer local sans nouveau dispatcher.
-`note_information` interdite ou `needed=false`, stop local oui, aucun appel au
-global sur le meme tour.
+- `source_flow_presentation` ;
+- `source_flow_state_summary` comme champ obligatoire separe ;
+- `target_local_dispatcher_hint` ;
+- `risk_score` ;
+- `no_chat_mutation` ;
+- `db_write_committed`, `potion_session_created`,
+  `scheduled_checkin_created`, `recurring_reminder_created`,
+  `executable_confirmation_generated`.
 
-## Local Actions That Are Not Handoffs
+Ces informations appartiennent a d'autres couches :
 
-Les noms exacts peuvent varier par flow, mais ils doivent appartenir a une de
-ces categories :
+- risk/safety : sortie du dispatcher local, safety runtime, trace ;
+- effet durable / absence d'effet : `EffectLedger`, effect boundary, runtime
+  trace QA ;
+- presentation du flow : documentation/catalogue, pas handoff runtime ;
+- hint de prompt : `structured_context.recommended_next_focus` si necessaire.
 
-- `stop_local_and_ack` : le user refuse, arrete, ou veut juste une fermeture ;
-- `complete_and_stop` : le flow a termine son travail localement ;
-- `defer_and_ack` : le flow garde ou differe un etat sans rerouter ;
-- `cancel_flow_without_reroute` : annulation locale sans nouveau sujet ;
-- `apply_attempt` non-mutant : le user demande d'appliquer depuis le chat, mais
-  le contrat local ne permet pas l'execution ;
-- `repeat_*` ou `platform_destination_followup` : reexplication locale du
-  handoff deja produit.
+Le runtime ne doit plus accepter ces champs comme partie du contrat
+`note_information`. Un producteur qui en a besoin doit les conserver dans sa
+sortie locale, ses traces ou son effect boundary, pas dans la note.
 
-Ces actions choisissent une `visible_task` locale. Elles ne peuvent pas appeler
-le dispatcher global sur le meme message sauf si le JSON local produit aussi un
-exit structure distinct.
+## Field Rules
+
+`source_flow_id`
+: identifiant du dispatcher/flow qui rend l'ownership. Exemple :
+`demotivation_repair`, `create_recurring_reminder`, `weekly_adaptive_review_v1`.
+
+`target_dispatcher`
+: dispatcher cible reel. Ce n'est pas toujours `global`. Exemples :
+`global`, `safety_crisis`, `select_state_potion`, `product_help`,
+`status_recap`, `verification_opportunities`.
+
+`handoff_reason`
+: raison de transfert, pas diagnostic general. Utiliser `safety` pour une
+preemption safety, `bridge` pour un bridge consenti, `inline_tool` pour une
+question inline, `topic_change` ou `explicit_user_request` pour une sortie vers
+global.
+
+`handoff_context_for_next_dispatcher`
+: resume compact en langage naturel pour le dispatcher cible. Il explique ce
+qui vient d'etre compris, confirme, refuse, ou laisse ouvert. Ce n'est jamais un
+message visible a afficher tel quel.
+
+`user_words`
+: extraits courts du message user qui justifient le handoff. Ne pas y mettre de
+profil global, de DB brute, ni de longues citations.
+
+`structured_context`
+: contexte exploitable minimal, obligatoire. Il doit contenir les valeurs
+connues, contraintes, incertitudes, preuves et prochain focus utile au
+dispatcher cible. Il ne doit pas contenir de dump DB/memoire brut.
+
+`confidence`
+: optionnel. Utiliser `high` si le handoff est clair, `medium` si probable mais
+incomplet, `low` si le dispatcher cible doit clarifier.
+
+## Runtime Responsibilities
+
+Le reducer/runtime doit :
+
+- refuser un changement de dispatcher sans `note_information` ;
+- verifier que `target_dispatcher` correspond a l'action de sortie ;
+- garantir que `structured_context` existe, meme minimal ;
+- transmettre la note au dispatcher cible ;
+- ne jamais transmettre la note brute a un prompt visible.
+
+Quand le dispatcher global choisit `normal_reply` apres avoir recu une note,
+le runtime peut transmettre au normal reply un contexte filtre issu de :
+
+- `handoff_context_for_next_dispatcher` ;
+- `structured_context`.
+
+Le normal reply ne doit pas recevoir les champs techniques de la note, et ne
+doit pas voir `no_chat_mutation`, `risk_score`, `target_dispatcher`, ou des
+details de routing.
 
 ## Dispatcher Responsibilities
 
 Le dispatcher local produit du JSON seulement. Quand il transfere l'ownership,
-il doit remplir `note_information` en plus de son action de sortie.
+il doit remplir `note_information`.
 
-Il choisit `target_dispatcher` ainsi :
+Il doit :
 
-- `global` : sujet clairement hors flow, demande d'un autre owner non cible
-  directement par le flow, ou fallback legacy de bridge ;
-- `safety_crisis` : signal safety preemptif ;
-- `product_help` : question produit/navigation/limite appelee inline ;
-- `status_recap` : question DB/status/read-only appelee inline ;
-- `select_state_potion` : bridge consenti vers potion depuis
-  `emotional_repair`, `demotivation_repair`, ou autre flow qui supporte ce
-  bridge explicitement ;
-- `verification_opportunities` : verification inline d'une opportunite
-  implicite, si le flow parent la supporte ;
-- `other_local` : bridge vers un dispatcher local cible documente, avec
-  `target_local_dispatcher_hint` explicite.
+- choisir le `target_dispatcher` cible reel ;
+- remplir `handoff_context_for_next_dispatcher` de maniere exploitable ;
+- remplir `structured_context` avec un objet minimal utile ;
+- inclure les mots user probants dans `user_words` ;
+- conserver les contraintes explicites du user.
 
-Le dispatcher ne doit jamais :
+Il ne doit jamais :
 
 - produire un message visible ;
 - utiliser une regex metier ou `message.includes(...)` metier ;
 - router deterministiquement depuis une note recue ;
 - traiter `note_information` comme un second dispatcher cache ;
-- remplir les slots finaux du flow cible hors contexte source ;
-- inventer un effet durable, une confirmation executable ou une mutation.
-
-## Reducer Responsibilities
-
-Le reducer valide le contrat et choisit la prochaine `visible_task`.
-
-Il doit :
-
-- refuser un changement de dispatcher sans `note_information` ;
-- refuser un `target_dispatcher` incompatible avec l'action de sortie ;
-- verifier que `no_chat_mutation` reste coherent avec les effets committes ;
-- preserver le flow parent sur `inline_tool_roundtrip` ;
-- stopper ou deferer l'etat local sur `stop_local_no_handoff` sans appeler
-  global ;
-- transmettre la note au dispatcher cible sans la rendre visible.
-
-Il ne doit pas :
-
-- reclassifier le message brut ;
-- choisir un target depuis le texte de la note ;
-- rendre un template user-facing ;
-- laisser l'agent visible decider le routing ou les champs.
-
-## Source Flow Presentation
-
-`source_flow_presentation` vient du
-`flow-presentation-catalog.md`. Elle doit reprendre la presentation canonique du
-flow source en deux lignes maximum. Elle ne doit pas etre reformulee pour
-convaincre le flow cible ni contenir d'instruction de routing.
-
-Exemples de presentations canoniques :
-
-- `emotional_repair` : "Repairs shame, guilt, anxiety, self-attack, relational
-  tension, or acute emotional pressure. It can bridge to limited state potions
-  after consent."
-- `demotivation_repair` : "Repairs demotivation, fatigue, loss of meaning,
-  avoidance, or overwhelm without moralizing. It may bridge to a potion after
-  consent."
-- `status_recap` : "Answers DB-grounded questions about what exists, is active,
-  was cancelled, or recently happened. It is read-only and never mutates."
-
-## Handoff Context
-
-`handoff_context_for_next_dispatcher` est ecrit pour le dispatcher cible, pas
-pour le user. Il doit contenir :
-
-- ce que le flow source a deja compris ;
-- ce qui a ete confirme, refuse, annule, ou rendu ;
-- les contraintes a preserver ;
-- les champs candidats utiles au flow cible, avec confidence si disponible ;
-- ce qui manque encore ;
-- le statut no-mutation ;
-- si le meme message user doit etre reanalyse par le dispatcher cible.
-
-Il ne doit pas contenir :
-
-- un message a afficher tel quel ;
-- une decision deterministe pour le flow cible ;
-- une injonction a executer ou muter ;
-- un claim de succes durable sans `committed_effect`.
+- inventer un effet durable, une confirmation executable ou une mutation ;
+- inclure des preuves runtime/effect boundary dans la note semantique.
 
 ## Transition Matrix
 
-| Source flow | Target dispatcher | Note required | Stop local | Category |
+| Source flow | Target dispatcher | Note required | Source ownership | Category |
 | --- | --- | --- | --- | --- |
-| any active local flow | global | yes | yes | `exit_to_global_dispatcher` |
-| any active non-safety flow | safety_crisis | yes | yes | `safety_preempt` |
-| any active local flow with inline product question | product_help | yes | no | `inline_tool_roundtrip` |
-| any active local flow with inline DB/status question | status_recap | yes | no | `inline_tool_roundtrip` |
-| any active local flow | none | no | yes | `stop_local_no_handoff` |
-| `emotional_repair` | select_state_potion | yes | yes | `handoff_to_local_dispatcher` |
-| `demotivation_repair` | select_state_potion | yes | yes | `handoff_to_local_dispatcher` |
-| `select_state_potion` | potion subskill | no | no | internal specialized exception |
-| `safety_crisis` resolved exit | global | yes | yes | `exit_to_global_dispatcher` |
-| `product_help` standalone | global | yes | yes | `exit_to_global_dispatcher` |
-| `product_help` inline | parent flow | yes | no | `inline_tool_roundtrip` |
-| `status_recap` standalone | global | yes | yes | `exit_to_global_dispatcher` |
-| `status_recap` inline | parent flow | yes | no | `inline_tool_roundtrip` |
-| `flow_opportunity_verification` | target local dispatcher | yes | yes | `handoff_to_local_dispatcher` |
-| `flow_opportunity_verification` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
-| `daily_action_review_v1` | global | yes | yes | `exit_to_global_dispatcher` |
-| `weekly_adaptive_review_v1` | global | yes | yes | `exit_to_global_dispatcher` |
-| `weekly_adaptive_review_v1` | adjust_plan_item | yes | yes | `handoff_to_local_dispatcher` |
-| `post_morning_nudge.action` | global | yes | yes | `exit_to_global_dispatcher` |
-| `post_morning_nudge.suppressed_action` | global | yes | yes | `exit_to_global_dispatcher` |
-| `post_morning_nudge.emotional_presence` | global/select_state_potion | yes | yes | `exit_to_global_dispatcher` or `handoff_to_local_dispatcher` |
-| `adjust_plan_item` | global | yes | yes | `exit_to_global_dispatcher` |
-| `adjust_plan_item` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
-| `prepare_attack_card` | global | yes | yes | `exit_to_global_dispatcher` |
-| `prepare_attack_card` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
-| `prepare_attack_card` | select_state_potion | yes | yes | `handoff_to_local_dispatcher` |
-| `prepare_defense_card` | global | yes | yes | `exit_to_global_dispatcher` |
-| `prepare_defense_card` | prepare_attack_card/select_state_potion | yes | yes | `handoff_to_local_dispatcher` |
-| `create_recurring_reminder` | global/safety_crisis | yes | yes | exit or safety |
-| `create_recurring_reminder` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
-| `create_recurring_reminder` | one_shot_reminder | yes | yes | local/direct-effect boundary |
-| `update_coach_preferences` | global/safety_crisis | yes | yes | exit or safety |
-| `update_coach_preferences` | product_help/status_recap | yes | no | `inline_tool_roundtrip` |
-| `whatsapp_onboarding` | global | yes | yes | `exit_to_global_dispatcher` when contract allows exit |
+| any active local flow | global | yes | exits source | `exit_to_global_dispatcher` |
+| any active non-safety flow | safety_crisis | yes | suspended/closed | `safety_preempt` |
+| any active local flow with inline product question | product_help | yes | preserved | `inline_tool` |
+| any active local flow with inline DB/status question | status_recap | yes | preserved | `inline_tool` |
+| emotional/demotivation repair | select_state_potion | yes | exits source | `bridge` |
+| flow_opportunity_verification | target local dispatcher | yes | exits source | `bridge` |
+| proactive/tool local flow | global | yes | exits source | `exit_to_global_dispatcher` |
 
-## Flow-Specific Context Requirements
+## Flow Context Guidance
 
 `emotional_repair`
-: include repair summary, emotional dominance, constraints, selected potion,
-prefill candidates, missing/weak context, and no-potion-session invariant.
+: include repair summary, active emotion/tension, constraints, selected bridge
+if any, missing context, and recommended next focus.
 
 `demotivation_repair`
-: include diagnosed motivation source, durable need, selected potion, prefill
-candidates, weak/missing context, and no-chat-mutation.
+: include motivation source hypothesis, micro-action/state collected,
+constraints/refusals, uncertainty, and recommended next focus.
 
 `safety_crisis`
-: inbound notes from non-safety flows must include the source flow and deferred
-tool/product attempt if any. Resolved exit notes to global must include risk
-facts, deescalation/resolution facts, residual constraints, and the warning not
-to resume product/tool work automatically.
+: inbound notes must include source flow and deferred work if any. Exit notes
+must include deescalation/resolution facts and residual constraints without
+inviting automatic product/tool resumption.
 
 `product_help`
-: include answered question, grounding source ids, mode, parent flow if inline,
-and the invariant that no object was created/modified/cancelled.
+: include answered question, feature/surface involved, parent flow if inline,
+and whether the question was informational only.
 
 `status_recap`
-: include last DB intent, target objects, projection summary, answer summary,
-and the instruction not to treat status facts as create/modify intent.
-
-`proactive` flows
-: include source proactive event, target actions/items, local assessment,
-committed effects if any, and whether the followup should be considered closed.
+: include status/read scope, target objects, projection summary, answer summary,
+and warning not to reinterpret status facts as create/modify intent.
 
 `tool` local flows
 : include collected fields, missing fields, current stage, last platform
-handoff summary, and no-chat-mutation fields relevant to the tool.
+handoff summary, explicit constraints, and recommended next focus.
 
-## Open Questions
+## QA Invariants
 
-- `create_recurring_reminder -> one_shot_reminder` crosses from platform
-  handoff flow into a chat-executable direct effect boundary. The target should
-  receive a note, but the exact `target_dispatcher` enum may need
-  `one_shot_reminder` instead of `other_local`.
-- `product_help inline -> parent flow` is a return to an existing owner rather
-  than a new dispatcher. The contract treats the return summary as
-  note-compatible context, but implementation may name it `return_to_parent`.
-- Some proactive specs still model product/status as global exits. They should
-  either become true inline roundtrips with notes or keep `target_dispatcher`
-  global until inline support is implemented.
-- `verification_opportunities` exists as an inline/opportunity flow in docs, but
-  its final enum name should be aligned with runtime naming before code
-  implementation.
+- Every dispatcher change has `note_information`.
+- `structured_context` is present on every note.
+- `note_information` is consumed by the target dispatcher, not displayed.
+- `normal_reply` receives only filtered handoff context when it is selected
+  after a handoff.
+- Conversation normale directe to `normal_reply` does not require a note.
+- Effect boundary and no-mutation proofs live outside the note.

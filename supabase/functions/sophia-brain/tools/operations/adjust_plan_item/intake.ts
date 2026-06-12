@@ -287,7 +287,7 @@ export async function runAdjustPlanItemIntake(input: {
   trigger_message_id?: string | null;
   message: string;
   source?: "direct_user_request" | "recommendation_tool";
-  safety_pregate_risk_band?: RiskBand;
+  safety_context_risk_band?: RiskBand;
   operation_input?: Record<string, unknown> | null;
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   plan_snapshot?: unknown;
@@ -295,9 +295,9 @@ export async function runAdjustPlanItemIntake(input: {
 }): Promise<AdjustPlanItemOperationOutput> {
   const source = input.source ?? "direct_user_request";
   if (
-    input.safety_pregate_risk_band === "medium" ||
-    input.safety_pregate_risk_band === "high" ||
-    input.safety_pregate_risk_band === "critical"
+    input.safety_context_risk_band === "medium" ||
+    input.safety_context_risk_band === "high" ||
+    input.safety_context_risk_band === "critical"
   ) {
     return {
       operation_type: "adjust_plan_item",

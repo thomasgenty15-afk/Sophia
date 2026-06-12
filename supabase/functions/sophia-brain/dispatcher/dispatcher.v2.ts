@@ -15,12 +15,18 @@ import {
   DOMAIN_PREFIXES_V1,
 } from "../../_shared/memory/domain_keys.ts";
 import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
-import type { SafetyPregateOutput } from "../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../safety/safety_context.ts";
 import {
   buildDispatcherPrompt,
   DISPATCHER_V2_PROMPT_VERSION,
   DISPATCHER_V2_SYSTEM_PROMPT,
 } from "./dispatcher.prompts.ts";
+import {
+  normalizeNoteInformation,
+  type NoteInformation,
+  type NoteInformationHandoffReason,
+  type NoteInformationTargetDispatcher,
+} from "../contracts/note_information.v1.ts";
 
 export type DispatcherRunStats = {
   latency_ms: number;
@@ -49,7 +55,7 @@ export type RunDispatcherInput = {
   active_topic_state?: unknown;
   flow_state_context?: unknown;
   plan_snapshot: unknown;
-  safety_pregate_output: SafetyPregateOutput;
+  safety_context_output: SafetySignalContext;
   conversation_risk_history?: number[];
   source_message_id?: string;
   turn_id?: string;
@@ -593,8 +599,110 @@ function sanitizeResearchSignal(
   };
 }
 
+function firstDetectedSkillSignalKey(
+  group: Record<string, unknown> | undefined,
+): string | null {
+  if (!group || typeof group !== "object") return null;
+  for (const [key, value] of Object.entries(group)) {
+    if (
+      value && typeof value === "object" && !Array.isArray(value) &&
+      (value as Record<string, unknown>).detected === true
+    ) {
+      return key;
+    }
+  }
+  return null;
+}
+
+function noteFallbackTargetDispatcher(args: {
+  safetyBlocksToolSkills: boolean;
+  routedOperationIntents: TurnFrame["tool_skill_intents"];
+  raw: Record<string, unknown> | null;
+  skillSignals: NonNullable<TurnFrame["skill_signals"]>;
+  needsResearch: DispatcherResearchSignal;
+}): NoteInformationTargetDispatcher {
+  if (args.safetyBlocksToolSkills) return "safety_crisis";
+  const operationType = args.routedOperationIntents[0]?.operation_type;
+  if (operationType) return operationType as NoteInformationTargetDispatcher;
+  const directEffects = Array.isArray(args.raw?.direct_effects)
+    ? args.raw?.direct_effects as Array<Record<string, unknown>>
+    : [];
+  const effectType = String(directEffects[0]?.effect_type ?? "").trim();
+  if (effectType) return effectType as NoteInformationTargetDispatcher;
+  if (
+    args.raw?.flow_opportunity && typeof args.raw.flow_opportunity === "object"
+  ) {
+    return "verification_opportunities";
+  }
+  const skillKey = firstDetectedSkillSignalKey(args.skillSignals.entry) ??
+    firstDetectedSkillSignalKey(args.skillSignals.lifecycle) ??
+    firstDetectedSkillSignalKey(args.skillSignals.exit);
+  if (skillKey) return skillKey as NoteInformationTargetDispatcher;
+  if (args.needsResearch.value) return "global";
+  return "other_local";
+}
+
+function noteFallbackHandoffReason(args: {
+  safetyBlocksToolSkills: boolean;
+  raw: Record<string, unknown> | null;
+}): NoteInformationHandoffReason {
+  if (args.safetyBlocksToolSkills) return "safety";
+  if (
+    args.raw?.flow_opportunity && typeof args.raw.flow_opportunity === "object"
+  ) {
+    return "bridge";
+  }
+  return "explicit_user_request";
+}
+
+function normalizeDispatcherNoteInformation(args: {
+  rawNoteInformation: Record<string, unknown> | null;
+  input: RunDispatcherInput;
+  safetyBlocksToolSkills: boolean;
+  routedOperationIntents: TurnFrame["tool_skill_intents"];
+  raw: Record<string, unknown> | null;
+  skillSignals: NonNullable<TurnFrame["skill_signals"]>;
+  needsResearch: DispatcherResearchSignal;
+}): NoteInformation {
+  const targetDispatcher = noteFallbackTargetDispatcher({
+    safetyBlocksToolSkills: args.safetyBlocksToolSkills,
+    routedOperationIntents: args.routedOperationIntents,
+    raw: args.raw,
+    skillSignals: args.skillSignals,
+    needsResearch: args.needsResearch,
+  });
+  const handoffReason = noteFallbackHandoffReason({
+    safetyBlocksToolSkills: args.safetyBlocksToolSkills,
+    raw: args.raw,
+  });
+  return normalizeNoteInformation(args.rawNoteInformation, {
+    source_flow_id: "global_dispatcher",
+    handoff_reason: handoffReason,
+    target_dispatcher: targetDispatcher,
+    handoff_context_for_next_dispatcher:
+      `User message produced a non-normal routing signal for ${targetDispatcher}. Use structured_context and evidence; do not reinterpret as normal conversation unless the current message clearly contradicts the signal.`,
+    user_words: [args.input.user_message.slice(0, 240)],
+    structured_context: {
+      user_message_summary: args.input.user_message.slice(0, 240),
+      active_flow_summary: `Global dispatcher selected target=${targetDispatcher}.`,
+      target_dispatcher: targetDispatcher,
+      routed_operation_types: args.routedOperationIntents.map((intent) =>
+        intent.operation_type
+      ),
+      flow_opportunity: args.raw?.flow_opportunity ?? null,
+      skill_signal_entry_keys: Object.keys(args.skillSignals.entry ?? {}),
+      skill_signal_lifecycle_keys: Object.keys(
+        args.skillSignals.lifecycle ?? {},
+      ),
+      skill_signal_exit_keys: Object.keys(args.skillSignals.exit ?? {}),
+      needs_research: args.needsResearch.value,
+    },
+    confidence: "medium",
+  });
+}
+
 function neutralTurnFrame(input: RunDispatcherInput): TurnFrame {
-  const safetyRisk = input.safety_pregate_output.risk_band;
+  const safetyRisk = input.safety_context_output.risk_band;
   const conversationRisk = evaluateConversationRisk(input);
   const turnFrame: TurnFrame = {
     turn_id: input.turn_id ?? crypto.randomUUID(),
@@ -603,8 +711,8 @@ function neutralTurnFrame(input: RunDispatcherInput): TurnFrame {
     channel: input.channel,
     safety: {
       risk_band: safetyRisk,
-      reason_codes: [...input.safety_pregate_output.reason_codes],
-      evidence: [...input.safety_pregate_output.evidence],
+      reason_codes: [...input.safety_context_output.reason_codes],
+      evidence: [...input.safety_context_output.evidence],
     },
     conversation_risk: conversationRisk,
     direct_effects: [],
@@ -687,7 +795,7 @@ function sanitizeLlmTurnFrame(
     )
     : dominantOperationIntents;
   const safetyRisk = riskMax(
-    input.safety_pregate_output.risk_band,
+    input.safety_context_output.risk_band,
     raw?.safety?.risk_band ?? baseline.safety.risk_band,
   );
   const rawSkillSignals =
@@ -734,6 +842,11 @@ function sanitizeLlmTurnFrame(
       !Array.isArray(raw.note_information)
       ? raw.note_information
       : null;
+  const needsResearch = sanitizeResearchSignal(
+    raw?.needs_research,
+    baseline.needs_research ?? DEFAULT_RESEARCH_SIGNAL,
+    input.user_message,
+  );
   const hasRawNonNormalSignal = safetyBlocksToolSkills ||
     finalRoutedOperationIntents.length > 0 ||
     (Array.isArray(raw?.direct_effects) && raw.direct_effects.length > 0) ||
@@ -742,7 +855,7 @@ function sanitizeLlmTurnFrame(
       typeof raw.active_handoff_action === "object") ||
     (raw?.confirmation_response &&
       typeof raw.confirmation_response === "object") ||
-    raw?.needs_research?.value === true ||
+    needsResearch.value === true ||
     Object.values(skillSignals.entry ?? {}).some((signal: any) =>
       signal?.detected === true
     ) ||
@@ -752,6 +865,17 @@ function sanitizeLlmTurnFrame(
     Object.values(skillSignals.exit ?? {}).some((signal: any) =>
       signal?.detected === true
     );
+  const normalizedNoteInformation = hasRawNonNormalSignal
+    ? normalizeDispatcherNoteInformation({
+      rawNoteInformation,
+      input,
+      safetyBlocksToolSkills,
+      routedOperationIntents: finalRoutedOperationIntents,
+      raw,
+      skillSignals,
+      needsResearch,
+    })
+    : null;
   return {
     ...baseline,
     ...raw,
@@ -773,16 +897,12 @@ function sanitizeLlmTurnFrame(
       ? raw.direct_effects
       : [],
     tool_skill_intents: finalRoutedOperationIntents,
-    note_information: hasRawNonNormalSignal ? rawNoteInformation : null,
+    note_information: normalizedNoteInformation,
     skill_signals: safetyBlocksToolSkills ? {} : skillSignals,
     active_handoff_action: safetyBlocksToolSkills
       ? null
       : sanitizeActiveHandoffAction(raw?.active_handoff_action),
-    needs_research: sanitizeResearchSignal(
-      raw?.needs_research,
-      baseline.needs_research ?? DEFAULT_RESEARCH_SIGNAL,
-      input.user_message,
-    ),
+    needs_research: needsResearch,
     action_reference: baseline.action_reference,
     level_reference: baseline.level_reference,
     memory_plan: suppressActionAndLevelMemoryDuringReview(
@@ -949,7 +1069,7 @@ export async function runDispatcher(
   const prompt = buildDispatcherPrompt({
     user_message: input.user_message,
     recent_messages: input.recent_messages,
-    safety_risk_band: input.safety_pregate_output.risk_band,
+    safety_risk_band: input.safety_context_output.risk_band,
     active_skill_state: input.active_skill_state,
     active_tool_skill_intake: input.active_tool_skill_intake,
     pending_tool_skill_confirmation: input.pending_tool_skill_confirmation,

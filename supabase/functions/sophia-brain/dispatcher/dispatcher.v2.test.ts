@@ -18,7 +18,7 @@ function baseInput(message: string) {
         },
       ],
     },
-    safety_pregate_output: {
+    safety_context_output: {
       detected: false,
       risk_band: "none" as const,
       reason_codes: [],
@@ -333,7 +333,7 @@ Deno.test("dispatcher keeps explicit tool skill intent separate from opportunity
 Deno.test("dispatcher blocks tool skills and opportunities under high safety", async () => {
   const frame = await runDispatcher({
     ...baseInput("J'ai envie de disparaître, aide-moi à alléger le plan."),
-    safety_pregate_output: {
+    safety_context_output: {
       detected: true,
       risk_band: "high" as const,
       reason_codes: ["self_harm_ideation"],

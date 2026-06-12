@@ -88,7 +88,7 @@ Deno.test("S6 cross-operation integration covers sequencing and cancellation gua
     message: "et reduis ma marche",
     plan_snapshot: plan,
     trigger_message_id: "m-adjust",
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
     operation_input: actionAdjustmentOperationInput(),
     slot_filler: structuredAdjustPlanSlotFiller(),
   });
@@ -103,7 +103,7 @@ Deno.test("S6 cross-operation integration covers sequencing and cancellation gua
       message: "change ma marche a mardi",
       plan_snapshot: plan,
       trigger_message_id: "m-fallback",
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
     })).status,
     "ask_question",
   );
@@ -114,7 +114,7 @@ Deno.test("S6 cross-operation integration covers sequencing and cancellation gua
       timezone: "Europe/Paris",
       message: "rappelle-moi tous les jours",
       trigger_message_id: "m-rec-q",
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
       slot_filler: structuredRecurringReminderSlotFiller({
         frequency: "daily",
         time: "09:00",
@@ -131,7 +131,7 @@ Deno.test("S6 cross-operation integration covers sequencing and cancellation gua
       timezone: "Europe/Paris",
       message: "j'ai besoin d'une potion",
       trigger_message_id: "m-potion-q",
-      safety_pregate_risk_band: "none",
+      safety_context_risk_band: "none",
       slot_filler: structuredStatePotionSlotFiller({
         generated_user_message:
           "C'est plutot stress, honte, peur, flou, durete envers toi, ou decrochage ?",
@@ -152,7 +152,7 @@ const CROSS_CASES = [
         message: "reduis ma marche",
         plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
         trigger_message_id: "case-1",
-        safety_pregate_risk_band: "none" as const,
+        safety_context_risk_band: "none" as const,
         operation_input: actionAdjustmentOperationInput(),
         slot_filler: structuredAdjustPlanSlotFiller(),
       }).then((output) => output.status),
@@ -167,7 +167,7 @@ const CROSS_CASES = [
         timezone: "Europe/Paris",
         message: "rappelle-moi tous les jours",
         trigger_message_id: "case-3",
-        safety_pregate_risk_band: "none" as const,
+        safety_context_risk_band: "none" as const,
         slot_filler: structuredRecurringReminderSlotFiller({
           frequency: "daily",
           time: "09:00",
@@ -187,7 +187,7 @@ const CROSS_CASES = [
         timezone: "Europe/Paris",
         message: "j'ai besoin d'une potion",
         trigger_message_id: "case-4",
-        safety_pregate_risk_band: "none" as const,
+        safety_context_risk_band: "none" as const,
         slot_filler: structuredStatePotionSlotFiller({
           generated_user_message:
             "C'est plutot stress, honte, peur, flou, durete envers toi, ou decrochage ?",
@@ -205,7 +205,7 @@ const CROSS_CASES = [
         message: "change ma marche a mardi",
         plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
         trigger_message_id: "case-6",
-        safety_pregate_risk_band: "none" as const,
+        safety_context_risk_band: "none" as const,
       }).then((output) => output.status),
     expected: "ask_question",
   },
@@ -219,7 +219,7 @@ const CROSS_CASES = [
         message: "et reduis ma marche",
         plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
         trigger_message_id: "case-8",
-        safety_pregate_risk_band: "none" as const,
+        safety_context_risk_band: "none" as const,
         operation_input: actionAdjustmentOperationInput(),
         slot_filler: structuredAdjustPlanSlotFiller(),
       }).then((output) => output.status),

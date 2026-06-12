@@ -76,10 +76,10 @@ export function runToolSkillRouter(input: {
   turn_frame: TurnFrame;
   active_tool_skill_intake?: unknown;
   pending_tool_skill_confirmation?: unknown;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
 }): ToolSkillRouterDecision {
   if (input.pending_tool_skill_confirmation) {
-    if (isSafetyBlocking(input.safety_pregate_risk_band)) {
+    if (isSafetyBlocking(input.safety_context_risk_band)) {
       return {
         status: "blocked",
         reason_code: "safety_blocks_tool_skill",
@@ -147,7 +147,7 @@ export function runToolSkillRouter(input: {
 
   const active = activeOperationType(input.active_tool_skill_intake);
   if (active) {
-    if (isSafetyBlocking(input.safety_pregate_risk_band)) {
+    if (isSafetyBlocking(input.safety_context_risk_band)) {
       return {
         status: "blocked",
         operation_type: active,
@@ -175,7 +175,7 @@ export function runToolSkillRouter(input: {
       blocked_paths: [],
     };
   }
-  if (isSafetyBlocking(input.safety_pregate_risk_band)) {
+  if (isSafetyBlocking(input.safety_context_risk_band)) {
     return {
       status: "blocked",
       operation_type: intent.operation_type,

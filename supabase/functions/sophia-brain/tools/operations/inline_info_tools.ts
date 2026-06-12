@@ -87,9 +87,6 @@ function noteForInlineInfo(
   if (context.note_information) return context.note_information;
   return createNoteInformation({
     source_flow_id: context.active_flow,
-    source_flow_state_summary: String(
-      context.active_flow_status ?? "active",
-    ),
     handoff_reason: "inline_tool",
     target_dispatcher: targetDispatcher,
     handoff_context_for_next_dispatcher: JSON.stringify({
@@ -100,16 +97,18 @@ function noteForInlineInfo(
       dispatcher_context: context.dispatcher_context ?? null,
       preserve_active_flow: true,
     }),
-    target_local_dispatcher_hint:
-      "Answer only the inline information question, then return to the parent flow without changing parent slots.",
     structured_context: {
       active_flow: context.active_flow,
+      active_flow_summary: String(context.active_flow_status ?? "active"),
       active_flow_status: context.active_flow_status ?? null,
       question_to_answer: context.question_to_answer,
       active_flow_context: context.active_flow_context,
       dispatcher_context: context.dispatcher_context ?? null,
       preserve_active_flow: true,
+      unresolved_questions: [],
+      recommended_next_focus: targetDispatcher,
     },
+    confidence: "medium",
   });
 }
 

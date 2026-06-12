@@ -9,7 +9,7 @@ import { statePotionSubskillId } from "./contract.ts";
 import { createInitialStatePotionSubskillState } from "./subskills/state_potion_subskill_flow.ts";
 
 const fakeSupabase = {} as any;
-const fakeSafetyPregate = {
+const fakeSafetyContext = {
   risk_band: "none",
   reason_codes: [],
   evidence: [],
@@ -38,7 +38,7 @@ Deno.test("select_state_potion hands off to clarté subskill when clarté is ide
     tempMemory: {},
     turnFrame: null,
     routeDecision: selectPotionRouteDecision,
-    safetyPregateOutput: fakeSafetyPregate,
+    safetyContextOutput: fakeSafetyContext,
     sourceMessageId: "m-clarte-baton",
     requestId: "r-clarte-baton",
     history: [],
@@ -149,7 +149,7 @@ Deno.test("select_state_potion hands off to every potion detail subskill when se
       tempMemory: {},
       turnFrame: null,
       routeDecision: selectPotionRouteDecision,
-      safetyPregateOutput: fakeSafetyPregate,
+      safetyContextOutput: fakeSafetyContext,
       sourceMessageId: `m-${potionType}-baton`,
       requestId: `r-${potionType}-baton`,
       history: [],
@@ -291,7 +291,7 @@ Deno.test("active potion subskill delivers final handoff when remaining field is
     },
     turnFrame: null,
     routeDecision: selectPotionRouteDecision,
-    safetyPregateOutput: fakeSafetyPregate,
+    safetyContextOutput: fakeSafetyContext,
     sourceMessageId: "m-amour-runtime-complete",
     requestId: "r-amour-runtime-complete",
     history: [],
@@ -458,7 +458,7 @@ Deno.test("active clarté safety exits local flow and exposes local risk assessm
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
     } as any,
-    safetyPregateOutput: fakeSafetyPregate,
+    safetyContextOutput: fakeSafetyContext,
     sourceMessageId: "m-local-risk",
     requestId: "r-local-risk",
     history: [],
@@ -543,7 +543,7 @@ Deno.test("active clarté safety exits local flow and exposes local risk assessm
   );
 });
 
-Deno.test("active parent stop_local_no_handoff cancels locally without global dispatcher exit", async () => {
+Deno.test("active parent exit_to_global_dispatcher cancels locally without global dispatcher exit", async () => {
   const result = await runSelectStatePotionHandoffSkill({
     supabase: fakeSupabase,
     userId: "u-local-stop",
@@ -567,12 +567,12 @@ Deno.test("active parent stop_local_no_handoff cancels locally without global di
     },
     turnFrame: null,
     routeDecision: selectPotionRouteDecision,
-    safetyPregateOutput: fakeSafetyPregate,
+    safetyContextOutput: fakeSafetyContext,
     sourceMessageId: "m-local-stop",
     requestId: "r-local-stop",
     history: [],
     localFlowDispatcherOverride: async () => ({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       confidence: "high",
       target_stage: "detail_intake",
       slot_interpretation: {

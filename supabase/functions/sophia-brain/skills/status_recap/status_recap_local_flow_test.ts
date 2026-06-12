@@ -6,6 +6,7 @@ import {
 import type { StatusRecapLocalDispatcherOutput } from "./contract.ts";
 import {
   dispatcherSystemPrompt,
+  hasActiveStatusRecapFlow,
   normalizeStatusRecapLocalDispatcherOutput,
   STATUS_RECAP_EXIT_MEMO_KEY,
   STATUS_RECAP_FLOW_STATE_KEY,
@@ -101,6 +102,17 @@ function activeStatusTempMemory() {
   };
 }
 
+function closingStatusTempMemory() {
+  return {
+    [STATUS_RECAP_FLOW_STATE_KEY]: {
+      ...activeStatusTempMemory()[STATUS_RECAP_FLOW_STATE_KEY],
+      status: "closing",
+      turn_count: 2,
+      last_answer_summary: "premier point status livré",
+    },
+  };
+}
+
 function baseDecision(
   overrides: Partial<StatusRecapLocalDispatcherOutput> = {},
 ): StatusRecapLocalDispatcherOutput {
@@ -164,7 +176,7 @@ Deno.test("status_recap dispatcher prompt documents field completion rules for i
   assertStringIncludes(prompt, "- exit_memo.needed:");
   assertStringIncludes(prompt, "- evidence:");
   assertStringIncludes(prompt, "Transition Rules:");
-  assertStringIncludes(prompt, "stop_local_no_handoff");
+  assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");
   assertStringIncludes(prompt, "handoff_to_local_flow");
@@ -244,6 +256,80 @@ Deno.test("status_recap active followup answers locally and keeps read-only inva
   );
 });
 
+Deno.test("status_recap closing state is resumable for local status followups", async () => {
+  assertEquals(hasActiveStatusRecapFlow(closingStatusTempMemory()), true);
+  const runtime = await maybeRunStatusRecapRuntime({
+    supabase: fakeSupabase({
+      scheduled_checkins: [{
+        id: "cancelled-1",
+        user_id: "user-1",
+        status: "cancelled",
+        scheduled_for: "2026-06-08T07:00:00.000Z",
+        message_payload: { reminder_instruction: "relancer le devis" },
+        event_context: "one_shot_reminder:cancelled-1",
+      }],
+    }),
+    userId: "user-1",
+    userMessage: "et côté rappels annulés ?",
+    userTimezone: "Europe/Paris",
+    tempMemory: closingStatusTempMemory(),
+    turnFrame: null,
+    routeDecision: null,
+    activeOperationIntake: null,
+    runLocalDispatcher: async (input) => {
+      assertEquals(input.active_flow_state?.status, "closing");
+      return baseDecision({
+        flow_action: "answer_cancelled_objects",
+        status_intent: {
+          kind: "cancelled_objects",
+          summary: "cancelled reminder status",
+          requires_db_projection: true,
+          requires_effect_history: false,
+        },
+        target_objects: ["one_shot_reminder"],
+        read_scope: {
+          requested_categories: ["one_shot_reminders"],
+          include_cancelled: true,
+          include_recent_failed_or_blocked_effects: false,
+          format: "object_answer",
+        },
+        state_updates: {
+          status: "closing",
+          turn_count_increment: 1,
+          close_after_visible: true,
+        },
+        visible_task: {
+          kind: "cancelled_objects",
+          instruction: "answer cancelled reminders only",
+        },
+      });
+    },
+    runVisibleAgent: async (input) => {
+      assertEquals(input.stage, "cancelled_objects");
+      assertEquals(
+        input.conversation_context.filtered_facts.one_shot_reminders
+          .cancelled_recent.length,
+        1,
+      );
+      return "Je vois un rappel annulé : relancer le devis.";
+    },
+  });
+  assert(runtime);
+  assertEquals(
+    runtime.content,
+    "Je vois un rappel annulé : relancer le devis.",
+  );
+  assertEquals((runtime.toolSkillRun as any).selected_handler, "status_recap");
+  assertEquals(
+    (runtime.toolSkillRun as any).flow_action,
+    "answer_cancelled_objects",
+  );
+  assertEquals(
+    (runtime.nextTempMemory as any)[STATUS_RECAP_FLOW_STATE_KEY].status,
+    "active",
+  );
+});
+
 Deno.test("status_recap repeat and explain sources stay local", async () => {
   for (
     const [flowAction, visibleTask] of [
@@ -280,7 +366,7 @@ Deno.test("status_recap repeat and explain sources stay local", async () => {
   }
 });
 
-Deno.test("status_recap stop_local_no_handoff closes locally without global handoff", async () => {
+Deno.test("status_recap exit_to_global_dispatcher stores note for global", async () => {
   const runtime = await maybeRunStatusRecapRuntime({
     supabase: fakeSupabase({}),
     userId: "user-1",
@@ -292,7 +378,7 @@ Deno.test("status_recap stop_local_no_handoff closes locally without global hand
     activeOperationIntake: null,
     runLocalDispatcher: async () =>
       baseDecision({
-        flow_action: "stop_local_no_handoff",
+        flow_action: "exit_to_global_dispatcher",
         confidence: "high",
         status_intent: {
           kind: "not_status",
@@ -301,38 +387,51 @@ Deno.test("status_recap stop_local_no_handoff closes locally without global hand
           requires_effect_history: false,
         },
         state_updates: {
-          status: "closed",
+          status: "exit_to_global",
           turn_count_increment: 1,
           close_after_visible: true,
         },
         visible_task: {
-          kind: "stop_or_cancel",
-          instruction: "acknowledge local stop only",
+          kind: "exit_ack",
+          instruction: "leave status_recap for global dispatcher",
+        },
+        exit_memo: {
+          needed: true,
+          reason: "topic_change",
+          user_intent_summary: "user stops status recap",
+          local_flow_context: {
+            skill_id: "status_recap",
+            last_intent: "durable_status",
+            last_target_objects: ["unknown"],
+            last_answer_summary: null,
+            last_projection_summary: null,
+          },
+          handoff_hint_for_global_dispatcher: {
+            likely_intent: "normal_coaching",
+            why: "stop request",
+            constraints: [],
+          },
         },
       }),
-    runVisibleAgent: async (input) => {
-      assertEquals(input.stage, "stop_or_cancel");
-      assertEquals(
-        input.conversation_context.constraints.no_chat_mutation,
-        true,
-      );
-      return "D'accord, je m'arrête là.";
+    runVisibleAgent: async () => {
+      throw new Error("visible agent should not run on exit_to_global");
     },
   });
   assert(runtime);
-  assertEquals(runtime.content, "D'accord, je m'arrête là.");
+  assertEquals(runtime.content, "");
   assertEquals(runtime.toolExecution, "none");
   assertEquals(
-    (runtime.nextTempMemory as any)[STATUS_RECAP_FLOW_STATE_KEY],
-    undefined,
+    (runtime.nextTempMemory as any)[STATUS_RECAP_FLOW_STATE_KEY].status,
+    "exit_to_global",
   );
   assertEquals(
-    (runtime.nextTempMemory as any)[STATUS_RECAP_EXIT_MEMO_KEY],
-    undefined,
+    (runtime.nextTempMemory as any)[STATUS_RECAP_EXIT_MEMO_KEY]
+      .note_information.target_dispatcher,
+    "global",
   );
   assertEquals(
     (runtime.toolSkillRun as any).reason_code,
-    "status_recap_local_stop_local_no_handoff",
+    "status_recap_local_exit_to_global_dispatcher",
   );
 });
 

@@ -13,6 +13,7 @@ export async function classifyStaleBilanResponse(params: {
   lastAssistantMessage: string;
   history: Array<{ role?: string; content?: string }>;
   requestId?: string;
+  userId?: string | null;
 }): Promise<StaleBilanDecision> {
   const text = String(params.userMessage ?? "").trim();
   if (!text) return "other_topic";
@@ -55,6 +56,7 @@ export async function classifyStaleBilanResponse(params: {
       "auto",
       {
         requestId: params.requestId,
+        userId: params.userId ?? undefined,
         model: getGlobalAiModel("gemini-2.5-flash"),
         source: "bilan_stale_classify",
         forceRealAi: true,

@@ -4,6 +4,10 @@ import {
 } from "../../../../../_shared/gemini.ts";
 import type { RouteDecision } from "../../../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../../../contracts/turn_frame.v1.ts";
+import {
+  directEffectLocalDispatcherPromptLines,
+  withDirectEffectLocalContext,
+} from "../../../../router/direct_effect_local_context.ts";
 import type { SelectStatePotionRiskAssessment } from "../contract.ts";
 import type { StatePotionHandoffState } from "../state.ts";
 
@@ -15,7 +19,7 @@ export type SelectStatePotionFlowAction =
   | "platform_destination_followup"
   | "apply_attempt"
   | "repeat_handoff"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "handoff_to_local_flow"
   | "cancel_flow"
   | "exit_to_global_dispatcher"
@@ -169,8 +173,8 @@ function flowActionFromStructuredIntent(
     case "revise_collected_field":
       return "revise_collected_field";
     case "cancel_handoff":
-    case "stop_local_no_handoff":
-      return "stop_local_no_handoff";
+    case "exit_to_global_dispatcher":
+      return "exit_to_global_dispatcher";
     case "handoff_to_local_flow":
       return "handoff_to_local_flow";
     case "cancel_flow":
@@ -220,7 +224,7 @@ function structuredDecision(
       fromArbitration,
       "high",
       fromArbitration === "exit_to_global_dispatcher" ||
-          fromArbitration === "handoff_to_local_flow"
+        fromArbitration === "handoff_to_local_flow"
         ? "global_dispatcher"
         : input.active_state.status === "handoff_delivered"
         ? "handoff_delivered"
@@ -241,7 +245,7 @@ function structuredDecision(
       fromTurnFrame,
       activeHandoffAction?.confidence === "medium" ? "medium" : "high",
       fromTurnFrame === "exit_to_global_dispatcher" ||
-          fromTurnFrame === "handoff_to_local_flow"
+        fromTurnFrame === "handoff_to_local_flow"
         ? "global_dispatcher"
         : input.active_state.status === "handoff_delivered"
         ? "handoff_delivered"
@@ -270,7 +274,7 @@ function structuredDecision(
     ]);
   }
   if (confirmation?.kind === "no" && confirmation.confidence_band !== "low") {
-    return emptyDecision("stop_local_no_handoff", "high", "detail_intake", [
+    return emptyDecision("exit_to_global_dispatcher", "high", "detail_intake", [
       "turn_frame.confirmation_response:no",
     ]);
   }
@@ -282,7 +286,7 @@ function structuredDecision(
       reasonAction,
       "high",
       reasonAction === "exit_to_global_dispatcher" ||
-          reasonAction === "handoff_to_local_flow"
+        reasonAction === "handoff_to_local_flow"
         ? "global_dispatcher"
         : input.active_state.status === "handoff_delivered"
         ? "handoff_delivered"
@@ -313,7 +317,7 @@ function structuredDecision(
       aliasAction,
       "high",
       aliasAction === "exit_to_global_dispatcher" ||
-          aliasAction === "handoff_to_local_flow"
+        aliasAction === "handoff_to_local_flow"
         ? "global_dispatcher"
         : input.active_state.status === "handoff_delivered"
         ? "handoff_delivered"
@@ -474,7 +478,7 @@ export async function runSelectStatePotionLocalFlowDispatcher(
     "Si le user confirme une proposition de champ encore en attente, retourne field_confirmation.",
     "Si le user repond au champ courant, retourne field_answer.",
     "Si le user donne aussi des informations pour des champs futurs, signale gives_future_field_candidates, sans les verrouiller.",
-    "Si le user veut seulement arrêter ou laisser tomber la potion sans nouveau sujet clair, retourne stop_local_no_handoff.",
+    "Si le user veut seulement arrêter ou laisser tomber la potion sans nouveau sujet clair, retourne exit_to_global_dispatcher.",
     "Si le user annule explicitement l'objet potion en cours, retourne cancel_flow.",
     "Si le user demande explicitement un autre flow local, retourne handoff_to_local_flow avec exit_memo_request.needed=true.",
     "Si le user change clairement de sujet, retourne exit_to_global_dispatcher avec exit_memo_request.needed=true.",
@@ -483,18 +487,19 @@ export async function runSelectStatePotionLocalFlowDispatcher(
     "Tu ne produis pas la valeur plateforme finale d'un champ.",
     "",
     "Field Completion Rules:",
-    "- flow_action: decision principale du tour courant. Continue le flow avec field_answer, field_confirmation, revise_collected_field, platform_destination_followup, apply_attempt ou repeat_handoff quand le message reste lie a la potion active. Utilise stop_local_no_handoff quand le user arrete sans nouveau sujet; cancel_flow quand il annule l'objet potion; exit_to_global_dispatcher seulement pour un nouveau sujet clair; handoff_to_local_flow seulement si un autre flow local est explicitement vise; safety_preempt pour safety reelle. Ne choisis pas depuis l'etat precedent seul.",
+    ...directEffectLocalDispatcherPromptLines(),
+    "- flow_action: decision principale du tour courant. Continue le flow avec field_answer, field_confirmation, revise_collected_field, platform_destination_followup, apply_attempt ou repeat_handoff quand le message reste lie a la potion active. Utilise exit_to_global_dispatcher quand le user arrete le flow ou apporte un nouveau sujet clair; handoff_to_local_flow seulement si un autre flow local est explicitement vise; safety_preempt pour safety reelle. Ne choisis pas depuis l'etat precedent seul.",
     "- confidence: high si l'intention du tour est claire; medium si elle est probable mais partielle; low si le flow doit clarifier ou si plusieurs lectures restent possibles.",
     "- target_stage: stage du flow apres cette decision. Garde detail_intake pour une reponse de champ, potion_choice si le choix potion reste actif, handoff_delivered pour repeat/apply/destination apres handoff, global_dispatcher uniquement avec exit_to_global_dispatcher.",
     "- slot_interpretation: booleans semantiques utilises par le reducer pour savoir si le message repond, confirme, corrige, demande la destination, demande une creation chat, ou donne aussi des candidats futurs. Mets false quand le signal n'est pas present; ne marque pas plusieurs booleans par simple precaution.",
     "- field_pointer: pointe seulement le champ concerne par le message. raw_user_text reprend les mots utiles du user, pas un resume invente. relation_to_field vaut current_field, collected_field, future_field, unknown ou not_applicable selon l'etat reel. needs_specialized_interpretation=true quand le sous-dispatcher doit interpreter la valeur.",
     "- revision_pointer: rempli seulement pour une correction/revision explicite. candidate_field_ids reste vide sans champ plausible; raw_revision_text reste null sans correction; revision_intent vaut replace, append, refine, unknown ou not_applicable.",
-    "- exit_memo_request: required pour exit_to_global_dispatcher, handoff_to_local_flow, cancel_flow et safety_preempt. Le reducer construira la note_information; ici fournis seulement le besoin, la raison et un hint exploitable. Pour stop_local_no_handoff, needed=false: pas de dispatcher global sur le meme tour.",
+    "- exit_memo_request: required pour exit_to_global_dispatcher, handoff_to_local_flow, cancel_flow et safety_preempt. Le reducer construira la note_information; ici fournis seulement le besoin, la raison et un hint exploitable. Pour exit_to_global_dispatcher, needed=false: pas de dispatcher global sur le meme tour.",
     "- risk_assessment/risk_score: score 0..10 lie au risque du tour. N'invente pas de safety; si safety est reelle, safety_preempt=true, risk_score eleve, reason_codes courts et evidence associee.",
     "- evidence: indices semantiques reels qui justifient la decision. Pas de pseudo-preuves, pas de copie longue, pas de mention d'un mot-cle isole sans contexte.",
     "",
     "Transition Rules:",
-    "- stop_local_no_handoff: arret local simple, pas de note global, pas de reprise du dispatcher global.",
+    "- exit_to_global_dispatcher: arret local simple, pas de note global, pas de reprise du dispatcher global.",
     "- exit_to_global_dispatcher: nouveau sujet clair, exit_memo_request.needed=true pour que le reducer cree la note_information.",
     "- safety_preempt: risque prioritaire, exit_memo_request.needed=true avec exit_reason=safety pour handoff safety.",
     "- handoff_to_local_flow: seulement si le user vise explicitement un autre flow local; fournir un hint exploitable.",
@@ -579,7 +584,7 @@ export async function runSelectStatePotionLocalFlowDispatcher(
     task: "dispatch_active_select_state_potion_flow",
     required_json_shape: {
       flow_action:
-        "continue_routing|field_answer|field_confirmation|revise_collected_field|platform_destination_followup|apply_attempt|repeat_handoff|stop_local_no_handoff|handoff_to_local_flow|cancel_flow|exit_to_global_dispatcher|safety_preempt|unclear",
+        "continue_routing|field_answer|field_confirmation|revise_collected_field|platform_destination_followup|apply_attempt|repeat_handoff|exit_to_global_dispatcher|handoff_to_local_flow|cancel_flow|safety_preempt|unclear",
       confidence: "low|medium|high",
       target_stage:
         "state_routing|potion_choice|detail_intake|handoff_ready|handoff_delivered|global_dispatcher",
@@ -621,6 +626,11 @@ export async function runSelectStatePotionLocalFlowDispatcher(
     active_state: input.active_state,
     route_decision: input.route_decision,
     turn_frame: input.turn_frame,
+    platform_context: withDirectEffectLocalContext(
+      {},
+      (input.route_decision as any)?.plan_snapshot ??
+        (input.turn_frame as any)?.plan_snapshot ?? null,
+    ),
   });
 
   try {

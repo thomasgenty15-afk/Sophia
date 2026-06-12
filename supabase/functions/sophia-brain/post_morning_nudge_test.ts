@@ -98,7 +98,7 @@ Deno.test("post morning nudge dispatcher prompts document real field completion 
     assertStringIncludes(prompt, "ne les ajoute pas");
     assertStringIncludes(prompt, "safety_preempt");
     assertStringIncludes(prompt, "exit_to_global_dispatcher");
-    assertStringIncludes(prompt, "Stop local sans handoff");
+    assertStringIncludes(prompt, "Exit global");
   }
 });
 
@@ -349,7 +349,7 @@ Deno.test("post morning nudge exit_to_global writes mandatory note information",
   );
 });
 
-Deno.test("post morning nudge stop local no handoff does not call global", async () => {
+Deno.test("post morning nudge local close keeps no side effects", async () => {
   const state = createPostMorningNudgeActiveState({
     sourceNudge: BASE_NUDGE,
   })!;
@@ -397,7 +397,7 @@ Deno.test("post morning nudge stop local no handoff does not call global", async
   assertEquals(runtime?.content, "visible:exit_or_cancel");
   assertEquals(
     (runtime?.toolSkillRun as any)?.flow_action_category,
-    "stop_local_no_handoff",
+    "exit_to_global_dispatcher",
   );
   assertEquals(
     (runtime?.toolSkillRun as any)?.runtime_trace?.[0]

@@ -42,7 +42,7 @@ async function sendTemplate(toE164: string, name: string, language: string, full
     return { messages: [{ id: "wamid_DISABLED" }], delivery_disabled: true, template: { name, language }, to: toE164 } as any
   }
 
-  // Eval-only transport: loopback means "pretend we sent it to WhatsApp",
+  // Test-only transport: loopback means "pretend we sent it to WhatsApp",
   // but do not call Meta/Graph.
   if (Boolean((globalThis as any).__SOPHIA_WA_LOOPBACK)) {
     return { messages: [{ id: "wamid_LOOPBACK" }], loopback: true, template: { name, language }, to: toE164 } as any

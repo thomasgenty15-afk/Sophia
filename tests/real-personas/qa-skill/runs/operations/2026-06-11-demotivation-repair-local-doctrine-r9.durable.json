@@ -1,0 +1,235 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "3675b168-5497-45cd-bebf-4fce4ec6d7ed",
+        "role": "user",
+        "content": "Je bloque sur mon rangement du soir. Ce n'est pas dramatique, mais je sens que je suis en train de décrocher et ça me donne envie de laisser tomber.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T21:12:15.945818+00:00"
+      },
+      {
+        "id": "a44bb85a-19d4-4628-9554-fac285136c8c",
+        "role": "assistant",
+        "content": "C'est frustrant de sentir ce décrochage arriver alors que tu voulais t'occuper de ton rangement. Est-ce que tu as l'impression que c'est surtout la fatigue qui te bloque, ou est-ce que c'est plutôt que tu ne vois plus trop l'intérêt de le faire ce soir ?",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T21:12:33.340773+00:00"
+      },
+      {
+        "id": "e86fe7e0-23eb-4a6d-ad77-c666704ff177",
+        "role": "user",
+        "content": "C'est surtout que je ne vois plus trop l'intérêt. Au départ c'était pour avoir une cuisine plus calme le matin, mais là ça ressemble juste à une corvée en plus.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T21:13:33.368333+00:00"
+      },
+      {
+        "id": "4f1b552b-2867-4f90-a8e3-86f4f83c4f2b",
+        "role": "assistant",
+        "content": "C'est tout à fait normal de ressentir ça quand l'effort prend le dessus sur le bénéfice. Au départ, tu voulais cette cuisine rangée pour t'offrir un vrai moment de calme le matin.\n\nQu'est-ce qui a changé dans ton besoin de sérénité pour que ce geste te semble être devenu une simple corvée ?",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T21:13:48.784589+00:00"
+      },
+      {
+        "id": "4dc6f346-78f2-47d0-b5ef-099c0fd538f9",
+        "role": "user",
+        "content": "En fait ce qui comptait, c'était juste la sensation d'entrer dans une cuisine pas chaotique demain matin. Je crois que je peux garder seulement ça : enlever deux objets de la table, pas ranger toute la pièce.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T21:14:02.87144+00:00"
+      },
+      {
+        "id": "14595dbf-14b7-486b-b057-8a831166d87f",
+        "role": "assistant",
+        "content": "C'est exactement ça. Enlever seulement deux objets de la table suffit pour protéger ta sérénité de demain matin sans que cela devienne une corvée. Tu peux te concentrer uniquement sur ces deux éléments, là maintenant.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T21:14:17.460393+00:00"
+      },
+      {
+        "id": "0464d23a-51cf-4347-aac6-4bb45f9a808c",
+        "role": "user",
+        "content": "Ok je garde juste ces deux objets, et après j'arrête là pour aujourd'hui.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T21:14:32.85972+00:00"
+      },
+      {
+        "id": "d688f5b7-a20e-4192-8875-fb9e748b1245",
+        "role": "assistant",
+        "content": "Parfait ✅ Tu fais exactement le bon minimum pour te préserver.\n\nLà, maintenant : prends 2 objets, tu les enlèves de la table, et stop. Pas de bonus, pas de “juste un peu plus” 🙂 Ensuite tu passes à autre chose et tu fermes la boucle.",
+        "scope": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r9-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T21:14:46.705282+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

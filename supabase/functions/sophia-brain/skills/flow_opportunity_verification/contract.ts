@@ -30,11 +30,10 @@ export type FlowOpportunityFlowAction =
   | "correct_target_flow"
   | "handoff_to_local_flow"
   | "blocked_or_unsupported"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "cancel_flow"
   | "defer_flow"
   | "complete_flow"
-  | "exit_to_global_dispatcher"
   | "safety_preempt";
 
 export type FlowOpportunityVisibleTaskKind =

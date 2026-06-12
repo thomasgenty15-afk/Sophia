@@ -13,7 +13,7 @@
 //   critical   | block        | block          | block      | yes
 //
 // Notes:
-// - "side_effects" is the SafetyPregate compatibility flag; it MUST equal the
+// - "side_effects" is the safety context compatibility flag; it MUST equal the
 //   complement of `blocksDirectEffects`. They are kept distinct only for
 //   downstream audit clarity.
 // - "tool_skills" applies to tool_skill_router pending/active/intent paths.

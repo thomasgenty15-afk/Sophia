@@ -10,18 +10,21 @@ Definition courte :
 Une `note_information` est le contexte non visible transmis au prochain
 dispatcher quand un flow local change d'owner. Elle contient au minimum :
 
-- la presentation succincte du flow qui vient d'etre quitte, reprise du
-  `flow-presentation-catalog.md` ;
-- le contexte utile au dispatcher cible pour remplir son JSON sans repartir du
-  texte brut.
+- `source_flow_id` ;
+- `target_dispatcher` ;
+- `handoff_reason` ;
+- `handoff_context_for_next_dispatcher` ;
+- `user_words` ;
+- `structured_context`, obligatoire meme minimal ;
+- `confidence`, seulement si le flow a une notion de confiance.
 
 Regles centrales :
 
 - elle est obligatoire pour tout changement de dispatcher ;
 - elle est obligatoire pour `product_help` et `status_recap` appeles inline ;
 - elle est obligatoire pour les bridges vers `select_state_potion` ;
-- elle n'est pas obligatoire quand le flow s'arrete localement sans nouveau
-  sujet et sans handoff ;
+- elle est obligatoire quand le user veut arreter un flow local actif, car le
+  dispatcher global doit reprendre apres `exit_to_global_dispatcher` ;
 - elle n'est jamais visible user ;
 - elle ne doit jamais devenir un second dispatcher cache ni un raccourci de
   routing deterministe.

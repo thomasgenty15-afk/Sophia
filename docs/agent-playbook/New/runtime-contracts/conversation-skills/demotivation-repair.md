@@ -77,7 +77,7 @@ The local dispatcher may emit:
 - `get_info_product`
 - `get_info_db`
 - `apply_attempt`
-- `stop_local_no_handoff`
+- `exit_to_global_dispatcher`
 - `cancel_flow`
 - `complete_flow`
 - `defer_flow`
@@ -90,7 +90,7 @@ routing.
 
 ## Transitions
 
-`stop_local_no_handoff` closes or pauses locally. It produces a local visible
+`exit_to_global_dispatcher` closes or pauses locally. It produces a local visible
 answer and does not call the global dispatcher on the same turn.
 
 `exit_to_global_dispatcher` is only for a clear topic change. It must include
@@ -188,7 +188,7 @@ Every prompt receives only:
 - No deterministic visible wording path.
 - No single generalist visible agent for every stage.
 - Every `flow_action` has an exact continuation.
-- `stop_local_no_handoff` does not call global.
+- `exit_to_global_dispatcher` does not call global.
 - `exit_to_global_dispatcher` includes `note_information`.
 - `safety_preempt` routes to the safety local dispatcher.
 - `handoff_to_local_flow` includes source, target, collected state, unresolved

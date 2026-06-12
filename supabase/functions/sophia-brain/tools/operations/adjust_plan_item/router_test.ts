@@ -48,7 +48,7 @@ function context(args: {
     }],
     turnFrame: args.turnFrame ?? turnFrame(),
     routeDecision: args.routeDecision ?? null,
-    safetyPregateOutput: { risk_band: "none" as const },
+    safetyContextOutput: { risk_band: "none" as const },
     sourceMessageId: "message-1",
     requestId: "request-1",
     forceFullAi: false,
@@ -229,6 +229,17 @@ Deno.test("direct adjust_plan request uses local dispatcher and Plan handoff", a
       .suggested_platform_input,
     "Dans Plan principal, alleger Signal de pause en version plus courte et facile a lancer.",
   );
+  assertEquals(
+    (runtime.toolSkillRun as any).handoff_core,
+    {
+      target_to_modify: "Signal de pause",
+      reason_change: "le plan est trop dense",
+      requested_change: "alleger le signal de pause",
+      change_kind: "reduce",
+      has_core_triptych: true,
+      missing_or_weak_values: [],
+    },
+  );
   assertNoTemplateLanguage(runtime.content);
   assertNoExecutionClaim(runtime.content);
   assertEquals(
@@ -371,6 +382,11 @@ Deno.test("apply attempt never creates confirmation or effect", async () => {
   });
   assert(runtime);
   assertEquals((runtime.toolSkillRun as any).status, "apply_attempt");
+  assertEquals(
+    (runtime.toolSkillRun as any).handoff_core.has_core_triptych,
+    true,
+  );
+  assertEquals((runtime.toolSkillRun as any).handoff_core.change_kind, "reduce");
   assertEquals(runtime.executedTools, []);
   assertEquals((runtime.toolSkillRun as any).committed_effects, []);
   assertEquals(

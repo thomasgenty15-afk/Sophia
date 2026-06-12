@@ -48,7 +48,7 @@ export function runConversationRouters(input: {
   active_skill_state?: unknown;
   active_tool_skill_intake?: unknown;
   pending_tool_skill_confirmation?: unknown;
-  safety_pregate_risk_band: RiskBand;
+  safety_context_risk_band: RiskBand;
 }): RouteDecision {
   const skill = runSkillRouter(input);
   const toolSkill = runToolSkillRouter(input);

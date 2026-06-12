@@ -9,9 +9,10 @@ import {
   createNoteInformation,
   type NoteInformation,
   noteInformationForTrace,
+  noteInformationSummary,
 } from "../../../contracts/note_information.v1.ts";
 import { PRODUCT_SURFACE_DEFINITIONS } from "../../../product_surface_registry/surfaces_data.ts";
-import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../../../safety/safety_context.ts";
 import { runProductHelpSkill } from "../../../skills/product_help/skill.ts";
 import { maybeRunStatusRecapRuntime } from "../../../skills/status_recap/runtime.ts";
 import type { StatusRecapLocalDispatcher } from "../../../skills/status_recap/local_flow.ts";
@@ -46,8 +47,6 @@ import {
   type CoachPreferenceVisibleAgent,
   runCoachPreferenceVisibleAgent,
 } from "./visible_agent.ts";
-
-export { detectsCoachPreferenceDirectionContradictionForSkill } from "./route_guards.ts";
 
 export type OperationRuntimeResult = {
   content: string;
@@ -421,18 +420,11 @@ function buildInboundActivationNote(args: {
   };
   return createNoteInformation({
     source_flow_id: "global",
-    source_flow_presentation:
-      "Routes the current user message to the most appropriate owner. It does not execute local flow decisions.",
-    source_flow_state_summary:
-      "Global dispatcher selected update_coach_preferences for this turn.",
     handoff_reason: "explicit_user_request",
     target_dispatcher: "update_coach_preferences",
     handoff_context_for_next_dispatcher: JSON.stringify(structured),
-    target_local_dispatcher_hint:
-      "Use this as activation context only; local dispatcher must still decide fields and write eligibility.",
     user_words: [args.userMessage],
     structured_context: structured,
-    risk_score: 0,
   });
 }
 
@@ -472,7 +464,7 @@ async function runCoachPreferenceLocalRuntime(args: {
   tempMemory: any;
   routeDecision: RouteDecision | null;
   turnFrame: TurnFrame | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId: string | null;
   requestId?: string | null;
   history?: unknown;
@@ -546,7 +538,7 @@ async function runCoachPreferenceLocalRuntime(args: {
     },
     available_inline_tools: ["status_recap", "product_help"],
     current_preferences: currentPreferences,
-    safety_risk_band: String(args.safetyPregateOutput.risk_band ?? "none"),
+    safety_risk_band: String(args.safetyContextOutput.risk_band ?? "none"),
   });
 
   if (!decision) {
@@ -618,7 +610,7 @@ async function runCoachPreferenceLocalRuntime(args: {
     const exitMemo = {
       reason: decision.exit_memo?.reason ?? "topic_change",
       flow_summary: decision.exit_memo?.flow_summary ??
-        reduced.note_information?.source_flow_state_summary ?? null,
+        noteInformationSummary(reduced.note_information) ?? null,
       handoff_hint_for_global_dispatcher:
         decision.exit_memo?.handoff_hint_for_global_dispatcher ??
           reduced.note_information?.handoff_context_for_next_dispatcher ?? null,
@@ -662,7 +654,7 @@ async function runCoachPreferenceLocalRuntime(args: {
       ...clearCoachPreferenceFrame(args.tempMemory),
       __last_update_coach_preferences_exit_memo: {
         reason: "safety",
-        flow_summary: reduced.note_information?.source_flow_state_summary ??
+        flow_summary: noteInformationSummary(reduced.note_information) ??
           decision.preference_intent.summary,
         note_information: reduced.note_information,
         at: new Date().toISOString(),
@@ -1043,7 +1035,7 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
   tempMemory: any;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
+  safetyContextOutput: SafetySignalContext;
   sourceMessageId: string | null;
   requestId?: string | null;
   history?: unknown;
@@ -1063,24 +1055,25 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
     })
   ) return null;
 
-  if (String(args.safetyPregateOutput.risk_band ?? "none") === "critical") {
+  if (String(args.safetyContextOutput.risk_band ?? "none") === "critical") {
     const safetyNote = createNoteInformation({
       source_flow_id: "update_coach_preferences",
-      source_flow_state_summary:
-        "Critical safety pregate preempted coach preference update.",
       handoff_reason: "safety",
       target_dispatcher: "safety_crisis",
       handoff_context_for_next_dispatcher:
-        "Safety pregate is critical; suspend preference update and let safety_crisis own the next response.",
-      target_local_dispatcher_hint:
-        "Safety owns the next response. Do not mutate coach preferences.",
+        "Safety context is critical; suspend preference update and let safety_crisis own the next response.",
       user_words: [args.userMessage],
       structured_context: {
         source_flow: "update_coach_preferences",
-        risk_band: args.safetyPregateOutput.risk_band,
-        evidence: args.safetyPregateOutput.evidence ?? [],
+        user_message_summary: args.userMessage,
+        active_flow_summary:
+          "Critical safety context preempted coach preference update.",
+        risk_band: args.safetyContextOutput.risk_band,
+        evidence: args.safetyContextOutput.evidence ?? [],
+        unresolved_questions: [],
+        recommended_next_focus: "safety_crisis",
       },
-      risk_score: 10,
+      confidence: "high",
     });
     const blockedOutput: CoachPreferenceLocalDispatcherOutput = {
       flow_action: "safety_preempt",
@@ -1099,7 +1092,7 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
         kind: "safety_transition",
         instruction: "Laisser la pipeline safety reprendre.",
         conversation_context: {
-          state_summary: "Safety pregate preempted coach preference update.",
+          state_summary: "Safety context preempted coach preference update.",
           user_words: [args.userMessage],
           field_or_stage: "done",
           known_values: {
@@ -1126,7 +1119,7 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
           ],
           context_summary:
             "Transition vers safety_crisis; pas de mutation de préférence.",
-          evidence_used: args.safetyPregateOutput.evidence ?? [],
+          evidence_used: args.safetyContextOutput.evidence ?? [],
         },
       },
       note_information: {
@@ -1136,16 +1129,16 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
       exit_memo: {
         needed: true,
         reason: "safety",
-        flow_summary: safetyNote.source_flow_state_summary,
+        flow_summary: noteInformationSummary(safetyNote) ?? null,
         handoff_hint_for_global_dispatcher:
           safetyNote.handoff_context_for_next_dispatcher,
       },
       safety: {
         risk_band: "critical",
-        reason_codes: args.safetyPregateOutput.reason_codes ?? [],
+        reason_codes: args.safetyContextOutput.reason_codes ?? [],
         should_preempt: true,
       },
-      evidence: args.safetyPregateOutput.evidence ?? [],
+      evidence: args.safetyContextOutput.evidence ?? [],
     };
     return await runCoachPreferenceLocalRuntime({
       ...args,
@@ -1165,7 +1158,7 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
     tempMemory: args.tempMemory,
     routeDecision: args.routeDecision,
     turnFrame: args.turnFrame,
-    safetyPregateOutput: args.safetyPregateOutput,
+    safetyContextOutput: args.safetyContextOutput,
     sourceMessageId: args.sourceMessageId,
     requestId: args.requestId ?? null,
     history: args.history,

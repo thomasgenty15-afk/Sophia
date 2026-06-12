@@ -26,7 +26,7 @@ The dispatcher returns only this JSON :
 
 ```json
 {
-  "flow_action": "answer_or_update_slots|ask_recurrence|ask_time|ask_content|ask_destination_binding|clarify_one_shot_vs_recurring|handoff_ready|revise_handoff|repeat_handoff|platform_destination_followup|apply_attempt|handoff_to_one_shot|get_info_product|get_info_db|stop_local_no_handoff|cancel_flow|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_or_update_slots|ask_recurrence|ask_time|ask_content|ask_destination_binding|clarify_one_shot_vs_recurring|handoff_ready|revise_handoff|repeat_handoff|platform_destination_followup|apply_attempt|handoff_to_one_shot|get_info_product|get_info_db|exit_to_global_dispatcher|cancel_flow|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "recurring_state": {
@@ -128,7 +128,7 @@ Rules :
 - `apply_attempt` never mutates.
 - `handoff_to_one_shot` must not produce a recurring draft.
 - `get_info_product` and `get_info_db` are inline roundtrips, not exits.
-- `stop_local_no_handoff` does not call the global dispatcher.
+- `exit_to_global_dispatcher` does not call the global dispatcher.
 - `exit_to_global_dispatcher`, `safety_preempt`, `handoff_to_one_shot`,
   `get_info_product`, and `get_info_db` require `note_information`.
 - The dispatcher must not use product-visible wording `created`,
@@ -144,7 +144,7 @@ Produce it for `exit_to_global_dispatcher`, `safety_preempt`,
 `handoff_to_one_shot`, `get_info_product`, and `get_info_db`. Use
 `source_flow_id="create_recurring_reminder"` and copy the catalog presentation.
 
-Do not produce it for `stop_local_no_handoff`, `cancel_flow`,
+Do not produce it for `exit_to_global_dispatcher`, `cancel_flow`,
 `apply_attempt`, `repeat_handoff`, or `platform_destination_followup` when no
 new dispatcher is called. The handoff context must include recurrence/content
 collected so far, missing decisions, one-shot boundary if relevant, and
@@ -225,7 +225,7 @@ action_family est autorise seulement pour une vraie habitude/famille recurrente
 avec cle disponible dans platform_context.
 
 Sorties :
-- stop_local_no_handoff si le user veut juste arreter ce flow sans autre sujet.
+- exit_to_global_dispatcher si le user veut juste arreter ce flow sans autre sujet.
 - exit_to_global_dispatcher seulement si le user apporte un autre sujet clair.
 - safety_preempt si le message exige le flow safety.
 - get_info_product/get_info_db pour les questions inline, avec retour au flow parent.

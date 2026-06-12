@@ -10,6 +10,7 @@ import {
   z,
 } from "../_shared/http.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
 
 const BodySchema = z
   .object({
@@ -34,6 +35,7 @@ function isStripeSubActive(sub: StripeSub | null | undefined): boolean {
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
+  let currentUserId: string | null = null;
 
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsErr = enforceCors(req);
@@ -76,6 +78,7 @@ Deno.serve(async (req) => {
         { status: 401 },
       );
     }
+    currentUserId = user.id;
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
     const { data: profile, error: profileErr } = await supabaseAdmin
@@ -85,6 +88,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (profileErr) {
       console.error("[stripe-create-checkout-session] profile read error", profileErr);
+      await logEdgeFunctionError({
+        functionName: "stripe-create-checkout-session",
+        error: profileErr,
+        severity: "error",
+        title: "profile_read_failed",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+      });
       return serverError(req, requestId);
     }
 
@@ -115,6 +127,16 @@ Deno.serve(async (req) => {
           "[stripe-create-checkout-session] profile update customer error",
           updateProfileErr,
         );
+        await logEdgeFunctionError({
+          functionName: "stripe-create-checkout-session",
+          error: updateProfileErr,
+          severity: "error",
+          title: "profile_customer_update_failed",
+          requestId,
+          userId: currentUserId,
+          source: "stripe",
+          metadata: { stripe_customer_id: customerId },
+        });
         return serverError(req, requestId);
       }
     }
@@ -140,6 +162,16 @@ Deno.serve(async (req) => {
       });
       const portalUrl = String(portal?.url ?? "").trim();
       if (!portalUrl) return badRequest(req, requestId, "Portal URL missing");
+      await logEdgeFunctionError({
+        functionName: "stripe-create-checkout-session",
+        error: "Stripe portal session created from checkout route",
+        severity: "info",
+        title: "billing_portal_created",
+        requestId,
+        userId: currentUserId,
+        source: "stripe",
+        metadata: { mode: "portal", stripe_customer_id: customerId, stripe_subscription_id: activeSub.id },
+      });
       return jsonResponse(req, { mode: "portal", url: portalUrl, request_id: requestId });
     }
 
@@ -171,6 +203,23 @@ Deno.serve(async (req) => {
     const checkoutUrl = String(checkout?.url ?? "").trim();
     if (!checkoutUrl) return badRequest(req, requestId, "Checkout URL missing");
 
+    await logEdgeFunctionError({
+      functionName: "stripe-create-checkout-session",
+      error: "Stripe checkout session created",
+      severity: "info",
+      title: "checkout_session_created",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+      metadata: {
+        mode: "checkout",
+        checkout_session_id: checkout?.id ?? null,
+        stripe_customer_id: customerId,
+        requested_tier: body.tier,
+        requested_interval: body.interval,
+      },
+    });
+
     return jsonResponse(req, {
       mode: "checkout",
       url: checkoutUrl,
@@ -179,6 +228,15 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("[stripe-create-checkout-session] error", err);
+    await logEdgeFunctionError({
+      functionName: "stripe-create-checkout-session",
+      error: err,
+      severity: "error",
+      title: "checkout_session_failed",
+      requestId,
+      userId: currentUserId,
+      source: "stripe",
+    });
     const msg = err instanceof Error ? err.message : "Internal Server Error";
     if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
     if (msg.toLowerCase().includes("stripe")) return badRequest(req, requestId, msg);

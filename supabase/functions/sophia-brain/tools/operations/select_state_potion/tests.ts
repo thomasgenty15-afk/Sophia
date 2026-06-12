@@ -18,7 +18,7 @@ import { structuredStatePotionSlotFiller } from "./test_helpers.ts";
 import { createInitialStatePotionSubskillState } from "./subskills/state_potion_subskill_flow.ts";
 
 const fakeSupabase = {} as any;
-const fakeSafetyPregate = {
+const fakeSafetyContext = {
   risk_band: "none",
   reason_codes: [],
   evidence: [],
@@ -46,7 +46,7 @@ function baseArgs(overrides: Record<string, unknown> = {}) {
     tempMemory: {},
     turnFrame: null,
     routeDecision: selectPotionRouteDecision,
-    safetyPregateOutput: fakeSafetyPregate,
+    safetyContextOutput: fakeSafetyContext,
     sourceMessageId: "m-legacy-modern",
     requestId: "r-legacy-modern",
     history: [],

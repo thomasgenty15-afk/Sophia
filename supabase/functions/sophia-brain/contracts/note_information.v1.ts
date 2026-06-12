@@ -30,34 +30,14 @@ export type NoteInformationTargetDispatcher =
   | "post_morning_nudge.emotional_presence"
   | "other_local";
 
-export type NoteInformationNoChatMutation = {
-  db_write_committed: boolean;
-  potion_session_created: boolean;
-  scheduled_checkin_created: boolean;
-  recurring_reminder_created: boolean;
-  executable_confirmation_generated: boolean;
-};
-
 export type NoteInformation = {
   source_flow_id: string;
-  source_flow_presentation: string;
-  source_flow_state_summary: string;
   handoff_reason: NoteInformationHandoffReason;
   target_dispatcher: NoteInformationTargetDispatcher;
   handoff_context_for_next_dispatcher: string;
-  target_local_dispatcher_hint: string | null;
   user_words: string[];
   structured_context: Record<string, unknown>;
-  risk_score: number;
-  no_chat_mutation: NoteInformationNoChatMutation;
-};
-
-export const DEFAULT_NO_CHAT_MUTATION: NoteInformationNoChatMutation = {
-  db_write_committed: false,
-  potion_session_created: false,
-  scheduled_checkin_created: false,
-  recurring_reminder_created: false,
-  executable_confirmation_generated: false,
+  confidence?: "low" | "medium" | "high";
 };
 
 export const FLOW_PRESENTATIONS: Record<string, string> = {
@@ -111,28 +91,69 @@ function cleanStringArray(value: unknown, max = 8): string[] {
     : [];
 }
 
+function compactUserWords(...values: unknown[]): string[] {
+  const words: string[] = [];
+  for (const value of values) {
+    const next = Array.isArray(value)
+      ? cleanStringArray(value, 3)
+      : [cleanString(value)].filter(Boolean);
+    for (const word of next) {
+      if (!words.includes(word)) words.push(word);
+      if (words.length >= 3) return words;
+    }
+  }
+  return words;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function normalizeRiskScore(value: unknown): number {
-  const number = Number(value ?? 0);
-  return Number.isFinite(number) ? Math.max(0, Math.min(10, number)) : 0;
+function compactStructuredContext(
+  value: unknown,
+): Record<string, unknown> {
+  if (!isRecord(value)) return {};
+  const blockedKeys = new Set(["risk_score", "no_chat_mutation"]);
+  const compact: Record<string, unknown> = {};
+  for (const [key, rawValue] of Object.entries(value)) {
+    if (blockedKeys.has(key)) continue;
+    if (rawValue === null || rawValue === undefined) continue;
+    compact[key] = rawValue;
+  }
+  return compact;
 }
 
-function normalizeNoChatMutation(
-  value: unknown,
-): NoteInformationNoChatMutation {
-  const root = isRecord(value) ? value : {};
+function noteFallbackStructuredContext(args: {
+  context: string;
+  source_flow_id: string;
+  target_dispatcher: NoteInformationTargetDispatcher;
+  handoff_reason: NoteInformationHandoffReason;
+  user_words: string[];
+  structured_context?: Record<string, unknown>;
+}): Record<string, unknown> {
+  const compact = compactStructuredContext(args.structured_context);
+  if (Object.keys(compact).length > 0) return compact;
   return {
-    ...DEFAULT_NO_CHAT_MUTATION,
-    db_write_committed: root.db_write_committed === true,
-    potion_session_created: root.potion_session_created === true,
-    scheduled_checkin_created: root.scheduled_checkin_created === true,
-    recurring_reminder_created: root.recurring_reminder_created === true,
-    executable_confirmation_generated:
-      root.executable_confirmation_generated === true,
+    user_message_summary: args.user_words[0] ?? args.context,
+    active_flow_summary: flowPresentation(args.source_flow_id),
+    handoff_context_summary: args.context,
+    collected_state: {},
+    constraints: [],
+    unresolved_questions: [],
+    recommended_next_focus: args.target_dispatcher,
+    source_flow_id: args.source_flow_id,
+    target_dispatcher: args.target_dispatcher,
+    handoff_reason: args.handoff_reason,
   };
+}
+
+function normalizeConfidence(
+  value: unknown,
+): "low" | "medium" | "high" | undefined {
+  const text = cleanString(value);
+  return text === "low" || text === "medium" || text === "high"
+    ? text
+    : undefined;
 }
 
 function normalizeHandoffReason(
@@ -180,39 +201,37 @@ export function flowPresentation(flowId: string): string {
 
 export function createNoteInformation(args: {
   source_flow_id: string;
-  source_flow_state_summary: string;
   handoff_reason: NoteInformationHandoffReason;
   target_dispatcher: NoteInformationTargetDispatcher;
   handoff_context_for_next_dispatcher: string;
-  target_local_dispatcher_hint?: string | null;
   user_words?: string[];
   structured_context?: Record<string, unknown>;
-  risk_score?: number;
-  no_chat_mutation?: Partial<NoteInformationNoChatMutation>;
-  source_flow_presentation?: string | null;
+  confidence?: "low" | "medium" | "high";
 }): NoteInformation {
-  return {
-    source_flow_id: args.source_flow_id,
-    source_flow_presentation: cleanString(args.source_flow_presentation) ||
-      flowPresentation(args.source_flow_id),
-    source_flow_state_summary: cleanString(args.source_flow_state_summary) ||
-      "No source flow state summary provided.",
+  const sourceFlowId = cleanString(args.source_flow_id) || "unknown";
+  const userWords = compactUserWords(args.user_words);
+  const context = cleanString(args.handoff_context_for_next_dispatcher) ||
+    userWords[0] ||
+    `${sourceFlowId} hands off to ${args.target_dispatcher}.`;
+  const normalizedStructuredContext = noteFallbackStructuredContext({
+    context,
+    source_flow_id: sourceFlowId,
+    target_dispatcher: args.target_dispatcher,
+    handoff_reason: args.handoff_reason,
+    user_words: userWords,
+    structured_context: args.structured_context,
+  });
+  const note: NoteInformation = {
+    source_flow_id: sourceFlowId,
     handoff_reason: args.handoff_reason,
     target_dispatcher: args.target_dispatcher,
-    handoff_context_for_next_dispatcher:
-      cleanString(args.handoff_context_for_next_dispatcher) ||
-      "No handoff context provided.",
-    target_local_dispatcher_hint:
-      cleanString(args.target_local_dispatcher_hint) || null,
-    user_words: cleanStringArray(args.user_words),
-    structured_context: isRecord(args.structured_context)
-      ? args.structured_context
-      : {},
-    risk_score: normalizeRiskScore(args.risk_score),
-    no_chat_mutation: {
-      ...DEFAULT_NO_CHAT_MUTATION,
-      ...(args.no_chat_mutation ?? {}),
-    },
+    handoff_context_for_next_dispatcher: context,
+    user_words: userWords,
+    structured_context: normalizedStructuredContext,
+  };
+  if (args.confidence) note.confidence = args.confidence;
+  return {
+    ...note,
   };
 }
 
@@ -220,14 +239,13 @@ export function normalizeNoteInformation(
   raw: unknown,
   fallback: {
     source_flow_id: string;
-    source_flow_state_summary: string;
     handoff_reason: NoteInformationHandoffReason;
     target_dispatcher: NoteInformationTargetDispatcher;
     handoff_context_for_next_dispatcher: string;
-    target_local_dispatcher_hint?: string | null;
     user_words?: string[];
     structured_context?: Record<string, unknown>;
-    risk_score?: number;
+    confidence?: "low" | "medium" | "high";
+    current_user_message?: string;
   },
 ): NoteInformation {
   const root = isRecord(raw) ? raw : {};
@@ -237,14 +255,19 @@ export function normalizeNoteInformation(
     cleanString((root as any).context_for_next_dispatcher) ||
     cleanString((root as any).handoff_hint_for_global_dispatcher) ||
     fallback.handoff_context_for_next_dispatcher;
-  const stateSummary = cleanString(root.source_flow_state_summary) ||
-    cleanString((root as any).departed_flow_summary) ||
-    fallback.source_flow_state_summary;
+  const userWords = compactUserWords(
+    root.user_words,
+    fallback.user_words,
+    fallback.current_user_message,
+  );
+  const rawStructuredContext = isRecord(root.structured_context)
+    ? root.structured_context
+    : {};
+  const structuredContext = Object.keys(rawStructuredContext).length > 0
+    ? rawStructuredContext
+    : fallback.structured_context ?? {};
   return createNoteInformation({
     source_flow_id: sourceFlowId,
-    source_flow_presentation: cleanString(root.source_flow_presentation) ||
-      flowPresentation(sourceFlowId),
-    source_flow_state_summary: stateSummary,
     handoff_reason: normalizeHandoffReason(
       root.handoff_reason,
       fallback.handoff_reason,
@@ -254,18 +277,9 @@ export function normalizeNoteInformation(
       fallback.target_dispatcher,
     ),
     handoff_context_for_next_dispatcher: context,
-    target_local_dispatcher_hint:
-      cleanString(root.target_local_dispatcher_hint) ||
-      fallback.target_local_dispatcher_hint ||
-      null,
-    user_words: cleanStringArray(root.user_words).length
-      ? cleanStringArray(root.user_words)
-      : fallback.user_words ?? [],
-    structured_context: isRecord(root.structured_context)
-      ? root.structured_context
-      : fallback.structured_context ?? {},
-    risk_score: normalizeRiskScore(root.risk_score ?? fallback.risk_score),
-    no_chat_mutation: normalizeNoChatMutation(root.no_chat_mutation),
+    user_words: userWords,
+    structured_context: structuredContext,
+    confidence: normalizeConfidence(root.confidence) ?? fallback.confidence,
   });
 }
 
@@ -277,6 +291,37 @@ export function noteInformationForTrace(
     target_dispatcher: note?.target_dispatcher ?? null,
     handoff_reason: note?.handoff_reason ?? null,
     has_note_information: Boolean(note),
-    risk_score: note?.risk_score ?? null,
+    confidence: note?.confidence ?? null,
   };
+}
+
+export function noteInformationSummary(
+  note: NoteInformation | null | undefined,
+): string | null {
+  if (!note) return null;
+  const structured = isRecord(note.structured_context)
+    ? note.structured_context
+    : {};
+  const summary = cleanString(
+    structured.active_flow_summary ??
+      structured.user_message_summary ??
+      structured.handoff_context_summary ??
+      note.handoff_context_for_next_dispatcher,
+  );
+  return summary || null;
+}
+
+export function noteInformationRecommendedNextFocus(
+  note: NoteInformation | null | undefined,
+): string | null {
+  if (!note) return null;
+  const structured = isRecord(note.structured_context)
+    ? note.structured_context
+    : {};
+  const focus = cleanString(
+    structured.recommended_next_focus ??
+      structured.instruction ??
+      note.handoff_context_for_next_dispatcher,
+  );
+  return focus || null;
 }

@@ -51,6 +51,35 @@ const NO_EXIT_MEMO = {
   },
 };
 
+function dailyGlobalNote(userWords: string[]) {
+  return {
+    source_flow_id: "daily_action_review_v1",
+    source_flow_presentation:
+      "Daily review collects evidence for targeted actions.",
+    source_flow_state_summary: "Daily review stopped before commit.",
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher:
+      "The user stopped the active daily review; global dispatcher may resume from this note.",
+    target_local_dispatcher_hint: null,
+    user_words: userWords,
+    structured_context: {
+      source_flow: "daily_action_review_v1",
+      collected_state: { committed_effects: [] },
+      unresolved_questions: [],
+      recommended_next_focus: "resume normal routing after daily stop",
+    },
+    risk_score: 0,
+    no_chat_mutation: {
+      db_write_committed: false,
+      potion_session_created: false,
+      scheduled_checkin_created: false,
+      recurring_reminder_created: false,
+      executable_confirmation_generated: false,
+    },
+  };
+}
+
 Deno.test("daily action review dispatcher prompt documents field completion rules for the real contract", () => {
   const prompt = dispatcherSystemPrompt();
 
@@ -62,7 +91,7 @@ Deno.test("daily action review dispatcher prompt documents field completion rule
   assertStringIncludes(prompt, "- note_information:");
   assertStringIncludes(prompt, "- exit_memo:");
   assertStringIncludes(prompt, "Transition rules:");
-  assertStringIncludes(prompt, "stop_local_no_handoff/cancel_flow/defer_flow");
+  assertStringIncludes(prompt, "exit_to_global_dispatcher pour arret du daily");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");
   assertStringIncludes(prompt, "handoff_to_local_flow");
@@ -91,7 +120,7 @@ Deno.test("daily action review local dispatcher receives inbound activation note
     dispatcherRunner: async ({ userPrompt }) => {
       capturedInboundNote = JSON.parse(userPrompt).note_information_inbound;
       return {
-        flow_action: "stop_local_no_handoff",
+        flow_action: "exit_to_global_dispatcher",
         confidence: "high",
         risk_score: 0,
         target_resolution: {
@@ -113,8 +142,13 @@ Deno.test("daily action review local dispatcher receives inbound activation note
           kind: "stop_close",
           instruction: "Close locally.",
         },
-        note_information: null,
-        exit_memo: NO_EXIT_MEMO,
+        note_information: dailyGlobalNote(["Pas maintenant."]),
+        exit_memo: {
+          ...NO_EXIT_MEMO,
+          needed: true,
+          reason: "topic_change",
+          user_intent_summary: "User stops daily.",
+        },
         evidence: ["stop"],
       };
     },
@@ -126,7 +160,7 @@ Deno.test("daily action review local dispatcher receives inbound activation note
     (capturedInboundNote as any)?.source_flow_id,
     "process_checkins.action_evening_review_v2",
   );
-  assertEquals(result.exitToGlobalDispatcher, false);
+  assertEquals(result.exitToGlobalDispatcher, true);
 });
 
 Deno.test("daily action review local dispatcher complete answer becomes commit-ready without visible precommit wording", async () => {
@@ -319,7 +353,7 @@ Deno.test("daily action review local dispatcher exit requires memo and ignores u
   );
 });
 
-Deno.test("daily action review stop stays local and does not request global handoff", async () => {
+Deno.test("daily action review stop exits through local dispatcher with note", async () => {
   const targets = [target("a1", "Marcher 10 min")];
   const state = buildInitialDailyActionReviewState(targets);
 
@@ -328,7 +362,7 @@ Deno.test("daily action review stop stays local and does not request global hand
     targets,
     previousState: state,
     dispatcherRunner: async () => ({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       confidence: "high",
       risk_score: 0,
       target_resolution: {
@@ -363,8 +397,13 @@ Deno.test("daily action review stop stays local and does not request global hand
           evidence_used: ["Pas maintenant, oublie."],
         },
       },
-      note_information: null,
-      exit_memo: NO_EXIT_MEMO,
+      note_information: dailyGlobalNote(["Pas maintenant, oublie."]),
+      exit_memo: {
+        ...NO_EXIT_MEMO,
+        needed: true,
+        reason: "topic_change",
+        user_intent_summary: "User wants to stop the daily.",
+      },
       evidence: ["stop requested"],
     }),
     visibleRunner: async ({ userPrompt }) => {
@@ -377,12 +416,10 @@ Deno.test("daily action review stop stays local and does not request global hand
     },
   });
 
-  assertEquals(result.exitToGlobalDispatcher, false);
+  assertEquals(result.exitToGlobalDispatcher, true);
   assertEquals(result.state.status, "stopped");
-  assertEquals(
-    result.generatedUserMessage,
-    "D'accord, je ne note rien pour ce daily.",
-  );
+  assertEquals(result.dispatcherOutput.note_information?.target_dispatcher, "global");
+  assertEquals(result.generatedUserMessage, null);
 });
 
 Deno.test("daily action review safety preempt creates safety note and skips visible local reply", async () => {

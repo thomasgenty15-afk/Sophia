@@ -1,0 +1,15 @@
+{
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "message": "J ai encore un peu la boule au ventre depuis hier soir avec ma soeur. Je pensais que ce serait passe ce matin, mais ca me prend encore de la place.",
+  "force_full_ai": true,
+  "disable_debounce": true,
+  "channel": "web",
+  "scope": "qa-pulse-v2-real-1781201255",
+  "client_now_iso": "2026-06-11T09:20:00.000+02:00",
+  "metadata": {
+    "qa_run_id": "pulse-v2-real-1781201255",
+    "qa_scope": "qa-pulse-v2-real-1781201255",
+    "turn": 1,
+    "source": "conversation-pulse-v2-real-rerun"
+  }
+}

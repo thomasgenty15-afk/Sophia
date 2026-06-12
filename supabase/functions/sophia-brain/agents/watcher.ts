@@ -272,6 +272,7 @@ async function aiValidateDayCoherence(params: {
   timezone: string;
   sameDayCheckins: ExistingCheckin[];
   requestId?: string;
+  userId?: string | null;
 }): Promise<boolean> {
   const dayList = params.sameDayCheckins
     .map((c, i) => {
@@ -358,6 +359,7 @@ ${dayList || "(aucun)"}
       "auto",
       {
         requestId: params.requestId,
+        userId: params.userId ?? undefined,
         model: getGlobalAiModel("gemini-2.5-flash"),
         source: "trigger-watcher-batch:day-coherence",
       },
@@ -377,6 +379,7 @@ export async function runWatcher(
   lastProcessedAt: string,
   meta?: {
     requestId?: string;
+    userId?: string | null;
     forceRealAi?: boolean;
     channel?: "web" | "whatsapp";
     model?: string;
@@ -625,6 +628,7 @@ ${exclusionSnapshotBlock}
       "auto",
       {
         requestId: meta?.requestId,
+        userId: meta?.userId ?? userId,
         model: getGlobalAiModel("gemini-2.5-flash"),
         source: "trigger-watcher-batch",
       },
@@ -796,6 +800,7 @@ ${exclusionSnapshotBlock}
           timezone: tctx.user_timezone,
           sameDayCheckins,
           requestId: meta?.requestId,
+          userId,
         });
         if (!accepted) continue;
       }

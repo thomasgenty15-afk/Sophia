@@ -337,6 +337,7 @@ function parseDomainKeyJson(raw: string): string[] {
 
 async function mapTextToDomainKeysWithFallback(
   text: string,
+  userId?: string | null,
 ): Promise<string[]> {
   const regex = mapTextToDomainKeys(text);
   if (
@@ -354,6 +355,11 @@ async function mapTextToDomainKeysWithFallback(
         model,
         jsonMode: true,
         temperature: 0,
+        requestId: crypto.randomUUID(),
+        userId: userId ?? undefined,
+        source: "memory-v2:domain_mapper",
+        operationFamily: "memorizer",
+        operationName: "memory_v2.domain_mapper",
         systemPrompt:
           'Mappe la demande utilisateur vers les domain_keys V2. Retourne uniquement JSON: {"domain_keys":[...],"confidence":0-1}. N\'utilise que les cles connues.',
         userMessage: JSON.stringify({
@@ -1007,7 +1013,7 @@ export async function loadMemoryV2Payload(
 
   if (scopes.has("global") || input.retrieval_mode === "cross_topic_lookup") {
     const domainKeys = [
-      ...await mapTextToDomainKeysWithFallback(input.message ?? ""),
+      ...await mapTextToDomainKeysWithFallback(input.message ?? "", input.user_id),
       ...expandDomainTargetsToDomainKeys([
         ...(plan?.domain_keys ?? []),
         ...(plan?.domain_prefixes ?? []),

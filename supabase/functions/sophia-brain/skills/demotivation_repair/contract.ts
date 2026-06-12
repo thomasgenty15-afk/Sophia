@@ -73,12 +73,11 @@ export type DemotivationRepairLocalFlowAction =
   | "get_info_product"
   | "get_info_db"
   | "apply_attempt"
-  | "stop_local_no_handoff"
+  | "exit_to_global_dispatcher"
   | "cancel_flow"
   | "complete_flow"
   | "defer_flow"
   | "handoff_to_local_flow"
-  | "exit_to_global_dispatcher"
   | "safety_preempt";
 
 export type DemotivationRepairVisibleTaskKind =

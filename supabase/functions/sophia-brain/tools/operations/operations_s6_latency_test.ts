@@ -11,7 +11,7 @@ Deno.test("S6 operations latency smoke keeps adjust_plan as platform handoff und
     message: "reduis ma marche",
     plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
     trigger_message_id: "lat-adjust",
-    safety_pregate_risk_band: "none",
+    safety_context_risk_band: "none",
     operation_input: {
       scope: {
         kind: "specific_plan_item",

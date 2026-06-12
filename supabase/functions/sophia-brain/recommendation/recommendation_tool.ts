@@ -68,7 +68,7 @@ function buildPrompt(
     available_surfaces: surfaces,
     recent_recommendations: input.recent_recommendations,
     user_preferences: input.user_preferences ?? {},
-    safety_pregate_risk_band: input.safety_pregate_risk_band,
+    safety_context_risk_band: input.safety_context_risk_band,
   });
 }
 
@@ -329,18 +329,18 @@ export async function runRecommendationTool(
 ): Promise<ProductRecommendation> {
   const started = Date.now();
   const modelName = input.model_name ?? "gemini-3-flash-preview";
-  if (SAFETY_BLOCKING.has(input.safety_pregate_risk_band)) {
+  if (SAFETY_BLOCKING.has(input.safety_context_risk_band)) {
     input.on_stats?.({
       latency_ms: Date.now() - started,
       prompt_version: RECOMMENDATION_TOOL_PROMPT_VERSION,
       model_name: modelName,
       used_llm: false,
     });
-    return blocked(input, "safety_pregate_blocks_recommendation");
+    return blocked(input, "safety_context_blocks_recommendation");
   }
 
   const contraindications = [
-    input.safety_pregate_risk_band !== "none" ? "safety_active" : "",
+    input.safety_context_risk_band !== "none" ? "safety_active" : "",
     input.skill_output?.recommendation_need?.urgency === "high"
       ? "high_emotion"
       : "",

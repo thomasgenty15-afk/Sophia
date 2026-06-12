@@ -200,6 +200,7 @@ export async function runDemotivationRepairSkill(
     micro_memory_context: microMemoryContext,
     platform_context: {
       channel: input.context.turn_frame.channel,
+      plan_snapshot: { items: input.context.plan_items ?? [] },
     },
     risk_context: {
       safety: input.context.turn_frame.safety,
@@ -270,8 +271,8 @@ export async function runDemotivationRepairSkill(
         reduced.reason_code === "demotivation_repair_potion_bridge_blocked",
     });
   }
-  if (decision.flow_action === "stop_local_no_handoff") {
-    console.info("[DemotivationRepair] local_stop_no_handoff", {
+  if (decision.flow_action === "exit_to_global_dispatcher") {
+    console.info("[DemotivationRepair] local_exit_to_global_dispatcher", {
       request_id: requestId,
       reason_code: reduced.reason_code,
     });

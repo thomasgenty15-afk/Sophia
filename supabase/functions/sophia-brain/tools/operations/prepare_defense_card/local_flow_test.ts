@@ -200,7 +200,7 @@ Deno.test("prepare_defense_card dispatcher prompt documents real output fields",
     assertStringIncludes(prompt, field);
   }
 
-  assertStringIncludes(prompt, "stop_local_no_handoff");
+  assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");
   assertStringIncludes(prompt, "note_information.target_dispatcher=global");
@@ -249,7 +249,7 @@ Deno.test("prepare_defense_card continuation does not exit on active flow", () =
     }),
   });
   assertEquals(result.exit_to_global_dispatcher, false);
-  assertEquals(result.stop_local_no_handoff, false);
+  assertEquals(result.exit_to_global_dispatcher, false);
   assertEquals(result.safety_preempt, false);
   assertEquals(result.visible_task, "ask_support_need");
 });
@@ -331,6 +331,33 @@ Deno.test("prepare_defense_card proposed support_need waits for confirmation", (
       },
     }),
   });
+  assertEquals(result.local_state?.support_need_state.status, "proposed");
+  assertEquals(result.draft, null);
+});
+
+Deno.test("prepare_defense_card first-turn proposed confirmation does not handoff", () => {
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous: createInitialPrepareDefenseCardLocalState(),
+    output: decision({
+      flow_action: "confirm_proposed_field",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "proposed",
+        candidate_value:
+          "Les soirs où je rentre tard et vidé, pour ne pas commander par automatisme.",
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: true,
+        why_status: "proposal needs user confirmation",
+      },
+      visible_task: {
+        kind: "confirm_support_need_proposal",
+      },
+    }),
+  });
+  assertEquals(result.status, "collecting");
+  assertEquals(result.visible_task, "confirm_support_need_proposal");
   assertEquals(result.local_state?.support_need_state.status, "proposed");
   assertEquals(result.draft, null);
 });
@@ -597,19 +624,25 @@ Deno.test("prepare_defense_card exit_to_global_dispatcher clears local state", (
   assertEquals(result.note_information?.target_dispatcher, "global");
 });
 
-Deno.test("prepare_defense_card stop_local_no_handoff does not call global", () => {
+Deno.test("prepare_defense_card exit_to_global_dispatcher emits global note", () => {
   const result = reducePrepareDefenseCardLocalDispatcherOutput({
     previous: createInitialPrepareDefenseCardLocalState(),
     output: decision({
-      flow_action: "stop_local_no_handoff",
+      flow_action: "exit_to_global_dispatcher",
       visible_task: {
         kind: "stop_or_cancel",
       },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "prepare_defense_card stopped before handoff.",
+        handoff_hint_for_global_dispatcher: "resume global routing",
+      },
     }),
   });
-  assertEquals(result.stop_local_no_handoff, true);
-  assertEquals(result.exit_to_global_dispatcher, false);
+  assertEquals(result.exit_to_global_dispatcher, true);
   assertEquals(result.local_state, null);
+  assertEquals(result.note_information?.target_dispatcher, "global");
 });
 
 Deno.test("prepare_defense_card attack correction exits to global with note", () => {
@@ -635,7 +668,8 @@ Deno.test("prepare_defense_card attack correction exits to global with note", ()
     "global",
   );
   assertEquals(
-    result.note_information?.target_local_dispatcher_hint,
+    (result.note_information as any)?.structured_context
+      ?.recommended_next_focus,
     "prepare_attack_card",
   );
 });
@@ -778,7 +812,7 @@ Deno.test("prepare_defense_card local runtime uses dispatcher and visible prompt
       response_owner: "tool_skill",
       selected_handler: "prepare_defense_card",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-local",
     runLocalDispatcher: async (input) => {
       dispatcherInput = input as unknown as Record<string, unknown>;
@@ -838,7 +872,7 @@ Deno.test("prepare_defense_card dispatcher failure does not build visible fallba
       response_owner: "tool_skill",
       selected_handler: "prepare_defense_card",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-dispatcher-fail",
     runLocalDispatcher: async () => null,
     runVisibleAgent: async () => {
@@ -875,7 +909,7 @@ Deno.test("prepare_defense_card visible failure does not build visible fallback"
       response_owner: "tool_skill",
       selected_handler: "prepare_defense_card",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-visible-fail",
     runLocalDispatcher: async () =>
       lockedSupportNeed(
@@ -917,7 +951,7 @@ Deno.test("prepare_defense_card local runtime accepts explicit turn_frame intent
       selected_handler: undefined,
       blocked_paths: [{ path: "tool_skills", reason_code: "target_ambiguous" }],
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-normal-route",
     runLocalDispatcher: async () =>
       decision({
@@ -958,7 +992,7 @@ Deno.test("prepare_defense_card local runtime exits to global only on explicit l
       response_owner: "tool_skill",
       selected_handler: "prepare_defense_card",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-exit",
     runLocalDispatcher: async () =>
       decision({
@@ -1013,7 +1047,7 @@ Deno.test("prepare_defense_card explicit local route is not blocked by unrelated
       selected_handler: "prepare_defense_card",
       reason_code: "active_prepare_defense_card_local_dispatcher",
     } as any,
-    safetyPregateOutput: { risk_band: "none" } as any,
+    safetyContextOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-pending-mismatch",
     runLocalDispatcher: async () =>
       decision({

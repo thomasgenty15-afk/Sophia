@@ -1,18 +1,17 @@
 /// <reference path="../../tsserver-shims.d.ts" />
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import type { AgentMode } from "../state-manager.ts";
 import { logMessage, updateUserState } from "../state-manager.ts";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
-import type { SafetyPregateOutput } from "../safety/safety_pregate.ts";
+import type { SafetySignalContext } from "../safety/safety_context.ts";
 import type { DispatcherRunStats } from "../dispatcher/dispatcher.v2.ts";
 import type { BrainTracePhase } from "../../_shared/brain-trace.ts";
 import type { DispatcherSignals } from "./dispatcher.ts";
 import {
   type EffectLedger,
-  recordBlockedEffect,
-  rewriteUncommittedEffectClaims,
   summarizeEffectLedgerForTrace,
 } from "./effect_ledger.ts";
 import {
@@ -26,16 +25,15 @@ import {
   DEFAULT_DISPATCHER_MEMORY_PLAN,
   isCheckupActive,
 } from "./turn_context_runtime.ts";
-import {
-  applyCoachResponseStylePreferences,
-  loadCoachResponseStylePreferences,
-  userRequestsShortStyle,
-} from "./response_style_policy.ts";
 import { ensureVisibleSophiaEmoji } from "./response_visibility_formatting.ts";
 import { effectiveResponseOwnerForOperationRuntime } from "./operation_response_owner.ts";
 import {
-  applyWeeklyConcreteOrganizationGuard,
+  committedEffectsToConfirmFromToolSkillRun,
+} from "./direct_effect_local_context.ts";
+import { clearActiveToolFlow } from "./active_flow_state.ts";
+import {
   cleanWeeklyVisibleResponse,
+  isWeeklyAdaptiveReviewActive,
   markWeeklyAdaptiveReviewAdjustPlanApplied,
   weeklyAdaptiveReviewStateForTurn,
   weeklyReturnAfterAdjustmentMessage,
@@ -157,6 +155,165 @@ export function appendOperationFollowup(args: {
     });
   }
   return content;
+}
+
+function recordOrNull(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function operationRuntimeClosesWeeklyChildDetour(
+  operationRuntime: Pick<
+    OperationRuntimeResult,
+    "toolExecution" | "executedTools" | "toolSkillRun"
+  >,
+): boolean {
+  if (
+    operationRuntime.toolExecution === "success" &&
+    operationRuntime.executedTools?.includes?.("create_one_shot_reminder")
+  ) {
+    return true;
+  }
+  if (operationRuntime.toolExecution !== "platform_handoff") return false;
+  const run = recordOrNull(operationRuntime.toolSkillRun) ?? {};
+  const platformHandoff = recordOrNull(run.platform_handoff) ?? {};
+  const status = String(platformHandoff.status ?? run.status ?? "").trim();
+  return status === "delivered" ||
+    status === "handoff_delivered" ||
+    status === "repeat_handoff" ||
+    status === "apply_attempt" ||
+    status === "cancelled";
+}
+
+export function restoreWeeklyParentAfterChildDetour(args: {
+  tempMemory: unknown;
+  operationRuntime: Pick<
+    OperationRuntimeResult,
+    "toolExecution" | "executedTools" | "toolSkillRun"
+  >;
+}): {
+  tempMemory: any;
+  restored: boolean;
+  childFlowId: string | null;
+} {
+  const temp = recordOrNull(args.tempMemory) ?? {};
+  const suspended = recordOrNull(temp.__suspended_flow_v1);
+  const snapshot = suspended?.state_snapshot;
+  if (!suspended || !isWeeklyAdaptiveReviewActive(snapshot)) {
+    return {
+      tempMemory: args.tempMemory ?? {},
+      restored: false,
+      childFlowId: null,
+    };
+  }
+  if (!operationRuntimeClosesWeeklyChildDetour(args.operationRuntime)) {
+    return {
+      tempMemory: args.tempMemory ?? {},
+      restored: false,
+      childFlowId: null,
+    };
+  }
+  const run = recordOrNull(args.operationRuntime.toolSkillRun) ?? {};
+  const childFlowId = String(
+    run.operation_type ?? run.selected_handler ?? suspended.target_flow ?? "",
+  ).trim() || null;
+  const now = new Date().toISOString();
+  const weeklySnapshot = snapshot as Record<string, unknown>;
+  const flowState = recordOrNull(weeklySnapshot.weekly_flow_state) ?? {};
+  const previousChildFlow = recordOrNull(flowState.child_flow) ?? {};
+  const next = clearActiveToolFlow(temp);
+  next.__active_skill_state = {
+    ...weeklySnapshot,
+    status: "open",
+    weekly_flow_state: {
+      ...flowState,
+      child_flow: {
+        ...previousChildFlow,
+        status: "completed",
+        flow_id: childFlowId ?? previousChildFlow.flow_id ?? null,
+        result_summary: String(run.reason_code ?? run.status ?? "").trim() ||
+          null,
+      },
+      updated_at: now,
+    },
+    updated_at: now,
+  };
+  delete next.active_skill_state;
+  delete next.__suspended_flow_v1;
+  return { tempMemory: next, restored: true, childFlowId };
+}
+
+function fallbackCommittedEffectConfirmation(
+  facts: ReturnType<typeof committedEffectsToConfirmFromToolSkillRun>,
+): string | null {
+  const first = facts[0];
+  if (!first) return null;
+  if (first.effect_type === "track_progress_plan_item") {
+    const title = String(first.structured_fact.target_title ?? "").trim() ||
+      "cette action";
+    const status = String(first.structured_fact.progress_status ?? "").trim();
+    const label = status === "missed"
+      ? "comme non faite"
+      : status === "partial"
+      ? "comme partiellement faite"
+      : "comme faite";
+    return `C'est bien enregistré pour « ${title} » ${label}.`;
+  }
+  const instruction = String(
+    first.structured_fact.reminder_instruction ??
+      first.structured_fact.instruction ??
+      "",
+  ).trim() || "ce rappel";
+  const scheduledFor = String(first.structured_fact.scheduled_for ?? "")
+    .trim();
+  return scheduledFor
+    ? `C'est bien programmé pour « ${instruction} » (${scheduledFor}).`
+    : `C'est bien programmé pour « ${instruction} ».`;
+}
+
+async function naturalCommittedEffectConfirmation(args: {
+  userId: string;
+  requestId?: string | null;
+  userMessage: string;
+  currentContent: string;
+  facts: ReturnType<typeof committedEffectsToConfirmFromToolSkillRun>;
+}): Promise<string | null> {
+  if (args.facts.length === 0) return null;
+  try {
+    const raw = await generateWithGemini(
+      "Tu es l'agent visible Sophia. Confirme avec tes propres mots un effet durable deja committé.",
+      JSON.stringify({
+        task: "confirm_committed_direct_effect_naturally",
+        user_message: args.userMessage,
+        current_runtime_content: args.currentContent,
+        committed_effects_to_confirm: args.facts,
+        instructions: [
+          "Reponds en francais, naturellement, comme Sophia.",
+          "Confirme seulement les effets committes fournis.",
+          "N'utilise pas de formule technique, pas de JSON, pas de mention de DB, dispatcher, runtime ou outil.",
+          "Ne dis pas qu'un effet est cree/enregistre s'il n'est pas dans committed_effects_to_confirm.",
+          "Une phrase courte suffit sauf si current_runtime_content contient deja une clarification utile.",
+        ],
+      }),
+      0.4,
+      false,
+      [],
+      "auto",
+      {
+        requestId: args.requestId ?? undefined,
+        userId: args.userId,
+        model: getGlobalAiModel("gemini-2.5-flash"),
+        source: "direct_effect.confirmation_visible_agent",
+        forceRealAi: true,
+        reasoningEffort: "low",
+      },
+    );
+    const text = String(raw ?? "").trim();
+    return text || fallbackCommittedEffectConfirmation(args.facts);
+  } catch {
+    return fallbackCommittedEffectConfirmation(args.facts);
+  }
 }
 
 const STATEFUL_CONVERSATION_LOCAL_SKILLS = new Set([
@@ -310,7 +467,7 @@ export async function handleOperationRuntimeResponse(args: {
   effectLedger: EffectLedger;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
-  safetyPregateOutput: SafetyPregateOutput;
+  safetyContextOutput: SafetySignalContext;
   weeklyReviewStateForTurn: unknown;
   dispatcherSignals: DispatcherSignals;
   dispatcherV2Stats: DispatcherRunStats[];
@@ -337,7 +494,7 @@ export async function handleOperationRuntimeResponse(args: {
     effectLedger,
     turnFrame,
     routeDecision,
-    safetyPregateOutput,
+    safetyContextOutput,
     weeklyReviewStateForTurn,
     dispatcherSignals,
     dispatcherV2Stats,
@@ -362,6 +519,19 @@ export async function handleOperationRuntimeResponse(args: {
   const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
   const nextLastInteraction = new Date().toISOString();
   let nextTempMemory = operationRuntime.nextTempMemory ?? {};
+  const weeklyParentRestore = restoreWeeklyParentAfterChildDetour({
+    tempMemory: nextTempMemory,
+    operationRuntime,
+  });
+  nextTempMemory = weeklyParentRestore.tempMemory;
+  if (weeklyParentRestore.restored) {
+    await trace("brain:weekly_parent_resumed_after_child_flow", "routing", {
+      source_flow: "weekly_adaptive_review_v1",
+      child_flow_id: weeklyParentRestore.childFlowId,
+      global_dispatcher_skipped: true,
+      resume_source: "__suspended_flow_v1",
+    }, "info");
+  }
   const activeSkillStateGuard = ensureActiveConversationSkillStateBeforePersist(
     {
       tempMemory: nextTempMemory,
@@ -411,52 +581,31 @@ export async function handleOperationRuntimeResponse(args: {
   const rawOperationRuntimeContentBeforeAgenda = weeklyReturnMessage
     ? `${operationRuntime.content}\n\n${weeklyReturnMessage}`
     : operationRuntime.content;
+  const committedEffectsToConfirm = committedEffectsToConfirmFromToolSkillRun(
+    operationRuntime.toolSkillRun,
+  );
+  const operationContentForConfirmation = committedEffectsToConfirm.length > 0
+    ? await naturalCommittedEffectConfirmation({
+      userId,
+      requestId,
+      userMessage,
+      currentContent: String(rawOperationRuntimeContentBeforeAgenda ?? ""),
+      facts: committedEffectsToConfirm,
+    }) ?? String(rawOperationRuntimeContentBeforeAgenda ?? "")
+    : String(rawOperationRuntimeContentBeforeAgenda ?? "");
   const rawOperationRuntimeContent = appendOperationFollowup({
-    content: rawOperationRuntimeContentBeforeAgenda,
+    content: operationContentForConfirmation,
     operationRuntime,
     turnFrame,
     userMessage,
   });
   const weeklyCleanedOperationRuntimeContent = weeklyReviewStateAfterOperation
-    ? applyWeeklyConcreteOrganizationGuard({
-      responseContent: cleanWeeklyVisibleResponse(rawOperationRuntimeContent),
-      userMessage,
-      activeSkillState: weeklyReviewStateAfterOperation,
-      tempMemory: nextTempMemory,
-      history,
-    })
+    ? cleanWeeklyVisibleResponse(rawOperationRuntimeContent)
     : rawOperationRuntimeContent;
 
-  const operationResponseStylePreferences =
-    await loadCoachResponseStylePreferences({ supabase, userId });
-  const styledOperationRuntimeContent = applyCoachResponseStylePreferences({
-    userMessage,
-    responseContent: weeklyCleanedOperationRuntimeContent,
-    preferences: operationResponseStylePreferences,
-  });
-  let operationRuntimeContent = userRequestsShortStyle(userMessage) &&
-      operationResponseStylePreferences.noEmoji
-    ? styledOperationRuntimeContent
-    : ensureVisibleSophiaEmoji(styledOperationRuntimeContent);
-
-  const operationClaimRewrite = rewriteUncommittedEffectClaims({
-    reply: operationRuntimeContent,
-    ledger: effectLedger,
-  });
-  if (operationClaimRewrite.changed) {
-    operationRuntimeContent = operationClaimRewrite.reply;
-    recordBlockedEffect(effectLedger, {
-      effect_id: `${effectLedger.turn_id}:guard:${
-        operationClaimRewrite.reason_codes.join("+")
-      }`,
-      effect_type: "final_reply.claim",
-      source: "guard",
-      reason_code: operationClaimRewrite.reason_codes.join(","),
-      payload_summary: {
-        reason_codes: operationClaimRewrite.reason_codes,
-      },
-    });
-  }
+  let operationRuntimeContent = ensureVisibleSophiaEmoji(
+    weeklyCleanedOperationRuntimeContent,
+  );
 
   const operationRuntimeAdditionalContents = (
     operationRuntime.additionalContents ?? []
@@ -540,7 +689,7 @@ export async function handleOperationRuntimeResponse(args: {
         user_id: userId,
         source_message_id: turnFrame.source_message_id,
         ts: new Date().toISOString(),
-        safety_pregate: safetyPregateOutput,
+        safety_context: safetyContextOutput,
         dispatcher_run: {
           latency_ms: dispatcherV2Stat?.latency_ms ?? 0,
           tokens_in: dispatcherV2Stat?.tokens_in ?? 0,

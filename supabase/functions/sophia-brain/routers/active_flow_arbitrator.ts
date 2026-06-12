@@ -294,21 +294,31 @@ export function runActiveFlowArbitrator(input: {
     );
     if (explicitToolIntent) {
       return {
-        decision: "supersede_active",
+        decision: "continue_active",
         active_owner: activeOwner,
-        selected_owner: "tool_skill",
-        selected_handler: explicitToolIntent.operation_type,
-        resume_policy: "user_reopens",
+        selected_owner: "conversation_skill",
+        selected_handler: activeConversationSkill ??
+          input.skill.selected_skill_id,
+        resume_policy: "none",
         reason_code:
-          "explicit_tool_intent_supersedes_active_conversation_skill",
-        blocked_paths: opportunityBlocks,
+          "explicit_tool_intent_blocked_by_active_conversation_skill",
+        blocked_paths: [
+          ...opportunityBlocks,
+          {
+            path: `tool_skill.${explicitToolIntent.operation_type}`,
+            reason_code:
+              "active_conversation_skill_requires_local_dispatcher_handoff",
+          },
+        ],
       };
     }
     if (input.skill.status === "exit") {
       return {
-        decision: "abandon_active",
+        decision: "continue_active",
         active_owner: activeOwner,
-        selected_owner: "normal_reply",
+        selected_owner: "conversation_skill",
+        selected_handler: activeConversationSkill ??
+          input.skill.selected_skill_id,
         resume_policy: "none",
         reason_code: input.skill.reason_code,
         blocked_paths: opportunityBlocks,

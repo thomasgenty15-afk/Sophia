@@ -127,7 +127,7 @@ sortie, meme si les noms exacts varient par flow :
 
 ```json
 {
-  "flow_action": "continue_local|missing_info|confirm_candidate|handoff_ready|revise|repeat|apply_attempt|inline_tool|get_info_product|get_info_db|handoff_to_local_dispatcher|exit_to_global_dispatcher|stop_local_no_handoff|cancel_flow|complete_flow|defer_flow|safety_preempt",
+  "flow_action": "continue_local|missing_info|confirm_candidate|handoff_ready|revise|repeat|apply_attempt|inline_tool|get_info_product|get_info_db|handoff_to_local_dispatcher|exit_to_global_dispatcher|cancel_flow|complete_flow|defer_flow|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "local_state_patch": {},
@@ -202,13 +202,15 @@ compte.
 
 ### Exit Vers Global
 
-`exit_to_global_dispatcher` est reserve aux cas ou le user apporte un autre
-sujet clair.
+`exit_to_global_dispatcher` est utilise des que le flow local arrete de
+posseder le tour et que le dispatcher global doit reprendre, y compris quand le
+user demande simplement d'arreter le flow actif.
 
 Exemple :
 
 ```txt
 "laisse ca, aide-moi a prioriser"
+"j'arrete ce flow pour aujourd'hui"
 ```
 
 Dans ce cas :
@@ -216,28 +218,9 @@ Dans ce cas :
 - `note_information` obligatoire ;
 - global dispatcher peut reanalyser le message avec la note ;
 - le flow local source arrete de posseder le tour.
-
-### Stop Local Sans Handoff
-
-Si le user veut juste arreter les questions ou abandonner le flow sans nouveau
-sujet clair :
-
-```txt
-"laisse tomber"
-"arrete tes questions"
-"je sais pas, oublie"
-"pas maintenant"
-```
-
-Alors :
-
-- `stop_local_no_handoff`, `cancel_flow`, `defer_flow` ou equivalent ;
-- acknowledgement court ;
-- pas de dispatcher global sur le meme tour ;
-- pas de question finale ;
-- pas de coaching additionnel ;
-- pas d'outil ;
-- etat actif clear/defer/complete selon le flow.
+- le dispatcher global ne doit jamais etre appele directement par l'arbitrage
+  d'active flow : le dispatcher local source produit d'abord
+  `exit_to_global_dispatcher` avec une `note_information` exploitable.
 
 ### Safety
 
@@ -258,11 +241,11 @@ surveillance que le dispatcher global.
 Tous les dispatchers locaux doivent savoir classer au minimum :
 
 - `safety_preempt` : risque/safety prioritaire ;
-- `stop_local_no_handoff` : user veut juste arreter le flow ;
 - `cancel_flow` : user annule l'objet ou le support en cours ;
 - `defer_flow` : user repousse le flow sans autre demande ;
 - `complete_flow` : flow suffisamment fini, pas de suite immediate ;
-- `exit_to_global_dispatcher` : nouveau sujet clair ;
+- `exit_to_global_dispatcher` : user veut arreter le flow actif ou apporte un
+  nouveau sujet clair ;
 - `handoff_to_local_dispatcher` : autre flow cible explicite ou structure ;
 - `inline_tool_roundtrip` : question produit/status temporaire ;
 - `repeat_current_state` : user demande de redire ;
@@ -283,27 +266,33 @@ Elle contient toujours :
 ```json
 {
   "source_flow_id": "string",
-  "source_flow_presentation": "Deux lignes maximum.",
-  "source_flow_state_summary": "string",
-  "handoff_reason": "topic_change|safety|inline_tool|bridge|clarification_resolved|flow_interruption|explicit_user_request",
   "target_dispatcher": "global|safety_crisis|product_help|status_recap|select_state_potion|...",
+  "handoff_reason": "topic_change|safety|inline_tool|bridge|clarification_resolved|flow_interruption|explicit_user_request",
   "handoff_context_for_next_dispatcher": "string",
-  "target_local_dispatcher_hint": "string|null",
+  "user_words": ["string"],
   "structured_context": {},
-  "risk_score": 0,
-  "no_chat_mutation": {}
+  "confidence": "low|medium|high"
 }
 ```
 
+`confidence` est optionnel si le flow n'a pas de champ equivalent.
+`structured_context` est obligatoire. Il peut etre minimal, mais il ne doit pas
+etre omis. Les champs retires du contrat canonique sont
+`source_flow_presentation`, `source_flow_state_summary`,
+`target_local_dispatcher_hint`, `risk_score` et `no_chat_mutation`.
+
 La note doit contenir :
 
-- presentation succincte du flow quitte ;
-- resume structure de ce qui est acquis ;
+- resume compact de ce qui est acquis ;
 - ce qui reste incertain ;
 - pourquoi le prochain dispatcher recoit la main ;
 - contexte exploitable pour remplir le JSON du dispatcher cible ;
 - mots du user utiles ;
 - evidence courte.
+
+Les informations de risque restent dans `risk_score` du dispatcher local et les
+preuves de non-mutation restent dans EffectLedger/runtime trace. Elles ne sont
+pas transmises comme champs de `note_information`.
 
 La note ne doit jamais devenir :
 
@@ -430,9 +419,9 @@ Exemples de prompts visibles attendus :
 Un unique prompt visible du type `conversation_agent` est un red flag
 architectural.
 
-Exception possible : flow trivial one-turn sans etat actif, sans handoff, sans
-revision, sans abandon, sans transition de dispatcher. Si un flow a un etat
-actif ou plusieurs tours possibles, l'exception ne s'applique pas.
+Exception possible : flow trivial one-turn sans etat actif, sans changement de
+dispatcher, sans revision, sans abandon. Si un flow a un etat actif ou
+plusieurs tours possibles, l'exception ne s'applique pas.
 
 ## Completeness De `visible_task`
 
@@ -441,7 +430,7 @@ Chaque `flow_action` doit avoir une suite exacte :
 - prompt conversationnel stage-specific ;
 - inline tool ;
 - transition dispatcher ;
-- stop local ;
+- transition dispatcher ;
 - safety.
 
 `visible_task.conversation_context` doit contenir assez d'information pour que
@@ -741,7 +730,7 @@ Chaque dispatcher local doit avoir au minimum :
 - apply_attempt si handoff ;
 - inline product ;
 - inline status ;
-- stop local no handoff ;
+- exit global avec note ;
 - cancel/defer/complete ;
 - exit global with note ;
 - handoff local with note ;
@@ -765,7 +754,9 @@ Avant de considerer un dispatcher local conforme, verifier :
 - [ ] Il n'y a pas un unique agent conversationnel generaliste.
 - [ ] `visible_task.conversation_context` est suffisant.
 - [ ] Les exits communs sont presents.
-- [ ] `stop_local_no_handoff` n'appelle pas global.
+- [ ] Aucun `exit_to_global_dispatcher` legacy ne reste dans les contrats actifs.
+- [ ] Un arret de flow passe par `exit_to_global_dispatcher` avec
+      `note_information` avant toute reprise globale.
 - [ ] `exit_to_global_dispatcher` produit une `note_information`.
 - [ ] `safety_preempt` produit une `note_information` vers safety.
 - [ ] Les inline tools conservent le parent flow.

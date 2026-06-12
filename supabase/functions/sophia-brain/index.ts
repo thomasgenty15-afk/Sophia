@@ -74,10 +74,10 @@ Deno.serve(async (req) => {
       scope: body?.scope ?? null,
       channel: body?.channel ?? null,
     }));
-    let message = (body?.message ?? body?.content ?? "").toString();
+    const message = (body?.message ?? body?.content ?? "").toString();
     const clientHistory = Array.isArray(body?.history) ? body.history : [];
     let forceMode = (body?.forceMode ?? body?.force_mode) as string | undefined;
-    let contextOverride =
+    const contextOverride =
       (body?.contextOverride ?? body?.context_override ?? body?.context) as
         | string
         | undefined;
@@ -97,40 +97,6 @@ Deno.serve(async (req) => {
         body?.debug_force_onboarding_flow ??
         body?.debug?.force_onboarding_flow,
     );
-    // Backward compatibility: some frontend calls used { mode, context } without { message }.
-    // We synthesize a user message and a textual context override, and force the appropriate agent.
-    const compatibilityMode = (body?.mode ?? "").toString().trim();
-    const compatibilityContext = body?.context;
-    if (
-      !message && compatibilityMode && compatibilityContext &&
-      typeof compatibilityContext === "object"
-    ) {
-      const userPrompt =
-        (compatibilityContext?.userPrompt ?? compatibilityContext?.prompt ?? "")
-          .toString().trim();
-      message = userPrompt || "Aide-moi à avancer.";
-
-      if (!contextOverride) {
-        const safeContext = { ...compatibilityContext };
-        // Avoid duplicating userPrompt in the context header.
-        if ("userPrompt" in safeContext) delete (safeContext as any).userPrompt;
-        if ("prompt" in safeContext) delete (safeContext as any).prompt;
-        contextOverride =
-          `CompatibilityMode: ${compatibilityMode}\nCompatibilityContext: ${
-            JSON.stringify(safeContext)
-          }`;
-      }
-
-      // Older content modes now map to companion in the simplified router.
-      if (
-        !forceMode &&
-        (compatibilityMode === "architect_help" ||
-          compatibilityMode === "refine_module")
-      ) {
-        forceMode = "companion";
-      }
-    }
-
     // Auth Check
     const authHeader = (req.headers.get("Authorization") ?? "").trim();
     if (!authHeader) {

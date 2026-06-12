@@ -15,7 +15,7 @@ Deno.test("trace logger writes to injectable sink", async () => {
     user_id: "u1",
     source_message_id: "m1",
     ts: "2026-05-04T10:00:00.000Z",
-    safety_pregate: {
+    safety_context: {
       detected: false,
       risk_band: "none",
       reason_codes: [],

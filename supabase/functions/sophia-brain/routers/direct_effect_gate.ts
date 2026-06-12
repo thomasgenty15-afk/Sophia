@@ -72,7 +72,13 @@ export async function runDirectEffectGate(
     );
   }
   if (blocksDirectEffects(input.turn_frame.safety.risk_band)) {
-    return blocked(toolId, "safety_high", "Safety risk blocks direct effects.");
+    if (toolId !== "create_one_shot_reminder") {
+      return blocked(
+        toolId,
+        "safety_high",
+        "Safety risk blocks direct effects.",
+      );
+    }
   }
   if (input.pending_tool_skill_confirmation) {
     return blocked(

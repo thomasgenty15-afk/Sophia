@@ -30,6 +30,7 @@ import {
 import { readPendingOneShotReminderRows } from "./persistence.ts";
 import {
   extractStrictAbsoluteParts,
+  extractTargetHHMMFromMessage,
   formatLocalReminderLabel,
   localHHMMForScheduledFor,
   parseOneShotReminderRequest,
@@ -295,6 +296,29 @@ export async function maybeCreateOneShotReminder(params: {
     nowIso: tctx.now_utc,
   });
   if (!parsed && canRecoverFromContext) {
+    const scheduledFor = parseScheduledForFromMessage({
+      message: params.message,
+      timezone: tctx.user_timezone,
+      nowIso: tctx.now_utc,
+    });
+    if (scheduledFor) {
+      for (const ctx of params.contextMessages ?? []) {
+        const instruction = extractReminderInstruction(ctx);
+        if (instruction && !isDegenerateReminderInstruction(instruction)) {
+          parsed = {
+            scheduledFor,
+            reminderInstruction: instruction,
+            eventContext: `one_shot_reminder:${
+              slugify(instruction) || "generic"
+            }`,
+            parseSource: "local_parser",
+          };
+          break;
+        }
+      }
+    }
+  }
+  if (!parsed && canRecoverFromContext) {
     for (const ctx of params.contextMessages ?? []) {
       const recovered = parseReminderFromMessage({
         message: ctx,
@@ -424,13 +448,7 @@ export async function maybeCancelOneShotReminder(params: {
     };
   }
 
-  const textTargetHHMM = parseScheduledForFromMessage({
-    message: params.message,
-    timezone: tctx.user_timezone,
-    nowIso: tctx.now_utc,
-  })
-    ? null
-    : null;
+  const textTargetHHMM = extractTargetHHMMFromMessage(params.message);
   const targets = textTargetHHMM
     ? pendingRows.filter((row: any) =>
       localHHMMForScheduledFor(

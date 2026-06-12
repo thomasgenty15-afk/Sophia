@@ -215,16 +215,6 @@ export async function runTrackProgressPlanItemDirectEffect(
   });
   const requestedEffects = requested ? [requested] : [];
 
-  if (intake.reason_code === "status_missing") {
-    return blockedResult({
-      intent: "clarify",
-      status: "needs_clarify",
-      reason_code: "status_missing",
-      reply: renderTrackProgressClarification("status_missing"),
-      requested_effects: requestedEffects,
-    });
-  }
-
   const gate = await runDirectEffectGate({
     effect_type: "track_progress_plan_item",
     turn_frame: input.turn_frame,
@@ -251,6 +241,16 @@ export async function runTrackProgressPlanItemDirectEffect(
       gate_reason: gate.reason_code,
       reply: gate.suggested_clarification ??
         renderTrackProgressClarification(reasonCode),
+      requested_effects: requestedEffects,
+    });
+  }
+
+  if (intake.reason_code === "status_missing") {
+    return blockedResult({
+      intent: "clarify",
+      status: "needs_clarify",
+      reason_code: "status_missing",
+      reply: renderTrackProgressClarification("status_missing"),
       requested_effects: requestedEffects,
     });
   }

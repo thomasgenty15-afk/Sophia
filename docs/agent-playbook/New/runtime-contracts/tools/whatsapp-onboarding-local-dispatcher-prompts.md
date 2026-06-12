@@ -40,7 +40,7 @@ catalog presentation.
 
 Do not produce it for local onboarding actions such as
 `blocked_exit_before_plan_ready`, `skip_optional_preference`,
-`repeat_current_question`, `stop_local_no_handoff`, `technical_blocked`, or
+`repeat_current_question`, `exit_to_global_dispatcher`, `technical_blocked`, or
 `complete_onboarding` when no new dispatcher is called. These are local
 stop/defer/complete actions and must not call global on the same turn.
 
@@ -255,7 +255,7 @@ Actions possibles :
 - repeat_current_question
 - progress_attempt_during_onboarding
 - blocked_exit_before_plan_ready
-- stop_local_no_handoff
+- exit_to_global_dispatcher
 - complete_onboarding
 - get_info_product
 - get_info_db
@@ -268,7 +268,7 @@ Priorite des actions :
 1. safety_preempt
 2. technical_blocked
 3. blocked_exit_before_plan_ready
-4. stop_local_no_handoff
+4. exit_to_global_dispatcher
 5. handoff_to_local_flow
 6. exit_to_global_dispatcher
 7. get_info_product / get_info_db
@@ -299,7 +299,7 @@ Regles plan :
   retourne blocked_exit_before_plan_ready.
 - Si le plan est pret et que le user dit que les questions le saoulent, qu'il ne
   sait pas, ou qu'il refuse la calibration sans nouveau sujet clair, retourne
-  stop_local_no_handoff. Le reducer clear/defer l'etat local et ne lance pas le
+  exit_to_global_dispatcher. Le reducer clear/defer l'etat local et ne lance pas le
   global sur le meme tour.
 - Si le plan est pret et que le user apporte un nouveau sujet clair, retourne
   exit_to_global_dispatcher avec note_information exploitable.
@@ -320,7 +320,7 @@ Regles sortie :
   ready_pending_activation et nouveau sujet clair.
 - safety_preempt sort vers safety_crisis avec note_information, pas vers le
   dispatcher global normal.
-- stop_local_no_handoff ne produit aucune note_information et ne permet aucun
+- exit_to_global_dispatcher ne produit aucune note_information et ne permet aucun
   global sur le meme tour.
 - Pour une sortie autorisee vers un autre dispatcher, renseigne
   note_information et exit_memo_request.needed=true.
@@ -330,13 +330,13 @@ Regles sortie :
 - Pour une sortie autorisee vers global, renseigne
   exit_memo_request.handoff_justification_for_global_dispatcher avec une phrase
   courte expliquant pourquoi l'onboarding local rend la main.
-- Pour stop_local_no_handoff apres plan pret, le reducer doit marquer
+- Pour exit_to_global_dispatcher apres plan pret, le reducer doit marquer
   l'onboarding WhatsApp comme stoppe localement afin de ne pas enfermer le user
   dans les memes questions.
 
 Sortie JSON stricte :
 {
-  "flow_action": "plan_not_ready_wait|plan_ready_resume_preferences|answer_tone|answer_challenge|answer_questions|skip_optional_preference|answer_plan_feedback|answer_topic_choice|repeat_current_question|progress_attempt_during_onboarding|blocked_exit_before_plan_ready|stop_local_no_handoff|complete_onboarding|get_info_product|get_info_db|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt|technical_blocked",
+  "flow_action": "plan_not_ready_wait|plan_ready_resume_preferences|answer_tone|answer_challenge|answer_questions|skip_optional_preference|answer_plan_feedback|answer_topic_choice|repeat_current_question|progress_attempt_during_onboarding|blocked_exit_before_plan_ready|exit_to_global_dispatcher|complete_onboarding|get_info_product|get_info_db|handoff_to_local_flow|exit_to_global_dispatcher|safety_preempt|technical_blocked",
   "confidence": "low|medium|high",
   "stage": "plan_wait|plan_ready_resume|pref_tone|pref_challenge|pref_questions|plan_feedback|topic_choice|completed|exit|safety|technical",
   "plan_state": {
@@ -856,7 +856,7 @@ Il doit :
 - calculer le prochain stage visible ;
 - ecrire les preferences uniquement depuis `preference_updates.status=locked` ;
 - poser `__whatsapp_onboarding_done` quand le flow est complete ;
-- poser un mode `stopped_after_plan_ready` sur `stop_local_no_handoff` apres
+- poser un mode `stopped_after_plan_ready` sur `exit_to_global_dispatcher` apres
   plan pret ;
 - poser un mode `deferred_after_plan_ready` uniquement quand un nouveau sujet
   clair permet `exit_to_global_dispatcher` ;
@@ -885,7 +885,7 @@ Ajouter des traces lisibles :
 - `whatsapp_onboarding.visible_stage.start`
 - `whatsapp_onboarding.visible_stage.complete`
 - `whatsapp_onboarding.exit_to_global_dispatcher`
-- `whatsapp_onboarding.stop_local_no_handoff`
+- `whatsapp_onboarding.exit_to_global_dispatcher`
 - `whatsapp_onboarding.handoff_to_dispatcher_with_note_information`
 - `whatsapp_onboarding.exit_blocked_before_plan_ready`
 - `whatsapp_onboarding.preference_write`
@@ -1012,7 +1012,7 @@ Le flow est accepte si :
 - aucun renderer visible deterministe n'est utilise ;
 - aucune regex metier n'est dans le chemin nominal ;
 - aucun progress plan item n'est logge pendant la finalisation plan ;
-- stop_local_no_handoff apres plan pret ne relance pas le global ;
+- exit_to_global_dispatcher apres plan pret ne relance pas le global ;
 - l'exit vers global apres plan pret exige un nouveau sujet clair et une
   note_information ;
 - l'exit frustration est bloque avant plan pret ;

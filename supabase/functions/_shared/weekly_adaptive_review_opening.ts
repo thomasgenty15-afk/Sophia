@@ -30,7 +30,9 @@ async function fetchWhatsappTempMemory(
     : {};
 }
 
-export function weeklyAdaptiveReviewOpeningLooksValid(message: string): boolean {
+export function weeklyAdaptiveReviewOpeningLooksValid(
+  message: string,
+): boolean {
   const text = String(message ?? "").trim();
   if (!text) return false;
   const questionCount = (text.match(/\?/g) ?? []).length;
@@ -102,10 +104,11 @@ export async function generateWeeklyAdaptiveReviewOpening(params: {
     "- Si une categorie est vague comme 'context', traduis-la en langage concret seulement si les donnees le justifient, par exemple 'semaine chargee'. Sinon, ignore-la.",
     "- Evite les formules rigides du type 'Ce qui ressort surtout: ...' quand elles produisent une etiquette abstraite.",
     "- Structure: annonce du bilan de la semaine, micro-synthese humaine, direction probable pour la semaine prochaine si elle est utile, puis une seule question large.",
+    "- N'ouvre jamais le weekly par une proposition de carte, potion, rappel, outil ou modification Plan. Ces detours ne peuvent venir qu'apres une reponse user dans le flow weekly.",
     previousWeeklySummary
       ? "- Si previous_weekly_summary existe et contient suggested_opening_question, tu peux utiliser cette question comme question unique d'ouverture si elle est plus pertinente que 'comment tu as vecu la semaine ?'. Ne recite pas la synthese interne."
       : "",
-    "- La question unique doit inviter le user a raconter la semaine dans l'ensemble; elle ne doit pas separer progression ressentie et etat/energie en deux questions.",
+    "- La question unique doit inviter le user a raconter la semaine dans l'ensemble, y compris comment il sent son avancee par rapport a l'objectif global; elle ne doit pas separer progression ressentie et etat/energie en deux questions.",
     "- Ne conclus pas encore que la validation est disponible: elle ne se debloque qu'apres la discussion weekly terminee.",
   ].join("\n");
 

@@ -266,7 +266,7 @@ When resolved, safety writes an exit memo for global runtime :
 ```
 
 If safety closes locally with a resolved visible prompt and no same-turn reroute,
-that is `stop_local_no_handoff`: the state is cleared and global resumes only on
+that is `exit_to_global_dispatcher`: the state is cleared and global resumes only on
 a later user turn. If the same message must be handed to global immediately, the
 resolved exit requires `note_information`.
 

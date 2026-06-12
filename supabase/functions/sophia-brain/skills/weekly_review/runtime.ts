@@ -32,13 +32,6 @@ export {
 } from "./renderer.ts";
 
 export {
-  applyWeeklyConclusionGuard,
-  applyWeeklyConcreteOrganizationGuard,
-  applyWeeklyForgottenProgressAckGuard,
-  applyWeeklyRepeatedClarificationGuard,
-} from "./guards.ts";
-
-export {
   hasPendingOrActiveAdjustPlanOperation,
   isExplicitWeeklyAdjustPlanRequest,
   isVagueWholePlanWeeklyAdjustmentRequest,
@@ -56,13 +49,6 @@ export {
   weeklyReviewConfirmationClearsPending,
 } from "./confirmation.ts";
 export type { WeeklyReviewConfirmationDecision } from "./confirmation.ts";
-
-export {
-  maybeLogWeeklyForgottenProgressParallel,
-  resolveWeeklyForgottenProgressCandidate,
-  resolveWeeklyForgottenProgressCandidates,
-  weeklyForgottenProgressHasClearTarget,
-} from "./evidence.ts";
 
 export {
   markWeeklyAdaptiveReviewAdjustPlanApplied,

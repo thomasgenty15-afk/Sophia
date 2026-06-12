@@ -206,20 +206,15 @@ function noteInformation(args: {
   };
   return createNoteInformation({
     source_flow_id: "clarification",
-    source_flow_presentation:
-      args.output.note_information.source_flow_presentation,
-    source_flow_state_summary: args.output.clarification_state.conflict_summary,
     handoff_reason: args.reason,
     target_dispatcher: args.target,
     handoff_context_for_next_dispatcher: text(
       args.output.note_information.handoff_context_for_next_dispatcher,
       args.contextFallback,
     ),
-    target_local_dispatcher_hint:
-      args.output.note_information.target_local_dispatcher_hint,
     user_words: args.output.clarification_state.user_words,
     structured_context: structuredContext,
-    risk_score: args.output.risk_score,
+    confidence: args.output.confidence,
   });
 }
 
@@ -313,10 +308,7 @@ export function reduceClarificationLocalDispatcherOutput(args: {
     };
   }
 
-  if (
-    output.flow_action === "stop_local_no_handoff" ||
-    output.flow_action === "cancel_clarification"
-  ) {
+  if (output.flow_action === "cancel_clarification") {
     return {
       status: "cancelled",
       reason_code: "clarification_cancelled_local",
