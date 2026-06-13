@@ -28,3 +28,12 @@ Deno.test("extractHiddenFilRougeNote leaves normal text unchanged", () => {
   assertEquals(parsed.note, null);
   assertEquals(parsed.marker, null);
 });
+
+Deno.test("extractHiddenFilRougeNote strips loose whatsapp note", () => {
+  const parsed = extractHiddenFilRougeNote(
+    "Réponse visible.\nfil_rouge_whatsapp: garder le cap demain",
+  );
+  assertEquals(parsed.visibleText, "Réponse visible.");
+  assertEquals(parsed.note, "garder le cap demain");
+  assertEquals(parsed.marker, "fil_rouge_whatsapp");
+});

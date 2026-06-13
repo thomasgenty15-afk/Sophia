@@ -1,5 +1,9 @@
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { ConfidenceBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
+import {
+  clearActiveToolFlow,
+  resolveActiveLocalToolFlowOwnership,
+} from "./active_flow_state.ts";
 
 // =============================================================================
 // COUCHE L3 — Arbitre de routage
@@ -44,36 +48,22 @@ function confidenceRank(confidence: ConfidenceBand | undefined): number {
 }
 
 function activeOperationType(input: TurnIntentArbitrationInput): string {
-  const active = input.activeOperationIntake ??
-    input.tempMemory?.__adjust_plan_handoff_state ??
-    input.tempMemory?.__recurring_reminder_handoff_state ??
-    input.tempMemory?.__active_attack_card_handoff ??
-    input.tempMemory?.__active_tool_skill_intake ??
-    input.tempMemory?.active_tool_skill_intake ??
-    null;
-  if (
-    (active as any)?.skill_id === "adjust_plan_item" &&
-    (active as any)?.mode === "platform_handoff"
-  ) return "adjust_plan_item";
-  return String(
-    (active as any)?.operation_type ??
-      ((active as any)?.mode === "platform_handoff"
-        ? (active as any)?.skill_id
-        : "") ??
-      "",
-  ).trim();
+  return resolveActiveLocalToolFlowOwnership({
+    tempMemory: input.tempMemory,
+    activeOperationIntake: input.activeOperationIntake,
+    pendingOperationConfirmation: input.pendingOperationConfirmation,
+  })?.operation_type ?? "";
 }
 
 function activeDefenseCardHandoff(input: TurnIntentArbitrationInput): unknown {
-  const active = input.activeOperationIntake ??
-    input.tempMemory?.__active_tool_skill_intake ??
-    input.tempMemory?.active_tool_skill_intake ??
-    null;
-  if (
-    (active as any)?.operation_type === "prepare_defense_card" &&
-    (active as any)?.mode === "platform_handoff"
-  ) return active;
-  return null;
+  const ownership = resolveActiveLocalToolFlowOwnership({
+    tempMemory: input.tempMemory,
+    activeOperationIntake: input.activeOperationIntake,
+    pendingOperationConfirmation: input.pendingOperationConfirmation,
+  });
+  return ownership?.operation_type === "prepare_defense_card"
+    ? ownership.active_state
+    : null;
 }
 
 function pendingOperationType(value: unknown): string {
@@ -95,11 +85,9 @@ function blockedPath(path: string, reasonCode: string) {
 }
 
 function clearToolFlowMemory(tempMemory: any, targets: ClearFlowTarget[]): any {
-  const next = { ...(tempMemory ?? {}) };
+  let next = { ...(tempMemory ?? {}) };
   if (targets.includes("active_tool")) {
-    delete next.__active_tool_skill_intake;
-    delete next.active_tool_skill_intake;
-    delete next.__adjust_plan_handoff_state;
+    next = clearActiveToolFlow(next);
   }
   if (targets.includes("pending_tool")) {
     delete next.__pending_tool_skill_confirmation;
@@ -114,15 +102,12 @@ function clearToolFlowMemory(tempMemory: any, targets: ClearFlowTarget[]): any {
 function clearToolSkillFlowEntries(
   tempMemory: unknown,
 ): Record<string, unknown> {
-  const next: Record<string, unknown> = { ...(tempMemory as any ?? {}) };
+  const next: Record<string, unknown> = clearActiveToolFlow(
+    tempMemory as any,
+  );
   delete next.__pending_tool_skill_confirmation;
   delete next.pending_tool_skill_confirmation;
-  delete next.__active_tool_skill_intake;
-  delete next.active_tool_skill_intake;
   delete next.__pending_recommendation_operation;
-  delete next.__adjust_plan_handoff_state;
-  delete next.__recurring_reminder_handoff_state;
-  delete next.__active_attack_card_handoff;
   return next;
 }
 
@@ -413,26 +398,12 @@ export function arbitrateTurnIntent(
   const pendingType = pendingOperationType(input.pendingOperationConfirmation);
   const activeExit = activeType &&
     input.turnFrame.skill_signals.exit?.[activeType]?.detected === true;
-  if (
-    activeExit &&
-    activeType === "prepare_defense_card" &&
-    !input.safetyBlocksTools
-  ) {
+  if (activeExit && !input.safetyBlocksTools) {
     return rewriteForToolIntent(
       input,
-      "prepare_defense_card",
-      "central_arbitrator_active_defense_card_local_exit_required",
+      activeType,
+      "central_arbitrator_active_tool_local_exit_required",
     );
-  }
-  if (activeExit && activeType !== pendingType) {
-    return rewriteForNormalReply({
-      input,
-      reasonCode: "central_arbitrator_structured_active_tool_exit",
-      blockedPaths: [`tool_skill.${activeType}`, "tool_skill_flow"],
-      clearTargets: ["active_tool", "recommendation"],
-      removeToolIntents: [activeType],
-      removeDirectEffects: [],
-    });
   }
 
   if (

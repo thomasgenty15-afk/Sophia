@@ -674,7 +674,7 @@ Tu ecris la reponse quand le user demande de creer, lancer, ajouter ou activer l
 
 Contexte :
 Le chat ne cree pas de carte d'attaque.
-Un flow prepare_attack_card est actif, avec ou sans handoff deja pret.
+Un flow prepare_attack_card est actif, avec ou sans transition deja pret.
 
 Donnees :
 - platform_destination: section Cartes d'attaque

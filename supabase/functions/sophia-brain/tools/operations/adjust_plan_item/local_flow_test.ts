@@ -315,6 +315,9 @@ Deno.test("adjust_plan_item prompt explains real dispatcher fields and transitio
   assertStringIncludes(prompt, "- platform_handoff:");
   assertStringIncludes(prompt, "quoi_modifier + reason_change");
   assertStringIncludes(prompt, "nature du changement");
+  assertStringIncludes(prompt, "Ne complete jamais une demande vague");
+  assertStringIncludes(prompt, "sous-tache inventee");
+  assertStringIncludes(prompt, "suggested_platform_input ne doit pas ajouter");
   assertStringIncludes(prompt, "- state_updates:");
   assertStringIncludes(prompt, "- visible_task.kind:");
   assertStringIncludes(prompt, "- visible_task.conversation_context:");
@@ -323,7 +326,10 @@ Deno.test("adjust_plan_item prompt explains real dispatcher fields and transitio
   assertStringIncludes(prompt, "- note_information:");
   assertStringIncludes(prompt, "- evidence:");
   assertStringIncludes(prompt, "Transition Rules:");
-  assertStringIncludes(prompt, "exit_to_global_dispatcher pour arreter ce flow");
+  assertStringIncludes(
+    prompt,
+    "exit_to_global_dispatcher pour arreter ce flow",
+  );
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");
   assertStringIncludes(prompt, "handoff_to_local_flow");
@@ -424,7 +430,8 @@ Deno.test("adjust_plan_item continuation keeps user constraints in visible conte
       confidence: "high",
       adjust_plan_intent: {
         kind: "constraint_answer",
-        summary: "Le user veut garder le signal de pause sans ajouter d'action.",
+        summary:
+          "Le user veut garder le signal de pause sans ajouter d'action.",
       },
       adjustment_need: {
         reason_change: "trop lourd le soir",

@@ -1,0 +1,28 @@
+{
+  "result": {
+    "runId": "daily-full-two-plans-20260612133609-r1",
+    "runDir": "/Users/ahmedamara/Dev/Sophia 2/tmp/daily-full-two-plans-20260612133609-r1",
+    "turns": [],
+    "errors": [
+      {
+        "message": "POST user_plans_v2 409 {\"code\":\"23505\",\"details\":\"Key (transformation_id, version)=(d3e847f5-0664-475d-9303-9b79a3759526, 1) already exists.\",\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"user_plans_v2_transformation_version_key\\\"\"}",
+        "stack": "Error: POST user_plans_v2 409 {\"code\":\"23505\",\"details\":\"Key (transformation_id, version)=(d3e847f5-0664-475d-9303-9b79a3759526, 1) already exists.\",\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"user_plans_v2_transformation_version_key\\\"\"}\n    at rest ([stdin]:19:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async post ([stdin]:24:41)\n    at async [stdin]:66:3"
+      }
+    ],
+    "cleanup": null,
+    "ok": false
+  },
+  "touched": {
+    "qaPhone": "+33698809256",
+    "planIds": [
+      "b3f8c7f9-e11b-4e1b-bf17-956a95ce1e1c",
+      "6df59b1c-84e0-404a-bb21-fef76d02401e"
+    ],
+    "itemIds": [],
+    "occurrenceIds": [],
+    "checkinId": null,
+    "pendingIds": [],
+    "entryIds": [],
+    "dedupWamids": []
+  }
+}

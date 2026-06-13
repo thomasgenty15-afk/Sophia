@@ -1,5 +1,8 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { executeOneShotReminderEffects } from "./executor.ts";
+import {
+  buildOneShotReminderMessagePayload,
+  executeOneShotReminderEffects,
+} from "./executor.ts";
 
 function fakeSupabase() {
   return {
@@ -50,6 +53,29 @@ Deno.test("create_with_time_and_instruction_commits", async () => {
   });
   assertEquals(result.committed_effects.length, 1);
   assertEquals(result.committed_effects[0].id, "created-1");
+});
+
+Deno.test("create payload cleans punctuation and avoids first-person helper instruction", () => {
+  const payload = buildOneShotReminderMessagePayload({
+    instruction: "vérifier que je reste en sécurité,",
+    requestText:
+      "Mets-moi un rappel dans 30 minutes pour vérifier que je reste en sécurité, s'il te plaît.",
+    timezone: "Europe/Paris",
+    parseSource: "local_parser",
+  });
+
+  assertEquals(
+    payload.reminder_instruction,
+    "vérifier que je reste en sécurité",
+  );
+  assertEquals(
+    payload.instruction,
+    "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: vérifier que je reste en sécurité.",
+  );
+  assertEquals(
+    String(payload.instruction).includes("sécurité,."),
+    false,
+  );
 });
 
 Deno.test("cancel_targeted_reminder_commits", async () => {

@@ -45,13 +45,13 @@ Deno.serve(async (req) => {
   let authedUserId: string | null = null;
 
   try {
-    // Read raw body text first so we can log it on parse failure (no PII beyond what the client sent).
+    // Read raw body text first to parse consistently. Do not log body content:
+    // user messages may contain sensitive personal context.
     const rawBodyText = await req.text();
     console.log(JSON.stringify({
       tag: "sophia_brain_body_raw",
       request_id: requestId,
       byte_length: rawBodyText.length,
-      body_preview: rawBodyText.slice(0, 500),
     }));
     let body: any;
     try {
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
         tag: "sophia_brain_body_parse_error",
         request_id: requestId,
         error: parseErr instanceof Error ? parseErr.message : String(parseErr),
-        body_preview: rawBodyText.slice(0, 500),
+        byte_length: rawBodyText.length,
       }));
       throw parseErr;
     }

@@ -91,4 +91,4 @@ Chaque contrat de domaine doit garder ces sections :
 | 2026-06-01 | `platform_handoff` devient une catégorie runtime canonique distincte des effets durables bloqués ou échoués. | Active | J74 |
 | 2026-06-01 | Ajouter `07-active-handoff-arbitration.md` pour protéger la continuité des handoffs sans relancer l'exécution. | Active | Architecture handoff V1 |
 | 2026-06-01 | Ajouter `08-product-surface-registry.md` comme source canonique des destinations plateforme. | Active | Architecture handoff V1 |
-| 2026-06-08 | Ajouter `09-note-information-contract.md` comme contrat transverse pour tous les changements de dispatcher et les stops locaux sans handoff. | Active | Note information transverse |
+| 2026-06-08 | Ajouter `09-note-information-contract.md` comme contrat transverse pour tous les changements de dispatcher et les changements de dispatcher documentés. | Active | Note information transverse |

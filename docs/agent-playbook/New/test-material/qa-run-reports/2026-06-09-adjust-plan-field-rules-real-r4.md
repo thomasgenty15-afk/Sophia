@@ -101,7 +101,7 @@
 - Symptome: le state local se ferme correctement, mais le message visible ajoute "retourner à ton plan" alors que le user demande explicitement de laisser tomber.
 - Source amont probable: prompt visible `cancel_close` / contrat de fermeture locale.
 - Owner runtime: `adjust_plan_item` visible agent.
-- Meilleure correction selon les guidelines: renforcer le prompt visible de stop/cancel pour produire une fermeture courte sans redirection Plan quand `flow_action=cancel_flow|stop_local_no_handoff|defer_flow`.
+- Meilleure correction selon les guidelines: renforcer le prompt visible de stop/cancel pour produire une fermeture courte sans redirection Plan quand `flow_action=cancel_flow|exit_to_global_dispatcher|defer_flow`.
 - Pourquoi ce n'est pas un patch local: le dispatcher et reducer sont corrects; c'est le stage visible qui doit respecter le contrat de fermeture.
 
 ## 3. Analyse De Fluidite Humaine

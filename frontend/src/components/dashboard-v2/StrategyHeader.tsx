@@ -26,7 +26,6 @@ type StrategyHeaderProps = {
 };
 
 export function StrategyHeader({
-  title,
   summary,
   situationContext,
   mechanismAnalysis,
@@ -55,7 +54,7 @@ export function StrategyHeader({
     ? `Mesuré par : ${primaryMetric.label}`
     : successDefinition ?? null;
 
-  const [showMultiPartExplainer, setShowMultiPartExplainer] = useState(() => {
+  const [showMultiPartExplainer] = useState(() => {
     if (!isMultiPart) return false;
     const key = "sophia:multipart_explainer_shown";
     try {
@@ -68,8 +67,29 @@ export function StrategyHeader({
   });
 
   return (
-    <section className="mb-6 rounded-[30px] border border-stone-200 bg-white px-5 py-6 shadow-sm">
-      <div className="flex flex-col items-start gap-4">
+    <section className="mb-2 rounded-[14px] border border-stone-200/80 bg-white/90 px-3 py-2 shadow-sm sm:mb-6 sm:rounded-[30px] sm:border-stone-200 sm:bg-white sm:px-5 sm:py-6">
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        className="flex w-full items-center justify-between gap-3 rounded-[12px] text-left outline-none focus-visible:ring-2 focus-visible:ring-stone-300 focus-visible:ring-offset-2 sm:hidden"
+      >
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Glasses className="h-3.5 w-3.5 shrink-0 text-stone-400" />
+          <div className="min-w-0">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+              Le contexte
+            </p>
+            <p className="mt-0.5 truncate text-[13px] font-semibold text-stone-900">
+              {contextText}
+            </p>
+          </div>
+        </div>
+        <ChevronDown
+          className={`h-3.5 w-3.5 shrink-0 text-stone-500 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      <div className="hidden flex-col items-start gap-4 sm:flex">
         <div>
           <div className="mb-3 flex items-center gap-2">
             <Glasses className="h-4 w-4 text-stone-400" />
@@ -95,7 +115,10 @@ export function StrategyHeader({
       </div>
 
       {expanded ? (
-        <div className="mt-6 animate-in fade-in slide-in-from-top-2 border-t border-stone-100 pt-6">
+        <div className="mt-4 animate-in fade-in slide-in-from-top-2 border-t border-stone-100 pt-4 sm:mt-6 sm:pt-6">
+          <p className="mb-4 text-sm leading-6 text-stone-700 sm:hidden">
+            {contextText}
+          </p>
           <div className="space-y-4">
             {isMultiPart ? (
               <div className="rounded-2xl border border-blue-100 bg-blue-50/50 px-5 py-4">

@@ -32,6 +32,18 @@ async function dispatch(message: string, extra: Record<string, unknown> = {}) {
   return { frame, stats };
 }
 
+function hasLegacyOpportunityField(frame: unknown): boolean {
+  const legacyKey = ["tool", "skill", "opportunity"].join("_");
+  return Boolean(frame && typeof frame === "object" && legacyKey in frame);
+}
+
+function hasFlowOpportunityFor(
+  frame: { flow_opportunity?: { target_flow?: string } | null },
+  targetFlow: string,
+): boolean {
+  return frame.flow_opportunity?.target_flow === targetFlow;
+}
+
 Deno.test("dispatcher v2 returns valid TurnFrames for varied messages", async () => {
   const messages = [
     "je veux me faire du mal ce soir",
@@ -60,8 +72,7 @@ Deno.test("dispatcher v2 returns valid TurnFrames for varied messages", async ()
     assertEquals(frame.channel, "whatsapp", message);
     assertEquals(Array.isArray(frame.direct_effects), true, message);
     assertEquals(Array.isArray(frame.tool_skill_intents), true, message);
-    assertEquals(typeof frame.tool_skill_opportunity.type, "string", message);
-    assertEquals(frame.tool_skill_opportunity.must_not_execute, true, message);
+    assertEquals(hasLegacyOpportunityField(frame), false, message);
     assertEquals(typeof frame.memory_plan.memory_mode, "string", message);
     assertEquals(stats.length, 1, message);
     assertEquals(stats[0].prompt_version, DISPATCHER_V2_PROMPT_VERSION);
@@ -155,7 +166,7 @@ Deno.test("dispatcher v2 computes independent conversation risk with matrix and 
     "prepare_attack_card",
   );
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
   assertEquals(frame.skill_signals, {});
 });
 
@@ -326,12 +337,7 @@ Deno.test("active emotional repair stable description keeps ambiguous support ou
             },
           },
           tool_skill_intents: [],
-          tool_skill_opportunity: {
-            type: "none",
-            should_offer: false,
-            offer_timing: "after_current_pending",
-            must_not_execute: true,
-          },
+          flow_opportunity: null,
         };
       },
     },
@@ -366,12 +372,7 @@ Deno.test("active demotivation repair stable description keeps ambiguous cap sup
           },
         },
         tool_skill_intents: [],
-        tool_skill_opportunity: {
-          type: "none",
-          should_offer: false,
-          offer_timing: "after_current_pending",
-          must_not_execute: true,
-        },
+        flow_opportunity: null,
       };
     },
   });
@@ -490,7 +491,7 @@ Deno.test("safety still preempts active skill stable description", async () => {
     false,
   );
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher v2 routes light relationship regret to emotional_repair", async () => {
@@ -541,7 +542,7 @@ Deno.test("dispatcher v2 hands stabilized concrete asks to attack card", async (
       frame.tool_skill_intents.some((intent) =>
         intent.operation_type === "prepare_attack_card"
       ) ||
-        frame.tool_skill_opportunity.operation_type === "prepare_attack_card",
+        hasFlowOpportunityFor(frame, "prepare_attack_card"),
       true,
       message,
     );
@@ -599,7 +600,7 @@ Deno.test("dispatcher v2 suppresses sticky LLM emotional entry after stabilizati
     frame.tool_skill_intents.some((intent) =>
       intent.operation_type === "prepare_attack_card"
     ) ||
-      frame.tool_skill_opportunity.operation_type === "prepare_attack_card",
+      hasFlowOpportunityFor(frame, "prepare_attack_card"),
     true,
   );
   assertEquals(
@@ -676,7 +677,7 @@ Deno.test("dispatcher v2 preserves explicit attack and defense card intents for 
           evidence: ["créer une carte d'attaque"],
         },
       }],
-      tool_skill_opportunity: { type: "none" },
+      flow_opportunity: null,
       skill_signals: { entry: {}, lifecycle: {}, exit: {} },
     }),
   });
@@ -717,7 +718,7 @@ Deno.test("dispatcher v2 repairs partial composite coverage with LLM, without ke
             },
           }],
           tool_skill_intents: [],
-          tool_skill_opportunity: { type: "none" },
+          flow_opportunity: null,
           skill_signals: { entry: {}, lifecycle: {}, exit: {} },
         };
       }
@@ -744,7 +745,7 @@ Deno.test("dispatcher v2 repairs partial composite coverage with LLM, without ke
           user_intent: "create",
           evidence: ["crée une carte d'attaque"],
         }],
-        tool_skill_opportunity: { type: "none" },
+        flow_opportunity: null,
         skill_signals: { entry: {}, lifecycle: {}, exit: {} },
       };
     },
@@ -796,7 +797,7 @@ Deno.test("dispatcher v2 does not repair when the direct effect already covers t
           },
         }],
         tool_skill_intents: [],
-        tool_skill_opportunity: { type: "none" },
+        flow_opportunity: null,
         skill_signals: { entry: {}, lifecycle: {}, exit: {} },
       };
     },

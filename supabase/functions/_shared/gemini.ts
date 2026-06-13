@@ -1,3 +1,5 @@
+import { logLlmRawResponseEvent } from "./llm-raw-trace.ts";
+
 // NOTE: This file runs in Supabase Edge Runtime (Deno),
 // but our TS linter environment may not include Deno lib typings.
 // Keep this lightweight to avoid noisy "Cannot find name 'Deno'" errors.
@@ -726,6 +728,58 @@ export async function generateWithGemini(
   })();
   let response: Response | null = null;
   let data: any = null;
+  let dataAttempt: number | null = null;
+  let dataChainIndex: number | null = null;
+  let dataHttpStatus: number | null = null;
+  let dataProviderRequestId: string | null = null;
+
+  const rawTraceMetadata = (extra: Record<string, unknown> = {}) => ({
+    max_retries: MAX_RETRIES,
+    base_model: baseModel,
+    source: meta?.source ?? null,
+    prompt_chars: String(userMessage ?? "").length,
+    system_prompt_chars: String(systemPrompt ?? "").length,
+    json_mode: Boolean(jsonMode),
+    tool_choice: toolChoice,
+    has_tools: Array.isArray(tools) && tools.length > 0,
+    force_real_ai: meta?.forceRealAi === true,
+    reasoning_effort: meta?.reasoningEffort ?? null,
+    ...extra,
+  });
+
+  const logRawGenerationEvent = async (evt: {
+    provider: "gemini" | "openai";
+    model: string;
+    attempt?: number | null;
+    chain_index?: number | null;
+    status: string;
+    http_status?: number | null;
+    provider_request_id?: string | null;
+    outcome?: string | null;
+    raw_response?: unknown;
+    error_message?: string | null;
+    metadata?: Record<string, unknown>;
+  }) => {
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      user_id: meta?.userId ?? null,
+      source: meta?.source ?? null,
+      provider: evt.provider,
+      model: evt.model,
+      attempt: evt.attempt ?? null,
+      chain_index: evt.chain_index ?? null,
+      status: evt.status,
+      http_status: evt.http_status ?? null,
+      provider_request_id: evt.provider_request_id ?? null,
+      json_mode: Boolean(jsonMode),
+      tool_choice: toolChoice,
+      has_tools: Array.isArray(tools) && tools.length > 0,
+      outcome: evt.outcome ?? null,
+      raw_response: evt.raw_response,
+      error_message: evt.error_message ?? null,
+      metadata: rawTraceMetadata(evt.metadata ?? {}),
+    });
+  };
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -736,6 +790,16 @@ export async function generateWithGemini(
         const desiredModel = chain[i]!;
         const provider = isOpenAiModel(desiredModel) ? "openai" : "gemini";
         if (isBreakerOpen(provider, desiredModel)) {
+          await logRawGenerationEvent({
+            provider,
+            model: desiredModel,
+            attempt,
+            chain_index: i,
+            status: "breaker_skip",
+            outcome: "skipped",
+            error_message: "LLM breaker open for provider/model",
+            metadata: { breaker_open: true },
+          });
           await traceInsert({
             level: "warn",
             event: "breaker_skip",
@@ -777,6 +841,15 @@ export async function generateWithGemini(
                 meta?.requestId ?? "n/a"
               }`,
             );
+            await logRawGenerationEvent({
+              provider: "openai",
+              model,
+              attempt,
+              chain_index: i,
+              status: "missing_key",
+              outcome: "skipped",
+              error_message: "OPENAI_API_KEY missing",
+            });
             await traceInsert({
               level: "warn",
               event: "openai_missing_key",
@@ -796,6 +869,15 @@ export async function generateWithGemini(
             ? Math.floor(Number(meta?.httpTimeoutMs))
             : OPENAI_HTTP_TIMEOUT_MS;
           const t0 = Date.now();
+          await logRawGenerationEvent({
+            provider: "openai",
+            model,
+            attempt,
+            chain_index: i,
+            status: "attempt_start",
+            outcome: "pending",
+            metadata: { timeout_ms: timeoutMs },
+          });
           try {
             const { resp, json } = await callOpenAI({
               model,
@@ -826,6 +908,23 @@ export async function generateWithGemini(
               const msg = String(
                 json?.error?.message ?? resp.statusText ?? "Retryable error",
               );
+              await logLlmRawResponseEvent({
+                request_id: meta?.requestId ?? null,
+                user_id: meta?.userId ?? null,
+                source: meta?.source ?? null,
+                provider: "openai",
+                model,
+                attempt,
+                chain_index: i,
+                status: "retryable_status",
+                http_status: resp.status,
+                json_mode: Boolean(jsonMode),
+                tool_choice: toolChoice,
+                has_tools: Array.isArray(tools) && tools.length > 0,
+                outcome: "error",
+                raw_response: json,
+                error_message: msg,
+              });
               __dbg(
                 "H2",
                 "gemini.ts:retryable_status_openai",
@@ -869,6 +968,23 @@ export async function generateWithGemini(
               const msg = String(
                 json?.error?.message ?? resp.statusText ?? "Error",
               );
+              await logLlmRawResponseEvent({
+                request_id: meta?.requestId ?? null,
+                user_id: meta?.userId ?? null,
+                source: meta?.source ?? null,
+                provider: "openai",
+                model,
+                attempt,
+                chain_index: i,
+                status: "non_retryable_status",
+                http_status: resp.status,
+                json_mode: Boolean(jsonMode),
+                tool_choice: toolChoice,
+                has_tools: Array.isArray(tools) && tools.length > 0,
+                outcome: "error",
+                raw_response: json,
+                error_message: msg,
+              });
               await traceInsert({
                 level: "error",
                 event: "non_retryable_status",
@@ -958,10 +1074,45 @@ export async function generateWithGemini(
                 attempt,
                 chain_index: i,
               }));
+              await logLlmRawResponseEvent({
+                request_id: meta?.requestId ?? null,
+                user_id: meta?.userId ?? null,
+                source: meta?.source ?? null,
+                provider: "openai",
+                model,
+                attempt,
+                chain_index: i,
+                status: "success",
+                http_status: resp.status,
+                json_mode: Boolean(jsonMode),
+                tool_choice: toolChoice,
+                has_tools: Array.isArray(tools) && tools.length > 0,
+                outcome: "tool_call",
+                output_tool_name: toolName || null,
+                output_tool_args: argsObj,
+                raw_response: json,
+              });
               return { tool: toolName, args: argsObj };
             }
             const text = String(msg0?.content ?? "").trim();
             if (!text) {
+              await logLlmRawResponseEvent({
+                request_id: meta?.requestId ?? null,
+                user_id: meta?.userId ?? null,
+                source: meta?.source ?? null,
+                provider: "openai",
+                model,
+                attempt,
+                chain_index: i,
+                status: "empty_response",
+                http_status: resp.status,
+                json_mode: Boolean(jsonMode),
+                tool_choice: toolChoice,
+                has_tools: Array.isArray(tools) && tools.length > 0,
+                outcome: "empty",
+                raw_response: json,
+                error_message: "Empty OpenAI response",
+              });
               lastInnerErr = new Error("Empty OpenAI response");
               continue;
             }
@@ -977,9 +1128,51 @@ export async function generateWithGemini(
               attempt,
               chain_index: i,
             }));
+            await logLlmRawResponseEvent({
+              request_id: meta?.requestId ?? null,
+              user_id: meta?.userId ?? null,
+              source: meta?.source ?? null,
+              provider: "openai",
+              model,
+              attempt,
+              chain_index: i,
+              status: "success",
+              http_status: resp.status,
+              json_mode: Boolean(jsonMode),
+              tool_choice: toolChoice,
+              has_tools: Array.isArray(tools) && tools.length > 0,
+              outcome: "text",
+              output_text: text,
+              raw_response: json,
+            });
             return jsonMode ? text.replace(/```json\n?|```/g, "").trim() : text;
           } catch (e) {
             const msg = String((e as any)?.message ?? e ?? "");
+            const name = String((e as any)?.name ?? "");
+            const durationMs = Date.now() - t0;
+            const isTimeoutLike = name === "TimeoutError" ||
+              name === "AbortError" ||
+              /timed\s+out|timeout|aborted|abort/i.test(msg);
+            await logLlmRawResponseEvent({
+              request_id: meta?.requestId ?? null,
+              user_id: meta?.userId ?? null,
+              source: meta?.source ?? null,
+              provider: "openai",
+              model,
+              attempt,
+              chain_index: i,
+              status: isTimeoutLike ? "timeout_or_abort" : "error",
+              json_mode: Boolean(jsonMode),
+              tool_choice: toolChoice,
+              has_tools: Array.isArray(tools) && tools.length > 0,
+              outcome: "error",
+              error_message: msg,
+              metadata: {
+                timeout_ms: timeoutMs,
+                duration_ms: durationMs,
+                error_name: name,
+              },
+            });
             console.warn(
               `[LLM] OpenAI call failed model=${model} request_id=${
                 meta?.requestId ?? "n/a"
@@ -987,15 +1180,21 @@ export async function generateWithGemini(
             );
             await traceInsert({
               level: "warn",
-              event: "openai_error",
+              event: isTimeoutLike ? "timeout_or_abort" : "openai_error",
               payload: {
+                provider: "openai",
                 model,
+                attempt,
+                max_retries: MAX_RETRIES,
                 source: meta?.source ?? null,
                 error: msg.slice(0, 240),
+                error_name: name || null,
+                timeout_ms: timeoutMs,
+                duration_ms: durationMs,
               },
             });
             // treat timeouts as breaker-open
-            if (/timeout|timed out|abort/i.test(msg)) {
+            if (isTimeoutLike) {
               openBreaker("openai", model, 30_000, msg);
             }
             lastInnerErr = e;
@@ -1005,6 +1204,15 @@ export async function generateWithGemini(
 
         // Gemini provider requires a Gemini API key. If missing, skip to the next model in the chain.
         if (!isOpenAiModel(model) && !GEMINI_API_KEY) {
+          await logRawGenerationEvent({
+            provider: "gemini",
+            model,
+            attempt,
+            chain_index: i,
+            status: "missing_key",
+            outcome: "skipped",
+            error_message: "GEMINI_API_KEY missing",
+          });
           lastInnerErr = new Error("Clé API Gemini manquante");
           continue;
         }
@@ -1012,10 +1220,35 @@ export async function generateWithGemini(
         const url =
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
         const timeoutMs = effectiveTimeoutMsForModel(model);
-        const { signal, cancel } = makeTimeoutSignal(timeoutMs);
+        await logRawGenerationEvent({
+          provider: "gemini",
+          model,
+          attempt,
+          chain_index: i,
+          status: "attempt_start",
+          outcome: "pending",
+          metadata: { timeout_ms: timeoutMs },
+        });
         try {
           // #region agent log
           const waitStart = Date.now();
+          const queueStartSnapshot = {
+            global: semStore.global.snapshot(),
+            per_model: getModelSem(model).snapshot(),
+          };
+          await logRawGenerationEvent({
+            provider: "gemini",
+            model,
+            attempt,
+            chain_index: i,
+            status: "limiter_wait_start",
+            outcome: "pending",
+            metadata: {
+              timeout_ms: timeoutMs,
+              global: queueStartSnapshot.global,
+              per_model: queueStartSnapshot.per_model,
+            },
+          });
           // Acquire in stable order to avoid deadlocks.
           const releaseGlobal = await semStore.global.acquire();
           const releaseModel = await getModelSem(model).acquire();
@@ -1031,6 +1264,20 @@ export async function generateWithGemini(
             } catch {}
           };
           const waitedMs = Date.now() - waitStart;
+          await logRawGenerationEvent({
+            provider: "gemini",
+            model,
+            attempt,
+            chain_index: i,
+            status: "limiter_acquired",
+            outcome: "pending",
+            metadata: {
+              timeout_ms: timeoutMs,
+              waited_ms: waitedMs,
+              global: semStore.global.snapshot(),
+              per_model: getModelSem(model).snapshot(),
+            },
+          });
           __dbg(
             "H1",
             "gemini.ts:limiter:acquire",
@@ -1061,6 +1308,8 @@ export async function generateWithGemini(
             },
           });
           // #endregion
+          const { signal, cancel } = makeTimeoutSignal(timeoutMs);
+          const fetchStartedAt = Date.now();
           try {
             response = await fetch(url, {
               method: "POST",
@@ -1074,10 +1323,30 @@ export async function generateWithGemini(
             // Timeouts / aborts are common on overloaded preview models; immediately fallback within the same attempt.
             const msg = String((e as any)?.message ?? e ?? "");
             const name = String((e as any)?.name ?? "");
+            const fetchElapsedMs = Date.now() - fetchStartedAt;
+            const totalElapsedMs = Date.now() - waitStart;
             const isTimeoutLike = name === "TimeoutError" ||
               name === "AbortError" ||
               /timed\s+out|timeout|aborted|abort/i.test(msg);
             if (isTimeoutLike) {
+              await logRawGenerationEvent({
+                provider: "gemini",
+                model,
+                attempt,
+                chain_index: i,
+                status: "timeout_or_abort",
+                outcome: "error",
+                error_message: msg || name || "Gemini request timeout/abort",
+                metadata: {
+                  timeout_ms: timeoutMs,
+                  waited_ms: waitedMs,
+                  fetch_elapsed_ms: fetchElapsedMs,
+                  total_elapsed_ms: totalElapsedMs,
+                  signal_aborted: signal.aborted,
+                  signal_reason: String((signal as any).reason ?? ""),
+                  error_name: name,
+                },
+              });
               console.warn(
                 `[Gemini] timeout/abort attempt=${attempt}/${MAX_RETRIES} request_id=${
                   meta?.requestId ?? "n/a"
@@ -1092,12 +1361,38 @@ export async function generateWithGemini(
                   model,
                   source: meta?.source ?? null,
                   error: String((e as any)?.message ?? e ?? "").slice(0, 240),
+                  error_name: name || null,
+                  timeout_ms: timeoutMs,
+                  waited_ms: waitedMs,
+                  fetch_elapsed_ms: fetchElapsedMs,
+                  total_elapsed_ms: totalElapsedMs,
+                  signal_aborted: signal.aborted,
                 },
               });
               lastInnerErr = e;
               continue;
             }
+            await logRawGenerationEvent({
+              provider: "gemini",
+              model,
+              attempt,
+              chain_index: i,
+              status: "network_error",
+              outcome: "error",
+              error_message: msg || name || "Gemini network error",
+              metadata: {
+                timeout_ms: timeoutMs,
+                waited_ms: waitedMs,
+                fetch_elapsed_ms: fetchElapsedMs,
+                total_elapsed_ms: totalElapsedMs,
+                signal_aborted: signal.aborted,
+                signal_reason: String((signal as any).reason ?? ""),
+                error_name: name,
+              },
+            });
             throw e;
+          } finally {
+            cancel();
           }
           // #region agent log
           __dbg("H3", "gemini.ts:http:response", "received response", {
@@ -1107,13 +1402,15 @@ export async function generateWithGemini(
             attempt,
             innerIndex: i,
             source,
+            waitedMs,
+            fetchElapsedMs: Date.now() - fetchStartedAt,
           });
           // #endregion
           // Release concurrency slots ASAP once fetch returned a response.
           // (Parsing JSON can still be heavy, but the network is the bottleneck under 429/503.)
           releaseAll();
-        } finally {
-          cancel();
+        } catch (e) {
+          throw e;
         }
 
         if (retryableStatuses.has(response.status)) {
@@ -1127,6 +1424,24 @@ export async function generateWithGemini(
           const rlRes = response.headers.get("x-ratelimit-reset");
           const googleReqId = response.headers.get("x-request-id") ||
             response.headers.get("x-goog-request-id");
+          await logLlmRawResponseEvent({
+            request_id: meta?.requestId ?? null,
+            user_id: meta?.userId ?? null,
+            source: meta?.source ?? null,
+            provider: "gemini",
+            model,
+            attempt,
+            chain_index: i,
+            status: "retryable_status",
+            http_status: response.status,
+            provider_request_id: googleReqId,
+            json_mode: Boolean(jsonMode),
+            tool_choice: toolChoice,
+            has_tools: Array.isArray(tools) && tools.length > 0,
+            outcome: "error",
+            raw_response: errorData,
+            error_message: String(msg),
+          });
           console.warn(
             `[Gemini] status=${response.status} attempt=${attempt}/${MAX_RETRIES} request_id=${
               meta?.requestId ?? "n/a"
@@ -1197,6 +1512,28 @@ export async function generateWithGemini(
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          const googleReqId = response.headers.get("x-request-id") ||
+            response.headers.get("x-goog-request-id");
+          await logLlmRawResponseEvent({
+            request_id: meta?.requestId ?? null,
+            user_id: meta?.userId ?? null,
+            source: meta?.source ?? null,
+            provider: "gemini",
+            model,
+            attempt,
+            chain_index: i,
+            status: "non_retryable_status",
+            http_status: response.status,
+            provider_request_id: googleReqId,
+            json_mode: Boolean(jsonMode),
+            tool_choice: toolChoice,
+            has_tools: Array.isArray(tools) && tools.length > 0,
+            outcome: "error",
+            raw_response: errorData,
+            error_message: String(
+              errorData?.error?.message || response.statusText || "",
+            ),
+          });
           console.error("Gemini Error Payload:", errorData);
           await traceInsert({
             level: "error",
@@ -1220,6 +1557,26 @@ export async function generateWithGemini(
 
         const parsed = await response.json().catch(() => null);
         if (!parsed || !hasUsableCandidate(parsed)) {
+          const googleReqId = response.headers.get("x-request-id") ||
+            response.headers.get("x-goog-request-id");
+          await logLlmRawResponseEvent({
+            request_id: meta?.requestId ?? null,
+            user_id: meta?.userId ?? null,
+            source: meta?.source ?? null,
+            provider: "gemini",
+            model,
+            attempt,
+            chain_index: i,
+            status: "empty_or_invalid_response",
+            http_status: response.status,
+            provider_request_id: googleReqId,
+            json_mode: Boolean(jsonMode),
+            tool_choice: toolChoice,
+            has_tools: Array.isArray(tools) && tools.length > 0,
+            outcome: "empty_or_invalid",
+            raw_response: parsed,
+            error_message: "Empty Gemini response",
+          });
           console.warn(
             `[Gemini] Empty/invalid response attempt=${attempt}/${MAX_RETRIES} request_id=${
               meta?.requestId ?? "n/a"
@@ -1239,6 +1596,11 @@ export async function generateWithGemini(
           continue;
         }
         data = parsed;
+        dataAttempt = attempt;
+        dataChainIndex = i;
+        dataHttpStatus = response.status;
+        dataProviderRequestId = response.headers.get("x-request-id") ||
+          response.headers.get("x-goog-request-id");
         lastInnerErr = null;
         break;
       }
@@ -1263,6 +1625,16 @@ export async function generateWithGemini(
       }
     } catch (e) {
       const isLast = attempt >= MAX_RETRIES;
+      await logRawGenerationEvent({
+        provider: isOpenAiModel(model) ? "openai" : "gemini",
+        model,
+        attempt,
+        chain_index: null,
+        status: "outer_attempt_error",
+        outcome: "error",
+        error_message: String((e as any)?.message ?? e ?? ""),
+        metadata: { is_last_attempt: isLast },
+      });
       console.error(
         `[Gemini] request_id=${meta?.requestId ?? "n/a"} source=${
           meta?.source ?? "n/a"
@@ -1299,6 +1671,15 @@ export async function generateWithGemini(
   }
 
   if (!data) {
+    await logRawGenerationEvent({
+      provider: isOpenAiModel(model) ? "openai" : "gemini",
+      model,
+      attempt: MAX_RETRIES,
+      chain_index: null,
+      status: "no_response_after_retries",
+      outcome: "error",
+      error_message: "No LLM response after retries",
+    });
     throw new Error("Erreur Gemini: no response after retries");
   }
   // Usage metadata (exact token counts) - best effort logging.
@@ -1396,6 +1777,25 @@ export async function generateWithGemini(
         tool: toolCallPart.functionCall.name ?? null,
       }),
     );
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      user_id: meta?.userId ?? null,
+      source: meta?.source ?? null,
+      provider: "gemini",
+      model,
+      attempt: dataAttempt,
+      chain_index: dataChainIndex,
+      status: "success",
+      http_status: dataHttpStatus,
+      provider_request_id: dataProviderRequestId,
+      json_mode: Boolean(jsonMode),
+      tool_choice: toolChoice,
+      has_tools: Array.isArray(tools) && tools.length > 0,
+      outcome: "tool_call",
+      output_tool_name: toolCallPart.functionCall.name ?? null,
+      output_tool_args: toolCallPart.functionCall.args,
+      raw_response: data,
+    });
     return {
       tool: toolCallPart.functionCall.name,
       args: toolCallPart.functionCall.args,
@@ -1420,6 +1820,24 @@ export async function generateWithGemini(
       outcome: "text",
     }),
   );
+  await logLlmRawResponseEvent({
+    request_id: meta?.requestId ?? null,
+    user_id: meta?.userId ?? null,
+    source: meta?.source ?? null,
+    provider: "gemini",
+    model,
+    attempt: dataAttempt,
+    chain_index: dataChainIndex,
+    status: "success",
+    http_status: dataHttpStatus,
+    provider_request_id: dataProviderRequestId,
+    json_mode: Boolean(jsonMode),
+    tool_choice: toolChoice,
+    has_tools: Array.isArray(tools) && tools.length > 0,
+    outcome: "text",
+    output_text: String(text ?? ""),
+    raw_response: data,
+  });
 
   return jsonMode ? text.replace(/```json\n?|```/g, "").trim() : text;
 }
@@ -1435,8 +1853,25 @@ export async function searchWithGeminiGrounding(
   query: string,
   meta?: { requestId?: string; model?: string; timeoutMs?: number },
 ): Promise<{ text: string; snippets: string[]; sources: string[]; raw?: any }> {
+  const model = (meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim();
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) {
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      source: "sophia-brain:research_grounding",
+      provider: "gemini",
+      model,
+      status: "missing_key",
+      json_mode: false,
+      tool_choice: "google_search",
+      has_tools: true,
+      outcome: "skipped",
+      error_message: "GEMINI_API_KEY missing",
+      metadata: {
+        grounding: true,
+        query_preview: String(query ?? "").slice(0, 240),
+      },
+    });
     console.warn(
       "[Research] GEMINI_API_KEY missing – skipping grounding search",
     );
@@ -1456,7 +1891,6 @@ export async function searchWithGeminiGrounding(
     };
   }
 
-  const model = (meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim();
   const timeoutMs = Math.max(3_000, Math.floor(meta?.timeoutMs ?? 16_000));
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
@@ -1487,6 +1921,22 @@ export async function searchWithGeminiGrounding(
 
   try {
     const t0 = Date.now();
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      source: "sophia-brain:research_grounding",
+      provider: "gemini",
+      model,
+      status: "attempt_start",
+      json_mode: false,
+      tool_choice: "google_search",
+      has_tools: true,
+      outcome: "pending",
+      metadata: {
+        grounding: true,
+        timeout_ms: timeoutMs,
+        query_preview: String(query ?? "").slice(0, 240),
+      },
+    });
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1497,6 +1947,30 @@ export async function searchWithGeminiGrounding(
 
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}));
+      const googleReqId = response.headers.get("x-request-id") ||
+        response.headers.get("x-goog-request-id");
+      await logLlmRawResponseEvent({
+        request_id: meta?.requestId ?? null,
+        source: "sophia-brain:research_grounding",
+        provider: "gemini",
+        model,
+        status: "non_retryable_status",
+        http_status: response.status,
+        provider_request_id: googleReqId,
+        json_mode: false,
+        tool_choice: "google_search",
+        has_tools: true,
+        outcome: "error",
+        raw_response: errBody,
+        error_message: String(
+          errBody?.error?.message || response.statusText || "",
+        ),
+        metadata: {
+          grounding: true,
+          duration_ms: durationMs,
+          query_preview: String(query ?? "").slice(0, 240),
+        },
+      });
       console.warn(
         `[Research] Grounding call failed status=${response.status} duration=${durationMs}ms request_id=${
           meta?.requestId ?? "n/a"
@@ -1616,10 +2090,54 @@ export async function searchWithGeminiGrounding(
       sources_count: sources.length,
       has_text: Boolean(textPart),
     }));
+    const googleReqId = response.headers.get("x-request-id") ||
+      response.headers.get("x-goog-request-id");
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      source: "sophia-brain:research_grounding",
+      provider: "gemini",
+      model,
+      status: "success",
+      http_status: response.status,
+      provider_request_id: googleReqId,
+      json_mode: false,
+      tool_choice: "google_search",
+      has_tools: true,
+      outcome: "text",
+      output_text: textPart,
+      raw_response: data,
+      metadata: {
+        grounding: true,
+        duration_ms: durationMs,
+        query_preview: String(query ?? "").slice(0, 240),
+        snippets_count: snippets.length,
+        sources_count: sources.length,
+      },
+    });
 
     return { text: textPart, snippets, sources, raw: groundingMeta };
   } catch (e) {
     const msg = String((e as any)?.message ?? e ?? "");
+    const name = String((e as any)?.name ?? "");
+    const isTimeoutLike = name === "TimeoutError" ||
+      name === "AbortError" ||
+      /timed\s+out|timeout|aborted|abort/i.test(msg);
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      source: "sophia-brain:research_grounding",
+      provider: "gemini",
+      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
+      status: isTimeoutLike ? "timeout_or_abort" : "network_error",
+      json_mode: false,
+      tool_choice: "google_search",
+      has_tools: true,
+      outcome: "error",
+      error_message: msg,
+      metadata: {
+        grounding: true,
+        query_preview: String(query ?? "").slice(0, 240),
+      },
+    });
     console.warn(
       `[Research] Grounding search failed request_id=${
         meta?.requestId ?? "n/a"
@@ -1668,12 +2186,31 @@ export async function generateEmbedding(
     return Array.from({ length: outputDimensionality }, () => 0);
   }
 
-  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) throw new Error("Clé API Gemini manquante");
-
   const model =
     (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "gemini-embedding-001").trim() ||
     "gemini-embedding-001";
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  if (!GEMINI_API_KEY) {
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      user_id: meta?.userId ?? null,
+      source: meta?.source ?? "embedding",
+      provider: "gemini",
+      model,
+      status: "missing_key",
+      json_mode: false,
+      tool_choice: "none",
+      has_tools: false,
+      outcome: "skipped",
+      error_message: "GEMINI_API_KEY missing",
+      metadata: {
+        embedding: true,
+        output_dimensionality: outputDimensionality,
+        text_chars: String(text ?? "").length,
+      },
+    });
+    throw new Error("Clé API Gemini manquante");
+  }
   const base = "https://generativelanguage.googleapis.com";
   const urlV1beta =
     `${base}/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`;
@@ -1704,19 +2241,136 @@ export async function generateEmbedding(
   // then fall back to v1 if/when GA support is available.
   let response: Response;
   let lastErrPayload: any = null;
+  let activeEndpoint = "v1beta";
   try {
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      user_id: meta?.userId ?? null,
+      source: meta?.source ?? "embedding",
+      provider: "gemini",
+      model,
+      status: "attempt_start",
+      json_mode: false,
+      tool_choice: "none",
+      has_tools: false,
+      outcome: "pending",
+      metadata: {
+        embedding: true,
+        endpoint: activeEndpoint,
+        timeout_ms: GEMINI_HTTP_TIMEOUT_MS,
+        output_dimensionality: outputDimensionality,
+        text_chars: String(text ?? "").length,
+      },
+    });
     response = await doFetch(urlV1beta);
     if (!response.ok) {
       lastErrPayload = await response.json().catch(() => ({}));
+      await logLlmRawResponseEvent({
+        request_id: meta?.requestId ?? null,
+        user_id: meta?.userId ?? null,
+        source: meta?.source ?? "embedding",
+        provider: "gemini",
+        model,
+        status: "retryable_status",
+        http_status: response.status,
+        provider_request_id: response.headers.get("x-request-id") ||
+          response.headers.get("x-goog-request-id"),
+        json_mode: false,
+        tool_choice: "none",
+        has_tools: false,
+        outcome: "error",
+        raw_response: lastErrPayload,
+        error_message: String(
+          lastErrPayload?.error?.message || response.statusText || "",
+        ),
+        metadata: {
+          embedding: true,
+          endpoint: "v1beta",
+          retrying_endpoint: "v1",
+          output_dimensionality: outputDimensionality,
+        },
+      });
       // Retry once on v1 to support future GA switches.
+      activeEndpoint = "v1";
+      await logLlmRawResponseEvent({
+        request_id: meta?.requestId ?? null,
+        user_id: meta?.userId ?? null,
+        source: meta?.source ?? "embedding",
+        provider: "gemini",
+        model,
+        status: "attempt_start",
+        json_mode: false,
+        tool_choice: "none",
+        has_tools: false,
+        outcome: "pending",
+        metadata: {
+          embedding: true,
+          endpoint: activeEndpoint,
+          timeout_ms: GEMINI_HTTP_TIMEOUT_MS,
+          output_dimensionality: outputDimensionality,
+          text_chars: String(text ?? "").length,
+        },
+      });
       response = await doFetch(urlV1);
     }
+  } catch (error) {
+    const msg = String((error as any)?.message ?? error ?? "");
+    const name = String((error as any)?.name ?? "");
+    const isTimeoutLike = name === "TimeoutError" ||
+      name === "AbortError" ||
+      /timed\s+out|timeout|aborted|abort/i.test(msg);
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      user_id: meta?.userId ?? null,
+      source: meta?.source ?? "embedding",
+      provider: "gemini",
+      model,
+      status: isTimeoutLike ? "timeout_or_abort" : "network_error",
+      json_mode: false,
+      tool_choice: "none",
+      has_tools: false,
+      outcome: "error",
+      error_message: msg,
+      metadata: {
+        embedding: true,
+        endpoint: activeEndpoint,
+        timeout_ms: GEMINI_HTTP_TIMEOUT_MS,
+        output_dimensionality: outputDimensionality,
+        text_chars: String(text ?? "").length,
+        error_name: name,
+      },
+    });
+    throw error;
   } finally {
     cancel();
   }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      user_id: meta?.userId ?? null,
+      source: meta?.source ?? "embedding",
+      provider: "gemini",
+      model,
+      status: "non_retryable_status",
+      http_status: response.status,
+      provider_request_id: response.headers.get("x-request-id") ||
+        response.headers.get("x-goog-request-id"),
+      json_mode: false,
+      tool_choice: "none",
+      has_tools: false,
+      outcome: "error",
+      raw_response: errorData,
+      error_message: String(
+        errorData?.error?.message || lastErrPayload?.error?.message ||
+          response.statusText || "Unknown error",
+      ),
+      metadata: {
+        embedding: true,
+        output_dimensionality: outputDimensionality,
+      },
+    });
     console.error("Gemini Embedding Error:", errorData || lastErrPayload);
     const msg = errorData?.error?.message || lastErrPayload?.error?.message ||
       response.statusText || "Unknown error";
@@ -1726,6 +2380,29 @@ export async function generateEmbedding(
   const data = await response.json();
   const values = data?.embedding?.values;
   if (!Array.isArray(values) || values.length !== outputDimensionality) {
+    await logLlmRawResponseEvent({
+      request_id: meta?.requestId ?? null,
+      user_id: meta?.userId ?? null,
+      source: meta?.source ?? "embedding",
+      provider: "gemini",
+      model,
+      status: "invalid_response",
+      http_status: response.status,
+      provider_request_id: response.headers.get("x-request-id") ||
+        response.headers.get("x-goog-request-id"),
+      json_mode: false,
+      tool_choice: "none",
+      has_tools: false,
+      outcome: "invalid_embedding",
+      raw_response: data,
+      error_message: `Embedding dimension invalid: ${
+        Array.isArray(values) ? values.length : "unknown"
+      }`,
+      metadata: {
+        embedding: true,
+        output_dimensionality: outputDimensionality,
+      },
+    });
     throw new Error(
       `Erreur Embedding: dimension invalide (${
         Array.isArray(values) ? values.length : "unknown"
@@ -1787,5 +2464,26 @@ export async function generateEmbedding(
   } catch {
     // ignore telemetry failures
   }
+  await logLlmRawResponseEvent({
+    request_id: meta?.requestId ?? null,
+    user_id: meta?.userId ?? null,
+    source: meta?.source ?? "embedding",
+    provider: "gemini",
+    model,
+    status: "success",
+    http_status: response.status,
+    provider_request_id: response.headers.get("x-request-id") ||
+      response.headers.get("x-goog-request-id"),
+    json_mode: false,
+    tool_choice: "none",
+    has_tools: false,
+    outcome: "embedding",
+    raw_response: data,
+    metadata: {
+      embedding: true,
+      output_dimensionality: outputDimensionality,
+      vector_length: Array.isArray(values) ? values.length : null,
+    },
+  });
   return values;
 }

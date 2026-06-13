@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../../router/response_style_policy.ts";
 import type {
   PrepareAttackCardConversationContext,
   PrepareAttackCardVisibleTaskKind,
@@ -121,16 +118,40 @@ function isRevisionContext(input: PrepareAttackCardVisibleAgentInput): boolean {
   );
 }
 
+function allowedTechniqueLabelsForStage(
+  input: PrepareAttackCardVisibleAgentInput,
+): string[] {
+  if (input.stage !== "ask_or_confirm_technique") return [];
+  const context = conversationContext(input);
+  const labels = context.selected_candidate.allowed_technique_labels;
+  if (!Array.isArray(labels)) return [];
+  return labels.map((label) => String(label ?? "").trim()).filter(Boolean);
+}
+
 export function prepareAttackCardVisibleContractIssues(
   message: string,
   input: PrepareAttackCardVisibleAgentInput,
 ): string[] {
-  const issues: string[] = visibleOutputStyleIssues(message);
+  const issues: string[] = [];
   const normalized = normalizeForGuard(message);
+  const allowedTechniqueLabels = allowedTechniqueLabelsForStage(input);
   if (!message.trim()) issues.push("empty_message");
   for (const claim of FORBIDDEN_CREATION_CLAIMS) {
     if (normalized.includes(normalizeForGuard(claim))) {
       issues.push(`forbidden_creation_claim:${claim}`);
+    }
+  }
+  if (allowedTechniqueLabels.length > 0) {
+    const allowed = new Set(
+      allowedTechniqueLabels.map((label) => normalizeForGuard(label)),
+    );
+    for (const label of EXACT_TECHNIQUE_LABELS) {
+      if (
+        !allowed.has(normalizeForGuard(label)) &&
+        normalized.includes(normalizeForGuard(label))
+      ) {
+        issues.push(`technique_label_outside_candidate_options:${label}`);
+      }
     }
   }
   if (isRevisionContext(input)) {
@@ -171,7 +192,7 @@ function visibleTaskInstruction(
     case "ask_blocker":
       return "Piège manquant: pose une seule question naturelle sur ce qui fait dérailler le user au moment d'agir. Ne mentionne pas de destination plateforme ni de brouillon.";
     case "ask_or_confirm_technique":
-      return "Technique: fais choisir ou confirmer la technique utile, uniquement avec les labels exacts fournis par l'état.";
+      return "Technique: fais choisir ou confirmer la technique utile, uniquement avec les labels presents dans conversation_context.selected_candidate.allowed_technique_labels. Si conversation_context.selected_candidate.recommended_technique existe, propose cette technique en confirmation courte. Sinon, limite strictement le choix aux candidate_options fournies; ne liste jamais toutes les techniques produit.";
     case "ask_platform_field":
       return "Champ plateforme: pose une seule question naturelle pour obtenir le champ courant, sans formulaire et sans inventer de valeur.";
     case "confirm_platform_field_proposal":
@@ -217,6 +238,7 @@ export function visibleSystemPrompt(
     "Le chat ne crée jamais de carte d'attaque. Ne prétends jamais avoir créé, ajouté, activé, sauvegardé ou lancé une carte.",
     "Après une révision, ne prétends jamais avoir pris en compte, noté, gardé, mémorisé, enregistré ou sauvegardé la nouvelle formulation; donne seulement la formulation actuelle à recopier.",
     "N'invente jamais de technique. Labels autorisés uniquement: Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain, Mot de bascule.",
+    "Pour ask_or_confirm_technique, si conversation_context.selected_candidate.allowed_technique_labels est non vide, ces labels remplacent la liste globale: ne mentionne aucune autre technique.",
     VISIBLE_OUTPUT_STYLE_RULES,
     "Si le stage demande une question, pose une seule vraie question naturelle.",
     "Si le stage demande un handoff, recopie les labels plateforme et valeurs exactes fournis dans conversation_context.handoff_data; tu peux écrire autour, mais pas les paraphraser ni les omettre.",
@@ -238,6 +260,9 @@ async function generateVisibleMessage(
       no_chat_mutation: true,
       platform_destination: "Cartes d'attaque",
       exact_technique_labels: EXACT_TECHNIQUE_LABELS,
+      allowed_technique_labels_for_this_stage: allowedTechniqueLabelsForStage(
+        input,
+      ),
       forbidden_creation_claims: FORBIDDEN_CREATION_CLAIMS,
       forbidden_revision_persistence_claims:
         FORBIDDEN_REVISION_PERSISTENCE_CLAIMS,

@@ -1,0 +1,2416 @@
+{
+  "raw_count": 16,
+  "usage_count": 8,
+  "runtime_count": 35,
+  "raw": [
+    {
+      "created_at": "2026-06-12T22:07:51.083763+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.local_dispatcher",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 23089,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 16751
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:08:12.234163+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\n  \"flow_action\": \"clarify_adjustment_need\",\n  \"confidence\": \"high\",\n  \"risk_score\": 0,\n  \"adjust_plan_intent\": {\n    \"kind\": \"start_or_continue\",\n    \"summary\": \"Le user souhaite rendre l'action 'Préparer un plan anti-ennui' plus concrète pour ce week-end sans créer de nouvelle action.\"\n  },\n  \"scope\": {\n    \"kind\": \"specific_plan_item\",\n    \"confidence\": \"high\",\n    \"plan_id\": null,\n    \"plan_title\": null,\n    \"level_id\": null,\n    \"level_title\": null,\n    \"plan_item_ids\": [\n      \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\"\n    ],\n    \"target_summary\": \"Préparer un plan anti-ennui\",\n    \"needs_scope_clarification\": false\n  },\n  \"adjustment_need\": {\n    \"reason_change\": \"trop vague\",\n    \"requested_change\": \"rendre plus concrète pour ce week-end\",\n    \"change_kind\": \"replace\",\n    \"constraints\": [\n      \"ce week-end\"\n    ],\n    \"preserve\": [],\n    \"avoid\": [\n      \"ajouter une nouvelle action\"\n    ],\n    \"missing\": [\n      \"activités concrètes ou premier geste spécifique\"\n    ]\n  },\n  \"platform_handoff\": {\n    \"status\": \"none\",\n    \"destination\": \"Plan\",\n    \"suggested_platform_input\": null,\n    \"grouped_by_plan\": [],\n    \"previous_value\": null,\n    \"revised_value\": null\n  },\n  \"state_updates\": {\n    \"status\": \"collecting\",\n    \"stage\": \"adjustment_need\",\n    \"turn_count_increment\": 1,\n    \"close_after_visible\": false\n  },\n  \"visible_task\": {\n    \"kind\": \"clarify_adjustment_need\",\n    \"instruction\": \"Demander au user quelles activités concrètes ou quel premier geste il souhaite définir pour ce week-end.\",\n    \"conversation_context\": {\n      \"state_summary\": \"L'action 'Préparer un plan anti-ennui' est identifiée comme trop vague pour ce week-end.\",\n      \"user_words\": [\n        \"trop vague\",\n        \"plus concrete pour ce week-end\",\n        \"sans ajouter une nouvelle action\"\n      ],\n      \"field_or_stage\": \"adjustment_need\",\n      \"known_values\": {\n        \"target_item\": \"Préparer un plan anti-ennui\",\n        \"reason\": \"trop vague\",\n        \"timeframe\": \"ce week-end\",\n        \"nature\": \"replace\"\n      },\n      \"missing_or_weak_values\": [\n        \"activités concrètes spécifiques (ex: quel film, quel jeu)\"\n      ],\n      \"selected_candidate\": {\n        \"plan_item_id\": \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\",\n        \"title\": \"Préparer un plan anti-ennui\"\n      },\n      \"handoff_data\": null,\n      \"tone_constraints\": [],\n      \"do_not_say\": [\n        \"Ne dis pas que le Plan est appliqué ou modifié.\",\n        \"Ne propose pas de nouvelle action.\"\n      ],\n      \"context_summary\": \"Le quoi et le pourquoi sont clairs, il manque le contenu spécifique pour rendre l'action concrète.\",\n      \"evidence_used\": [\n        \"Preparer un plan anti-ennui\",\n        \"trop vague\",\n        \"ce week-end\",\n        \"sans ajouter une nouvelle action\"\n      ]\n    }\n  },\n  \"subskill_call\": {\n    \"needed\": false,\n    \"skill_id\": null,\n    \"reason\": null,\n    \"context_for_subskill\": {}\n  },\n  \"exit_memo\": {\n    \"needed\": false,\n    \"reason\": \"none\",\n    \"user_intent_summary\": null,\n    \"local_flow_context\": null,\n    \"handoff_hint_for_global_dispatcher\": null\n  },\n  \"note_information\": {\n    \"needed\": false,\n    \"value\": null\n  },\n  \"evidence\": [\n    \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\",\n    \"trop vague\",\n    \"ce week-end\",\n    \"sans ajouter une nouvelle action\"\n  ]\n}"
+    },
+    {
+      "created_at": "2026-06-12T22:08:12.237967+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "adjust_plan_item.visible.clarify_adjustment_need",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.visible.clarify_adjustment_need",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 2902,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 2693
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:08:16.864706+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "adjust_plan_item.visible.clarify_adjustment_need",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\"message\": \"C'est vrai que \\\"Préparer un plan anti-ennui\\\" est un peu vague pour ce week-end. Pour rendre cette action plus concrète, quelle activité précise ou quel premier geste as-tu en tête ?\"}"
+    },
+    {
+      "created_at": "2026-06-12T22:08:33.877713+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.local_dispatcher",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 21211,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 16751
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:08:40.76489+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\n  \"flow_action\": \"prepare_plan_handoff\",\n  \"confidence\": \"high\",\n  \"risk_score\": 0,\n  \"adjust_plan_intent\": {\n    \"kind\": \"need_answer\",\n    \"summary\": \"Le user a précisé les trois options concrètes et le moment de préparation pour son action anti-ennui.\"\n  },\n  \"scope\": {\n    \"kind\": \"specific_plan_item\",\n    \"confidence\": \"high\",\n    \"plan_id\": null,\n    \"plan_title\": null,\n    \"level_id\": null,\n    \"level_title\": null,\n    \"plan_item_ids\": [\n      \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\"\n    ],\n    \"target_summary\": \"Préparer un plan anti-ennui\",\n    \"needs_scope_clarification\": false\n  },\n  \"adjustment_need\": {\n    \"reason_change\": \"trop vague\",\n    \"requested_change\": \"Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes.\",\n    \"change_kind\": \"replace\",\n    \"constraints\": [\n      \"ce week-end\",\n      \"vendredi soir\",\n      \"15 minutes max\",\n      \"option sociale sans contact\"\n    ],\n    \"preserve\": [],\n    \"avoid\": [\n      \"ajouter une nouvelle action\",\n      \"contacter quelqu'un pour l'option sociale\"\n    ],\n    \"missing\": []\n  },\n  \"platform_handoff\": {\n    \"status\": \"draft_ready\",\n    \"destination\": \"Plan\",\n    \"suggested_platform_input\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\",\n    \"grouped_by_plan\": [],\n    \"previous_value\": null,\n    \"revised_value\": null\n  },\n  \"state_updates\": {\n    \"status\": \"handoff_ready\",\n    \"stage\": \"handoff\",\n    \"turn_count_increment\": 1,\n    \"close_after_visible\": false\n  },\n  \"visible_task\": {\n    \"kind\": \"plan_handoff_ready\",\n    \"instruction\": \"Présenter la proposition d'ajustement concrète à reprendre dans le Plan.\",\n    \"conversation_context\": {\n      \"state_summary\": \"L'action 'Préparer un plan anti-ennui' est maintenant définie avec des critères précis de temps et de contenu.\",\n      \"user_words\": [\n        \"trois options\",\n        \"dehors\",\n        \"maison\",\n        \"sociale seulement si ca ne demande pas de contacter quelqu un\",\n        \"vendredi soir en 15 minutes\"\n      ],\n      \"field_or_stage\": \"handoff\",\n      \"known_values\": {\n        \"target\": \"Préparer un plan anti-ennui\",\n        \"timing\": \"Vendredi soir, 15 minutes\",\n        \"content\": \"3 options (extérieure, intérieure, sociale passive)\"\n      },\n      \"missing_or_weak_values\": [],\n      \"selected_candidate\": {\n        \"plan_item_id\": \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\"\n      },\n      \"handoff_data\": {\n        \"destination\": \"Plan\",\n        \"suggested_platform_input\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\"\n      },\n      \"tone_constraints\": [],\n      \"do_not_say\": [\n        \"Ne dis pas que le Plan est déjà modifié.\",\n        \"Ne dis pas que l'action est sauvegardée.\"\n      ],\n      \"context_summary\": \"Le user a fourni tous les détails pour transformer son action vague en une mission concrète et limitée dans le temps.\",\n      \"evidence_used\": [\n        \"trois options anti-ennui\",\n        \"vendredi soir en 15 minutes\",\n        \"sociale seulement si ca ne demande pas de contacter quelqu un\"\n      ]\n    }\n  },\n  \"subskill_call\": {\n    \"needed\": false,\n    \"skill_id\": null,\n    \"reason\": null,\n    \"context_for_subskill\": {}\n  },\n  \"exit_memo\": {\n    \"needed\": false,\n    \"reason\": \"none\",\n    \"user_intent_summary\": null,\n    \"local_flow_context\": null,\n    \"handoff_hint_for_global_dispatcher\": null\n  },\n  \"note_information\": {\n    \"needed\": false,\n    \"value\": null\n  },\n  \"evidence\": [\n    \"choisir trois options anti-ennui\",\n    \"une dehors, une a la maison, et une option sociale seulement si ca ne demande pas de contacter quelqu un\",\n    \"preparer ca vendredi soir en 15 minutes\"\n  ]\n}"
+    },
+    {
+      "created_at": "2026-06-12T22:08:40.768948+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "adjust_plan_item.visible.plan_handoff_ready",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.visible.plan_handoff_ready",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 3260,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 3170
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:08:50.904368+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "adjust_plan_item.visible.plan_handoff_ready",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\n  \"message\": \"Ton action pour préparer un plan anti-ennui est actuellement un peu trop vague. Pour lui donner plus de force, tu peux la remplacer par une mission concrète de 15 minutes ce vendredi soir, avec tes trois options spécifiques (dehors, maison, sociale sans contact).\\n\\nPour mettre cela à jour, rends-toi dans ton Plan sur la plateforme. Sous le niveau actif, tu trouveras **Ajuster mon plan**. Tu pourras y saisir :\\n\\n*Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).*\"\n}"
+    },
+    {
+      "created_at": "2026-06-12T22:09:11.368242+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.local_dispatcher",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 23399,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 16751
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:09:31.150455+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\n  \"flow_action\": \"revise_plan_handoff\",\n  \"confidence\": \"high\",\n  \"risk_score\": 0,\n  \"adjust_plan_intent\": {\n    \"kind\": \"handoff_revision\",\n    \"summary\": \"Le user refuse le renvoi immédiat vers la plateforme et demande de finaliser l'ajustement dans le chat en insistant sur la contrainte sociale sans contact.\"\n  },\n  \"scope\": {\n    \"kind\": \"specific_plan_item\",\n    \"confidence\": \"high\",\n    \"plan_id\": null,\n    \"plan_title\": null,\n    \"level_id\": null,\n    \"level_title\": null,\n    \"plan_item_ids\": [\n      \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\"\n    ],\n    \"target_summary\": \"Préparer un plan anti-ennui\",\n    \"needs_scope_clarification\": false\n  },\n  \"adjustment_need\": {\n    \"reason_change\": \"trop vague\",\n    \"requested_change\": \"Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes.\",\n    \"change_kind\": \"replace\",\n    \"constraints\": [\n      \"ce week-end\",\n      \"vendredi soir\",\n      \"15 minutes max\",\n      \"option sociale sans contact\"\n    ],\n    \"preserve\": [],\n    \"avoid\": [\n      \"ajouter une nouvelle action\",\n      \"contacter quelqu'un pour l'option sociale\"\n    ],\n    \"missing\": []\n  },\n  \"platform_handoff\": {\n    \"status\": \"revised\",\n    \"destination\": \"Plan\",\n    \"suggested_platform_input\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\",\n    \"grouped_by_plan\": [],\n    \"previous_value\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\",\n    \"revised_value\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\"\n  },\n  \"state_updates\": {\n    \"status\": \"handoff_revised\",\n    \"stage\": \"handoff\",\n    \"turn_count_increment\": 1,\n    \"close_after_visible\": false\n  },\n  \"visible_task\": {\n    \"kind\": \"revise_plan_handoff\",\n    \"instruction\": \"Confirmer la prise en compte de la contrainte 'sans contact' et présenter la proposition finale ajustée à valider ensemble.\",\n    \"conversation_context\": {\n      \"state_summary\": \"Ajustement de l'action anti-ennui avec verrouillage de la contrainte sociale sans contact.\",\n      \"user_words\": [\n        \"pas juste être renvoyée vers un bouton\",\n        \"contrainte sociale sans contact\"\n      ],\n      \"field_or_stage\": \"handoff_revision\",\n      \"known_values\": {\n        \"target\": \"Préparer un plan anti-ennui\",\n        \"reason\": \"trop vague\",\n        \"change\": \"Remplacer par une session de 15 min vendredi soir pour 3 options (maison, dehors, sociale sans contact)\",\n        \"constraints\": [\n          \"sans contact\",\n          \"15 minutes\",\n          \"vendredi soir\"\n        ]\n      },\n      \"missing_or_weak_values\": [],\n      \"selected_candidate\": {\n        \"plan_item_id\": \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\"\n      },\n      \"handoff_data\": {\n        \"destination\": \"Plan\",\n        \"suggested_platform_input\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\"\n      },\n      \"tone_constraints\": [\n        \"empathique\",\n        \"précis\"\n      ],\n      \"do_not_say\": [\n        \"Ne dis pas que le Plan est déjà modifié.\",\n        \"Ne renvoie pas vers le bouton sans avoir validé le contenu ici.\"\n      ],\n      \"context_summary\": \"Le user veut finaliser la proposition dans le chat pour s'assurer que ses contraintes sont respectées avant toute étape suivante.\",\n      \"evidence_used\": [\n        \"contrainte sociale sans contact\",\n        \"pas juste être renvoyée vers un bouton\"\n      ]\n    }\n  },\n  \"subskill_call\": {\n    \"needed\": false,\n    \"skill_id\": null,\n    \"reason\": null,\n    \"context_for_subskill\": {}\n  },\n  \"exit_memo\": {\n    \"needed\": false,\n    \"reason\": \"none\",\n    \"user_intent_summary\": null,\n    \"local_flow_context\": null,\n    \"handoff_hint_for_global_dispatcher\": null\n  },\n  \"note_information\": {\n    \"needed\": false,\n    \"value\": null\n  },\n  \"evidence\": [\n    \"Je ne veux pas juste etre renvoyee vers un bouton\",\n    \"contrainte sociale sans contact\"\n  ]\n}"
+    },
+    {
+      "created_at": "2026-06-12T22:09:31.155162+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "adjust_plan_item.visible.revise_plan_handoff",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.visible.revise_plan_handoff",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 3476,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 2890
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:09:38.989552+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "adjust_plan_item.visible.revise_plan_handoff",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\"message\":\"J'ai bien intégré ta demande pour l'option sociale sans contact afin de rendre l'action « Préparer un plan anti-ennui » plus concrète. La nouvelle version à reprendre est : « Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact) ». Tu trouveras l'option « Ajuster mon plan » sous le niveau actif de ton Plan pour y reporter ce changement. Est-ce que cette formulation te convient ?\"}"
+    },
+    {
+      "created_at": "2026-06-12T22:09:57.187301+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.local_dispatcher",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 24634,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 16751
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:10:03.937761+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\n  \"flow_action\": \"explain_handoff\",\n  \"confidence\": \"high\",\n  \"risk_score\": 0,\n  \"adjust_plan_intent\": {\n    \"kind\": \"explain\",\n    \"summary\": \"Le user demande si le plan a été modifié ou s'il doit le faire lui-même.\"\n  },\n  \"scope\": {\n    \"kind\": \"specific_plan_item\",\n    \"confidence\": \"high\",\n    \"plan_id\": null,\n    \"plan_title\": null,\n    \"level_id\": null,\n    \"level_title\": null,\n    \"plan_item_ids\": [\n      \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\"\n    ],\n    \"target_summary\": \"Préparer un plan anti-ennui\",\n    \"needs_scope_clarification\": false\n  },\n  \"adjustment_need\": {\n    \"reason_change\": \"trop vague\",\n    \"requested_change\": \"Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes.\",\n    \"change_kind\": \"replace\",\n    \"constraints\": [\n      \"ce week-end\",\n      \"vendredi soir\",\n      \"15 minutes max\",\n      \"option sociale sans contact\"\n    ],\n    \"preserve\": [],\n    \"avoid\": [\n      \"ajouter une nouvelle action\",\n      \"contacter quelqu'un pour l'option sociale\"\n    ],\n    \"missing\": []\n  },\n  \"platform_handoff\": {\n    \"status\": \"delivered\",\n    \"destination\": \"Plan\",\n    \"suggested_platform_input\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\",\n    \"grouped_by_plan\": [],\n    \"previous_value\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\",\n    \"revised_value\": null\n  },\n  \"state_updates\": {\n    \"status\": \"handoff_ready\",\n    \"stage\": \"handoff\",\n    \"turn_count_increment\": 1,\n    \"close_after_visible\": false\n  },\n  \"visible_task\": {\n    \"kind\": \"explain_handoff\",\n    \"instruction\": \"Expliquer que le chat ne modifie pas le plan et qu'il faut reporter la proposition dans la surface Plan.\",\n    \"conversation_context\": {\n      \"state_summary\": \"Proposition d'ajustement prête pour l'action 'Préparer un plan anti-ennui'.\",\n      \"user_words\": [\n        \"est-ce que mon Plan a deja ete modifie\",\n        \"copier cette proposition moi-meme\"\n      ],\n      \"field_or_stage\": \"handoff\",\n      \"known_values\": {\n        \"target_summary\": \"Préparer un plan anti-ennui\",\n        \"reason_change\": \"trop vague\",\n        \"change_kind\": \"replace\",\n        \"suggested_platform_input\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\"\n      },\n      \"missing_or_weak_values\": [],\n      \"selected_candidate\": {\n        \"plan_item_id\": \"ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e\"\n      },\n      \"handoff_data\": {\n        \"destination\": \"Plan\",\n        \"suggested_platform_input\": \"Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).\"\n      },\n      \"tone_constraints\": [],\n      \"do_not_say\": [\n        \"Ne dis pas que le Plan est appliqué, modifié, sauvegardé ou disponible si aucune mutation n'a eu lieu.\"\n      ],\n      \"context_summary\": \"Le user a besoin de comprendre le fonctionnement du handoff vers la surface Plan.\",\n      \"evidence_used\": [\n        \"no_chat_mutation: true\",\n        \"surface_capabilities.chat_can_mutate_plan: false\"\n      ]\n    }\n  },\n  \"subskill_call\": {\n    \"needed\": false,\n    \"skill_id\": null,\n    \"reason\": null,\n    \"context_for_subskill\": {}\n  },\n  \"exit_memo\": {\n    \"needed\": false,\n    \"reason\": \"none\",\n    \"user_intent_summary\": null,\n    \"local_flow_context\": null,\n    \"handoff_hint_for_global_dispatcher\": null\n  },\n  \"note_information\": {\n    \"needed\": false,\n    \"value\": null\n  },\n  \"evidence\": [\n    \"est-ce que mon Plan a deja ete modifie\",\n    \"copier cette proposition moi-meme\",\n    \"no_chat_mutation: true\"\n  ]\n}"
+    },
+    {
+      "created_at": "2026-06-12T22:10:03.94093+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "adjust_plan_item.visible.explain_handoff",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "attempt_start",
+      "http_status": null,
+      "outcome": "pending",
+      "error_message": null,
+      "metadata": {
+        "source": "adjust_plan_item.visible.explain_handoff",
+        "has_tools": false,
+        "json_mode": true,
+        "base_model": "gemini-3-flash-preview",
+        "timeout_ms": 45000,
+        "max_retries": 1,
+        "tool_choice": "auto",
+        "prompt_chars": 3335,
+        "force_real_ai": true,
+        "reasoning_effort": "low",
+        "system_prompt_chars": 2628
+      },
+      "raw_response_truncated": false,
+      "output_text": null
+    },
+    {
+      "created_at": "2026-06-12T22:10:09.309513+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "adjust_plan_item.visible.explain_handoff",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 0,
+      "status": "success",
+      "http_status": 200,
+      "outcome": "text",
+      "error_message": null,
+      "metadata": {},
+      "raw_response_truncated": false,
+      "output_text": "{\"message\":\"Non, ton plan n'a pas encore été modifié. Pour que ton action 'Préparer un plan anti-ennui' soit plus concrète et moins vague, je te propose de la remplacer par un objectif précis : choisir 3 options (dehors, maison, sociale sans contact) ce vendredi soir en 15 minutes. Pour valider cela, va dans ton Plan et utilise le bouton 'Ajuster mon plan' situé sous le niveau actif pour y saisir cette proposition.\"}"
+    }
+  ],
+  "usage": [
+    {
+      "created_at": "2026-06-12T22:08:12.227495+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 11293,
+      "output_tokens": 1124,
+      "total_tokens": 15305,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:16.859933+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "adjust_plan_item.visible.clarify_adjustment_need",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 1509,
+      "output_tokens": 53,
+      "total_tokens": 2251,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:40.759861+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 10732,
+      "output_tokens": 1244,
+      "total_tokens": 11976,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:50.899014+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "adjust_plan_item.visible.plan_handoff_ready",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 1692,
+      "output_tokens": 160,
+      "total_tokens": 3780,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:31.144263+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 11326,
+      "output_tokens": 1344,
+      "total_tokens": 15194,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:38.984989+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "adjust_plan_item.visible.revise_plan_handoff",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 1684,
+      "output_tokens": 120,
+      "total_tokens": 3199,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:10:03.932265+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "adjust_plan_item.local_dispatcher",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 11671,
+      "output_tokens": 1271,
+      "total_tokens": 12942,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:10:09.302283+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "adjust_plan_item.visible.explain_handoff",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "status": "success",
+      "prompt_tokens": 1613,
+      "output_tokens": 106,
+      "total_tokens": 2504,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "toolChoice": "auto",
+        "user_id_resolution": "provided"
+      }
+    }
+  ],
+  "runtime": [
+    {
+      "created_at": "2026-06-12T22:07:34.181558+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_message_logged",
+      "phase": "io",
+      "payload": {
+        "phase": "io",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "channel": "web",
+          "log_messages": true,
+          "logged_message_id": "6ada91f5-ae32-4924-ae9e-07403835b9c9"
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:34.186754+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_state_loaded",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "current_mode": "companion",
+          "has_temp_memory": true,
+          "has_investigation_state": false
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:34.189158+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_loaded_from_user_state",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__active_skill_state",
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": "__active_skill_state",
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "mode": null,
+            "status": "active",
+            "present": true,
+            "skill_id": "product_help",
+            "state_keys": [
+              "previous_skill_id",
+              "skill_id",
+              "started_at",
+              "status",
+              "turn_count",
+              "updated_at",
+              "version",
+              "working_state"
+            ],
+            "updated_at": "2026-06-12T22:05:52.242Z",
+            "has_working_state": true,
+            "working_state_keys": [
+              "product_help_exit_memo",
+              "product_help_local_state",
+              "product_help_note_information",
+              "product_help_subskill_trace",
+              "summary"
+            ]
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 6,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:34.19223+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_after_preprocessors",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__active_skill_state",
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": "__active_skill_state",
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "mode": null,
+            "status": "active",
+            "present": true,
+            "skill_id": "product_help",
+            "state_keys": [
+              "previous_skill_id",
+              "skill_id",
+              "started_at",
+              "status",
+              "turn_count",
+              "updated_at",
+              "version",
+              "working_state"
+            ],
+            "updated_at": "2026-06-12T22:05:52.242Z",
+            "has_working_state": true,
+            "working_state_keys": [
+              "product_help_exit_memo",
+              "product_help_local_state",
+              "product_help_note_information",
+              "product_help_subskill_trace",
+              "summary"
+            ]
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 6,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:34.20315+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:v2_runtime_prefetched",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "load_ms": 8,
+          "has_plan": true,
+          "has_cycle": true,
+          "has_transformation": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:34.212928+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_state_loaded",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "active_skill_id": "product_help",
+          "active_flow_debug": [
+            {
+              "phase": "user_state_loaded",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__active_skill_state",
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": "__active_skill_state",
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "mode": null,
+                  "status": "active",
+                  "present": true,
+                  "skill_id": "product_help",
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "updated_at": "2026-06-12T22:05:52.242Z",
+                  "has_working_state": true,
+                  "working_state_keys": [
+                    "product_help_exit_memo",
+                    "product_help_local_state",
+                    "product_help_note_information",
+                    "product_help_subskill_trace",
+                    "summary"
+                  ]
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 6,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_onboarding_and_reconcile",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__active_skill_state",
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": "__active_skill_state",
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "mode": null,
+                  "status": "active",
+                  "present": true,
+                  "skill_id": "product_help",
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "updated_at": "2026-06-12T22:05:52.242Z",
+                  "has_working_state": true,
+                  "working_state_keys": [
+                    "product_help_exit_memo",
+                    "product_help_local_state",
+                    "product_help_note_information",
+                    "product_help_subskill_trace",
+                    "summary"
+                  ]
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 6,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "read_active_flow_state",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__active_skill_state",
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": "__active_skill_state",
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "mode": null,
+                  "status": "active",
+                  "present": true,
+                  "skill_id": "product_help",
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "updated_at": "2026-06-12T22:05:52.242Z",
+                  "has_working_state": true,
+                  "working_state_keys": [
+                    "product_help_exit_memo",
+                    "product_help_local_state",
+                    "product_help_note_information",
+                    "product_help_subskill_trace",
+                    "summary"
+                  ]
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 6,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "mode": null,
+                "status": "active",
+                "present": true,
+                "skill_id": "product_help",
+                "state_keys": [
+                  "previous_skill_id",
+                  "skill_id",
+                  "started_at",
+                  "status",
+                  "turn_count",
+                  "updated_at",
+                  "version",
+                  "working_state"
+                ],
+                "updated_at": "2026-06-12T22:05:52.242Z",
+                "has_working_state": true,
+                "working_state_keys": [
+                  "product_help_exit_memo",
+                  "product_help_local_state",
+                  "product_help_note_information",
+                  "product_help_subskill_trace",
+                  "summary"
+                ]
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            }
+          ],
+          "active_skill_status": "active",
+          "active_tool_skill_id": null,
+          "temp_memory_flow_keys": [
+            "__active_skill_state"
+          ],
+          "temp_memory_has_active_skill": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:34.216541+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "brain:product_help.global_dispatcher_skipped",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "reason_code": "active_local_conversation_skill_owns_turn",
+          "active_skill_id": "product_help",
+          "global_router_skipped": true,
+          "global_dispatcher_skipped": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:34.22005+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "brain:turn_frame_routed",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "response_owner": "product_help",
+          "skill_entry_ids": [],
+          "safety_risk_band": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "direct_effects_allowed": [],
+          "direct_effects_blocked": [],
+          "conversation_risk_score": 0,
+          "tool_skill_intents_count": 0,
+          "turn_frame_dispatcher_ms": 1,
+          "conversation_risk_exit_flows": false,
+          "direct_effects_clarifications": []
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:51.072419+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:skill_operation_suggestion_resolved",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "recommendation": null,
+          "selected_skill_id": "product_help",
+          "blocked_suggestions": [],
+          "accepted_operation_type": null
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:07:51.079577+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "brain:product_help_handoff_to_local_dispatcher",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "local_runtime": {
+            "status": "handoff",
+            "skill_id": "product_help",
+            "flow_action": "handoff_to_local_dispatcher",
+            "reason_code": "product_help_handoff_to_local_dispatcher",
+            "response_intent": "tool_action_request"
+          },
+          "target_dispatcher": "adjust_plan_item",
+          "source_dispatcher_local": "product_help.local_dispatcher",
+          "note_information_present": true,
+          "skipped_global_dispatcher_before_local": true,
+          "same_user_message_handoff_to_local_dispatcher": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:16.881488+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t02",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "routing_decision_summary",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "tool_skill_runtime": {
+            "mode": "platform_handoff",
+            "status": "clarifying",
+            "risk_score": 0,
+            "flow_action": "clarify_adjustment_need",
+            "input_draft": null,
+            "reason_code": "adjust_plan_item_local_clarify_adjustment_need",
+            "handoff_core": {
+              "change_kind": "replace",
+              "reason_change": "trop vague",
+              "requested_change": "rendre plus concrète pour ce week-end",
+              "target_to_modify": "Préparer un plan anti-ennui",
+              "has_core_triptych": true,
+              "missing_or_weak_values": [
+                "activités concrètes spécifiques (ex: quel film, quel jeu)",
+                "activités concrètes ou premier geste spécifique"
+              ]
+            },
+            "operation_id": null,
+            "skill_result": {
+              "debug": {
+                "reason_code": "adjust_plan_item_local_clarify_adjustment_need"
+              },
+              "reply": "C'est vrai que \"Préparer un plan anti-ennui\" est un peu vague pour ce week-end. Pour rendre cette action plus concrète, quelle activité précise ou quel premier geste as-tu en tête ?",
+              "status": "ask_question",
+              "handled": true,
+              "user_intent": "clarify",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            },
+            "visible_task": {
+              "kind": "clarify_adjustment_need"
+            },
+            "runtime_trace": [
+              {
+                "stage": "clarify_adjustment_need",
+                "issues": [],
+                "accepted": true,
+                "component": "adjust_plan_item.visible_agent"
+              }
+            ],
+            "operation_type": "adjust_plan_item",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_flow_state": {
+              "mode": "platform_handoff",
+              "scope": {
+                "kind": "specific_plan_item",
+                "plan_id": null,
+                "level_id": null,
+                "confidence": "high",
+                "plan_title": null,
+                "level_title": null,
+                "plan_item_ids": [
+                  "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e"
+                ],
+                "target_summary": "Préparer un plan anti-ennui",
+                "needs_scope_clarification": false
+              },
+              "stage": "adjustment_need",
+              "status": "clarifying",
+              "skill_id": "adjust_plan_item",
+              "turn_count": 1,
+              "operation_type": "adjust_plan_item",
+              "adjustment_need": {
+                "avoid": [
+                  "ajouter une nouvelle action"
+                ],
+                "missing": [
+                  "activités concrètes ou premier geste spécifique"
+                ],
+                "preserve": [],
+                "change_kind": "replace",
+                "constraints": [
+                  "ce week-end"
+                ],
+                "reason_change": "trop vague",
+                "requested_change": "rendre plus concrète pour ce week-end"
+              },
+              "platform_handoff": {
+                "status": "none",
+                "destination": "Plan",
+                "revised_value": null,
+                "previous_value": null,
+                "grouped_by_plan": [],
+                "suggested_platform_input": null
+              },
+              "subskill_history": [],
+              "last_visible_task": "clarify_adjustment_need",
+              "last_handoff_summary": null
+            },
+            "no_chat_mutation": true,
+            "selected_handler": "adjust_plan_item",
+            "committed_effects": [],
+            "requested_effects": [],
+            "conversation_context": {
+              "do_not_say": [
+                "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                "Ne mentionne pas les labels internes du dispatcher.",
+                "Ne dis pas que le Plan est appliqué ou modifié.",
+                "Ne propose pas de nouvelle action."
+              ],
+              "user_words": [
+                "trop vague",
+                "plus concrete pour ce week-end",
+                "sans ajouter une nouvelle action"
+              ],
+              "handoff_data": {
+                "destination": "Plan",
+                "revised_value": null,
+                "previous_value": null,
+                "grouped_by_plan": "[circular]",
+                "suggested_platform_input": null
+              },
+              "known_values": {
+                "avoid": "[circular]",
+                "scope": "[circular]",
+                "preserve": "[circular]",
+                "constraints": "[circular]",
+                "adjustment_need": "[circular]"
+              },
+              "evidence_used": [
+                "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                "trop vague",
+                "ce week-end",
+                "sans ajouter une nouvelle action",
+                "Preparer un plan anti-ennui",
+                "trop vague",
+                "ce week-end",
+                "sans ajouter une nouvelle action"
+              ],
+              "state_summary": "Le user souhaite rendre l'action 'Préparer un plan anti-ennui' plus concrète pour ce week-end sans créer de nouvelle action.",
+              "field_or_stage": "adjustment_need",
+              "context_summary": "Le quoi et le pourquoi sont clairs, il manque le contenu spécifique pour rendre l'action concrète.",
+              "tone_constraints": [],
+              "selected_candidate": {
+                "title": "Préparer un plan anti-ennui",
+                "plan_id": null,
+                "level_id": null,
+                "plan_title": null,
+                "scope_kind": "specific_plan_item",
+                "level_title": null,
+                "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                "plan_item_ids": "[circular]",
+                "target_summary": "Préparer un plan anti-ennui",
+                "scope_confidence": "high"
+              },
+              "missing_or_weak_values": [
+                "activités concrètes spécifiques (ex: quel film, quel jeu)",
+                "activités concrètes ou premier geste spécifique"
+              ]
+            },
+            "executable_from_chat": false,
+            "pending_confirmation": null
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:33.839278+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_message_logged",
+      "phase": "io",
+      "payload": {
+        "phase": "io",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "channel": "web",
+          "log_messages": true,
+          "logged_message_id": "200b607d-b986-41b6-8eca-22f74e843f2c"
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:33.845465+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_state_loaded",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "current_mode": "companion",
+          "has_temp_memory": true,
+          "has_investigation_state": false
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:33.848986+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_loaded_from_user_state",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": null,
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "present": false,
+            "value_type": "null"
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 7,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:33.851535+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_after_preprocessors",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": null,
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "present": false,
+            "value_type": "null"
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 7,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:33.863256+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:v2_runtime_prefetched",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "load_ms": 8,
+          "has_plan": true,
+          "has_cycle": true,
+          "has_transformation": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:33.874999+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_state_loaded",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "active_skill_id": null,
+          "active_flow_debug": [
+            {
+              "phase": "user_state_loaded",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_onboarding_and_reconcile",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "read_active_flow_state",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": "adjust_plan_item",
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            }
+          ],
+          "active_skill_status": null,
+          "active_tool_skill_id": "adjust_plan_item",
+          "temp_memory_flow_keys": [],
+          "temp_memory_has_active_skill": false
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:50.908529+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "brain:active_adjust_plan_item_local_dispatcher",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+          "tool_status": "draft_delivered",
+          "active_handler": "adjust_plan_item",
+          "active_state_source": "adjust_plan_handoff",
+          "active_operation_type": "adjust_plan_item",
+          "skipped_global_dispatcher": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:08:50.923549+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t03",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "routing_decision_summary",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "tool_skill_runtime": {
+            "mode": "platform_handoff",
+            "status": "draft_delivered",
+            "risk_score": 0,
+            "flow_action": "prepare_plan_handoff",
+            "input_draft": {
+              "mode": "platform_handoff",
+              "avoid": [
+                "ajouter une nouvelle action",
+                "contacter quelqu'un pour l'option sociale"
+              ],
+              "preserve": [],
+              "destination": {
+                "instruction": "Reprendre cette proposition dans la surface Plan.",
+                "product_area": "Plan"
+              },
+              "operation_type": "adjust_plan_item",
+              "missing_clarity": [],
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "trop vague",
+              "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+            },
+            "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+            "handoff_core": {
+              "change_kind": "replace",
+              "reason_change": "trop vague",
+              "requested_change": "Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes.",
+              "target_to_modify": "Préparer un plan anti-ennui",
+              "has_core_triptych": true,
+              "missing_or_weak_values": []
+            },
+            "operation_id": null,
+            "skill_result": {
+              "debug": {
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+              },
+              "reply": "Ton action pour préparer un plan anti-ennui est actuellement un peu trop vague. Pour lui donner plus de force, tu peux la remplacer par une mission concrète de 15 minutes ce vendredi soir, avec tes trois options spécifiques (dehors, maison, sociale sans contact).\n\nPour mettre cela à jour, rends-toi dans ton Plan sur la plateforme. Sous le niveau actif, tu trouveras **Ajuster mon plan**. Tu pourras y saisir :\n\n*Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).*",
+              "status": "handoff_delivered",
+              "handled": true,
+              "user_intent": "start",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            },
+            "visible_task": {
+              "kind": "plan_handoff_ready"
+            },
+            "runtime_trace": [
+              {
+                "stage": "plan_handoff_ready",
+                "issues": [],
+                "accepted": true,
+                "component": "adjust_plan_item.visible_agent"
+              }
+            ],
+            "operation_type": "adjust_plan_item",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_flow_state": {
+              "mode": "platform_handoff",
+              "scope": {
+                "kind": "specific_plan_item",
+                "plan_id": null,
+                "level_id": null,
+                "confidence": "high",
+                "plan_title": null,
+                "level_title": null,
+                "plan_item_ids": [
+                  "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e"
+                ],
+                "target_summary": "Préparer un plan anti-ennui",
+                "needs_scope_clarification": false
+              },
+              "stage": "handoff",
+              "status": "handoff_delivered",
+              "skill_id": "adjust_plan_item",
+              "turn_count": 2,
+              "operation_type": "adjust_plan_item",
+              "adjustment_need": {
+                "avoid": "[circular]",
+                "missing": "[circular]",
+                "preserve": "[circular]",
+                "change_kind": "replace",
+                "constraints": [
+                  "ce week-end",
+                  "vendredi soir",
+                  "15 minutes max",
+                  "option sociale sans contact"
+                ],
+                "reason_change": "trop vague",
+                "requested_change": "Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes."
+              },
+              "platform_handoff": {
+                "status": "delivered",
+                "destination": "Plan",
+                "revised_value": null,
+                "previous_value": null,
+                "grouped_by_plan": [],
+                "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+              },
+              "subskill_history": [],
+              "last_visible_task": "plan_handoff_ready",
+              "last_handoff_summary": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+            },
+            "no_chat_mutation": true,
+            "platform_handoff": {
+              "draft": "[circular]",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+              "operation_type": "adjust_plan_item",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "selected_handler": "adjust_plan_item",
+            "committed_effects": [],
+            "requested_effects": [],
+            "conversation_context": {
+              "do_not_say": [
+                "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                "Ne mentionne pas les labels internes du dispatcher.",
+                "Ne dis pas que le Plan est déjà modifié.",
+                "Ne dis pas que l'action est sauvegardée."
+              ],
+              "user_words": [
+                "trois options",
+                "dehors",
+                "maison",
+                "sociale seulement si ca ne demande pas de contacter quelqu un",
+                "vendredi soir en 15 minutes"
+              ],
+              "handoff_data": {
+                "destination": "Plan",
+                "revised_value": null,
+                "previous_value": null,
+                "grouped_by_plan": "[circular]",
+                "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+              },
+              "known_values": {
+                "avoid": "[circular]",
+                "scope": "[circular]",
+                "preserve": "[circular]",
+                "constraints": "[circular]",
+                "adjustment_need": "[circular]"
+              },
+              "evidence_used": [
+                "choisir trois options anti-ennui",
+                "une dehors, une a la maison, et une option sociale seulement si ca ne demande pas de contacter quelqu un",
+                "preparer ca vendredi soir en 15 minutes",
+                "trois options anti-ennui",
+                "vendredi soir en 15 minutes",
+                "sociale seulement si ca ne demande pas de contacter quelqu un"
+              ],
+              "state_summary": "Le user a précisé les trois options concrètes et le moment de préparation pour son action anti-ennui.",
+              "field_or_stage": "handoff",
+              "context_summary": "Le user a fourni tous les détails pour transformer son action vague en une mission concrète et limitée dans le temps.",
+              "tone_constraints": [],
+              "selected_candidate": {
+                "plan_id": null,
+                "level_id": null,
+                "plan_title": null,
+                "scope_kind": "specific_plan_item",
+                "level_title": null,
+                "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                "plan_item_ids": "[circular]",
+                "target_summary": "Préparer un plan anti-ennui",
+                "scope_confidence": "high"
+              },
+              "missing_or_weak_values": []
+            },
+            "executable_from_chat": false,
+            "pending_confirmation": null
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:11.334366+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_message_logged",
+      "phase": "io",
+      "payload": {
+        "phase": "io",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "channel": "web",
+          "log_messages": true,
+          "logged_message_id": "e51ac380-909b-4f9b-988d-1d96e36eee41"
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:11.339065+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_state_loaded",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "current_mode": "companion",
+          "has_temp_memory": true,
+          "has_investigation_state": false
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:11.341542+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_loaded_from_user_state",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": null,
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "present": false,
+            "value_type": "null"
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 7,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:11.344536+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_after_preprocessors",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": null,
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "present": false,
+            "value_type": "null"
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 7,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:11.355345+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:v2_runtime_prefetched",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "load_ms": 7,
+          "has_plan": true,
+          "has_cycle": true,
+          "has_transformation": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:11.36625+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_state_loaded",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "active_skill_id": null,
+          "active_flow_debug": [
+            {
+              "phase": "user_state_loaded",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_onboarding_and_reconcile",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "read_active_flow_state",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": "adjust_plan_item",
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            }
+          ],
+          "active_skill_status": null,
+          "active_tool_skill_id": "adjust_plan_item",
+          "temp_memory_flow_keys": [],
+          "temp_memory_has_active_skill": false
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:38.993945+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "brain:active_adjust_plan_item_local_dispatcher",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "reason_code": "adjust_plan_item_local_revise_plan_handoff",
+          "tool_status": "draft_delivered",
+          "active_handler": "adjust_plan_item",
+          "active_state_source": "adjust_plan_handoff",
+          "active_operation_type": "adjust_plan_item",
+          "skipped_global_dispatcher": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:39.011724+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t04",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "routing_decision_summary",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "tool_skill_runtime": {
+            "mode": "platform_handoff",
+            "status": "draft_delivered",
+            "risk_score": 0,
+            "flow_action": "revise_plan_handoff",
+            "input_draft": {
+              "mode": "platform_handoff",
+              "avoid": [
+                "ajouter une nouvelle action",
+                "contacter quelqu'un pour l'option sociale"
+              ],
+              "preserve": [],
+              "destination": {
+                "instruction": "Reprendre cette proposition dans la surface Plan.",
+                "product_area": "Plan"
+              },
+              "operation_type": "adjust_plan_item",
+              "missing_clarity": [],
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "trop vague",
+              "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+            },
+            "reason_code": "adjust_plan_item_local_revise_plan_handoff",
+            "handoff_core": {
+              "change_kind": "replace",
+              "reason_change": "trop vague",
+              "requested_change": "Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes.",
+              "target_to_modify": "Préparer un plan anti-ennui",
+              "has_core_triptych": true,
+              "missing_or_weak_values": []
+            },
+            "operation_id": null,
+            "skill_result": {
+              "debug": {
+                "reason_code": "adjust_plan_item_local_revise_plan_handoff"
+              },
+              "reply": "J'ai bien intégré ta demande pour l'option sociale sans contact afin de rendre l'action « Préparer un plan anti-ennui » plus concrète. La nouvelle version à reprendre est : « Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact) ». Tu trouveras l'option « Ajuster mon plan » sous le niveau actif de ton Plan pour y reporter ce changement. Est-ce que cette formulation te convient ?",
+              "status": "handoff_delivered",
+              "handled": true,
+              "user_intent": "revise",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            },
+            "visible_task": {
+              "kind": "revise_plan_handoff"
+            },
+            "runtime_trace": [
+              {
+                "stage": "revise_plan_handoff",
+                "issues": [],
+                "accepted": true,
+                "component": "adjust_plan_item.visible_agent"
+              }
+            ],
+            "operation_type": "adjust_plan_item",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_flow_state": {
+              "mode": "platform_handoff",
+              "scope": {
+                "kind": "specific_plan_item",
+                "plan_id": null,
+                "level_id": null,
+                "confidence": "high",
+                "plan_title": null,
+                "level_title": null,
+                "plan_item_ids": [
+                  "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e"
+                ],
+                "target_summary": "Préparer un plan anti-ennui",
+                "needs_scope_clarification": false
+              },
+              "stage": "handoff",
+              "status": "revising",
+              "skill_id": "adjust_plan_item",
+              "turn_count": 3,
+              "operation_type": "adjust_plan_item",
+              "adjustment_need": {
+                "avoid": "[circular]",
+                "missing": "[circular]",
+                "preserve": "[circular]",
+                "change_kind": "replace",
+                "constraints": [
+                  "ce week-end",
+                  "vendredi soir",
+                  "15 minutes max",
+                  "option sociale sans contact"
+                ],
+                "reason_change": "trop vague",
+                "requested_change": "Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes."
+              },
+              "platform_handoff": {
+                "status": "revised",
+                "destination": "Plan",
+                "revised_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "previous_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "grouped_by_plan": [],
+                "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+              },
+              "subskill_history": [],
+              "last_visible_task": "revise_plan_handoff",
+              "last_handoff_summary": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+            },
+            "no_chat_mutation": true,
+            "platform_handoff": {
+              "draft": "[circular]",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_local_revise_plan_handoff",
+              "operation_type": "adjust_plan_item",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "selected_handler": "adjust_plan_item",
+            "committed_effects": [],
+            "requested_effects": [],
+            "conversation_context": {
+              "do_not_say": [
+                "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                "Ne mentionne pas les labels internes du dispatcher.",
+                "Ne dis pas que le Plan est déjà modifié.",
+                "Ne renvoie pas vers le bouton sans avoir validé le contenu ici."
+              ],
+              "user_words": [
+                "pas juste être renvoyée vers un bouton",
+                "contrainte sociale sans contact"
+              ],
+              "handoff_data": {
+                "destination": "Plan",
+                "revised_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "previous_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "grouped_by_plan": "[circular]",
+                "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+              },
+              "known_values": {
+                "avoid": "[circular]",
+                "scope": "[circular]",
+                "preserve": "[circular]",
+                "constraints": "[circular]",
+                "adjustment_need": "[circular]"
+              },
+              "evidence_used": [
+                "Je ne veux pas juste etre renvoyee vers un bouton",
+                "contrainte sociale sans contact",
+                "contrainte sociale sans contact",
+                "pas juste être renvoyée vers un bouton"
+              ],
+              "state_summary": "Le user refuse le renvoi immédiat vers la plateforme et demande de finaliser l'ajustement dans le chat en insistant sur la contrainte sociale sans contact.",
+              "field_or_stage": "handoff",
+              "context_summary": "Le user veut finaliser la proposition dans le chat pour s'assurer que ses contraintes sont respectées avant toute étape suivante.",
+              "tone_constraints": [
+                "empathique",
+                "précis"
+              ],
+              "selected_candidate": {
+                "plan_id": null,
+                "level_id": null,
+                "plan_title": null,
+                "scope_kind": "specific_plan_item",
+                "level_title": null,
+                "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                "plan_item_ids": "[circular]",
+                "target_summary": "Préparer un plan anti-ennui",
+                "scope_confidence": "high"
+              },
+              "missing_or_weak_values": []
+            },
+            "executable_from_chat": false,
+            "pending_confirmation": null
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:57.138676+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_message_logged",
+      "phase": "io",
+      "payload": {
+        "phase": "io",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "channel": "web",
+          "log_messages": true,
+          "logged_message_id": "860fc221-5a2e-4bc6-a729-a0543d0841ec"
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:57.146249+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:user_state_loaded",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "current_mode": "companion",
+          "has_temp_memory": true,
+          "has_investigation_state": false
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:57.152482+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_loaded_from_user_state",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": null,
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "present": false,
+            "value_type": "null"
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 7,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:57.157895+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_temp_memory_after_preprocessors",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "scope": "qa-product-help-adjust-observability-20260613-r1",
+          "flow_keys": [
+            "__conversation_risk_history",
+            "__conversation_risk_last"
+          ],
+          "raw_active_key": null,
+          "has_temp_memory": true,
+          "raw_active_skill": {
+            "present": false,
+            "value_type": "null"
+          },
+          "temp_memory_type": "object",
+          "temp_memory_key_count": 7,
+          "conversation_risk_last": {
+            "score": 0,
+            "reason_codes": [],
+            "should_exit_flows": false
+          }
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:57.171304+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:v2_runtime_prefetched",
+      "phase": "context",
+      "payload": {
+        "phase": "context",
+        "payload": {
+          "load_ms": 10,
+          "has_plan": true,
+          "has_cycle": true,
+          "has_transformation": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:09:57.184627+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "debug",
+      "event": "brain:active_flow_state_loaded",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "active_skill_id": null,
+          "active_flow_debug": [
+            {
+              "phase": "user_state_loaded",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_onboarding_and_reconcile",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "read_active_flow_state",
+              "scope": "qa-product-help-adjust-observability-20260613-r1",
+              "temp_memory": {
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "has_temp_memory": true,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "temp_memory_type": "object",
+                "temp_memory_key_count": 7,
+                "conversation_risk_last": {
+                  "score": 0,
+                  "reason_codes": [],
+                  "should_exit_flows": false
+                }
+              },
+              "route_reason_code": null,
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": "adjust_plan_item",
+              "pending_confirmation_id": null,
+              "route_active_flow_reason_code": null
+            }
+          ],
+          "active_skill_status": null,
+          "active_tool_skill_id": "adjust_plan_item",
+          "temp_memory_flow_keys": [],
+          "temp_memory_has_active_skill": false
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:10:09.316798+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "brain:active_adjust_plan_item_local_dispatcher",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "reason_code": "adjust_plan_item_local_explain_handoff",
+          "tool_status": "draft_delivered",
+          "active_handler": "adjust_plan_item",
+          "active_state_source": "adjust_plan_handoff",
+          "active_operation_type": "adjust_plan_item",
+          "skipped_global_dispatcher": true
+        }
+      }
+    },
+    {
+      "created_at": "2026-06-12T22:10:09.340754+00:00",
+      "request_id": "product-help-adjust-observability-20260613-r1-t05",
+      "source": "brain-trace",
+      "level": "info",
+      "event": "routing_decision_summary",
+      "phase": "routing",
+      "payload": {
+        "phase": "routing",
+        "payload": {
+          "next_mode": "companion",
+          "risk_score": 0,
+          "target_mode": "companion",
+          "tool_skill_runtime": {
+            "mode": "platform_handoff",
+            "status": "draft_delivered",
+            "risk_score": 0,
+            "flow_action": "explain_handoff",
+            "input_draft": {
+              "mode": "platform_handoff",
+              "avoid": [
+                "ajouter une nouvelle action",
+                "contacter quelqu'un pour l'option sociale"
+              ],
+              "preserve": [],
+              "destination": {
+                "instruction": "Reprendre cette proposition dans la surface Plan.",
+                "product_area": "Plan"
+              },
+              "operation_type": "adjust_plan_item",
+              "missing_clarity": [],
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "trop vague",
+              "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+            },
+            "reason_code": "adjust_plan_item_local_explain_handoff",
+            "handoff_core": {
+              "change_kind": "replace",
+              "reason_change": "trop vague",
+              "requested_change": "Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes.",
+              "target_to_modify": "Préparer un plan anti-ennui",
+              "has_core_triptych": true,
+              "missing_or_weak_values": []
+            },
+            "operation_id": null,
+            "skill_result": {
+              "debug": {
+                "reason_code": "adjust_plan_item_local_explain_handoff"
+              },
+              "reply": "Non, ton plan n'a pas encore été modifié. Pour que ton action 'Préparer un plan anti-ennui' soit plus concrète et moins vague, je te propose de la remplacer par un objectif précis : choisir 3 options (dehors, maison, sociale sans contact) ce vendredi soir en 15 minutes. Pour valider cela, va dans ton Plan et utilise le bouton 'Ajuster mon plan' situé sous le niveau actif pour y saisir cette proposition.",
+              "status": "handoff_delivered",
+              "handled": true,
+              "user_intent": "explain",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            },
+            "visible_task": {
+              "kind": "explain_handoff"
+            },
+            "runtime_trace": [
+              {
+                "stage": "explain_handoff",
+                "issues": [],
+                "accepted": true,
+                "component": "adjust_plan_item.visible_agent"
+              }
+            ],
+            "operation_type": "adjust_plan_item",
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "local_flow_state": {
+              "mode": "platform_handoff",
+              "scope": {
+                "kind": "specific_plan_item",
+                "plan_id": null,
+                "level_id": null,
+                "confidence": "high",
+                "plan_title": null,
+                "level_title": null,
+                "plan_item_ids": [
+                  "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e"
+                ],
+                "target_summary": "Préparer un plan anti-ennui",
+                "needs_scope_clarification": false
+              },
+              "stage": "handoff",
+              "status": "handoff_ready",
+              "skill_id": "adjust_plan_item",
+              "turn_count": 4,
+              "operation_type": "adjust_plan_item",
+              "adjustment_need": {
+                "avoid": "[circular]",
+                "missing": "[circular]",
+                "preserve": "[circular]",
+                "change_kind": "replace",
+                "constraints": [
+                  "ce week-end",
+                  "vendredi soir",
+                  "15 minutes max",
+                  "option sociale sans contact"
+                ],
+                "reason_change": "trop vague",
+                "requested_change": "Choisir 3 options (dehors, maison, sociale sans contact) vendredi soir en 15 minutes."
+              },
+              "platform_handoff": {
+                "status": "delivered",
+                "destination": "Plan",
+                "revised_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "previous_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "grouped_by_plan": [],
+                "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+              },
+              "subskill_history": [],
+              "last_visible_task": "explain_handoff",
+              "last_handoff_summary": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+            },
+            "no_chat_mutation": true,
+            "platform_handoff": {
+              "draft": "[circular]",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_local_explain_handoff",
+              "operation_type": "adjust_plan_item",
+              "no_chat_mutation": true,
+              "executable_from_chat": false
+            },
+            "selected_handler": "adjust_plan_item",
+            "committed_effects": [],
+            "requested_effects": [],
+            "conversation_context": {
+              "do_not_say": [
+                "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                "Ne mentionne pas les labels internes du dispatcher.",
+                "Ne dis pas que le Plan est appliqué, modifié, sauvegardé ou disponible si aucune mutation n'a eu lieu."
+              ],
+              "user_words": [
+                "est-ce que mon Plan a deja ete modifie",
+                "copier cette proposition moi-meme"
+              ],
+              "handoff_data": {
+                "destination": "Plan",
+                "revised_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "previous_value": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact).",
+                "grouped_by_plan": "[circular]",
+                "suggested_platform_input": "Rendre l'action concrète : Vendredi soir, prendre 15 min pour choisir 3 options anti-ennui pour le week-end (1 dehors, 1 maison, 1 sociale sans contact)."
+              },
+              "known_values": {
+                "avoid": "[circular]",
+                "scope": "[circular]",
+                "preserve": "[circular]",
+                "constraints": "[circular]",
+                "adjustment_need": "[circular]"
+              },
+              "evidence_used": [
+                "est-ce que mon Plan a deja ete modifie",
+                "copier cette proposition moi-meme",
+                "no_chat_mutation: true",
+                "no_chat_mutation: true",
+                "surface_capabilities.chat_can_mutate_plan: false"
+              ],
+              "state_summary": "Le user demande si le plan a été modifié ou s'il doit le faire lui-même.",
+              "field_or_stage": "handoff",
+              "context_summary": "Le user a besoin de comprendre le fonctionnement du handoff vers la surface Plan.",
+              "tone_constraints": [],
+              "selected_candidate": {
+                "plan_id": null,
+                "level_id": null,
+                "plan_title": null,
+                "scope_kind": "specific_plan_item",
+                "level_title": null,
+                "plan_item_id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+                "plan_item_ids": "[circular]",
+                "target_summary": "Préparer un plan anti-ennui",
+                "scope_confidence": "high"
+              },
+              "missing_or_weak_values": []
+            },
+            "executable_from_chat": false,
+            "pending_confirmation": null
+          }
+        }
+      }
+    }
+  ]
+}

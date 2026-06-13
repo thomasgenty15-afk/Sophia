@@ -1,7 +1,7 @@
 import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
 import type { LoadSkillContextInput } from "../_shared/context.ts";
-import { emptySafetySignal } from "./contract.ts";
+import { emptySafetySignal, type SafetyCrisisVisibleTask } from "./contract.ts";
 import { loadSafetyCrisisContext } from "./context_loader.ts";
 import {
   dispatcherSystemPrompt,
@@ -10,7 +10,10 @@ import {
 } from "./local_dispatcher.ts";
 import { reduceSafetyCrisis } from "./reducer.ts";
 import { runSafetyCrisisSkill } from "./skill.ts";
-import { setSafetyCrisisVisibleAgentForTest } from "./visible_agent.ts";
+import {
+  setSafetyCrisisVisibleAgentForTest,
+  visibleSystemPromptForSafetyCrisisTest,
+} from "./visible_agent.ts";
 import {
   applySafetyCrisisExitStateIfNeeded,
   buildSafetyCrisisActivationNoteInformation,
@@ -170,6 +173,74 @@ Deno.test("safety_crisis local dispatcher prompt documents real field completion
     (prompt.match(/EXAMPLE_JSON_/g) ?? []).length,
     2,
   );
+});
+
+Deno.test("safety_crisis visible prompt enforces strict safety wording quality", async () => {
+  const { runSafetyCrisisVisibleAgentResult } = await import(
+    "./visible_agent.ts"
+  );
+  const visibleTask: SafetyCrisisVisibleTask = {
+    kind: "stabilizing" as const,
+    conversation_context: {
+      state_summary: "Critical safety support active.",
+      context_summary: "Support humain disponible, moyens hors de portée.",
+      next_focus: "stay_with_support",
+      field_or_stage: "stabilizing",
+      known_values: {
+        phase: "stabilizing",
+        risk_band: "medium",
+        immediate_danger: false,
+        has_means_nearby: false,
+        user_not_alone: true,
+        human_support_available: true,
+        emergency_help_contacted: false,
+      },
+      missing_or_weak_values: [],
+      evidence_used: ["cousine au téléphone"],
+      user_words: ["ma cousine est au téléphone"],
+      selected_candidate: {},
+      tone_constraints: ["short", "calm", "concrete"],
+      max_questions: 1,
+      safety_resources: {
+        emergency_numbers: "15 ou 112",
+        suicide_prevention_number: "3114",
+        must_prioritize_human_support: true,
+        must_include_emergency_numbers: false,
+      },
+      handoff_data: {
+        inbound_note_summary: null,
+        current_step: "safety_step=stabilizing",
+        deferred_product_or_tool_request: null,
+      },
+      do_not_say: [],
+    },
+  };
+  const prompt = visibleSystemPromptForSafetyCrisisTest({
+    user_id: "user-safety",
+    request_id: "req-safety",
+    visible_task: visibleTask,
+  });
+  assert(prompt.includes("pas de mot coupe"));
+  assert(prompt.includes("termes simples et standards"));
+  assert(prompt.includes("maximum 120 mots"));
+
+  setSafetyCrisisVisibleAgentForTest((input) => {
+    assertEquals(input.visible_task.kind, "stabilizing");
+    return Promise.resolve(
+      "Reste assis, loin de la porte. Garde ta cousine au téléphone. Respiration 4/6 si la panique remonte.",
+    );
+  });
+  try {
+    const result = await runSafetyCrisisVisibleAgentResult({
+      user_id: "user-safety",
+      request_id: "req-safety",
+      visible_task: visibleTask,
+    });
+    assertEquals(result.visible_agent_ok, true);
+    assertEquals(result.message?.includes("Respiration 4/6"), true);
+  } finally {
+    setSafetyCrisisVisibleAgentForTest(null);
+  }
 });
 
 Deno.test("safety_crisis local dispatcher contract supports required transition actions without generic handoff", () => {

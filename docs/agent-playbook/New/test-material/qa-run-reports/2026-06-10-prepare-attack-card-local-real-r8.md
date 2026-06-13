@@ -217,7 +217,7 @@
 - Symptome: la sortie utilisateur est bien traitee par `adjust_plan_item`, mais l'EffectLedger ajoute un blocked effect `missing_platform_handoff_contract` cote `adjust_plan_item`.
 - Source amont probable: runtime/effect adapter `adjust_plan_item`, hors flow `prepare_attack_card`.
 - Owner runtime: `adjust_plan_item` / EffectLedger adapter.
-- Meilleure correction selon les guidelines: ne pas enregistrer un blocked platform handoff quand le skill est en simple clarification sans handoff.
+- Meilleure correction selon les guidelines: ne pas enregistrer un blocked platform handoff quand le skill est en simple clarification sans transition.
 - Pourquoi ce n'est pas un patch local: le flow `prepare_attack_card` a deja laisse la main; le warning appartient au flow cible.
 
 ## 3. Analyse De Fluidite Humaine

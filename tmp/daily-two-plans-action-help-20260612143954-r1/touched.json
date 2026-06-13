@@ -1,0 +1,19 @@
+{
+  "qaPhone": "+33696495497",
+  "planIds": [
+    "d5ca1756-e452-4f2a-b3a3-2fa6f0d00277",
+    "082495f8-83fe-4789-9df1-44657efc3b83"
+  ],
+  "itemIds": [
+    "572671c7-09eb-4a80-b697-e4b363287d8d",
+    "aafce1c2-1a53-48d8-826e-8ee4a9b51316"
+  ],
+  "occurrenceIds": [
+    "2d7c1b5f-5e0c-4903-a884-ad3ebb90795d",
+    "6a80fd69-a3e9-41ce-90e6-bb663048852f"
+  ],
+  "checkinId": "1fcc3bbb-7b40-46be-8a01-07b4a3f73242",
+  "pendingIds": [],
+  "entryIds": [],
+  "dedupWamids": []
+}

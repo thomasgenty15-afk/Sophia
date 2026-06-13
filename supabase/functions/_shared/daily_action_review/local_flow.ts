@@ -1242,10 +1242,20 @@ export function sanitizeDailyActionReviewVisibleText(
   if (typeof parsed === "string") {
     text = cleanText(parsed);
   } else if (
-    parsed && typeof parsed === "object" && !Array.isArray(parsed) &&
-    typeof (parsed as Record<string, unknown>).message === "string"
+    Array.isArray(parsed) &&
+    parsed.length === 1 &&
+    typeof parsed[0] === "string"
   ) {
-    text = cleanText((parsed as Record<string, unknown>).message);
+    text = cleanText(parsed[0]);
+  } else if (
+    parsed && typeof parsed === "object" && !Array.isArray(parsed) &&
+    (typeof (parsed as Record<string, unknown>).message === "string" ||
+      typeof (parsed as Record<string, unknown>).content === "string")
+  ) {
+    const record = parsed as Record<string, unknown>;
+    text = cleanText(
+      typeof record.message === "string" ? record.message : record.content,
+    );
   }
   if (
     text.length >= 2 &&
@@ -1299,7 +1309,7 @@ export async function runDailyActionReviewVisibleAgent(params: {
       systemPrompt,
       userPrompt,
       0.2,
-      true,
+      false,
       [],
       "auto",
       {

@@ -25,20 +25,7 @@ function frame(
     },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
+    flow_opportunity: null,
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -364,6 +351,110 @@ Deno.test("conversation routers assign response owner priority", () => {
   assertEquals(productRoute.selected_handler, "product_help");
 });
 
+Deno.test("conversation routers force normal reply when research is requested", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      needs_research: {
+        detected: true,
+        value: true,
+        query: "OpenAI latest model pricing",
+        confidence: 0.82,
+      },
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "product_question",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+      flow_opportunity: {
+        opportunity_id: "prepare_attack_card.execution_friction",
+        target_kind: "tool_skill",
+        target_flow: "prepare_attack_card",
+        confidence: "high",
+        priority: 60,
+        reason: "execution_friction",
+        evidence: ["je bloque"],
+        seed_context: {
+          target_hint: "marche",
+          surface: "attack_card",
+        },
+      },
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "normal_reply");
+  assertEquals(route.reason_code, "needs_research_forces_normal_reply");
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "tool_skill.prepare_attack_card" &&
+      path.reason_code === "needs_research_forces_normal_reply"
+    ),
+    true,
+  );
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "conversation_skill.product_help" &&
+      path.reason_code === "needs_research_forces_normal_reply"
+    ),
+    true,
+  );
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "flow_opportunity" &&
+      path.reason_code === "needs_research_forces_normal_reply"
+    ),
+    true,
+  );
+});
+
+Deno.test("conversation routers keep safety and explicit confirmations above research", () => {
+  assertEquals(
+    runConversationRouters({
+      turn_frame: frame({
+        safety: { risk_band: "critical", reason_codes: [], evidence: [] },
+        needs_research: {
+          detected: true,
+          value: true,
+          query: "latest news",
+          confidence: 0.9,
+        },
+      }),
+      safety_context_risk_band: "critical",
+    }).response_owner,
+    "safety",
+  );
+
+  assertEquals(
+    runConversationRouters({
+      turn_frame: frame({
+        confirmation_response: { kind: "yes", confidence_band: "high" },
+        needs_research: {
+          detected: true,
+          value: true,
+          query: "latest news",
+          confidence: 0.9,
+        },
+      }),
+      pending_tool_skill_confirmation: {
+        operation_type: "prepare_attack_card",
+      },
+      safety_context_risk_band: "none",
+    }).response_owner,
+    "pending_confirmation",
+  );
+});
+
 Deno.test("conversation routers keep emotional_repair owner over new tool skill start", () => {
   const route = runConversationRouters({
     turn_frame: frame({
@@ -613,7 +704,7 @@ Deno.test("active tool flow lets high emotional repair suspend it", () => {
   );
 });
 
-Deno.test("active flow defers tool skill opportunity without blocking direct effects", () => {
+Deno.test("active flow defers flow opportunity without blocking direct effects", () => {
   const route = runConversationRouters({
     active_tool_skill_intake: { operation_type: "prepare_attack_card" },
     turn_frame: frame({
@@ -624,19 +715,18 @@ Deno.test("active flow defers tool skill opportunity without blocking direct eff
         confidence_band: "high",
         payload_hint: { target_item_id: "walk" },
       }],
-      tool_skill_opportunity: {
-        type: "self_reminder",
-        operation_type: "create_recurring_reminder",
-        surface_id: "dashboard.reminders",
-        confidence_band: "high",
-        should_offer: true,
-        prop_reason: "reminder_would_help",
-        source_span: "ce serait bien de me le rappeler",
-        target_hint: "marcher",
-        target_status: "identified",
-        suggested_question_intent: "offer_self_reminder",
-        offer_timing: "after_current_pending",
-        must_not_execute: true,
+      flow_opportunity: {
+        opportunity_id: "create_recurring_reminder.self_reminder",
+        target_kind: "tool_skill",
+        target_flow: "create_recurring_reminder",
+        confidence: "high",
+        priority: 60,
+        reason: "reminder_would_help",
+        evidence: ["ce serait bien de me le rappeler"],
+        seed_context: {
+          target_hint: "marcher",
+          surface: "dashboard.reminders",
+        },
       },
     }),
     safety_context_risk_band: "none",
@@ -647,8 +737,8 @@ Deno.test("active flow defers tool skill opportunity without blocking direct eff
   assertEquals(route.direct_effects_to_run, ["track_progress_plan_item"]);
   assertEquals(
     route.blocked_paths.some((path) =>
-      path.path === "tool_skill_opportunity" &&
-      path.reason_code === "active_flow_blocks_tool_opportunity"
+      path.path === "flow_opportunity" &&
+      path.reason_code === "active_flow_defers_flow_opportunity"
     ),
     false,
   );
@@ -825,7 +915,7 @@ Deno.test("DirectEffectGate covers 20 cumulative condition cases", async () => {
         safety: { risk_band: "medium", reason_codes: [], evidence: [] },
         direct_effects: baseFrame.direct_effects,
       }),
-      expected: "blocked",
+      expected: "allow",
     },
     {
       name: "safety-high",
@@ -833,7 +923,7 @@ Deno.test("DirectEffectGate covers 20 cumulative condition cases", async () => {
         safety: { risk_band: "high", reason_codes: [], evidence: [] },
         direct_effects: baseFrame.direct_effects,
       }),
-      expected: "blocked",
+      expected: "allow",
     },
     {
       name: "safety-critical",
@@ -841,7 +931,7 @@ Deno.test("DirectEffectGate covers 20 cumulative condition cases", async () => {
         safety: { risk_band: "critical", reason_codes: [], evidence: [] },
         direct_effects: baseFrame.direct_effects,
       }),
-      expected: "blocked",
+      expected: "allow",
     },
     { name: "pending", input: baseFrame, pending: true, expected: "blocked" },
     {

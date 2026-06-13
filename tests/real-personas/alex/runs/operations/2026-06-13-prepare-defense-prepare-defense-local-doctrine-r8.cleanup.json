@@ -1,0 +1,33 @@
+{
+  "scope": "qa-prepare-defense-card-alex-2026-06-13-prepare-defense-local-doctrine-r8",
+  "before_counts": {
+    "chat_messages": 12,
+    "user_chat_states": 1,
+    "user_defense_cards": 0
+  },
+  "deleted_counts": {
+    "chat_messages": 12,
+    "user_chat_states": 1
+  },
+  "after_counts": {
+    "chat_messages": 0,
+    "user_chat_states": 0,
+    "user_defense_cards": 0
+  },
+  "statuses": {
+    "before": {
+      "chat_messages": 200,
+      "user_chat_states": 200,
+      "user_defense_cards": 200
+    },
+    "deleted": {
+      "chat_messages": 200,
+      "user_chat_states": 200
+    },
+    "after": {
+      "chat_messages": 200,
+      "user_chat_states": 200,
+      "user_defense_cards": 200
+    }
+  }
+}

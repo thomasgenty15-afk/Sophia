@@ -5,7 +5,11 @@ import {
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
 import type { StatusRecapLocalDispatcherOutput } from "./contract.ts";
 import { maybeRunStatusRecapRuntime } from "./runtime.ts";
-import type { StatusRecapVisibleAgentInput } from "./visible_agent.ts";
+import {
+  statusRecapCoverageRequirements,
+  statusRecapRestitutionGuidance,
+  type StatusRecapVisibleAgentInput,
+} from "./visible_agent.ts";
 
 type AssertNever<T extends never> = T;
 type _StatusRecapVisibleInputHasNoLegacyFields = AssertNever<
@@ -251,6 +255,12 @@ Deno.test("status_recap runtime passes filtered conversation_context to visible 
         "ouvrir le document",
       );
       assertEquals(
+        statusRecapCoverageRequirements(input.conversation_context).includes(
+          "mentionner les préférences coach explicites présentes",
+        ),
+        true,
+      );
+      assertEquals(
         input.conversation_context.constraints
           .micro_memory_raw_available_to_visible_agent,
         false,
@@ -357,4 +367,32 @@ Deno.test("status_recap raw fait/prevision wording does not arm runtime without 
     activeOperationIntake: null,
   });
   assertEquals(runtime, null);
+});
+
+Deno.test("status_recap compact restitution stays free-form and reserves fait prévu fragile for explicit stage", () => {
+  const compactGuidance = statusRecapRestitutionGuidance("status_compact").join(
+    "\n",
+  );
+  assert(
+    compactGuidance.includes(
+      "n'utilise pas les labels imposés Fait, Prévu, Fragile",
+    ),
+  );
+  assert(
+    compactGuidance.includes(
+      "ne l'appelle pas fragile sauf si le contexte parle vraiment",
+    ),
+  );
+  assert(
+    compactGuidance.includes("pas des templates à recopier"),
+  );
+
+  const explicitGuidance = statusRecapRestitutionGuidance(
+    "fait_prevu_fragile",
+  ).join("\n");
+  assert(
+    explicitGuidance.includes(
+      "utilise exactement les trois lignes Fait, Prévu, Fragile",
+    ),
+  );
 });

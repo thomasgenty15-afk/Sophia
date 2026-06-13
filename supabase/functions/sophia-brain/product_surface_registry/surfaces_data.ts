@@ -284,7 +284,8 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     "surface_id": "defense_cards",
     "label": "Cartes de défense",
     "short_destination_label": "Cartes de défense",
-    "user_facing_destination": "dans Ressources / Défense / Cartes de défense libres",
+    "user_facing_destination":
+      "dans Ressources / Défense / Cartes de défense libres",
     "platform_steps": [
       "ouvre Ressources / Défense",
       "dans Cartes de défense libres, choisis Ajouter une carte",
@@ -310,11 +311,11 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
   {
     "operation_type": "create_recurring_reminder",
     "surface_id": "recurring_reminders",
-    "label": "Rappels récurrents",
-    "short_destination_label": "Rappels",
-    "user_facing_destination": "dans la section Rappels",
+    "label": "Initiatives",
+    "short_destination_label": "Initiatives",
+    "user_facing_destination": "dans la section Initiatives",
     "platform_steps": [
-      "ouvre la section Rappels",
+      "ouvre la section Initiatives",
       "crée un rappel récurrent",
       "reprends la cadence, l’heure et le contenu proposés",
     ],

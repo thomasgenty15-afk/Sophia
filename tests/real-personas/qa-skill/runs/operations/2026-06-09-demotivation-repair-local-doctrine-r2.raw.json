@@ -2708,7 +2708,7 @@
             "output": {
               "skill_id": "demotivation_repair",
               "status": "complete",
-              "response_intent": "stop_local_no_handoff",
+              "response_intent": "exit_to_global_dispatcher",
               "memory_trace": {
                 "memory_used_for_response": false,
                 "memory_item_ids_used": [],
@@ -2722,7 +2722,7 @@
                 "visible_task": "exit_or_cancel",
                 "potion_bridge_status": "blocked",
                 "selected_potion": null,
-                "reason_code": "demotivation_repair_stop_local_no_handoff",
+                "reason_code": "demotivation_repair_exit_global",
                 "evidence": [
                   "Demande explicite d'arrêt : 'on s'arrête là'",
                   "Refus explicite d'outils : 'pas ouvrir autre chose'",
@@ -3007,7 +3007,7 @@
           "output": {
             "skill_id": "demotivation_repair",
             "status": "complete",
-            "response_intent": "stop_local_no_handoff",
+            "response_intent": "exit_to_global_dispatcher",
             "memory_trace": {
               "memory_used_for_response": false,
               "memory_item_ids_used": [],
@@ -3021,7 +3021,7 @@
               "visible_task": "exit_or_cancel",
               "potion_bridge_status": "blocked",
               "selected_potion": null,
-              "reason_code": "demotivation_repair_stop_local_no_handoff",
+              "reason_code": "demotivation_repair_exit_global",
               "evidence": [
                 "Demande explicite d'arrêt : 'on s'arrête là'",
                 "Refus explicite d'outils : 'pas ouvrir autre chose'",

@@ -218,6 +218,13 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "action trop grosse",
       "action trop lourde",
       "action est trop grosse",
+      "action trop floue",
+      "action floue",
+      "rendre une action concrete",
+      "rendre cette action concrete",
+      "transformer une action",
+      "transformer une action en quelque chose de concret",
+      "sans modifier le reste",
       "trop grosse",
     ],
     explain:

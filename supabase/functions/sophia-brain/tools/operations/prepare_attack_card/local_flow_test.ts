@@ -370,6 +370,27 @@ Deno.test("prepare_attack_card ambiguous technique proposes options", () => {
   });
   assertEquals(result.visible_task, "ask_or_confirm_technique");
   assertEquals(result.local_state?.technique_state.status, "ambiguous");
+  assertEquals(result.visible_task_context.selected_candidate, {
+    candidate_options: [{
+      technique_key: "texte_recadrage",
+      technique_label: "Le texte magique",
+      reason: "négociation intérieure",
+      recommended: true,
+    }, {
+      technique_key: "ancre_visuelle",
+      technique_label: "Ancre visuelle",
+      reason: "signal visible",
+      recommended: false,
+    }],
+    allowed_technique_labels: ["Le texte magique", "Ancre visuelle"],
+    recommended_technique: {
+      technique_key: "texte_recadrage",
+      technique_label: "Le texte magique",
+      reason: "négociation intérieure",
+      recommended: true,
+    },
+    previous_value: null,
+  });
 });
 
 Deno.test("prepare_attack_card reducer normalizes ask_target when target and blocker are locked", () => {
@@ -691,6 +712,77 @@ Deno.test("prepare_attack_card visible guard allows canonical technique options 
     visibleInput("ask_or_confirm_technique", result.visible_task_context),
   );
   assertEquals(issues.includes("wrong_technique_label"), false);
+});
+
+Deno.test("prepare_attack_card visible guard rejects technique labels outside candidate options", () => {
+  const result = reducePrepareAttackCardLocalDispatcherOutput({
+    previous: createInitialPrepareAttackCardLocalState(),
+    output: decision({
+      flow_action: "choose_technique",
+      target_state: {
+        status: "locked",
+        kind: "personal_action",
+        plan_item_id: null,
+        candidate_value: null,
+        locked_value: "ranger mes papiers demain matin",
+        needs_user_confirmation: false,
+        why_status: "confirmed",
+      },
+      blocker_state: {
+        status: "locked",
+        blocker_type: "unclear_first_step",
+        candidate_value: null,
+        locked_value:
+          "je ne sais pas par quelle pile commencer et je repousse quand il y a trop de papiers",
+        needs_user_confirmation: false,
+        why_status: "confirmed",
+      },
+      technique_state: {
+        status: "ambiguous",
+        technique_key: null,
+        technique_label: null,
+        explicitly_requested: false,
+        candidate_options: [{
+          technique_key: "preparer_terrain",
+          technique_label: "Preparer le terrain",
+          reason: "reduire la friction de demarrage",
+          recommended: true,
+        }, {
+          technique_key: "texte_recadrage",
+          technique_label: "Le texte magique",
+          reason: "recadrer l'evitement",
+          recommended: false,
+        }, {
+          technique_key: "visualisation_matinale",
+          technique_label: "Meditation de 5 minutes",
+          reason: "anticiper le demarrage du matin",
+          recommended: false,
+        }],
+        fit_warning: null,
+        needs_user_confirmation: true,
+        why_status: "three useful candidates",
+      },
+      visible_task: {
+        kind: "ask_or_confirm_technique",
+      },
+    }),
+  });
+  const issues = prepareAttackCardVisibleContractIssues(
+    "Quelle technique preferes-tu : Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain ou Mot de bascule ?",
+    visibleInput("ask_or_confirm_technique", result.visible_task_context),
+  );
+  assertEquals(
+    issues.includes(
+      "technique_label_outside_candidate_options:Mantra de force",
+    ),
+    true,
+  );
+  assertEquals(
+    issues.includes(
+      "technique_label_outside_candidate_options:Mot de bascule",
+    ),
+    true,
+  );
 });
 
 Deno.test("prepare_attack_card visible guard does not hard reject technique label wording", () => {

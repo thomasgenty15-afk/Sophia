@@ -1,0 +1,18 @@
+{
+  "auth_user_status": 200,
+  "http_status": 200,
+  "ok": true,
+  "request_id": "qa-research-routing-20260613-r1-t01",
+  "response_preview": "OK — pour du texte court “en masse” (ex: résumés très courts, routage, extraction légère), le modèle OpenAI le plus économique à regarder en priorité (d’après les infos récentes) est : GPT-5.4 Nano ✅🙂\n\nCe qu’il faut regarder en priorité avant de décider :\n1) Le coût input/output par million de tokens  \n   - GPT-5.4 Nano est positionné pour générer du texte court à bas coût (souvent le meilleur choix quand tes sorties sont petites).\n2) La taille des sorties réelles (c’est souvent là que le budget explose)  \n   - Si tes réponses font plus que “court”, le rapport coût/qualité peut changer.\n3) Le besoin de raisonnement vs simple génération  \n   - Si ton outil fait juste de l’extraction/tri/formatage, Nano est typiquement suffisant.\n   - Si tu as des tâches plus “raisonnement”, tu devras peut-être monter en gamme (même si ça coûte plus).\n4) Le caching / réutilisation de contexte (si ton outil en a)  \n   - Si une partie de ton prompt est identique d’une requête à l’autre, tu peux réduire fortement le coût.\n5) Le type de texte court  \n   - “Routage + classification” ≠ “rédaction fluide” : ça influence le bon modèle.\n\nSi tu me dis en 1 phrase le type exact de texte court que ton outil produit (ex: “classification en 3 labels”, “extraction de champs”, “réécriture en 1 phrase”), je te dis lequel de Nano/Mini est le plus logique pour ton cas. 💡\n\n<!--fil_rouge_whatsapp: Modèle économique recommandé: GPT-5.4 Nano pour texte court; vérifier coûts input/output, taille de sortie, besoin de raisonnement et usage possible du caching; prochaine étape: préciser le type de sortie du tool.-->",
+  "response_owner": "normal_reply",
+  "selected_handler": null,
+  "route_reason": "needs_research_forces_normal_reply",
+  "research": null,
+  "trace_keys": [
+    "turn_frame",
+    "route_decision",
+    "effect_ledger",
+    "response_owner"
+  ],
+  "trace_error": null
+}

@@ -52,7 +52,7 @@
 - Symptome visible: "zero emoji et trois lignes pour toujours" declenche une
   clarification generique en vouvoiement au lieu d'expliquer que ce n'est pas
   couvert; la suite "moins de questions" sort en normal_reply avec "OK, je fais
-  ca" sans handoff; "redis-moi quoi changer" redemande une clarification.
+  ca" sans transition; "redis-moi quoi changer" redemande une clarification.
 - Preuve systeme: T1/T3 `orientation_clarification`, T2 `normal_reply`;
   `executed_tools=[]`, `committed_effects=[]`; DB baseline facts 9 -> after 9.
 - Correction attendue: les questions de limites sur preferences coach doivent

@@ -299,6 +299,74 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       },
     });
   }
+  if (reduced.handoff_to_local_dispatcher) {
+    const targetDispatcher = String(
+      reduced.note_information?.target_dispatcher ?? "",
+    );
+    console.info("[ProductHelp] handoff_to_local_dispatcher", {
+      target_dispatcher: targetDispatcher || null,
+      note_information_target: reduced.note_information?.target_dispatcher ??
+        null,
+    });
+    return baseOutput("product_help", {
+      status: "handoff",
+      response_intent: decision.product_help_intent.kind,
+      reply: "",
+      diagnosis: {
+        local_flow: true,
+        flow_action: decision.flow_action,
+        mode: decision.mode,
+        target: decision.target,
+        grounding: decision.grounding,
+        bridge: decision.bridge,
+        visible_task: reduced.visible_task,
+        return_to_parent_flow: reduced.return_to_parent_flow,
+        handoff_to_local_dispatcher: true,
+        note_information: reduced.note_information,
+        reason_code: reduced.reason_code,
+        evidence: reduced.evidence,
+      },
+      recommendation_need: {
+        needed: false,
+        type: "none",
+        urgency: "none",
+        constraints: [
+          "product_help_does_not_execute_operations",
+          "local_handoff_with_note_information",
+          "requested_allowed_committed_effects_empty",
+        ],
+      },
+      operation_suggestions: [],
+      handoff_request: targetDispatcher
+        ? {
+          target_skill_id: targetDispatcher,
+          reason: reduced.reason_code,
+          confidence_band: decision.confidence,
+        }
+        : undefined,
+      memory_write_candidates: [],
+      effects: {
+        requested: [],
+        allowed: [],
+        blocked: reduced.blocked_effects,
+        committed: [],
+      },
+      state_patch: {
+        product_help_local_state: reduced.local_state,
+        product_help_note_information: reduced.note_information,
+        product_help_exit_memo: {
+          ...decision.exit_memo,
+          note_information: reduced.note_information,
+          at: new Date().toISOString(),
+          reducer_reason_code: reduced.reason_code,
+        },
+        product_help_subskill_trace: null,
+        summary: noteInformationSummary(reduced.note_information) ??
+          decision.exit_memo.user_intent_summary ??
+          "Product help handed off to a local dispatcher.",
+      },
+    });
+  }
   const visibleAgent = input.visible_agent ?? runProductHelpVisibleAgent;
   console.info("[ProductHelp] visible_prompt_called", {
     mode,

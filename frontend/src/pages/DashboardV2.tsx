@@ -18,6 +18,7 @@ import {
   Shield,
   Sparkles,
   Map as MapIcon,
+  Menu,
   Plus,
   Zap,
 } from "lucide-react";
@@ -37,7 +38,6 @@ import { LevelCompletionModal } from "../components/dashboard-v2/LevelCompletion
 import { MultiPartTransitionGateModal } from "../components/dashboard-v2/MultiPartTransitionGateModal";
 import { MultiPartTransitionQuestionnaireModal } from "../components/dashboard-v2/MultiPartTransitionQuestionnaireModal";
 import { Phase1FoundationCard } from "../components/dashboard-v2/Phase1FoundationCard";
-import { Phase1KickoffFlow } from "../components/dashboard-v2/Phase1KickoffFlow";
 import { PhaseProgression } from "../components/dashboard-v2/PhaseProgression";
 import { ProfessionalSupportTrackerCard } from "../components/dashboard-v2/ProfessionalSupportTrackerCard";
 import {
@@ -264,6 +264,7 @@ function extractSplitTransformationGoal(
 type DashboardTab = "plan" | "lab" | "inspiration" | "reminders" | "preferences";
 type ArchitectTab = "atelier" | "wishlist" | "stories" | "reflections" | "quotes";
 type DashboardScopeId = string | "out_of_plan";
+type Phase1InspirationFocusTarget = "deep_why" | "story";
 
 type ReviewPlanResponse = {
   request_id: string;
@@ -335,37 +336,6 @@ const REACTIVATABLE_PLAN_STATUS_PRIORITY = {
   generated: 4,
   draft: 5,
 } as const;
-
-const REACTIVATED_TRANSFORMATION_STORAGE_KEY =
-  "sophia:dashboard:reactivated_transformation_id";
-
-function readReactivatedTransformationId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const value = window.sessionStorage
-      .getItem(REACTIVATED_TRANSFORMATION_STORAGE_KEY)
-      ?.trim();
-    return value || null;
-  } catch {
-    return null;
-  }
-}
-
-function persistReactivatedTransformationId(transformationId: string | null) {
-  if (typeof window === "undefined") return;
-  try {
-    if (transformationId) {
-      window.sessionStorage.setItem(
-        REACTIVATED_TRANSFORMATION_STORAGE_KEY,
-        transformationId,
-      );
-    } else {
-      window.sessionStorage.removeItem(REACTIVATED_TRANSFORMATION_STORAGE_KEY);
-    }
-  } catch {
-    // ignore sessionStorage failures
-  }
-}
 
 type ResourceFocusTarget = {
   defenseTriggerKey: string;
@@ -532,12 +502,7 @@ export default function DashboardV2() {
   const labCards = useLabCards(labScope);
   const potions = usePotions(labScope);
   const phase1 = usePhase1(isV3 ? transformation : null, refetch);
-  const {
-    phase1: phase1State,
-    preparingStart: phase1PreparingStart,
-    phase1StartCooldownActive,
-    prepareStart: preparePhase1Start,
-  } = phase1;
+  const { phase1: phase1State } = phase1;
   const phase1Progress = getPhase1MandatoryProgress(phase1State);
   const phase1Completed = phase1Progress.completed >= phase1Progress.total;
 
@@ -547,7 +512,6 @@ export default function DashboardV2() {
     plan,
     planItems,
     planContentV3,
-    phase1Completed,
     refetch,
   });
   const currentLevel = logic.phases.find((phase) => phase.state === "active") ?? null;
@@ -629,20 +593,10 @@ export default function DashboardV2() {
   const [transitionQuestionnaireError, setTransitionQuestionnaireError] = useState<string | null>(null);
   const [reactivatingTransformationId, setReactivatingTransformationId] = useState<string | null>(null);
   const [reactivationError, setReactivationError] = useState<string | null>(null);
-  const [phase1BypassTransformationId, setPhase1BypassTransformationId] = useState<string | null>(
-    () => readReactivatedTransformationId(),
-  );
+  const [phase1InspirationFocus, setPhase1InspirationFocus] =
+    useState<Phase1InspirationFocusTarget | null>(null);
 
   const isOutOfPlanScope = selectedScopeId === "out_of_plan";
-  const shouldBypassPhase1 =
-    Boolean(transformation?.id) && transformation?.id === phase1BypassTransformationId;
-  const shouldBlockForPhase1 = Boolean(
-    isV3 &&
-      transformation &&
-      !isOutOfPlanScope &&
-      !shouldBypassPhase1 &&
-      !phase1Completed,
-  );
   const activeTransformations = transformations.filter((item) => item.status === "active");
   const scopeTransformations = activeTransformations;
   const visibleTransformations = useMemo(
@@ -667,6 +621,16 @@ export default function DashboardV2() {
     () => getBaseDeViePayload(transformation?.base_de_vie_payload ?? null),
     [transformation?.base_de_vie_payload],
   );
+
+  const openPhase1DeepWhy = () => {
+    setPhase1InspirationFocus("deep_why");
+    setActiveTab("inspiration");
+  };
+
+  const openPhase1Story = () => {
+    setPhase1InspirationFocus("story");
+    setActiveTab("inspiration");
+  };
 
   const openPlanDefenseResourceEditor = (item: DashboardV2PlanItemRuntime) => {
     const impulse = item.linked_defense_card?.content.impulses.find((entry) =>
@@ -915,7 +879,6 @@ export default function DashboardV2() {
       isPlanReadyForClosure(planItems.map((item) => item.status)) &&
       !currentBaseDeViePayload?.validated_at,
   );
-  const phase1DeepWhyQuestionsLength = phase1State?.deep_why?.questions?.length ?? 0;
   const allPhasesCompleted =
     logic.phases.length > 0 && logic.phases.every((phase) => phase.state === "completed");
   const transformationJourneyMetadata = useMemo(
@@ -1121,26 +1084,6 @@ export default function DashboardV2() {
   }, [closureModalDismissedForId, transformation]);
 
   useEffect(() => {
-    const deepWhyAlreadyPrepared = phase1DeepWhyQuestionsLength > 0;
-
-    if (
-      !shouldBlockForPhase1 ||
-      phase1PreparingStart ||
-      phase1StartCooldownActive ||
-      deepWhyAlreadyPrepared
-    ) {
-      return;
-    }
-    void preparePhase1Start();
-  }, [
-    phase1StartCooldownActive,
-    phase1DeepWhyQuestionsLength,
-    phase1PreparingStart,
-    preparePhase1Start,
-    shouldBlockForPhase1,
-  ]);
-
-  useEffect(() => {
     if (!transformation || !plan || !isV3) return;
     if (professionalSupportBootstrapId === transformation.id) return;
 
@@ -1247,6 +1190,7 @@ export default function DashboardV2() {
     key: DashboardTab;
     icon: typeof MapIcon;
     label: string;
+    mobileLabel: string;
     activeColor: string;
     activeBg: string;
   }> = isOutOfPlanScope
@@ -1255,6 +1199,7 @@ export default function DashboardV2() {
           key: "lab",
           icon: Book,
           label: "Base de vie",
+          mobileLabel: "Base",
           activeColor: "text-[#d1ded4]",
           activeBg: "bg-[#eef5ee]",
         },
@@ -1264,6 +1209,7 @@ export default function DashboardV2() {
           key: "plan",
           icon: MapIcon,
           label: "Plan",
+          mobileLabel: "Plan",
           activeColor: "text-[#d1ded4]",
           activeBg: "bg-[#eef5ee]",
         },
@@ -1271,6 +1217,7 @@ export default function DashboardV2() {
           key: "lab",
           icon: Hammer,
           label: "Ressources",
+          mobileLabel: "Outils",
           activeColor: "text-[#d1ded4]",
           activeBg: "bg-[#eef5ee]",
         },
@@ -1278,6 +1225,7 @@ export default function DashboardV2() {
           key: "inspiration",
           icon: Compass,
           label: "Inspirations",
+          mobileLabel: "Inspi",
           activeColor: "text-[#d1ded4]",
           activeBg: "bg-[#eef5ee]",
         },
@@ -1285,6 +1233,7 @@ export default function DashboardV2() {
           key: "reminders",
           icon: Bell,
           label: "Initiatives",
+          mobileLabel: "Suivi",
           activeColor: "text-[#d1ded4]",
           activeBg: "bg-amber-50",
         },
@@ -2415,8 +2364,6 @@ export default function DashboardV2() {
       if (transformationError) throw transformationError;
       if (planError) throw planError;
 
-      persistReactivatedTransformationId(targetTransformation.id);
-      setPhase1BypassTransformationId(targetTransformation.id);
       setActiveTab("plan");
       setSelectedScopeId(targetTransformation.id);
     } catch (actionError) {
@@ -2623,7 +2570,7 @@ export default function DashboardV2() {
         </header>
 
       {/* ── MAIN ──────────────────────────────────────────────────────── */}
-      <main className="max-w-5xl mx-auto px-4 md:px-6 py-10 w-full flex-1 flex flex-col">
+      <main className="sophia-mobile-type max-w-5xl mx-auto px-4 py-6 md:px-6 md:py-10 w-full flex-1 flex flex-col">
         {error ? (
           <div className="mb-4 rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
             {error}
@@ -2853,10 +2800,10 @@ export default function DashboardV2() {
             MODE ACTION
              ══════════════════════════════════════════════════════════════ */
           <div className="animate-fade-in flex-1 flex flex-col">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:gap-6 lg:grid-cols-12 lg:gap-10">
               {/* ── SIDEBAR (Niveau 2 : Scope & Préférences) ── */}
-              <div className="lg:col-span-3 space-y-4">
-                <div className="rounded-[24px] border border-stone-200 bg-white p-4 shadow-sm flex flex-col gap-1">
+              <div className="hidden min-w-0 lg:col-span-3 lg:block lg:space-y-4">
+                <div className="hidden rounded-[24px] border border-stone-200 bg-white p-4 shadow-sm lg:flex lg:flex-col lg:gap-1">
                   <div className="px-3 pb-2 pt-1">
                     <div className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
                       Mes Parcours
@@ -2984,58 +2931,118 @@ export default function DashboardV2() {
               </div>
 
               {/* ── MAIN CONTENT (Niveau 3 : Outils & Contenu) ── */}
-              <div className="lg:col-span-9 space-y-5">
+              <div className="min-w-0 max-w-full lg:col-span-9 space-y-2.5 sm:space-y-5">
                 {/* ── TAB NAVIGATION ─────────────────────────────────── */}
-                <div className="flex w-full justify-start md:justify-center overflow-x-auto pb-2 scrollbar-hide">
-                  <div className="flex bg-white/90 p-1.5 rounded-2xl border border-[#b8d8cc] min-w-max w-full shadow-sm">
-                    {dashboardTabs.map((tab) => {
-                      const Icon = tab.icon;
-                      const isActive = activeTab === tab.key;
-                      return (
+                <div className="relative flex max-w-full items-center gap-1 pb-1 md:block">
+                  <details className="group relative z-20 shrink-0 md:hidden">
+                    <summary className="flex h-[46px] w-11 cursor-pointer list-none items-center justify-center rounded-2xl border border-[#b8d8cc] bg-white/90 text-[#52635b] shadow-sm outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[#b8d8cc] focus-visible:ring-offset-2">
+                      <Menu className="h-4 w-4" />
+                      <span className="sr-only">Choisir un parcours</span>
+                    </summary>
+
+                    <div className="absolute left-0 top-full mt-1 w-[230px] rounded-2xl border border-stone-200 bg-white p-1.5 shadow-lg">
+                      {scopeTransformations.map((item) => {
+                        const isActiveScope =
+                          !isOutOfPlanScope && transformation?.id === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={(event) => {
+                              setSelectedScopeId(item.id);
+                              event.currentTarget.closest("details")?.removeAttribute("open");
+                            }}
+                            className={`flex w-full items-center rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                              isActiveScope
+                                ? "bg-[#e9f8f0] text-[#002d21]"
+                                : "text-stone-600 hover:bg-stone-50"
+                            }`}
+                          >
+                            <span className="min-w-0 truncate">
+                              {item.title || `Transformation ${item.priority_order}`}
+                            </span>
+                          </button>
+                        );
+                      })}
+
                         <button
-                          key={tab.key}
                           type="button"
-                          onClick={() => setActiveTab(tab.key)}
-                          className={`flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex-1 ${
-                            isActive
-                              ? `bg-[#002d21] text-white shadow-sm shadow-[#002d21]/20 border border-[#002d21]`
-                              : "text-[#52635b] hover:text-[#002d21] hover:bg-[#e9f8f0]"
+                          onClick={(event) => {
+                            setSelectedScopeId("out_of_plan");
+                            event.currentTarget.closest("details")?.removeAttribute("open");
+                          }}
+                          className={`mt-0.5 flex w-full items-center rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                            isOutOfPlanScope
+                              ? "bg-[#e9f8f0] text-[#002d21]"
+                              : "text-stone-600 hover:bg-stone-50"
                           }`}
                         >
-                          <Icon
-                            className={`w-4 h-4 shrink-0 ${isActive ? tab.activeColor : ""}`}
-                          />
-                          <span className="whitespace-nowrap">{tab.label}</span>
+                          Base de vie
                         </button>
-                      );
-                    })}
+
+                        <div className="my-1 h-px bg-stone-100" />
+
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            handleOpenAdditionalPlanFlow();
+                            event.currentTarget.closest("details")?.removeAttribute("open");
+                          }}
+                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-[#002d21] transition-colors hover:bg-[#e9f8f0]"
+                        >
+                          <Plus className="h-3.5 w-3.5 shrink-0" />
+                          Ajouter une transformation
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            setActiveTab("preferences");
+                            event.currentTarget.closest("details")?.removeAttribute("open");
+                          }}
+                          className={`mt-0.5 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                            activeTab === "preferences"
+                              ? "bg-[#002d21] text-white"
+                              : "text-stone-600 hover:bg-stone-50"
+                          }`}
+                        >
+                          <Settings className="h-3.5 w-3.5 shrink-0" />
+                          Préférences
+                        </button>
+                    </div>
+                  </details>
+
+                  <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide md:flex md:justify-center md:overflow-visible">
+                    <div className="flex w-max min-w-full gap-1 rounded-2xl border border-[#b8d8cc] bg-white/90 p-1.5 shadow-sm md:w-full">
+                      {dashboardTabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.key;
+                        return (
+                          <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`flex shrink-0 items-center justify-center gap-1 rounded-xl px-3 py-2 text-[11px] font-bold transition-all duration-200 md:min-w-0 md:flex-1 md:gap-2 md:px-6 md:py-2.5 md:text-sm ${
+                              isActive
+                                ? `bg-[#002d21] text-white shadow-sm shadow-[#002d21]/20 border border-[#002d21]`
+                                : "text-[#52635b] hover:text-[#002d21] hover:bg-[#e9f8f0]"
+                            }`}
+                          >
+                            <Icon
+                              className={`h-3.5 w-3.5 shrink-0 md:h-4 md:w-4 ${isActive ? tab.activeColor : ""}`}
+                            />
+                            <span className="min-w-0 whitespace-nowrap md:hidden">{tab.mobileLabel}</span>
+                            <span className="hidden whitespace-nowrap md:inline">{tab.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
                 {/* ── TAB CONTENT ─────────────────────────────────────── */}
-                {shouldBlockForPhase1 ? (
-                  <div className="animate-fade-in">
-                    <Phase1KickoffFlow
-                      key={transformation?.id ?? "phase1-kickoff"}
-                      phase1={phase1.phase1}
-                      transformationTitle={
-                        activePlanContent?.title ||
-                        transformation?.title ||
-                        "ton plan"
-                      }
-                      preparingStart={phase1.preparingStart}
-                      deepWhyPreparing={phase1.preparingDeepWhy}
-                      storyPreparing={phase1.preparingStory}
-                      savingDeepWhy={phase1.savingDeepWhy}
-                      onPrepareStart={() => void phase1.prepareStart({ force: true })}
-                      onPrepareStory={() => void phase1.prepareStory()}
-                      onRevealStory={() => void phase1.markStoryViewed()}
-                      onSaveDeepWhyAnswers={(answers) =>
-                        void phase1.saveDeepWhyAnswers(answers)}
-                    />
-                  </div>
-                ) : activeTab === "plan" ? (
-                  <div className="animate-fade-in space-y-5">
+                {activeTab === "plan" ? (
+                  <div className="animate-fade-in min-w-0 max-w-full space-y-2.5 sm:space-y-5">
                     {!transformation || !activePlanContent ? (
                       <section className="rounded-[30px] border border-dashed border-stone-300 bg-white px-5 py-8 shadow-sm">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
@@ -3137,7 +3144,8 @@ export default function DashboardV2() {
                               phase1Node={
                                 <Phase1FoundationCard
                                   phase1={phase1.phase1}
-                                  onOpenInspiration={() => setActiveTab("inspiration")}
+                                  onOpenDeepWhy={openPhase1DeepWhy}
+                                  onOpenStory={openPhase1Story}
                                 />
                               }
                               activePhaseFooterNode={
@@ -3541,11 +3549,14 @@ export default function DashboardV2() {
                         }
                         phase1Story={phase1.phase1?.story ?? null}
                         phase1DeepWhy={phase1.phase1?.deep_why ?? null}
+                        focusTarget={phase1InspirationFocus}
                         storyPreparing={phase1.preparingStory}
                         deepWhyPreparing={phase1.preparingDeepWhy}
                         savingDeepWhy={phase1.savingDeepWhy}
+                        onFocusConsumed={() => setPhase1InspirationFocus(null)}
                         onPrepareStory={(detailsAnswer) => void phase1.prepareStory(detailsAnswer)}
                         onPrepareDeepWhy={() => void phase1.prepareDeepWhy()}
+                        onRevealStory={() => void phase1.markStoryViewed()}
                         onSaveDeepWhyAnswers={(answers) =>
                           void phase1.saveDeepWhyAnswers(answers)}
                         unlockedPrinciples={

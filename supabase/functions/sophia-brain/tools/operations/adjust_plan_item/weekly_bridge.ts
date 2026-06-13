@@ -122,3 +122,47 @@ export function isCopyForwardWeeklyRequest(message: string): boolean {
   void message;
   return false;
 }
+
+export function isExplicitPendingApplyConfirmation(message: string): boolean {
+  const normalized = String(message ?? "").trim().toLowerCase()
+    .normalize("NFD")
+    .replaceAll("\u0300", "")
+    .replaceAll("\u0301", "")
+    .replaceAll("\u0302", "")
+    .replaceAll("\u0308", "");
+  if (!normalized) return false;
+
+  const negativeCues = [
+    "avant que je valide",
+    "ne valide",
+    "ne pas valide",
+    "pas valide",
+    "ne valide toujours pas",
+    "n applique rien",
+    "n'applique rien",
+    "ne l applique pas",
+    "ne pas appliquer",
+    "stop",
+    "garde le plan tel quel",
+  ];
+  if (negativeCues.some((cue) => normalized.includes(cue))) {
+    return false;
+  }
+
+  const confirmationCues = [
+    "oui",
+    "ok",
+    "d accord",
+    "d'accord",
+    "vas y",
+    "valide",
+    "applique",
+  ];
+  const applyCues = [
+    "valide",
+    "applique",
+    "mettre en place",
+  ];
+  return confirmationCues.some((cue) => normalized.includes(cue)) &&
+    applyCues.some((cue) => normalized.includes(cue));
+}

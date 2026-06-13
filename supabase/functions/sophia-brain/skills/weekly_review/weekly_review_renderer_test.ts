@@ -4,35 +4,32 @@ import {
 } from "./renderer.ts";
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-Deno.test("renderer_strips_internal_strategy_labels", () => {
+Deno.test("renderer_does_not_strip_internal_labels_deterministically", () => {
   const rendered = cleanWeeklyVisibleResponse(
-    "bridge_week plan_patch item_decision operation level_review",
+    "bridge_week item_decision operation level_review",
   );
-  assert(
-    !/\bbridge_week\b|\bplan_patch\b|\bitem_decision\b|\blevel_review\b/.test(
-      rendered,
-    ),
+  assertEquals(
+    rendered,
+    "bridge_week item_decision operation level_review",
   );
 });
 
-Deno.test("renderer_bridge_week_as_semaine_allegee", () => {
-  assert(cleanWeeklyVisibleResponse("bridge_week").includes("semaine allegee"));
+Deno.test("renderer_does_not_translate_strategy_labels", () => {
+  assertEquals(cleanWeeklyVisibleResponse("bridge_week"), "bridge_week");
 });
 
-Deno.test("renderer_no_done_language_without_commit", () => {
+Deno.test("renderer_is_passive_and_does_not_construct_visible_corrections", () => {
   assertEquals(
     renderWeeklyResponseWithEffects({
       responseContent: "C'est appliqué.",
-      committedEffects: [],
     }),
-    "Rien n'est appliqué sans confirmation et effet confirmé.",
+    "C'est appliqué.",
   );
 });
 
-Deno.test("renderer_no_tool_suggestion_during_opening", () => {
+Deno.test("renderer_does_not_remove_tool_suggestions_deterministically", () => {
   const rendered = cleanWeeklyVisibleResponse(
     "Je te programme ce rappel mercredi prochain à 18h pile.",
   );
-  assert(!rendered.includes("Je te programme"));
-  assert(rendered.includes("après le bilan"));
+  assert(rendered.includes("Je te programme"));
 });

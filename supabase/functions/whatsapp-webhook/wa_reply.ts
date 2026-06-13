@@ -77,7 +77,7 @@ export async function replyWithBrain(params: {
   const parsed = extractHiddenFilRougeNote(brain.content);
   const rawVisibleReply = parsed.visibleText.trim() ||
     String(brain.content ?? "").trim();
-  const visibleReply = polishWhatsAppVisibleReply(
+  const visibleReply = sanitizeWhatsAppVisibleReply(
     enforceRequiredVisibleEnding(
       rawVisibleReply,
       params.requiredVisibleEnding,
@@ -116,7 +116,7 @@ export async function replyWithBrain(params: {
         .map((content: unknown) => String(content ?? "").trim())
         .filter(Boolean)
         .map((content: string) =>
-          polishWhatsAppVisibleReply(content, params.inboundText)
+          sanitizeWhatsAppVisibleReply(content, params.inboundText)
         )
       : [];
   const repliesToSend = [visibleReply, ...additionalVisibleReplies].filter(
@@ -295,4 +295,9 @@ function polishWhatsAppVisibleReply(text: string, inboundText: string): string {
   }
 
   return next;
+}
+
+function sanitizeWhatsAppVisibleReply(text: string, inboundText: string): string {
+  const parsed = extractHiddenFilRougeNote(text);
+  return polishWhatsAppVisibleReply(parsed.visibleText, inboundText);
 }

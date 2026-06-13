@@ -2,10 +2,7 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import type {
-  ToolSkillOpportunity,
-  TurnFrame,
-} from "../../../contracts/turn_frame.v1.ts";
+import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import {
   applyTrackProgressDirectEffectRuntimeState,
   runTrackProgressPlanItemDirectEffect,
@@ -13,21 +10,6 @@ import {
   TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY,
 } from "./router.ts";
 import { runTrackProgressPlanItemV2 } from "./track_progress_plan_item_tool.ts";
-
-const noToolSkillOpportunity: ToolSkillOpportunity = {
-  type: "none",
-  operation_type: null,
-  surface_id: null,
-  confidence_band: "low",
-  should_offer: false,
-  prop_reason: null,
-  source_span: null,
-  target_hint: null,
-  target_status: "none",
-  suggested_question_intent: null,
-  offer_timing: "never",
-  must_not_execute: true,
-};
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   const base: TurnFrame = {
@@ -48,6 +30,7 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
       },
     }],
     tool_skill_intents: [],
+    flow_opportunity: null,
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -60,13 +43,10 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
       retrieval_policy: "semantic_first",
       plan_confidence: 0.7,
     },
-    tool_skill_opportunity: noToolSkillOpportunity,
   };
   return {
     ...base,
     ...patch,
-    tool_skill_opportunity: patch.tool_skill_opportunity ??
-      base.tool_skill_opportunity,
   };
 }
 

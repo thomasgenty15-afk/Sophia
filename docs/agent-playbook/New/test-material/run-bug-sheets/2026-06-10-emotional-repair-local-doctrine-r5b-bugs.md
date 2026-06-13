@@ -26,5 +26,5 @@
 - Tests requis:
   - Integration locale `test-send-message`: T1 entree `emotional_repair`, T2 `provide_concrete_phrase`, assertion DB `__active_skill_state.skill_id=emotional_repair` apres T2.
   - T3 changement de sujet produit: attendu `active_emotional_repair_local_dispatcher` puis `exit_to_global_dispatcher` avec `note_information`.
-  - Anti-faux-positif: `stop_local_no_handoff` doit continuer a nettoyer le flow sans appeler global sur le meme tour.
+  - Anti-faux-positif: `exit_to_global_dispatcher` doit continuer a nettoyer le flow sans appeler global sur le meme tour.
   - Safety: `safety_preempt` doit rester prioritaire et produire une `note_information` vers `safety_crisis`.

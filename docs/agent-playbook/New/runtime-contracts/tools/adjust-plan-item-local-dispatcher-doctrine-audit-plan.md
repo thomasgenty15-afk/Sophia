@@ -259,7 +259,7 @@ filtered `conversation_context.evidence_used` or `context_summary`.
   dispatchers.
 - If state is not persisted after visible-agent failure, the next turn exits
   active flow, as observed in QA `adjust-plan-local-real-r2`.
-- If `apply_attempt` has no handoff draft, the chat may refuse correctly but
+- If `apply_attempt` has without transfer draft, the chat may refuse correctly but
   fail to tell the user what to do in Plan.
 
 ## 2. Target Architecture
@@ -787,7 +787,7 @@ Required reducer/dispatcher tests:
 - clear need answer prepares handoff;
 - handoff ready includes `conversation_context.handoff_data`;
 - apply attempt returns non-mutant Plan handoff;
-- stop local no handoff clears/defer state and does not set exit;
+- exit to global dispatcher clears/defer state and does not set exit;
 - exit global requires note information;
 - safety preempt requires note information to safety;
 - handoff to attack/defense card requires note information;
@@ -836,7 +836,7 @@ Add/standardize trace events:
 - `note_information_consumed`;
 - `global_dispatcher_skipped`;
 - `inline_tool_roundtrip`;
-- `local_stop_no_handoff`;
+- `exit_to_global_dispatcher`;
 - `handoff_to_local_flow`;
 - `safety_preempt`;
 - `risk_score`;

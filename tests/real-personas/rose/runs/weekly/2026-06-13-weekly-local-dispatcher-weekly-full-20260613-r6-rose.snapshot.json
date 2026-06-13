@@ -1,0 +1,4538 @@
+{
+  "label": "before",
+  "captured_at": "2026-06-12T22:04:17.543Z",
+  "persona": "rose",
+  "run_id": "weekly-full-20260613-r6-rose",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "scope": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r6-rose",
+  "user_chat_states": [
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-03T13:49:58.305+00:00",
+      "updated_at": "2026-06-12T21:18:02.027272+00:00",
+      "unprocessed_msg_count": 3,
+      "last_processed_at": "2026-06-03T13:46:57.046+00:00",
+      "scope": "qa-potion-guerison-20260603-a",
+      "temp_memory": {
+        "__momentum_state_v2": {
+          "posture": {
+            "confidence": "high",
+            "recommended_posture": "simplify"
+          },
+          "version": 2,
+          "blockers": {
+            "blocker_kind": null,
+            "blocker_repeat_score": 0
+          },
+          "_internal": {
+            "sources": {
+              "router_updated_at": "2026-06-03T13:47:05.814Z",
+              "last_classified_by": "router"
+            },
+            "stability": {
+              "stable_since_at": "2026-06-03T13:47:05.814Z"
+            },
+            "signal_log": {
+              "consent_events": [],
+              "emotional_turns": [],
+              "response_quality_events": [
+                {
+                  "at": "2026-06-03T13:47:05.814Z",
+                  "quality": "substantive"
+                }
+              ]
+            },
+            "metrics_cache": {
+              "last_user_turn_at": "2026-06-03T13:47:05.814Z",
+              "last_user_turn_quality": "substantive",
+              "days_since_last_user_message": 0
+            }
+          },
+          "assessment": {
+            "top_risk": null,
+            "confidence": "low",
+            "top_blocker": null
+          },
+          "dimensions": {
+            "consent": {
+              "level": "open",
+              "reason": "no_decline_detected"
+            },
+            "plan_fit": {
+              "level": "uncertain"
+            },
+            "engagement": {
+              "level": "high",
+              "reason": "substantive_recent_reply"
+            },
+            "load_balance": {
+              "level": "balanced"
+            },
+            "emotional_load": {
+              "level": "low",
+              "reason": "no_emotional_marker"
+            },
+            "execution_traction": {
+              "level": "unknown"
+            }
+          },
+          "updated_at": "2026-06-03T13:47:05.814Z",
+          "active_load": {
+            "needs_reduce": false,
+            "needs_consolidate": false,
+            "current_load_score": 0,
+            "mission_slots_used": 0,
+            "support_slots_used": 0,
+            "habit_building_slots_used": 0
+          },
+          "memory_links": {
+            "last_useful_support_ids": [],
+            "last_failed_technique_ids": []
+          },
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "current_state": "friction_legere"
+        },
+        "__conversation_risk_last": {
+          "at": "2026-06-03T13:48:43.698Z",
+          "score": 1,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__memory_payload_state_v2": {
+          "items": [],
+          "budget": {
+            "max_items": 12,
+            "max_entities": 5,
+            "tokens_target": 1800
+          },
+          "modules": {},
+          "version": 2,
+          "entities": [],
+          "last_turn_id": "8daa3c4b-79bf-4728-98ca-89fb9b39b513",
+          "active_topic_id": null
+        },
+        "__active_tool_skill_intake": {
+          "mode": "platform_handoff",
+          "draft": {
+            "mode": "platform_handoff",
+            "operation_type": "select_state_potion",
+            "recommendation": {
+              "avoid": [],
+              "preserve": [],
+              "potion_label": "une potion de réparation",
+              "immediate_step": "Là, tu n'as pas besoin de te juger une fois de plus. Respire un peu, laisse retomber la vague, et on reste avec ce qui est là sans l'alourdir.",
+              "platform_steps": [
+                "ouvre la section État / Potions",
+                "choisis la potion recommandée",
+                "active-la depuis la plateforme si elle te convient"
+              ],
+              "platform_inputs": {
+                "answers": [
+                  {
+                    "value": "Le craquage sur ton rythme hier et les mots violents envers toi-même.",
+                    "question_id": "recent_hurt",
+                    "option_label": null,
+                    "option_value": null,
+                    "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?"
+                  },
+                  {
+                    "value": "De la culpabilite",
+                    "question_id": "dominant_feeling",
+                    "option_label": "De la culpabilite",
+                    "option_value": "culpabilite",
+                    "question_label": "Tu ressens surtout quoi ?"
+                  }
+                ],
+                "potion_type": "guerison",
+                "potion_title": "Potion de guerison",
+                "optional_free_text": null
+              },
+              "why_this_potion": "Tu as nommé un craquage récent et une culpabilité forte, avec de l'auto-attaque. Cette potion aide d'abord à te relever sans t'enfoncer, avant de penser au reste.",
+              "platform_destination": "dans la section État / Potions"
+            },
+            "no_chat_mutation": true,
+            "missing_decisions": [],
+            "user_state_summary": "Hier j ai craque sur mon rythme et je me suis parle tres violemment. Je ressens surtout de la culpabilite.",
+            "executable_from_chat": false,
+            "desired_shift_summary": "Le shift recommandé est de réparer la trace émotionnelle sans rouvrir toute l'analyse."
+          },
+          "phase": "confirmation",
+          "status": "handoff_delivered",
+          "skill_id": "select_state_potion",
+          "max_turns": 6,
+          "created_at": "2026-06-03T13:48:05.038Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-03T13:49:58.304Z",
+          "intake_state": {
+            "state": {
+              "kind": "shame_guilt",
+              "status": "identified",
+              "evidence": [
+                "Hier j ai craque sur mon rythme et je me suis parle tres violemment. Je ressens surtout de la culpabilite."
+              ],
+              "intensity": "high",
+              "confidence": "high"
+            },
+            "context": {
+              "topic_hint": null,
+              "target_hint": null,
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                  ],
+                  "required": true,
+                  "question_id": "recent_hurt",
+                  "locked_value": "Le craquage sur ton rythme hier et les mots violents envers toi-même.",
+                  "user_evidence": [
+                    "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu ressens surtout quoi ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Oui, c est la culpabilite qui domine."
+                  ],
+                  "required": true,
+                  "question_id": "dominant_feeling",
+                  "locked_value": "culpabilite",
+                  "user_evidence": [
+                    "Oui, c est la culpabilite qui domine."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "status": "identified",
+              "answers": [
+                {
+                  "label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                  "answer": "Le craquage sur ton rythme hier et les mots violents envers toi-même.",
+                  "evidence": [
+                    "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                  ],
+                  "question_id": "recent_hurt"
+                },
+                {
+                  "label": "Tu ressens surtout quoi ?",
+                  "answer": "culpabilite",
+                  "evidence": [
+                    "Oui, c est la culpabilite qui domine."
+                  ],
+                  "question_id": "dominant_feeling"
+                }
+              ],
+              "evidence": [
+                "L'utilisateur a confirmé que la culpabilité est le sentiment dominant."
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "recent_hurt",
+                "dominant_feeling"
+              ]
+            },
+            "skill_id": "select_state_potion",
+            "shortlist": {
+              "status": "missing",
+              "options": [],
+              "evidence": []
+            },
+            "confidence": "high",
+            "missing_slots": [],
+            "selected_potion": {
+              "value": "guerison",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high"
+            },
+            "current_sub_skill": "draft_generation",
+            "generated_user_message": null,
+            "explicit_potion_request": {
+              "status": "identified",
+              "evidence": [
+                "Je veux utiliser une potion de guerison."
+              ],
+              "potion_type": "guerison"
+            }
+          },
+          "operation_input": {
+            "state": {
+              "kind": "shame_guilt",
+              "evidence": [
+                "Hier j ai craque sur mon rythme et je me suis parle tres violemment. Je ressens surtout de la culpabilite."
+              ],
+              "intensity": "high"
+            },
+            "context": {
+              "topic_hint": null,
+              "target_hint": null,
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                  ],
+                  "required": true,
+                  "question_id": "recent_hurt",
+                  "locked_value": "Le craquage sur ton rythme hier et les mots violents envers toi-même.",
+                  "user_evidence": [
+                    "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu ressens surtout quoi ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Oui, c est la culpabilite qui domine."
+                  ],
+                  "required": true,
+                  "question_id": "dominant_feeling",
+                  "locked_value": "culpabilite",
+                  "user_evidence": [
+                    "Oui, c est la culpabilite qui domine."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "answers": [
+                {
+                  "label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                  "answer": "Le craquage sur ton rythme hier et les mots violents envers toi-même.",
+                  "evidence": [
+                    "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                  ],
+                  "question_id": "recent_hurt"
+                },
+                {
+                  "label": "Tu ressens surtout quoi ?",
+                  "answer": "culpabilite",
+                  "evidence": [
+                    "Oui, c est la culpabilite qui domine."
+                  ],
+                  "question_id": "dominant_feeling"
+                }
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "recent_hurt",
+                "dominant_feeling"
+              ]
+            },
+            "potion_type": "guerison",
+            "intake_state": {
+              "state": {
+                "kind": "shame_guilt",
+                "status": "identified",
+                "evidence": [
+                  "Hier j ai craque sur mon rythme et je me suis parle tres violemment. Je ressens surtout de la culpabilite."
+                ],
+                "intensity": "high",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": null,
+                "target_hint": null,
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                    ],
+                    "required": true,
+                    "question_id": "recent_hurt",
+                    "locked_value": "Le craquage sur ton rythme hier et les mots violents envers toi-même.",
+                    "user_evidence": [
+                      "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "label": "Tu ressens surtout quoi ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Oui, c est la culpabilite qui domine."
+                    ],
+                    "required": true,
+                    "question_id": "dominant_feeling",
+                    "locked_value": "culpabilite",
+                    "user_evidence": [
+                      "Oui, c est la culpabilite qui domine."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "identified",
+                "answers": [
+                  {
+                    "label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                    "answer": "Le craquage sur ton rythme hier et les mots violents envers toi-même.",
+                    "evidence": [
+                      "Hier j ai craque sur mon rythme et je me suis parle tres violemment."
+                    ],
+                    "question_id": "recent_hurt"
+                  },
+                  {
+                    "label": "Tu ressens surtout quoi ?",
+                    "answer": "culpabilite",
+                    "evidence": [
+                      "Oui, c est la culpabilite qui domine."
+                    ],
+                    "question_id": "dominant_feeling"
+                  }
+                ],
+                "evidence": [
+                  "L'utilisateur a confirmé que la culpabilité est le sentiment dominant."
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "recent_hurt",
+                  "dominant_feeling"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [],
+                "evidence": []
+              },
+              "confidence": "high",
+              "missing_slots": [],
+              "selected_potion": {
+                "value": "guerison",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "draft_generation",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "Je veux utiliser une potion de guerison."
+                ],
+                "potion_type": "guerison"
+              }
+            },
+            "explicit_potion_type": "guerison"
+          },
+          "no_chat_mutation": true
+        },
+        "__conversation_risk_history": [
+          0,
+          0,
+          1
+        ],
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-03T13:53:00.227+00:00",
+      "updated_at": "2026-06-12T21:18:02.0324+00:00",
+      "unprocessed_msg_count": 3,
+      "last_processed_at": "2026-06-03T13:50:12.235+00:00",
+      "scope": "qa-potion-amour-20260603-a",
+      "temp_memory": {
+        "__momentum_state_v2": {
+          "posture": {
+            "confidence": "high",
+            "recommended_posture": "simplify"
+          },
+          "version": 2,
+          "blockers": {
+            "blocker_kind": null,
+            "blocker_repeat_score": 0
+          },
+          "_internal": {
+            "sources": {
+              "router_updated_at": "2026-06-03T13:50:22.766Z",
+              "last_classified_by": "router"
+            },
+            "stability": {
+              "stable_since_at": "2026-06-03T13:50:22.766Z"
+            },
+            "signal_log": {
+              "consent_events": [],
+              "emotional_turns": [],
+              "response_quality_events": [
+                {
+                  "at": "2026-06-03T13:50:22.766Z",
+                  "quality": "substantive"
+                }
+              ]
+            },
+            "metrics_cache": {
+              "last_user_turn_at": "2026-06-03T13:50:22.766Z",
+              "last_user_turn_quality": "substantive",
+              "days_since_last_user_message": 0
+            }
+          },
+          "assessment": {
+            "top_risk": null,
+            "confidence": "low",
+            "top_blocker": null
+          },
+          "dimensions": {
+            "consent": {
+              "level": "open",
+              "reason": "no_decline_detected"
+            },
+            "plan_fit": {
+              "level": "uncertain"
+            },
+            "engagement": {
+              "level": "high",
+              "reason": "substantive_recent_reply"
+            },
+            "load_balance": {
+              "level": "balanced"
+            },
+            "emotional_load": {
+              "level": "low",
+              "reason": "no_emotional_marker"
+            },
+            "execution_traction": {
+              "level": "unknown"
+            }
+          },
+          "updated_at": "2026-06-03T13:50:22.766Z",
+          "active_load": {
+            "needs_reduce": false,
+            "needs_consolidate": false,
+            "current_load_score": 0,
+            "mission_slots_used": 0,
+            "support_slots_used": 0,
+            "habit_building_slots_used": 0
+          },
+          "memory_links": {
+            "last_useful_support_ids": [],
+            "last_failed_technique_ids": []
+          },
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "current_state": "friction_legere"
+        },
+        "__conversation_risk_last": {
+          "at": "2026-06-03T13:52:05.132Z",
+          "score": 1,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__memory_payload_state_v2": {
+          "items": [],
+          "budget": {
+            "max_items": 12,
+            "max_entities": 5,
+            "tokens_target": 1800
+          },
+          "modules": {},
+          "version": 2,
+          "entities": [],
+          "last_turn_id": "5655033f-38da-4fab-be54-5b864a4f3182",
+          "active_topic_id": null
+        },
+        "__active_tool_skill_intake": {
+          "mode": "platform_handoff",
+          "draft": {
+            "mode": "platform_handoff",
+            "operation_type": "select_state_potion",
+            "recommendation": {
+              "avoid": [],
+              "preserve": [],
+              "potion_label": "une potion d'amour envers soi",
+              "immediate_step": "Là, tu n’as pas besoin de te corriger d’un coup. Juste de respirer un peu et de laisser redescendre cette dureté.",
+              "platform_steps": [
+                "ouvre la section État / Potions",
+                "choisis la potion recommandée",
+                "active-la depuis la plateforme si elle te convient"
+              ],
+              "platform_inputs": {
+                "answers": [
+                  {
+                    "value": "ta façon de te juger au travail",
+                    "question_id": "love_lack_context",
+                    "option_label": null,
+                    "option_value": null,
+                    "question_label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?"
+                  },
+                  {
+                    "value": "Dur avec moi",
+                    "question_id": "love_state",
+                    "option_label": "Dur avec moi",
+                    "option_value": "dur",
+                    "question_label": "Tu te sens surtout comment ?"
+                  }
+                ],
+                "potion_type": "amour",
+                "potion_title": "Potion d'amour",
+                "optional_free_text": null
+              },
+              "why_this_potion": "Tu dis être dur avec toi, et le point qui ressort est ta façon de te juger au travail. Cette potion aide à ramener de la douceur quand le dialogue intérieur devient froid.",
+              "platform_destination": "dans la section État / Potions"
+            },
+            "no_chat_mutation": true,
+            "missing_decisions": [],
+            "user_state_summary": "Je me sens en manque d amour par rapport a ma facon de me juger au travail, et je me sens surtout dur avec moi.",
+            "executable_from_chat": false,
+            "desired_shift_summary": "Le shift recommandé est de baisser la dureté envers toi-même."
+          },
+          "phase": "confirmation",
+          "status": "handoff_delivered",
+          "skill_id": "select_state_potion",
+          "max_turns": 6,
+          "created_at": "2026-06-03T13:51:22.846Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-03T13:53:00.226Z",
+          "intake_state": {
+            "state": {
+              "kind": "self_harshness",
+              "status": "identified",
+              "evidence": [
+                "Je me sens en manque d amour par rapport a ma facon de me juger au travail, et je me sens surtout dur avec moi."
+              ],
+              "intensity": "medium",
+              "confidence": "high"
+            },
+            "context": {
+              "topic_hint": "jugement au travail",
+              "target_hint": null,
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                  ],
+                  "required": true,
+                  "question_id": "love_lack_context",
+                  "locked_value": "ta façon de te juger au travail",
+                  "user_evidence": [
+                    "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu te sens surtout comment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Oui, dur avec moi."
+                  ],
+                  "required": true,
+                  "question_id": "love_state",
+                  "locked_value": "dur",
+                  "user_evidence": [
+                    "Oui, dur avec moi."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "status": "identified",
+              "answers": [
+                {
+                  "label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                  "answer": "ta façon de te juger au travail",
+                  "evidence": [
+                    "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                  ],
+                  "question_id": "love_lack_context"
+                },
+                {
+                  "label": "Tu te sens surtout comment ?",
+                  "answer": "dur",
+                  "evidence": [
+                    "Oui, dur avec moi."
+                  ],
+                  "question_id": "love_state"
+                }
+              ],
+              "evidence": [
+                "Je me sens en manque d amour par rapport a ma facon de me juger au travail, et je me sens surtout dur avec moi.",
+                "Oui, dur avec moi."
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "love_lack_context",
+                "love_state"
+              ]
+            },
+            "skill_id": "select_state_potion",
+            "shortlist": {
+              "status": "missing",
+              "options": [],
+              "evidence": []
+            },
+            "confidence": "high",
+            "missing_slots": [],
+            "selected_potion": {
+              "value": "amour",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high"
+            },
+            "current_sub_skill": "draft_generation",
+            "generated_user_message": null,
+            "explicit_potion_request": {
+              "status": "identified",
+              "evidence": [
+                "Je veux choisir une potion d amour."
+              ],
+              "potion_type": "amour"
+            }
+          },
+          "operation_input": {
+            "state": {
+              "kind": "self_harshness",
+              "evidence": [
+                "Je me sens en manque d amour par rapport a ma facon de me juger au travail, et je me sens surtout dur avec moi."
+              ],
+              "intensity": "medium"
+            },
+            "context": {
+              "topic_hint": "jugement au travail",
+              "target_hint": null,
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                  ],
+                  "required": true,
+                  "question_id": "love_lack_context",
+                  "locked_value": "ta façon de te juger au travail",
+                  "user_evidence": [
+                    "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu te sens surtout comment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Oui, dur avec moi."
+                  ],
+                  "required": true,
+                  "question_id": "love_state",
+                  "locked_value": "dur",
+                  "user_evidence": [
+                    "Oui, dur avec moi."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "answers": [
+                {
+                  "label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                  "answer": "ta façon de te juger au travail",
+                  "evidence": [
+                    "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                  ],
+                  "question_id": "love_lack_context"
+                },
+                {
+                  "label": "Tu te sens surtout comment ?",
+                  "answer": "dur",
+                  "evidence": [
+                    "Oui, dur avec moi."
+                  ],
+                  "question_id": "love_state"
+                }
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "love_lack_context",
+                "love_state"
+              ]
+            },
+            "potion_type": "amour",
+            "intake_state": {
+              "state": {
+                "kind": "self_harshness",
+                "status": "identified",
+                "evidence": [
+                  "Je me sens en manque d amour par rapport a ma facon de me juger au travail, et je me sens surtout dur avec moi."
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "jugement au travail",
+                "target_hint": null,
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                    ],
+                    "required": true,
+                    "question_id": "love_lack_context",
+                    "locked_value": "ta façon de te juger au travail",
+                    "user_evidence": [
+                      "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "label": "Tu te sens surtout comment ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Oui, dur avec moi."
+                    ],
+                    "required": true,
+                    "question_id": "love_state",
+                    "locked_value": "dur",
+                    "user_evidence": [
+                      "Oui, dur avec moi."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "identified",
+                "answers": [
+                  {
+                    "label": "Par rapport a quoi est-ce que tu te sens en manque d'amour en ce moment ?",
+                    "answer": "ta façon de te juger au travail",
+                    "evidence": [
+                      "Je me sens en manque d amour par rapport a ma facon de me juger au travail"
+                    ],
+                    "question_id": "love_lack_context"
+                  },
+                  {
+                    "label": "Tu te sens surtout comment ?",
+                    "answer": "dur",
+                    "evidence": [
+                      "Oui, dur avec moi."
+                    ],
+                    "question_id": "love_state"
+                  }
+                ],
+                "evidence": [
+                  "Je me sens en manque d amour par rapport a ma facon de me juger au travail, et je me sens surtout dur avec moi.",
+                  "Oui, dur avec moi."
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "love_lack_context",
+                  "love_state"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [],
+                "evidence": []
+              },
+              "confidence": "high",
+              "missing_slots": [],
+              "selected_potion": {
+                "value": "amour",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "draft_generation",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "Je veux choisir une potion d amour."
+                ],
+                "potion_type": "amour"
+              }
+            },
+            "explicit_potion_type": "amour"
+          },
+          "no_chat_mutation": true
+        },
+        "__conversation_risk_history": [
+          0,
+          0,
+          1
+        ],
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-03T13:41:10.608+00:00",
+      "updated_at": "2026-06-12T21:18:02.037495+00:00",
+      "unprocessed_msg_count": 2,
+      "last_processed_at": "2026-06-03T13:39:40.237+00:00",
+      "scope": "qa-potion-clarte-20260603-a",
+      "temp_memory": {
+        "__conversation_risk_last": {
+          "at": "2026-06-03T13:41:10.589Z",
+          "score": 1,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__active_tool_skill_intake": {
+          "mode": "platform_handoff",
+          "draft": null,
+          "phase": "detail_intake",
+          "status": "apply_attempt",
+          "skill_id": "select_state_potion",
+          "max_turns": 6,
+          "created_at": "2026-06-03T13:40:07.297Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-03T13:41:10.608Z",
+          "intake_state": {
+            "state": {
+              "kind": "confusion_overload",
+              "status": "identified",
+              "evidence": [
+                "J ai l impression que mon plan n a plus de sens aujourd hui",
+                "Je fais les actions mecaniquement"
+              ],
+              "intensity": "medium",
+              "confidence": "high"
+            },
+            "context": {
+              "topic_hint": "perte de sens et déconnexion du pourquoi profond",
+              "target_hint": "plan",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "required": true,
+                  "question_id": "plan_meaning_loss_reason",
+                  "locked_value": "Je fais les actions mécaniquement et je ne vois plus le lien avec mon pourquoi profond.",
+                  "user_evidence": [
+                    "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "status": "missing",
+              "answers": [
+                {
+                  "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                  "answer": "Je fais les actions mécaniquement et je ne vois plus le lien avec mon pourquoi profond.",
+                  "evidence": [
+                    "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "question_id": "plan_meaning_loss_reason"
+                }
+              ],
+              "evidence": [
+                "L'utilisateur a fourni une raison claire et précise pour la perte de sens de son plan."
+              ],
+              "optional_free_text": {
+                "label": "Si tu veux, ajoute ce que tu aimerais retrouver dans ce plan.",
+                "status": "missing",
+                "evidence": [],
+                "required": false,
+                "question_id": "optional_free_text",
+                "locked_value": null,
+                "user_evidence": [],
+                "proposed_value": null,
+                "needs_user_confirmation": false
+              },
+              "required_question_ids": [
+                "plan_meaning_loss_reason"
+              ]
+            },
+            "skill_id": "select_state_potion",
+            "shortlist": {
+              "status": "missing",
+              "options": [
+                {
+                  "reason": "L'utilisateur exprime une perte de sens et un sentiment d'agir mécaniquement par rapport à son plan.",
+                  "evidence": [
+                    "Je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "potion_type": "clarte",
+                  "fit_confidence": "high"
+                }
+              ],
+              "evidence": [
+                "Je veux une potion de clarte"
+              ]
+            },
+            "confidence": "high",
+            "missing_slots": [
+              "potion_detail:optional_free_text"
+            ],
+            "selected_potion": {
+              "value": "clarte",
+              "status": "identified",
+              "evidence": [
+                "Je veux une potion de clarte"
+              ],
+              "confidence": "high"
+            },
+            "current_sub_skill": "detail_intake",
+            "generated_user_message": null,
+            "explicit_potion_request": {
+              "status": "identified",
+              "evidence": [
+                "Je veux une potion de clarte"
+              ],
+              "potion_type": "clarte"
+            }
+          },
+          "operation_input": {
+            "state": {
+              "kind": "confusion_overload",
+              "evidence": [
+                "J ai l impression que mon plan n a plus de sens aujourd hui",
+                "Je fais les actions mecaniquement"
+              ],
+              "intensity": "medium"
+            },
+            "context": {
+              "topic_hint": "perte de sens et déconnexion du pourquoi profond",
+              "target_hint": "plan",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "required": true,
+                  "question_id": "plan_meaning_loss_reason",
+                  "locked_value": "Je fais les actions mécaniquement et je ne vois plus le lien avec mon pourquoi profond.",
+                  "user_evidence": [
+                    "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "answers": [
+                {
+                  "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                  "answer": "Je fais les actions mécaniquement et je ne vois plus le lien avec mon pourquoi profond.",
+                  "evidence": [
+                    "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "question_id": "plan_meaning_loss_reason"
+                }
+              ],
+              "optional_free_text": {
+                "label": "Si tu veux, ajoute ce que tu aimerais retrouver dans ce plan.",
+                "status": "missing",
+                "evidence": [],
+                "required": false,
+                "question_id": "optional_free_text",
+                "locked_value": null,
+                "user_evidence": [],
+                "proposed_value": null,
+                "needs_user_confirmation": false
+              },
+              "required_question_ids": [
+                "plan_meaning_loss_reason"
+              ]
+            },
+            "shortlist": {
+              "status": "missing",
+              "options": [
+                {
+                  "reason": "L'utilisateur exprime une perte de sens et un sentiment d'agir mécaniquement par rapport à son plan.",
+                  "evidence": [
+                    "Je ne vois plus le lien avec mon pourquoi profond"
+                  ],
+                  "potion_type": "clarte",
+                  "fit_confidence": "high"
+                }
+              ],
+              "evidence": [
+                "Je veux une potion de clarte"
+              ]
+            },
+            "potion_type": "clarte",
+            "intake_state": {
+              "state": {
+                "kind": "confusion_overload",
+                "status": "identified",
+                "evidence": [
+                  "J ai l impression que mon plan n a plus de sens aujourd hui",
+                  "Je fais les actions mecaniquement"
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "perte de sens et déconnexion du pourquoi profond",
+                "target_hint": "plan",
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                    ],
+                    "required": true,
+                    "question_id": "plan_meaning_loss_reason",
+                    "locked_value": "Je fais les actions mécaniquement et je ne vois plus le lien avec mon pourquoi profond.",
+                    "user_evidence": [
+                      "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "missing",
+                "answers": [
+                  {
+                    "label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?",
+                    "answer": "Je fais les actions mécaniquement et je ne vois plus le lien avec mon pourquoi profond.",
+                    "evidence": [
+                      "Je fais les actions mecaniquement et je ne vois plus le lien avec mon pourquoi profond"
+                    ],
+                    "question_id": "plan_meaning_loss_reason"
+                  }
+                ],
+                "evidence": [
+                  "L'utilisateur a fourni une raison claire et précise pour la perte de sens de son plan."
+                ],
+                "optional_free_text": {
+                  "label": "Si tu veux, ajoute ce que tu aimerais retrouver dans ce plan.",
+                  "status": "missing",
+                  "evidence": [],
+                  "required": false,
+                  "question_id": "optional_free_text",
+                  "locked_value": null,
+                  "user_evidence": [],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                "required_question_ids": [
+                  "plan_meaning_loss_reason"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [
+                  {
+                    "reason": "L'utilisateur exprime une perte de sens et un sentiment d'agir mécaniquement par rapport à son plan.",
+                    "evidence": [
+                      "Je ne vois plus le lien avec mon pourquoi profond"
+                    ],
+                    "potion_type": "clarte",
+                    "fit_confidence": "high"
+                  }
+                ],
+                "evidence": [
+                  "Je veux une potion de clarte"
+                ]
+              },
+              "confidence": "high",
+              "missing_slots": [
+                "potion_detail:optional_free_text"
+              ],
+              "selected_potion": {
+                "value": "clarte",
+                "status": "identified",
+                "evidence": [
+                  "Je veux une potion de clarte"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "detail_intake",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "Je veux une potion de clarte"
+                ],
+                "potion_type": "clarte"
+              }
+            },
+            "explicit_potion_type": "clarte"
+          },
+          "no_chat_mutation": true
+        },
+        "__conversation_risk_history": [
+          0,
+          1
+        ],
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-03T13:53:13.755+00:00",
+      "updated_at": "2026-06-12T21:18:02.041282+00:00",
+      "unprocessed_msg_count": 0,
+      "last_processed_at": "2026-06-03T13:53:13.755+00:00",
+      "scope": "qa-potion-apaisement-20260603-a",
+      "temp_memory": {}
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-03T13:44:26.912+00:00",
+      "updated_at": "2026-06-12T21:18:02.044733+00:00",
+      "unprocessed_msg_count": 2,
+      "last_processed_at": "2026-06-03T13:41:45.681+00:00",
+      "scope": "qa-potion-courage-20260603-a",
+      "temp_memory": {
+        "__conversation_risk_last": {
+          "at": "2026-06-03T13:42:49.089Z",
+          "score": 1,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__active_tool_skill_intake": {
+          "mode": "platform_handoff",
+          "draft": {
+            "mode": "platform_handoff",
+            "operation_type": "select_state_potion",
+            "recommendation": {
+              "avoid": [],
+              "preserve": [],
+              "potion_label": "une potion de courage",
+              "immediate_step": "C'est normal de ressentir cette peur du jugement, mais ce message ne définit pas qui tu es. On va y aller doucement.",
+              "platform_steps": [
+                "ouvre la section État / Potions",
+                "choisis la potion recommandée",
+                "active-la depuis la plateforme si elle te convient"
+              ],
+              "platform_inputs": {
+                "answers": [
+                  {
+                    "value": "envoyer un message important à ton manager",
+                    "question_id": "avoidance_target",
+                    "option_label": null,
+                    "option_value": null,
+                    "question_label": "Qu'est-ce que tu evites en ce moment ?"
+                  },
+                  {
+                    "value": "La peur du regard des autres",
+                    "question_id": "blocker_kind",
+                    "option_label": "La peur du regard des autres",
+                    "option_value": "regard",
+                    "question_label": "Qu'est-ce qui bloque le plus ?"
+                  }
+                ],
+                "potion_type": "courage",
+                "potion_title": "Potion de courage",
+                "optional_free_text": null
+              },
+              "why_this_potion": "L'utilisateur évite d'envoyer un message important à son manager par peur du regard des autres.",
+              "platform_destination": "dans la section État / Potions"
+            },
+            "no_chat_mutation": true,
+            "missing_decisions": [],
+            "user_state_summary": "J evite d envoyer un message important a mon manager ce qui bloque le plus c est la peur du regard des autres",
+            "executable_from_chat": false,
+            "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court."
+          },
+          "phase": "confirmation",
+          "status": "handoff_delivered",
+          "skill_id": "select_state_potion",
+          "max_turns": 6,
+          "created_at": "2026-06-03T13:42:17.347Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-03T13:44:26.911Z",
+          "intake_state": {
+            "state": {
+              "kind": "fear_avoidance",
+              "status": "identified",
+              "evidence": [
+                "J evite d envoyer un message important a mon manager",
+                "ce qui bloque le plus c est la peur du regard des autres"
+              ],
+              "intensity": "medium",
+              "confidence": "high"
+            },
+            "context": {
+              "topic_hint": "peur du regard des autres",
+              "target_hint": "envoyer un message important au manager",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce que tu evites en ce moment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "J evite d envoyer un message important a mon manager"
+                  ],
+                  "required": true,
+                  "question_id": "avoidance_target",
+                  "locked_value": "envoyer un message important à ton manager",
+                  "user_evidence": [
+                    "J evite d envoyer un message important a mon manager"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Qu'est-ce qui bloque le plus ?",
+                  "status": "locked",
+                  "evidence": [
+                    "ce qui bloque le plus c est la peur du regard des autres",
+                    "Oui, c est bien ça."
+                  ],
+                  "required": true,
+                  "question_id": "blocker_kind",
+                  "locked_value": "regard des autres",
+                  "user_evidence": [
+                    "ce qui bloque le plus c est la peur du regard des autres",
+                    "Oui, c est bien ça."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "status": "identified",
+              "answers": [
+                {
+                  "label": "Qu'est-ce que tu evites en ce moment ?",
+                  "answer": "envoyer un message important à ton manager",
+                  "evidence": [
+                    "J evite d envoyer un message important a mon manager"
+                  ],
+                  "question_id": "avoidance_target"
+                },
+                {
+                  "label": "Qu'est-ce qui bloque le plus ?",
+                  "answer": "regard des autres",
+                  "evidence": [
+                    "ce qui bloque le plus c est la peur du regard des autres",
+                    "Oui, c est bien ça."
+                  ],
+                  "question_id": "blocker_kind"
+                }
+              ],
+              "evidence": [
+                "J evite d envoyer un message important a mon manager",
+                "ce qui bloque le plus c est la peur du regard des autres",
+                "Oui, c est bien ça."
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "avoidance_target",
+                "blocker_kind"
+              ]
+            },
+            "skill_id": "select_state_potion",
+            "shortlist": {
+              "status": "missing",
+              "options": [
+                {
+                  "reason": "L'utilisateur exprime explicitement le besoin de courage face à un évitement lié à la peur du regard.",
+                  "evidence": [
+                    "Je veux une potion de courage",
+                    "peur du regard des autres"
+                  ],
+                  "potion_type": "courage",
+                  "fit_confidence": "high"
+                }
+              ],
+              "evidence": [
+                "Je veux une potion de courage"
+              ]
+            },
+            "confidence": "high",
+            "missing_slots": [],
+            "selected_potion": {
+              "value": "courage",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high"
+            },
+            "current_sub_skill": "draft_generation",
+            "generated_user_message": null,
+            "explicit_potion_request": {
+              "status": "identified",
+              "evidence": [
+                "Je veux une potion de courage"
+              ],
+              "potion_type": "courage"
+            }
+          },
+          "operation_input": {
+            "state": {
+              "kind": "fear_avoidance",
+              "evidence": [
+                "J evite d envoyer un message important a mon manager",
+                "ce qui bloque le plus c est la peur du regard des autres"
+              ],
+              "intensity": "medium"
+            },
+            "context": {
+              "topic_hint": "peur du regard des autres",
+              "target_hint": "envoyer un message important au manager",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce que tu evites en ce moment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "J evite d envoyer un message important a mon manager"
+                  ],
+                  "required": true,
+                  "question_id": "avoidance_target",
+                  "locked_value": "envoyer un message important à ton manager",
+                  "user_evidence": [
+                    "J evite d envoyer un message important a mon manager"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Qu'est-ce qui bloque le plus ?",
+                  "status": "locked",
+                  "evidence": [
+                    "ce qui bloque le plus c est la peur du regard des autres",
+                    "Oui, c est bien ça."
+                  ],
+                  "required": true,
+                  "question_id": "blocker_kind",
+                  "locked_value": "regard des autres",
+                  "user_evidence": [
+                    "ce qui bloque le plus c est la peur du regard des autres",
+                    "Oui, c est bien ça."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "answers": [
+                {
+                  "label": "Qu'est-ce que tu evites en ce moment ?",
+                  "answer": "envoyer un message important à ton manager",
+                  "evidence": [
+                    "J evite d envoyer un message important a mon manager"
+                  ],
+                  "question_id": "avoidance_target"
+                },
+                {
+                  "label": "Qu'est-ce qui bloque le plus ?",
+                  "answer": "regard des autres",
+                  "evidence": [
+                    "ce qui bloque le plus c est la peur du regard des autres",
+                    "Oui, c est bien ça."
+                  ],
+                  "question_id": "blocker_kind"
+                }
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "avoidance_target",
+                "blocker_kind"
+              ]
+            },
+            "shortlist": {
+              "status": "missing",
+              "options": [
+                {
+                  "reason": "L'utilisateur exprime explicitement le besoin de courage face à un évitement lié à la peur du regard.",
+                  "evidence": [
+                    "Je veux une potion de courage",
+                    "peur du regard des autres"
+                  ],
+                  "potion_type": "courage",
+                  "fit_confidence": "high"
+                }
+              ],
+              "evidence": [
+                "Je veux une potion de courage"
+              ]
+            },
+            "potion_type": "courage",
+            "intake_state": {
+              "state": {
+                "kind": "fear_avoidance",
+                "status": "identified",
+                "evidence": [
+                  "J evite d envoyer un message important a mon manager",
+                  "ce qui bloque le plus c est la peur du regard des autres"
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "peur du regard des autres",
+                "target_hint": "envoyer un message important au manager",
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce que tu evites en ce moment ?",
+                    "status": "locked",
+                    "evidence": [
+                      "J evite d envoyer un message important a mon manager"
+                    ],
+                    "required": true,
+                    "question_id": "avoidance_target",
+                    "locked_value": "envoyer un message important à ton manager",
+                    "user_evidence": [
+                      "J evite d envoyer un message important a mon manager"
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "label": "Qu'est-ce qui bloque le plus ?",
+                    "status": "locked",
+                    "evidence": [
+                      "ce qui bloque le plus c est la peur du regard des autres",
+                      "Oui, c est bien ça."
+                    ],
+                    "required": true,
+                    "question_id": "blocker_kind",
+                    "locked_value": "regard des autres",
+                    "user_evidence": [
+                      "ce qui bloque le plus c est la peur du regard des autres",
+                      "Oui, c est bien ça."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "identified",
+                "answers": [
+                  {
+                    "label": "Qu'est-ce que tu evites en ce moment ?",
+                    "answer": "envoyer un message important à ton manager",
+                    "evidence": [
+                      "J evite d envoyer un message important a mon manager"
+                    ],
+                    "question_id": "avoidance_target"
+                  },
+                  {
+                    "label": "Qu'est-ce qui bloque le plus ?",
+                    "answer": "regard des autres",
+                    "evidence": [
+                      "ce qui bloque le plus c est la peur du regard des autres",
+                      "Oui, c est bien ça."
+                    ],
+                    "question_id": "blocker_kind"
+                  }
+                ],
+                "evidence": [
+                  "J evite d envoyer un message important a mon manager",
+                  "ce qui bloque le plus c est la peur du regard des autres",
+                  "Oui, c est bien ça."
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "avoidance_target",
+                  "blocker_kind"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [
+                  {
+                    "reason": "L'utilisateur exprime explicitement le besoin de courage face à un évitement lié à la peur du regard.",
+                    "evidence": [
+                      "Je veux une potion de courage",
+                      "peur du regard des autres"
+                    ],
+                    "potion_type": "courage",
+                    "fit_confidence": "high"
+                  }
+                ],
+                "evidence": [
+                  "Je veux une potion de courage"
+                ]
+              },
+              "confidence": "high",
+              "missing_slots": [],
+              "selected_potion": {
+                "value": "courage",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "draft_generation",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "Je veux une potion de courage"
+                ],
+                "potion_type": "courage"
+              }
+            },
+            "explicit_potion_type": "courage"
+          },
+          "no_chat_mutation": true
+        },
+        "__conversation_risk_history": [
+          0,
+          1
+        ],
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-03T13:55:26.557+00:00",
+      "updated_at": "2026-06-12T21:18:02.048865+00:00",
+      "unprocessed_msg_count": 2,
+      "last_processed_at": "2026-06-03T13:53:35.011+00:00",
+      "scope": "qa-potion-apaisement-20260603-a-retry",
+      "temp_memory": {
+        "__conversation_risk_last": {
+          "at": "2026-06-03T13:54:29.430Z",
+          "score": 1,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__active_tool_skill_intake": {
+          "mode": "platform_handoff",
+          "draft": {
+            "mode": "platform_handoff",
+            "operation_type": "select_state_potion",
+            "recommendation": {
+              "avoid": [],
+              "preserve": [],
+              "potion_label": "une potion d'apaisement court",
+              "immediate_step": "Là, tu n'as pas besoin de tout gérer d'un coup. Respire un peu, laisse redescendre la pression, et reviens juste à ce qui est devant toi.",
+              "platform_steps": [
+                "ouvre la section État / Potions",
+                "choisis la potion recommandée",
+                "active-la depuis la plateforme si elle te convient"
+              ],
+              "platform_inputs": {
+                "answers": [
+                  {
+                    "value": "l'accumulation de messages et une discussion qui tourne dans la tête",
+                    "question_id": "pressure_source",
+                    "option_label": null,
+                    "option_value": null,
+                    "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                  },
+                  {
+                    "value": "A cran",
+                    "question_id": "pressure_state",
+                    "option_label": "A cran",
+                    "option_value": "a_cran",
+                    "question_label": "Tu te sens plutot comment ?"
+                  }
+                ],
+                "potion_type": "apaisement",
+                "potion_title": "Potion d'apaisement",
+                "optional_free_text": null
+              },
+              "why_this_potion": "Tu es sous forte pression, avec de l'accumulation et une discussion qui tourne en boucle. L'objectif est de redescendre un peu avant de refaire de la place.",
+              "platform_destination": "dans la section État / Potions"
+            },
+            "no_chat_mutation": true,
+            "missing_decisions": [],
+            "user_state_summary": "Je veux une potion d apaisement l accumulation de messages et une discussion qui tourne dans ma tete",
+            "executable_from_chat": false,
+            "desired_shift_summary": "Le shift recommandé est de redescendre la pression avant de reprendre."
+          },
+          "phase": "confirmation",
+          "status": "handoff_delivered",
+          "skill_id": "select_state_potion",
+          "max_turns": 6,
+          "created_at": "2026-06-03T13:54:07.075Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-03T13:55:26.557Z",
+          "intake_state": {
+            "state": {
+              "kind": "stress_pressure",
+              "status": "identified",
+              "evidence": [
+                "Je veux une potion d apaisement",
+                "l accumulation de messages et une discussion qui tourne dans ma tete",
+                "Je me sens a cran"
+              ],
+              "intensity": "high",
+              "confidence": "high"
+            },
+            "context": {
+              "topic_hint": "pression mentale",
+              "target_hint": "accumulation de messages et discussion mentale",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "status": "locked",
+                  "evidence": [
+                    "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                  ],
+                  "required": true,
+                  "question_id": "pressure_source",
+                  "locked_value": "l'accumulation de messages et une discussion qui tourne dans la tête",
+                  "user_evidence": [
+                    "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu te sens plutot comment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Oui, surtout a cran."
+                  ],
+                  "required": true,
+                  "question_id": "pressure_state",
+                  "locked_value": "à cran",
+                  "user_evidence": [
+                    "Oui, surtout a cran."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "status": "identified",
+              "answers": [
+                {
+                  "label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "answer": "l'accumulation de messages et une discussion qui tourne dans la tête",
+                  "evidence": [
+                    "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                  ],
+                  "question_id": "pressure_source"
+                },
+                {
+                  "label": "Tu te sens plutot comment ?",
+                  "answer": "à cran",
+                  "evidence": [
+                    "Oui, surtout a cran."
+                  ],
+                  "question_id": "pressure_state"
+                }
+              ],
+              "evidence": [
+                "l'accumulation de messages et une discussion qui tourne dans la tête",
+                "a cran"
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "pressure_source",
+                "pressure_state"
+              ]
+            },
+            "skill_id": "select_state_potion",
+            "shortlist": {
+              "status": "missing",
+              "options": [
+                {
+                  "reason": "Demande explicite de l'utilisateur pour gérer la pression et l'état 'à cran'.",
+                  "evidence": [
+                    "Je veux une potion d apaisement"
+                  ],
+                  "potion_type": "apaisement",
+                  "fit_confidence": "high"
+                }
+              ],
+              "evidence": [
+                "Je veux une potion d apaisement"
+              ]
+            },
+            "confidence": "high",
+            "missing_slots": [],
+            "selected_potion": {
+              "value": "apaisement",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high"
+            },
+            "current_sub_skill": "draft_generation",
+            "generated_user_message": null,
+            "explicit_potion_request": {
+              "status": "identified",
+              "evidence": [
+                "Je veux une potion d apaisement"
+              ],
+              "potion_type": "apaisement"
+            }
+          },
+          "operation_input": {
+            "state": {
+              "kind": "stress_pressure",
+              "evidence": [
+                "Je veux une potion d apaisement",
+                "l accumulation de messages et une discussion qui tourne dans ma tete",
+                "Je me sens a cran"
+              ],
+              "intensity": "high"
+            },
+            "context": {
+              "topic_hint": "pression mentale",
+              "target_hint": "accumulation de messages et discussion mentale",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "status": "locked",
+                  "evidence": [
+                    "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                  ],
+                  "required": true,
+                  "question_id": "pressure_source",
+                  "locked_value": "l'accumulation de messages et une discussion qui tourne dans la tête",
+                  "user_evidence": [
+                    "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu te sens plutot comment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Oui, surtout a cran."
+                  ],
+                  "required": true,
+                  "question_id": "pressure_state",
+                  "locked_value": "à cran",
+                  "user_evidence": [
+                    "Oui, surtout a cran."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "answers": [
+                {
+                  "label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "answer": "l'accumulation de messages et une discussion qui tourne dans la tête",
+                  "evidence": [
+                    "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                  ],
+                  "question_id": "pressure_source"
+                },
+                {
+                  "label": "Tu te sens plutot comment ?",
+                  "answer": "à cran",
+                  "evidence": [
+                    "Oui, surtout a cran."
+                  ],
+                  "question_id": "pressure_state"
+                }
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "pressure_source",
+                "pressure_state"
+              ]
+            },
+            "shortlist": {
+              "status": "missing",
+              "options": [
+                {
+                  "reason": "Demande explicite de l'utilisateur pour gérer la pression et l'état 'à cran'.",
+                  "evidence": [
+                    "Je veux une potion d apaisement"
+                  ],
+                  "potion_type": "apaisement",
+                  "fit_confidence": "high"
+                }
+              ],
+              "evidence": [
+                "Je veux une potion d apaisement"
+              ]
+            },
+            "potion_type": "apaisement",
+            "intake_state": {
+              "state": {
+                "kind": "stress_pressure",
+                "status": "identified",
+                "evidence": [
+                  "Je veux une potion d apaisement",
+                  "l accumulation de messages et une discussion qui tourne dans ma tete",
+                  "Je me sens a cran"
+                ],
+                "intensity": "high",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "pression mentale",
+                "target_hint": "accumulation de messages et discussion mentale",
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Qu'est-ce qui te met le plus sous pression la ?",
+                    "status": "locked",
+                    "evidence": [
+                      "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                    ],
+                    "required": true,
+                    "question_id": "pressure_source",
+                    "locked_value": "l'accumulation de messages et une discussion qui tourne dans la tête",
+                    "user_evidence": [
+                      "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "label": "Tu te sens plutot comment ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Oui, surtout a cran."
+                    ],
+                    "required": true,
+                    "question_id": "pressure_state",
+                    "locked_value": "à cran",
+                    "user_evidence": [
+                      "Oui, surtout a cran."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "identified",
+                "answers": [
+                  {
+                    "label": "Qu'est-ce qui te met le plus sous pression la ?",
+                    "answer": "l'accumulation de messages et une discussion qui tourne dans la tête",
+                    "evidence": [
+                      "l'accumulation de messages et une discussion qui tourne dans ma tête"
+                    ],
+                    "question_id": "pressure_source"
+                  },
+                  {
+                    "label": "Tu te sens plutot comment ?",
+                    "answer": "à cran",
+                    "evidence": [
+                      "Oui, surtout a cran."
+                    ],
+                    "question_id": "pressure_state"
+                  }
+                ],
+                "evidence": [
+                  "l'accumulation de messages et une discussion qui tourne dans la tête",
+                  "a cran"
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "pressure_source",
+                  "pressure_state"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [
+                  {
+                    "reason": "Demande explicite de l'utilisateur pour gérer la pression et l'état 'à cran'.",
+                    "evidence": [
+                      "Je veux une potion d apaisement"
+                    ],
+                    "potion_type": "apaisement",
+                    "fit_confidence": "high"
+                  }
+                ],
+                "evidence": [
+                  "Je veux une potion d apaisement"
+                ]
+              },
+              "confidence": "high",
+              "missing_slots": [],
+              "selected_potion": {
+                "value": "apaisement",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "draft_generation",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "Je veux une potion d apaisement"
+                ],
+                "potion_type": "apaisement"
+              }
+            },
+            "explicit_potion_type": "apaisement"
+          },
+          "no_chat_mutation": true
+        },
+        "__conversation_risk_history": [
+          0,
+          1
+        ],
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-03T13:46:45.236+00:00",
+      "updated_at": "2026-06-12T21:18:02.052936+00:00",
+      "unprocessed_msg_count": 2,
+      "last_processed_at": "2026-06-03T13:44:40.916+00:00",
+      "scope": "qa-potion-rappel-20260603-a",
+      "temp_memory": {
+        "__conversation_risk_last": {
+          "at": "2026-06-03T13:46:06.008Z",
+          "score": 1,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__active_tool_skill_intake": {
+          "mode": "platform_handoff",
+          "draft": {
+            "mode": "platform_handoff",
+            "operation_type": "select_state_potion",
+            "recommendation": {
+              "avoid": [],
+              "preserve": [],
+              "potion_label": "une potion de rappel",
+              "immediate_step": "C'est normal que l'élan fluctue par moments. L'idée ici n'est pas de se mettre la pression, mais juste de ne pas laisser le fil se rompre tout à fait.",
+              "platform_steps": [
+                "ouvre la section État / Potions",
+                "choisis la potion recommandée",
+                "active-la depuis la plateforme si elle te convient"
+              ],
+              "platform_inputs": {
+                "answers": [
+                  {
+                    "value": "séances de sport",
+                    "question_id": "drift_target",
+                    "option_label": null,
+                    "option_value": null,
+                    "question_label": "Par rapport a quoi tu sens que tu decroches ?"
+                  },
+                  {
+                    "value": "Je repousse",
+                    "question_id": "drift_style",
+                    "option_label": "Je repousse",
+                    "option_value": "repousse",
+                    "question_label": "Tu decroches plutot comment ?"
+                  }
+                ],
+                "potion_type": "rappel",
+                "potion_title": "Potion anti-decrochage",
+                "optional_free_text": null
+              },
+              "why_this_potion": "Tu as identifié que tu commençais à laisser filer le sport, qui est pourtant un pilier essentiel de ton sas de décompression pour éviter de fumer le soir.",
+              "platform_destination": "dans la section État / Potions"
+            },
+            "no_chat_mutation": true,
+            "missing_decisions": [],
+            "user_state_summary": "Je sens que je decroche de mes seances de sport Je repousse a chaque fois",
+            "executable_from_chat": false,
+            "desired_shift_summary": "Le shift recommandé est de revenir au geste utile sans ritualiser."
+          },
+          "phase": "confirmation",
+          "status": "handoff_delivered",
+          "skill_id": "select_state_potion",
+          "max_turns": 6,
+          "created_at": "2026-06-03T13:45:23.126Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-03T13:46:45.235Z",
+          "intake_state": {
+            "state": {
+              "kind": "decrochage",
+              "status": "identified",
+              "evidence": [
+                "Je sens que je decroche de mes seances de sport",
+                "Je repousse a chaque fois"
+              ],
+              "intensity": "medium",
+              "confidence": "high"
+            },
+            "context": {
+              "topic_hint": "sport",
+              "target_hint": "seances de sport",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Par rapport a quoi tu sens que tu decroches ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je sens que je decroche de mes seances de sport"
+                  ],
+                  "required": true,
+                  "question_id": "drift_target",
+                  "locked_value": "séances de sport",
+                  "user_evidence": [
+                    "Je sens que je decroche de mes seances de sport"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu decroches plutot comment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je repousse a chaque fois",
+                    "On finit de preparer la potion pour le sport."
+                  ],
+                  "required": true,
+                  "question_id": "drift_style",
+                  "locked_value": "repousse",
+                  "user_evidence": [
+                    "Je repousse a chaque fois",
+                    "On finit de preparer la potion pour le sport."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "status": "identified",
+              "answers": [
+                {
+                  "label": "Par rapport a quoi tu sens que tu decroches ?",
+                  "answer": "séances de sport",
+                  "evidence": [
+                    "Je sens que je decroche de mes seances de sport"
+                  ],
+                  "question_id": "drift_target"
+                },
+                {
+                  "label": "Tu decroches plutot comment ?",
+                  "answer": "repousse",
+                  "evidence": [
+                    "Je repousse a chaque fois",
+                    "On finit de preparer la potion pour le sport."
+                  ],
+                  "question_id": "drift_style"
+                }
+              ],
+              "evidence": [
+                "Je sens que je decroche de mes seances de sport",
+                "Je repousse a chaque fois",
+                "On finit de preparer la potion pour le sport."
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "drift_target",
+                "drift_style"
+              ]
+            },
+            "skill_id": "select_state_potion",
+            "shortlist": {
+              "status": "missing",
+              "options": [],
+              "evidence": []
+            },
+            "confidence": "high",
+            "missing_slots": [],
+            "selected_potion": {
+              "value": "rappel",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high"
+            },
+            "current_sub_skill": "draft_generation",
+            "generated_user_message": null,
+            "explicit_potion_request": {
+              "status": "identified",
+              "evidence": [
+                "je veux une potion anti-decrochage"
+              ],
+              "potion_type": "rappel"
+            }
+          },
+          "operation_input": {
+            "state": {
+              "kind": "decrochage",
+              "evidence": [
+                "Je sens que je decroche de mes seances de sport",
+                "Je repousse a chaque fois"
+              ],
+              "intensity": "medium"
+            },
+            "context": {
+              "topic_hint": "sport",
+              "target_hint": "seances de sport",
+              "handoff_summary": null,
+              "related_plan_item_id": null
+            },
+            "details": {
+              "fields": [
+                {
+                  "label": "Par rapport a quoi tu sens que tu decroches ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je sens que je decroche de mes seances de sport"
+                  ],
+                  "required": true,
+                  "question_id": "drift_target",
+                  "locked_value": "séances de sport",
+                  "user_evidence": [
+                    "Je sens que je decroche de mes seances de sport"
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                },
+                {
+                  "label": "Tu decroches plutot comment ?",
+                  "status": "locked",
+                  "evidence": [
+                    "Je repousse a chaque fois",
+                    "On finit de preparer la potion pour le sport."
+                  ],
+                  "required": true,
+                  "question_id": "drift_style",
+                  "locked_value": "repousse",
+                  "user_evidence": [
+                    "Je repousse a chaque fois",
+                    "On finit de preparer la potion pour le sport."
+                  ],
+                  "proposed_value": null,
+                  "needs_user_confirmation": false
+                }
+              ],
+              "answers": [
+                {
+                  "label": "Par rapport a quoi tu sens que tu decroches ?",
+                  "answer": "séances de sport",
+                  "evidence": [
+                    "Je sens que je decroche de mes seances de sport"
+                  ],
+                  "question_id": "drift_target"
+                },
+                {
+                  "label": "Tu decroches plutot comment ?",
+                  "answer": "repousse",
+                  "evidence": [
+                    "Je repousse a chaque fois",
+                    "On finit de preparer la potion pour le sport."
+                  ],
+                  "question_id": "drift_style"
+                }
+              ],
+              "optional_free_text": null,
+              "required_question_ids": [
+                "drift_target",
+                "drift_style"
+              ]
+            },
+            "potion_type": "rappel",
+            "intake_state": {
+              "state": {
+                "kind": "decrochage",
+                "status": "identified",
+                "evidence": [
+                  "Je sens que je decroche de mes seances de sport",
+                  "Je repousse a chaque fois"
+                ],
+                "intensity": "medium",
+                "confidence": "high"
+              },
+              "context": {
+                "topic_hint": "sport",
+                "target_hint": "seances de sport",
+                "handoff_summary": null,
+                "related_plan_item_id": null
+              },
+              "details": {
+                "fields": [
+                  {
+                    "label": "Par rapport a quoi tu sens que tu decroches ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je sens que je decroche de mes seances de sport"
+                    ],
+                    "required": true,
+                    "question_id": "drift_target",
+                    "locked_value": "séances de sport",
+                    "user_evidence": [
+                      "Je sens que je decroche de mes seances de sport"
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  {
+                    "label": "Tu decroches plutot comment ?",
+                    "status": "locked",
+                    "evidence": [
+                      "Je repousse a chaque fois",
+                      "On finit de preparer la potion pour le sport."
+                    ],
+                    "required": true,
+                    "question_id": "drift_style",
+                    "locked_value": "repousse",
+                    "user_evidence": [
+                      "Je repousse a chaque fois",
+                      "On finit de preparer la potion pour le sport."
+                    ],
+                    "proposed_value": null,
+                    "needs_user_confirmation": false
+                  }
+                ],
+                "status": "identified",
+                "answers": [
+                  {
+                    "label": "Par rapport a quoi tu sens que tu decroches ?",
+                    "answer": "séances de sport",
+                    "evidence": [
+                      "Je sens que je decroche de mes seances de sport"
+                    ],
+                    "question_id": "drift_target"
+                  },
+                  {
+                    "label": "Tu decroches plutot comment ?",
+                    "answer": "repousse",
+                    "evidence": [
+                      "Je repousse a chaque fois",
+                      "On finit de preparer la potion pour le sport."
+                    ],
+                    "question_id": "drift_style"
+                  }
+                ],
+                "evidence": [
+                  "Je sens que je decroche de mes seances de sport",
+                  "Je repousse a chaque fois",
+                  "On finit de preparer la potion pour le sport."
+                ],
+                "optional_free_text": null,
+                "required_question_ids": [
+                  "drift_target",
+                  "drift_style"
+                ]
+              },
+              "skill_id": "select_state_potion",
+              "shortlist": {
+                "status": "missing",
+                "options": [],
+                "evidence": []
+              },
+              "confidence": "high",
+              "missing_slots": [],
+              "selected_potion": {
+                "value": "rappel",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high"
+              },
+              "current_sub_skill": "draft_generation",
+              "generated_user_message": null,
+              "explicit_potion_request": {
+                "status": "identified",
+                "evidence": [
+                  "je veux une potion anti-decrochage"
+                ],
+                "potion_type": "rappel"
+              }
+            },
+            "explicit_potion_type": "rappel"
+          },
+          "no_chat_mutation": true
+        },
+        "__conversation_risk_history": [
+          0,
+          1
+        ],
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-10T11:07:29.121+00:00",
+      "updated_at": "2026-06-12T21:18:02.056025+00:00",
+      "unprocessed_msg_count": 4,
+      "last_processed_at": "2026-06-10T11:05:10.34+00:00",
+      "scope": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-visible_location_r1",
+      "temp_memory": {
+        "__conversation_risk_last": {
+          "at": "2026-06-10T11:05:17.300Z",
+          "score": 0,
+          "threshold": 8,
+          "reason_codes": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__conversation_risk_history": [
+          0
+        ],
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-12T17:18:10.192+00:00",
+      "updated_at": "2026-06-12T21:18:02.058231+00:00",
+      "unprocessed_msg_count": 6,
+      "last_processed_at": "2026-06-12T13:40:01.799+00:00",
+      "scope": "whatsapp",
+      "temp_memory": {
+        "__momentum_state_v2": {
+          "posture": {
+            "confidence": "high",
+            "recommended_posture": "simplify"
+          },
+          "version": 2,
+          "blockers": {
+            "blocker_kind": null,
+            "blocker_repeat_score": 0
+          },
+          "_internal": {
+            "sources": {
+              "router_updated_at": "2026-06-12T17:18:10.191Z",
+              "last_classified_by": "router"
+            },
+            "stability": {
+              "stable_since_at": "2026-06-12T13:40:06.040Z"
+            },
+            "signal_log": {
+              "consent_events": [],
+              "emotional_turns": [],
+              "response_quality_events": [
+                {
+                  "at": "2026-06-12T13:40:06.040Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-06-12T14:09:27.789Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-06-12T17:18:10.191Z",
+                  "quality": "substantive"
+                }
+              ]
+            },
+            "metrics_cache": {
+              "last_user_turn_at": "2026-06-12T17:18:10.191Z",
+              "last_user_turn_quality": "substantive",
+              "days_since_last_user_message": 0
+            }
+          },
+          "assessment": {
+            "top_risk": null,
+            "confidence": "low",
+            "top_blocker": null
+          },
+          "dimensions": {
+            "consent": {
+              "level": "open",
+              "reason": "no_decline_detected"
+            },
+            "plan_fit": {
+              "level": "uncertain"
+            },
+            "engagement": {
+              "level": "high",
+              "reason": "substantive_recent_reply"
+            },
+            "load_balance": {
+              "level": "balanced"
+            },
+            "emotional_load": {
+              "level": "low",
+              "reason": "no_emotional_marker"
+            },
+            "execution_traction": {
+              "level": "unknown"
+            }
+          },
+          "updated_at": "2026-06-12T17:18:10.191Z",
+          "active_load": {
+            "needs_reduce": false,
+            "needs_consolidate": false,
+            "current_load_score": 0,
+            "mission_slots_used": 0,
+            "support_slots_used": 0,
+            "habit_building_slots_used": 0
+          },
+          "memory_links": {
+            "last_useful_support_ids": [],
+            "last_failed_technique_ids": []
+          },
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "current_state": "friction_legere"
+        },
+        "__whatsapp_fil_rouge": {
+          "text": "Tu es soulagé; respiration et tri admin sont passés côté “daily” aujourd’hui. On clôture la session et on reprend demain sans nouvelle action.",
+          "marker": "fil_rouge_whatsapp",
+          "updated_at": "2026-06-12T17:18:10.216Z"
+        },
+        "__conversation_risk_last": {
+          "at": "2026-06-12T17:18:10.190Z",
+          "score": 0,
+          "threshold": 8,
+          "reason_codes": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__memory_payload_state_v2": {
+          "items": [],
+          "budget": {
+            "max_items": 12,
+            "max_entities": 5,
+            "tokens_target": 1800
+          },
+          "modules": {},
+          "version": 2,
+          "entities": [],
+          "last_turn_id": null,
+          "active_topic_id": null
+        },
+        "companion_question_rhythm": {
+          "preference": "normal",
+          "recent_turns": [
+            0,
+            0,
+            0
+          ],
+          "last_updated_at": "2026-06-12T17:18:10.176Z",
+          "last_turn_had_question": false,
+          "turns_since_last_question": 3
+        },
+        "__conversation_risk_history": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "__status_recap_flow_state_v1": {
+          "mode": "local_readonly_flow",
+          "status": "exit_to_global",
+          "skill_id": "status_recap",
+          "max_turns": 3,
+          "created_at": "2026-06-12T16:42:00.952Z",
+          "turn_count": 3,
+          "updated_at": "2026-06-12T17:17:24.901Z",
+          "last_intent": "object_status",
+          "last_answer_summary": "Le user demande des précisions concrètes sur l'action 'respiration' mentionnée précédemment.",
+          "last_target_objects": [
+            "plan_item",
+            "one_shot_reminder",
+            "recurring_reminder"
+          ],
+          "last_projection_summary": {
+            "attack_card_count": 1,
+            "defense_card_count": 1,
+            "potion_session_count": 0,
+            "coach_preference_count": 9,
+            "one_shot_pending_count": 2,
+            "recurring_reminder_count": 2,
+            "recent_effect_history_count": 14,
+            "one_shot_cancelled_recent_count": 0
+          }
+        },
+        "__coaching_intervention_history": []
+      }
+    },
+    {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-06-10T13:10:54.361+00:00",
+      "updated_at": "2026-06-12T21:18:02.060939+00:00",
+      "unprocessed_msg_count": 4,
+      "last_processed_at": "2026-06-10T13:09:24.558+00:00",
+      "scope": "qa-rose-2026-06-10-adjust-plan-whole-plan-taxonomy-triptych_r2",
+      "temp_memory": {
+        "__conversation_risk_last": {
+          "at": "2026-06-10T13:09:35.459Z",
+          "score": 0,
+          "threshold": 8,
+          "reason_codes": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__conversation_risk_history": [
+          0
+        ],
+        "__coaching_intervention_history": []
+      }
+    }
+  ],
+  "plans": [
+    {
+      "id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "status": "active",
+      "version": 1,
+      "title": "Libération progressive du cannabis",
+      "content": {
+        "title": "Libération progressive du cannabis",
+        "phases": [
+          {
+            "items": [
+              {
+                "kind": "task",
+                "title": "Ranger le matériel hors de vue",
+                "payload": {},
+                "temp_id": "gen-p1-missions-001",
+                "dimension": "missions",
+                "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 1,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "framework",
+                "title": "Cibler le joint réflexe",
+                "payload": {
+                  "clarification_details": {
+                    "type": "one_shot",
+                    "intro": "Tous les joints n'ont pas la même 'valeur'. Certains sont fumés par pur automatisme, sans même en avoir vraiment envie. Identifions-le.",
+                    "sections": [
+                      {
+                        "id": "reflex_moment",
+                        "label": "À quel moment précis fumes-tu ton joint le plus 'automatique' ?",
+                        "input_type": "text",
+                        "helper_text": "Sois le plus précis possible sur le contexte.",
+                        "placeholder": "Ex: En rentrant du travail, après manger..."
+                      },
+                      {
+                        "id": "feeling_before",
+                        "label": "Que ressens-tu juste avant de l'allumer ?",
+                        "input_type": "list",
+                        "helper_text": "Ajoute les émotions ou sensations qui précèdent le geste.",
+                        "placeholder": "stress, ennui, fatigue..."
+                      }
+                    ],
+                    "save_label": "Enregistrer l'observation"
+                  }
+                },
+                "temp_id": "gen-p1-clarifications-001",
+                "dimension": "clarifications",
+                "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 2,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "habit",
+                "title": "Faire un sas de décompression (sans fumer)",
+                "payload": {},
+                "temp_id": "gen-p1-habits-001",
+                "dimension": "habits",
+                "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+                "target_reps": 3,
+                "time_of_day": "evening",
+                "support_mode": null,
+                "cadence_label": "3 soirs / semaine",
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 3,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "task",
+                "title": "Préparer un plan anti-ennui",
+                "payload": {},
+                "temp_id": "gen-p1-missions-002",
+                "dimension": "missions",
+                "description": "L'ennui est ton pire ennemi le soir. Prévois 2 activités concrètes (un film précis à lancer, un jeu, un appel à un proche) pour occuper tes mains et ton esprit pendant ton sas de décompression.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 4,
+                "support_function": null,
+                "activation_condition": {
+                  "type": "after_item_completion",
+                  "depends_on": [
+                    "gen-p1-missions-001"
+                  ]
+                }
+              },
+              {
+                "kind": "framework",
+                "title": "Bilan de la friction",
+                "payload": {
+                  "clarification_details": {
+                    "type": "one_shot",
+                    "intro": "Tu as commencé à retarder ta première consommation. Faisons le point sur ce qui fonctionne pour toi.",
+                    "sections": [
+                      {
+                        "id": "best_distraction",
+                        "label": "Quelle activité t'a le plus aidé à penser à autre chose ?",
+                        "input_type": "text",
+                        "helper_text": "Garde cette activité en tête comme ton arme principale.",
+                        "placeholder": "Ex: Prendre une douche direct, cuisiner..."
+                      }
+                    ],
+                    "save_label": "Valider le point"
+                  }
+                },
+                "temp_id": "gen-p1-clarifications-002",
+                "dimension": "clarifications",
+                "description": "Analyse ce qui t'aide le plus à tenir le sas de décompression sans craquer immédiatement.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 5,
+                "support_function": null,
+                "activation_condition": {
+                  "type": "after_habit_traction",
+                  "depends_on": [
+                    "gen-p1-habits-001"
+                  ],
+                  "min_completions": 2
+                }
+              }
+            ],
+            "title": "Casser l'automatisme du soir",
+            "phase_id": "phase-1",
+            "heartbeat": {
+              "unit": "soirs/semaine",
+              "title": "Soirs avec le sas de décompression tenu",
+              "target": 3,
+              "current": null,
+              "tracking_mode": "inferred"
+            },
+            "rationale": "Tant que le réflexe de fumer en rentrant est immédiat, essayer de faire des jours complets sans fumer sera trop difficile. On commence par créer un sas de décompression.",
+            "phase_order": 1,
+            "why_this_now": "C'est le levier le plus structurant pour reprendre le contrôle sans imposer un manque brutal immédiat.",
+            "phase_objective": "Retarder le premier joint du soir en installant une nouvelle habitude de transition.",
+            "duration_guidance": "3 semaines",
+            "phase_metric_target": "Pas encore de cible directe sur les 0 jours de consommation ; cette phase prépare le terrain en visant 3 soirs par semaine où tu repousses le réflexe de fumer en rentrant.",
+            "how_this_phase_works": "On modifie ton environnement pour ajouter de la friction et on installe une activité tampon avant toute consommation.",
+            "maintained_foundation": [],
+            "what_this_phase_targets": "Le réflexe conditionné qui te fait consommer dès que tu as du temps libre le soir."
+          }
+        ],
+        "version": 3,
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "metadata": {
+          "phase_1_preview": {
+            "title": "Poser ton socle de départ",
+            "heartbeat": "Pourquoi clarifié",
+            "rationale": "Avant de réduire ta consommation, il faut comprendre exactement ce qui la déclenche aujourd'hui.",
+            "phase_objective": "Mettre au clair tes vrais déclencheurs (stress, ennui, habitude) et te rappeler pourquoi tu veux vraiment te libérer de ça."
+          },
+          "schedule_anchor": {
+            "version": 1,
+            "timezone": "Europe/Paris",
+            "week_starts_on": "monday",
+            "anchor_week_end": "2026-06-07",
+            "generated_at_utc": "2026-06-02T16:06:21.241Z",
+            "anchor_local_date": "2026-06-02",
+            "anchor_week_start": "2026-06-01",
+            "anchor_local_human": "mardi 2 juin 2026 à 18:06",
+            "anchor_display_start": "2026-06-02",
+            "is_partial_anchor_week": true,
+            "days_remaining_in_anchor_week": 6
+          },
+          "plan_adjustment_context": {
+            "phase_reasoning": [
+              {
+                "phase_id": "phase-1",
+                "phase_order": 1,
+                "role_in_plan": "Désamorcer le pilote automatique du soir en créant un espace de choix avant de consommer.",
+                "why_before_next": "Tant que le réflexe immédiat n'est pas cassé, essayer de faire des jours complets sans fumer sera trop difficile.",
+                "slowdown_signals": [
+                  "Le matériel rangé est ressorti immédiatement",
+                  "L'attente crée une obsession insupportable"
+                ],
+                "user_signals_used": [
+                  "Consommation 7j/7",
+                  "Déclencheur principal : le soir / la routine",
+                  "Volonté de réduction progressive"
+                ],
+                "acceleration_signals": [
+                  "Tu ne fumes finalement pas du tout certains soirs après avoir retardé la prise"
+                ],
+                "prerequisite_for_next_phase": "Être capable de rentrer chez soi et de s'occuper au moins 1h sans fumer, plusieurs soirs par semaine."
+              }
+            ],
+            "global_reasoning": {
+              "sequencing_logic": "On retarde d'abord la prise pour casser le réflexe, puis on insère des jours off, avant de sevrer totalement.",
+              "slowdown_signals": [
+                "Fortes crises d'angoisse le soir",
+                "Incapacité totale à retarder le premier joint",
+                "Troubles sévères du sommeil"
+              ],
+              "main_problem_model": "La consommation est devenue un automatisme quotidien, particulièrement le soir pour gérer la transition journée/soirée et l'ennui.",
+              "acceleration_signals": [
+                "Le sas de décompression est facile à tenir",
+                "Tu sautes naturellement des jours de consommation sans forcer"
+              ],
+              "why_not_faster_initially": "Passer de 7j/7 à 0j/7 d'un coup après 3 ans créerait un manque trop fort et un risque de rechute immédiate."
+            }
+          }
+        },
+        "strategy": {
+          "core_principle": null,
+          "identity_shift": null,
+          "main_constraint": "Ne pas brusquer le sevrage pour éviter un effet rebond ; avancer par paliers de réduction concrets.",
+          "success_definition": "Atteindre 0 jour de consommation par semaine et ne plus utiliser le cannabis comme béquille anti-stress ou anti-ennui."
+        },
+        "user_summary": "Tu as pris la décision forte de te libérer du cannabis après plus de 3 ans de consommation quotidienne. On va y aller progressivement : d'abord désamorcer l'automatisme du soir, puis réapprendre à gérer l'ennui et le stress autrement, jusqu'à l'arrêt complet.",
+        "plan_blueprint": {
+          "levels": [
+            {
+              "title": "Intégrer des jours complets sans consommation",
+              "phase_id": "phase-2",
+              "intention": "Passer de la réduction quotidienne à l'introduction de vrais jours 'off' dans la semaine.",
+              "level_order": 2,
+              "preview_summary": "Une fois le réflexe du soir cassé, on commence à instaurer des journées entières sans cannabis.",
+              "estimated_duration_weeks": 3
+            },
+            {
+              "title": "Gérer les moments de stress à vide",
+              "phase_id": "phase-3",
+              "intention": "Réduire la consommation au week-end uniquement et affronter les émotions difficiles sans béquille.",
+              "level_order": 3,
+              "preview_summary": "On s'attaque au vrai défi : traverser les journées stressantes sans utiliser le cannabis comme amortisseur.",
+              "estimated_duration_weeks": 3
+            },
+            {
+              "title": "Le saut vers le zéro",
+              "phase_id": "phase-4",
+              "intention": "Couper les dernières consommations résiduelles et consolider la nouvelle identité sans cannabis.",
+              "level_order": 4,
+              "preview_summary": "La dernière étape pour atteindre l'arrêt total et sécuriser tes nouvelles habitudes de vie.",
+              "estimated_duration_weeks": 3
+            }
+          ],
+          "global_objective": "Atteindre 0 jour de consommation par semaine de manière durable.",
+          "estimated_levels_count": 3
+        },
+        "primary_metric": {
+          "unit": "jours/semaine",
+          "label": "Jours de consommation de cannabis",
+          "baseline_value": "7 jours / semaine",
+          "success_target": "0 jours / semaine",
+          "measurement_mode": "absolute_value"
+        },
+        "duration_months": 3,
+        "journey_context": null,
+        "global_objective": "Atteindre 0 jour de consommation par semaine et ne plus utiliser le cannabis comme béquille anti-stress ou anti-ennui.",
+        "internal_summary": "Utilisateur de 27 ans, fumeur quotidien (7j/7) depuis plus de 3 ans. Souhaite un arrêt progressif. Les bloqueurs principaux sont la routine du soir, l'ennui et le stress. Le plan adopte une approche de réduction des risques et de modification comportementale : retarder la première prise pour briser l'automatisme, introduire des jours 'off', puis sevrer totalement.",
+        "timeline_summary": "Tu vas d'abord briser l'automatisme du soir sur 3 semaines, avant d'introduire progressivement des jours complets sans consommation.",
+        "key_understanding": "Pour arrêter sans craquer, il ne faut pas juste s'interdire de fumer, mais d'abord casser l'automatisme en insérant un espace de choix entre le déclencheur (rentrer chez soi/l'ennui) et l'action (rouler un joint).",
+        "progression_logic": "On commence par casser le réflexe automatique du soir en retardant la première prise, puis on introduira des jours complets de pause, avant de s'attaquer à la gestion du stress à vide pour viser l'arrêt total.",
+        "situation_context": "Tu fumes du cannabis tous les jours depuis plus de 3 ans. C'est devenu un automatisme, particulièrement le soir, pour gérer le stress de la journée ou combler l'ennui.",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "mechanism_analysis": "Ton cerveau a associé le retour à la maison et les moments de vide à la consommation de cannabis. Ce n'est plus toujours une vraie envie, mais un réflexe conditionné qui s'enclenche tout seul pour éviter de ressentir la tension ou l'ennui.",
+        "current_level_runtime": {
+          "title": "Casser l'automatisme du soir",
+          "weeks": [
+            {
+              "focus": "Ranger le matériel pour casser la facilité et tester le sas de décompression une première fois.",
+              "title": "Préparer le terrain et observer",
+              "week_order": 1,
+              "action_focus": [
+                "Ranger tout ton matériel hors de vue",
+                "Identifier ton joint le plus automatique",
+                "Retarder la prise au moins 1 soir"
+              ],
+              "mission_days": [
+                "mercredi"
+              ],
+              "reps_summary": "1 essai",
+              "success_signal": "Le matériel n'est plus sur la table et tu as pris conscience de ton automatisme.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-missions-001"
+                },
+                {
+                  "temp_id": "gen-p1-clarifications-001"
+                },
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 1,
+                  "weekly_cadence_label": "1 soir cette semaine",
+                  "weekly_description_override": "Teste le sas de décompression au moins 1 soir cette semaine. Prends 45 min pour toi avant de fumer."
+                }
+              ],
+              "progression_note": "Semaine de démarrage : on nettoie l'environnement et on observe le réflexe sans se mettre la pression.",
+              "weekly_target_label": "1 soir cette semaine avec le sas de décompression",
+              "weekly_target_value": 1
+            },
+            {
+              "focus": "Tenir le sas de décompression plus souvent et prévoir de quoi s'occuper.",
+              "title": "Répéter la friction",
+              "week_order": 2,
+              "action_focus": [
+                "Préparer tes activités anti-ennui",
+                "Tenir le sas de décompression 2 soirs"
+              ],
+              "mission_days": [
+                "lundi"
+              ],
+              "reps_summary": "2 soirs tenus",
+              "success_signal": "Tu arrives à t'occuper autrement pendant la première heure de ta soirée.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-missions-002"
+                },
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 2,
+                  "weekly_cadence_label": "2 soirs cette semaine",
+                  "weekly_description_override": "Vise 2 soirs cette semaine où tu t'imposes 45 à 60 minutes d'activité avant de toucher au matériel."
+                }
+              ],
+              "progression_note": "On augmente légèrement la fréquence et on s'arme contre l'ennui qui pousse à consommer.",
+              "weekly_target_label": "2 soirs cette semaine avec le sas de décompression",
+              "weekly_target_value": 2
+            },
+            {
+              "focus": "Atteindre la cible du niveau et faire le point sur ce qui fonctionne.",
+              "title": "Ancrer la nouvelle habitude",
+              "week_order": 3,
+              "action_focus": [
+                "Tenir le sas de décompression 3 soirs",
+                "Faire le bilan de ce qui t'aide le plus"
+              ],
+              "mission_days": [
+                "mardi"
+              ],
+              "reps_summary": "3 soirs solides",
+              "success_signal": "Le réflexe immédiat de fumer en rentrant est brisé près d'un soir sur deux.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 3,
+                  "weekly_cadence_label": "3 soirs cette semaine",
+                  "weekly_description_override": "Atteins ton objectif de 3 soirs cette semaine avec un vrai sas de décompression en rentrant."
+                },
+                {
+                  "temp_id": "gen-p1-clarifications-002"
+                }
+              ],
+              "progression_note": "On consolide le rythme pour prouver que tu peux reprendre le contrôle de tes soirées.",
+              "weekly_target_label": "3 soirs cette semaine avec le sas de décompression",
+              "weekly_target_value": 3
+            }
+          ],
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "soirs/semaine",
+            "title": "Soirs avec le sas de décompression tenu",
+            "target": 3,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Tant que le réflexe de fumer en rentrant est immédiat, essayer de faire des jours complets sans fumer sera trop difficile. On commence par créer un sas de décompression.",
+          "level_order": 1,
+          "review_focus": [
+            "As-tu réussi à retarder la première consommation ?",
+            "L'ennui a-t-il été gérable pendant le sas de décompression ?"
+          ],
+          "why_this_now": "C'est le levier le plus structurant pour reprendre le contrôle sans imposer un manque brutal immédiat.",
+          "duration_weeks": 3,
+          "phase_objective": "Retarder le premier joint du soir en installant une nouvelle habitude de transition.",
+          "phase_metric_target": "Pas encore de cible directe sur les 0 jours de consommation ; cette phase prépare le terrain en visant 3 soirs par semaine où tu repousses le réflexe de fumer en rentrant.",
+          "how_this_phase_works": "On modifie ton environnement pour ajouter de la friction et on installe une activité tampon avant toute consommation.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "Le réflexe conditionné qui te fait consommer dès que tu as du temps libre le soir."
+        },
+        "inspiration_narrative": "Imagine tes soirées où tu rentres chez toi l'esprit clair, sans ce besoin immédiat de rouler pour décompresser. Tu vas retrouver une énergie nouvelle, une mémoire plus vive et la fierté de savoir gérer ton stress par toi-même. Ce chemin te ramène vers une vraie liberté au quotidien, où tu choisis tes activités sans dépendre d'une substance."
+      },
+      "generation_attempts": 1,
+      "last_generation_reason": "initial_generation",
+      "activated_at": "2026-06-02T16:06:21.241+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-06-02T16:03:06.319+00:00",
+      "updated_at": "2026-06-10T13:11:22.853248+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": {
+        "mode": "preview",
+        "cycle": {
+          "id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "status": "ready_for_plan",
+          "requested_pace": "normal",
+          "gender_snapshot": "male",
+          "raw_intake_text": "J'ai besoin d'arrêter de fumer du cannabis",
+          "birth_date_snapshot": "1998-07-02",
+          "validated_structure": {
+            "stage": "validated",
+            "version": 1,
+            "analyzed_at": "2026-06-02T15:58:32.142Z",
+            "validated_at": "2026-06-02T15:58:32.142Z",
+            "deferred_aspects": [],
+            "validated_groups": [
+              {
+                "aspects": [
+                  {
+                    "label": "Volonté d'arrêter le cannabis",
+                    "raw_excerpt": "J'ai besoin d'arrêter de fumer du cannabis",
+                    "source_rank": 1
+                  }
+                ],
+                "group_label": "Sevrage cannabique"
+              }
+            ],
+            "uncertain_aspects": [],
+            "provisional_groups": [
+              {
+                "group_label": "Sevrage cannabique",
+                "aspect_ranks": [
+                  1
+                ],
+                "grouping_rationale": "C'est l'unique objectif mentionné par l'utilisateur, il constitue donc la priorité absolue."
+              }
+            ],
+            "needs_clarification": false,
+            "clarification_prompt": null,
+            "transformation_previews": [
+              {
+                "title": "Arrêter le cannabis",
+                "recommended_order": 1,
+                "source_group_index": 1,
+                "recommended_progress_indicator": "Nombre de jours consécutifs sans consommer de cannabis"
+              }
+            ]
+          }
+        },
+        "version": 1,
+        "llm_input": {
+          "title": "Arrêter le cannabis",
+          "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+          "user_age": 27,
+          "metric_unit": "jours / semaine",
+          "user_gender": "male",
+          "main_blocker": "Les envies fortes / le manque | La routine / les automatismes",
+          "metric_label": "Jours de consommation de cannabis par semaine",
+          "user_summary": "Tu as pris la décision importante d'arrêter de fumer du cannabis. Cette transformation va t'accompagner pas à pas pour comprendre tes habitudes de consommation, gérer les envies et retrouver un quotidien sans dépendance.",
+          "priority_goal": "Ne plus y penser au quotidien | Ne plus en avoir besoin pour gérer le stress",
+          "user_timezone": "Europe/Paris",
+          "prior_attempts": null,
+          "starting_point": "7 jours / semaine",
+          "anchor_week_end": "2026-06-07",
+          "main_constraint": null,
+          "self_confidence": 2,
+          "user_local_date": "2026-06-02",
+          "internal_summary": "L'utilisateur exprime le besoin clair et direct d'arrêter sa consommation de cannabis. L'objectif est de l'accompagner dans ce sevrage en identifiant ses déclencheurs, sa fréquence de consommation actuelle et les stratégies de remplacement ou d'évitement à mettre en place. Il s'agit d'une démarche de santé et de reprise de contrôle.",
+          "metric_direction": "decrease",
+          "probable_drivers": "L’habitude / le réflexe | Le stress ou la tension | L’ennui ou le manque d’occupation | Les émotions difficiles",
+          "user_local_human": "mardi 2 juin 2026 à 18:03",
+          "anchor_week_start": "2026-06-01",
+          "struggle_duration": "Plus de 3 ans",
+          "success_indicator": "0 jours / semaine",
+          "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "metric_target_text": "0 jours / semaine",
+          "success_definition": null,
+          "journey_part_number": null,
+          "journey_total_parts": null,
+          "metric_target_value": 0,
+          "user_requested_pace": "normal",
+          "metric_baseline_text": "7 jours / semaine",
+          "perceived_difficulty": "Plutôt difficile",
+          "questionnaire_schema": {
+            "version": 1,
+            "metadata": {
+              "design_principle": "court_adapte_utile_et_mesurable",
+              "measurement_hints": {
+                "unit": "jours / semaine",
+                "direction": "decrease",
+                "rationale": "La transformation vise l’arrêt du cannabis. La fréquence hebdomadaire de consommation est une métrique simple, mesurable et directement exploitable pour suivre la baisse jusqu’à l’arrêt complet.",
+                "confidence": 0.97,
+                "metric_key": "cannabis_use_days_per_week",
+                "metric_label": "Jours de consommation de cannabis par semaine",
+                "target_prompt": "À combien de jours par semaine tu veux descendre à terme ?",
+                "baseline_prompt": "En ce moment, combien de jours par semaine tu consommes du cannabis ?",
+                "measurement_mode": "absolute_value",
+                "suggested_target_value": null
+              }
+            },
+            "questions": [
+              {
+                "id": "sys_q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Le stress ou la tension"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "L’habitude / le réflexe"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "L’ennui ou le manque d’occupation"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Le contexte social"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Les émotions difficiles"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Le sommeil ou l’envie de décompresser"
+                  }
+                ],
+                "question": "Qu’est-ce qui alimente le plus ta consommation de cannabis aujourd’hui ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 facteurs.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "_system_probable_drivers",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q2",
+                "kind": "number",
+                "unit": "jours / semaine",
+                "options": [],
+                "question": "En ce moment, combien de jours par semaine tu consommes du cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Metrice choisie automatiquement : Jours de consommation de cannabis par semaine.",
+                "placeholder": "Entre une valeur numerique en jours / semaine",
+                "capture_goal": "_system_metric_baseline",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q3",
+                "kind": "number",
+                "unit": "jours / semaine",
+                "options": [],
+                "question": "À combien de jours par semaine tu veux descendre à terme ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Entre la cible numerique la plus juste pour jours de consommation de cannabis par semaine.",
+                "placeholder": "Entre une valeur numerique en jours / semaine",
+                "capture_goal": "_system_metric_target",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Le soir"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Après le travail ou les cours"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Le week-end"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Quand je suis seul"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Avec des amis"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Avant de dormir"
+                  }
+                ],
+                "question": "À quels moments tu consommes le plus souvent ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 3 moments.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "Mieux cibler les situations à risque pour construire un plan concret d’évitement ou de remplacement.",
+                "max_selections": 3,
+                "suggested_value": null
+              },
+              {
+                "id": "q2",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Arrêt d’un coup"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Réduction progressive"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Je ne sais pas encore"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Je préfère une approche souple"
+                  }
+                ],
+                "question": "Tu veux arrêter d’un coup ou réduire progressivement ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis l’approche qui te semble la plus réaliste.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "Adapter le plan au mode d’arrêt le plus crédible pour toi.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "q3",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Des alternatives pour gérer les envies"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Un entourage qui soutient ta démarche"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Des routines plus stables"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Éviter certains contextes ou personnes"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Un suivi pro ou médical"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Des objectifs très clairs au jour le jour"
+                  }
+                ],
+                "question": "Qu’est-ce qui t’aiderait le plus à tenir sans cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 leviers.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "Identifier les soutiens les plus utiles pour remplacer les usages automatiques et renforcer l’adhérence au plan.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q4",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Les envies fortes / le manque"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Le stress ou les émotions"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "L’entourage ou les sorties"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "La routine / les automatismes"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "La peur de ne pas tenir"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Le sommeil ou l’irritabilité"
+                  }
+                ],
+                "question": "Aujourd’hui, qu’est-ce qui te bloque le plus pour arrêter le cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 blocages.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "_system_main_blocker",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q5",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Ne plus consommer du tout"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Ne plus y penser au quotidien"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Me sentir libre face aux envies"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Ne plus en avoir besoin pour gérer le stress"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Avoir un quotidien stable sans dépendance"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Pouvoir refuser sans effort"
+                  }
+                ],
+                "question": "À quoi tu reconnaîtras vraiment que tu as réussi à arrêter le cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 critères.",
+                "placeholder": "Décris ton vrai critère de réussite",
+                "capture_goal": "_system_priority_goal_subjective",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q6",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Quelques semaines"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Quelques mois"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "1-2 ans"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plus de 3 ans"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Aussi loin que je me souvienne"
+                  }
+                ],
+                "question": "Depuis combien de temps l’arrêt du cannabis est un vrai sujet pour toi ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis la durée la plus proche.",
+                "placeholder": null,
+                "capture_goal": "_system_struggle_duration",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q7",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Très facile"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Plutôt facile"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Moyen"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plutôt difficile"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Très difficile"
+                  }
+                ],
+                "question": "À quel point tu trouves cet arrêt difficile aujourd’hui ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis le niveau qui te ressemble le plus.",
+                "placeholder": null,
+                "capture_goal": "_system_perceived_difficulty",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q8",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Qu’est-ce que tu as déjà mis en place aujourd’hui pour essayer d’arrêter le cannabis ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Même si c’est partiel ou irrégulier.",
+                "placeholder": "Ex : j’ai déjà essayé de réduire le soir, j’ai supprimé mes contacts, j’en parle à un proche...",
+                "capture_goal": "_system_existing_efforts",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q9",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Derniere verif avant qu'on ferme le carnet d'enquete : est-ce qu'on a rate un truc important ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Tu peux corriger, préciser ou ajouter un point.",
+                "placeholder": "Ex : une situation particulière, un risque à éviter, quelque chose de crucial à savoir...",
+                "capture_goal": "_system_open_context",
+                "max_selections": null,
+                "suggested_value": null
+              }
+            ],
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526"
+          },
+          "metric_baseline_value": 7,
+          "previous_plan_preview": null,
+          "questionnaire_answers": {
+            "q1": [
+              "opt_1"
+            ],
+            "q2": [
+              "opt_2"
+            ],
+            "q3": [
+              "opt_2",
+              "opt_4",
+              "opt_6"
+            ],
+            "sys_q1": [
+              "opt_2",
+              "opt_1",
+              "opt_3",
+              "opt_5"
+            ],
+            "sys_q2": "7",
+            "sys_q3": "0",
+            "sys_q4": [
+              "opt_1",
+              "opt_4"
+            ],
+            "sys_q5": [
+              "opt_2",
+              "opt_4"
+            ],
+            "sys_q6": "opt_4",
+            "sys_q7": "opt_4"
+          },
+          "regeneration_feedback": null,
+          "is_partial_anchor_week": true,
+          "metric_measurement_mode": "absolute_value",
+          "plan_type_classification": {
+            "type_key": "addiction_compulsion",
+            "confidence": 0.98,
+            "plan_style": [
+              "comportemental",
+              "bienveillant",
+              "structuré"
+            ],
+            "framing_to_avoid": [
+              "approche par la seule volonté",
+              "sevrage brutal non désiré",
+              "discours moralisateur"
+            ],
+            "journey_strategy": {
+              "mode": "single_transformation",
+              "rationale": "Bien que l'usage soit quotidien, l'objectif reste focalisé sur un seul comportement et une seule métrique (jours de consommation). Une transformation unique de 3 mois permet de structurer la réduction puis l'arrêt total de manière cohérente.",
+              "transformation_1_goal": "Passer d'une consommation quotidienne à un arrêt total en remplaçant les automatismes par de nouvelles routines.",
+              "transformation_2_goal": null,
+              "transformation_1_title": "Libération progressive du cannabis",
+              "transformation_2_title": null,
+              "total_estimated_duration_months": 3
+            },
+            "sequencing_notes": [
+              "Phase de réduction initiale pour briser l'automatisme quotidien.",
+              "Introduction de stratégies de remplacement pour le soir (moment critique).",
+              "Focus sur la gestion du stress et des émotions sans substance.",
+              "Phase de consolidation vers l'arrêt complet (0j/7)."
+            ],
+            "duration_guidance": {
+              "max_months": 4,
+              "min_months": 2,
+              "default_months": 3
+            },
+            "intensity_profile": {
+              "pace": "steady",
+              "rationale": "L'utilisateur consomme quotidiennement et a choisi une approche progressive. Il faut donc un rythme régulier qui réduit la charge sans provoquer de rupture brutale."
+            },
+            "recommended_metrics": [
+              "Jours de consommation par semaine",
+              "Intensité des envies (1-10)"
+            ],
+            "first_steps_examples": [
+              "Identifier le joint le plus 'facile' à supprimer dans la journée",
+              "Lister 3 activités de substitution pour les moments d'ennui",
+              "Retarder la première consommation de 2 heures"
+            ],
+            "split_metric_guidance": null,
+            "recommended_phase_count": {
+              "max": 6,
+              "min": 4
+            },
+            "transformation_length_level": 4
+          },
+          "journey_continuation_hint": null,
+          "system_validation_feedback": null,
+          "days_remaining_in_anchor_week": 6,
+          "previous_transformation_title": null,
+          "previous_transformation_summary": null,
+          "previous_transformation_plan_preview": null,
+          "previous_transformation_completion_summary": null,
+          "previous_transformation_success_definition": null,
+          "previous_transformation_questionnaire_schema": null,
+          "previous_transformation_questionnaire_answers": null
+        },
+        "generated_at": "2026-06-02T16:03:06.319Z",
+        "transformation": {
+          "id": "d3e847f5-0664-475d-9303-9b79a3759526",
+          "title": "Arrêter le cannabis",
+          "status": "pending",
+          "user_summary": "Tu as pris la décision importante d'arrêter de fumer du cannabis. Cette transformation va t'accompagner pas à pas pour comprendre tes habitudes de consommation, gérer les envies et retrouver un quotidien sans dépendance.",
+          "onboarding_v2": {
+            "is_manual": false,
+            "recommended_order": 1,
+            "selection_context": null,
+            "ordering_rationale": "C'est l'unique objectif mentionné par l'utilisateur, il constitue donc la priorité absolue.",
+            "source_group_index": 1,
+            "professional_support": null,
+            "questionnaire_context": [
+              "Fréquence et quantité de la consommation actuelle",
+              "Déclencheurs principaux (stress, habitude sociale, ennui, etc.)",
+              "Tentatives d'arrêt précédentes et obstacles rencontrés",
+              "Soutien social ou médical disponible"
+            ],
+            "plan_type_classification": {
+              "type_key": "addiction_compulsion",
+              "confidence": 0.98,
+              "plan_style": [
+                "comportemental",
+                "bienveillant",
+                "structuré"
+              ],
+              "framing_to_avoid": [
+                "approche par la seule volonté",
+                "sevrage brutal non désiré",
+                "discours moralisateur"
+              ],
+              "journey_strategy": {
+                "mode": "single_transformation",
+                "rationale": "Bien que l'usage soit quotidien, l'objectif reste focalisé sur un seul comportement et une seule métrique (jours de consommation). Une transformation unique de 3 mois permet de structurer la réduction puis l'arrêt total de manière cohérente.",
+                "transformation_1_goal": "Passer d'une consommation quotidienne à un arrêt total en remplaçant les automatismes par de nouvelles routines.",
+                "transformation_2_goal": null,
+                "transformation_1_title": "Libération progressive du cannabis",
+                "transformation_2_title": null,
+                "total_estimated_duration_months": 3
+              },
+              "sequencing_notes": [
+                "Phase de réduction initiale pour briser l'automatisme quotidien.",
+                "Introduction de stratégies de remplacement pour le soir (moment critique).",
+                "Focus sur la gestion du stress et des émotions sans substance.",
+                "Phase de consolidation vers l'arrêt complet (0j/7)."
+              ],
+              "duration_guidance": {
+                "max_months": 4,
+                "min_months": 2,
+                "default_months": 3
+              },
+              "intensity_profile": {
+                "pace": "steady",
+                "rationale": "L'utilisateur consomme quotidiennement et a choisi une approche progressive. Il faut donc un rythme régulier qui réduit la charge sans provoquer de rupture brutale."
+              },
+              "recommended_metrics": [
+                "Jours de consommation par semaine",
+                "Intensité des envies (1-10)"
+              ],
+              "first_steps_examples": [
+                "Identifier le joint le plus 'facile' à supprimer dans la journée",
+                "Lister 3 activités de substitution pour les moments d'ennui",
+                "Retarder la première consommation de 2 heures"
+              ],
+              "split_metric_guidance": null,
+              "recommended_phase_count": {
+                "max": 6,
+                "min": 4
+              },
+              "transformation_length_level": 4
+            },
+            "recommended_progress_indicator": "Nombre de jours consécutifs sans consommer de cannabis"
+          },
+          "priority_order": 1,
+          "main_constraint": null,
+          "internal_summary": "L'utilisateur exprime le besoin clair et direct d'arrêter sa consommation de cannabis. L'objectif est de l'accompagner dans ce sevrage en identifiant ses déclencheurs, sa fréquence de consommation actuelle et les stratégies de remplacement ou d'évitement à mettre en place. Il s'agit d'une démarche de santé et de reprise de contrôle.",
+          "success_definition": null,
+          "questionnaire_schema": {
+            "version": 1,
+            "metadata": {
+              "design_principle": "court_adapte_utile_et_mesurable",
+              "measurement_hints": {
+                "unit": "jours / semaine",
+                "direction": "decrease",
+                "rationale": "La transformation vise l’arrêt du cannabis. La fréquence hebdomadaire de consommation est une métrique simple, mesurable et directement exploitable pour suivre la baisse jusqu’à l’arrêt complet.",
+                "confidence": 0.97,
+                "metric_key": "cannabis_use_days_per_week",
+                "metric_label": "Jours de consommation de cannabis par semaine",
+                "target_prompt": "À combien de jours par semaine tu veux descendre à terme ?",
+                "baseline_prompt": "En ce moment, combien de jours par semaine tu consommes du cannabis ?",
+                "measurement_mode": "absolute_value",
+                "suggested_target_value": null
+              }
+            },
+            "questions": [
+              {
+                "id": "sys_q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Le stress ou la tension"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "L’habitude / le réflexe"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "L’ennui ou le manque d’occupation"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Le contexte social"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Les émotions difficiles"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Le sommeil ou l’envie de décompresser"
+                  }
+                ],
+                "question": "Qu’est-ce qui alimente le plus ta consommation de cannabis aujourd’hui ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 facteurs.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "_system_probable_drivers",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q2",
+                "kind": "number",
+                "unit": "jours / semaine",
+                "options": [],
+                "question": "En ce moment, combien de jours par semaine tu consommes du cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Metrice choisie automatiquement : Jours de consommation de cannabis par semaine.",
+                "placeholder": "Entre une valeur numerique en jours / semaine",
+                "capture_goal": "_system_metric_baseline",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q3",
+                "kind": "number",
+                "unit": "jours / semaine",
+                "options": [],
+                "question": "À combien de jours par semaine tu veux descendre à terme ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Entre la cible numerique la plus juste pour jours de consommation de cannabis par semaine.",
+                "placeholder": "Entre une valeur numerique en jours / semaine",
+                "capture_goal": "_system_metric_target",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Le soir"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Après le travail ou les cours"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Le week-end"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Quand je suis seul"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Avec des amis"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Avant de dormir"
+                  }
+                ],
+                "question": "À quels moments tu consommes le plus souvent ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 3 moments.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "Mieux cibler les situations à risque pour construire un plan concret d’évitement ou de remplacement.",
+                "max_selections": 3,
+                "suggested_value": null
+              },
+              {
+                "id": "q2",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Arrêt d’un coup"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Réduction progressive"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Je ne sais pas encore"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Je préfère une approche souple"
+                  }
+                ],
+                "question": "Tu veux arrêter d’un coup ou réduire progressivement ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis l’approche qui te semble la plus réaliste.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "Adapter le plan au mode d’arrêt le plus crédible pour toi.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "q3",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Des alternatives pour gérer les envies"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Un entourage qui soutient ta démarche"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Des routines plus stables"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Éviter certains contextes ou personnes"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Un suivi pro ou médical"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Des objectifs très clairs au jour le jour"
+                  }
+                ],
+                "question": "Qu’est-ce qui t’aiderait le plus à tenir sans cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 leviers.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "Identifier les soutiens les plus utiles pour remplacer les usages automatiques et renforcer l’adhérence au plan.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q4",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Les envies fortes / le manque"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Le stress ou les émotions"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "L’entourage ou les sorties"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "La routine / les automatismes"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "La peur de ne pas tenir"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Le sommeil ou l’irritabilité"
+                  }
+                ],
+                "question": "Aujourd’hui, qu’est-ce qui te bloque le plus pour arrêter le cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 blocages.",
+                "placeholder": "Précise si tu choisis Autre",
+                "capture_goal": "_system_main_blocker",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q5",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Ne plus consommer du tout"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Ne plus y penser au quotidien"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Me sentir libre face aux envies"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Ne plus en avoir besoin pour gérer le stress"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Avoir un quotidien stable sans dépendance"
+                  },
+                  {
+                    "id": "opt_6",
+                    "label": "Pouvoir refuser sans effort"
+                  }
+                ],
+                "question": "À quoi tu reconnaîtras vraiment que tu as réussi à arrêter le cannabis ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu’à 2 critères.",
+                "placeholder": "Décris ton vrai critère de réussite",
+                "capture_goal": "_system_priority_goal_subjective",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q6",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Quelques semaines"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Quelques mois"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "1-2 ans"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plus de 3 ans"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Aussi loin que je me souvienne"
+                  }
+                ],
+                "question": "Depuis combien de temps l’arrêt du cannabis est un vrai sujet pour toi ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis la durée la plus proche.",
+                "placeholder": null,
+                "capture_goal": "_system_struggle_duration",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q7",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Très facile"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Plutôt facile"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Moyen"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plutôt difficile"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Très difficile"
+                  }
+                ],
+                "question": "À quel point tu trouves cet arrêt difficile aujourd’hui ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis le niveau qui te ressemble le plus.",
+                "placeholder": null,
+                "capture_goal": "_system_perceived_difficulty",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q8",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Qu’est-ce que tu as déjà mis en place aujourd’hui pour essayer d’arrêter le cannabis ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Même si c’est partiel ou irrégulier.",
+                "placeholder": "Ex : j’ai déjà essayé de réduire le soir, j’ai supprimé mes contacts, j’en parle à un proche...",
+                "capture_goal": "_system_existing_efforts",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q9",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Derniere verif avant qu'on ferme le carnet d'enquete : est-ce qu'on a rate un truc important ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Tu peux corriger, préciser ou ajouter un point.",
+                "placeholder": "Ex : une situation particulière, un risque à éviter, quelque chose de crucial à savoir...",
+                "capture_goal": "_system_open_context",
+                "max_selections": null,
+                "suggested_value": null
+              }
+            ],
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526"
+          },
+          "questionnaire_answers": {
+            "q1": [
+              "opt_1"
+            ],
+            "q2": [
+              "opt_2"
+            ],
+            "q3": [
+              "opt_2",
+              "opt_4",
+              "opt_6"
+            ],
+            "sys_q1": [
+              "opt_2",
+              "opt_1",
+              "opt_3",
+              "opt_5"
+            ],
+            "sys_q2": "7",
+            "sys_q3": "0",
+            "sys_q4": [
+              "opt_1",
+              "opt_4"
+            ],
+            "sys_q5": [
+              "opt_2",
+              "opt_4"
+            ],
+            "sys_q6": "opt_4",
+            "sys_q7": "opt_4"
+          }
+        },
+        "force_regenerate": false,
+        "calibration_fields": {
+          "metric_unit": "jours / semaine",
+          "main_blocker": "Les envies fortes / le manque | La routine / les automatismes",
+          "metric_label": "Jours de consommation de cannabis par semaine",
+          "priority_goal": "Ne plus y penser au quotidien | Ne plus en avoir besoin pour gérer le stress",
+          "prior_attempts": null,
+          "starting_point": "7 jours / semaine",
+          "self_confidence": 2,
+          "metric_direction": "decrease",
+          "probable_drivers": "L’habitude / le réflexe | Le stress ou la tension | L’ennui ou le manque d’occupation | Les émotions difficiles",
+          "struggle_duration": "Plus de 3 ans",
+          "success_indicator": "0 jours / semaine",
+          "metric_target_text": "0 jours / semaine",
+          "metric_target_value": 0,
+          "metric_baseline_text": "7 jours / semaine",
+          "perceived_difficulty": "Plutôt difficile",
+          "metric_baseline_value": 7,
+          "metric_measurement_mode": "absolute_value"
+        },
+        "user_requested_pace": "normal",
+        "regeneration_feedback": null,
+        "plan_type_classification": {
+          "type_key": "addiction_compulsion",
+          "confidence": 0.98,
+          "plan_style": [
+            "comportemental",
+            "bienveillant",
+            "structuré"
+          ],
+          "framing_to_avoid": [
+            "approche par la seule volonté",
+            "sevrage brutal non désiré",
+            "discours moralisateur"
+          ],
+          "journey_strategy": {
+            "mode": "single_transformation",
+            "rationale": "Bien que l'usage soit quotidien, l'objectif reste focalisé sur un seul comportement et une seule métrique (jours de consommation). Une transformation unique de 3 mois permet de structurer la réduction puis l'arrêt total de manière cohérente.",
+            "transformation_1_goal": "Passer d'une consommation quotidienne à un arrêt total en remplaçant les automatismes par de nouvelles routines.",
+            "transformation_2_goal": null,
+            "transformation_1_title": "Libération progressive du cannabis",
+            "transformation_2_title": null,
+            "total_estimated_duration_months": 3
+          },
+          "sequencing_notes": [
+            "Phase de réduction initiale pour briser l'automatisme quotidien.",
+            "Introduction de stratégies de remplacement pour le soir (moment critique).",
+            "Focus sur la gestion du stress et des émotions sans substance.",
+            "Phase de consolidation vers l'arrêt complet (0j/7)."
+          ],
+          "duration_guidance": {
+            "max_months": 4,
+            "min_months": 2,
+            "default_months": 3
+          },
+          "intensity_profile": {
+            "pace": "steady",
+            "rationale": "L'utilisateur consomme quotidiennement et a choisi une approche progressive. Il faut donc un rythme régulier qui réduit la charge sans provoquer de rupture brutale."
+          },
+          "recommended_metrics": [
+            "Jours de consommation par semaine",
+            "Intensité des envies (1-10)"
+          ],
+          "first_steps_examples": [
+            "Identifier le joint le plus 'facile' à supprimer dans la journée",
+            "Lister 3 activités de substitution pour les moments d'ennui",
+            "Retarder la première consommation de 2 heures"
+          ],
+          "split_metric_guidance": null,
+          "recommended_phase_count": {
+            "max": 6,
+            "min": 4
+          },
+          "transformation_length_level": 4
+        },
+        "preserve_active_transformation_id": null
+      }
+    },
+    {
+      "id": "69a32968-d3e3-4e27-9caa-04ed635cb7fa",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "status": "draft",
+      "version": 101,
+      "title": "QA respiration daily-two-plans-action-help-20260612144340-r2",
+      "content": {
+        "source": "daily_two_plans_action_help",
+        "qa_run_id": "daily-two-plans-action-help-20260612144340-r2"
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": null,
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-06-12T14:43:40.332834+00:00",
+      "updated_at": "2026-06-12T14:43:40.332834+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    }
+  ],
+  "user_plan_items": [
+    {
+      "id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "dimension": "missions",
+      "kind": "task",
+      "status": "active",
+      "title": "Ranger le matériel hors de vue",
+      "description": "Rends la consommation moins automatique. Range tout ton matériel (feuilles, grinder, pochon) dans une boîte fermée, dans un tiroir ou une autre pièce. Ne laisse rien traîner sur la table.",
+      "tracking_type": "boolean",
+      "activation_order": 1,
+      "activation_condition": null,
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "anytime",
+      "start_after_item_id": null,
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-missions-001"
+        }
+      },
+      "created_at": "2026-06-02T16:06:21.241+00:00",
+      "updated_at": "2026-06-10T13:11:22.865049+00:00",
+      "activated_at": "2026-06-02T16:06:21.241+00:00",
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_started",
+      "cards_generated_at": null
+    },
+    {
+      "id": "bd2ef2a9-de7b-48ef-bb4d-fd2e6356561c",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "dimension": "clarifications",
+      "kind": "framework",
+      "status": "active",
+      "title": "Cibler le joint réflexe",
+      "description": "Prends 5 minutes pour identifier le moment exact où l'automatisme est le plus fort, pour mieux le contrer.",
+      "tracking_type": "boolean",
+      "activation_order": 2,
+      "activation_condition": null,
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "anytime",
+      "start_after_item_id": null,
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-clarifications-001"
+        },
+        "clarification_details": {
+          "type": "one_shot",
+          "intro": "Tous les joints n'ont pas la même 'valeur'. Certains sont fumés par pur automatisme, sans même en avoir vraiment envie. Identifions-le.",
+          "sections": [
+            {
+              "id": "reflex_moment",
+              "label": "À quel moment précis fumes-tu ton joint le plus 'automatique' ?",
+              "input_type": "text",
+              "helper_text": "Sois le plus précis possible sur le contexte.",
+              "placeholder": "Ex: En rentrant du travail, après manger..."
+            },
+            {
+              "id": "feeling_before",
+              "label": "Que ressens-tu juste avant de l'allumer ?",
+              "input_type": "list",
+              "helper_text": "Ajoute les émotions ou sensations qui précèdent le geste.",
+              "placeholder": "stress, ennui, fatigue..."
+            }
+          ],
+          "save_label": "Enregistrer l'observation"
+        }
+      },
+      "created_at": "2026-06-02T16:06:21.241+00:00",
+      "updated_at": "2026-06-10T13:11:22.876+00:00",
+      "activated_at": "2026-06-02T16:06:21.241+00:00",
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_required",
+      "cards_generated_at": null
+    },
+    {
+      "id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "dimension": "habits",
+      "kind": "habit",
+      "status": "active",
+      "title": "Faire un sas de décompression (sans fumer)",
+      "description": "En rentrant chez toi ou au début de ta soirée, impose-toi 45 à 60 minutes d'une autre activité (douche, cuisine, sport, musique) avant d'envisager de fumer.",
+      "tracking_type": "boolean",
+      "activation_order": 3,
+      "activation_condition": null,
+      "current_habit_state": "active_building",
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": 3,
+      "current_reps": 0,
+      "cadence_label": "3 soirs / semaine",
+      "scheduled_days": null,
+      "time_of_day": "evening",
+      "start_after_item_id": null,
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-habits-001"
+        }
+      },
+      "created_at": "2026-06-02T16:06:21.241+00:00",
+      "updated_at": "2026-06-10T13:11:22.884419+00:00",
+      "activated_at": "2026-06-02T16:06:21.241+00:00",
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": "02beb0f2-0757-4a73-be3b-01d736a2e0cf",
+      "attack_card_id": "f0252f74-03e1-458b-ba9a-5b65ab9f175f",
+      "cards_status": "ready",
+      "cards_generated_at": "2026-06-05T19:22:59.837+00:00"
+    },
+    {
+      "id": "ad9b0a6d-a0e0-479f-b51a-8b06bb770e4e",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "dimension": "missions",
+      "kind": "task",
+      "status": "pending",
+      "title": "Préparer un plan anti-ennui",
+      "description": "L'ennui est ton pire ennemi le soir. Prévois 2 activités concrètes (un film précis à lancer, un jeu, un appel à un proche) pour occuper tes mains et ton esprit pendant ton sas de décompression.",
+      "tracking_type": "boolean",
+      "activation_order": 4,
+      "activation_condition": {
+        "type": "after_item_completion",
+        "depends_on": [
+          "ba4815d2-2af7-4d55-8c08-ec355c43988a"
+        ]
+      },
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "anytime",
+      "start_after_item_id": "ba4815d2-2af7-4d55-8c08-ec355c43988a",
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-missions-002"
+        }
+      },
+      "created_at": "2026-06-02T16:06:21.241+00:00",
+      "updated_at": "2026-06-10T13:11:22.892514+00:00",
+      "activated_at": null,
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_started",
+      "cards_generated_at": null
+    },
+    {
+      "id": "8d3fc14e-e3cf-44d4-a6a7-36d41ecb289b",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "dimension": "clarifications",
+      "kind": "framework",
+      "status": "pending",
+      "title": "Bilan de la friction",
+      "description": "Analyse ce qui t'aide le plus à tenir le sas de décompression sans craquer immédiatement.",
+      "tracking_type": "boolean",
+      "activation_order": 5,
+      "activation_condition": {
+        "type": "after_habit_traction",
+        "depends_on": [
+          "3db6278b-bd59-4401-bbdf-80b575ee14bb"
+        ],
+        "min_completions": 2
+      },
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "anytime",
+      "start_after_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-clarifications-002"
+        },
+        "clarification_details": {
+          "type": "one_shot",
+          "intro": "Tu as commencé à retarder ta première consommation. Faisons le point sur ce qui fonctionne pour toi.",
+          "sections": [
+            {
+              "id": "best_distraction",
+              "label": "Quelle activité t'a le plus aidé à penser à autre chose ?",
+              "input_type": "text",
+              "helper_text": "Garde cette activité en tête comme ton arme principale.",
+              "placeholder": "Ex: Prendre une douche direct, cuisiner..."
+            }
+          ],
+          "save_label": "Valider le point"
+        }
+      },
+      "created_at": "2026-06-02T16:06:21.241+00:00",
+      "updated_at": "2026-06-10T13:11:22.89849+00:00",
+      "activated_at": null,
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_required",
+      "cards_generated_at": null
+    }
+  ],
+  "chat_messages": [],
+  "conversation_turn_traces": [],
+  "user_plan_item_entries": [],
+  "rest_status": {
+    "chatStates": 200,
+    "plans": 200,
+    "items": 200,
+    "messages": 200,
+    "traces": 400,
+    "entries": 200
+  }
+}

@@ -19,7 +19,7 @@ function turnFrame(risk: "none" | "high" = "none") {
     skill_signals: { entry: {}, lifecycle: {}, exit: {} },
     action_reference: null,
     tool_skill_intents: [],
-    tool_skill_opportunity: null,
+    flow_opportunity: null,
     direct_effects: [],
     memory_plan: {},
   } as any;

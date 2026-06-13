@@ -856,7 +856,7 @@ Docs/tests:
 - 1 run status recap inline inside handoff;
 - 1 run safety inside active potion;
 - 1 run topic change clear;
-- 1 run stop local no handoff.
+- 1 run exit to global dispatcher.
 
 ### Logs/traces a ajouter
 
@@ -869,7 +869,7 @@ Docs/tests:
 - `note_information_created`;
 - `note_information_consumed`;
 - `inline_tool_roundtrip`;
-- `local_stop_no_handoff`;
+- `exit_to_global_dispatcher`;
 - `target_dispatcher`;
 - `risk_score`;
 - `no_chat_mutation`.

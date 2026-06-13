@@ -712,7 +712,7 @@ Logs attendus :
 - `target_dispatcher` ;
 - `global_dispatcher_skipped` ;
 - `inline_tool_roundtrip` ;
-- `local_stop_no_handoff` ;
+- `exit_to_global_dispatcher` ;
 - `risk_score`.
 
 Un changement de dispatcher sans trace de `note_information` est un bug de QA.

@@ -18,10 +18,7 @@ function turnFrame(overrides: Record<string, unknown> = {}) {
     },
     direct_effects: [],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      operation_type: null,
-      confidence_band: "low" as const,
-    },
+    flow_opportunity: null,
     ...overrides,
   } as any;
 }
@@ -386,7 +383,10 @@ Deno.test("apply attempt never creates confirmation or effect", async () => {
     (runtime.toolSkillRun as any).handoff_core.has_core_triptych,
     true,
   );
-  assertEquals((runtime.toolSkillRun as any).handoff_core.change_kind, "reduce");
+  assertEquals(
+    (runtime.toolSkillRun as any).handoff_core.change_kind,
+    "reduce",
+  );
   assertEquals(runtime.executedTools, []);
   assertEquals((runtime.toolSkillRun as any).committed_effects, []);
   assertEquals(

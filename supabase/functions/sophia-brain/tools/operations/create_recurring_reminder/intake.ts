@@ -704,7 +704,7 @@ export async function fillCreateRecurringReminderSlotsWithAi(
     "Les messages visibles doivent préciser qu'un rappel lié à une action s'applique tant que cette action reste active dans le plan. Pour une habitude/famille, dis tant que cette famille d'habitude reste active dans le plan.",
     "Les messages visibles ne doivent jamais promettre de modifier/annuler depuis le chat: ils doivent dire d'aller sur la plateforme, dans les Initiatives du plan ou la Base de vie.",
     "Si le user modifie un brouillon, intègre la correction dans le state_patch au lieu d'approuver directement.",
-    "Quand tous les slots sont prêts, current_sub_skill='draft_generation' et draft_messages.confirmation_message doit être une phrase naturelle qui présente la version à reprendre dans la section Rappels, sans demander d'approbation exécutable.",
+    "Quand tous les slots sont prêts, current_sub_skill='draft_generation' et draft_messages.confirmation_message doit être une phrase naturelle qui présente la version à reprendre dans la section Initiatives, sans demander d'approbation exécutable.",
     "draft_messages doit aussi inclure user_message_brief, user_message_detailed et revision_message quand c'est possible. N'écris jamais de message qui dit que le rappel a été créé, programmé ou qu'il sera relancé depuis le chat.",
     "Si un slot manque, generated_user_message pose une seule question courte pour le prochain slot métier.",
     "Les messages user doivent être courts et naturels pour WhatsApp. Pas de vocabulaire technique.",
@@ -1135,7 +1135,7 @@ export async function runCreateRecurringReminderIntake(input: {
       draft,
       handoff_draft: buildRecurringReminderHandoffDraft(draft),
       ack: nextState.generated_user_message ??
-        "J'ai préparé la version à reprendre dans la section Rappels.",
+        "J'ai préparé la version à reprendre dans la section Initiatives.",
       state_patch: {
         summary:
           "Recurring reminder handoff draft generated without executable confirmation.",

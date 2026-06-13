@@ -244,13 +244,16 @@ const LandingPage = () => {
                 </div>
                 <div className="space-y-4 p-5 text-sm text-[#24332d]">
                   <div className="rounded-2xl bg-white p-4 shadow-sm">
-                    Bonjour. Aujourd'hui, on garde le cap avec 3 actions simples. Tu n'as pas besoin de tout porter en même temps.
+                    Check du soir. Qu'est-ce que tu as réussi à faire aujourd'hui, même petit ?
                   </div>
-                  <div className="ml-auto max-w-[82%] rounded-2xl bg-[#d1ded4] p-4 shadow-sm">
-                    Je suis déjà fatigué, mais je veux continuer.
+                  <div className="ml-auto max-w-[84%] rounded-2xl bg-[#d1ded4] p-4 shadow-sm">
+                    J'ai fait l'action prévue, mais j'ai failli abandonner en fin de journée.
                   </div>
                   <div className="rounded-2xl bg-white p-4 shadow-sm">
-                    Alors on baisse l'intensité, pas l'engagement. Ce soir, on protège ton énergie et on garde le fil.
+                    C'est exactement ce qu'on cherche : continuer même quand ce n'est pas parfait. Qu'est-ce qui t'a aidé à tenir ?
+                  </div>
+                  <div className="ml-auto max-w-[84%] rounded-2xl bg-[#d1ded4] p-4 shadow-sm">
+                    Le fait de l'avoir noté ce matin. Ça m'a remis dans le bon sens.
                   </div>
                 </div>
               </div>
@@ -340,22 +343,19 @@ const LandingPage = () => {
                   </div>
                   <div className="space-y-4 px-4 py-6 text-sm">
                     <div className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8f84]">
-                      Aujourd'hui
+                      Ce soir
                     </div>
                     <div className="max-w-[86%] rounded-2xl bg-white p-3 text-[#24332d] shadow-sm">
-                      Hey Alex. Petit point doux : qu'est-ce qui t'aiderait à garder le fil aujourd'hui ?
+                      Je sens que ce soir est plus lourd que d'habitude. Tu veux qu'on allège sans lâcher ?
                     </div>
-                    <div className="ml-auto max-w-[78%] rounded-2xl bg-[#d1ded4] p-3 text-[#24332d] shadow-sm">
-                      Oui c'est fait !
+                    <div className="ml-auto max-w-[84%] rounded-2xl bg-[#d1ded4] p-3 text-[#24332d] shadow-sm">
+                      Oui... j'ai le moral bas et j'ai envie de tout remettre à demain.
                     </div>
                     <div className="max-w-[86%] rounded-2xl bg-white p-3 text-[#24332d] shadow-sm">
-                      C'est noté. On garde le rythme, sans forcer.
+                      D'accord. Ce soir, on ne cherche pas à rattraper toute la journée. Juste une micro-action de 5 minutes.
                     </div>
-                    <div className="ml-auto max-w-[86%] rounded-2xl bg-[#d1ded4] p-3 text-[#24332d] shadow-sm">
-                      J'ai envie de tout lâcher ce soir... Je suis crevé.
-                    </div>
-                    <div className="max-w-[90%] rounded-2xl bg-white p-3 text-[#24332d] shadow-sm">
-                      Respire. Ce n'est qu'une vague de fatigue. Ce soir, on allège et on protège ton sommeil.
+                    <div className="ml-auto max-w-[84%] rounded-2xl bg-[#d1ded4] p-3 text-[#24332d] shadow-sm">
+                      Ok. Je range mon bureau 5 minutes, puis j'arrête là.
                     </div>
                   </div>
                 </div>

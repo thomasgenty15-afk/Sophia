@@ -10,6 +10,8 @@ import {
   clearToolSkillFlow,
   clearToolSkillFlowForDirectReminder,
   readActiveFlowState,
+  resolveActiveLocalConversationFlowOwnership,
+  resolveActiveLocalToolFlowOwnership,
   restoreSuspendedPlatformHandoffForOperation,
   suspendActivePlatformHandoff,
   SUSPENDED_PLATFORM_HANDOFF_STATE_KEY,
@@ -59,6 +61,264 @@ Deno.test("active_flow_state reads legacy and canonical pending keys", () => {
     (state.pendingRecommendationOperation as any).operation_type,
     "prepare_defense_card",
   );
+});
+
+Deno.test("active_flow_state reads dedicated defense handoff without generic intake", () => {
+  const state = readActiveFlowState({
+    __active_defense_card_handoff: {
+      operation_type: "prepare_defense_card",
+      skill_id: "prepare_defense_card",
+      mode: "platform_handoff",
+      status: "handoff_delivered",
+      no_chat_mutation: true,
+    },
+  });
+
+  assertEquals(
+    (state.activeToolSkillIntake as any)?.operation_type,
+    "prepare_defense_card",
+  );
+});
+
+Deno.test("active_flow_state resolves canonical local tool ownership for all local tool flows", () => {
+  const cases: Array<{
+    name: string;
+    tempMemory: Record<string, unknown>;
+    expectedOperationType: string;
+    expectedSource: string;
+  }> = [
+    {
+      name: "adjust plan handoff",
+      tempMemory: {
+        __adjust_plan_handoff_state: {
+          skill_id: "adjust_plan_item",
+          mode: "platform_handoff",
+          status: "handoff_delivered",
+          no_chat_mutation: true,
+        },
+      },
+      expectedOperationType: "adjust_plan_item",
+      expectedSource: "__adjust_plan_handoff_state",
+    },
+    {
+      name: "attack card handoff",
+      tempMemory: {
+        __active_attack_card_handoff: {
+          operation_type: "prepare_attack_card",
+          mode: "platform_handoff",
+          status: "handoff_delivered",
+          no_chat_mutation: true,
+        },
+      },
+      expectedOperationType: "prepare_attack_card",
+      expectedSource: "__active_attack_card_handoff",
+    },
+    {
+      name: "defense card handoff",
+      tempMemory: {
+        __active_defense_card_handoff: {
+          operation_type: "prepare_defense_card",
+          mode: "platform_handoff",
+          status: "handoff_delivered",
+          no_chat_mutation: true,
+        },
+      },
+      expectedOperationType: "prepare_defense_card",
+      expectedSource: "__active_defense_card_handoff",
+    },
+    {
+      name: "state potion active intake",
+      tempMemory: {
+        __active_tool_skill_intake: {
+          skill_id: "select_state_potion",
+          mode: "platform_handoff",
+          status: "handoff_delivered",
+          no_chat_mutation: true,
+        },
+      },
+      expectedOperationType: "select_state_potion",
+      expectedSource: "readActiveFlowState.activeToolSkillIntake",
+    },
+    {
+      name: "recurring reminder handoff",
+      tempMemory: {
+        __recurring_reminder_handoff_state: {
+          skill_id: "create_recurring_reminder",
+          mode: "platform_handoff",
+          status: "handoff_delivered",
+          no_chat_mutation: true,
+        },
+      },
+      expectedOperationType: "create_recurring_reminder",
+      expectedSource: "__recurring_reminder_handoff_state",
+    },
+    {
+      name: "coach preference flow",
+      tempMemory: {
+        __coach_preference_flow_state_v1: {
+          skill_id: "update_coach_preferences",
+          operation_type: "update_coach_preferences",
+          status: "collecting",
+        },
+      },
+      expectedOperationType: "update_coach_preferences",
+      expectedSource: "__coach_preference_flow_state_v1",
+    },
+  ];
+
+  for (const testCase of cases) {
+    const active = readActiveFlowState(testCase.tempMemory);
+    const ownership = resolveActiveLocalToolFlowOwnership({
+      tempMemory: testCase.tempMemory,
+      activeOperationIntake: active.activeToolSkillIntake,
+      pendingOperationConfirmation: active.pendingToolSkillConfirmation,
+    });
+    assertEquals(
+      ownership?.operation_type,
+      testCase.expectedOperationType,
+      testCase.name,
+    );
+    assertEquals(ownership?.source, testCase.expectedSource, testCase.name);
+  }
+});
+
+Deno.test("active_flow_state resolves canonical conversation local ownership for local dispatchers", () => {
+  const cases: Array<{
+    name: string;
+    tempMemory: Record<string, unknown>;
+    activeSkillState?: unknown;
+    expectedSkillId: string;
+    expectedSource: string;
+  }> = [
+    {
+      name: "clarification active local state",
+      tempMemory: {},
+      activeSkillState: undefined,
+      expectedSkillId: "clarification",
+      expectedSource: "readActiveFlowState.activeClarificationState",
+    },
+    {
+      name: "weekly review active skill",
+      tempMemory: {},
+      activeSkillState: {
+        skill_id: "weekly_adaptive_review_v1",
+        status: "open",
+      },
+      expectedSkillId: "weekly_adaptive_review_v1",
+      expectedSource: "readActiveFlowState.activeSkillState",
+    },
+    {
+      name: "post morning nudge dedicated state",
+      tempMemory: {
+        __post_morning_nudge_active_state_v1: {
+          skill_id: "post_morning_nudge",
+          status: "active",
+          flow_kind: "action",
+        },
+      },
+      expectedSkillId: "post_morning_nudge",
+      expectedSource: "__post_morning_nudge_active_state_v1",
+    },
+    {
+      name: "status recap dedicated state",
+      tempMemory: {
+        __status_recap_flow_state_v1: {
+          skill_id: "status_recap",
+          mode: "local_readonly_flow",
+          status: "active",
+        },
+      },
+      expectedSkillId: "status_recap",
+      expectedSource: "__status_recap_flow_state_v1",
+    },
+    {
+      name: "emotional repair active skill",
+      tempMemory: {},
+      activeSkillState: {
+        skill_id: "emotional_repair",
+        status: "open",
+      },
+      expectedSkillId: "emotional_repair",
+      expectedSource: "readActiveFlowState.activeSkillState",
+    },
+    {
+      name: "demotivation repair active skill",
+      tempMemory: {},
+      activeSkillState: {
+        skill_id: "demotivation_repair",
+        status: "open",
+      },
+      expectedSkillId: "demotivation_repair",
+      expectedSource: "readActiveFlowState.activeSkillState",
+    },
+    {
+      name: "product help active skill",
+      tempMemory: {},
+      activeSkillState: {
+        skill_id: "product_help",
+        status: "open",
+      },
+      expectedSkillId: "product_help",
+      expectedSource: "readActiveFlowState.activeSkillState",
+    },
+    {
+      name: "flow opportunity dedicated state",
+      tempMemory: {
+        __flow_opportunity_verification_state_v1: {
+          skill_id: "flow_opportunity_verification",
+          mode: "local_verification_flow",
+          status: "waiting_confirmation",
+        },
+      },
+      expectedSkillId: "flow_opportunity_verification",
+      expectedSource: "__flow_opportunity_verification_state_v1",
+    },
+    {
+      name: "safety crisis active skill",
+      tempMemory: {},
+      activeSkillState: {
+        skill_id: "safety_crisis",
+        status: "active",
+      },
+      expectedSkillId: "safety_crisis",
+      expectedSource: "readActiveFlowState.activeSkillState",
+    },
+  ];
+
+  for (const testCase of cases) {
+    const ownership = resolveActiveLocalConversationFlowOwnership({
+      tempMemory: testCase.tempMemory,
+      activeClarificationState: testCase.expectedSkillId === "clarification"
+        ? {
+          skill_id: "clarification",
+          mode: "local_flow",
+          status: "waiting_user",
+        }
+        : undefined,
+      activeSkillState: testCase.activeSkillState,
+    });
+    assertEquals(ownership?.skill_id, testCase.expectedSkillId, testCase.name);
+    assertEquals(ownership?.source, testCase.expectedSource, testCase.name);
+  }
+});
+
+Deno.test("active_flow_state resolves recurring reminder from generic active intake", () => {
+  const tempMemory = {
+    __active_tool_skill_intake: {
+      operation_type: "create_recurring_reminder",
+      mode: "platform_handoff",
+      status: "handoff_delivered",
+    },
+  };
+  const active = readActiveFlowState(tempMemory);
+  const ownership = resolveActiveLocalToolFlowOwnership({
+    tempMemory,
+    activeOperationIntake: active.activeToolSkillIntake,
+    pendingOperationConfirmation: active.pendingToolSkillConfirmation,
+  });
+
+  assertEquals(ownership?.operation_type, "create_recurring_reminder");
+  assertEquals(ownership?.source, "readActiveFlowState.activeToolSkillIntake");
 });
 
 Deno.test("active_flow_state clear active tool removes legacy and canonical keys", () => {
@@ -132,13 +392,14 @@ Deno.test("active_flow_state direct reminder clear keeps legacy recommendation k
 Deno.test("active_flow_state suspends and restores an interrupted defense handoff", () => {
   const defenseHandoff = {
     operation_type: "prepare_defense_card",
+    skill_id: "prepare_defense_card",
     mode: "platform_handoff",
     status: "handoff_delivered",
     draft: { title: "Soir sans scroll" },
     no_chat_mutation: true,
   };
   const suspended = suspendActivePlatformHandoff(
-    { __active_tool_skill_intake: defenseHandoff },
+    { __active_defense_card_handoff: defenseHandoff },
     {
       interrupted_by: "update_coach_preferences",
       reason_code: "update_coach_preferences_interrupts_active_handoff",
@@ -152,6 +413,7 @@ Deno.test("active_flow_state suspends and restores an interrupted defense handof
 
   const cleared = clearActiveToolFlow(suspended);
   assertEquals(cleared.__active_tool_skill_intake, undefined);
+  assertEquals(cleared.__active_defense_card_handoff, undefined);
   assertEquals(
     (cleared[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY] as any).operation_type,
     "prepare_defense_card",
@@ -161,7 +423,7 @@ Deno.test("active_flow_state suspends and restores an interrupted defense handof
     cleared,
     "prepare_defense_card",
   );
-  assertEquals(restored.__active_tool_skill_intake, defenseHandoff);
+  assertEquals(restored.__active_defense_card_handoff, defenseHandoff);
   assertEquals(restored[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY], undefined);
 });
 

@@ -89,24 +89,26 @@ export function LevelToolRecommendationsCard({
   }
 
   return (
-    <section className="rounded-[30px] border border-amber-200 bg-[linear-gradient(180deg,rgba(255,251,235,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
+    <section className="min-w-0 max-w-full rounded-[22px] border border-amber-200 bg-[linear-gradient(180deg,rgba(255,251,235,1),rgba(255,255,255,1))] px-4 py-4 shadow-sm sm:rounded-[30px] sm:px-5 sm:py-5">
       <button
         type="button"
         onClick={() => setSectionExpanded((current) => !current)}
-        className="flex w-full items-start justify-between gap-4 text-left"
+        className="flex w-full min-w-0 items-start justify-between gap-3 text-left sm:gap-4"
         aria-expanded={sectionExpanded}
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-amber-700">
             <Wrench className="h-4 w-4 shrink-0" />
-            <h3 className="text-sm font-semibold text-stone-950">Outils recommandés pour ce niveau</h3>
+            <h3 className="min-w-0 text-sm font-semibold text-stone-950">
+              Outils recommandés pour ce niveau
+            </h3>
           </div>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
             Sophia te propose ici des outils externes qui peuvent aider ce niveau précis.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-900">
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="hidden rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-900 sm:inline-flex">
             {recommendations.length} recommandation{recommendations.length > 1 ? "s" : ""}
           </span>
           <ChevronDown

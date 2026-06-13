@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import type {
   DemotivationRepairVisibleTask,
   DemotivationRepairVisibleTaskKind,
@@ -172,9 +169,7 @@ export const runDemotivationRepairVisibleAgent: DemotivationRepairVisibleAgent =
         },
       );
       const message = String(text ?? "").trim();
-      return message && visibleOutputStyleIssues(message).length === 0
-        ? message
-        : null;
+      return message;
     } catch (error) {
       console.warn("[DemotivationRepair] visible agent failed", {
         stage: input.stage,

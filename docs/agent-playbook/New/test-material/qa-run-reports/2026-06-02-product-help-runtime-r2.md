@@ -237,7 +237,7 @@ extraite.
   corrections de cible au sein du skill et conserve `plan.missions`.
 - Owner runtime: `product_help` structured intake / correction handling.
 - Meilleure correction selon les guidelines: prioriser la cible corrigee du
-  message courant sur la cible precedente, sans handoff ni effet durable.
+  message courant sur la cible precedente, sans transition ni effet durable.
 - Pourquoi ce n'est pas un patch local: le diagnostic produit reste faux.
 
 ## 3. Analyse De Fluidite Humaine

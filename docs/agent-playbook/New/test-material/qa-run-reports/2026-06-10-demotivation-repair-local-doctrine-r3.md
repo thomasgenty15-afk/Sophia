@@ -164,8 +164,8 @@
 - skill_status: `complete`
 - flow_action: `complete_flow`
 - visible_task: `exit_or_cancel`
-- response_intent: `stop_local_no_handoff`
-- reason_code: `demotivation_repair_stop_local_no_handoff`
+- response_intent: `exit_to_global_dispatcher`
+- reason_code: `demotivation_repair_exit_to_global_dispatcher`
 - safety: none
 - direct_effects: none
 - operation: none
@@ -204,7 +204,7 @@
 **Routage**
 - Entree initiale correcte via `skill_entry_signal` vers `demotivation_repair`.
 - Pendant le flow actif, le dispatcher global normal ne reprend pas la main.
-- L'arret local du tour 5 produit `complete_flow` / `exit_or_cancel` / `stop_local_no_handoff`, sans `target_dispatcher`.
+- L'arret local du tour 5 produit `complete_flow` / `exit_or_cancel` / `exit_to_global_dispatcher`, sans `target_dispatcher`.
 
 **Skills / Operations / Tools**
 - Aucun tool ni operation engageante n'est execute.
@@ -223,7 +223,7 @@
 **Fix propose**
 - Source amont: decision locale `action_card_candidate`.
 - Correction recommandee: renforcer les regles de remplissage du dispatcher local et/ou le reducer pour bloquer `action_card_candidate` tant que l'utilisateur n'a pas exprime une demande de support, une acceptation, ou une opportunite actionnable claire.
-- Tests d'invariant attendus: conversation de demotivation avec sens retrouve ne propose pas automatiquement de carte; confirmation de carte impossible sans offre persistable; refus de carte reste `stop_local_no_handoff` si le user veut arreter.
+- Tests d'invariant attendus: conversation de demotivation avec sens retrouve ne propose pas automatiquement de carte; confirmation de carte impossible sans offre persistable; refus de carte reste `exit_to_global_dispatcher` si le user veut arreter.
 
 ## Verdict Global
 

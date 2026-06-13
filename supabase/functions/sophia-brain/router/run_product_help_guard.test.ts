@@ -3,6 +3,7 @@ import {
   directConversationSkillReplyOverride,
   enforceRecommendationToolVisibleReply,
   recordToolSkillEffectsInLedgerForTest,
+  shouldPreserveDirectStatusRecapRoute,
 } from "./run.ts";
 import { isActiveCardDraftingOperation } from "./active_operation_guards.ts";
 import { createEffectLedger, hasCommittedEffect } from "./effect_ledger.ts";
@@ -550,6 +551,79 @@ Deno.test("C1 anti-régression: isActiveCardDraftingOperation is false for coach
   assertEquals(isActiveCardDraftingOperation(null), false);
   assertEquals(isActiveCardDraftingOperation(undefined), false);
   assertEquals(isActiveCardDraftingOperation({}), false);
+});
+
+Deno.test("status_recap explicit read-only status route is preserved for direct local runtime", () => {
+  const routeDecision = {
+    route_version: "v1",
+    response_owner: "tool_skill",
+    selected_handler: "status_recap",
+    blocked_paths: [],
+    direct_effects_to_run: [],
+    reason_code: "status_recap",
+    memory_used_for_route: false,
+    memory_item_ids_used_for_route: [],
+    memory_use_kind: "none",
+  } as any;
+  const turnFrame = {
+    skill_signals: {
+      entry: {
+        status_recap: {
+          detected: true,
+          confidence_band: "high",
+          reason: "user_requests_factual_status_without_mutation",
+        },
+      },
+      lifecycle: {},
+      exit: {},
+    },
+    tool_skill_intents: [],
+    direct_effects: [],
+  } as any;
+
+  assertEquals(
+    shouldPreserveDirectStatusRecapRoute({ routeDecision, turnFrame }),
+    true,
+  );
+});
+
+Deno.test("status_recap direct route is not preserved over explicit mutable tool intent", () => {
+  const routeDecision = {
+    route_version: "v1",
+    response_owner: "tool_skill",
+    selected_handler: "status_recap",
+    blocked_paths: [],
+    direct_effects_to_run: [],
+    reason_code: "status_recap",
+    memory_used_for_route: false,
+    memory_item_ids_used_for_route: [],
+    memory_use_kind: "none",
+  } as any;
+  const turnFrame = {
+    skill_signals: {
+      entry: {
+        status_recap: {
+          detected: true,
+          confidence_band: "high",
+          reason: "status signal coexists with explicit tool command",
+        },
+      },
+      lifecycle: {},
+      exit: {},
+    },
+    tool_skill_intents: [{
+      operation_type: "create_recurring_reminder",
+      user_intent: "create",
+      confidence_band: "high",
+      explicitness: "explicit",
+    }],
+    direct_effects: [],
+  } as any;
+
+  assertEquals(
+    shouldPreserveDirectStatusRecapRoute({ routeDecision, turnFrame }),
+    false,
+  );
 });
 
 // ===========================================================================

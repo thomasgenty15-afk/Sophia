@@ -5,7 +5,6 @@ export type WeeklyRuntimeEffectMarker =
     status: "committed";
     effect: "adjust_plan_item";
     operation_id?: unknown;
-    plan_patch_id?: unknown;
   }
   | { status: "not_committed"; reason: string };
 

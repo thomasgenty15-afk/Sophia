@@ -1,5 +1,5 @@
 import { BookOpen, Compass, Target, ChevronDown, Loader2, Pencil, Sparkles } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useReducer, useState, type ReactNode } from "react";
 import type {
   Phase1DeepWhyState,
   Phase1StoryPrincipleSection,
@@ -149,11 +149,14 @@ type AtelierInspirationsProps = {
   transformationTitle?: string | null;
   phase1Story?: Phase1StoryState | null;
   phase1DeepWhy?: Phase1DeepWhyState | null;
+  focusTarget?: "deep_why" | "story" | null;
   storyPreparing?: boolean;
   deepWhyPreparing?: boolean;
   savingDeepWhy?: boolean;
+  onFocusConsumed?: () => void;
   onPrepareStory?: (detailsAnswer?: string | null) => void;
   onPrepareDeepWhy?: () => void;
+  onRevealStory?: () => void;
   onSaveDeepWhyAnswers?: (
     answers: Array<{ questionId: string; question: string; answer: string }>,
   ) => void;
@@ -173,6 +176,35 @@ function appendSuggestedAnswer(currentValue: string, suggestion: string) {
 
 function normalizeAnswer(value: string | null | undefined) {
   return (value ?? "").trim();
+}
+
+type ExpandedPanelsState = {
+  story: boolean;
+  deepWhy: boolean;
+};
+
+type ExpandedPanelsAction =
+  | { type: "focus"; target: "deep_why" | "story" }
+  | { type: "toggleStory" }
+  | { type: "toggleDeepWhy" }
+  | { type: "openDeepWhy" };
+
+function expandedPanelsReducer(
+  state: ExpandedPanelsState,
+  action: ExpandedPanelsAction,
+): ExpandedPanelsState {
+  if (action.type === "focus") {
+    return action.target === "deep_why"
+      ? { story: false, deepWhy: true }
+      : { story: true, deepWhy: false };
+  }
+  if (action.type === "toggleStory") {
+    return { ...state, story: !state.story };
+  }
+  if (action.type === "toggleDeepWhy") {
+    return { ...state, deepWhy: !state.deepWhy };
+  }
+  return { story: false, deepWhy: true };
 }
 
 function CardShell({
@@ -228,36 +260,60 @@ function CardShell({
 
 export function AtelierInspirations({
   inspirationNarrative,
-  unlockedPrinciples: _unlockedPrinciples,
   transformationTitle,
   phase1Story,
   phase1DeepWhy,
+  focusTarget = null,
   storyPreparing = false,
   deepWhyPreparing = false,
   savingDeepWhy = false,
+  onFocusConsumed,
   onPrepareStory,
   onPrepareDeepWhy,
+  onRevealStory,
   onSaveDeepWhyAnswers,
 }: AtelierInspirationsProps) {
-  const [storyDetailsAnswer, setStoryDetailsAnswer] = useState("");
+  const storyDetailsSourceValue = phase1Story?.details_answer ?? "";
+  const storyDetailsSourceKey = `${phase1Story?.status ?? "none"}:${storyDetailsSourceValue}`;
+  const [storyDetailsDraft, setStoryDetailsDraft] = useState(() => ({
+    sourceKey: storyDetailsSourceKey,
+    value: storyDetailsSourceValue,
+  }));
   const [deepWhyDrafts, setDeepWhyDrafts] = useState<Record<string, string>>({});
-  const [deepWhyEditing, setDeepWhyEditing] = useState<Record<string, boolean>>({});
+  const [deepWhyEditingState, setDeepWhyEditingState] = useState<{
+    answersKey: string;
+    values: Record<string, boolean>;
+  }>({
+    answersKey: "",
+    values: {},
+  });
 
-  const [isStoryExpanded, setIsStoryExpanded] = useState(false);
-  const [isDeepWhyExpanded, setIsDeepWhyExpanded] = useState(true);
+  const [expandedPanels, dispatchExpandedPanels] = useReducer(expandedPanelsReducer, {
+    story: false,
+    deepWhy: false,
+  });
   const [isPrinciplesExpanded, setIsPrinciplesExpanded] = useState(false);
   const [isUsageOpen, setIsUsageOpen] = useState(false);
 
-  useEffect(() => {
-    setStoryDetailsAnswer(phase1Story?.details_answer ?? "");
-  }, [phase1Story?.details_answer, phase1Story?.status]);
-
-  useEffect(() => {
-    setDeepWhyEditing({});
-  }, [phase1DeepWhy?.answers]);
-
   const deepWhyQuestions = phase1DeepWhy?.questions ?? [];
   const savedDeepWhyAnswers = phase1DeepWhy?.answers ?? [];
+  const deepWhyAnswersKey = JSON.stringify(
+    savedDeepWhyAnswers.map((item) => [item.question_id, item.answer]),
+  );
+  const storyDetailsAnswer = storyDetailsDraft.sourceKey === storyDetailsSourceKey
+    ? storyDetailsDraft.value
+    : storyDetailsSourceValue;
+  const deepWhyEditing = deepWhyEditingState.answersKey === deepWhyAnswersKey
+    ? deepWhyEditingState.values
+    : {};
+  const updateDeepWhyEditing = (
+    updater: (current: Record<string, boolean>) => Record<string, boolean>,
+  ) => {
+    setDeepWhyEditingState((current) => ({
+      answersKey: deepWhyAnswersKey,
+      values: updater(current.answersKey === deepWhyAnswersKey ? current.values : {}),
+    }));
+  };
   const savedDeepWhyMap = new Map(
     savedDeepWhyAnswers.map((item) => [item.question_id, item.answer]),
   );
@@ -275,11 +331,24 @@ export function AtelierInspirations({
     PRINCIPLES.map((principle) => [principle.key, principle] as const),
   );
   const storySections = phase1Story?.principle_sections ?? [];
+  const storyExpanded = expandedPanels.story;
+  const deepWhyExpanded = expandedPanels.deepWhy;
 
   const orderedStorySections = PRINCIPLES.flatMap((principle) => {
     const section = storySections.find((item) => item.principle_key === principle.key);
     return section ? [section] : [];
   });
+
+  useEffect(() => {
+    if (!focusTarget) return;
+    dispatchExpandedPanels({ type: "focus", target: focusTarget });
+    onFocusConsumed?.();
+  }, [focusTarget, onFocusConsumed]);
+
+  useEffect(() => {
+    if (!storyExpanded || phase1Story?.status !== "generated") return;
+    onRevealStory?.();
+  }, [storyExpanded, onRevealStory, phase1Story?.status]);
 
   return (
     <div className="sophia-violet-surface space-y-5">
@@ -310,8 +379,8 @@ export function AtelierInspirations({
         subtitle="Quand tout se brouille, reviens ici pour te rappeler ce que tu veux vraiment proteger, retrouver et faire grandir."
         icon={<Target className="h-5 w-5 text-violet-700" />}
         accentClass="bg-violet-50"
-        isOpen={isDeepWhyExpanded}
-        onToggle={() => setIsDeepWhyExpanded((v) => !v)}
+        isOpen={deepWhyExpanded}
+        onToggle={() => dispatchExpandedPanels({ type: "toggleDeepWhy" })}
       >
           <div className="rounded-2xl border border-violet-100 bg-violet-50/60 px-4 py-4">
             <div className="flex flex-wrap items-center justify-end gap-3">
@@ -369,7 +438,7 @@ export function AtelierInspirations({
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setDeepWhyEditing((current) => ({
+                                  updateDeepWhyEditing((current) => ({
                                     ...current,
                                     [question.id]: true,
                                   }))}
@@ -478,8 +547,8 @@ export function AtelierInspirations({
         subtitle="A relire quand tu as besoin de reprendre de la force et de te souvenir du chemin que tu es en train d'ouvrir."
         icon={<BookOpen className="h-5 w-5 text-rose-700" />}
         accentClass="bg-rose-50"
-        isOpen={isStoryExpanded}
-        onToggle={() => setIsStoryExpanded((v) => !v)}
+        isOpen={storyExpanded}
+        onToggle={() => dispatchExpandedPanels({ type: "toggleStory" })}
       >
           <div className="rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-5 py-5">
             <div className="flex flex-wrap items-center justify-end gap-3">
@@ -507,9 +576,33 @@ export function AtelierInspirations({
               </p>
             ) : null}
 
-            {!deepWhySavedComplete && hasDeepWhyQuestions ? (
-              <div className="mt-4 rounded-2xl border border-white/70 bg-white/70 px-4 py-4 text-sm leading-6 text-stone-700">
-                Complete et enregistre d&apos;abord ton pourquoi profond. Sophia s&apos;en sert comme matière pour écrire une histoire plus juste.
+            {!deepWhySavedComplete ? (
+              <div className="mt-4 rounded-2xl border border-white/70 bg-white/70 px-4 py-4">
+                <p className="text-sm leading-6 text-stone-700">
+                  {hasDeepWhyQuestions
+                    ? "Complete et enregistre d'abord ton pourquoi profond. Sophia s'en sert comme matiere pour ecrire une histoire plus juste."
+                    : "Renseigne d'abord ton pourquoi profond. Sophia s'en servira comme point de depart pour generer ton histoire."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    dispatchExpandedPanels({ type: "openDeepWhy" });
+                    if (!hasDeepWhyQuestions) {
+                      onPrepareDeepWhy?.();
+                    }
+                  }}
+                  disabled={!hasDeepWhyQuestions && deepWhyPreparing}
+                  className="mt-3 inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-xs font-semibold text-rose-900 transition-colors hover:bg-rose-50 disabled:opacity-60"
+                >
+                  {!hasDeepWhyQuestions && deepWhyPreparing ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Preparation...
+                    </>
+                  ) : (
+                    "Renseigner mon pourquoi profond"
+                  )}
+                </button>
               </div>
             ) : null}
 
@@ -527,7 +620,11 @@ export function AtelierInspirations({
                 </div>
                 <textarea
                   value={storyDetailsAnswer}
-                  onChange={(event) => setStoryDetailsAnswer(event.target.value)}
+                  onChange={(event) =>
+                    setStoryDetailsDraft({
+                      sourceKey: storyDetailsSourceKey,
+                      value: event.target.value,
+                    })}
                   rows={4}
                   placeholder="Réponds en quelques phrases. Sophia s'en servira pour générer une histoire plus juste."
                   className="mt-3 w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-amber-300"

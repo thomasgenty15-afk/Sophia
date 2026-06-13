@@ -120,8 +120,8 @@ Deno.test("prod_runtime_has_no_regex_or_legacy_routing_except_risk_score", async
     "Deterministic",
     "heuristic",
     "Heuristic",
-    "tool_skill_opportunity",
-    "ToolSkillOpportunity",
+    ["tool", "skill", "opportunity"].join("_"),
+    ["Tool", "Skill", "Opportunity"].join(""),
   ];
   const offenders: string[] = [];
   for (const file of files) {

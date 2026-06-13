@@ -27,4 +27,4 @@
   - Integration locale `test-send-message`: T1 entree `emotional_repair`, T2 `status=continue`, assertion DB `__active_skill_state.skill_id=emotional_repair` apres T2.
   - Integration loader/arbitrator: T3 changement de sujet produit, attendu `active_flow_arbitration.active_owner=emotional_repair`, jamais `no_active_flow`.
   - Handoff: attendu `exit_to_global_dispatcher` avec `note_information.source_flow=emotional_repair`, puis `product_help` consomme sa propre note.
-  - Anti-regression: `stop_local_no_handoff` ne doit pas appeler global sur le meme tour; `safety_preempt` doit conserver la priorite vers `safety_crisis`.
+  - Anti-regression: `exit_to_global_dispatcher` ne doit pas appeler global sur le meme tour; `safety_preempt` doit conserver la priorite vers `safety_crisis`.

@@ -64,7 +64,7 @@ Relevant traces observed:
 - No deterministic renderer: not exercised.
 - No single generic conversation agent: not exercised.
 - Every flow action has exact continuation: not exercised.
-- `stop_local_no_handoff`: not exercised.
+- `exit_to_global_dispatcher`: not exercised.
 - `exit_to_global_dispatcher` note information: not exercised.
 - `safety_preempt`: not exercised.
 - Conversation agent only uses `conversation_context`: not exercised.

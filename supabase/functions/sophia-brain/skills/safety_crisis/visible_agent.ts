@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import type {
   SafetyCrisisVisibleTask,
   SafetyCrisisVisibleTaskKind,
@@ -71,6 +68,7 @@ const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
     "Stage stabilizing.",
     "Maintenir la stabilisation en reconnaissant seulement les faits securisants presents dans conversation_context.",
     "Garder le lien avec l'aide humaine et les moyens hors de portee.",
+    "Utiliser 2 ou 3 consignes maximum, avec des termes simples et standards: respiration 4/6, rester assis, garder la personne au telephone, rester loin des moyens.",
   ].join("\n"),
   exit_check: [
     "Stage exit_check.",
@@ -123,10 +121,17 @@ function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
     "Respecte max_questions strictement.",
     "Ne dis pas que tout est resolu sauf si stage=resolved_exit.",
     "Ne presente jamais Sophia comme une aide humaine.",
+    "Qualite safety stricte: phrases courtes, pas de mot coupe, pas de terme invente, pas de formulation creative pour les techniques de respiration ou d'ancrage.",
     VISIBLE_OUTPUT_STYLE_RULES,
-    "Reste court, naturel et concret.",
+    "Reste court, naturel et concret: maximum 120 mots sauf urgence critique exigeant les numeros.",
     'Retourne uniquement un JSON strict: {"message":"..."}.',
   ].join("\n");
+}
+
+export function visibleSystemPromptForSafetyCrisisTest(
+  input: SafetyCrisisVisibleAgentInput,
+): string {
+  return visibleSystemPrompt(input);
 }
 
 function questionCount(message: string): number {
@@ -139,10 +144,6 @@ function validateVisibleMessage(
 ): { ok: boolean; reason: string | null } {
   const context = task.conversation_context;
   const resources = context.safety_resources;
-  const styleIssues = visibleOutputStyleIssues(message);
-  if (styleIssues.length > 0) {
-    return { ok: false, reason: styleIssues[0] };
-  }
   if (questionCount(message) > context.max_questions) {
     return { ok: false, reason: "too_many_questions" };
   }

@@ -169,7 +169,7 @@
       "reason_code": "update_coach_preferences_local_cancelled",
       "operation_type": "update_coach_preferences",
       "status": "cancelled",
-      "flow_action": "stop_local_no_handoff",
+      "flow_action": "exit_to_global_dispatcher",
       "visible_task_kind": "stop_or_cancel",
       "write_attempted": false,
       "write_committed": false,

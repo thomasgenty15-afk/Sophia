@@ -7,7 +7,6 @@ export type {
   WeeklyReviewConstraint,
   WeeklyReviewDecision,
   WeeklyReviewIntent,
-  WeeklyReviewPlanPatch,
   WeeklyReviewStatus,
   WeeklyStrategyDecision,
 } from "../../../_shared/weekly_review/contract.ts";

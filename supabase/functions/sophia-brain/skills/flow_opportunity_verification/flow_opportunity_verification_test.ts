@@ -118,11 +118,27 @@ Deno.test("flow opportunity local dispatcher prompt explains real output fields"
   }
   assert(systemPrompt.includes("Transition Rules"));
   assert(systemPrompt.includes("`exit_to_global_dispatcher`"));
-  assert(systemPrompt.includes("`exit_to_global_dispatcher`"));
   assert(systemPrompt.includes("`safety_preempt`"));
   assert(systemPrompt.includes("`handoff_to_local_flow`"));
   assert(systemPrompt.includes("Anti-faux-positif"));
   assertEquals(systemPrompt.match(/Example \d -/g)?.length, 2);
+});
+
+Deno.test("flow opportunity prompt blocks pre-acceptance constraints from handoff", () => {
+  const systemPrompt = flowOpportunityLocalDispatcherSystemPrompt();
+  assert(systemPrompt.includes("Une demande de confirmation ou de contrainte"));
+  assert(systemPrompt.includes("n'est pas une acceptation"));
+  assert(systemPrompt.includes("confirme-moi juste"));
+  assert(systemPrompt.includes("avant de dire oui"));
+  assert(systemPrompt.includes("je veux etre sur"));
+  assert(systemPrompt.includes("sans lancer encore"));
+  assert(systemPrompt.includes("tu vas juste lire"));
+  assert(systemPrompt.includes("sans creer ni modifier"));
+  assert(
+    systemPrompt.includes(
+      "mais jamais `handoff_to_local_flow`",
+    ),
+  );
 });
 
 Deno.test("flow opportunity dispatcher user prompt exposes contractual note field", () => {
@@ -140,6 +156,23 @@ Deno.test("flow opportunity dispatcher user prompt exposes contractual note fiel
   assertEquals(
     "source_flow_id" in prompt.required_json_shape.note_information,
     false,
+  );
+});
+
+Deno.test("flow opportunity dispatcher user prompt includes pre-acceptance guidance", () => {
+  const prompt = JSON.parse(buildFlowOpportunityLocalDispatcherUserPrompt({
+    user_message:
+      "Avant, confirme-moi juste que tu vas lire sans rien modifier.",
+    active_state: null,
+    initial_payload: opportunity,
+    recent_user_messages: [],
+    subskill_history: [],
+    supported_target_flows: ["status_recap"],
+    safety: { risk_band: "low" },
+  }));
+  assertEquals(
+    prompt.action_guidance.pre_acceptance_constraint,
+    "A pre-acceptance confirmation or constraint request is not acceptance. Use get_info_product, repeat_current_state, or local continuation; never handoff_to_local_flow.",
   );
 });
 

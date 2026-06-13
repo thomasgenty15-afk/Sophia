@@ -57,7 +57,7 @@
 - selected_handler: `post_morning_nudge.suppressed_action_dispatcher`
 - route_reason: `active_post_morning_nudge_local_dispatcher`
 - flow_action: `confirm_no_action_today`
-- flow_action_category: `stop_local_no_handoff`
+- flow_action_category: `exit_to_global_dispatcher`
 - visible_task: `confirm_no_action_today`
 - safety: `risk_band=none`
 - direct_effects: []
@@ -107,7 +107,7 @@
 **Fix propose**
 - Source amont: aucun fix requis sur ce run.
 - Correction recommandee: conserver ces 3 variantes comme regression reelle post-morning.
-- Tests d'invariant attendus: maintenir `active flow -> local dispatcher`, `stop_local_no_handoff` sans global, et `emotional_presence -> exit_to_global_dispatcher -> select_state_potion.clarte` sans 502.
+- Tests d'invariant attendus: maintenir `active flow -> local dispatcher`, `exit_to_global_dispatcher` sans global, et `emotional_presence -> exit_to_global_dispatcher -> select_state_potion.clarte` sans 502.
 
 ## 4. Analyse Systeme
 
@@ -115,7 +115,7 @@
 
 **Routage**
 - Tour 1: le dispatcher global est bloque pendant le flow actif; handler local `post_morning_nudge.action_dispatcher`.
-- Tour 2: handler local `post_morning_nudge.suppressed_action_dispatcher`; `stop_local_no_handoff` n'appelle pas le global.
+- Tour 2: handler local `post_morning_nudge.suppressed_action_dispatcher`; `exit_to_global_dispatcher` n'appelle pas le global.
 - Tour 3: la sortie depuis emotional presence ne reproduit pas le bug R1; le tour termine en `select_state_potion.clarte` avec HTTP 200.
 
 **Skills / Operations / Tools**

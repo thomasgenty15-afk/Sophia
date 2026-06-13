@@ -56,6 +56,7 @@ export type ProductHelpLocalFlowAction =
   | "apply_attempt"
   | "inline_status_roundtrip"
   | "inline_tool_return"
+  | "handoff_to_local_dispatcher"
   | "exit_to_global_dispatcher"
   | "close_product_help"
   | "return_to_parent_flow"

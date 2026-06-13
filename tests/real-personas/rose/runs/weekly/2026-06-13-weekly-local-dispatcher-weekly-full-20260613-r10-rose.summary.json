@@ -1,0 +1,421 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t01",
+    "status": 200,
+    "ok": true,
+    "user": "On peut faire mon weekly maintenant. Je veux qu'on regarde la semaine posément.",
+    "assistant": "On va regarder tout ça posément. Comment as-tu vécu cette semaine dans l'ensemble ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "ask_week_experience",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Globalement, c'était irrégulier. Le matériel hors de vue, je l'ai bien rangé en début de semaine mais jeudi soir tout est ressorti. Pour cibler le joint réflexe, j'ai mieux repéré le moment où ça part : quand je rentre tard et que je pose mon sac. Le sas sans fumer, j'ai tenu deux soirs, pas plus.",
+    "assistant": "C'est un point clé d'avoir identifié ce lien avec tes retours tardifs. Quand tu rentres après une longue journée, qu'est-ce qui te semble le plus difficile pour lancer ton sas de décompression ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "explore_action_blocker",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Le plus dur, c'est la minute où je rentre. Je suis fatiguée, je vois mes affaires, et je veux juste couper. Si je vais directement dans la salle de bain ça passe mieux, mais si je m'assois sur le canapé c'est fini.",
+    "assistant": "Entre les défis du rangement et l'identification du piège du canapé, quel est ton sentiment sur ton avancée globale vers ton objectif cette semaine ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "ask_global_progress_feeling",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t04",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai l'impression d'avoir avancé un peu parce que je comprends mieux le piège, mais émotionnellement je suis partagée. Je suis fière d'avoir tenu deux soirs, et en même temps j'ai peur que ça reste trop fragile.",
+    "assistant": "C'est compréhensible de ressentir cette fragilité face à la fatigue. Pour protéger ton arrivée et éviter le piège du canapé, on pourrait explorer une piste consistant à utiliser la salle de bain comme zone tampon. Est-ce que cette approche te semble utile pour stabiliser ton sas de décompression ? Ce détour servira le bilan et nous reprendrons la suite juste après.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "qualify_attack_or_defense_fit",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, ça me semble utile. Je veux une défense très concrète : en rentrant, poser le sac à l'entrée, mettre les clés dans la salle de bain, lancer une douche de cinq minutes, et me dire 'je vais d'abord sous l'eau, après je verrai'.",
+    "assistant": "Ton rituel est très précis pour éviter de t'installer sur le canapé. Quel est le signal de départ exact, le tout premier geste ou la première chose que tu vois, qui doit déclencher cet enchaînement dès ton arrivée ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason_code": "weekly_adaptive_review_v1_handoff_to_prepare_defense_card",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "prepare_defense_card",
+        "status": "collecting",
+        "reason_code": "prepare_defense_card_local_collecting",
+        "flow_action": null,
+        "visible_task": null,
+        "toolExecution": null,
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Le signal, c'est vraiment quand je ferme la porte derrière moi et que je pose mon sac. C'est là que je dois partir directement vers la salle de bain, sans m'asseoir.",
+    "assistant": "C'est une excellente stratégie pour rompre cet automatisme. Voici les éléments que nous avons préparés ensemble pour ta carte de défense :\n\nDans le champ **Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?**, tu peux copier : « Le moment où je rentre tard, fatiguée, et que je risque de m'asseoir sur le canapé par automatisme. »\n\nPour le contexte du risque, tu as défini : « Le moment critique où la fatigue pousse à s'asseoir et à consommer par automatisme. »\n\nEt ton action de défense sera de : « poser le sac à l'entrée, mettre les clés dans la salle de bain, lancer une douche de cinq minutes, et me dire 'je vais d'abord sous l'eau, après je verrai' ».\n\nPour finaliser, rends-toi dans l'action concernée du Plan, section Cartes de défense pour y saisir ces informations. La carte n'est pas créée automatiquement d'ici, c'est à toi de l'ajouter dans ton espace.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason_code": "active_prepare_defense_card_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "prepare_defense_card",
+        "status": "handoff_delivered",
+        "reason_code": "platform_handoff_delivered",
+        "flow_action": null,
+        "visible_task": null,
+        "toolExecution": null,
+        "executedTools": [],
+        "platform_handoff": {
+          "operation_type": "prepare_defense_card",
+          "status": "delivered",
+          "surface_id": "defense_cards",
+          "reason_code": "platform_handoff_delivered",
+          "no_chat_mutation": true,
+          "draft": {
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "target_summary": "Cibler le joint réflexe",
+            "risk_summary": "Le piège du canapé au retour",
+            "prepared_fields": {
+              "risk_context": "Le moment critique où la fatigue pousse à s'asseoir et à consommer par automatisme.",
+              "defense_action": "poser le sac à l'entrée, mettre les clés dans la salle de bain, lancer une douche de cinq minutes, et me dire 'je vais d'abord sous l'eau, après je verrai'",
+              "ritual_phrase": null
+            },
+            "platform_flow": {
+              "route_kind": "plan_item_card",
+              "route_label": "Carte de défense liée à une mission ou habitude du plan",
+              "questionnaire_answers": [
+                {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "value": "Le moment où je rentre tard, fatiguée, et que je risque de m'asseoir sur le canapé par automatisme.",
+                  "status": "locked"
+                }
+              ]
+            },
+            "platform_fields": {
+              "route_kind": "plan_item_card",
+              "status": "complete",
+              "missing_field_ids": [],
+              "fields": [
+                {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "required": true,
+                  "status": "locked",
+                  "proposed_value": null,
+                  "locked_value": "Le moment où je rentre tard, fatiguée, et que je risque de m'asseoir sur le canapé par automatisme.",
+                  "user_evidence": [
+                    "Le moment où je rentre tard, fatiguée, et que je risque de m'asseoir sur le canapé par automatisme."
+                  ],
+                  "needs_user_confirmation": false,
+                  "evidence": [
+                    "prepare_defense_card_local_reducer"
+                  ]
+                }
+              ]
+            },
+            "recommendation": {
+              "platform_destination": "dans l'action concernée du Plan, section Cartes de défense",
+              "platform_steps": [
+                "ouvre l'action concernée dans le Plan",
+                "va dans sa section Cartes de défense",
+                "reprends les champs préparés par Sophia"
+              ],
+              "card_draft_summary": "Contexte de risque: Le moment critique où la fatigue pousse à s'asseoir et à consommer par automatisme. | Réponse prévue: poser le sac à l'entrée, mettre les clés dans la salle de bain, lancer une douche de cinq minutes, et me dire 'je vais d'abord sous l'eau, après je verrai'"
+            },
+            "missing_decisions": []
+          }
+        },
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Parfait, je l'ajouterai moi-même dans le Plan. On peut revenir au weekly et faire la synthèse.",
+    "assistant": "C'est entendu pour ton rituel de retour (sac, clés et douche). Les éléments sont prêts pour que tu puisses les saisir dans la section Cartes de défense de ton Plan. On passe maintenant à la synthèse de ta semaine ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_gate_order_requires_return_from_child_flow",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "return_from_child_flow",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": [
+          {
+            "type": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_gate_order_requires_return_from_child_flow"
+          }
+        ]
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t08",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, synthétise : semaine irrégulière, rangement partiel, joint réflexe mieux identifié, sas partiel, et petite avancée mais encore fragile.",
+    "assistant": "Cette semaine a été marquée par une certaine irrégularité et une fatigue bien présente. Tes actions, comme le rangement du matériel ou le sas de décompression, sont restées partielles et le progrès vers ton objectif semble encore fragile. Pour renforcer ton retour à la maison, les détails du rituel de défense (sac, clés, douche) sont prêts à être saisis par tes soins dans la section dédiée de ton Plan sur la plateforme. Est-ce que cette synthèse te convient pour clore la semaine ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_recap_weekly",
+        "flow_action": "recap_weekly",
+        "visible_task": "weekly_synthesis",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r10-rose-t09",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, elle me convient. On peut clôturer le weekly.",
+    "assistant": "C'est entendu. Notre point hebdomadaire est maintenant terminé. Les détails de ton rituel de retour ont été préparés pour que tu puisses les saisir dans ton Plan, au niveau des cartes de défense. Repose-toi bien et à bientôt pour la suite.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "closed",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "weekly_closure",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  }
+]

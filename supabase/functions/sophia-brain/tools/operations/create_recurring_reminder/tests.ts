@@ -120,7 +120,7 @@ function localDispatcherOutput(input: {
       cadence_summary: fields.recurrence.cadence_label,
       time_summary: input.time ? `${input.time}, Europe/Paris` : null,
       content_summary: input.message ?? null,
-      platform_destination: "Rappels",
+      platform_destination: "Initiatives",
       preserve: [],
       avoid: [],
     },
@@ -137,7 +137,7 @@ function localDispatcherOutput(input: {
         stage_goal: visibleKind,
         current_user_message_summary: "test",
         active_flow_summary:
-          "Préparer un rappel récurrent à reprendre dans Rappels, sans mutation chat.",
+          "Préparer un rappel récurrent à reprendre dans Initiatives, sans mutation chat.",
         collected_state: {
           fields,
           no_chat_mutation: true,
@@ -147,7 +147,7 @@ function localDispatcherOutput(input: {
           cadence_summary: cadenceSummary,
           time_summary: timeSummary,
           content_summary: input.message ?? null,
-          platform_destination: "Rappels",
+          platform_destination: "Initiatives",
           revised_value_summary: input.message ?? null,
         },
         missing_or_weak_values: missing,
@@ -158,7 +158,7 @@ function localDispatcherOutput(input: {
           cadence_summary: cadenceSummary,
           time_summary: timeSummary,
           content_summary: input.message ?? null,
-          platform_destination: "Rappels",
+          platform_destination: "Initiatives",
           preserve: [],
           avoid: [],
           no_chat_mutation: true,
@@ -231,7 +231,7 @@ const testVisibleAgent = async (input: any): Promise<string | null> => {
     context.known_values.cadence_summary;
   const time = handoff.time_summary ?? context.known_values.time_summary;
   const destination = handoff.platform_destination ??
-    context.known_values.platform_destination ?? "Rappels";
+    context.known_values.platform_destination ?? "Initiatives";
   return `À reprendre dans ${destination} : ${content}, ${cadence}, ${time}. Je ne crée pas de rappel récurrent depuis le chat.`;
 };
 
@@ -375,7 +375,7 @@ Deno.test("create_recurring_reminder preserves user constraints in visible conve
     },
     runVisibleAgent: async (input: any) => {
       capturedContext = input.visible_task.conversation_context;
-      return "Je garde la version en brouillon à reprendre dans Rappels, sans création depuis le chat.";
+      return "Je garde la version en brouillon à reprendre dans Initiatives, sans création depuis le chat.";
     },
   }));
 
@@ -410,7 +410,7 @@ Deno.test("create_recurring_reminder apply_attempt does not execute and repeats 
   assertEquals(runtime?.executedTools, []);
   assertEquals(runtime?.committedEffects, []);
   assertEquals(runtime?.toolSkillRun.status, "apply_attempt");
-  assertEquals(runtime?.content.includes("Rappels"), true);
+  assertEquals(runtime?.content.includes("Initiatives"), true);
   assertEquals(runtime?.content.includes("Destination plateforme"), false);
   assertEquals(
     runtime?.content.includes(
@@ -469,7 +469,7 @@ Deno.test("create_recurring_reminder active route apply_attempt bypasses clarifi
   assertEquals(runtime?.toolSkillRun.status, "apply_attempt");
   assertEquals(runtime?.executedTools, []);
   assertEquals(runtime?.committedEffects, []);
-  assertEquals(runtime?.content.includes("Rappels"), true);
+  assertEquals(runtime?.content.includes("Initiatives"), true);
   assertEquals(runtime?.content.includes("Destination plateforme"), false);
 });
 
@@ -552,7 +552,7 @@ Deno.test("create_recurring_reminder repeat_handoff repeats platform draft", asy
   assertEquals(runtime?.toolExecution, "platform_handoff");
   assertEquals(runtime?.toolSkillRun.status, "repeat_handoff");
   assertEquals(runtime?.content.includes("préparer ma semaine"), true);
-  assertEquals(runtime?.content.includes("Rappels"), true);
+  assertEquals(runtime?.content.includes("Initiatives"), true);
 });
 
 Deno.test("create_recurring_reminder revise_handoff updates cadence time and content", async () => {

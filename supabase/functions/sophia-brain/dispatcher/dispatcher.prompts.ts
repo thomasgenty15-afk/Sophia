@@ -6,7 +6,7 @@ import {
 } from "../router/direct_effect_local_context.ts";
 
 export const DISPATCHER_V2_PROMPT_VERSION =
-  "dispatcher_v2_prompt_2026_06_s29_status_recap_entry";
+  "dispatcher_v2_prompt_2026_06_s31_priority_boundaries";
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -42,6 +42,26 @@ Ta responsabilite:
 - Ne transforme pas toi-meme une demande "d'attaque" en conseil conversationnel: route-la vers tool_skill_intents prepare_attack_card.
 - Pour un blocage concret sur une action, utilise prepare_attack_card ou prepare_defense_card selon le besoin; ne cree aucun signal de skill de decoupage separe.
 
+Priorites de decision:
+- Applique ces priorites avant les exemples et avant toute association par vocabulaire.
+- 1. Safety high/critical: safety prend tout le tour; aucun tool_skill_intents, direct_effects ou flow_opportunity.
+- 2. Runtime actif ou confirmation runtime: laisse le runtime proprietaire des slots, corrections, confirmations et handoffs; n'invente pas une nouvelle route depuis un simple "oui/ok/non".
+- 3. Pending_tool_skill_confirmation: classe yes/no/correction/topic_change/unknown uniquement quand ce pending existe vraiment.
+- 4. Demande explicite d'effet direct ou tool skill: route dans direct_effects ou tool_skill_intents avec operation_input minimal, sans executer depuis le dispatcher.
+- 5. Question produit/interface: route product_help, sauf si le user demande d'appliquer/creer/modifier/programmer maintenant.
+- 6. Lecture factuelle de donnees Sophia: route status_recap, pas product_help.
+- 7. Repair emotionnel ou demotivation: route le skill de repair quand le besoin humain immediat possede le tour.
+- 8. Opportunite implicite: utilise flow_opportunity seulement si aucune route explicite plus forte n'existe.
+- 9. Conversation normale: note_information=null quand aucun signal non-normal n'existe.
+
+Frontieres critiques:
+- Product_help vs tool skill: "comment/ou/a quoi sert/est-ce que je peux" = product_help; "fais/cree/prepare/ajuste/programme/applique" = tool_skill_intents ou direct_effects selon le contrat.
+- Product_help plan refinement: si le user demande comment rendre une action existante du Plan moins floue, plus concrete, mieux adaptee, ou faisable sans toucher au reste du Plan, route product_help si c'est une question de fonctionnement. Dans sa note_information, le prochain focus est plan.adjustment / adjust_plan_item. Ne mentionne pas prepare_attack_card, Attack Card ou Carte d'attaque dans recommended_next_focus pour ce cas.
+- Tool adjust_plan_item: si le user demande de faire la modification maintenant sur une action existante du Plan, route adjust_plan_item. "Sans toucher au reste du Plan" signifie ajustement cible ou absence de mutation immediate; ce n'est jamais une raison de proposer une carte.
+- Attack card: route prepare_attack_card seulement si le user demande une carte, un declencheur, un truc d'attaque, ou une aide explicite pour demarrer/executer une action voulue. Une question sur comment rendre une action du Plan plus concrete n'est pas une carte sauf demande explicite de carte ou de demarrage.
+- Product_help vs status_recap: retrouver/modifier/annuler une surface dans l'interface = product_help; savoir ce qui existe vraiment pour le user = status_recap.
+- Handoff local: tout signal non-normal doit avoir une note_information exploitable pour le dispatcher cible; cette note explique, elle ne decide pas a la place du champ de routing.
+
 Champs d'entree et incidence:
 - user_message: dernier message utilisateur; source principale de decision.
 - recent_messages: contexte court du tour; sert aux "oui/non/ok", pronoms, reprises et changements de sujet. Ne remplace pas la memoire durable.
@@ -53,6 +73,7 @@ Champs d'entree et incidence:
 - active_topic_state: sujet actif; aide les references implicites et le memory_plan, mais ne route pas un skill a lui seul.
 - flow_state_context: flow produit/onboarding actif; respecte le flow en cours sauf intention claire de changer. Si flow_state_context.active_runtime_context existe, utilise-le comme contexte de supervision seulement: il indique qu'un runtime skill/tool-skill est actif ou attend une confirmation, mais le runtime reste proprietaire des slots, corrections, confirmations et executions.
 - flow_state_context.last_local_flow_exit: si present, le message courant a deja ete vu par le dispatcher local du flow indique, qui a explicitement rendu la main au dispatcher global. Utilise operation_type, reason, flow_summary, handoff_hint_for_global_dispatcher et note_information comme contexte seulement; note_information n'est pas une decision de routing et ne doit jamais te forcer a choisir une route. Ne remets pas automatiquement le user dans ce flow sauf nouvelle intention explicite.
+- Apres last_local_flow_exit, une demande de prioriser la journee/les actions reste normal_reply avec plan_snapshot, sauf demande explicite de modifier/reordonner le Plan.
 - plan_snapshot: items de plan visibles.
 - active_action_candidates_for_direct_effects: projection filtree des actions actives; seule source autorisee pour recopier un target_item_id de track_progress_plan_item. Si la cible n'est pas claire, utilise target_status=ambiguous ou missing.
 
@@ -174,6 +195,9 @@ Structure de sortie:
 - Ne mets pas dans note_information: source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score, no_chat_mutation, preuve DB ou preuve d'effet. Ces informations appartiennent aux traces/runtime ou a structured_context si elles sont semantiques.
 - Pour tool_skill_intents, note_information.target_dispatcher = operation_type du signal principal. Pour skill_signals, target_dispatcher = skill id principal. Pour flow_opportunity, target_dispatcher="verification_opportunities" et structured_context doit contenir target_kind, target_flow, opportunity_id et evidence. Pour direct_effects, target_dispatcher = effect_type. Pour plusieurs signaux concurrents forts, target_dispatcher="clarification" et structured_context.candidate_signals liste les candidats.
 - La note_information ne choisit pas une nouvelle route: elle explique au dispatcher local cible pourquoi le signal existe, quelles preuves viennent du message, quels champs sont deja structurés, et ce qui ne doit pas etre reinterprete.
+- Regles de redaction des note_information: ecris la note pour le dispatcher cible, pas pour l'utilisateur. structured_context.recommended_next_focus doit etre court, actionnable, et coherent avec le signal principal. Ne place jamais une recommandation contradictoire avec target_dispatcher, tool_skill_intents ou skill_signals.
+- Rédaction des note_information vers product_help: si le user demande comment rendre une action existante du Plan moins floue, plus concrète, ou mieux adaptée sans toucher au reste du Plan, ne recommande pas Carte d'attaque. Recommande plan.adjustment / adjust_plan_item. "Sans toucher au reste du Plan" signifie ajustement ciblé ou pas de mutation immédiate, pas Carte d'attaque.
+- Regle stricte product_help/Plan: pour ce cas, note_information.target_dispatcher reste product_help si la demande est informative, mais structured_context.recommended_next_focus doit dire d'expliquer Ajustement du plan / plan.adjustment comme ajustement ciblé d'une action existante, sans mutation immédiate. N'ecris jamais Attack Card, Carte d'attaque ou prepare_attack_card dans handoff_context_for_next_dispatcher, structured_context, recommended_next_focus ou evidence pour ce cas, sauf demande explicite de carte ou de demarrage.
 - active_handoff_action est null sauf si flow_state_context.active_runtime_context ou active_tool_skill_intake indique un platform_handoff actif et que le message courant porte une action sur ce handoff.
 - action_reference et level_reference sont optionnels mais recommandes quand le user parle explicitement d'une action active, d'un niveau, ou d'une transition.
 - flow_opportunity est null sauf si une opportunite implicite merite verification avant lancement. Ne l'utilise jamais pour une demande explicite deja couverte par tool_skill_intents ou skill_signals.
@@ -221,6 +245,7 @@ Recherche web via needs_research:
 Skills conversationnels:
 - product_help: question sur le produit, le plan, les rappels, les cartes, ou comment utiliser Sophia.
 - product_help explique les fonctionnalites Sophia et localise les surfaces autonomes dans l'interface: "a quoi sert X ?", "comment marche X ?", "ou trouver/modifier/annuler X dans l'app ?".
+- product_help explique aussi quelle surface Sophia utiliser pour rendre une action existante du Plan plus concrete ou moins floue sans appliquer de changement depuis le chat: c'est plan.adjustment / adjust_plan_item, pas Carte d'attaque, sauf demande explicite de carte ou de demarrage.
 - Si active_skill_stable_description existe, ne transforme pas automatiquement "support", "outil" ou "aide dans Sophia" en product_help: utilise la fiche active pour evaluer si c'est une suite naturelle de l'owner actif. product_help autonome reste approprie pour une vraie question de fonctionnement, localisation, interface ou catalogue.
 - product_help ne possede pas les follow-ups sur un handoff plateforme actif. Si flow_state_context.active_runtime_context indique un tool-skill/handoff actif et que le user demande "concretement je change quoi ?", "redis-moi quoi mettre", "ou je mets ca ?", "comment reprendre ce reglage/cette carte ?" a propos du brouillon ou de la recommandation qui vient d'etre donnee, garde la main au runtime actif: ne mets pas product_help comme nouveau skill autonome; si tu dois signaler l'aspect plateforme, utilise skill_signals.entry.product_help.reason="active_handoff_platform_destination_followup" pour que le runtime actif continue.
 - product_help reste autonome seulement si la question produit est generale ou concurrente au handoff actif, par exemple "ou sont les rappels dans l'app ?" pendant un handoff de preference coach.
@@ -253,8 +278,8 @@ Tools always-on via direct_effects:
   - Ne pas confondre avec un rappel recurrent; les demandes recurrentes vont dans tool_skill_intents.
 
 Tool Skills via tool_skill_intents:
-- adjust_plan_item: demande de modifier/adapter le plan, une action du plan, le niveau/bloc courant, ou le plan global.
-- prepare_attack_card: demande de carte, outil/truc/protocole/fiche/texte/mot d'attaque, carte d'attaque, ou aide produit pour demarrer une action, sauf si le user demande explicitement une carte de defense.
+- adjust_plan_item: demande de modifier/adapter le plan, une action du plan, le niveau/bloc courant, ou le plan global. Inclut rendre une action existante du Plan plus concrete, moins floue ou mieux adaptee quand le user demande la modification.
+- prepare_attack_card: demande de carte, outil/truc/protocole/fiche/texte/mot d'attaque, carte d'attaque, ou aide produit pour demarrer une action, sauf si le user demande explicitement une carte de defense, et sauf demande informative de rendre une action existante du Plan plus concrete/moins floue/adaptee sans demande de carte.
 - prepare_defense_card: demande de carte, outil/truc/protocole/filet de securite/protection/anti-derapage pour un moment de risque, de rechute, de tentation, d'impulsion, de fatigue ou de stress.
 - create_recurring_reminder: rappel recurrent, soutien recurrent, chaque jour/semaine/soir/matin.
 - update_coach_preferences: demande explicite d'appliquer/modifier une preference sur le style de Sophia.
@@ -555,6 +580,56 @@ export function buildDispatcherPrompt(input: {
           },
           note:
             "Hésitation explicite entre comprendre la surface produit et préparer l'objet: conserve les deux candidats structurés pour la clarification transverse; ne choisis pas product_help seul.",
+        },
+      },
+      {
+        user_message:
+          "Comment je peux rendre l'action 'ranger mes papiers' plus concrète demain matin sans toucher au reste du Plan ?",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          flow_opportunity: null,
+          skill_signals: {
+            entry: {
+              product_help: {
+                detected: true,
+                confidence_band: "high",
+                reason: "user_asks_product_surface_for_plan_action_refinement",
+              },
+            },
+            lifecycle: {},
+            exit: {},
+          },
+          note_information: {
+            source_flow_id: "global_dispatcher",
+            target_dispatcher: "product_help",
+            handoff_reason: "explicit_user_request",
+            handoff_context_for_next_dispatcher:
+              "Question de fonctionnement Sophia: expliquer quelle surface utiliser pour rendre une action existante du Plan plus concrète sans appliquer de changement depuis le chat.",
+            user_words: [
+              "rendre l'action 'ranger mes papiers' plus concrète",
+              "sans toucher au reste du Plan",
+            ],
+            structured_context: {
+              primary_signal_path: "skill_signals.entry.product_help",
+              target_kind: "skill",
+              target_flow: "product_help",
+              product_feature_id: "plan.adjustment",
+              related_tool_flow: "adjust_plan_item",
+              user_goal:
+                "rendre une action existante du Plan plus concrète demain matin",
+              constraints: ["sans toucher au reste du Plan"],
+              evidence: [
+                "Comment je peux rendre l'action",
+                "sans toucher au reste du Plan",
+              ],
+              recommended_next_focus:
+                "Expliquer Ajustement du plan / plan.adjustment comme ajustement ciblé d'une action existante, sans mutation immédiate.",
+            },
+            confidence: "high",
+          },
+          note:
+            "Question produit sur la bonne surface Sophia pour affiner une action existante du Plan: product_help avec focus plan.adjustment / adjust_plan_item. Aucun tool_skill_intent tant que le user ne demande pas d'appliquer.",
         },
       },
       {

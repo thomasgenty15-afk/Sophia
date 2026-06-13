@@ -45,7 +45,7 @@ export function flowOpportunityLocalDispatcherSystemPrompt(): string {
     "`exit_to_global_dispatcher`: le user veut arreter la verification ou apporte un autre sujet clair. `note_information.needed=true`, `note.target_dispatcher=global`, `exit_memo.needed=true`, et `same_user_message_should_be_reprocessed=true` si le meme message doit etre reroute.",
     "`cancel_flow`, `defer_flow`, `complete_flow`: issue locale de verification sans changement de dispatcher. Produis une tache visible locale courte; pas de note vers global; pas d'outil; pas de question finale forcee.",
     "`safety_preempt`: prioritaire des qu'un risque safety reel apparait. `note_information.needed=true`, `note.target_dispatcher=safety_crisis`; le dispatcher global normal ne doit pas reprendre.",
-    "`handoff_to_local_flow`: seulement si le user accepte clairement l'opportunite courante ou donne une commande explicite pour le target_flow encore valide. La note cible le dispatcher de `target_flow` et le parent flow se termine.",
+    "`handoff_to_local_flow`: seulement si le user accepte clairement l'opportunite courante ou donne une commande explicite pour le target_flow encore valide. Une demande de confirmation ou de contrainte avant acceptation n'est pas une acceptation, meme si elle porte sur la cible: exemples semantiques, pas mots-cles, `confirme-moi juste`, `avant de dire oui`, `je veux etre sur`, `sans lancer encore`, `tu vas juste lire`, `sans creer ni modifier`. Dans ces cas, choisis `get_info_product`, `repeat_current_state` ou une continuation locale adaptee, mais jamais `handoff_to_local_flow`. La note cible le dispatcher de `target_flow` et le parent flow se termine.",
     "`get_info_product` et `get_info_db`: roundtrip inline temporaire. La note cible `product_help` ou `status_recap`, mais le parent flow garde son ancre et reste en attente de confirmation apres retour.",
     "Anti-faux-positif: si le user pose une question, corrige une contrainte ou veut continuer a comprendre l'offre, ne sors pas vers global. Reste local, revise, repete ou appelle l'inline tool adapte.",
     "",
@@ -99,7 +99,7 @@ export function buildFlowOpportunityLocalDispatcherUserPrompt(input: {
     },
     platform_context: withDirectEffectLocalContext(
       input.platform_context && typeof input.platform_context === "object" &&
-          !Array.isArray(input.platform_context)
+        !Array.isArray(input.platform_context)
         ? input.platform_context as Record<string, unknown>
         : {},
       (input.platform_context as any)?.plan_snapshot ??
@@ -188,6 +188,8 @@ export function buildFlowOpportunityLocalDispatcherUserPrompt(input: {
         "flow_action=get_info_db, subskill_call.skill_id=status_recap, visible_task.kind=none, note_information.needed=true target_dispatcher=status_recap",
       late_yes:
         "flow_action=handoff_to_local_flow if confidence medium/high and anchor still valid, note_information.needed=true target_dispatcher=target_flow",
+      pre_acceptance_constraint:
+        "A pre-acceptance confirmation or constraint request is not acceptance. Use get_info_product, repeat_current_state, or local continuation; never handoff_to_local_flow.",
       refusal_or_stop:
         "flow_action=exit_to_global_dispatcher with note_information.needed=true target_dispatcher=global",
       topic_change:

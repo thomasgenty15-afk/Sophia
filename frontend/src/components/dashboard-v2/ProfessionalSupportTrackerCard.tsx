@@ -189,43 +189,52 @@ export function ProfessionalSupportTrackerCard({
 
   return (
     <>
-      <section className="rounded-[30px] border border-amber-200 bg-[linear-gradient(180deg,rgba(255,251,235,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
+      <section className="rounded-[14px] border border-amber-100 bg-white/90 px-3 py-2 shadow-sm sm:rounded-[30px] sm:border-amber-200 sm:bg-[linear-gradient(180deg,rgba(255,251,235,1),rgba(255,255,255,1))] sm:px-5 sm:py-5">
         <details className="group">
-          <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <BriefcaseMedical className="h-4 w-4 text-amber-700" />
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-800">
-                  Appui professionnel
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-[12px] outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 sm:flex-wrap sm:items-start sm:gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:block">
+              <BriefcaseMedical className="h-3.5 w-3.5 shrink-0 text-amber-700 sm:hidden" />
+              <div className="min-w-0 sm:mt-0">
+                <div className="flex items-center gap-2">
+                  <BriefcaseMedical className="hidden h-4 w-4 text-amber-700 sm:block" />
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-800 sm:text-[11px] sm:tracking-[0.22em]">
+                    Appui professionnel
+                  </p>
+                </div>
+                <h3 className="mt-0.5 truncate text-[13px] font-semibold text-stone-800 sm:mt-2 sm:whitespace-normal sm:text-base sm:font-medium">
+                  Si besoin, un appui externe peut t'aider a mieux tenir ce parcours
+                </h3>
+                <p className="mt-2 hidden max-w-3xl text-sm leading-6 text-stone-700 sm:block">
+                  Ces recommandations ne font pas partie de ton plan d'execution. Elles servent a te dire
+                  qui peut t'aider, a quel moment du parcours, et a garder une trace de ce qui t'a aide ou non.
                 </p>
               </div>
-              <h3 className="mt-2 text-base font-medium text-stone-800">
-                Si besoin, un appui externe peut t'aider a mieux tenir ce parcours
-              </h3>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-700">
-                Ces recommandations ne font pas partie de ton plan d'execution. Elles servent a te dire
-                qui peut t'aider, a quel moment du parcours, et a garder une trace de ce qui t'a aide ou non.
-              </p>
             </div>
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-white text-amber-900">
-              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-transparent bg-transparent text-amber-900 sm:h-10 sm:w-10 sm:border-amber-200 sm:bg-white">
+              <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180 sm:h-4 sm:w-4" />
             </span>
           </summary>
 
-          <div className="mt-5 grid gap-4">
-            {visibleRecommendations.map((recommendation) => {
-              const definition = getProfessionalDefinition(recommendation.professional_key);
-              const displayLevelOrder = recommendation.target_level_order != null
-                ? recommendation.target_level_order
-                : null;
-              const canMarkCompleted = recommendation.status === "pending" ||
-                recommendation.status === "booked";
+          <div className="mt-3 border-t border-amber-100 pt-3 sm:mt-5 sm:border-t-0 sm:pt-0">
+            <p className="mb-3 text-sm leading-6 text-stone-700 sm:hidden">
+              Ces recommandations ne font pas partie de ton plan d'execution. Elles servent a te dire
+              qui peut t'aider, a quel moment du parcours, et a garder une trace de ce qui t'a aide ou non.
+            </p>
 
-              return (
-                <article
-                  key={recommendation.id}
-                  className="rounded-[26px] border border-white/80 bg-white/90 px-5 py-5 shadow-sm"
-                >
+            <div className="grid gap-4">
+              {visibleRecommendations.map((recommendation) => {
+                const definition = getProfessionalDefinition(recommendation.professional_key);
+                const displayLevelOrder = recommendation.target_level_order != null
+                  ? recommendation.target_level_order
+                  : null;
+                const canMarkCompleted = recommendation.status === "pending" ||
+                  recommendation.status === "booked";
+
+                return (
+                  <article
+                    key={recommendation.id}
+                    className="rounded-[26px] border border-white/80 bg-white/90 px-5 py-5 shadow-sm"
+                  >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
@@ -290,9 +299,10 @@ export function ProfessionalSupportTrackerCard({
                       ) : null}
                     </div>
                   )}
-                </article>
-              );
-            })}
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </details>
       </section>

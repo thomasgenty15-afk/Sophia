@@ -120,8 +120,8 @@ export function buildRecurringReminderHandoffDraft(
     : null;
   const platformDestination = handoffTarget?.user_facing_destination ??
     (draft.draft.destination === "current_plan"
-      ? "Rappels, depuis le plan concerné"
-      : "Rappels");
+      ? "Initiatives, depuis le plan concerné"
+      : "Initiatives");
   return {
     operation_type: "create_recurring_reminder",
     mode: "platform_handoff",
@@ -134,7 +134,7 @@ export function buildRecurringReminderHandoffDraft(
     recommendation: {
       platform_destination: platformDestination,
       platform_steps: handoffTarget?.platform_steps ?? [
-        "Ouvre la section Rappels de la plateforme.",
+        "Ouvre la section Initiatives de la plateforme.",
         "Crée un rappel récurrent.",
         "Reprends le contenu, la cadence et l'heure ci-dessous.",
       ],
@@ -217,7 +217,7 @@ export function runRecurringReminderBuilder(
     : `Rappel récurrent : ${message.slice(0, 42)}`;
   const frequency = frequencyLabel(input.recurrence);
   const fallbackConfirmation =
-    `Je te propose de préparer ce rappel récurrent pour la section Rappels : "${message}", ${frequency} à ${input.recurrence.time}.`;
+    `Je te propose de préparer ce rappel récurrent pour la section Initiatives : "${message}", ${frequency} à ${input.recurrence.time}.`;
   return {
     operation_type: "create_recurring_reminder",
     output_schema: "recurring_reminder_draft_v1",

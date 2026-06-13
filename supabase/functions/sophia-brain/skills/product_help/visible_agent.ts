@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import type {
   ProductHelpConversationContext,
   ProductHelpVisibleTaskKind,
@@ -128,9 +125,7 @@ export async function runProductHelpVisibleAgent(
       },
     );
     const parsed = parseVisibleMessage(raw);
-    return parsed && visibleOutputStyleIssues(parsed).length === 0
-      ? parsed
-      : null;
+    return parsed;
   } catch (error) {
     console.warn("[ProductHelp] visible agent failed", error);
     return null;

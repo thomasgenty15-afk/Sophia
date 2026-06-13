@@ -1,5 +1,5 @@
 import {
-  assert,
+  assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
@@ -28,15 +28,14 @@ Deno.test("prepare_defense_card visible prompt injects shared visible style rule
 
   assertStringIncludes(prompt, "VISIBLE_OUTPUT_STYLE_RULES");
   assertStringIncludes(prompt, "tutoiement");
-  assertStringIncludes(prompt, "Format WhatsApp");
+  assertStringIncludes(prompt, "Format conversationnel");
 });
 
-Deno.test("prepare_defense_card visible guard rejects vouvoiement", () => {
+Deno.test("prepare_defense_card visible contract does not block style wording by regex", () => {
   const issues = prepareDefenseCardVisibleContractIssues(
-    "Souhaitez-vous garder votre carte de défense ?",
+    "Ton rendez-vous peut rester le repère de la carte de défense.",
     input,
   );
 
-  assert(issues.includes("forbidden_vouvoiement:votre"));
-  assert(issues.includes("forbidden_vouvoiement:souhaitez-vous"));
+  assertEquals(issues, []);
 });

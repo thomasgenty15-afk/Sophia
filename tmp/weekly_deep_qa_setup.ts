@@ -591,7 +591,11 @@ async function setupVariant(args: {
     dashboardUrl: "http://localhost:5173/dashboard",
   });
   const adaptiveReview = buildWeeklyAdaptiveReview(review);
-  const opening = await generateWeeklyAdaptiveReviewOpening({
+  const openingFile = argValue("opening-file", "").trim();
+  const openingOverride = (openingFile
+    ? await Deno.readTextFile(openingFile)
+    : argValue("opening-text", "")).trim();
+  const opening = openingOverride || await generateWeeklyAdaptiveReviewOpening({
     supabaseAdmin: admin as any,
     userId,
     scheduledFor: nowIso,
@@ -641,7 +645,9 @@ async function setupVariant(args: {
       scope,
       metadata: {
         channel: "web",
-        source: "weekly_deep_qa_setup",
+        source: openingOverride
+          ? "weekly_deep_qa_setup:opening_override"
+          : "weekly_deep_qa_setup",
         scheduled_checkin_id: scheduledCheckinId,
         event_context: "weekly_progress_review_v2",
         weekly_adaptive_review: {
@@ -700,6 +706,9 @@ async function setupVariant(args: {
     week_end_date: weekEndForWeekStart(weekStartDate),
     scheduled_checkin_id: scheduledCheckinId,
     opening,
+    opening_source: openingOverride
+      ? "opening_override"
+      : "generateWeeklyAdaptiveReviewOpening",
     expected: {
       habit_verdict: adaptiveReview.habit_verdict,
       daily_evidence_summary: adaptiveReview.daily_evidence_summary,

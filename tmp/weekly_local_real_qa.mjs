@@ -8,11 +8,19 @@ const root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
 const command = String(process.argv[2] ?? "").trim();
 const persona = process.env.QA_PERSONA || "alex";
 const runId = process.env.QA_RUN_ID ||
-  `weekly-local-dispatcher-real-${new Date().toISOString().replace(/[:.]/g, "")}`;
+  `weekly-local-dispatcher-real-${
+    new Date().toISOString().replace(/[:.]/g, "")
+  }`;
 const date = process.env.QA_DATE || new Date().toISOString().slice(0, 10);
 const apiUrl = process.env.SUPABASE_URL || "http://127.0.0.1:54321";
 const scope = `qa-${persona}-${date}-weekly-local-dispatcher-${runId}`;
-const runDir = path.join(root, "tests/real-personas", persona, "runs", "weekly");
+const runDir = path.join(
+  root,
+  "tests/real-personas",
+  persona,
+  "runs",
+  "weekly",
+);
 fs.mkdirSync(runDir, { recursive: true });
 
 const filePrefix = `${date}-weekly-local-dispatcher-${runId}`;
@@ -22,7 +30,12 @@ const summaryPath = path.join(runDir, `${filePrefix}.summary.json`);
 const durablePath = path.join(runDir, `${filePrefix}.durable.json`);
 const cleanupPath = path.join(runDir, `${filePrefix}.cleanup.json`);
 
-const connectionPath = path.join(root, "tests/real-personas", persona, "connection.json");
+const connectionPath = path.join(
+  root,
+  "tests/real-personas",
+  persona,
+  "connection.json",
+);
 const connection = JSON.parse(fs.readFileSync(connectionPath, "utf8"));
 
 function isoDateFromUtc(dateValue) {
@@ -31,7 +44,9 @@ function isoDateFromUtc(dateValue) {
 
 function previousCompletedWeek(referenceDate) {
   const ref = new Date(`${referenceDate}T12:00:00.000Z`);
-  if (Number.isNaN(ref.getTime())) throw new Error(`invalid QA_DATE ${referenceDate}`);
+  if (Number.isNaN(ref.getTime())) {
+    throw new Error(`invalid QA_DATE ${referenceDate}`);
+  }
   const day = ref.getUTCDay() || 7;
   const start = new Date(ref);
   start.setUTCDate(ref.getUTCDate() - day - 6);
@@ -70,11 +85,15 @@ function safeExec(commandName, args, options = {}) {
 }
 
 function localStatus() {
-  const raw = safeExec("supabase", ["status", "--output", "json"], { cwd: root });
+  const raw = safeExec("supabase", ["status", "--output", "json"], {
+    cwd: root,
+  });
   if (!raw) return {};
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");
-  return JSON.parse(start >= 0 && end >= start ? raw.slice(start, end + 1) : raw);
+  return JSON.parse(
+    start >= 0 && end >= start ? raw.slice(start, end + 1) : raw,
+  );
 }
 
 const env = readEnvFile(path.join(root, "supabase/.env"));
@@ -90,7 +109,10 @@ async function jsonFetch(url, options, timeoutMs = 180000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
     const text = await response.text();
     let body = null;
     try {
@@ -107,11 +129,14 @@ async function jsonFetch(url, options, timeoutMs = 180000) {
 async function authToken() {
   const email = String(connection.email || "").trim();
   const password = String(connection.password || "1234567").trim();
-  const result = await jsonFetch(`${apiUrl}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: { apikey: anonKey, "content-type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  const result = await jsonFetch(
+    `${apiUrl}/auth/v1/token?grant_type=password`,
+    {
+      method: "POST",
+      headers: { apikey: anonKey, "content-type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    },
+  );
   const token = String(result.body?.access_token || "");
   if (!result.response.ok || !token) {
     throw new Error(`auth failed ${result.response.status}: ${result.text}`);
@@ -121,7 +146,9 @@ async function authToken() {
     headers: { apikey: anonKey, authorization: `Bearer ${token}` },
   });
   if (!verify.response.ok) {
-    throw new Error(`auth verify failed ${verify.response.status}: ${verify.text}`);
+    throw new Error(
+      `auth verify failed ${verify.response.status}: ${verify.text}`,
+    );
   }
   return token;
 }
@@ -159,10 +186,24 @@ async function selectState(label) {
   ] = await Promise.all([
     rest(`user_chat_states?user_id=eq.${userId}&select=*`),
     rest(`user_plans_v2?user_id=eq.${userId}&select=*&order=created_at.asc`),
-    rest(`user_plan_items?user_id=eq.${userId}&select=*&order=activation_order.asc`),
-    rest(`chat_messages?user_id=eq.${userId}&scope=eq.${encodeURIComponent(scope)}&select=*&order=created_at.asc`),
-    rest(`conversation_turn_traces?user_id=eq.${userId}&request_id=like.${encodeURIComponent(`qa-${persona}-${date}-weekly-local-dispatcher-${runId}-%`)}&select=*&order=ts.asc`),
-    rest(`user_plan_item_entries?user_id=eq.${userId}&select=*&order=created_at.desc&limit=120`),
+    rest(
+      `user_plan_items?user_id=eq.${userId}&select=*&order=activation_order.asc`,
+    ),
+    rest(
+      `chat_messages?user_id=eq.${userId}&scope=eq.${
+        encodeURIComponent(scope)
+      }&select=*&order=created_at.asc`,
+    ),
+    rest(
+      `conversation_turn_traces?user_id=eq.${userId}&request_id=like.${
+        encodeURIComponent(
+          `qa-${persona}-${date}-weekly-local-dispatcher-${runId}-%`,
+        )
+      }&select=*&order=ts.asc`,
+    ),
+    rest(
+      `user_plan_item_entries?user_id=eq.${userId}&select=*&order=created_at.desc&limit=120`,
+    ),
   ]);
   return {
     label,
@@ -189,20 +230,28 @@ async function selectState(label) {
 }
 
 function pickWeeklyActions(snapshot) {
-  const planById = new Map(snapshot.plans.map((plan) => [String(plan.id), plan]));
+  const planById = new Map(
+    snapshot.plans.map((plan) => [String(plan.id), plan]),
+  );
   return snapshot.user_plan_items
     .filter((item) => String(item.title || "").trim())
     .slice(0, 3)
     .map((item, index) => {
-      const plan = planById.get(String(item.user_plan_id || item.plan_id || ""));
+      const plan = planById.get(
+        String(item.user_plan_id || item.plan_id || ""),
+      );
       return {
-        transformation_id: String(plan?.transformation_id || plan?.id || "qa-transformation"),
+        transformation_id: String(
+          plan?.transformation_id || plan?.id || "qa-transformation",
+        ),
         plan_id: String(item.user_plan_id || item.plan_id || plan?.id || ""),
         plan_title: String(plan?.title || plan?.name || "Plan actuel"),
         plan_item_id: String(item.id),
         occurrence_id: `qa-weekly-${runId}-occ-${index + 1}`,
         title: String(item.title),
-        family: String(item.item_type || "habit").includes("mission") ? "mission" : "habit",
+        family: String(item.item_type || "habit").includes("mission")
+          ? "mission"
+          : "habit",
         deviation: index === 0 ? "done" : index === 1 ? "partial" : "missed",
         daily_evidence: {
           source: "daily_action_review_v1",
@@ -220,13 +269,16 @@ async function prepare() {
   const before = await selectState("before");
   const actions = pickWeeklyActions(before);
   if (actions.length < 2) {
-    throw new Error("not enough discovered plan items to build weekly QA state");
+    throw new Error(
+      "not enough discovered plan items to build weekly QA state",
+    );
   }
   fs.writeFileSync(snapshotPath, `${JSON.stringify(before, null, 2)}\n`);
   const firstPlan = actions[0];
-  const existing = before.user_chat_states.find((row) => row.scope === scope) ?? null;
+  const existing = before.user_chat_states.find((row) => row.scope === scope) ??
+    null;
   const tempMemory = {
-    ...((existing?.temp_memory || {})),
+    ...(existing?.temp_memory || {}),
     __active_skill_state: {
       skill_id: "weekly_adaptive_review_v1",
       status: "open",
@@ -278,7 +330,8 @@ async function prepare() {
         },
         question: {
           id: "weekly_confirm_dominant_blocker",
-          text: "Je vois surtout la fatigue comme blocage cette semaine. Tu confirmes que c'est ca qui doit guider la suite ?",
+          text:
+            "Je vois surtout la fatigue comme blocage cette semaine. Tu confirmes que c'est ca qui doit guider la suite ?",
           blocks_decision: true,
           targets: ["dominant_blocker", "felt_state"],
         },
@@ -287,12 +340,18 @@ async function prepare() {
           occurrence_id: action.occurrence_id,
           title: action.title,
           family: action.family === "mission" ? "mission" : "habit",
-          current_week_status: action.deviation === "done" ? "done" : action.deviation === "partial" ? "partial" : "missed",
+          current_week_status: action.deviation === "done"
+            ? "done"
+            : action.deviation === "partial"
+            ? "partial"
+            : "missed",
           evidence_done: action.deviation === "done",
           daily_evidence_confidence: "medium",
           daily_evidence: action.daily_evidence,
           decision: action.deviation === "done" ? "keep" : "bridge_with_week",
-          reason: action.deviation === "done" ? "Action deja tenue." : "A alleger pour la semaine pont.",
+          reason: action.deviation === "done"
+            ? "Action deja tenue."
+            : "A alleger pour la semaine pont.",
         })),
         plan_patch: { requires_confirmation: true, operations: [] },
         effect_plan: { allowed: false, effects: [] },
@@ -310,7 +369,8 @@ async function prepare() {
         validation_unlock_status: "locked_until_weekly_complete",
         human_signals: { objective_delta: "unknown", felt_state: "unknown" },
         last_user_signal: null,
-        last_visible_summary: "Point weekly ouvert: fatigue probable, semaine pont a discuter.",
+        last_visible_summary:
+          "Point weekly ouvert: fatigue probable, semaine pont a discuter.",
         last_handoff_summary: null,
         turn_count: 0,
         max_turns: 6,
@@ -324,11 +384,16 @@ async function prepare() {
   };
   let result;
   if (existing) {
-    result = await rest(`user_chat_states?user_id=eq.${encodeURIComponent(connection.user_id)}&scope=eq.${encodeURIComponent(scope)}`, {
-      method: "PATCH",
-      headers: { prefer: "return=representation" },
-      body: JSON.stringify({ temp_memory: tempMemory }),
-    });
+    result = await rest(
+      `user_chat_states?user_id=eq.${
+        encodeURIComponent(connection.user_id)
+      }&scope=eq.${encodeURIComponent(scope)}`,
+      {
+        method: "PATCH",
+        headers: { prefer: "return=representation" },
+        body: JSON.stringify({ temp_memory: tempMemory }),
+      },
+    );
   } else {
     result = await rest("user_chat_states", {
       method: "POST",
@@ -341,26 +406,32 @@ async function prepare() {
       }),
     });
   }
-  if (!result.ok) throw new Error(`state setup failed ${result.status}: ${result.text}`);
+  if (!result.ok) {
+    throw new Error(`state setup failed ${result.status}: ${result.text}`);
+  }
   fs.writeFileSync(rawPath, "[]\n");
   fs.writeFileSync(summaryPath, "[]\n");
   const after = await selectState("after_prepare");
   fs.writeFileSync(durablePath, `${JSON.stringify(after, null, 2)}\n`);
-  console.log(JSON.stringify({
-    run_id: runId,
-    persona,
-    scope,
-    actions: actions.map((item) => ({
-      plan_id: item.plan_id,
-      plan_title: item.plan_title,
-      plan_item_id: item.plan_item_id,
-      title: item.title,
-    })),
-    snapshotPath,
-    rawPath,
-    summaryPath,
-    durablePath,
-  }, null, 2));
+  console.log(JSON.stringify(
+    {
+      run_id: runId,
+      persona,
+      scope,
+      actions: actions.map((item) => ({
+        plan_id: item.plan_id,
+        plan_title: item.plan_title,
+        plan_item_id: item.plan_item_id,
+        title: item.title,
+      })),
+      snapshotPath,
+      rawPath,
+      summaryPath,
+      durablePath,
+    },
+    null,
+    2,
+  ));
 }
 
 function compactTrace(body) {
@@ -374,18 +445,20 @@ function compactTrace(body) {
     route_reason_code: route?.reason_code ?? null,
     safety: trace?.safety_pregate ?? frame?.safety ?? null,
     direct_effects: trace?.direct_effects ?? frame?.direct_effects ?? [],
-    operation: tool ? {
-      selected_handler: tool.selected_handler ?? null,
-      status: tool.status ?? null,
-      reason_code: tool.reason_code ?? null,
-      flow_action: tool.flow_action ?? null,
-      visible_task: tool.visible_task ?? null,
-      toolExecution: tool.toolExecution ?? null,
-      executedTools: tool.executedTools ?? [],
-      platform_handoff: tool.platform_handoff ?? null,
-      committed_effects: tool.committed_effects ?? [],
-      blocked_effects: tool.blocked_effects ?? [],
-    } : null,
+    operation: tool
+      ? {
+        selected_handler: tool.selected_handler ?? null,
+        status: tool.status ?? null,
+        reason_code: tool.reason_code ?? null,
+        flow_action: tool.flow_action ?? null,
+        visible_task: tool.visible_task ?? null,
+        toolExecution: tool.toolExecution ?? null,
+        executedTools: tool.executedTools ?? [],
+        platform_handoff: tool.platform_handoff ?? null,
+        committed_effects: tool.committed_effects ?? [],
+        blocked_effects: tool.blocked_effects ?? [],
+      }
+      : null,
     pending_confirmation: trace?.pending_tool_skill_confirmation ?? null,
     memory_plan: trace?.memory_plan ?? null,
     trace_id: trace?.turn_id ?? null,
@@ -403,9 +476,13 @@ async function sendTurn() {
   const history = [];
   for (const item of existingSummary.slice(-12)) {
     if (item.user) history.push({ role: "user", content: item.user });
-    if (item.assistant) history.push({ role: "assistant", content: item.assistant });
+    if (item.assistant) {
+      history.push({ role: "assistant", content: item.assistant });
+    }
   }
-  const requestId = `qa-${persona}-${date}-weekly-local-dispatcher-${runId}-t${String(turn).padStart(2, "0")}`;
+  const requestId = `qa-${persona}-${date}-weekly-local-dispatcher-${runId}-t${
+    String(turn).padStart(2, "0")
+  }`;
   const result = await jsonFetch(`${apiUrl}/functions/v1/test-send-message`, {
     method: "POST",
     headers: {
@@ -428,10 +505,20 @@ async function sendTurn() {
   });
   const body = result.body ?? {};
   const response = body.response ?? {};
-  const assistant = String(response.content ?? response.reply ?? body.content ?? "").trim();
+  const assistant = String(
+    response.content ?? response.reply ?? body.content ?? "",
+  ).trim();
   const trace = compactTrace(body);
-  const raw = fs.existsSync(rawPath) ? JSON.parse(fs.readFileSync(rawPath, "utf8")) : [];
-  raw.push({ turn, requestId, user: content, status: result.response.status, body });
+  const raw = fs.existsSync(rawPath)
+    ? JSON.parse(fs.readFileSync(rawPath, "utf8"))
+    : [];
+  raw.push({
+    turn,
+    requestId,
+    user: content,
+    status: result.response.status,
+    body,
+  });
   fs.writeFileSync(rawPath, `${JSON.stringify(raw, null, 2)}\n`);
   const summary = existingSummary;
   summary.push({
@@ -451,23 +538,29 @@ async function sendTurn() {
   fs.writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
   const durable = await selectState(`durable_t${turn}`);
   fs.writeFileSync(durablePath, `${JSON.stringify(durable, null, 2)}\n`);
-  console.log(JSON.stringify({
-    turn,
-    status: result.response.status,
-    ok: body.ok ?? null,
-    empty_response: assistant.length === 0,
-    response_owner: trace.response_owner,
-    selected_handler: trace.selected_handler,
-    route_reason_code: trace.route_reason_code,
-    operation: trace.operation,
-    content_preview: assistant.replace(/\s+/g, " ").slice(0, 1600),
-    summaryPath,
-    durablePath,
-  }, null, 2));
+  console.log(JSON.stringify(
+    {
+      turn,
+      status: result.response.status,
+      ok: body.ok ?? null,
+      empty_response: assistant.length === 0,
+      response_owner: trace.response_owner,
+      selected_handler: trace.selected_handler,
+      route_reason_code: trace.route_reason_code,
+      operation: trace.operation,
+      content_preview: assistant.replace(/\s+/g, " ").slice(0, 1600),
+      summaryPath,
+      durablePath,
+    },
+    null,
+    2,
+  ));
 }
 
 async function cleanup() {
-  if (!fs.existsSync(snapshotPath)) throw new Error(`missing snapshot ${snapshotPath}`);
+  if (!fs.existsSync(snapshotPath)) {
+    throw new Error(`missing snapshot ${snapshotPath}`);
+  }
   const before = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
   const current = await selectState("before_cleanup");
   const beforeByScope = new Map(
@@ -479,44 +572,67 @@ async function cleanup() {
   const stateRestores = [];
   for (const row of before.user_chat_states) {
     const rowScope = String(row.scope ?? "");
-    const target = `user_chat_states?user_id=eq.${encodeURIComponent(connection.user_id)}&scope=eq.${encodeURIComponent(rowScope)}`;
+    const target = `user_chat_states?user_id=eq.${
+      encodeURIComponent(connection.user_id)
+    }&scope=eq.${encodeURIComponent(rowScope)}`;
     const result = currentScopes.has(rowScope)
       ? await rest(target, {
-      method: "PATCH",
-      headers: { prefer: "return=representation" },
-      body: JSON.stringify({
-            current_mode: row.current_mode,
-            risk_level: row.risk_level,
-            investigation_state: row.investigation_state,
-            short_term_context: row.short_term_context,
-            last_interaction_at: row.last_interaction_at,
-            unprocessed_msg_count: row.unprocessed_msg_count,
-            last_processed_at: row.last_processed_at,
-            temp_memory: row.temp_memory ?? {},
-      }),
-        })
+        method: "PATCH",
+        headers: { prefer: "return=representation" },
+        body: JSON.stringify({
+          current_mode: row.current_mode,
+          risk_level: row.risk_level,
+          investigation_state: row.investigation_state,
+          short_term_context: row.short_term_context,
+          last_interaction_at: row.last_interaction_at,
+          unprocessed_msg_count: row.unprocessed_msg_count,
+          last_processed_at: row.last_processed_at,
+          temp_memory: row.temp_memory ?? {},
+        }),
+      })
       : await rest("user_chat_states", {
         method: "POST",
         headers: { prefer: "return=representation" },
         body: JSON.stringify(row),
       });
-    stateRestores.push({ scope: rowScope, ok: result.ok, status: result.status });
+    stateRestores.push({
+      scope: rowScope,
+      ok: result.ok,
+      status: result.status,
+    });
   }
   const createdScopes = [...currentScopes].filter((rowScope) =>
-    !beforeByScope.has(rowScope)
+    !beforeByScope.has(rowScope) && rowScope === scope
+  );
+  const preservedCreatedScopes = [...currentScopes].filter((rowScope) =>
+    !beforeByScope.has(rowScope) && rowScope !== scope
   );
   const stateDeletes = [];
   for (const rowScope of createdScopes) {
-    const result = await rest(`user_chat_states?user_id=eq.${encodeURIComponent(connection.user_id)}&scope=eq.${encodeURIComponent(rowScope)}`, {
+    const result = await rest(
+      `user_chat_states?user_id=eq.${
+        encodeURIComponent(connection.user_id)
+      }&scope=eq.${encodeURIComponent(rowScope)}`,
+      {
+        method: "DELETE",
+        headers: { prefer: "return=representation" },
+      },
+    );
+    stateDeletes.push({
+      scope: rowScope,
+      ok: result.ok,
+      status: result.status,
+    });
+  }
+  const messageDelete = await rest(
+    `chat_messages?user_id=eq.${
+      encodeURIComponent(connection.user_id)
+    }&scope=eq.${encodeURIComponent(scope)}`,
+    {
       method: "DELETE",
       headers: { prefer: "return=representation" },
-    });
-    stateDeletes.push({ scope: rowScope, ok: result.ok, status: result.status });
-  }
-  const messageDelete = await rest(`chat_messages?user_id=eq.${encodeURIComponent(connection.user_id)}&scope=eq.${encodeURIComponent(scope)}`, {
-    method: "DELETE",
-    headers: { prefer: "return=representation" },
-  });
+    },
+  );
   const after = await selectState("after_cleanup");
   const report = {
     run_id: runId,
@@ -524,7 +640,11 @@ async function cleanup() {
     scope,
     restored_user_chat_states: stateRestores,
     deleted_created_user_chat_states: stateDeletes,
-    deleted_scope_messages: { ok: messageDelete.ok, status: messageDelete.status },
+    preserved_created_user_chat_states: preservedCreatedScopes,
+    deleted_scope_messages: {
+      ok: messageDelete.ok,
+      status: messageDelete.status,
+    },
     remaining_scope_messages: after.chat_messages.length,
     after_cleanup: after,
   };
@@ -537,9 +657,10 @@ else if (command === "turn") await sendTurn();
 else if (command === "inspect") {
   const state = await selectState("inspect");
   console.log(JSON.stringify(state, null, 2));
-}
-else if (command === "cleanup") await cleanup();
+} else if (command === "cleanup") await cleanup();
 else {
-  console.error("usage: node tmp/weekly_local_real_qa.mjs <prepare|turn|inspect|cleanup>");
+  console.error(
+    "usage: node tmp/weekly_local_real_qa.mjs <prepare|turn|inspect|cleanup>",
+  );
   process.exit(2);
 }

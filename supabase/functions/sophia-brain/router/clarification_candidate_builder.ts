@@ -115,8 +115,7 @@ const ACTIVE_SKILL_INTERNAL_CANDIDATES: Record<string, CandidatePatch[]> = {
     {
       id: "prepare_attack_card",
       label: operationLabel("prepare_attack_card"),
-      description:
-        "Le prochain pas utile est de préparer une carte d'attaque.",
+      description: "Le prochain pas utile est de préparer une carte d'attaque.",
       operation_type: "prepare_attack_card",
       evidence: ["active_skill_state.phase"],
       source: "active_skill_internal",
@@ -403,6 +402,26 @@ function collectCandidatesFromTurnFrame(
       evidence: ["turn_frame.skill_signals.entry"],
       source: "skill_signal",
       confidence_band: confidence,
+    });
+  }
+
+  const opportunity = turnFrame.flow_opportunity;
+  if (opportunity && opportunity.confidence !== "low") {
+    const id = opportunity.target_flow;
+    const operationType = opportunity.target_kind === "tool_skill" ||
+        opportunity.target_kind === "direct_effect"
+      ? opportunity.target_flow
+      : undefined;
+    addCandidate(byId, {
+      id,
+      label: operationType ? operationLabel(id) : skillLabel(id),
+      operation_type: operationType,
+      evidence: [
+        "turn_frame.flow_opportunity",
+        ...(opportunity.evidence ?? []),
+      ].slice(0, 8),
+      source: "opportunity",
+      confidence_band: opportunity.confidence,
     });
   }
 

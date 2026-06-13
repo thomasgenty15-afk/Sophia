@@ -122,7 +122,7 @@
 
 **Skills / Operations / Tools**
 - Aucun tool ni operation engageante appele.
-- `product_help` repond correctement au contenu produit, mais sans handoff local documente.
+- `product_help` repond correctement au contenu produit, mais sans note de transition locale documentee.
 
 **State / DB**
 - Apres T3, `user_chat_states.temp_memory.__active_skill_state.skill_id=product_help`.

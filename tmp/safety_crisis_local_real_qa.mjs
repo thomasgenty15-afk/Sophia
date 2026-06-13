@@ -105,6 +105,40 @@ function traceFromBody(body) {
     null;
 }
 
+function committedEffectsFromLedger(trace) {
+  const entries = Array.isArray(trace?.effect_ledger?.entries)
+    ? trace.effect_ledger.entries
+    : [];
+  return entries
+    .filter((entry) =>
+      entry &&
+      (entry.kind ?? "durable_effect") === "durable_effect" &&
+      entry.status === "committed"
+    )
+    .map((entry) => ({
+      effect_type: entry.effect_type ?? null,
+      operation_type: entry.operation_type ?? null,
+      committed_id: entry.committed_id ?? null,
+      db_ref: entry.db_ref ?? null,
+      reason_code: entry.reason_code ?? null,
+      payload_summary: entry.payload_summary ?? null,
+    }));
+}
+
+function committedEffectsFromTrace(trace) {
+  const ledgerEffects = committedEffectsFromLedger(trace);
+  if (ledgerEffects.length > 0) return ledgerEffects;
+  const toolRun = trace?.tool_skill_run ?? {};
+  if (Array.isArray(toolRun.committed_effects)) {
+    return toolRun.committed_effects;
+  }
+  const skill = trace?.recommendation_skill_run ?? {};
+  const output = skill.output ?? {};
+  return Array.isArray(output.effects?.committed)
+    ? output.effects.committed
+    : [];
+}
+
 function shortTrace(turn) {
   const trace = turn.trace ?? {};
   const routeDecision = trace.route_decision ?? {};
@@ -133,7 +167,7 @@ function shortTrace(turn) {
     pending_confirmation: trace.pending_tool_skill_confirmation ?? null,
     memory_plan: trace.memory_plan ?? turnFrame.memory_plan ?? null,
     executed_tools: turn.response_executed_tools ?? [],
-    durable_effect: output.effects?.committed ?? [],
+    durable_effect: committedEffectsFromTrace(trace),
   };
 }
 

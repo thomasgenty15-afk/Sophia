@@ -11,6 +11,31 @@ export type ActiveFlowState = {
   pendingRecommendationOperation: unknown;
 };
 
+export type ActiveLocalToolFlowOwnership = {
+  owner: "tool_skill";
+  operation_type: string;
+  source: string;
+  active_state: unknown;
+};
+
+export type ActiveLocalConversationFlowSkillId =
+  | "clarification"
+  | "weekly_adaptive_review_v1"
+  | "post_morning_nudge"
+  | "status_recap"
+  | "emotional_repair"
+  | "demotivation_repair"
+  | "product_help"
+  | "flow_opportunity_verification"
+  | "safety_crisis";
+
+export type ActiveLocalConversationFlowOwnership = {
+  owner: "conversation_skill";
+  skill_id: ActiveLocalConversationFlowSkillId;
+  source: string;
+  active_state: unknown;
+};
+
 export const SUSPENDED_PLATFORM_HANDOFF_STATE_KEY =
   "__suspended_platform_handoff_state_v1";
 
@@ -62,10 +87,33 @@ const ADJUST_PLAN_SLOT_KEYS = [
 const PLATFORM_HANDOFF_KEYS_BY_OPERATION: Record<string, string> = {
   adjust_plan_item: "__adjust_plan_handoff_state",
   prepare_attack_card: "__active_attack_card_handoff",
-  prepare_defense_card: "__active_tool_skill_intake",
+  prepare_defense_card: "__active_defense_card_handoff",
   select_state_potion: "__active_tool_skill_intake",
   create_recurring_reminder: "__recurring_reminder_handoff_state",
 };
+
+const LOCAL_TOOL_FLOW_OPERATION_OWNERS = new Set([
+  "adjust_plan_item",
+  "prepare_attack_card",
+  "prepare_defense_card",
+  "select_state_potion",
+  "create_recurring_reminder",
+  "update_coach_preferences",
+]);
+
+const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
+  ActiveLocalConversationFlowSkillId
+>([
+  "clarification",
+  "weekly_adaptive_review_v1",
+  "post_morning_nudge",
+  "status_recap",
+  "emotional_repair",
+  "demotivation_repair",
+  "product_help",
+  "flow_opportunity_verification",
+  "safety_crisis",
+]);
 
 function readFirstTempMemoryKey(
   tempMemory: unknown,
@@ -100,6 +148,61 @@ function readHandoffOperationType(value: unknown): string {
   return String(record.operation_type ?? record.skill_id ?? "").trim();
 }
 
+function readLocalToolFlowOperationType(value: unknown): string {
+  const record = value as any;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return "";
+  }
+  const operationType = String(
+    record.operation_type ??
+      ((record.mode === "platform_handoff" || record.skill_id)
+        ? record.skill_id
+        : ""),
+  ).trim();
+  return LOCAL_TOOL_FLOW_OPERATION_OWNERS.has(operationType)
+    ? operationType
+    : "";
+}
+
+function recordSkillId(value: unknown): string {
+  const record = value as any;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return "";
+  }
+  return String(record.skill_id ?? "").trim();
+}
+
+function activeLocalConversationSkillId(
+  value: unknown,
+): ActiveLocalConversationFlowSkillId | "" {
+  const skillId = recordSkillId(value);
+  return ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS.has(
+      skillId as ActiveLocalConversationFlowSkillId,
+    )
+    ? skillId as ActiveLocalConversationFlowSkillId
+    : "";
+}
+
+function activeDedicatedLocalConversationState(args: {
+  state: unknown;
+  skillId: ActiveLocalConversationFlowSkillId;
+  activeStatuses: readonly string[];
+  requiredMode?: string;
+}): boolean {
+  const record = args.state as any;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return false;
+  }
+  if (record.skill_id !== args.skillId) return false;
+  if (
+    args.requiredMode &&
+    String(record.mode ?? "").trim() !== args.requiredMode
+  ) {
+    return false;
+  }
+  return args.activeStatuses.includes(String(record.status ?? "").trim());
+}
+
 function readActivePlatformHandoffEntry(
   tempMemory: unknown,
 ): { key: string; operation_type: string; state: unknown } | null {
@@ -107,6 +210,7 @@ function readActivePlatformHandoffEntry(
   const entries: Array<[string, unknown]> = [
     ["__adjust_plan_handoff_state", temp.__adjust_plan_handoff_state],
     ["__active_attack_card_handoff", temp.__active_attack_card_handoff],
+    ["__active_defense_card_handoff", temp.__active_defense_card_handoff],
     [
       "__recurring_reminder_handoff_state",
       temp.__recurring_reminder_handoff_state,
@@ -121,11 +225,137 @@ function readActivePlatformHandoffEntry(
   return null;
 }
 
+export function resolveActiveLocalConversationFlowOwnership(args: {
+  tempMemory?: unknown;
+  activeClarificationState?: unknown;
+  activeSkillState?: unknown;
+}): ActiveLocalConversationFlowOwnership | null {
+  const temp = (args.tempMemory ?? {}) as Record<string, unknown>;
+  const activeClarificationState = args.activeClarificationState ??
+    readFirstTempMemoryKey(
+      temp,
+      ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeClarificationState,
+    );
+  if (
+    activeDedicatedLocalConversationState({
+      state: activeClarificationState,
+      skillId: "clarification",
+      activeStatuses: ["active", "asking", "waiting_user", "continue"],
+      requiredMode: "local_flow",
+    })
+  ) {
+    return {
+      owner: "conversation_skill",
+      skill_id: "clarification",
+      source: "readActiveFlowState.activeClarificationState",
+      active_state: activeClarificationState,
+    };
+  }
+
+  const activeSkillState = args.activeSkillState ??
+    readFirstTempMemoryKey(
+      temp,
+      ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeSkillState,
+    );
+
+  const weeklySkillId = activeLocalConversationSkillId(activeSkillState);
+  if (weeklySkillId === "weekly_adaptive_review_v1") {
+    return {
+      owner: "conversation_skill",
+      skill_id: weeklySkillId,
+      source: "readActiveFlowState.activeSkillState",
+      active_state: activeSkillState,
+    };
+  }
+
+  const postMorningKeyState = temp.__post_morning_nudge_active_state_v1;
+  if (
+    activeDedicatedLocalConversationState({
+      state: postMorningKeyState,
+      skillId: "post_morning_nudge",
+      activeStatuses: ["active", "closing"],
+    })
+  ) {
+    return {
+      owner: "conversation_skill",
+      skill_id: "post_morning_nudge",
+      source: "__post_morning_nudge_active_state_v1",
+      active_state: postMorningKeyState,
+    };
+  }
+  if (
+    activeDedicatedLocalConversationState({
+      state: activeSkillState,
+      skillId: "post_morning_nudge",
+      activeStatuses: ["active", "closing"],
+    })
+  ) {
+    return {
+      owner: "conversation_skill",
+      skill_id: "post_morning_nudge",
+      source: "readActiveFlowState.activeSkillState",
+      active_state: activeSkillState,
+    };
+  }
+
+  const statusRecapState = temp.__status_recap_flow_state_v1;
+  if (
+    activeDedicatedLocalConversationState({
+      state: statusRecapState,
+      skillId: "status_recap",
+      activeStatuses: ["active", "closing"],
+      requiredMode: "local_readonly_flow",
+    })
+  ) {
+    return {
+      owner: "conversation_skill",
+      skill_id: "status_recap",
+      source: "__status_recap_flow_state_v1",
+      active_state: statusRecapState,
+    };
+  }
+
+  const activeSkillId = activeLocalConversationSkillId(activeSkillState);
+  if (
+    activeSkillId === "emotional_repair" ||
+    activeSkillId === "demotivation_repair" ||
+    activeSkillId === "product_help" ||
+    activeSkillId === "safety_crisis"
+  ) {
+    return {
+      owner: "conversation_skill",
+      skill_id: activeSkillId,
+      source: "readActiveFlowState.activeSkillState",
+      active_state: activeSkillState,
+    };
+  }
+
+  const flowOpportunityState = temp.__flow_opportunity_verification_state_v1;
+  if (
+    activeDedicatedLocalConversationState({
+      state: flowOpportunityState,
+      skillId: "flow_opportunity_verification",
+      activeStatuses: ["offered", "explaining", "waiting_confirmation"],
+      requiredMode: "local_verification_flow",
+    })
+  ) {
+    return {
+      owner: "conversation_skill",
+      skill_id: "flow_opportunity_verification",
+      source: "__flow_opportunity_verification_state_v1",
+      active_state: flowOpportunityState,
+    };
+  }
+
+  return null;
+}
+
 export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
   const adjustPlanFrame = loadAdjustPlanFrameFromTempMemory(tempMemory);
   const temp = (tempMemory ?? {}) as Record<string, unknown>;
   const activePlatformHandoff = adjustPlanFrame.handoff_state ??
     temp.__active_attack_card_handoff ??
+    temp.__active_defense_card_handoff ??
     temp.__recurring_reminder_handoff_state ??
     temp.__coach_preference_flow_state_v1 ??
     null;
@@ -154,6 +384,63 @@ export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
   };
 }
 
+export function resolveActiveLocalToolFlowOwnership(args: {
+  tempMemory: unknown;
+  activeOperationIntake?: unknown;
+  pendingOperationConfirmation?: unknown;
+}): ActiveLocalToolFlowOwnership | null {
+  const temp = (args.tempMemory ?? {}) as Record<string, unknown>;
+  const candidates: Array<{ source: string; state: unknown }> = [
+    {
+      source: "__adjust_plan_handoff_state",
+      state: temp.__adjust_plan_handoff_state,
+    },
+    {
+      source: "__active_attack_card_handoff",
+      state: temp.__active_attack_card_handoff,
+    },
+    {
+      source: "__active_defense_card_handoff",
+      state: temp.__active_defense_card_handoff,
+    },
+    {
+      source: "__recurring_reminder_handoff_state",
+      state: temp.__recurring_reminder_handoff_state,
+    },
+    {
+      source: "__coach_preference_flow_state_v1",
+      state: temp.__coach_preference_flow_state_v1,
+    },
+    {
+      source: "readActiveFlowState.activeToolSkillIntake",
+      state: args.activeOperationIntake,
+    },
+    {
+      source: "__active_tool_skill_intake",
+      state: temp.__active_tool_skill_intake,
+    },
+    {
+      source: "active_tool_skill_intake",
+      state: temp.active_tool_skill_intake,
+    },
+    {
+      source: "__pending_tool_skill_confirmation",
+      state: args.pendingOperationConfirmation,
+    },
+  ];
+  for (const candidate of candidates) {
+    const operationType = readLocalToolFlowOperationType(candidate.state);
+    if (!operationType) continue;
+    return {
+      owner: "tool_skill",
+      operation_type: operationType,
+      source: candidate.source,
+      active_state: candidate.state,
+    };
+  }
+  return null;
+}
+
 export function clearActiveToolFlow<
   T extends Record<string, unknown> | null | undefined,
 >(tempMemory: T): Record<string, unknown> {
@@ -163,6 +450,7 @@ export function clearActiveToolFlow<
   );
   delete next.__adjust_plan_handoff_state;
   delete next.__active_attack_card_handoff;
+  delete next.__active_defense_card_handoff;
   delete next.__recurring_reminder_handoff_state;
   delete next.__coach_preference_flow_state_v1;
   return next;

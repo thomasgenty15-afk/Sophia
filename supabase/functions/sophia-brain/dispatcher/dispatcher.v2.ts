@@ -7,6 +7,7 @@ import type {
   DispatcherMemoryTargetType,
   DispatcherResearchSignal,
   Explicitness,
+  FlowOpportunity,
   RiskBand,
   TurnFrame,
 } from "../contracts/turn_frame.v1.ts";
@@ -599,6 +600,43 @@ function sanitizeResearchSignal(
   };
 }
 
+function sanitizeFlowOpportunity(raw: unknown): FlowOpportunity | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  const targetKind = record.target_kind;
+  const targetFlow = record.target_flow;
+  const confidence = record.confidence;
+  if (
+    (targetKind !== "skill" && targetKind !== "tool_skill" &&
+      targetKind !== "direct_effect") ||
+    typeof targetFlow !== "string" ||
+    (confidence !== "low" && confidence !== "medium" &&
+      confidence !== "high")
+  ) {
+    return null;
+  }
+  return {
+    opportunity_id: typeof record.opportunity_id === "string"
+      ? record.opportunity_id
+      : `${targetFlow}.opportunity`,
+    target_kind: targetKind,
+    target_flow: targetFlow as FlowOpportunity["target_flow"],
+    confidence,
+    priority: Number.isFinite(Number(record.priority))
+      ? Number(record.priority)
+      : 50,
+    reason: typeof record.reason === "string" ? record.reason : "opportunity",
+    evidence: Array.isArray(record.evidence)
+      ? record.evidence.map(String).slice(0, 8)
+      : [],
+    seed_context: record.seed_context &&
+        typeof record.seed_context === "object" &&
+        !Array.isArray(record.seed_context)
+      ? record.seed_context as Record<string, unknown>
+      : {},
+  };
+}
+
 function firstDetectedSkillSignalKey(
   group: Record<string, unknown> | undefined,
 ): string | null {
@@ -684,7 +722,8 @@ function normalizeDispatcherNoteInformation(args: {
     user_words: [args.input.user_message.slice(0, 240)],
     structured_context: {
       user_message_summary: args.input.user_message.slice(0, 240),
-      active_flow_summary: `Global dispatcher selected target=${targetDispatcher}.`,
+      active_flow_summary:
+        `Global dispatcher selected target=${targetDispatcher}.`,
       target_dispatcher: targetDispatcher,
       routed_operation_types: args.routedOperationIntents.map((intent) =>
         intent.operation_type
@@ -876,9 +915,11 @@ function sanitizeLlmTurnFrame(
       needsResearch,
     })
     : null;
+  const safeRaw = { ...raw };
+  delete safeRaw[["tool", "skill", "opportunity"].join("_")];
   return {
     ...baseline,
-    ...raw,
+    ...safeRaw,
     user_id: input.user_id,
     channel: input.channel,
     safety: {
@@ -897,6 +938,9 @@ function sanitizeLlmTurnFrame(
       ? raw.direct_effects
       : [],
     tool_skill_intents: finalRoutedOperationIntents,
+    flow_opportunity: safetyBlocksToolSkills
+      ? null
+      : sanitizeFlowOpportunity(raw?.flow_opportunity),
     note_information: normalizedNoteInformation,
     skill_signals: safetyBlocksToolSkills ? {} : skillSignals,
     active_handoff_action: safetyBlocksToolSkills

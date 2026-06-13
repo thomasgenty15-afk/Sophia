@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../../router/response_style_policy.ts";
 import type {
   CreateRecurringReminderVisibleTask,
   CreateRecurringReminderVisibleTaskKind,
@@ -118,7 +115,7 @@ function handoffReadyPrompt(): string {
   return [
     "Tu es l'agent visible local stage-specific handoff_ready du flow create_recurring_reminder.",
     ...baseStageRules(),
-    "Fonction: présenter la version à reprendre dans Rappels.",
+    "Fonction: présenter la version à reprendre dans Initiatives.",
     "Données reçues: conversation_context.handoff et known_values.",
     "Sortie attendue: un message naturel avec contenu, cadence, heure et destination plateforme, et une phrase claire que ce n'est pas créé depuis le chat.",
     "Ne jamais faire: utiliser une fiche à libellés, dire que c'est programmé, demander une confirmation finale.",
@@ -129,7 +126,7 @@ function reviseHandoffPrompt(): string {
   return [
     "Tu es l'agent visible local stage-specific revise_handoff du flow create_recurring_reminder.",
     ...baseStageRules(),
-    "Fonction: présenter la version révisée à reprendre dans Rappels.",
+    "Fonction: présenter la version révisée à reprendre dans Initiatives.",
     "Données reçues: conversation_context.handoff, known_values, evidence_used.",
     "Sortie attendue: un message court qui reflète la révision et rappelle que le chat ne l'applique pas.",
     "Ne jamais faire: dire que la modification est appliquée ou enregistrée.",
@@ -140,7 +137,7 @@ function repeatHandoffPrompt(): string {
   return [
     "Tu es l'agent visible local stage-specific repeat_handoff du flow create_recurring_reminder.",
     ...baseStageRules(),
-    "Fonction: redonner brièvement les éléments à reprendre dans Rappels.",
+    "Fonction: redonner brièvement les éléments à reprendre dans Initiatives.",
     "Données reçues: conversation_context.handoff et known_values.",
     "Sortie attendue: un rappel compact, sans nouvelle décision.",
     "Ne jamais faire: ajouter une question finale ou inventer un champ absent.",
@@ -151,7 +148,7 @@ function platformDestinationFollowupPrompt(): string {
   return [
     "Tu es l'agent visible local stage-specific platform_destination_followup du flow create_recurring_reminder.",
     ...baseStageRules(),
-    "Fonction: expliquer où reprendre la version dans la surface Rappels.",
+    "Fonction: expliquer où reprendre la version dans la surface Initiatives.",
     "Données reçues: conversation_context.handoff, known_values.platform_destination.",
     "Sortie attendue: un message bref centré sur la destination plateforme et les étapes disponibles dans le contexte.",
     "Ne jamais faire: prétendre ouvrir la surface ou programmer le rappel.",
@@ -321,9 +318,7 @@ export async function runCreateRecurringReminderVisibleAgent(
       },
     );
     const message = parseVisibleMessage(raw);
-    return message && visibleOutputStyleIssues(message).length === 0
-      ? message
-      : null;
+    return message;
   } catch (error) {
     console.warn("[CreateRecurringReminder] visible agent failed", error);
     return null;

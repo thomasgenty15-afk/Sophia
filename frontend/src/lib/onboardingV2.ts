@@ -191,7 +191,9 @@ export type OnboardingV2Draft = {
 
 const KEY = "sophia:onboarding_v2_draft:v1";
 const SESSION_KEY = "sophia:onboarding_v2_draft_session:v1";
+const AUTH_HANDOFF_KEY = "sophia:onboarding_v2_auth_handoff:v1";
 const DRAFT_SYNC_DEBOUNCE_MS = 500;
+const AUTH_HANDOFF_MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
 let draftSyncTimeout: number | null = null;
 let queuedDraftForSync: OnboardingV2Draft | null = null;
@@ -596,6 +598,7 @@ export function clearOnboardingV2Draft(): void {
   try {
     localStorage.removeItem(KEY);
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(AUTH_HANDOFF_KEY);
   } catch {
     // ignore
   }
@@ -604,6 +607,50 @@ export function clearOnboardingV2Draft(): void {
   if (draftSyncTimeout !== null && typeof window !== "undefined") {
     window.clearTimeout(draftSyncTimeout);
     draftSyncTimeout = null;
+  }
+}
+
+export function markOnboardingAuthHandoff(draft: OnboardingV2Draft): void {
+  try {
+    localStorage.setItem(
+      AUTH_HANDOFF_KEY,
+      JSON.stringify({
+        anonymous_session_id: draft.anonymous_session_id,
+        stage: draft.stage,
+        updated_at: draft.updated_at,
+        created_at: new Date().toISOString(),
+      }),
+    );
+  } catch {
+    // ignore private mode / quota failures
+  }
+}
+
+export function clearOnboardingAuthHandoff(): void {
+  try {
+    localStorage.removeItem(AUTH_HANDOFF_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+export function hasFreshOnboardingAuthHandoff(draft: OnboardingV2Draft): boolean {
+  try {
+    const raw = localStorage.getItem(AUTH_HANDOFF_KEY);
+    if (!raw) return false;
+
+    const parsed = JSON.parse(raw) as {
+      anonymous_session_id?: unknown;
+      created_at?: unknown;
+    };
+    if (parsed.anonymous_session_id !== draft.anonymous_session_id) return false;
+    if (typeof parsed.created_at !== "string") return false;
+
+    const createdAt = Date.parse(parsed.created_at);
+    if (!Number.isFinite(createdAt)) return false;
+    return Date.now() - createdAt <= AUTH_HANDOFF_MAX_AGE_MS;
+  } catch {
+    return false;
   }
 }
 

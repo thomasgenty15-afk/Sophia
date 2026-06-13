@@ -88,6 +88,7 @@ const FLOW_ACTIONS = new Set([
   "apply_attempt",
   "inline_status_roundtrip",
   "inline_tool_return",
+  "handoff_to_local_dispatcher",
   "exit_to_global_dispatcher",
   "close_product_help",
   "return_to_parent_flow",
@@ -268,6 +269,10 @@ function targetDispatcherForOutput(args: {
     args.flowAction === "inline_status_roundtrip" ||
     args.exitReason === "status_question"
   ) return "status_recap";
+  if (args.flowAction === "handoff_to_local_dispatcher") {
+    if (args.bridgeOperation === "one_shot_reminder") return "global";
+    if (args.bridgeOperation) return args.bridgeOperation;
+  }
   return "global";
 }
 
@@ -279,6 +284,7 @@ function handoffReasonForOutput(args: {
 }): NoteInformationHandoffReason {
   if (args.targetDispatcher === "safety_crisis") return "safety";
   if (args.flowAction === "inline_status_roundtrip") return "inline_tool";
+  if (args.flowAction === "handoff_to_local_dispatcher") return "bridge";
   if (args.flowAction === "exit_to_global_dispatcher") {
     return args.exitReason === "explicit_tool_request" ||
         args.exitReason === "unknown" ||
@@ -404,6 +410,7 @@ function noteInformationFromDispatcher(args: {
   const needsNote = args.flowAction === "exit_to_global_dispatcher" ||
     args.flowAction === "safety_preempt" ||
     args.flowAction === "inline_status_roundtrip" ||
+    args.flowAction === "handoff_to_local_dispatcher" ||
     args.exitRoot.needed === true;
   if (!needsNote) return null;
 
@@ -467,10 +474,8 @@ export function normalizeProductHelpLocalDispatcherOutput(
 ): ProductHelpLocalDispatcherOutput {
   const root = parseJsonObject(raw);
   rejectMutationFields(root);
-  const rawFlowAction = stringValue(root.flow_action);
-  const legacyDirectHandoff = rawFlowAction === "handoff_to_local_dispatcher";
   const flowAction = enumValue<ProductHelpLocalFlowAction>(
-    legacyDirectHandoff ? "exit_to_global_dispatcher" : root.flow_action,
+    root.flow_action,
     FLOW_ACTIONS,
     "clarify_product_question",
   );
@@ -496,12 +501,15 @@ export function normalizeProductHelpLocalDispatcherOutput(
   const exitNeeded = flowAction === "exit_to_global_dispatcher" ||
     flowAction === "safety_preempt" ||
     flowAction === "inline_status_roundtrip" ||
+    flowAction === "handoff_to_local_dispatcher" ||
     exitRoot.needed === true;
   const visibleKindFallback: ProductHelpVisibleTaskKind =
     flowAction === "safety_preempt"
       ? "safety_transition"
       : flowAction === "exit_to_global_dispatcher"
       ? "stop_or_cancel"
+      : flowAction === "handoff_to_local_dispatcher"
+      ? "exit_ack"
       : flowAction === "inline_status_roundtrip" ||
           flowAction === "inline_tool_return"
       ? "inline_tool_return"
@@ -538,7 +546,7 @@ export function normalizeProductHelpLocalDispatcherOutput(
     ),
   };
   const noteInformation = noteInformationFromDispatcher({
-    raw: legacyDirectHandoff ? null : root.note_information,
+    raw: root.note_information,
     flowAction,
     mode,
     riskScore: risk,
@@ -695,7 +703,7 @@ export function normalizeProductHelpLocalDispatcherOutput(
             "normal_coaching",
             "unknown",
           ]),
-          legacyDirectHandoff && bridgeOperation
+          flowAction === "handoff_to_local_dispatcher" && bridgeOperation
             ? (bridgeOperation === "one_shot_reminder"
               ? "one_shot_reminder"
               : bridgeOperation)
@@ -934,6 +942,95 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
       evidence: output.evidence,
     };
   }
+  if (output.flow_action === "handoff_to_local_dispatcher") {
+    if (!output.note_information) {
+      return {
+        status: "blocked",
+        reason_code: "product_help_handoff_note_information_required",
+        local_state: args.previous,
+        visible_task: "stop_or_cancel",
+        exit_to_global_dispatcher: false,
+        handoff_to_local_dispatcher: false,
+        return_to_parent_flow: output.mode === "inline",
+        answer_summary: null,
+        conversation_context: defaultConversationContext({
+          state_summary:
+            "Product help attempted a local handoff without note_information.",
+          user_words: args.userMessage ? [args.userMessage] : [],
+          do_not_say: ["Ne mentionne pas le handoff technique."],
+        }),
+        note_information: null,
+        blocked_effects: [{
+          type: "product_help",
+          reason_code: "note_information_required",
+        }],
+        evidence: output.evidence,
+      };
+    }
+    if (
+      output.note_information.target_dispatcher === "global" ||
+      output.note_information.target_dispatcher === "product_help"
+    ) {
+      return {
+        status: "blocked",
+        reason_code: "product_help_handoff_target_invalid",
+        local_state: args.previous,
+        visible_task: "stop_or_cancel",
+        exit_to_global_dispatcher: false,
+        handoff_to_local_dispatcher: false,
+        return_to_parent_flow: output.mode === "inline",
+        answer_summary: null,
+        conversation_context: defaultConversationContext({
+          state_summary:
+            "Product help attempted a local handoff to a non-local target.",
+          user_words: args.userMessage ? [args.userMessage] : [],
+          do_not_say: ["Ne mentionne pas le handoff technique."],
+        }),
+        note_information: output.note_information,
+        blocked_effects: [{
+          type: "product_help",
+          reason_code: "handoff_target_invalid",
+        }],
+        evidence: output.evidence,
+      };
+    }
+    return {
+      status: "handoff",
+      reason_code: "product_help_handoff_to_local_dispatcher",
+      local_state: output.mode === "standalone"
+        ? createProductHelpFlowState({
+          previous: args.previous,
+          status: "handoff",
+          stage: "handoff",
+          lastIntent: output.product_help_intent.kind,
+          lastTarget: output.target as unknown as Record<string, unknown>,
+          lastAnswerSummary: summary,
+          lastCatalogFeatureIds: output.grounding.catalog_feature_ids,
+          lastLocations: args.catalogCandidates.flatMap((feature) =>
+            feature.locations.map((location) => location.surface)
+          ),
+          turnCountIncrement: output.state_updates.turn_count_increment,
+        })
+        : null,
+      visible_task: "exit_ack",
+      exit_to_global_dispatcher: false,
+      handoff_to_local_dispatcher: true,
+      return_to_parent_flow: output.mode === "inline",
+      answer_summary: summary,
+      conversation_context: defaultConversationContext({
+        state_summary: noteInformationSummary(output.note_information) ??
+          summary,
+        user_words: args.userMessage ? [args.userMessage] : [],
+        handoff_data: { note_information: output.note_information },
+        context_summary:
+          "Ownership changes from product_help to the target local dispatcher.",
+        evidence_used: output.evidence,
+      }),
+      note_information: output.note_information,
+      blocked_effects: [],
+      evidence: output.evidence,
+    };
+  }
   if (output.flow_action === "safety_preempt" || output.risk_score >= 7) {
     const safetyNote = output.note_information ?? createNoteInformation({
       source_flow_id: "product_help",
@@ -1138,7 +1235,11 @@ function dispatcherSystemPrompt(): string {
     "Le dispatcher global normal ne fonctionne pas pendant product_help actif. Tu peux le rendre disponible seulement avec flow_action=exit_to_global_dispatcher et note_information.",
     "Contraintes strictes: aucune operation_suggestions, requested_effects, allowed_effects ou committed_effects; aucun pending confirmation; aucun token de confirmation; aucun flow lance.",
     "En inline, preserve_parent_flow doit rester true et return_to_parent.needed true.",
-    "Pour une demande de faire/creer/modifier/activer depuis product_help, product_help doit sortir avec flow_action=exit_to_global_dispatcher, note_information.target_dispatcher=global et un exit_memo.handoff_hint_for_global_dispatcher exploitable. Ne fais jamais de handoff direct vers un dispatcher local operationnel depuis product_help.",
+    "Pour une demande claire de faire/creer/modifier/activer qui correspond a un tool flow Sophia, product_help doit faire un pont structure avec flow_action=handoff_to_local_dispatcher, bridge.kind=handoff_needed, bridge.operation_type cible, note_information.target_dispatcher cible et aucun effet durable. Product_help ne repond pas au sujet cible et ne cree rien.",
+    "Anti-faux-positif handoff: une question produit de type ou/comment/c'est quoi/a quoi ca sert/quelle difference/ou je retrouve/est-ce que ca existe reste product_help, meme si elle mentionne carte d'attaque, carte de defense, potion, rappel ou Plan. Reponds avec answer_product_question, how_to, answer_destination, compare_features ou explain_limit. Ne choisis handoff_to_local_dispatcher que si le user demande explicitement de lancer/preparer/creer/modifier/activer maintenant le flow cible.",
+    "Priorite de decision: affiner une action existante du Plan prime sur Carte d'attaque. Si le user demande comment rendre une action du Plan plus concrete, moins floue, ou adaptee, cible plan.adjustment / adjust_plan_item. \"Sans toucher au reste du Plan\" veut dire ajustement cible, explication sans mutation immediate, ou modification locale seulement; ca ne veut pas dire Carte d'attaque. Utilise Carte d'attaque seulement si le user demande explicitement une carte, un premier geste pour demarrer, ou une preparation d'execution.",
+    "Si note_information_inbound ou catalog_candidates recommandent Carte d'attaque mais que current_user_message parle d'affiner une action existante du Plan, le message courant gagne: corrige vers plan.adjustment / adjust_plan_item dans target et conversation_context.",
+    "Ponts locaux autorises depuis product_help: prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, adjust_plan_item, update_coach_preferences. one_shot_reminder n'est pas un handoff local product_help: pour un rappel ponctuel, utilise exit_to_global_dispatcher avec note_information.target_dispatcher=global.",
     "Pour une question de statut DB, utilise inline_status_roundtrip vers status_recap avec note_information; ne rends pas toi-meme un status DB.",
     "Pour un abandon sans nouveau sujet clair, utilise exit_to_global_dispatcher avec note_information; ne pose pas de question finale dans product_help.",
     "Pour un changement de sujet clair, utilise exit_to_global_dispatcher avec note_information.target_dispatcher=global.",
@@ -1147,29 +1248,30 @@ function dispatcherSystemPrompt(): string {
     "Si une question porte sur l'etat d'un objet reel, n'affirme rien sans source recent_committed_effects, active_flow_context ou db_projection_sources.",
     ...directEffectLocalDispatcherPromptLines(),
     "Field Completion Rules:",
-    "- flow_action: decision principale de ce tour product_help. Choisis-la depuis le message courant et l'etat local, pas seulement depuis le tour precedent. Utilise answer_product_question/how_to/answer_destination/compare_features/explain_limit pour continuer localement; repeat_answer si le user demande de redire; apply_attempt seulement si tu restes en aide produit non-mutante; inline_status_roundtrip si une question de statut DB doit etre lue par status_recap; exit_to_global_dispatcher si le user veut arreter product_help, change clairement de sujet ou demande une operation reelle a executer par un autre flow; close_product_help seulement pour une fermeture locale prevue par le mode inline/parent; safety_preempt si le signal safety est prioritaire. N'invente aucune action absente du schema.",
+    "- flow_action: decision principale de ce tour product_help. Choisis-la depuis le message courant et l'etat local, pas seulement depuis le tour precedent. Utilise answer_product_question/how_to/answer_destination/compare_features/explain_limit pour continuer localement, y compris quand le user demande ou retrouver une carte d'attaque, comment ca marche, ce que c'est ou la difference entre deux ressources; repeat_answer si le user demande de redire; apply_attempt seulement si tu restes en aide produit non-mutante; inline_status_roundtrip si une question de statut DB doit etre lue par status_recap; handoff_to_local_dispatcher si le user demande clairement un tool flow autorise a lancer maintenant; exit_to_global_dispatcher si le user veut arreter product_help ou change clairement vers un sujet non-tool; close_product_help seulement pour une fermeture locale prevue par le mode inline/parent; safety_preempt si le signal safety est prioritaire. N'invente aucune action absente du schema.",
     "- confidence: high si l'intention produit ou la transition est claire; medium si la cible est probable mais incomplete; low si une clarification ou une prudence est necessaire. Ne mets pas high quand target.confidence ou grounding sont faibles.",
     "- risk_score: score local 0-10 utile a product_help. 0-2 pour aide produit ordinaire; 3-6 pour malaise ou risque ambigu non urgent; 7+ seulement pour safety reelle et alors flow_action doit etre safety_preempt. Ne fabrique pas de safety depuis une simple frustration produit.",
     "- mode: reprends standalone ou inline depuis l'input. En inline, preserve_parent_flow doit rester true et return_to_parent.needed doit etre true sauf safety/handoff explicite.",
-    "- product_help_intent.kind: classe le besoin produit reel: explain_feature, how_to, where_is_it, benefits, limits, can_i_do_x, modify_or_cancel_where, object_status_question, tool_action_request, compare_features, repeat, close, off_topic, safety ou unclear. summary resume l'intention en une phrase; ne l'utilise pas comme reponse visible.",
-    "- target: decrit la cible produit ou objet. kind=feature_catalog pour une surface ou concept Sophia; user_object pour une carte/rappel/potion reel utilisateur; recent_effect si la question porte sur un effet du tour recent; pending_draft si elle porte sur un brouillon; tool_flow si elle vise un flow operationnel; unknown si insuffisant. feature_id reste null si non determine. object_type reste null si non applicable. object_ref reste null sauf reference explicite et sourcee. target.confidence ne doit pas depasser l'evidence.",
+    "- product_help_intent.kind: classe le besoin produit reel: explain_feature, how_to, where_is_it, benefits, limits, can_i_do_x, modify_or_cancel_where, object_status_question, tool_action_request, compare_features, repeat, close, off_topic, safety ou unclear. Utilise tool_action_request seulement pour une demande operationnelle explicite de lancer/preparer/creer/modifier/activer; n'utilise jamais tool_action_request pour une demande d'explication, de destination, de difference ou de fonctionnement. summary resume l'intention en une phrase; ne l'utilise pas comme reponse visible.",
+    "- target: decrit la cible produit ou objet. kind=feature_catalog pour une surface ou concept Sophia; user_object pour une carte/rappel/potion reel utilisateur; recent_effect si la question porte sur un effet du tour recent; pending_draft si elle porte sur un brouillon; tool_flow si elle vise un flow operationnel; unknown si insuffisant. Pour une question sur transformer/rendre concrete/ajuster une action existante du Plan, feature_id=plan.adjustment et object_type=plan_item; pas resources.attack_card sauf demande explicite de carte ou de preparation de demarrage. feature_id reste null si non determine. object_type reste null si non applicable. object_ref reste null sauf reference explicite et sourcee. target.confidence ne doit pas depasser l'evidence.",
     "- grounding: liste uniquement les sources reellement utilisees. catalog_feature_ids pour les fiches produit retenues; surface_ids pour surfaces produit; db_sources_required=true si le user demande un etat reel; db_sources_used seulement si une source DB/effect/active_flow est disponible; active_flow_used=true seulement si tu t'appuies sur le flow parent/actif; missing_grounding_reason explique pourquoi tu ne peux pas affirmer. Ne mets pas de pseudo-preuve.",
-    "- bridge: decrit une frontiere produit, jamais une execution ni un handoff direct. needed=true pour apply_attempt ou bridge_explanation_only. operation_type seulement parmi prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, one_shot_reminder, adjust_plan_item, update_coach_preferences quand cela aide le global a requalifier. kind=explain_only pour expliquer une destination, offer_with_consent si tu proposes sans lancer, handoff_needed seulement avec exit_to_global_dispatcher. executable est toujours false.",
+    "- bridge: decrit une frontiere produit, jamais une execution. needed=true pour apply_attempt, bridge_explanation_only ou handoff_to_local_dispatcher. operation_type seulement parmi prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, one_shot_reminder, adjust_plan_item, update_coach_preferences. kind=explain_only pour expliquer une destination ou une possibilite sans transferer le tour, offer_with_consent si tu proposes sans lancer, handoff_needed seulement pour un pont local explicite demande maintenant. Pour une question ou/comment/c'est quoi/a quoi ca sert, bridge.needed reste false ou kind=explain_only, jamais handoff_needed. executable est toujours false.",
     "- state_updates: etat local minimal. status=open/answered pour continuer, closing pour finir localement, stopped pour exit_to_global_dispatcher, exit_to_global pour exit, safety pour safety. stage doit suivre la tache: answering, clarifying, bridge_explained, status_inline ou closing. turn_count_increment vaut 1 pour un tour traite, 0 seulement si aucune progression locale. close_after_visible=true quand le flow doit se fermer apres le message visible. Ne cree pas de profil global ni d'hypothese durable.",
     "- visible_task.kind: stage visible exact. Utilise answer_product_question, clarify_product_question, answer_destination, compare_features, explain_limit, bridge_explanation_only, repeat_answer, apply_attempt, inline_tool_return, stop_or_cancel, exit_ack, close_product_help ou safety_transition. Ne choisis pas un stage generique si un stage precis existe. En stop/cancel, utilise stop_or_cancel.",
     "- visible_task.instruction: instruction courte de style/stage pour l'agent visible, pas un message final. Elle ne doit pas contenir de champ a remplir, de route a decider, ni d'effet a appliquer.",
     "- visible_task.conversation_context: seul contexte donne au visible agent. Remplis state_summary, user_words, field_or_stage, known_values, missing_or_weak_values, selected_candidate, handoff_data, tone_constraints, do_not_say, context_summary, evidence_used. Filtre tout: pas de DB brute, pas de memoire brute, pas de note_information brute. Inclure les contraintes utilisateur utiles, les valeurs connues, les incertitudes, le ton et les limites d'affirmation.",
     "- return_to_parent: utilise needed=true en mode inline ou return_to_parent_flow/inline_tool_return. parent_skill_id vient du parent connu, sinon null. return_summary resume ce que product_help a apporte. preserve_parent_state reste true.",
     "- exit_memo: needed=true pour exit_to_global_dispatcher, safety_preempt, inline_status_roundtrip ou tout changement d'ownership. Pour une demande operationnelle, reason=explicit_tool_request et handoff_hint_for_global_dispatcher.likely_intent porte le flow probable comme prepare_attack_card. needed=false et reason=none pour une continuation locale. local_flow_context resume product_help sans effets durables; committed_effects reste vide sauf source externe deja commitee.",
-    "- note_information: obligatoire pour exit_to_global_dispatcher, inline_status_roundtrip et safety_preempt. target_dispatcher=global pour sortie ou demande operationnelle a requalifier, safety_crisis pour safety, status_recap pour statut DB. Ne mets jamais un dispatcher local operationnel comme prepare_attack_card en target depuis product_help. handoff_context_for_next_dispatcher et structured_context doivent donner le sens de la sortie, l'etat product_help utile, les contraintes et le prochain focus. Elle est consommee par le dispatcher cible et ne va jamais brute au visible prompt. Mets null pour une continuation locale ou close_product_help sans changement de dispatcher.",
+    "- note_information: obligatoire pour handoff_to_local_dispatcher, exit_to_global_dispatcher, inline_status_roundtrip et safety_preempt. target_dispatcher=prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, adjust_plan_item ou update_coach_preferences pour un pont tool local clair; global seulement pour un vrai changement de sujet non-tool ou un rappel ponctuel one_shot_reminder; safety_crisis pour safety; status_recap pour statut DB. handoff_context_for_next_dispatcher et structured_context doivent donner le sens de la sortie, l'etat product_help utile, les contraintes et le prochain focus. Elle est consommee par le dispatcher cible et ne va jamais brute au visible prompt. Mets null pour une continuation locale ou close_product_help sans changement de dispatcher.",
     "- evidence: indices semantiques ou sources vraiment utilises, courts et verifiables: mots du user, feature id, source active_flow/db. Pas de pseudo-preuves et pas de long dump.",
     "Transition Rules:",
-    "- exit_to_global_dispatcher: user abandonne product_help, apporte un nouveau sujet clair hors aide produit, ou demande une operation reelle comme preparer une carte d'attaque. note_information obligatoire vers global, visible_task.kind=exit_ack, state_updates.status=exit_to_global, pas de reponse au sujet cible dans product_help.",
+    "- handoff_to_local_dispatcher: user demande clairement un tool flow autorise comme preparer une carte d'attaque, ajuster un plan, creer un rappel recurrent, changer une preference ou choisir une potion, avec intention d'action maintenant. Ne l'utilise pas pour expliquer une surface, dire ou retrouver une carte, comparer attaque/defense, ou repondre a comment ca marche. note_information obligatoire vers le dispatcher cible, visible_task.kind=exit_ack, state_updates.status=handoff, pas de reponse au sujet cible dans product_help, aucun effet durable.",
+    "- exit_to_global_dispatcher: user abandonne product_help ou apporte un nouveau sujet clair qui n'est pas un tool flow autorise. note_information obligatoire vers global, visible_task.kind=exit_ack, state_updates.status=exit_to_global, pas de reponse au sujet cible dans product_help.",
     "- safety_preempt: risque safety prioritaire. note_information obligatoire vers safety_crisis, visible_task.kind=safety_transition, state_updates.status=safety, pas de global normal.",
     "- inline_status_roundtrip: seulement pour statut DB; note_information vers status_recap; preserve_parent_flow=true si product_help est inline.",
     'Example JSON 1 - continuation normale: {"flow_action":"answer_destination","confidence":"high","risk_score":0,"mode":"standalone","product_help_intent":{"kind":"where_is_it","summary":"User asks where attack cards are found."},"target":{"kind":"feature_catalog","feature_id":"resources.attack_card","object_type":"attack_card","object_ref":null,"confidence":"high"},"grounding":{"catalog_feature_ids":["resources.attack_card"],"surface_ids":[],"db_sources_required":false,"db_sources_used":[],"active_flow_used":false,"missing_grounding_reason":null},"bridge":{"needed":false,"operation_type":null,"kind":null,"executable":false,"why":null},"state_updates":{"status":"answered","stage":"answering","turn_count_increment":1,"close_after_visible":false,"preserve_parent_flow":true},"visible_task":{"kind":"answer_destination","instruction":"Answer the product location only.","conversation_context":{"state_summary":"Location question about attack cards.","user_words":["where do I find attack cards"],"field_or_stage":"answering","known_values":{"feature_id":"resources.attack_card"},"missing_or_weak_values":[],"selected_candidate":{"feature_id":"resources.attack_card"},"handoff_data":{},"tone_constraints":["short"],"do_not_say":["do not claim a real card exists"],"context_summary":"Use catalog location, not user object status.","evidence_used":["resources.attack_card"]}},"return_to_parent":{"needed":false,"parent_skill_id":null,"return_summary":null,"preserve_parent_state":true},"note_information":null,"exit_memo":{"needed":false,"reason":"none","user_intent_summary":null,"local_flow_context":{"skill_id":"product_help","mode":"standalone","stage":"answering","last_answer_summary":null,"parent_skill_id":null,"committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":null,"constraints":[]}},"evidence":["user asks product location","resources.attack_card"]}',
     'Example JSON 2 - safety transition: {"flow_action":"safety_preempt","confidence":"high","risk_score":8,"mode":"standalone","product_help_intent":{"kind":"safety","summary":"User expresses acute self-harm risk while in product_help."},"target":{"kind":"unknown","feature_id":null,"object_type":null,"object_ref":null,"confidence":"low"},"grounding":{"catalog_feature_ids":[],"surface_ids":[],"db_sources_required":false,"db_sources_used":[],"active_flow_used":false,"missing_grounding_reason":null},"bridge":{"needed":false,"operation_type":null,"kind":null,"executable":false,"why":null},"state_updates":{"status":"safety","stage":"closing","turn_count_increment":1,"close_after_visible":true,"preserve_parent_flow":true},"visible_task":{"kind":"safety_transition","instruction":"Stop product explanation and transition minimally to safety.","conversation_context":{"state_summary":"Safety signal interrupts product_help.","user_words":["I might hurt myself"],"field_or_stage":"closing","known_values":{},"missing_or_weak_values":[],"selected_candidate":{},"handoff_data":{},"tone_constraints":["brief","non-product"],"do_not_say":["do not continue product help"],"context_summary":"Safety dispatcher must take over.","evidence_used":["self-harm wording"]}},"return_to_parent":{"needed":false,"parent_skill_id":null,"return_summary":null,"preserve_parent_state":true},"note_information":{"source_flow_id":"product_help","handoff_reason":"safety","target_dispatcher":"safety_crisis","handoff_context_for_next_dispatcher":"Safety signal in current user message while product_help was active.","user_words":["I might hurt myself"],"structured_context":{"user_message_summary":"User expresses acute self-harm risk.","active_flow_summary":"product_help was active","collected_state":{"skill_id":"product_help"},"unresolved_questions":[],"recommended_next_focus":"safety_crisis"},"confidence":"high"},"exit_memo":{"needed":true,"reason":"safety","user_intent_summary":"Safety signal interrupts product help.","local_flow_context":{"skill_id":"product_help","mode":"standalone","stage":"closing","last_answer_summary":null,"parent_skill_id":null,"committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":"safety preemption","constraints":[]}},"evidence":["self-harm wording"]}',
-    'Retourne exactement ce JSON: {"flow_action":"answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|apply_attempt|inline_status_roundtrip|inline_tool_return|exit_to_global_dispatcher|close_product_help|return_to_parent_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"mode":"standalone|inline","product_help_intent":{"kind":"explain_feature|how_to|where_is_it|benefits|limits|can_i_do_x|modify_or_cancel_where|object_status_question|tool_action_request|compare_features|repeat|close|off_topic|safety|unclear","summary":"string"},"target":{"kind":"feature_catalog|user_object|recent_effect|pending_draft|tool_flow|unknown","feature_id":"string|null","object_type":"attack_card|defense_card|one_shot_reminder|recurring_reminder|potion|plan_item|preference|initiative|unknown|null","object_ref":"string|null","confidence":"low|medium|high"},"grounding":{"catalog_feature_ids":[],"surface_ids":[],"db_sources_required":false,"db_sources_used":[],"active_flow_used":false,"missing_grounding_reason":"string|null"},"bridge":{"needed":false,"operation_type":"prepare_attack_card|prepare_defense_card|select_state_potion|create_recurring_reminder|one_shot_reminder|adjust_plan_item|update_coach_preferences|null","kind":"explain_only|offer_with_consent|handoff_needed|null","executable":false,"why":"string|null"},"state_updates":{"status":"open|answered|closing|stopped|exit_to_global|safety","stage":"answering|clarifying|bridge_explained|status_inline|closing","turn_count_increment":1,"close_after_visible":false,"preserve_parent_flow":true},"visible_task":{"kind":"answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|apply_attempt|inline_tool_return|stop_or_cancel|exit_ack|close_product_help|safety_transition","instruction":"string","conversation_context":{"state_summary":"string","user_words":["string"],"field_or_stage":"string|null","known_values":{},"missing_or_weak_values":[],"selected_candidate":{},"handoff_data":{},"tone_constraints":[],"do_not_say":[],"context_summary":"string|null","evidence_used":["string"]}},"return_to_parent":{"needed":false,"parent_skill_id":"string|null","return_summary":"string|null","preserve_parent_state":true},"note_information":{"source_flow_id":"product_help","handoff_reason":"topic_change|safety|inline_tool|flow_interruption|explicit_user_request","target_dispatcher":"global|safety_crisis|status_recap","handoff_context_for_next_dispatcher":"string","user_words":["string"],"structured_context":{},"confidence":"low|medium|high"},"exit_memo":{"needed":false,"reason":"topic_change|explicit_tool_request|status_question|normal_coaching|safety|unknown|none","user_intent_summary":"string|null","local_flow_context":{"skill_id":"product_help","mode":"standalone|inline","stage":"string|null","last_answer_summary":"string|null","parent_skill_id":"string|null","committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|adjust_plan_item|one_shot_reminder|create_recurring_reminder|normal_coaching|unknown","why":"string|null","constraints":[]}},"evidence":["string"]}',
+    'Retourne exactement ce JSON: {"flow_action":"answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|apply_attempt|inline_status_roundtrip|inline_tool_return|handoff_to_local_dispatcher|exit_to_global_dispatcher|close_product_help|return_to_parent_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"mode":"standalone|inline","product_help_intent":{"kind":"explain_feature|how_to|where_is_it|benefits|limits|can_i_do_x|modify_or_cancel_where|object_status_question|tool_action_request|compare_features|repeat|close|off_topic|safety|unclear","summary":"string"},"target":{"kind":"feature_catalog|user_object|recent_effect|pending_draft|tool_flow|unknown","feature_id":"string|null","object_type":"attack_card|defense_card|one_shot_reminder|recurring_reminder|potion|plan_item|preference|initiative|unknown|null","object_ref":"string|null","confidence":"low|medium|high"},"grounding":{"catalog_feature_ids":[],"surface_ids":[],"db_sources_required":false,"db_sources_used":[],"active_flow_used":false,"missing_grounding_reason":"string|null"},"bridge":{"needed":false,"operation_type":"prepare_attack_card|prepare_defense_card|select_state_potion|create_recurring_reminder|one_shot_reminder|adjust_plan_item|update_coach_preferences|null","kind":"explain_only|offer_with_consent|handoff_needed|null","executable":false,"why":"string|null"},"state_updates":{"status":"open|answered|closing|stopped|handoff|exit_to_global|safety","stage":"answering|clarifying|bridge_explained|status_inline|handoff|closing","turn_count_increment":1,"close_after_visible":false,"preserve_parent_flow":true},"visible_task":{"kind":"answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|apply_attempt|inline_tool_return|stop_or_cancel|exit_ack|close_product_help|safety_transition","instruction":"string","conversation_context":{"state_summary":"string","user_words":["string"],"field_or_stage":"string|null","known_values":{},"missing_or_weak_values":[],"selected_candidate":{},"handoff_data":{},"tone_constraints":[],"do_not_say":[],"context_summary":"string|null","evidence_used":["string"]}},"return_to_parent":{"needed":false,"parent_skill_id":"string|null","return_summary":"string|null","preserve_parent_state":true},"note_information":{"source_flow_id":"product_help","handoff_reason":"topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request","target_dispatcher":"global|safety_crisis|status_recap|prepare_attack_card|prepare_defense_card|select_state_potion|create_recurring_reminder|adjust_plan_item|update_coach_preferences","handoff_context_for_next_dispatcher":"string","user_words":["string"],"structured_context":{},"confidence":"low|medium|high"},"exit_memo":{"needed":false,"reason":"topic_change|explicit_tool_request|status_question|normal_coaching|safety|unknown|none","user_intent_summary":"string|null","local_flow_context":{"skill_id":"product_help","mode":"standalone|inline","stage":"string|null","last_answer_summary":"string|null","parent_skill_id":"string|null","committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|adjust_plan_item|one_shot_reminder|create_recurring_reminder|normal_coaching|unknown","why":"string|null","constraints":[]}},"evidence":["string"]}',
   ].join("\n");
 }
 

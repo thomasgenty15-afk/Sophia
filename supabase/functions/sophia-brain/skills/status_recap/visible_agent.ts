@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import type {
   StatusRecapConversationContext,
   StatusRecapVisibleTaskKind,
@@ -49,16 +46,16 @@ export const STATUS_RECAP_STAGE_PROMPTS: Record<
   status_compact: {
     prompt_id: "status_recap.visible.status_compact",
     instruction:
-      "Rends un recap court de ce qui existe vraiment, seulement depuis conversation_context.filtered_facts.",
+      "Rends un recap court, naturel et factuel de ce qui existe vraiment, seulement depuis conversation_context.filtered_facts. Pour un scope global, couvre chaque categorie non vide dans coverage_requirements sans imposer une structure de catégories.",
     output_contract:
-      "Message bref, factuel, sans question sauf si le contexte le demande explicitement.",
+      "Message bref, factuel, fluide, sans question sauf si le contexte le demande explicitement. Ne laisse pas une categorie non vide hors réponse, mais choisis librement la forme la plus claire.",
   },
   object_status: {
     prompt_id: "status_recap.visible.object_status",
     instruction:
-      "Réponds seulement sur les objets ou catégories ciblés; ne transforme pas en recap global.",
+      "Réponds seulement sur les objets ou catégories ciblés, dans une forme naturelle; si la cible est globale/unknown ou requested_categories contient all, couvre chaque categorie non vide dans coverage_requirements.",
     output_contract:
-      "Liste ou phrase compacte centrée sur les objets demandés.",
+      "Phrase ou liste compacte centrée sur les objets demandés. Ne limite pas aux rappels si des préférences coach ou autres catégories filtrées sont explicitement demandées ou incluses par all.",
   },
   coach_preferences_status: {
     prompt_id: "status_recap.visible.coach_preferences_status",
@@ -138,6 +135,66 @@ export const STATUS_RECAP_STAGE_PROMPTS: Record<
   },
 };
 
+export function statusRecapCoverageRequirements(
+  context: StatusRecapConversationContext,
+): string[] {
+  const facts = context.filtered_facts;
+  const globalScope = context.requested_categories.includes("all") ||
+    context.target_objects.includes("unknown") ||
+    context.stage === "status_compact";
+  const requirements: string[] = [];
+  if (!globalScope) return requirements;
+  if (facts.attack_cards.length > 0) {
+    requirements.push("mentionner les cartes d'attaque actives présentes");
+  }
+  if (facts.defense_cards.length > 0) {
+    requirements.push("mentionner les cartes de défense actives présentes");
+  }
+  if (facts.one_shot_reminders.pending.length > 0) {
+    requirements.push("mentionner les rappels ponctuels actifs/en attente");
+  }
+  if (facts.one_shot_reminders.cancelled_recent.length > 0) {
+    requirements.push(
+      "mentionner les rappels ponctuels annulés si le scope inclut les annulés ou est global",
+    );
+  }
+  if (facts.recurring_reminders.length > 0) {
+    requirements.push("mentionner les rappels récurrents actifs présents");
+  }
+  if (facts.potion_sessions.length > 0) {
+    requirements.push("mentionner les sessions/potions présentes");
+  }
+  if (facts.coach_preferences.length > 0) {
+    requirements.push("mentionner les préférences coach explicites présentes");
+  }
+  if (facts.recent_effect_history.length > 0) {
+    requirements.push(
+      "mentionner les effets récents présents sans les compter comme objets durables",
+    );
+  }
+  return requirements;
+}
+
+export function statusRecapRestitutionGuidance(
+  stage: StatusRecapVisibleTaskKind,
+): string[] {
+  const guidance = [
+    "La restitution doit être conversationnelle: claire, courte, mais pas mécanique.",
+    "Hors stage fait_prevu_fragile, n'utilise pas les labels imposés Fait, Prévu, Fragile; le user n'a pas forcément demandé cette grille.",
+    "Ne transforme pas les coverage_requirements en titres visibles; ils servent seulement à vérifier que les faits importants ne sont pas oubliés.",
+    "Tu peux grouper naturellement les faits proches dans une phrase ou une liste courte.",
+    "Exemples de formes possibles selon le contexte: 'Je vois surtout...', 'Dans ton espace, il y a...', 'Côté rappels, je vois...', 'Sur les préférences coach, je vois...'. Ce sont des exemples de ton, pas des templates à recopier.",
+    "Si un objet est annulé, dis simplement qu'il est annulé; ne l'appelle pas fragile sauf si le contexte parle vraiment d'incertitude, blocage ou instabilité.",
+    "Si une catégorie est vide, mentionne-la seulement si cela aide à répondre à la demande du user.",
+  ];
+  if (stage === "fait_prevu_fragile") {
+    return [
+      "Le stage fait_prevu_fragile est l'exception: utilise exactement les trois lignes Fait, Prévu, Fragile, sans autre structure.",
+    ];
+  }
+  return guidance;
+}
+
 function visibleSystemPrompt(input: StatusRecapVisibleAgentInput): string {
   return [
     "Tu es l'agent visible du flow status_recap.",
@@ -147,9 +204,11 @@ function visibleSystemPrompt(input: StatusRecapVisibleAgentInput): string {
     "status_recap est strictement read-only: ne promets jamais création, modification, annulation, activation, confirmation, programmation ou enregistrement.",
     "Ne mentionne jamais JSON, dispatcher, reducer, DB, table, prompt ou outil interne.",
     "Ne donne pas d'aide produit détaillée du type où cliquer ou où changer.",
-    "N'écris pas un template fixe sauf pour fait/prévu/fragile qui doit avoir exactement trois lignes.",
+    "N'écris jamais un template fixe. Le format fait/prévu/fragile n'est autorisé que pour le stage fait_prevu_fragile.",
     "Ne nomme pas une catégorie en introduction si tu ne rends pas au moins un fait ou un non-claim clair sur cette catégorie dans le message.",
+    "Si coverage_requirements contient des éléments, chaque élément doit être couvert par un fait ou un non-claim clair, sans inventer hors filtered_facts.",
     "Si une source manque, préfère une phrase de non-claim plutôt qu'une supposition.",
+    ...statusRecapRestitutionGuidance(input.stage),
     VISIBLE_OUTPUT_STYLE_RULES,
     STATUS_RECAP_STAGE_PROMPTS[input.stage].instruction,
     STATUS_RECAP_STAGE_PROMPTS[input.stage].output_contract,
@@ -173,6 +232,9 @@ export async function runStatusRecapVisibleAgent(
       no_product_help: true,
       no_mutation_language: true,
     },
+    coverage_requirements: statusRecapCoverageRequirements(
+      input.conversation_context,
+    ),
     required_json_shape: { message: "string" },
   });
   try {
@@ -195,9 +257,7 @@ export async function runStatusRecapVisibleAgent(
       },
     );
     const message = parseVisibleMessage(raw);
-    return message && visibleOutputStyleIssues(message).length === 0
-      ? message
-      : null;
+    return message;
   } catch (error) {
     console.warn("[StatusRecap] visible agent failed", error);
     return null;

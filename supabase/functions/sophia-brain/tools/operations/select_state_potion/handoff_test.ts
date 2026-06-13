@@ -287,12 +287,8 @@ Deno.test("exit_to_global_dispatcher clears active handoff without global rerout
   assert(result);
   assertEquals((result.toolSkillRun as any).status, "cancelled");
   assertEquals(
-    [
-      "state_potion_local_flow_stopped_no_handoff",
-      "state_potion_local_flow_cancelled",
-    ]
-      .includes((result.toolSkillRun as any).reason_code),
-    true,
+    (result.toolSkillRun as any).reason_code,
+    "state_potion_local_flow_cancelled",
   );
   assertEquals(
     loadStatePotionHandoffStateFromTempMemory(result.nextTempMemory),

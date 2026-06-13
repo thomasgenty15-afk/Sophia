@@ -476,7 +476,7 @@ Add coverage:
 - `get_info_product` keeps clarification state active.
 - `get_info_db` keeps clarification state active.
 - `known_context.clarification_context_pack` persists after ask/inline.
-- cancel/stop produces no handoff note.
+- cancel/stop exits with note_information.
 - legacy `inline_tool` input normalizes to `inline_info`.
 
 ### Unit Tests: Context Pack

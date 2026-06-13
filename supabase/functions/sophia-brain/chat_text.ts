@@ -108,11 +108,46 @@ const FIL_ROUGE_MARKERS = [
 export function extractHiddenFilRougeNote(
   text: unknown,
 ): { visibleText: string; note: string | null; marker: string | null } {
-  const raw = String(text ?? "");
-  void FIL_ROUGE_MARKERS;
+  let visibleText = String(text ?? "");
+  let note: string | null = null;
+  let marker: string | null = null;
+  for (const candidateMarker of FIL_ROUGE_MARKERS) {
+    const escapedMarker = candidateMarker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const commentPattern = new RegExp(
+      `\\s*<!--\\s*${escapedMarker}\\s*:\\s*([\\s\\S]*?)\\s*-->\\s*`,
+      "gi",
+    );
+    visibleText = visibleText.replace(commentPattern, (_match, rawNote) => {
+      const cleanedNote = normalizeChatText(rawNote, {
+        collapseBlankLines: true,
+      });
+      if (!note && cleanedNote) {
+        note = cleanedNote;
+        marker = candidateMarker;
+      }
+      return "\n";
+    });
+
+    const loosePattern = new RegExp(
+      `\\s*${escapedMarker}\\s*:\\s*([^\\n<]+)`,
+      "i",
+    );
+    visibleText = visibleText.replace(loosePattern, (_match, rawNote) => {
+      const cleanedNote = normalizeChatText(rawNote, {
+        collapseBlankLines: true,
+      });
+      if (!note && cleanedNote) {
+        note = cleanedNote;
+        marker = candidateMarker;
+      }
+      return "";
+    });
+  }
   return {
-    visibleText: raw,
-    note: null,
-    marker: null,
+    visibleText: normalizeChatText(visibleText, {
+      collapseBlankLines: true,
+    }),
+    note,
+    marker,
   };
 }

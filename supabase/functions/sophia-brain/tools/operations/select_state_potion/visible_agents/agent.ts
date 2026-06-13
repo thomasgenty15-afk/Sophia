@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../../../router/response_style_policy.ts";
 import type {
   ClarteVisibleTaskKind,
   StatePotionConversationContext,
@@ -120,7 +117,7 @@ export function visibleContractIssues(
   message: string,
   input: SelectStatePotionVisibleAgentInput,
 ): string[] {
-  const issues: string[] = visibleOutputStyleIssues(message);
+  const issues: string[] = [];
   const normalized = normalizeForGuard(message);
   const context = input.visible_task.conversation_context;
   const instruction = input.visible_task.instruction ?? "";

@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../../router/response_style_policy.ts";
 import type {
   AdjustPlanConversationContext,
   AdjustPlanVisibleTaskKind,
@@ -119,7 +116,7 @@ export function adjustPlanVisibleContractIssues(
   message: string,
   input: AdjustPlanVisibleAgentInput,
 ): string[] {
-  const issues: string[] = visibleOutputStyleIssues(message);
+  const issues: string[] = [];
   const normalized = normalizeForGuard(message);
   if (!message.trim()) issues.push("empty_message");
   for (const claim of FORBIDDEN_SUCCESS_CLAIMS) {
@@ -193,6 +190,7 @@ const STAGE_PROMPTS: Record<
     "Ces reperes doivent etre naturels et courts, sans template fixe ni labels internes.",
     "Donne naturellement la proposition concrete a reprendre dans Plan.",
     "Utilise handoff_data.suggested_platform_input ou grouped_by_plan.",
+    "Ne transforme jamais une demande vague en exemple specifique non fourni; si handoff_data reste trop generique, presente-le tel quel ou demande une precision selon le stage.",
     "Mentionne clairement le chemin produit: sur la plateforme, dans Plan, sous le niveau actif, le user trouve Ajuster mon plan pour saisir la proposition.",
     "Ne dis jamais que c'est applique, modifie, sauvegarde, valide ou enregistre.",
   ],
@@ -270,6 +268,7 @@ export function visibleSystemPrompt(
     "Si tu fais un handoff, la destination canonique est Plan.",
     "Pour les stages de handoff Plan, exploite trois reperes obligatoires depuis conversation_context: quoi modifier via known_values.scope.target_summary ou selected_candidate, pourquoi via known_values.adjustment_need.reason_change, nature de modification via known_values.adjustment_need.change_kind.",
     "Utilise known_values.adjustment_need.requested_change pour formuler le resultat attendu, sans le confondre avec la nature de modification.",
+    "N'ajoute jamais d'exemple concret, de sous-tache, d'objet, de contexte ou de categorie absente de conversation_context. Si le contexte dit seulement qu'une action est vague, reste generique ou pose une clarification; ne complete pas avec une supposition.",
     "Pour les stages de handoff Plan, avant de dire quoi saisir dans Ajuster mon plan, donne assez de contexte pour que le user comprenne ce qui change, dans quel sens, et pourquoi, sans template fixe.",
     "Destination produit precise: sur la plateforme, dans Plan, sous le niveau actif, le user trouve Ajuster mon plan; c'est la qu'il reprend la proposition.",
     VISIBLE_OUTPUT_STYLE_RULES,

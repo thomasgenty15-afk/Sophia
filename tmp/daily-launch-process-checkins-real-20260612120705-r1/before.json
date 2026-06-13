@@ -1,0 +1,125 @@
+{
+  "runId": "daily-launch-process-checkins-real-20260612120705-r1",
+  "userId": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "processStartedAt": "2026-06-12T12:07:06.179Z",
+  "profile": {
+    "id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "email": "rose@gmail.com",
+    "full_name": "",
+    "timezone": "Europe/Paris",
+    "phone_number": null,
+    "phone_verified_at": null,
+    "phone_invalid": false,
+    "whatsapp_opted_in": true,
+    "whatsapp_last_inbound_at": null,
+    "whatsapp_last_outbound_at": null
+  },
+  "dueRows": [
+    {
+      "id": "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:98a417ff-7367-4e25-aee8-5fc892741f62",
+      "draft_message": "En rangeant ton matériel hors de vue, tu ne fais pas qu'obéir à une consigne, tu libères ton champ visuel pour que ton esprit puisse se concentrer sur ce qui compte vraiment.",
+      "scheduled_for": "2026-06-08T16:14:17.309+00:00",
+      "status": "pending",
+      "created_at": "2026-06-03T13:59:35.800245+00:00",
+      "processed_at": null,
+      "message_mode": "static",
+      "message_payload": {
+        "theme": "action du plan reliee au pourquoi",
+        "source": "potion_follow_up_series",
+        "day_index": 2,
+        "rationale": "Un petit rappel quotidien pour reconnecter ton action du moment à ton envie profonde de retrouver ta vivacité d'esprit.",
+        "potion_type": "clarte",
+        "generated_at": "2026-06-03T13:59:28.215Z",
+        "potion_scope": null,
+        "rappel_scope": null,
+        "target_binding": null,
+        "reminder_instruction": "Souviens-toi : ce soir, tu ne fuis pas l'ennui, tu construis la clarté dont tu as besoin pour tes projets.",
+        "source_potion_session_id": "172147d9-f8a2-4248-b323-ba88f6453bb2",
+        "potion_follow_up_series_item": {
+          "theme": "action du plan reliee au pourquoi",
+          "day_index": 2,
+          "draft_message": "En rangeant ton matériel hors de vue, tu ne fais pas qu'obéir à une consigne, tu libères ton champ visuel pour que ton esprit puisse se concentrer sur ce qui compte vraiment."
+        }
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": "98a417ff-7367-4e25-aee8-5fc892741f62"
+    },
+    {
+      "id": "666976c4-762d-4014-8eb0-c00a6b75f951",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "event_context": "recurring_reminder:98a417ff-7367-4e25-aee8-5fc892741f62",
+      "draft_message": "Rappelle-toi que ce vide que tu ressens parfois le soir est l'espace nécessaire pour que tes projets personnels recommencent enfin à respirer.",
+      "scheduled_for": "2026-06-09T20:42:01.669+00:00",
+      "status": "pending",
+      "created_at": "2026-06-03T13:59:35.800245+00:00",
+      "processed_at": null,
+      "message_mode": "static",
+      "message_payload": {
+        "theme": "pourquoi profond",
+        "source": "potion_follow_up_series",
+        "day_index": 1,
+        "rationale": "Un petit rappel quotidien pour reconnecter ton action du moment à ton envie profonde de retrouver ta vivacité d'esprit.",
+        "potion_type": "clarte",
+        "generated_at": "2026-06-03T13:59:28.215Z",
+        "potion_scope": null,
+        "rappel_scope": null,
+        "target_binding": null,
+        "reminder_instruction": "Souviens-toi : ce soir, tu ne fuis pas l'ennui, tu construis la clarté dont tu as besoin pour tes projets.",
+        "source_potion_session_id": "172147d9-f8a2-4248-b323-ba88f6453bb2",
+        "potion_follow_up_series_item": {
+          "theme": "pourquoi profond",
+          "day_index": 1,
+          "draft_message": "Rappelle-toi que ce vide que tu ressens parfois le soir est l'espace nécessaire pour que tes projets personnels recommencent enfin à respirer."
+        }
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": "98a417ff-7367-4e25-aee8-5fc892741f62"
+    }
+  ],
+  "targets": [
+    {
+      "id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "week_start_date": "2026-06-08",
+      "planned_day": "mon",
+      "ordinal": 1,
+      "status": "active",
+      "occurrence_id": "14fdee14-ccb0-47b9-a5ce-5693a657b97b",
+      "occurrence_status": "planned",
+      "title": "Faire un sas de décompression (sans fumer)",
+      "dimension": "habits",
+      "kind": "habit"
+    },
+    {
+      "id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "plan_item_id": "3db6278b-bd59-4401-bbdf-80b575ee14bb",
+      "plan_id": "05393e65-a9ff-4475-b39a-01a6dadd4237",
+      "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+      "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+      "week_start_date": "2026-06-08",
+      "planned_day": "tue",
+      "ordinal": 2,
+      "status": "active",
+      "occurrence_id": "3be65289-e810-4a73-b48a-26e0fc8b45ac",
+      "occurrence_status": "planned",
+      "title": "Faire un sas de décompression (sans fumer)",
+      "dimension": "habits",
+      "kind": "habit"
+    }
+  ]
+}

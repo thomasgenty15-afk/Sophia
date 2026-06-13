@@ -9,7 +9,7 @@
 - Source amont: EffectLedger / platform handoff contract admission pour un tour de clarification
 - Symptome visible: aucun symptome utilisateur bloquant; Sophia repond correctement a la priorisation.
 - Preuve systeme: `selected_handler=adjust_plan_item`; `reason_code=adjust_plan_item_get_info_db`; `toolExecution=none`; `committed_effects=[]`; EffectLedger contient un blocked effect `platform_handoff.adjust_plan_item` avec `missing_platform_handoff_contract`.
-- Correction attendue: ne pas emettre de blocked platform handoff contract lorsque `adjust_plan_item` est en clarification non-mutante sans handoff a rendre.
+- Correction attendue: ne pas emettre de blocked platform handoff contract lorsque `adjust_plan_item` est en clarification non-mutante sans transfert a rendre.
 - Statut: `fixed`
 - Fix reference: `supabase/functions/sophia-brain/router/effect_ledger_adapter.ts` + `supabase/functions/sophia-brain/router/effect_ledger_adapter_test.ts`
 - Tests requis:

@@ -1,8 +1,5 @@
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../router/response_style_policy.ts";
 import type {
   ClarificationConversationContext,
   ClarificationLocalState,
@@ -149,18 +146,7 @@ function guardVisibleMessage(
   void stage;
   const trimmed = message.trim();
   if (!trimmed) return null;
-  if (visibleOutputStyleIssues(trimmed).length > 0) return null;
-  const forbidden = [
-    /\bdispatcher\b/i,
-    /\bsignal\b/i,
-    /\bcandidate_id\b/i,
-    /\bcandidat\b/i,
-    /\bjson\b/i,
-    /\boperation_type\b/i,
-    /\breducer\b/i,
-    /\bnote_information\b/i,
-  ];
-  return forbidden.some((pattern) => pattern.test(trimmed)) ? null : trimmed;
+  return trimmed;
 }
 
 function conversationContext(

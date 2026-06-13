@@ -127,7 +127,7 @@
 - memory_plan: targeted/light
 - executed_tools: []
 - durable_effect: none
-- transition: `flow_action=stop_local_no_handoff`, `visible_task_kind=stop_or_cancel`, `note_information=null`
+- transition: `flow_action=exit_to_global_dispatcher`, `visible_task_kind=stop_or_cancel`, `note_information=null`
 
 ## 3. Analyse De Fluidité Humaine
 
@@ -153,7 +153,7 @@
 **Routage**
 - T1, T2, T3, T4 restent sur `update_coach_preferences`.
 - Pendant le flow actif, T3 et T4 utilisent `active_update_coach_preferences_local_dispatcher`, donc le dispatcher global normal ne reprend pas.
-- T4 respecte `stop_local_no_handoff`.
+- T4 respecte `exit_to_global_dispatcher`.
 
 **Skills / Operations / Tools**
 - T1 exécute `update_coach_preferences` avec commit DB.

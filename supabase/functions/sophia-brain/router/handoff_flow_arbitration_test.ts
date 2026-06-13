@@ -75,7 +75,7 @@ function decide(args: {
   });
 }
 
-Deno.test("active recurring handoff lets explicit one-shot reminder interrupt", () => {
+Deno.test("active recurring handoff routes explicit one-shot through local exit", () => {
   const result = decide({
     message: "Un rappel unique demain à 17h pour envoyer mon bilan rapide.",
     operation: "create_recurring_reminder",
@@ -93,14 +93,15 @@ Deno.test("active recurring handoff lets explicit one-shot reminder interrupt", 
     }),
   });
 
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "explicit_interrupt");
   assertEquals(
     result.reason_code,
-    "create_one_shot_reminder_interrupts_active_handoff",
+    "create_one_shot_reminder_uses_active_handoff_local_exit",
   );
 });
 
-Deno.test("active recurring handoff lets non finalement one-shot exit beat cancel", () => {
+Deno.test("active recurring handoff keeps non finalement one-shot inside local exit", () => {
   const message =
     "Non finalement, fais seulement un rappel unique demain à 17h pour envoyer mon bilan rapide.";
   const result = decide({
@@ -118,11 +119,11 @@ Deno.test("active recurring handoff lets non finalement one-shot exit beat cance
     }),
   });
 
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "explicit_interrupt");
   assertEquals(
     result.reason_code,
-    "create_one_shot_reminder_interrupts_active_handoff",
+    "create_one_shot_reminder_uses_active_handoff_local_exit",
   );
 });
 
@@ -138,7 +139,7 @@ Deno.test("extractActiveHandoffFromTempMemory detects all migrated handoff flows
   const memories = [
     { __adjust_plan_handoff_state: active("adjust_plan_item") },
     { __active_attack_card_handoff: active("prepare_attack_card") },
-    { __active_tool_skill_intake: active("prepare_defense_card") },
+    { __active_defense_card_handoff: active("prepare_defense_card") },
     {
       __active_tool_skill_intake: {
         ...active("select_state_potion"),
@@ -176,6 +177,33 @@ Deno.test("active handoff structured same-operation signals are consistent for a
   }
 });
 
+Deno.test("active handoff exits always stay with the active local dispatcher", () => {
+  for (const operation of handoffOperations) {
+    for (
+      const [type, expectedIntent] of [
+        ["cancel_handoff", "cancel_handoff"],
+        ["topic_change", "topic_change"],
+      ] as const
+    ) {
+      const result = decide({
+        message: "message déjà classé sortie de flow actif",
+        operation,
+        turnFrame: frame({
+          active_handoff_action: {
+            type,
+            confidence: "high",
+            evidence: ["sortie de flow actif"],
+            target_skill_id: operation,
+          },
+        }),
+      });
+      assertEquals(result.action, "continue_handoff");
+      assertEquals(result.operation_type, operation);
+      assertEquals(result.continuation_intent, expectedIntent);
+    }
+  }
+});
+
 Deno.test("active handoff decisions bypass generic orientation clarification", () => {
   for (
     const message of [
@@ -202,7 +230,7 @@ Deno.test("active handoff decisions bypass generic orientation clarification", (
   );
 });
 
-Deno.test("active defense handoff lets explicit coach preference interrupt directly", () => {
+Deno.test("active defense handoff keeps explicit coach preference inside local exit policy", () => {
   const result = decide({
     message:
       "Préférence coach très claire : pour la suite, parle-moi plus doucement et pose moins de questions.",
@@ -220,14 +248,15 @@ Deno.test("active defense handoff lets explicit coach preference interrupt direc
     }),
   });
 
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "explicit_interrupt");
   assertEquals(
     result.reason_code,
-    "update_coach_preferences_interrupts_active_handoff",
+    "update_coach_preferences_uses_active_handoff_local_exit",
   );
 });
 
-Deno.test("structured status and product help signals may interrupt active handoff", () => {
+Deno.test("structured status and product help signals use active handoff local exit", () => {
   const withStatus = decide({
     message: "message déjà classé status",
     turnFrame: frame({
@@ -244,7 +273,12 @@ Deno.test("structured status and product help signals may interrupt active hando
       },
     }),
   });
-  assertEquals(withStatus.action, "interrupt_for_explicit_intent");
+  assertEquals(withStatus.action, "continue_handoff");
+  assertEquals(withStatus.continuation_intent, "explicit_interrupt");
+  assertEquals(
+    withStatus.reason_code,
+    "status_recap_uses_active_handoff_local_exit",
+  );
 
   const withProductHelp = decide({
     message: "message déjà classé product_help",
@@ -266,7 +300,12 @@ Deno.test("structured status and product help signals may interrupt active hando
       },
     }),
   });
-  assertEquals(withProductHelp.action, "interrupt_for_explicit_intent");
+  assertEquals(withProductHelp.action, "continue_handoff");
+  assertEquals(withProductHelp.continuation_intent, "explicit_interrupt");
+  assertEquals(
+    withProductHelp.reason_code,
+    "product_help_uses_active_handoff_local_exit",
+  );
 });
 
 Deno.test("active adjust_plan + renders lighter continues revise_handoff", () => {
@@ -317,7 +356,7 @@ Deno.test("active attack_card + change technique continues revise_handoff", () =
   assertEquals(result.continuation_intent, "revise_handoff");
 });
 
-Deno.test("active attack_card + structured no confirmation clears inside handoff", () => {
+Deno.test("active attack_card + structured no confirmation uses local exit", () => {
   const result = decide({
     message: "confirmation négative déjà classée",
     operation: "prepare_attack_card",
@@ -325,11 +364,11 @@ Deno.test("active attack_card + structured no confirmation clears inside handoff
       confirmation_response: { kind: "no", confidence_band: "high" },
     }),
   });
-  assertEquals(result.action, "clear_handoff");
+  assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "cancel_handoff");
   assertEquals(
     result.reason_code,
-    "negative_confirmation_clears_active_handoff",
+    "negative_confirmation_uses_active_handoff_local_exit",
   );
 });
 
@@ -373,7 +412,7 @@ Deno.test("active defense_card + softer plan B wording continues revise_handoff"
   );
 });
 
-Deno.test("active defense_card + structured no confirmation clears inside handoff", () => {
+Deno.test("active defense_card + structured no confirmation uses local exit", () => {
   const result = decide({
     message: "confirmation négative déjà classée",
     operation: "prepare_defense_card",
@@ -381,54 +420,49 @@ Deno.test("active defense_card + structured no confirmation clears inside handof
       confirmation_response: { kind: "no", confidence_band: "high" },
     }),
   });
-  assertEquals(result.action, "clear_handoff");
+  assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "cancel_handoff");
   assertEquals(
     result.reason_code,
-    "negative_confirmation_clears_active_handoff",
+    "negative_confirmation_uses_active_handoff_local_exit",
   );
 });
 
-Deno.test("active defense_card + explicit coach preference interrupts handoff", () => {
+Deno.test("active defense_card + explicit attack request stays with defense local exit", () => {
   const result = decide({
-    message: "message déjà classé update_coach_preferences",
+    message: "message déjà classé prepare_attack_card",
     operation: "prepare_defense_card",
     turnFrame: frame({
       tool_skill_intents: [{
-        operation_type: "update_coach_preferences",
+        operation_type: "prepare_attack_card",
         explicitness: "explicit",
         confidence_band: "high",
         ambiguity: "none",
-        user_intent: "update",
+        user_intent: "create",
       }],
     }),
   });
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
   assertEquals(result.continuation_intent, "explicit_interrupt");
   assertEquals(
     result.reason_code,
-    "update_coach_preferences_interrupts_active_handoff",
+    "prepare_attack_card_uses_active_handoff_local_exit",
   );
 });
 
-Deno.test("active defense_card + clarification choice for coach preferences interrupts handoff", () => {
+Deno.test("active defense_card + topic change stays with defense local exit", () => {
   const result = decide({
-    message: "choix de clarification déjà résolu",
+    message: "en fait je change de sujet",
     operation: "prepare_defense_card",
     turnFrame: frame({
-      tool_skill_intents: [{
-        operation_type: "update_coach_preferences",
-        explicitness: "explicit",
-        confidence_band: "high",
-        ambiguity: "none",
-        user_intent: "update",
-      }],
+      confirmation_response: { kind: "topic_change", confidence_band: "high" },
     }),
   });
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "topic_change");
   assertEquals(
     result.reason_code,
-    "update_coach_preferences_interrupts_active_handoff",
+    "active_handoff_topic_change_uses_local_exit",
   );
 });
 
@@ -616,7 +650,7 @@ Deno.test("structured active handoff apply keeps active owner without executor s
   assertEquals(result.continuation_intent, "handoff_apply_attempt");
 });
 
-Deno.test("explicit new tool still interrupts structured active handoff action", () => {
+Deno.test("explicit new tool stays with structured active handoff local exit", () => {
   const result = decide({
     message: "message déjà classé rappel ponctuel",
     operation: "select_state_potion",
@@ -637,14 +671,15 @@ Deno.test("explicit new tool still interrupts structured active handoff action",
     }),
   });
 
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "explicit_interrupt");
   assertEquals(
     result.reason_code,
-    "create_one_shot_reminder_interrupts_active_handoff",
+    "create_one_shot_reminder_uses_active_handoff_local_exit",
   );
 });
 
-Deno.test("explicit one-shot reminder interrupts active handoff", () => {
+Deno.test("explicit one-shot reminder uses active handoff local exit", () => {
   const result = decide({
     message: "mets-moi un rappel demain à 9h",
     turnFrame: frame({
@@ -657,10 +692,37 @@ Deno.test("explicit one-shot reminder interrupts active handoff", () => {
       }],
     }),
   });
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "explicit_interrupt");
+  assertEquals(
+    result.reason_code,
+    "create_one_shot_reminder_uses_active_handoff_local_exit",
+  );
 });
 
-Deno.test("explicit progress tracking interrupts active handoff", () => {
+Deno.test("active defense_card + explicit one-shot reminder stays with defense local exit", () => {
+  const result = decide({
+    message: "mets-moi un rappel demain à 9h",
+    operation: "prepare_defense_card",
+    turnFrame: frame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {},
+      }],
+    }),
+  });
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "explicit_interrupt");
+  assertEquals(
+    result.reason_code,
+    "create_one_shot_reminder_uses_active_handoff_local_exit",
+  );
+});
+
+Deno.test("explicit progress tracking uses active handoff local exit", () => {
   const result = decide({
     message: "j’ai fini l’action",
     turnFrame: frame({
@@ -673,7 +735,12 @@ Deno.test("explicit progress tracking interrupts active handoff", () => {
       }],
     }),
   });
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "explicit_interrupt");
+  assertEquals(
+    result.reason_code,
+    "track_progress_plan_item_uses_active_handoff_local_exit",
+  );
 });
 
 Deno.test("safety signal interrupts active handoff", () => {
@@ -690,7 +757,7 @@ Deno.test("safety signal interrupts active handoff", () => {
   assertEquals(result.action, "interrupt_for_explicit_intent");
 });
 
-Deno.test("clear status DB request interrupts active handoff", () => {
+Deno.test("clear status DB request uses active handoff local exit", () => {
   const result = decide({
     message: "où sont mes rappels actifs ?",
     turnFrame: frame({
@@ -707,7 +774,12 @@ Deno.test("clear status DB request interrupts active handoff", () => {
       },
     }),
   });
-  assertEquals(result.action, "interrupt_for_explicit_intent");
+  assertEquals(result.action, "continue_handoff");
+  assertEquals(result.continuation_intent, "explicit_interrupt");
+  assertEquals(
+    result.reason_code,
+    "status_recap_uses_active_handoff_local_exit",
+  );
 });
 
 Deno.test("ambiguous continuation or new intent asks clarification", () => {

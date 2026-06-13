@@ -7,7 +7,7 @@
 - Persona: `qa-skill`
 - Connexion dediee: `demotivationlocal_20260609_r2`, temporaire, nettoyee en fin de run.
 - Objectif: verifier en conditions reelles les modifications du dispatcher local `demotivation_repair`, notamment la discussion avant potion, le maintien du flow actif, le stop local et les projections QA durables.
-- Trajectoire: perte de sens du plan -> clarification du lien motivationnel -> stabilisation d'une phrase utile -> stop local sans handoff.
+- Trajectoire: perte de sens du plan -> clarification du lien motivationnel -> stabilisation d'une phrase utile -> sortie via dispatcher global.
 - Surfaces visees: global dispatcher initial, `demotivation_repair` local dispatcher/reducer/visible agent, active flow arbitration, EffectLedger, durable snapshot QA.
 - Cadre IA reel: Supabase local, `/functions/v1/test-send-message`, `force_full_ai=true`, pas de renderer deterministe, pas de fallback direct.
 - Validite QA: valide. 5 tours HTTP 200, aucune reponse vide, aucun abort, transcript issu du chemin IA reel.
@@ -164,7 +164,7 @@ Artifacts:
 - memory_plan: no route memory used
 - executed_tools: none
 - durable_effect: none
-- local: `flow_action=complete_flow`, `visible_task=exit_or_cancel`, `response_intent=stop_local_no_handoff`, `reason_code=demotivation_repair_stop_local_no_handoff`
+- local: `flow_action=complete_flow`, `visible_task=exit_or_cancel`, `response_intent=exit_to_global_dispatcher`, `reason_code=demotivation_repair_exit_to_global_dispatcher`
 - conversation_context: `selected_candidate.potion=null`, `target_dispatcher=null`, `max_questions=0`
 
 ## 3. Analyse De Fluidite Humaine
@@ -192,7 +192,7 @@ Artifacts:
 **Routage**
 - T1: entree correcte via `skill_entry_signal` vers `demotivation_repair`.
 - T2-T5: active flow preserve, `active_conversation_skill_continue`, global dispatcher normal non proprietaire.
-- T5: stop local correct dans le reducer: `complete_flow` -> `response_intent=stop_local_no_handoff`, `visible_task=exit_or_cancel`, `note_information=null`, pas de global sur le meme tour.
+- T5: stop local correct dans le reducer: `complete_flow` -> `response_intent=exit_to_global_dispatcher`, `visible_task=exit_or_cancel`, `note_information=null`, pas de global sur le meme tour.
 
 **Skills / Operations / Tools**
 - Aucun tool execute.

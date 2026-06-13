@@ -452,7 +452,7 @@
                 "visible_task.kind": "confirm_no_action_today",
                 "micro_memory_items": 0,
                 "close_after_visible": true,
-                "flow_action_category": "stop_local_no_handoff",
+                "flow_action_category": "exit_to_global_dispatcher",
                 "has_note_information": false,
                 "state_updates.status": "closing",
                 "db_context_pack_loaded": true,
@@ -524,7 +524,7 @@
               "preference_written": false,
               "scheduled_checkin_created": false
             },
-            "flow_action_category": "stop_local_no_handoff",
+            "flow_action_category": "exit_to_global_dispatcher",
             "micro_memory_context": {
               "items": [],
               "budget": {

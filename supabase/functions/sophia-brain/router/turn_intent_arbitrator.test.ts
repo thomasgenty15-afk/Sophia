@@ -222,10 +222,67 @@ Deno.test("L3 keeps active prepare_defense_card owner for local exit decision", 
   assertEquals(result.routeDecision.selected_handler, "prepare_defense_card");
   assertEquals(
     result.routeDecision.reason_code,
-    "central_arbitrator_active_defense_card_local_exit_required",
+    "central_arbitrator_active_tool_local_exit_required",
   );
   assertEquals(
     result.tempMemory.__active_tool_skill_intake?.operation_type,
+    "prepare_defense_card",
+  );
+  assertEquals(
+    result.turnFrame.tool_skill_intents.map((intent) => intent.operation_type),
+    ["prepare_attack_card"],
+  );
+});
+
+Deno.test("L3 keeps active prepare_defense_card owner from dedicated handoff key", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "En fait je veux plutôt une carte d'attaque pour me lancer demain",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      reason_code: "tool_skill_intent_start",
+    }),
+    turnFrame: turnFrame({
+      skill_signals: {
+        entry: {},
+        lifecycle: {},
+        exit: {
+          prepare_defense_card: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user switches owner",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: "me lancer demain",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    tempMemory: {
+      __active_defense_card_handoff: {
+        operation_type: "prepare_defense_card",
+        skill_id: "prepare_defense_card",
+        mode: "platform_handoff",
+        status: "handoff_delivered",
+        no_chat_mutation: true,
+      },
+    },
+  });
+
+  assertEquals(result.routeDecision.response_owner, "tool_skill");
+  assertEquals(result.routeDecision.selected_handler, "prepare_defense_card");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_active_tool_local_exit_required",
+  );
+  assertEquals(
+    result.tempMemory.__active_defense_card_handoff?.operation_type,
     "prepare_defense_card",
   );
   assertEquals(
@@ -268,10 +325,136 @@ Deno.test("L3 does not clear active prepare_defense_card when route already owns
   assertEquals(result.routeDecision.selected_handler, "prepare_defense_card");
   assertEquals(
     result.routeDecision.reason_code,
-    "central_arbitrator_active_defense_card_local_exit_required",
+    "central_arbitrator_active_tool_local_exit_required",
   );
   assertEquals(
     result.tempMemory.__active_tool_skill_intake?.operation_type,
     "prepare_defense_card",
+  );
+});
+
+Deno.test("L3 product help rewrite clears all local tool ownership keys", () => {
+  const result = arbitrateTurnIntent({
+    userMessage: "où est-ce que je retrouve cette fonctionnalité ?",
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      reason_code: "normal_reply_before_l3_product_help",
+    }),
+    turnFrame: turnFrame({
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "product question",
+          },
+        },
+        lifecycle: {},
+        exit: {},
+      },
+    }),
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_attack_card",
+      },
+      __active_attack_card_handoff: {
+        operation_type: "prepare_attack_card",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+      },
+      __active_defense_card_handoff: {
+        operation_type: "prepare_defense_card",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+      },
+      __recurring_reminder_handoff_state: {
+        operation_type: "create_recurring_reminder",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+      },
+      __adjust_plan_handoff_state: {
+        operation_type: "adjust_plan_item",
+        mode: "platform_handoff",
+        no_chat_mutation: true,
+      },
+      __coach_preference_flow_state_v1: {
+        operation_type: "update_coach_preferences",
+      },
+    },
+  });
+
+  assertEquals(result.changed, true);
+  assertEquals(result.routeDecision.selected_handler, "product_help");
+  assertEquals(result.tempMemory.__active_tool_skill_intake, undefined);
+  assertEquals(result.tempMemory.__active_attack_card_handoff, undefined);
+  assertEquals(result.tempMemory.__active_defense_card_handoff, undefined);
+  assertEquals(result.tempMemory.__recurring_reminder_handoff_state, undefined);
+  assertEquals(result.tempMemory.__adjust_plan_handoff_state, undefined);
+  assertEquals(result.tempMemory.__coach_preference_flow_state_v1, undefined);
+});
+
+Deno.test("L3 keeps active recurring reminder owner on exit plus new topic", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Ok laisse ce rappel de côté. Maintenant aide-moi plutôt à prioriser ma journée.",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "adjust_plan_item",
+      reason_code: "tool_skill_intent_start",
+    }),
+    turnFrame: turnFrame({
+      skill_signals: {
+        entry: {},
+        lifecycle: {},
+        exit: {
+          create_recurring_reminder: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user stops active reminder flow",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        explicitness: "explicit",
+        target_hint: "prioriser ma journée",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "adjust",
+      }],
+    }),
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "create_recurring_reminder",
+        skill_id: "create_recurring_reminder",
+        mode: "platform_handoff",
+        status: "handoff_delivered",
+      },
+      __recurring_reminder_handoff_state: {
+        operation_type: "create_recurring_reminder",
+        skill_id: "create_recurring_reminder",
+        mode: "platform_handoff",
+        status: "handoff_delivered",
+        no_chat_mutation: true,
+      },
+    },
+  });
+
+  assertEquals(result.routeDecision.response_owner, "tool_skill");
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "create_recurring_reminder",
+  );
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_active_tool_local_exit_required",
+  );
+  assertEquals(
+    result.tempMemory.__active_tool_skill_intake?.operation_type,
+    "create_recurring_reminder",
+  );
+  assertEquals(
+    result.tempMemory.__recurring_reminder_handoff_state?.operation_type,
+    "create_recurring_reminder",
   );
 });

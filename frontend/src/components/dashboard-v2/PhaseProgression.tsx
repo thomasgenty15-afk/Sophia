@@ -372,22 +372,22 @@ function CompletedPhase({
   const completedDate = getPhaseCompletedDate(phase);
 
   return (
-    <div className="rounded-3xl border border-emerald-100 bg-emerald-50/40 px-6 py-5 transition-all hover:bg-emerald-50/60">
+    <div className="min-w-0 max-w-full rounded-3xl border border-emerald-100 bg-emerald-50/40 px-4 py-4 transition-all hover:bg-emerald-50/60 sm:px-6 sm:py-5">
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
         className="flex w-full items-center justify-between gap-4"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
             <CheckCircle2 className="h-5 w-5" />
           </div>
-          <div className="text-left">
+          <div className="min-w-0 text-left">
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">
               Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — Terminé
             </p>
-            <div className="flex items-center gap-2">
-              <h4 className="text-base font-bold text-emerald-950">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h4 className="min-w-0 text-base font-bold text-emerald-950">
                 {phase.title}
               </h4>
               {phase.duration_guidance
@@ -630,15 +630,15 @@ function ActivePhase({
   }, [weekEntries, canPlanWeek]);
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-stone-200 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] md:p-8">
+    <div className="relative min-w-0 max-w-full overflow-hidden rounded-3xl border border-stone-200 bg-white p-4 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] sm:p-6 md:p-8">
       {/* Header */}
       <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-600">
             Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — En cours
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-bold text-stone-900">
+          <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2">
+            <h3 className="min-w-0 text-base font-bold text-stone-900">
               {phase.title}
             </h3>
             {phase.duration_guidance
@@ -668,9 +668,9 @@ function ActivePhase({
         </div>
       </div>
 
-      <div className="mb-10 grid gap-6 lg:grid-cols-3">
+      <div className="mb-10 grid min-w-0 gap-6 lg:grid-cols-3">
         {/* 1. Cap du niveau */}
-        <div className="flex flex-col gap-5 rounded-2xl border border-stone-100 bg-stone-50/80 p-6 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-5 rounded-2xl border border-stone-100 bg-stone-50/80 p-4 sm:p-6 lg:col-span-2">
           <div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
@@ -1103,17 +1103,17 @@ function FuturePhase({
 
   if (phase.summary_mode === "preview") {
     return (
-      <div className="rounded-3xl border border-stone-200 bg-stone-50/50 px-6 py-5 opacity-80">
-        <div className="flex items-center gap-4">
+      <div className="min-w-0 max-w-full rounded-3xl border border-stone-200 bg-stone-50/50 px-4 py-4 opacity-80 sm:px-6 sm:py-5">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-200 text-stone-400">
             <Lock className="h-5 w-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
               Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — À venir
             </p>
-            <div className="flex items-center gap-2">
-              <h4 className="text-base font-bold text-stone-700">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h4 className="min-w-0 text-base font-bold text-stone-700">
                 {phase.title}
               </h4>
               {durationLabel
@@ -1144,17 +1144,17 @@ function FuturePhase({
   }
 
   return (
-    <div className="rounded-3xl border border-stone-200 bg-stone-50/50 px-6 py-5 opacity-70">
-      <div className="flex items-center gap-4">
+    <div className="min-w-0 max-w-full rounded-3xl border border-stone-200 bg-stone-50/50 px-4 py-4 opacity-70 sm:px-6 sm:py-5">
+      <div className="flex min-w-0 items-center gap-3 sm:gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-200 text-stone-400">
           <Lock className="h-5 w-5" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
             Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — À venir
           </p>
-          <div className="flex items-center gap-2">
-            <h4 className="text-base font-bold text-stone-700">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h4 className="min-w-0 text-base font-bold text-stone-700">
               {phase.title}
             </h4>
             {durationLabel
@@ -1309,17 +1309,17 @@ export function PhaseProgression({
         )
         : null}
 
-      <div className={`relative ${showTimeline ? "pl-0 lg:pl-0" : ""}`}>
+      <div className={`relative min-w-0 max-w-full ${showTimeline ? "pl-0 lg:pl-0" : ""}`}>
         {showTimeline
           ? (
             <div className="absolute bottom-4 left-3 lg:-left-8 top-10 w-px bg-gray-200 transition-all duration-700 hidden sm:block" />
           )
           : null}
 
-        <div className="grid gap-3 lg:pl-0 sm:pl-10">
+        <div className="grid min-w-0 gap-3 lg:pl-0 sm:pl-10">
           {phase1Node
             ? (
-              <div className="relative transition-all duration-500 mb-2">
+              <div className="relative min-w-0 max-w-full transition-all duration-500 mb-2">
                 {showTimeline
                   ? (
                     <div className="absolute -left-10 lg:-left-[43px] top-10 z-10 hidden sm:grid h-6 w-6 place-items-center rounded-full border-[1.5px] border-emerald-400 bg-white text-emerald-500 scale-100">
@@ -1335,7 +1335,7 @@ export function PhaseProgression({
           {phases.map((phase) => (
             <div
               key={phase.phase_id}
-              className={`relative transition-all duration-500 ${
+              className={`relative min-w-0 max-w-full transition-all duration-500 ${
                 isTransitioning
                   ? "animate-in fade-in slide-in-from-bottom-2"
                   : ""

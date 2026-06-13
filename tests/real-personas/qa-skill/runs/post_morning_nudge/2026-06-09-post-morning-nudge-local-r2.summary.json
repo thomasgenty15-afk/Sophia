@@ -71,7 +71,7 @@
     "route_reason": "active_post_morning_nudge_local_dispatcher",
     "reason_code": "post_morning_nudge_suppressed_action_local_dispatcher",
     "flow_action": "confirm_no_action_today",
-    "flow_action_category": "stop_local_no_handoff",
+    "flow_action_category": "exit_to_global_dispatcher",
     "visible_task_kind": "confirm_no_action_today",
     "status": "closed",
     "tool_execution": "none",

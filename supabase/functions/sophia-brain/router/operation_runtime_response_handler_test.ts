@@ -1,6 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   appendOperationFollowup,
+  appendSafetyReminderPostCommitFollowup,
   ensureActiveConversationSkillStateBeforePersist,
   restoreWeeklyParentAfterChildDetour,
   routeDecisionForOperationTrace,
@@ -153,6 +154,13 @@ Deno.test("operation response restores suspended weekly parent after child hando
         platform_handoff: {
           operation_type: "adjust_plan_item",
           status: "delivered",
+          draft: {
+            platform_flow: { route_kind: "plan_item_card" },
+            recommendation: {
+              platform_destination: "dans l'action concernée du Plan",
+              platform_steps: ["ouvrir l'action", "saisir la proposition"],
+            },
+          },
         },
       },
     },
@@ -169,6 +177,25 @@ Deno.test("operation response restores suspended weekly parent after child hando
   assertEquals(
     result.tempMemory.__active_skill_state.weekly_flow_state.child_flow.status,
     "completed",
+  );
+  assertEquals(
+    result.tempMemory.__active_skill_state.weekly_flow_state.stage,
+    "synthesis",
+  );
+  assertEquals(
+    result.tempMemory.__active_skill_state.weekly_flow_state.child_flow
+      .result_details.created,
+    false,
+  );
+  assertEquals(
+    result.tempMemory.__active_skill_state.weekly_flow_state.child_flow
+      .result_details.available,
+    false,
+  );
+  assertEquals(
+    result.tempMemory.__active_skill_state.weekly_flow_state.child_flow
+      .result_details.route_kind,
+    "plan_item_card",
   );
 });
 
@@ -211,4 +238,99 @@ Deno.test("operation response keeps uncovered same-turn suffix after atomic effe
     content,
     "C'est programmé pour mercredi 03 juin à 15:28.\n\nJe garde aussi la suite : « et là tout de suite j'aimerais qu'on crée une carte d'attaque ». Tu veux qu'on la traite maintenant ?",
   );
+});
+
+Deno.test("operation response keeps safety followup after committed reminder in active safety flow", () => {
+  const content = appendSafetyReminderPostCommitFollowup({
+    content:
+      "C'est entendu, j'ai bien programmé ton rappel pour 16h08 afin de m'assurer que tu es toujours en sécurité.",
+    operationRuntime: {
+      toolExecution: "success",
+      executedTools: ["create_one_shot_reminder"],
+      toolSkillRun: {
+        committed_effects: [{
+          type: "create_one_shot_reminder",
+          id: "scheduled-checkin-1",
+          scheduled_for: "2026-06-12T14:08:00.000Z",
+          reminder_instruction: "vérifier que je suis toujours en sécurité",
+        }],
+      },
+    },
+    turnFrame: {
+      safety: {
+        risk_band: "medium",
+      },
+    } as any,
+  });
+
+  assertEquals(
+    content,
+    "C'est entendu, j'ai bien programmé ton rappel pour 16h08 afin de m'assurer que tu es toujours en sécurité.\n\nD'ici là, reste avec ton soutien humain si tu l'as, et garde ce qui peut te blesser hors de portée.",
+  );
+});
+
+Deno.test("operation followup applies safety post-commit rule after natural confirmation", () => {
+  const content = appendOperationFollowup({
+    content: "Ton rappel est programmé pour 16h08.",
+    operationRuntime: {
+      toolExecution: "success",
+      executedTools: ["create_one_shot_reminder"],
+      toolSkillRun: {
+        committed_effects: [{
+          type: "create_one_shot_reminder",
+          id: "scheduled-checkin-2",
+        }],
+      },
+    },
+    turnFrame: {
+      safety: {
+        risk_band: "critical",
+      },
+    } as any,
+  });
+
+  assertEquals(
+    content,
+    "Ton rappel est programmé pour 16h08.\n\nD'ici là, reste avec ton soutien humain si tu l'as, et garde ce qui peut te blesser hors de portée.",
+  );
+});
+
+Deno.test("operation response does not add safety followup without committed safety reminder", () => {
+  const base = "C'est programmé pour 16h08.";
+  const noSafety = appendSafetyReminderPostCommitFollowup({
+    content: base,
+    operationRuntime: {
+      toolExecution: "success",
+      executedTools: ["create_one_shot_reminder"],
+      toolSkillRun: {
+        committed_effects: [{
+          type: "create_one_shot_reminder",
+          id: "scheduled-checkin-1",
+        }],
+      },
+    },
+    turnFrame: {
+      safety: {
+        risk_band: "none",
+      },
+    } as any,
+  });
+  const noCommit = appendSafetyReminderPostCommitFollowup({
+    content: base,
+    operationRuntime: {
+      toolExecution: "success",
+      executedTools: ["create_one_shot_reminder"],
+      toolSkillRun: {
+        committed_effects: [],
+      },
+    },
+    turnFrame: {
+      safety: {
+        risk_band: "medium",
+      },
+    } as any,
+  });
+
+  assertEquals(noSafety, base);
+  assertEquals(noCommit, base);
 });

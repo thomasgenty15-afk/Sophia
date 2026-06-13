@@ -152,6 +152,24 @@ function committedCreateEffects(
   }];
 }
 
+function safetyFollowupForTurnFrame(
+  turnFrame?: TurnFrame | null,
+): string | null {
+  const riskBand = String(turnFrame?.safety?.risk_band ?? "").toLowerCase();
+  if (!["medium", "high", "critical"].includes(riskBand)) return null;
+  return "D'ici là, reste avec ton soutien humain si tu l'as, et garde ce qui peut te blesser hors de portée.";
+}
+
+function createReminderSuccessReply(args: {
+  localLabel: string;
+  turnFrame?: TurnFrame | null;
+}): string {
+  return [
+    `C'est programmé pour ${args.localLabel}.`,
+    safetyFollowupForTurnFrame(args.turnFrame),
+  ].filter(Boolean).join(" ");
+}
+
 /**
  * One-shot reminder route runtime.
  * Execute only explicit one-shot reminder direct effects; status/product-help
@@ -485,7 +503,10 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         intent,
         status: "success",
         reason_code: outcome.parse_source ?? "created",
-        reply: `C'est programmé pour ${outcome.scheduled_for_local_label}.`,
+        reply: createReminderSuccessReply({
+          localLabel: outcome.scheduled_for_local_label,
+          turnFrame: args.turnFrame ?? null,
+        }),
       }),
       requested_effects: [{
         type: effectType,

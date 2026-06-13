@@ -25,7 +25,10 @@ import {
   DEFAULT_DISPATCHER_MEMORY_PLAN,
   isCheckupActive,
 } from "./turn_context_runtime.ts";
-import { ensureVisibleSophiaEmoji } from "./response_visibility_formatting.ts";
+import {
+  ensureVisibleSophiaEmoji,
+  stripHiddenHtmlComments,
+} from "./response_visibility_formatting.ts";
 import { effectiveResponseOwnerForOperationRuntime } from "./operation_response_owner.ts";
 import {
   committedEffectsToConfirmFromToolSkillRun,
@@ -133,28 +136,79 @@ export function appendOperationFollowup(args: {
   operationRuntime: Pick<
     OperationRuntimeResult,
     "toolExecution" | "executedTools"
-  >;
+  > & { toolSkillRun?: OperationRuntimeResult["toolSkillRun"] | null };
   turnFrame?: TurnFrame | null;
   userMessage?: string;
 }): string {
   const content = String(args.content ?? "").trim();
   if (!content) return content;
+  const safetyContent = appendSafetyReminderPostCommitFollowup({
+    content,
+    operationRuntime: args.operationRuntime,
+    turnFrame: args.turnFrame ?? null,
+  });
   if (
     !operationRuntimeSucceededWithChatEffect(
       args.operationRuntime,
     )
   ) {
-    return content;
+    return safetyContent;
   }
   if (args.turnFrame && args.userMessage) {
     return appendUncoveredMessageFollowup({
-      content,
+      content: safetyContent,
       operationRuntime: args.operationRuntime,
       turnFrame: args.turnFrame,
       userMessage: args.userMessage,
     });
   }
-  return content;
+  return safetyContent;
+}
+
+const SAFETY_REMINDER_POST_COMMIT_FOLLOWUP =
+  "D'ici là, reste avec ton soutien humain si tu l'as, et garde ce qui peut te blesser hors de portée.";
+
+function turnFrameHasActiveSafetyContext(turnFrame: TurnFrame | null): boolean {
+  const riskBand = String(turnFrame?.safety?.risk_band ?? "").trim()
+    .toLowerCase();
+  return riskBand === "medium" || riskBand === "high" ||
+    riskBand === "critical";
+}
+
+function hasCommittedOneShotReminderEffect(
+  toolSkillRun: unknown,
+): boolean {
+  const run = recordOrNull(toolSkillRun);
+  const committedEffects = Array.isArray(run?.committed_effects)
+    ? run.committed_effects
+    : [];
+  return committedEffects.some((effect) =>
+    recordOrNull(effect)?.type === "create_one_shot_reminder"
+  );
+}
+
+export function appendSafetyReminderPostCommitFollowup(args: {
+  content: string;
+  operationRuntime: Pick<
+    OperationRuntimeResult,
+    "toolExecution" | "executedTools"
+  > & { toolSkillRun?: OperationRuntimeResult["toolSkillRun"] | null };
+  turnFrame: TurnFrame | null;
+}): string {
+  const content = String(args.content ?? "").trim();
+  if (!content) return content;
+  if (content.includes(SAFETY_REMINDER_POST_COMMIT_FOLLOWUP)) return content;
+  if (args.operationRuntime.toolExecution !== "success") return content;
+  if (
+    !args.operationRuntime.executedTools.includes("create_one_shot_reminder")
+  ) {
+    return content;
+  }
+  if (!hasCommittedOneShotReminderEffect(args.operationRuntime.toolSkillRun)) {
+    return content;
+  }
+  if (!turnFrameHasActiveSafetyContext(args.turnFrame)) return content;
+  return `${content}\n\n${SAFETY_REMINDER_POST_COMMIT_FOLLOWUP}`;
 }
 
 function recordOrNull(value: unknown): Record<string, unknown> | null {
@@ -182,8 +236,42 @@ function operationRuntimeClosesWeeklyChildDetour(
   return status === "delivered" ||
     status === "handoff_delivered" ||
     status === "repeat_handoff" ||
-    status === "apply_attempt" ||
     status === "cancelled";
+}
+
+function weeklyChildFlowResultDetails(
+  operationRuntime: Pick<
+    OperationRuntimeResult,
+    "toolExecution" | "executedTools" | "toolSkillRun"
+  >,
+): Record<string, unknown> {
+  const run = recordOrNull(operationRuntime.toolSkillRun) ?? {};
+  const platformHandoff = recordOrNull(run.platform_handoff) ?? {};
+  const draft = recordOrNull(platformHandoff.draft) ?? {};
+  const platformFlow = recordOrNull(draft.platform_flow) ?? {};
+  const recommendation = recordOrNull(draft.recommendation) ?? {};
+  const committedEffects = Array.isArray(run.committed_effects)
+    ? run.committed_effects
+    : [];
+  const created = committedEffects.length > 0 &&
+    operationRuntime.toolExecution === "success";
+  return {
+    mode: operationRuntime.toolExecution === "platform_handoff"
+      ? "platform_handoff"
+      : operationRuntime.toolExecution,
+    status: String(platformHandoff.status ?? run.status ?? "").trim() || null,
+    created,
+    available: created,
+    user_must_create: !created,
+    no_chat_mutation: created ? false : true,
+    route_kind: String(platformFlow.route_kind ?? "").trim() || null,
+    platform_destination:
+      String(recommendation.platform_destination ?? "").trim() || null,
+    platform_steps: Array.isArray(recommendation.platform_steps)
+      ? recommendation.platform_steps.slice(0, 6)
+      : [],
+    committed_effect_count: committedEffects.length,
+  };
 }
 
 export function restoreWeeklyParentAfterChildDetour(args: {
@@ -222,18 +310,29 @@ export function restoreWeeklyParentAfterChildDetour(args: {
   const weeklySnapshot = snapshot as Record<string, unknown>;
   const flowState = recordOrNull(weeklySnapshot.weekly_flow_state) ?? {};
   const previousChildFlow = recordOrNull(flowState.child_flow) ?? {};
+  const previousGates = recordOrNull(flowState.weekly_gates) ?? {};
   const next = clearActiveToolFlow(temp);
   next.__active_skill_state = {
     ...weeklySnapshot,
     status: "open",
     weekly_flow_state: {
       ...flowState,
+      stage: "synthesis",
+      weekly_gates: {
+        ...previousGates,
+        solution_fit_status: "complete",
+        synthesis_status: String(previousGates.synthesis_status ?? "").trim() ||
+          "missing",
+        closure_status: String(previousGates.closure_status ?? "").trim() ||
+          "missing",
+      },
       child_flow: {
         ...previousChildFlow,
         status: "completed",
         flow_id: childFlowId ?? previousChildFlow.flow_id ?? null,
         result_summary: String(run.reason_code ?? run.status ?? "").trim() ||
           null,
+        result_details: weeklyChildFlowResultDetails(args.operationRuntime),
       },
       updated_at: now,
     },
@@ -604,16 +703,18 @@ export async function handleOperationRuntimeResponse(args: {
     : rawOperationRuntimeContent;
 
   let operationRuntimeContent = ensureVisibleSophiaEmoji(
-    weeklyCleanedOperationRuntimeContent,
+    stripHiddenHtmlComments(weeklyCleanedOperationRuntimeContent),
   );
 
   const operationRuntimeAdditionalContents = (
     operationRuntime.additionalContents ?? []
   ).map((content: string) =>
     ensureVisibleSophiaEmoji(
-      weeklyReviewStateAfterOperation
-        ? cleanWeeklyVisibleResponse(content)
-        : content,
+      stripHiddenHtmlComments(
+        weeklyReviewStateAfterOperation
+          ? cleanWeeklyVisibleResponse(content)
+          : content,
+      ),
     )
   );
 

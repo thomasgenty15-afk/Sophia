@@ -1,4 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import type { FlowOpportunity, TurnFrame } from "../contracts/turn_frame.v1.ts";
 import { runDispatcher } from "./dispatcher.v2.ts";
 
 function baseInput(message: string) {
@@ -24,13 +25,36 @@ function baseInput(message: string) {
       reason_codes: [],
       evidence: [],
       layer_contributions: {
-        lexical: false,
-        heuristic: false,
+        active_flow_caution: false,
         dispatcher_llm: false as const,
       },
       allow_side_effects: true,
     },
   };
+}
+
+function flowOpportunity(
+  targetFlow: FlowOpportunity["target_flow"],
+  patch: Partial<FlowOpportunity> = {},
+): FlowOpportunity {
+  return {
+    opportunity_id: `${targetFlow}.test`,
+    target_kind: "tool_skill",
+    target_flow: targetFlow,
+    confidence: "high",
+    priority: 60,
+    reason: "test_opportunity",
+    evidence: ["test_opportunity"],
+    seed_context: {},
+    ...patch,
+  };
+}
+
+function assertFlowOpportunity(
+  frame: TurnFrame,
+  targetFlow: FlowOpportunity["target_flow"],
+) {
+  assertEquals(frame.flow_opportunity?.target_flow, targetFlow);
 }
 
 Deno.test("dispatcher routes plan how-to to product_help without adjust tool skill", async () => {
@@ -219,15 +243,7 @@ Deno.test("dispatcher preserves structured current-level adjust_plan operation_i
           },
         },
       }],
-      tool_skill_opportunity: {
-        type: "none",
-        operation_type: null,
-        surface_id: null,
-        should_offer: false,
-        confidence_band: "low",
-        offer_timing: "never",
-        must_not_execute: true,
-      },
+      flow_opportunity: null,
     }),
   });
 
@@ -250,43 +266,23 @@ Deno.test("dispatcher proposes attack card opportunity without executing it", as
   );
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "attack_card");
-  assertEquals(
-    frame.tool_skill_opportunity.operation_type,
-    "prepare_attack_card",
-  );
-  assertEquals(frame.tool_skill_opportunity.should_offer, true);
-  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
-  assertEquals(
-    frame.tool_skill_opportunity.suggested_question_intent,
-    "offer_attack_card",
-  );
+  assertFlowOpportunity(frame, "prepare_attack_card");
 });
 
 Deno.test("dispatcher does not offer medium-confidence tool skill opportunity", async () => {
   const frame = await runDispatcher({
     ...baseInput("J'ai fait ma marche, mais le démarrage était un peu flou."),
     llm_runner: async () => ({
-      tool_skill_opportunity: {
-        type: "attack_card",
-        operation_type: "prepare_attack_card",
-        surface_id: "attack_card",
-        confidence_band: "medium",
-        should_offer: true,
-        prop_reason: "startup friction is present but not strong enough",
-        source_span: "démarrage était un peu flou",
-        target_hint: "marche",
-        target_status: "identified",
-        suggested_question_intent: "offer_attack_card",
-        offer_timing: "now",
-        must_not_execute: true,
-      },
+      flow_opportunity: flowOpportunity("prepare_attack_card", {
+        confidence: "medium",
+        reason: "startup friction is present but not strong enough",
+        evidence: ["démarrage était un peu flou"],
+        seed_context: { target_hint: "marche", surface: "attack_card" },
+      }),
     }),
   });
 
-  assertEquals(frame.tool_skill_opportunity.type, "attack_card");
-  assertEquals(frame.tool_skill_opportunity.should_offer, false);
-  assertEquals(frame.tool_skill_opportunity.offer_timing, "never");
+  assertFlowOpportunity(frame, "prepare_attack_card");
 });
 
 Deno.test("dispatcher suppresses tool skill opportunity during review data capture", async () => {
@@ -295,26 +291,15 @@ Deno.test("dispatcher suppresses tool skill opportunity during review data captu
       "Pour le bilan de fin de semaine, note surtout que je complexifie trop la structure avant d'utiliser ma marche.",
     ),
     llm_runner: async () => ({
-      tool_skill_opportunity: {
-        type: "attack_card",
-        operation_type: "prepare_attack_card",
-        surface_id: "attack_card",
-        confidence_band: "high",
-        should_offer: true,
-        prop_reason: "user mentions execution friction",
-        source_span: "je complexifie trop la structure",
-        target_hint: "marche",
-        target_status: "identified",
-        suggested_question_intent: "offer_attack_card",
-        offer_timing: "now",
-        must_not_execute: true,
-      },
+      flow_opportunity: flowOpportunity("prepare_attack_card", {
+        reason: "user mentions execution friction",
+        evidence: ["je complexifie trop la structure"],
+        seed_context: { target_hint: "marche", surface: "attack_card" },
+      }),
     }),
   });
 
-  assertEquals(frame.tool_skill_opportunity.type, "attack_card");
-  assertEquals(frame.tool_skill_opportunity.should_offer, false);
-  assertEquals(frame.tool_skill_opportunity.offer_timing, "never");
+  assertFlowOpportunity(frame, "prepare_attack_card");
 });
 
 Deno.test("dispatcher keeps explicit tool skill intent separate from opportunity", async () => {
@@ -326,8 +311,7 @@ Deno.test("dispatcher keeps explicit tool skill intent separate from opportunity
     frame.tool_skill_intents[0]?.operation_type,
     "prepare_attack_card",
   );
-  assertEquals(frame.tool_skill_opportunity.type, "none");
-  assertEquals(frame.tool_skill_opportunity.should_offer, false);
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher blocks tool skills and opportunities under high safety", async () => {
@@ -339,8 +323,7 @@ Deno.test("dispatcher blocks tool skills and opportunities under high safety", a
       reason_codes: ["self_harm_ideation"],
       evidence: ["envie de disparaître"],
       layer_contributions: {
-        lexical: true,
-        heuristic: true,
+        active_flow_caution: false,
         dispatcher_llm: false as const,
       },
       allow_side_effects: false,
@@ -363,27 +346,21 @@ Deno.test("dispatcher blocks tool skills and opportunities under high safety", a
           },
         },
       }],
-      tool_skill_opportunity: {
-        type: "plan_adjustment",
-        operation_type: "adjust_plan_item",
-        surface_id: "plan.adjust",
-        confidence_band: "high",
-        should_offer: true,
-        prop_reason: "plan adjustment mentioned",
-        source_span: "alléger le plan",
-        target_hint: "plan",
-        target_status: "ambiguous",
-        suggested_question_intent: "offer_plan_adjustment",
-        offer_timing: "now",
-        must_not_execute: true,
-      },
+      flow_opportunity: flowOpportunity("adjust_plan_item", {
+        reason: "plan adjustment mentioned",
+        evidence: ["alléger le plan"],
+        seed_context: {
+          target_hint: "plan",
+          target_status: "ambiguous",
+          surface: "plan.adjust",
+        },
+      }),
     }),
   });
 
   assertEquals(frame.safety.risk_band, "high");
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
-  assertEquals(frame.tool_skill_opportunity.should_offer, false);
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher treats explicit attack card creation as tool skill even with product words", async () => {
@@ -428,13 +405,7 @@ Deno.test("dispatcher proposes plan adjustment when an action no longer fits", a
   );
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "plan_adjustment");
-  assertEquals(frame.tool_skill_opportunity.operation_type, "adjust_plan_item");
-  assertEquals(
-    frame.tool_skill_opportunity.suggested_question_intent,
-    "offer_plan_adjustment",
-  );
-  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+  assertFlowOpportunity(frame, "adjust_plan_item");
 });
 
 Deno.test("dispatcher demotes plan difficulty sharing from adjust intent to opportunity", async () => {
@@ -451,27 +422,12 @@ Deno.test("dispatcher demotes plan difficulty sharing from adjust intent to oppo
         confidence_band: "high",
         ambiguity: "none",
       }],
-      tool_skill_opportunity: {
-        type: "none",
-        operation_type: null,
-        surface_id: null,
-        confidence_band: "low",
-        should_offer: false,
-        prop_reason: null,
-        source_span: null,
-        target_hint: null,
-        target_status: "none",
-        suggested_question_intent: null,
-        offer_timing: "never",
-        must_not_execute: true,
-      },
+      flow_opportunity: null,
     }),
   });
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "portion");
-  assertEquals(frame.tool_skill_opportunity.operation_type, "adjust_plan_item");
-  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+  assertFlowOpportunity(frame, "adjust_plan_item");
 });
 
 Deno.test("dispatcher turns coach style sharing into coach preferences opportunity", async () => {
@@ -492,16 +448,7 @@ Deno.test("dispatcher turns coach style sharing into coach preferences opportuni
   });
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "coach_preferences");
-  assertEquals(
-    frame.tool_skill_opportunity.operation_type,
-    "update_coach_preferences",
-  );
-  assertEquals(
-    frame.tool_skill_opportunity.surface_id,
-    "dashboard.preferences",
-  );
-  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+  assertFlowOpportunity(frame, "update_coach_preferences");
 });
 
 Deno.test("dispatcher keeps corrected final tool intent when LLM emits two intents", async () => {
@@ -668,12 +615,7 @@ Deno.test("dispatcher delays opportunity offer while an operation intake is acti
     },
   });
 
-  assertEquals(frame.tool_skill_opportunity.type, "attack_card");
-  assertEquals(
-    frame.tool_skill_opportunity.offer_timing,
-    "after_current_pending",
-  );
-  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+  assertFlowOpportunity(frame, "prepare_attack_card");
 });
 
 Deno.test("dispatcher rejects LLM recurring reminder false positive without explicit reminder ask", async () => {
@@ -727,7 +669,7 @@ Deno.test("dispatcher suppresses tool skill intents when acute emotional repair 
 
   assertEquals(frame.skill_signals.entry?.emotional_repair?.detected, true);
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher suppresses state potion opportunity for loss of meaning repair", async () => {
@@ -745,21 +687,16 @@ Deno.test("dispatcher suppresses state potion opportunity for loss of meaning re
           },
         },
       },
-      tool_skill_opportunity: {
-        type: "state_potion",
-        confidence_band: "high",
-        should_offer: true,
-        prop_reason: "user_mentions_state_regulation_need",
-        target_status: "none",
-        target_hint: null,
-        offer_timing: "now",
-      },
+      flow_opportunity: flowOpportunity("select_state_potion", {
+        reason: "user_mentions_state_regulation_need",
+        evidence: ["user_mentions_state_regulation_need"],
+      }),
     }),
   });
 
   assertEquals(frame.skill_signals.entry?.demotivation_repair?.detected, true);
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher suppresses state potion opportunity for acute shame repair", async () => {
@@ -775,60 +712,46 @@ Deno.test("dispatcher suppresses state potion opportunity for acute shame repair
           },
         },
       },
-      tool_skill_opportunity: {
-        type: "state_potion",
-        confidence_band: "high",
-        should_offer: true,
-        prop_reason: "user_mentions_state_regulation_need",
-        target_status: "none",
-        target_hint: null,
-        offer_timing: "now",
-      },
+      flow_opportunity: flowOpportunity("select_state_potion", {
+        reason: "user_mentions_state_regulation_need",
+        evidence: ["user_mentions_state_regulation_need"],
+      }),
     }),
   });
 
   assertEquals(frame.skill_signals.entry?.emotional_repair?.detected, true);
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher suppresses implicit state potion opportunity without explicit potion request", async () => {
   const frame = await runDispatcher({
     ...baseInput("Je suis sous pression et complètement saturé ce soir."),
     llm_runner: async () => ({
-      tool_skill_opportunity: {
-        type: "state_potion",
-        confidence_band: "high",
-        should_offer: true,
-        prop_reason: "user_mentions_state_regulation_need",
-        target_status: "none",
-        target_hint: null,
-        offer_timing: "now",
-      },
+      flow_opportunity: flowOpportunity("select_state_potion", {
+        reason: "user_mentions_state_regulation_need",
+        evidence: ["user_mentions_state_regulation_need"],
+      }),
     }),
   });
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher keeps explicit state potion request routeable", async () => {
   const frame = await runDispatcher({
     ...baseInput("Je veux une potion de clarté pour me recentrer."),
     llm_runner: async () => ({
-      tool_skill_opportunity: {
-        type: "state_potion",
-        confidence_band: "high",
-        should_offer: true,
-        prop_reason: "explicit_state_potion_request",
-        target_status: "none",
-        target_hint: "potion de clarté",
-        offer_timing: "now",
-      },
+      flow_opportunity: flowOpportunity("select_state_potion", {
+        reason: "explicit_state_potion_request",
+        evidence: ["potion de clarté"],
+        seed_context: { target_hint: "potion de clarté" },
+      }),
     }),
   });
 
-  assertEquals(frame.tool_skill_opportunity.type, "state_potion");
+  assertFlowOpportunity(frame, "select_state_potion");
 });
 
 Deno.test("dispatcher keeps explicit clarity potion intent with plan meaning loss", async () => {
@@ -907,7 +830,7 @@ Deno.test("dispatcher removes card intent when acute emotional repair dominates"
     false,
   );
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher respects explicit negation of state potion", async () => {
@@ -1034,26 +957,12 @@ Deno.test("dispatcher rejects LLM attack-card false positive without explicit ca
         confidence_band: "high",
         ambiguity: "none",
       }],
-      tool_skill_opportunity: {
-        type: "none",
-        operation_type: null,
-        surface_id: null,
-        should_offer: false,
-        confidence_band: "low",
-        offer_timing: "never",
-        must_not_execute: true,
-      },
+      flow_opportunity: null,
     }),
   });
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.type, "attack_card");
-  assertEquals(
-    frame.tool_skill_opportunity.operation_type,
-    "prepare_attack_card",
-  );
-  assertEquals(frame.tool_skill_opportunity.should_offer, true);
-  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+  assertFlowOpportunity(frame, "prepare_attack_card");
 });
 
 Deno.test("dispatcher trusts structured LLM plan-adjust intents instead of regex filtering", async () => {
@@ -1087,15 +996,7 @@ Deno.test("dispatcher trusts structured LLM plan-adjust intents instead of regex
         confidence_band: "high",
         ambiguity: "none",
       }],
-      tool_skill_opportunity: {
-        type: "none",
-        operation_type: null,
-        surface_id: null,
-        should_offer: false,
-        confidence_band: "low",
-        offer_timing: "never",
-        must_not_execute: true,
-      },
+      flow_opportunity: null,
     }),
   });
 
@@ -1109,7 +1010,7 @@ Deno.test("dispatcher trusts structured LLM plan-adjust intents instead of regex
     (frame.tool_skill_intents[0]?.operation_input as any)?.scope?.plan_item_id,
     "walk",
   );
-  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.flow_opportunity, null);
 });
 
 Deno.test("dispatcher accepts sanitized LLM memory_plan on turn_frame", async () => {
@@ -1217,7 +1118,7 @@ Deno.test("dispatcher does not start card flow for explicit action memory recall
   );
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.tool_skill_opportunity.should_offer, false);
+  assertEquals(frame.flow_opportunity, null);
   assertEquals(frame.memory_plan.memory_mode, "light");
   assertEquals(
     frame.memory_plan.targets.some((target) => target.type === "action"),

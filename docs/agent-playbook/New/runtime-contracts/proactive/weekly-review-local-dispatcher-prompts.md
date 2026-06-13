@@ -214,7 +214,7 @@ Le user mentionne une progression oubliee mais la cible ou le niveau n'est pas
 clair.
 
 13. complete_weekly_no_change
-La discussion weekly peut se fermer sans handoff Plan.
+La discussion weekly peut se fermer sans transfert vers Plan.
 Exemple : le user confirme que tout va bien et aucune suite n'est necessaire.
 
 14. stop_weekly
@@ -671,7 +671,7 @@ Retourne uniquement le message visible.
 ## Prompt 15 - Visible Complete No Change
 
 ```txt
-Tu ecris le message visible quand le weekly se termine sans handoff Plan.
+Tu ecris le message visible quand le weekly se termine sans transfert vers Plan.
 
 Contexte :
 Le user confirme que la lecture suffit ou qu'aucun changement n'est necessaire.

@@ -45,7 +45,7 @@ Allowed non-visible metadata:
 
 Action taxonomy used below:
 
-- `stop_local / acknowledge / no handoff this turn`: the local flow closes,
+- `exit_to_global_dispatcher / acknowledge after global routing`: the local flow closes,
   pauses, or acknowledges the user without reprocessing the same message through
   global.
 - `exit_to_global_dispatcher`: the same user message may be reanalyzed by the

@@ -96,7 +96,7 @@
 
 **Analyse si yellow/red**
 - Symptôme: le user demande explicitement d'arrêter le sujet ; Sophia continue le soutien émotionnel.
-- Source amont probable: le dispatcher local ne produit pas `stop_local_no_handoff` ou le reducer ne l'applique pas jusqu'à une réponse locale courte et un arrêt d'état.
+- Source amont probable: le dispatcher local ne produit pas `exit_to_global_dispatcher` ou le reducer ne l'applique pas jusqu'à une réponse locale courte et un arrêt d'état.
 - Owner runtime: `emotional_repair` local dispatcher/reducer.
 - Meilleure correction selon les guidelines: corriger le contrat de sortie IA et le reducer pour distinguer arrêt simple, réponse insuffisante, continuation et exit, puis ajouter tests positif/paraphrase/anti-faux-positif.
 - Pourquoi ce n'est pas un patch local: un arrêt de flow actif est une transition d'état, pas un wording visible à corriger.
@@ -149,7 +149,7 @@
 
 **Fix propose**
 - Source amont: dispatcher local `emotional_repair`, reducer local, visible stage prompts.
-- Correction recommandée: renforcer les actions structurées `stop_local_no_handoff` et `exit_to_global_dispatcher` dans la décision IA, porter les contraintes conversationnelles utilisateur dans `conversation_context`, et arrêter l'état actif quand le reducer produit stop/exit.
+- Correction recommandée: renforcer les actions structurées `exit_to_global_dispatcher` et `exit_to_global_dispatcher` dans la décision IA, porter les contraintes conversationnelles utilisateur dans `conversation_context`, et arrêter l'état actif quand le reducer produit stop/exit.
 - Tests d'invariant attendus: stop local sans global, changement de sujet avec `note_information`, continuation non répétitive, anti-faux-positif où le user demande seulement "reste avec moi".
 
 ## 4. Analyse Systeme
@@ -159,7 +159,7 @@
 **Routage**
 - Tour 1: `skill_entry_signal` vers `emotional_repair`, correct.
 - Tours 2-3: `blocked_paths` contient `global_dispatcher` avec `active_emotional_repair_uses_local_dispatcher`, conforme pour un flow actif.
-- Tour 3: le local dispatcher/reducer ne sort pas en `stop_local_no_handoff` malgré un arrêt explicite.
+- Tour 3: le local dispatcher/reducer ne sort pas en `exit_to_global_dispatcher` malgré un arrêt explicite.
 - Tour 4: routage `product_help` en `skill_entry_signal` avec `active_flow_arbitration=no_active_flow`, et aucune `note_information` observée. Cela ne prouve pas la transition doctrinale depuis un flow actif.
 
 **Skills / Operations / Tools**
@@ -169,7 +169,7 @@
 
 **State / DB**
 - Après T1-T3, `user_chat_states.temp_memory.__active_skill_state.skill_id=emotional_repair`, `status=active`, `turn_count` progresse jusqu'à 3.
-- Après T4, `__active_skill_state.skill_id=product_help`, `previous_skill_id=null`, `product_help_note_information=null`. Cela montre un remplacement d'état sans handoff documenté.
+- Après T4, `__active_skill_state.skill_id=product_help`, `previous_skill_id=null`, `product_help_note_information=null`. Cela montre un remplacement d'état sans transition documenté.
 
 **Memory**
 - Pas de mémoire route ni mémoire réponse utilisée. C'est acceptable pour ce scénario.

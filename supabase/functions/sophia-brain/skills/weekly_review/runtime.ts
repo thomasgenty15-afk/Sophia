@@ -4,6 +4,7 @@ export type { WeeklyOperationRuntimeResult } from "./contract.ts";
 
 export {
   isCopyForwardWeeklyRequest,
+  isExplicitPendingApplyConfirmation,
   isWeeklyLightRepeatRequest,
   isWeeklyMissionCarryOverRequest,
   weeklyMissionCarryOverContext,
@@ -40,15 +41,6 @@ export {
   weeklyBridgeDoesNotApplyDirectly,
   weeklyReviewAllowsAdjustPlanBridge,
 } from "./bridges.ts";
-
-export {
-  isEarlyWeeklyPlanningValidationRequest,
-  isExplicitPendingApplyConfirmation,
-  reviewWeeklyReviewConfirmation,
-  weeklyPatchConfirmationClearsPending,
-  weeklyReviewConfirmationClearsPending,
-} from "./confirmation.ts";
-export type { WeeklyReviewConfirmationDecision } from "./confirmation.ts";
 
 export {
   markWeeklyAdaptiveReviewAdjustPlanApplied,

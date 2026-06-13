@@ -97,20 +97,7 @@ function turnFrameWithDirectEffect(
       payload_hint: {},
     }],
     tool_skill_intents: [],
-    tool_skill_opportunity: {
-      type: "none",
-      operation_type: null,
-      surface_id: null,
-      confidence_band: "low",
-      should_offer: false,
-      prop_reason: null,
-      source_span: null,
-      target_hint: null,
-      target_status: "none",
-      suggested_question_intent: null,
-      offer_timing: "never",
-      must_not_execute: true,
-    },
+    flow_opportunity: null,
     skill_signals: { entry: {}, lifecycle: {}, exit: {} },
     memory_plan: {
       context_need: "minimal",
@@ -118,7 +105,7 @@ function turnFrameWithDirectEffect(
       context_budget_tier: "tiny",
       targets: [],
       retrieval_policy: "semantic_first",
-    },
+    } as any,
   } as any;
 }
 
@@ -133,6 +120,25 @@ Deno.test("create_with_time_and_instruction_commits_success", async () => {
   assertEquals(result.status, "success");
   assertEquals(result.committed_effects.length, 1);
   assertEquals(result.executed_tools, ["create_one_shot_reminder"]);
+});
+
+Deno.test("create success reply keeps safety context after committed reminder", async () => {
+  const turnFrame = turnFrameWithDirectEffect("create_one_shot_reminder");
+  turnFrame.safety = { risk_band: "medium", reason_codes: [], evidence: [] };
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase(),
+    userId: "user-1",
+    message:
+      "rappelle-moi dans 30 minutes de vérifier que je reste en sécurité",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame,
+  });
+  assertEquals(result.status, "success");
+  assertEquals(result.reply?.includes("C'est programmé pour"), true);
+  assertEquals(
+    result.reply?.includes("garde ce qui peut te blesser hors de portée"),
+    true,
+  );
 });
 
 Deno.test("text_only_create_request_is_ignored_without_structured_direct_effect", async () => {
@@ -170,20 +176,7 @@ Deno.test("explicit unique reminder phrasing commits from active handoff exit", 
         },
       }],
       tool_skill_intents: [],
-      tool_skill_opportunity: {
-        type: "none",
-        operation_type: null,
-        surface_id: null,
-        confidence_band: "low",
-        should_offer: false,
-        prop_reason: null,
-        source_span: null,
-        target_hint: null,
-        target_status: "none",
-        suggested_question_intent: null,
-        offer_timing: "never",
-        must_not_execute: true,
-      },
+      flow_opportunity: null,
       skill_signals: { entry: {}, lifecycle: {}, exit: {} },
       memory_plan: {
         context_need: "minimal",
@@ -192,7 +185,7 @@ Deno.test("explicit unique reminder phrasing commits from active handoff exit", 
         targets: [],
         retrieval_policy: "semantic_first",
       },
-    },
+    } as any,
   });
 
   assertEquals(result.status, "success");
@@ -223,20 +216,7 @@ Deno.test("one-shot exit with demain matin explicit hour commits", async () => {
         },
       }],
       tool_skill_intents: [],
-      tool_skill_opportunity: {
-        type: "none",
-        operation_type: null,
-        surface_id: null,
-        confidence_band: "low",
-        should_offer: false,
-        prop_reason: null,
-        source_span: null,
-        target_hint: null,
-        target_status: "none",
-        suggested_question_intent: null,
-        offer_timing: "never",
-        must_not_execute: true,
-      },
+      flow_opportunity: null,
       skill_signals: { entry: {}, lifecycle: {}, exit: {} },
       memory_plan: {
         context_need: "minimal",
@@ -245,7 +225,7 @@ Deno.test("one-shot exit with demain matin explicit hour commits", async () => {
         targets: [],
         retrieval_policy: "semantic_first",
       },
-    },
+    } as any,
   });
 
   assertEquals(result.status, "success");

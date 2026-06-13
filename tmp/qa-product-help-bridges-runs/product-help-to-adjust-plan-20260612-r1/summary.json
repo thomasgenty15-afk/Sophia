@@ -1,0 +1,108 @@
+[
+  {
+    "turn": 1,
+    "requestId": "product-help-to-adjust-plan-20260612-r1-t01",
+    "status": 200,
+    "user": "Je suis un peu perdue dans Sophia : si une action de mon Plan est trop vague, comment je la modifie sans casser tout le plan ? Explique-moi juste le principe, sans rien changer.",
+    "assistant": "C'est tout simple : pour ne rien casser, on ne modifie jamais le plan directement. Le principe, c'est que tu m'expliques ce qui est flou ou inadapté, et je te prépare une proposition d'ajustement. Rien n'est appliqué tant que tu n'as pas validé la nouvelle version. Est-ce que cette idée de « proposition avant validation » te rassure pour la suite ?",
+    "trace": {
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "route_reason": "skill_entry_signal",
+      "safety": "low",
+      "direct_effects": [],
+      "operation_status": null,
+      "operation_reason": null,
+      "flow_action": null,
+      "visible_task": null,
+      "executed_tools": [],
+      "tool_execution": "none"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "product-help-to-adjust-plan-20260612-r1-t02",
+    "status": 200,
+    "user": "Oui. Alors ajuste mon Plan maintenant : l'action 'Préparer un plan anti-ennui' est trop vague, je veux la rendre plus concrète pour ce week-end, sans ajouter de nouvelle action.",
+    "assistant": "C'est vrai que 'Préparer un plan anti-ennui' reste un peu général. Pour que ce soit vraiment utile ce week-end, à quelles activités concrètes penses-tu pour remplacer cet intitulé ?",
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "adjust_plan_item",
+      "route_reason": "product_help_handoff_to_local_dispatcher",
+      "safety": "none",
+      "direct_effects": [],
+      "operation_status": "clarifying",
+      "operation_reason": "adjust_plan_item_local_clarify_adjustment_need",
+      "flow_action": "clarify_adjustment_need",
+      "visible_task": {
+        "kind": "clarify_adjustment_need"
+      },
+      "executed_tools": [],
+      "tool_execution": "platform_handoff"
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "product-help-to-adjust-plan-20260612-r1-t03",
+    "status": 200,
+    "user": "Je veux que ça devienne : choisir trois activités de remplacement, une dehors, une à la maison, une avec quelqu'un. Et je veux que ce soit faisable en 15 minutes de préparation vendredi soir.",
+    "assistant": "Comme l'action 'Préparer un plan anti-ennui' est un peu vague, l'idée est de la remplacer par une consigne plus précise pour ton vendredi soir. Pour effectuer ce changement, rends-toi sur la plateforme dans ton Plan : sous le niveau actif, tu trouveras l'option 'Ajuster mon plan'. Tu pourras y saisir cette proposition :\n\nRemplacer 'Préparer un plan anti-ennui' par : 'Choisir 3 activités de remplacement (1 dehors, 1 maison, 1 avec quelqu'un)'. À faire vendredi soir en 15 minutes pour préparer ce week-end.",
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "adjust_plan_item",
+      "route_reason": "active_adjust_plan_item_local_dispatcher",
+      "safety": "none",
+      "direct_effects": [],
+      "operation_status": "draft_delivered",
+      "operation_reason": "adjust_plan_item_local_plan_handoff_ready",
+      "flow_action": "prepare_plan_handoff",
+      "visible_task": {
+        "kind": "plan_handoff_ready"
+      },
+      "executed_tools": [],
+      "tool_execution": "platform_handoff"
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "product-help-to-adjust-plan-20260612-r1-t04",
+    "status": 200,
+    "user": "Garde quand même l'idée 'anti-ennui' dans le titre, mais rends le titre moins vague. Et ne mets pas 'avec quelqu'un' si ça oblige à contacter quelqu'un.",
+    "assistant": "C'est noté pour la contrainte sociale et le titre plus précis. Voici la formulation mise à jour pour remplacer ton action trop vague : « Plan anti-ennui : choisir 3 activités (1 dehors, 1 maison, 1 avec quelqu'un si possible sans obligation) ». Tu peux maintenant l'utiliser dans « Ajuster mon plan », que tu trouveras dans ton Plan juste sous ton niveau actif.",
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "adjust_plan_item",
+      "route_reason": "active_adjust_plan_item_local_dispatcher",
+      "safety": "none",
+      "direct_effects": [],
+      "operation_status": "draft_delivered",
+      "operation_reason": "adjust_plan_item_local_revise_plan_handoff",
+      "flow_action": "revise_plan_handoff",
+      "visible_task": {
+        "kind": "revise_plan_handoff"
+      },
+      "executed_tools": [],
+      "tool_execution": "platform_handoff"
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "product-help-to-adjust-plan-20260612-r1-t05",
+    "status": 200,
+    "user": "Donc là tu l'as déjà modifié dans mon Plan, ou je dois encore aller le faire moi-même ?",
+    "assistant": "Je garde l'ajustement du plan en cours, mais je n'arrive pas a traiter correctement ce tour. Reessaie dans un instant.",
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "adjust_plan_item",
+      "route_reason": "active_adjust_plan_item_local_dispatcher",
+      "safety": "none",
+      "direct_effects": [],
+      "operation_status": "blocked",
+      "operation_reason": "adjust_plan_item_local_dispatcher_failed",
+      "flow_action": null,
+      "visible_task": null,
+      "executed_tools": [],
+      "tool_execution": "platform_handoff"
+    }
+  }
+]

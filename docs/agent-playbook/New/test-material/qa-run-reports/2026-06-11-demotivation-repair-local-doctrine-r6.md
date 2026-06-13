@@ -6,7 +6,7 @@
 - Run: `demotivation-repair-local-doctrine-r6`
 - Persona: `qa-skill`
 - Connexion: `demotivation_repair_local_doctrine_r6` (temporary local QA user)
-- Objectif: verifier que les dernieres modifications demotivation_repair respectent la doctrine locale, notamment entree active, continuation, sortie du flow et absence de legacy `stop_local_no_handoff`.
+- Objectif: verifier que les dernieres modifications demotivation_repair respectent la doctrine locale, notamment entree active, continuation, sortie du flow et absence de legacy `exit_to_global_dispatcher`.
 - Trajectoire: demotivation sur une petite action du soir -> exploration du sens -> micro-action -> demande explicite d'arret du flow -> verification du tour suivant.
 - Surfaces visees: global routing, active flow arbitration, local demotivation_repair dispatcher, note_information d'exit, visible response pipeline, DB/temp state.
 - Cadre IA reel: Supabase local, `/functions/v1/test-send-message`, `force_full_ai=true`, `include_trace=true`, pas de renderer deterministe, pas de fallback direct.

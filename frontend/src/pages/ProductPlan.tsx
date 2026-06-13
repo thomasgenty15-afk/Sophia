@@ -7,7 +7,6 @@ import {
   BookOpen,
   CheckCircle2,
   Heart,
-  Leaf,
   MessageCircle,
   Sparkles,
   Sunrise,
@@ -124,13 +123,16 @@ const ProductPlan = () => {
                   </div>
                   <div className="space-y-4 p-5 text-sm text-[#24332d]">
                     <div className="rounded-2xl bg-white p-4 shadow-sm">
-                      Aujourd'hui, on garde le cap avec 3 actions simples. Tu n'as pas besoin de tout porter en même temps.
+                      Bonjour 🙂 Aujourd'hui, on fait simple : 20 minutes de marche avant 18h.
                     </div>
                     <div className="ml-auto max-w-[82%] rounded-2xl bg-[#d1ded4] p-4 shadow-sm">
-                      Je suis fatigué, mais je veux continuer.
+                      Je peux le faire après le travail, mais je risque de repousser.
                     </div>
                     <div className="rounded-2xl bg-white p-4 shadow-sm">
-                      Alors on baisse l'intensité, pas l'engagement. On garde le fil.
+                      Alors bloque 17h40 maintenant. Pas besoin d'être motivé : prépare juste tes chaussures et lance le mouvement.
+                    </div>
+                    <div className="ml-auto max-w-[82%] rounded-2xl bg-[#d1ded4] p-4 shadow-sm">
+                      Ok, je le mets dans mon calendrier et je prépare mes chaussures.
                     </div>
                   </div>
                 </div>

@@ -83,7 +83,7 @@ Le chat doit :
 - poser peu de questions, dans un ordre clair ;
 - permettre au user de refuser ou quitter les questions apres plan pret ;
 - si le plan est pret et que le user veut juste arreter les questions sans
-  nouveau sujet clair, stopper localement sans handoff ;
+  nouveau sujet clair, sortir via dispatcher global ;
 - bloquer tout exit produit tant que le plan n'est pas fait ;
 - transmettre une justification d'exit au dispatcher global quand l'exit est
   autorise par un nouveau sujet clair ;
@@ -993,7 +993,7 @@ Runs IA reels :
 1. Plan not ready: user says "c'est fait" too early.
 2. Plan ready: user says "c'est fait", then answers all preferences.
 3. Plan ready: user answers tone, says "je sais pas" for challenge.
-4. Plan ready: user says "tes questions me saoulent", stop local no handoff.
+4. Plan ready: user says "tes questions me saoulent", exit to global dispatcher.
 5. Plan not ready: user says "tes questions me saoulent", exit is blocked.
 6. User starts with "je veux parler d'autre chose" after plan ready.
 7. User asks to start with plan and gets clean user-facing plan summary.

@@ -17,10 +17,10 @@
 - Source amont: dispatcher local + reducer local + `visible_task.conversation_context`
 - Symptôme visible: Sophia répète une présence générique au lieu d'intégrer la contrainte "une phrase", puis ignore "on s'arrête là".
 - Preuve système: T2/T3 route `active_emotional_repair_local_dispatcher`, global dispatcher bloqué, état `__active_skill_state.skill_id=emotional_repair` toujours `active` après le stop.
-- Correction attendue: faire produire au dispatcher local des actions distinctes pour continuation contrainte, stop local et exit ; faire appliquer par le reducer la clôture d'état et une réponse locale courte pour `stop_local_no_handoff`.
+- Correction attendue: faire produire au dispatcher local des actions distinctes pour continuation contrainte, stop local et exit ; faire appliquer par le reducer la clôture d'état et une réponse locale courte pour `exit_to_global_dispatcher`.
 - Statut: `verified`
 - Fix reference: `supabase/functions/sophia-brain/skills/emotional_repair/local_flow.ts`, `supabase/functions/sophia-brain/skills/emotional_repair/local_flow_test.ts`
-- Tests requis: positif stop local, paraphrase stop local, anti-faux-positif "reste avec moi", continuité contrainte "une phrase", test IA réel post-fix. Couverture actuelle: prompt dispatcher testé pour règles champ par champ, stop local et exactement deux exemples ; reducer stop local couvert ; run IA réel `emotional-repair-local-doctrine-r4` vérifie `provide_concrete_phrase` et `stop_local_no_handoff`.
+- Tests requis: positif stop local, paraphrase stop local, anti-faux-positif "reste avec moi", continuité contrainte "une phrase", test IA réel post-fix. Couverture actuelle: prompt dispatcher testé pour règles champ par champ, stop local et exactement deux exemples ; reducer stop local couvert ; run IA réel `emotional-repair-local-doctrine-r4` vérifie `provide_concrete_phrase` et `exit_to_global_dispatcher`.
 
 ### R3-B02
 

@@ -367,7 +367,7 @@ Ordre recommande:
      `flow_action`, `visible_task.kind`, `note_information_created`,
      `note_information_consumed`, `db_context_pack_loaded`,
      `global_dispatcher_skipped`, `inline_tool_roundtrip`,
-     `local_stop_no_handoff`, `risk_score`.
+     `exit_to_global_dispatcher`, `risk_score`.
 
 6. Integration global/TurnFrame
    - Corriger la production canonique `flow_opportunity` pour

@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../../router/response_style_policy.ts";
 import type {
   CoachPreferenceConversationContext,
   CoachPreferenceVisibleTaskKind,
@@ -130,9 +127,7 @@ export async function runCoachPreferenceVisibleAgent(
       },
     );
     const message = parseVisibleMessage(raw);
-    return message && visibleOutputStyleIssues(message).length === 0
-      ? message
-      : null;
+    return message;
   } catch (error) {
     console.warn("[UpdateCoachPreferences] visible agent failed", error);
     return null;

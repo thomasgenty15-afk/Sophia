@@ -114,6 +114,22 @@ function detectedSignalConfidence(turnFrame: TurnFrame, id: string): number {
   return 0;
 }
 
+export function shouldPreserveDirectStatusRecapRoute(args: {
+  routeDecision: RouteDecision;
+  turnFrame: TurnFrame;
+}): boolean {
+  if (args.routeDecision.selected_handler !== "status_recap") return false;
+  if (args.routeDecision.response_owner === "product_help") return false;
+  if (args.routeDecision.direct_effects_to_run.length > 0) return false;
+  if (detectedSignalConfidence(args.turnFrame, "status_recap") < 2) {
+    return false;
+  }
+  return !args.turnFrame.tool_skill_intents.some((intent) =>
+    intent.user_intent !== "explain_only" &&
+    confidenceRankForOrientation(intent.confidence_band) >= 2
+  );
+}
+
 export function currentTurnSupportsOrientationToolResolution(args: {
   turnFrame: TurnFrame;
   operationType: string | null | undefined;
@@ -205,18 +221,6 @@ export function shouldBypassOrientationClarificationForExplicitToolRoute(args: {
   );
 }
 
-function targetToolSkillFromHandoffInterrupt(
-  reasonCode: string | null | undefined,
-): string | null {
-  const value = String(reasonCode ?? "").trim();
-  const suffix = "_interrupts_active_handoff";
-  if (!value.endsWith(suffix)) return null;
-  const candidate = value.slice(0, value.length - suffix.length);
-  return ORIENTATION_CLARIFICATION_TOOL_SKILL_HANDLERS.has(candidate)
-    ? candidate
-    : null;
-}
-
 import { isActiveCardDraftingOperation } from "./active_operation_guards.ts";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
 import { runMemoryV2ActiveLoader } from "../../_shared/memory/runtime/active_loader.ts";
@@ -282,8 +286,10 @@ import {
 } from "../tools/operations/prepare_attack_card/run_support.ts";
 import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
 import { maybeRunPrepareDefenseCardOperation } from "../tools/operations/prepare_defense_card/router.ts";
-import { isAttackCardHandoffState } from "../tools/operations/prepare_attack_card/state.ts";
-import { maybeRunCreateRecurringReminderOperation } from "../tools/operations/create_recurring_reminder/router.ts";
+import {
+  type CreateRecurringReminderRuntimeResult,
+  maybeRunCreateRecurringReminderOperation,
+} from "../tools/operations/create_recurring_reminder/router.ts";
 import {
   readPostMorningNudgeActiveState,
   runPostMorningNudgeLocalRuntime,
@@ -346,8 +352,8 @@ import {
   pendingConfirmationOwnedByToolSkill,
   pendingOperationType,
   readActiveFlowState,
-  restoreSuspendedPlatformHandoffForOperation,
-  suspendActivePlatformHandoff,
+  resolveActiveLocalConversationFlowOwnership,
+  resolveActiveLocalToolFlowOwnership,
 } from "./active_flow_state.ts";
 import {
   executedToolsForStatus,
@@ -914,7 +920,9 @@ export function activeConversationSkillId(
 function activeLocalConversationSkillThatOwnsTurn(
   activeSkillState: unknown,
 ): "demotivation_repair" | "emotional_repair" | "product_help" | null {
-  const skillId = activeConversationSkillId(activeSkillState);
+  const skillId = resolveActiveLocalConversationFlowOwnership({
+    activeSkillState,
+  })?.skill_id ?? null;
   if (
     skillId === "demotivation_repair" ||
     skillId === "emotional_repair" ||
@@ -1852,24 +1860,16 @@ export async function processMessage(
       active_flow_debug: activeFlowDebugSnapshots.slice(-3),
     }, "warn");
   }
-  const activeOperationTypeForLocalFlow = String(
-    (activeOperationIntake as any)?.operation_type ??
-      ((activeOperationIntake as any)?.mode === "platform_handoff"
-        ? (activeOperationIntake as any)?.skill_id
-        : (activeOperationIntake as any)?.skill_id ?? ""),
-  ).trim();
-  const activeAttackCardHandoffForLocalFlow = isAttackCardHandoffState(
-      (tempMemory as any)?.__active_attack_card_handoff,
-    )
-    ? (tempMemory as any).__active_attack_card_handoff
-    : null;
   const activeStatePotionHandoffForLocalFlow =
     loadStatePotionHandoffStateFromTempMemory(tempMemory);
-  const activeLocalFlowOperationType = activeAttackCardHandoffForLocalFlow
-    ? "prepare_attack_card"
-    : activeStatePotionHandoffForLocalFlow
-    ? "select_state_potion"
-    : activeOperationTypeForLocalFlow;
+  const activeLocalToolFlowOwnership = resolveActiveLocalToolFlowOwnership({
+    tempMemory,
+    activeOperationIntake,
+    pendingOperationConfirmation:
+      activeFlowStateForTurn.pendingToolSkillConfirmation,
+  });
+  const activeLocalFlowOperationType =
+    activeLocalToolFlowOwnership?.operation_type ?? "";
   const activeSubskillId = String(
     (activeStatePotionHandoffForLocalFlow as any)?.active_subskill_id ?? "",
   ).trim();
@@ -1917,6 +1917,46 @@ export async function processMessage(
     : activePotionSubskillName
     ? `active_${activePotionSubskillName}_uses_local_dispatcher`
     : "active_select_state_potion_uses_local_dispatcher";
+  const activeLocalToolFlowOwnsTurn = Boolean(
+    activeLocalToolFlowOwnership && !activeSkillIdAtTurnStart,
+  );
+  const activeLocalConversationFlowOwnership = activeLocalToolFlowOwnsTurn
+    ? null
+    : resolveActiveLocalConversationFlowOwnership({
+      tempMemory,
+      activeClarificationState: activeFlowStateForTurn.activeClarificationState,
+      activeSkillState,
+    });
+  await trace(
+    "brain:active_local_flow_ownership_resolved",
+    "routing",
+    {
+      owner: activeLocalToolFlowOwnership?.owner ?? null,
+      operation_type: activeLocalFlowOperationType || null,
+      source: activeLocalToolFlowOwnership?.source ?? null,
+      conversation_owner: activeLocalConversationFlowOwnership?.owner ?? null,
+      conversation_skill_id: activeLocalConversationFlowOwnership?.skill_id ??
+        null,
+      conversation_source: activeLocalConversationFlowOwnership?.source ?? null,
+      active_skill_id: activeSkillIdAtTurnStart || null,
+      tool_flow_owns_turn: activeLocalToolFlowOwnsTurn,
+      conversation_flow_owns_turn: Boolean(
+        activeLocalConversationFlowOwnership,
+      ),
+      will_call_local_dispatcher: activeLocalToolFlowOwnsTurn &&
+        Boolean(activeLocalFlowOperationType),
+      reason_code: activeLocalToolFlowOwnsTurn
+        ? "active_tool_flow_ownership_from_canonical_state"
+        : activeLocalConversationFlowOwnership
+        ? "active_conversation_flow_ownership_from_canonical_state"
+        : activeLocalToolFlowOwnership
+        ? "active_conversation_skill_takes_precedence"
+        : "no_active_local_tool_flow",
+    },
+    activeLocalToolFlowOwnership || activeLocalConversationFlowOwnership
+      ? "info"
+      : "debug",
+  );
   let activeOperationIntakeForDispatcher = activeOperationIntake;
   let pendingOperationConfirmation =
     readActiveFlowState(tempMemory).pendingToolSkillConfirmation;
@@ -1933,13 +1973,17 @@ export async function processMessage(
     activeOperationIntake,
     pendingOperationConfirmation,
   });
-  const activePostMorningNudgeState = readPostMorningNudgeActiveState(
-    tempMemory,
-  );
-  const activeWeeklyReviewLocalState = weeklyAdaptiveReviewStateForTurn({
-    activeSkillState,
-    tempMemory,
-  });
+  const activePostMorningNudgeState = activeLocalToolFlowOwnsTurn
+    ? null
+    : readPostMorningNudgeActiveState(
+      tempMemory,
+    );
+  const activeWeeklyReviewLocalState = activeLocalToolFlowOwnsTurn
+    ? null
+    : weeklyAdaptiveReviewStateForTurn({
+      activeSkillState,
+      tempMemory,
+    });
   if (activeWeeklyReviewLocalState) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
@@ -2900,7 +2944,7 @@ export async function processMessage(
       });
     }
   }
-  if (hasActiveStatusRecapFlow(tempMemory)) {
+  if (!activeLocalToolFlowOwnsTurn && hasActiveStatusRecapFlow(tempMemory)) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "conversation_handler",
@@ -3121,6 +3165,7 @@ export async function processMessage(
     }
   }
   if (
+    !activeLocalToolFlowOwnsTurn &&
     String((activeSkillState as any)?.skill_id ?? "").trim() ===
       "emotional_repair"
   ) {
@@ -3409,7 +3454,9 @@ export async function processMessage(
       });
     }
   }
-  if (hasActiveFlowOpportunityState(tempMemory)) {
+  if (
+    !activeLocalToolFlowOwnsTurn && hasActiveFlowOpportunityState(tempMemory)
+  ) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "conversation_handler",
@@ -3674,9 +3721,75 @@ export async function processMessage(
           trace,
         });
       }
+    } else {
+      await trace(
+        "brain:flow_opportunity_verification.local_runtime_null",
+        "routing",
+        {
+          global_dispatcher_skipped_due_flow_opportunity_verification: true,
+          skipped_global_dispatcher: true,
+          source_dispatcher_local: "flow_opportunity_verification",
+          reason_code: "active_flow_opportunity_verification_runtime_null",
+        },
+        "error",
+      );
+      return await handleOperationRuntimeResponse({
+        supabase,
+        userId,
+        channel,
+        scope,
+        userMessage,
+        history,
+        state,
+        activeSkillState,
+        operationRuntime: {
+          content:
+            "Je garde la vérification en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+          nextTempMemory: tempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "flow_opportunity_verification",
+            skill_id: "flow_opportunity_verification",
+            status: "blocked",
+            reason_code: "active_flow_opportunity_verification_runtime_null",
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [{
+              type: "local_flow_runtime",
+              reason_code: "active_flow_opportunity_verification_runtime_null",
+            }],
+            runtime_trace: [{
+              component: "flow_opportunity_verification",
+              event: "local_runtime_null",
+              global_dispatcher_skipped: true,
+            }],
+          },
+        } as any,
+        effectLedger,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        safetyContextOutput,
+        weeklyReviewStateForTurn: null,
+        dispatcherSignals: DEFAULT_SIGNALS,
+        dispatcherV2Stats,
+        dispatcherLatencyMs: 0,
+        targetMode: "companion",
+        riskScore: 0,
+        loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        messageMetadata: opts?.messageMetadata,
+        logMessages,
+        turnStartMs,
+        trace,
+      });
     }
   }
-  if (activeLocalFlowOperationType === "create_recurring_reminder") {
+  if (
+    activeLocalToolFlowOwnsTurn &&
+    activeLocalFlowOperationType === "create_recurring_reminder"
+  ) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "tool_skill",
@@ -3723,22 +3836,75 @@ export async function processMessage(
       memory_plan: DEFAULT_DISPATCHER_MEMORY_PLAN,
     };
     let continueToGlobalAfterLocalExit = false;
-    const operationRuntime = await maybeRunCreateRecurringReminderOperation({
-      supabase,
-      userId,
-      userMessage,
-      channel,
-      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
-      tempMemory,
-      turnFrame: localTurnFrame,
-      routeDecision: localRouteDecision,
-      safetyContextOutput,
-      sourceMessageId: loggedMessageId,
-      requestId: meta?.requestId ?? null,
-      history,
-      v2Runtime: v2Runtime ?? null,
-      planItemSnapshot: planItemSnapshot ?? null,
-    });
+    let operationRuntime: CreateRecurringReminderRuntimeResult | null = null;
+    try {
+      operationRuntime = await maybeRunCreateRecurringReminderOperation({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        tempMemory,
+        turnFrame: localTurnFrame,
+        routeDecision: localRouteDecision,
+        safetyContextOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        history,
+        v2Runtime: v2Runtime ?? null,
+        planItemSnapshot: planItemSnapshot ?? null,
+      });
+    } catch (error) {
+      const errorInfo = {
+        name: String((error as any)?.name ?? "Error"),
+        message: String((error as any)?.message ?? error ?? "unknown"),
+        stack: String((error as any)?.stack ?? "").slice(0, 1800) || null,
+      };
+      await trace(
+        "brain:active_create_recurring_reminder_local_runtime_exception",
+        "routing",
+        {
+          skipped_global_dispatcher: true,
+          active_operation_type: activeLocalFlowOperationType,
+          active_handler: activeLocalFlowHandler,
+          reason_code:
+            "active_create_recurring_reminder_local_runtime_exception",
+          error: errorInfo,
+        },
+        "error",
+      );
+      operationRuntime = {
+        content:
+          "Je garde le rappel récurrent en cours, mais je n'arrive pas à traiter correctement ce tour. Réessaie dans un instant.",
+        nextTempMemory: tempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        committedEffects: [],
+        toolSkillRun: {
+          selected_handler: "create_recurring_reminder",
+          operation_type: "create_recurring_reminder",
+          mode: "local_write_flow",
+          status: "blocked",
+          reason_code:
+            "active_create_recurring_reminder_local_runtime_exception",
+          requested_effects: [],
+          allowed_effects: [],
+          committed_effects: [],
+          blocked_effects: [{
+            type: "local_flow_runtime",
+            reason_code:
+              "active_create_recurring_reminder_local_runtime_exception",
+            diagnostic: errorInfo,
+          }],
+          runtime_trace: [{
+            component: "create_recurring_reminder",
+            event: "local_runtime_exception",
+            global_dispatcher_skipped: true,
+            error: errorInfo,
+          }],
+        },
+      } as any;
+    }
     if (operationRuntime) {
       const localRuntimeReason = String(
         (operationRuntime.toolSkillRun as any)?.reason_code ?? "",
@@ -3945,7 +4111,10 @@ export async function processMessage(
       });
     }
   }
-  if (activeLocalFlowOperationType === "adjust_plan_item") {
+  if (
+    activeLocalToolFlowOwnsTurn &&
+    activeLocalFlowOperationType === "adjust_plan_item"
+  ) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "tool_skill",
@@ -4163,7 +4332,10 @@ export async function processMessage(
       });
     }
   }
-  if (activeLocalFlowOperationType === "prepare_attack_card") {
+  if (
+    activeLocalToolFlowOwnsTurn &&
+    activeLocalFlowOperationType === "prepare_attack_card"
+  ) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "tool_skill",
@@ -4683,7 +4855,10 @@ export async function processMessage(
       });
     }
   }
-  if (activeLocalFlowOperationType === "prepare_defense_card") {
+  if (
+    activeLocalToolFlowOwnsTurn &&
+    activeLocalFlowOperationType === "prepare_defense_card"
+  ) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "tool_skill",
@@ -5025,7 +5200,10 @@ export async function processMessage(
       });
     }
   }
-  if (activeLocalFlowOperationType === "select_state_potion") {
+  if (
+    activeLocalToolFlowOwnsTurn &&
+    activeLocalFlowOperationType === "select_state_potion"
+  ) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "tool_skill",
@@ -5246,7 +5424,10 @@ export async function processMessage(
       });
     }
   }
-  if (activeLocalFlowOperationType === "update_coach_preferences") {
+  if (
+    activeLocalToolFlowOwnsTurn &&
+    activeLocalFlowOperationType === "update_coach_preferences"
+  ) {
     const localRouteDecision: RouteDecision = {
       route_version: "v1",
       response_owner: "tool_skill",
@@ -5513,7 +5694,11 @@ export async function processMessage(
     : opts?.messageMetadata?.test_endpoint === "test-send-message" &&
         !fullAiRequested
     ? undefined
-    : buildDispatcherLlmRunner({ ...meta, userId, forceRealAi: fullAiRequested });
+    : buildDispatcherLlmRunner({
+      ...meta,
+      userId,
+      forceRealAi: fullAiRequested,
+    });
   const turnFrameStartMs = Date.now();
   try {
     if (safetyLocalFlowOwnsTurn) {
@@ -5946,8 +6131,14 @@ export async function processMessage(
         intent.confidence_band !== "low"
       );
     const statusRecapRoute = routeDecision.selected_handler === "status_recap";
+    const preserveDirectStatusRecapRoute = shouldPreserveDirectStatusRecapRoute(
+      {
+        routeDecision,
+        turnFrame,
+      },
+    );
     const oneShotStatusToolFlowGuard = {
-      blocked: !(
+      blocked: !preserveDirectStatusRecapRoute && !(
         routeDecision.response_owner === "product_help" ||
         isActiveCardDraftingOperation(activeOperationIntake) ||
         routeHasStructuredOperation
@@ -6525,27 +6716,10 @@ export async function processMessage(
           }))
           .slice(-8),
       });
-      const oneShotInterruptsHandoff =
-        handoffArbitration.action === "interrupt_for_explicit_intent" &&
-        handoffArbitration.reason_code ===
-          "create_one_shot_reminder_interrupts_active_handoff";
-      const hasOneShotDirectEffect = (turnFrame.direct_effects ?? []).some((
-        effect,
-      ) =>
-        effect.effect_type === "create_one_shot_reminder" &&
-        effect.explicitness === "explicit" &&
-        effect.confidence_band !== "low"
-      );
-      const handoffInterruptTarget = handoffArbitration.action ===
-          "interrupt_for_explicit_intent"
-        ? targetToolSkillFromHandoffInterrupt(handoffArbitration.reason_code)
-        : null;
       if (
         activeHandoff &&
         handoffArbitration.action !== "ignore" &&
-        (handoffArbitration.action !== "interrupt_for_explicit_intent" ||
-          oneShotInterruptsHandoff ||
-          Boolean(handoffInterruptTarget))
+        handoffArbitration.action !== "interrupt_for_explicit_intent"
       ) {
         const blockedPath = {
           path: "active_handoff",
@@ -6554,97 +6728,14 @@ export async function processMessage(
         const activeHandoffArbitrationTrace = {
           decision: handoffArbitration.action,
           active_owner: "tool_skill",
-          selected_owner: handoffArbitration.action ===
-              "interrupt_for_explicit_intent"
-            ? (handoffInterruptTarget ?? "normal_reply")
-            : activeHandoff.operation_type,
+          selected_owner: activeHandoff.operation_type,
           resume_policy: handoffArbitration.action === "continue_handoff"
             ? "active_handoff_continue"
-            : "clear_or_interrupt",
+            : "active_handoff_clarify",
           reason_code: handoffArbitration.reason_code,
           continuation_intent: handoffArbitration.continuation_intent ?? null,
         };
-        if (oneShotInterruptsHandoff) {
-          tempMemory = clearActiveToolFlow({ ...(tempMemory ?? {}) });
-          activeOperationIntake = null;
-          state = { ...(state ?? {}), temp_memory: tempMemory } as any;
-          routeDecision = {
-            ...routeDecision,
-            response_owner: "normal_reply",
-            selected_handler: undefined,
-            reason_code: handoffArbitration.reason_code,
-            direct_effects_to_run: ["create_one_shot_reminder"],
-            active_flow_arbitration: activeHandoffArbitrationTrace,
-            blocked_paths: [...routeDecision.blocked_paths, blockedPath],
-          };
-          turnFrame = {
-            ...turnFrame,
-            direct_effects: hasOneShotDirectEffect
-              ? turnFrame.direct_effects
-              : [
-                ...turnFrame.direct_effects,
-                {
-                  effect_type: "create_one_shot_reminder",
-                  explicitness: "explicit",
-                  target_status: "identified",
-                  confidence_band: "high",
-                  payload_hint: { raw_text: userMessage },
-                },
-              ],
-            tool_skill_intents: [],
-          };
-        } else if (handoffInterruptTarget) {
-          const memoryBeforeInterrupt = handoffInterruptTarget ===
-              "update_coach_preferences"
-            ? suspendActivePlatformHandoff({ ...(tempMemory ?? {}) }, {
-              interrupted_by: handoffInterruptTarget,
-              reason_code: handoffArbitration.reason_code,
-            })
-            : { ...(tempMemory ?? {}) };
-          tempMemory = clearActiveToolFlow(memoryBeforeInterrupt);
-          if (handoffInterruptTarget !== "update_coach_preferences") {
-            tempMemory = restoreSuspendedPlatformHandoffForOperation(
-              tempMemory,
-              handoffInterruptTarget,
-            );
-          }
-          activeOperationIntake = null;
-          state = { ...(state ?? {}), temp_memory: tempMemory } as any;
-          routeDecision = {
-            ...routeDecision,
-            response_owner: "tool_skill",
-            selected_handler: handoffInterruptTarget,
-            reason_code: handoffArbitration.reason_code,
-            direct_effects_to_run: [],
-            active_flow_arbitration: activeHandoffArbitrationTrace,
-            blocked_paths: [...routeDecision.blocked_paths, blockedPath],
-          };
-          const hasTargetIntent = turnFrame.tool_skill_intents.some((intent) =>
-            intent.operation_type === handoffInterruptTarget
-          );
-          turnFrame = {
-            ...turnFrame,
-            direct_effects: [],
-            tool_skill_intents: hasTargetIntent
-              ? turnFrame.tool_skill_intents
-              : [
-                ...turnFrame.tool_skill_intents,
-                {
-                  operation_type: handoffInterruptTarget,
-                  explicitness: "explicit",
-                  target_hint: userMessage,
-                  confidence_band: "high",
-                  ambiguity: "none",
-                  user_intent: handoffInterruptTarget ===
-                      "update_coach_preferences"
-                    ? "update"
-                    : handoffInterruptTarget.startsWith("create_")
-                    ? "create"
-                    : "update",
-                },
-              ],
-          };
-        } else if (handoffArbitration.action === "continue_handoff") {
+        if (handoffArbitration.action === "continue_handoff") {
           routeDecision = {
             ...routeDecision,
             response_owner: "tool_skill",
@@ -6665,50 +6756,6 @@ export async function processMessage(
             ...routeDecision,
             response_owner: "orientation_clarification",
             selected_handler: "orientation_clarification",
-            reason_code: handoffArbitration.reason_code,
-            direct_effects_to_run: [],
-            active_flow_arbitration: activeHandoffArbitrationTrace,
-            blocked_paths: [...routeDecision.blocked_paths, blockedPath],
-          };
-          turnFrame = {
-            ...turnFrame,
-            direct_effects: [],
-            tool_skill_intents: [],
-          };
-        } else if (
-          handoffArbitration.action === "clear_handoff" &&
-          handoffArbitration.continuation_intent === "cancel_handoff" &&
-          activeHandoff.operation_type === "prepare_defense_card"
-        ) {
-          routeDecision = {
-            ...routeDecision,
-            response_owner: "tool_skill",
-            selected_handler: "prepare_defense_card",
-            reason_code: handoffArbitration.reason_code,
-            direct_effects_to_run: [],
-            active_flow_arbitration: activeHandoffArbitrationTrace,
-            blocked_paths: [...routeDecision.blocked_paths, blockedPath],
-          };
-          turnFrame = {
-            ...turnFrame,
-            direct_effects: [],
-            tool_skill_intents: [{
-              operation_type: "prepare_defense_card",
-              explicitness: "explicit",
-              target_hint: userMessage,
-              confidence_band: "high",
-              ambiguity: "none",
-              user_intent: "reject",
-            } as any],
-          };
-        } else if (handoffArbitration.action === "clear_handoff") {
-          tempMemory = clearActiveToolFlow({ ...(tempMemory ?? {}) });
-          activeOperationIntake = null;
-          state = { ...(state ?? {}), temp_memory: tempMemory } as any;
-          routeDecision = {
-            ...routeDecision,
-            response_owner: "normal_reply",
-            selected_handler: undefined,
             reason_code: handoffArbitration.reason_code,
             direct_effects_to_run: [],
             active_flow_arbitration: activeHandoffArbitrationTrace,

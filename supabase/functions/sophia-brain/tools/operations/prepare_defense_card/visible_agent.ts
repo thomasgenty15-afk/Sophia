@@ -2,10 +2,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-import {
-  VISIBLE_OUTPUT_STYLE_RULES,
-  visibleOutputStyleIssues,
-} from "../../../router/response_style_policy.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../../router/response_style_policy.ts";
 import {
   DEFENSE_CARD_PLATFORM_DESTINATION,
   DEFENSE_CARD_SUPPORT_NEED_LABEL,
@@ -71,6 +68,28 @@ const FORBIDDEN_REVISION_PERSISTENCE_CLAIMS = [
   "c'est enregistre",
 ];
 
+const NO_RESTITUTION_STAGES: PrepareDefenseCardVisibleTaskKind[] = [
+  "ask_attachment",
+  "confirm_attachment_candidate",
+  "ask_risk_situation",
+  "ask_trigger_or_signal",
+  "ask_defense_goal_or_response",
+];
+
+const FORBIDDEN_EARLY_RESTITUTION_MARKERS = [
+  DEFENSE_CARD_SUPPORT_NEED_LABEL,
+  DEFENSE_CARD_PLATFORM_DESTINATION,
+  "Cartes de défense",
+  "carte de défense libre",
+  "Ajouter une carte",
+  "recopier",
+  "à recopier",
+  "a recopier",
+  "tu peux utiliser cette formulation",
+  "dans le champ",
+  "pour ton champ",
+];
+
 function cleanMessage(value: unknown): string {
   let text = String(value ?? "").replaceAll("\r\n", "\n").trim();
   while (text.includes("\n\n\n")) text = text.replaceAll("\n\n\n", "\n\n");
@@ -113,6 +132,15 @@ function supportNeedValue(input: PrepareDefenseCardVisibleAgentInput) {
     null;
 }
 
+function concreteDefenseValues(input: PrepareDefenseCardVisibleAgentInput) {
+  const data = input.conversation_context.handoff_data;
+  return [
+    data.risk_context,
+    data.defense_action,
+    data.ritual_phrase,
+  ].filter((value): value is string => Boolean(value));
+}
+
 function requiresPlatformData(stage: PrepareDefenseCardVisibleTaskKind) {
   return [
     "handoff_ready",
@@ -136,7 +164,7 @@ export function prepareDefenseCardVisibleContractIssues(
   message: string,
   input: PrepareDefenseCardVisibleAgentInput,
 ): string[] {
-  const issues: string[] = visibleOutputStyleIssues(message);
+  const issues: string[] = [];
   const normalized = normalizeForGuard(message);
   if (!message.trim()) issues.push("empty_message");
   for (const claim of FORBIDDEN_CREATION_CLAIMS) {
@@ -156,6 +184,17 @@ export function prepareDefenseCardVisibleContractIssues(
       }
     }
   }
+  if (NO_RESTITUTION_STAGES.includes(input.stage)) {
+    for (const marker of FORBIDDEN_EARLY_RESTITUTION_MARKERS) {
+      if (normalized.includes(normalizeForGuard(marker))) {
+        issues.push(`forbidden_early_restitution:${marker}`);
+      }
+    }
+    const value = supportNeedValue(input);
+    if (value && containsLiteral(message, value)) {
+      issues.push("forbidden_early_support_need_value");
+    }
+  }
   if (requiresPlatformData(input.stage)) {
     if (!normalized.includes(normalizeForGuard("Cartes de défense"))) {
       issues.push("missing_platform_destination");
@@ -167,6 +206,11 @@ export function prepareDefenseCardVisibleContractIssues(
       }
       if (value && !containsLiteral(message, value)) {
         issues.push("missing_support_need_value");
+      }
+      for (const concreteValue of concreteDefenseValues(input)) {
+        if (!containsLiteral(message, concreteValue)) {
+          issues.push("missing_concrete_defense_value");
+        }
       }
     }
   }
@@ -194,7 +238,7 @@ const VISIBLE_STAGE_PROMPTS: Record<PrepareDefenseCardVisibleTaskKind, string> =
     confirm_support_need_proposal:
       "Proposition support_need: demande si la formulation proposée correspond, sans dire champ ou slot et sans finaliser la carte.",
     handoff_ready:
-      "Handoff prêt: donne naturellement la destination Cartes de défense, le label exact support_need et la valeur exacte à recopier. Ajoute une phrase douce indiquant que la carte n'est pas créée depuis le chat. Si c'est une révision, n'écris pas que tu as pris en compte, noté, gardé, mémorisé ou enregistré la correction.",
+      "Handoff prêt: donne naturellement la destination Cartes de défense, le label exact support_need et la valeur exacte à recopier. Si handoff_data contient risk_context, defense_action ou ritual_phrase, restitue aussi ces éléments concrets comme éléments préparés pour la saisie plateforme. Ajoute une phrase douce indiquant que la carte n'est pas créée depuis le chat. Si c'est une révision, n'écris pas que tu as pris en compte, noté, gardé, mémorisé ou enregistré la correction.",
     revision_done:
       "Révision: dis sobrement que la formulation à recopier est la nouvelle version, puis redonne uniquement l'élément corrigé avec le label exact si support_need change. N'écris pas que tu as pris en compte, noté, gardé, mémorisé ou enregistré la correction.",
     destination_short:
@@ -234,10 +278,13 @@ export function visibleSystemPrompt(
     "Après une révision, ne prétends jamais avoir pris en compte, noté, gardé, mémorisé, enregistré ou sauvegardé la nouvelle formulation; donne seulement la formulation actuelle à recopier.",
     `Le seul champ plateforme à mentionner quand demandé est exactement: ${DEFENSE_CARD_SUPPORT_NEED_LABEL}`,
     "N'affiche jamais entry_need, risk_moment, first_signal, defense_response ou fallback_plan comme champs plateforme.",
-    `Destination produit canonique: ${DEFENSE_CARD_PLATFORM_DESTINATION}. Le nom produit est carte de défense / Cartes de défense.`,
+    "La destination produit à afficher vient de conversation_context.handoff_data.platform_destination. Ne remplace pas une destination liée à une action du Plan par la destination des cartes libres.",
+    `Destination libre par défaut si aucune route spécifique n'est fournie: ${DEFENSE_CARD_PLATFORM_DESTINATION}. Le nom produit est carte de défense / Cartes de défense.`,
     VISIBLE_OUTPUT_STYLE_RULES,
     "Si le stage demande une question, pose une seule vraie question naturelle.",
+    "Pour les stages d'enrichissement (ask_attachment, confirm_attachment_candidate, ask_risk_situation, ask_trigger_or_signal, ask_defense_goal_or_response), ne restitue jamais la carte, ne donne jamais de formulation à recopier, ne cite jamais le champ plateforme, ne cite jamais la destination et ne parle pas de créer/ajouter la carte. Même si toutes les informations semblent déjà présentes, le premier message visible doit seulement enrichir ou clarifier.",
     "Si le stage demande un handoff, recopie le label et la valeur exacts fournis dans conversation_context.handoff_data; tu peux écrire autour, mais pas les paraphraser ni les omettre.",
+    "Si conversation_context.handoff_data contient risk_context, defense_action ou ritual_phrase, tu dois les inclure dans le message de handoff sans les remplacer par un résumé plus vague.",
     VISIBLE_STAGE_PROMPTS[input.stage],
     'Retourne uniquement un JSON strict: {"message":"..."}.',
   ].join("\n");

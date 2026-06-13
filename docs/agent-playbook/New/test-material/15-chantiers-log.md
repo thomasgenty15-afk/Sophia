@@ -3183,7 +3183,7 @@ Tests :
 - `demotivation_repair loss_of_meaning_stays_demotivation`;
 - `demotivation_repair failure_accumulation_no_identity_freeze`;
 - `demotivation_repair concrete_action_ready_handoff`;
-- `demotivation_repair hypothetical_action_no_handoff`;
+- `demotivation_repair hypothetical_action_no_transfer`;
 - `demotivation_repair no_potion_blocks_potion`;
 - `demotivation_repair no_tool_blocks_all_suggestions`;
 - `demotivation_repair recurring_support_only_when_explicit`;
@@ -5910,7 +5910,7 @@ Tests / vérifications :
 Limites restantes :
 
 - le fallback conservateur reste volontairement présent pour les échecs
-  techniques d'intake IA, sans handoff, sans suggestion tool et sans mutation ;
+  techniques d'intake IA, sans transition, sans suggestion tool et sans mutation ;
 - une décision structurée déjà présente dans le working state peut encore être
   reprise pour continuité, jusqu'à migration vers une frame de décision
   versionnée commune aux conversation skills ;

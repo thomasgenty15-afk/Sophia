@@ -178,7 +178,7 @@ Interpreter ce que le message user fait dans le flow actif :
 - expliquer ou repondre a une question produit via get_info_product ;
 - repondre a une question status/DB via get_info_db ;
 - detecter apply_attempt ;
-- arreter localement sans handoff ;
+- sortir via dispatcher global ;
 - sortir vers le dispatcher global si le user apporte un autre sujet clair ;
 - preempter safety.
 

@@ -32,6 +32,26 @@ const DEFENSE_CARD_PLATFORM_STEPS = HANDOFF_TARGET?.platform_steps ?? [
   "reprends les champs préparés par Sophia",
 ];
 
+export function defenseCardPlatformDestinationForRoute(
+  route: "free_card" | "plan_item_card" | null,
+): string {
+  return route === "plan_item_card"
+    ? "dans l'action concernée du Plan, section Cartes de défense"
+    : DEFENSE_CARD_PLATFORM_DESTINATION;
+}
+
+export function defenseCardPlatformStepsForRoute(
+  route: "free_card" | "plan_item_card" | null,
+): string[] {
+  return route === "plan_item_card"
+    ? [
+      "ouvre l'action concernée dans le Plan",
+      "va dans sa section Cartes de défense",
+      "reprends les champs préparés par Sophia",
+    ]
+    : DEFENSE_CARD_PLATFORM_STEPS;
+}
+
 export type PrepareDefenseCardToolFit =
   | "defense"
   | "attack_better"
@@ -115,6 +135,9 @@ export type PrepareDefenseCardConversationContext = {
     route_kind: "free_card" | "plan_item_card" | null;
     support_need_label: typeof DEFENSE_CARD_SUPPORT_NEED_LABEL;
     support_need_value: string | null;
+    risk_context: string | null;
+    defense_action: string | null;
+    ritual_phrase: string | null;
     attachment_value: string | null;
     risk_value: string | null;
     no_chat_mutation: true;
@@ -828,7 +851,7 @@ export function createInitialPrepareDefenseCardLocalState(
   return {
     flow_id: "prepare_defense_card",
     route_kind: route,
-    platform_destination: DEFENSE_CARD_PLATFORM_DESTINATION,
+    platform_destination: defenseCardPlatformDestinationForRoute(route),
     tool_fit_state: {
       status: "ambiguous",
       reason: null,
@@ -1148,6 +1171,23 @@ function supportNeedReady(state: PrepareDefenseCardLocalState): boolean {
     Boolean(state.support_need_state.locked_value);
 }
 
+function preparedDefenseFieldsFromState(
+  state: PrepareDefenseCardLocalState,
+): NonNullable<DefenseCardHandoffDraft["prepared_fields"]> {
+  const riskContext = state.risk_state.description ?? state.risk_state.label ??
+    state.risk_state.timing_hint ?? state.risk_state.context_hint ??
+    state.support_need_state.locked_value;
+  const defenseAction = state.defense_response_hint_state.locked_value ??
+    state.defense_response_hint_state.candidate_value ??
+    state.defense_goal_state.locked_value ??
+    state.defense_goal_state.candidate_value;
+  return {
+    risk_context: riskContext,
+    defense_action: defenseAction,
+    ritual_phrase: null,
+  };
+}
+
 function draftFromState(
   state: PrepareDefenseCardLocalState,
 ): DefenseCardHandoffDraft | null {
@@ -1158,6 +1198,18 @@ function draftFromState(
   const risk = state.risk_state.label ?? state.risk_state.description ??
     supportNeed;
   const route = state.route_kind ?? "free_card";
+  const preparedFields = preparedDefenseFieldsFromState(state);
+  const cardDraftSummary = [
+    preparedFields.risk_context
+      ? `Contexte de risque: ${preparedFields.risk_context}`
+      : null,
+    preparedFields.defense_action
+      ? `Réponse prévue: ${preparedFields.defense_action}`
+      : null,
+    preparedFields.ritual_phrase
+      ? `Phrase rituelle: ${preparedFields.ritual_phrase}`
+      : null,
+  ].filter(Boolean).join(" | ");
   return {
     operation_type: "prepare_defense_card",
     mode: "platform_handoff",
@@ -1165,6 +1217,7 @@ function draftFromState(
     executable_from_chat: false,
     target_summary: attachment,
     risk_summary: risk,
+    prepared_fields: preparedFields,
     platform_flow: {
       route_kind: route,
       route_label: route === "plan_item_card"
@@ -1194,8 +1247,9 @@ function draftFromState(
       }],
     },
     recommendation: {
-      platform_destination: DEFENSE_CARD_PLATFORM_DESTINATION,
-      platform_steps: DEFENSE_CARD_PLATFORM_STEPS,
+      platform_destination: defenseCardPlatformDestinationForRoute(route),
+      platform_steps: defenseCardPlatformStepsForRoute(route),
+      card_draft_summary: cardDraftSummary || undefined,
     },
     missing_decisions: [],
   };
@@ -1223,17 +1277,52 @@ function buildPrepareDefenseCardConversationContext(args: {
   draft: DefenseCardHandoffDraft | null;
   output: PrepareDefenseCardLocalDispatcherOutput;
   visibleTask: PrepareDefenseCardVisibleTaskKind;
+  suppressPlatformRestitution?: boolean;
 }): PrepareDefenseCardConversationContext {
   const state = args.state;
-  const supportNeed = state.support_need_state.locked_value ??
-    state.support_need_state.candidate_value;
+  const suppressPlatformRestitution = args.suppressPlatformRestitution === true;
+  const supportNeed = suppressPlatformRestitution
+    ? null
+    : state.support_need_state.locked_value ??
+      state.support_need_state.candidate_value;
   const attachment = state.attachment_state.locked_value ??
     state.attachment_state.candidate_value;
   const risk = state.risk_state.label ?? state.risk_state.description;
+  const preparedFields = args.draft?.prepared_fields ??
+    preparedDefenseFieldsFromState(state);
   const dispatcherContext = objectValue(
     args.output.visible_task.conversation_context,
   );
   const contextSummary = stringValue(dispatcherContext.context_summary);
+  const supportNeedForVisible: PrepareDefenseCardSupportNeedState =
+    suppressPlatformRestitution
+      ? {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status:
+          "Masqué au premier tour: aucune restitution plateforme avant une passe d'enrichissement.",
+      }
+      : state.support_need_state;
+  const toneConstraints = stringArray(dispatcherContext.tone_constraints)
+      .length
+    ? stringArray(dispatcherContext.tone_constraints)
+    : [
+      "une seule question quand le stage collecte une information",
+      "formulation naturelle, non formulaire",
+      "message court pour destination_short et apply_attempt",
+    ];
+  const doNotSay = stringArray(dispatcherContext.do_not_say).length
+    ? stringArray(dispatcherContext.do_not_say)
+    : [
+      "ne dis jamais que la carte est créée, ajoutée, activée ou enregistrée",
+      "ne promets aucun effet durable depuis le chat",
+      "n'expose jamais entry_need, risk_moment, first_signal, defense_response ou fallback_plan comme champs plateforme",
+    ];
   return {
     state_summary: stringValue(dispatcherContext.state_summary) ??
       [
@@ -1254,7 +1343,7 @@ function buildPrepareDefenseCardConversationContext(args: {
       trigger: state.trigger_state,
       defense_goal: state.defense_goal_state,
       defense_response_hint: state.defense_response_hint_state,
-      support_need: state.support_need_state,
+      support_need: supportNeedForVisible,
     },
     missing_or_weak_values:
       stringArray(dispatcherContext.missing_or_weak_values)
@@ -1265,33 +1354,53 @@ function buildPrepareDefenseCardConversationContext(args: {
     handoff_data: {
       operation_name: "prepare_defense_card",
       surface_label: "Cartes de défense",
-      platform_destination: DEFENSE_CARD_PLATFORM_DESTINATION,
-      platform_steps: DEFENSE_CARD_PLATFORM_STEPS,
+      platform_destination: suppressPlatformRestitution
+        ? ""
+        : defenseCardPlatformDestinationForRoute(state.route_kind),
+      platform_steps: suppressPlatformRestitution
+        ? []
+        : defenseCardPlatformStepsForRoute(state.route_kind),
       route_kind: state.route_kind,
       support_need_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
       support_need_value: supportNeed,
+      risk_context: suppressPlatformRestitution
+        ? null
+        : preparedFields.risk_context,
+      defense_action: suppressPlatformRestitution
+        ? null
+        : preparedFields.defense_action,
+      ritual_phrase: suppressPlatformRestitution
+        ? null
+        : preparedFields.ritual_phrase,
       attachment_value: attachment,
       risk_value: risk,
       no_chat_mutation: true,
     },
     previous_values: {
-      support_need: state.support_need_state.previous_value,
+      support_need: suppressPlatformRestitution
+        ? null
+        : state.support_need_state.previous_value,
     },
     revision: args.output.revision,
-    tone_constraints: stringArray(dispatcherContext.tone_constraints).length
-      ? stringArray(dispatcherContext.tone_constraints)
-      : [
-        "une seule question quand le stage collecte une information",
-        "formulation naturelle, non formulaire",
-        "message court pour destination_short et apply_attempt",
-      ],
-    do_not_say: stringArray(dispatcherContext.do_not_say).length
-      ? stringArray(dispatcherContext.do_not_say)
-      : [
-        "ne dis jamais que la carte est créée, ajoutée, activée ou enregistrée",
-        "ne promets aucun effet durable depuis le chat",
-        "n'expose jamais entry_need, risk_moment, first_signal, defense_response ou fallback_plan comme champs plateforme",
-      ],
+    tone_constraints: suppressPlatformRestitution
+      ? [
+        ...toneConstraints,
+        "premier tour: aucune restitution; poser seulement une question d'enrichissement",
+      ]
+      : toneConstraints,
+    do_not_say: suppressPlatformRestitution
+      ? [
+        ...doNotSay,
+        DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        defenseCardPlatformDestinationForRoute(state.route_kind),
+        "champ",
+        "formulation",
+        "recopier",
+        "Cartes de défense",
+        "carte de défense libre",
+        "Ajouter une carte",
+      ]
+      : doNotSay,
     context_summary: contextSummary,
     evidence_used: stringArray(dispatcherContext.evidence_used).length
       ? stringArray(dispatcherContext.evidence_used)
@@ -1380,6 +1489,44 @@ function withVisibleTask(
   };
 }
 
+function isFirstDefenseCollectionTurn(
+  previous: PrepareDefenseCardLocalState,
+): boolean {
+  return previous.last_visible_task === null &&
+    previous.last_handoff_delivered !== true &&
+    previous.support_need_state.status === "missing";
+}
+
+function firstTurnEnrichmentTask(
+  state: PrepareDefenseCardLocalState,
+): PrepareDefenseCardVisibleTaskKind {
+  if (state.trigger_state.status === "missing") return "ask_trigger_or_signal";
+  return "ask_defense_goal_or_response";
+}
+
+function shouldForceFirstTurnEnrichment(args: {
+  previous: PrepareDefenseCardLocalState;
+  output: PrepareDefenseCardLocalDispatcherOutput;
+  reduced: PrepareDefenseCardLocalState;
+}): boolean {
+  if (!isFirstDefenseCollectionTurn(args.previous)) return false;
+  if (
+    args.output.flow_action === "exit_to_global_dispatcher" ||
+    args.output.flow_action === "safety_preempt" ||
+    args.output.flow_action === "cancel_flow" ||
+    args.output.flow_action === "defer_flow" ||
+    args.output.flow_action === "get_info_product" ||
+    args.output.flow_action === "get_info_db"
+  ) {
+    return false;
+  }
+  return args.reduced.tool_fit_state.status === "defense" &&
+    (args.reduced.support_need_state.status === "proposed" ||
+      args.reduced.support_need_state.status === "locked" ||
+      args.output.visible_task.kind === "confirm_support_need_proposal" ||
+      args.output.visible_task.kind === "handoff_ready");
+}
+
 export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
   previous: PrepareDefenseCardLocalState | null;
   output: PrepareDefenseCardLocalDispatcherOutput;
@@ -1412,6 +1559,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
     state: PrepareDefenseCardLocalState,
     draft: DefenseCardHandoffDraft | null,
     visibleTask: PrepareDefenseCardVisibleTaskKind,
+    opts?: { suppressPlatformRestitution?: boolean },
   ) => {
     const transitionTarget = output.note_information?.target_dispatcher ??
       output.exit_memo.note_information?.target_dispatcher ?? null;
@@ -1421,6 +1569,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
         draft,
         output,
         visibleTask,
+        suppressPlatformRestitution: opts?.suppressPlatformRestitution === true,
       }),
       note_information: output.note_information ??
         output.exit_memo.note_information ??
@@ -1457,7 +1606,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       status: output.flow_action === "defer_flow" ? "deferred" : "cancelled",
       reason_code: output.flow_action === "defer_flow"
         ? "prepare_defense_card_local_deferred"
-        : "prepare_defense_card_local_stopped_no_handoff",
+        : "prepare_defense_card_local_cancelled",
       local_state: null,
       draft: null,
       visible_task: "stop_or_cancel",
@@ -1485,6 +1634,9 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
   let reduced: PrepareDefenseCardLocalState = {
     ...previous,
     route_kind: output.route_kind ?? previous.route_kind ?? "free_card",
+    platform_destination: defenseCardPlatformDestinationForRoute(
+      output.route_kind ?? previous.route_kind ?? "free_card",
+    ),
     tool_fit_state: output.tool_fit_state.status === "ambiguous" &&
         previous.tool_fit_state.status !== "ambiguous"
       ? previous.tool_fit_state
@@ -1511,6 +1663,29 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       output.support_need_state,
     ),
   };
+  const forceFirstTurnEnrichment = shouldForceFirstTurnEnrichment({
+    previous,
+    output,
+    reduced,
+  });
+  if (
+    forceFirstTurnEnrichment && reduced.support_need_state.status === "locked"
+  ) {
+    const value = reduced.support_need_state.locked_value ??
+      reduced.support_need_state.candidate_value;
+    reduced = {
+      ...reduced,
+      support_need_state: {
+        ...reduced.support_need_state,
+        status: value ? "proposed" : "missing",
+        candidate_value: value,
+        locked_value: null,
+        needs_user_confirmation: Boolean(value),
+        why_status: reduced.support_need_state.why_status ??
+          "Proposition conservée; première passe d'enrichissement requise avant verrouillage.",
+      },
+    };
+  }
   if (
     [
       "confirm_proposed_field",
@@ -1537,7 +1712,9 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
     };
   }
   const ready = supportNeedReady(reduced);
-  const visibleTask = ready
+  const visibleTask = forceFirstTurnEnrichment
+    ? firstTurnEnrichmentTask(reduced)
+    : ready
     ? (
       output.visible_task.kind === "apply_attempt" ||
         output.visible_task.kind === "repeat_handoff" ||
@@ -1652,7 +1829,9 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       local_state: state,
       draft,
       visible_task: visibleTask,
-      ...shared(state, draft, visibleTask),
+      ...shared(state, draft, visibleTask, {
+        suppressPlatformRestitution: forceFirstTurnEnrichment,
+      }),
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: output.risk_assessment,
@@ -1667,7 +1846,9 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
     local_state: state,
     draft: null,
     visible_task: visibleTask,
-    ...shared(state, null, visibleTask),
+    ...shared(state, null, visibleTask, {
+      suppressPlatformRestitution: forceFirstTurnEnrichment,
+    }),
     exit_to_global_dispatcher: false,
     ...toolFlags,
     risk_assessment: output.risk_assessment,
@@ -1687,10 +1868,15 @@ export function localDispatcherSystemPrompt(): string {
     "Contraintes strictes: aucune regex métier, aucun mot-clé isolé, aucune décision par template, aucune création DB, aucun pending confirmation executable, aucun token de confirmation, aucun effet durable.",
     `Champ plateforme unique: field_id=support_need, question_label=${DEFENSE_CARD_SUPPORT_NEED_LABEL}.`,
     "N'expose jamais entry_need, risk_moment, first_signal, defense_response ou fallback_plan comme champs plateforme.",
+    "Les champs internes risk_context, defense_action et ritual_phrase ne sont pas des champs plateforme separes: ils servent a ne pas perdre la parade concrete du user dans le handoff.",
     "Actions possibles: answer_current_field, confirm_proposed_field, clarify_attack_vs_defense, confirm_attachment_candidate, revise_current_field, revise_attachment, revise_risk, revise_support_need, get_info_product, get_info_db, handoff_ready, repeat_handoff, platform_destination_followup, apply_attempt, exit_to_global_dispatcher, cancel_flow, defer_flow, safety_preempt.",
     "Priorité des actions: safety_preempt, apply_attempt, exit_to_global_dispatcher, cancel_flow, defer_flow, exit_to_global_dispatcher, get_info_product, get_info_db, revise_attachment, revise_risk, revise_support_need, revise_current_field, platform_destination_followup, repeat_handoff, confirm_attachment_candidate, confirm_proposed_field, clarify_attack_vs_defense, answer_current_field, handoff_ready.",
+    "Rythme conversationnel V1: au premier tour d'entrée dans prepare_defense_card, ne propose pas encore le champ plateforme support_need et ne fais pas handoff_ready, même si le message est riche. Fais d'abord une passe courte d'enrichissement/éclaircissement avec ask_trigger_or_signal, ask_defense_goal_or_response ou ask_risk_situation.",
+    "Interdiction premier tour: aucune restitution plateforme au premier message visible. Ne demande pas confirmation d'une formulation, ne donne pas de phrase à recopier, ne cite pas le label du champ, ne cite pas Cartes de défense ni la destination. La restitution du support_need peut arriver au plus tôt au tour suivant, après une vraie passe d'échange.",
+    "Exception de rythme: safety_preempt, exit_to_global_dispatcher, get_info_product et get_info_db restent prioritaires; ne bloque pas une sortie claire ou une question inline pour poser une question d'enrichissement.",
     "Règles tool_fit: defense si le user protège un moment où il risque de craquer; attack_better si le besoin est principalement démarrer/enlever une friction; ambiguous si la demande de défense décrit surtout un démarrage; not_applicable si hors sujet.",
     "Il ne peut jamais y avoir de handoff vers un dispatcher local depuis prepare_defense_card.",
+    "Demandes explicites d'autres tools: si le user demande explicitement prepare_attack_card, select_state_potion, create_recurring_reminder, adjust_plan_item, update_coach_preferences ou create_one_shot_reminder, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global. Ne lance jamais ces tools depuis prepare_defense_card. Le même message sera réanalysé par le dispatcher global.",
     "Si le user corrige explicitement vers une carte d'attaque ou si le besoin relève clairement d'une carte d'attaque pendant le flow actif, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global et recommended_next_focus='prepare_attack_card'. Le même message sera réanalysé par le dispatcher global.",
     "Si le user arrête ce flow ou change de sujet, retourne exit_to_global_dispatcher avec note_information vers global.",
     "Si le user change clairement de sujet hors flows locaux connus, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global.",
@@ -1721,9 +1907,10 @@ export function localDispatcherSystemPrompt(): string {
     "- trigger_state: signal, pulsion, piège ou premier indice. Utile mais non obligatoire pour le champ plateforme; ne l'expose jamais comme champ à remplir.",
     "- defense_goal_state: ce que la carte aide à empêcher ou préserver. Utilise une valeur canonique seulement si elle découle clairement du message; sinon candidate/missing.",
     "- defense_response_hint_state: réponse défensive possible uniquement si le user l'a donnée ou si elle aide à formuler support_need. Ne fabrique pas un plan rigide.",
+    "- defense_response_hint_state doit conserver les parades concretes donnees par le user: action a faire, rituel, phrase courte, geste de rupture. Si le user dit 'cles dans la salle de bain, douche cinq minutes, phrase X', cette information doit rester dans locked_value ou candidate_value et etre reprise dans le handoff.",
     `- support_need_state: seul champ plateforme canonique. field_id doit toujours être support_need et question_label exactement '${DEFENSE_CARD_SUPPORT_NEED_LABEL}'. missing si la situation n'est pas formulable; proposed si tu proposes une phrase déduite; locked uniquement si le user confirme ou donne une formulation claire. candidate_value et locked_value ne doivent pas diverger du message utile.`,
     "- revision: is_revision=true seulement si le user corrige/remplace une valeur. revision_target indique le slot remplacé, replacement_value la nouvelle formulation, replaces_previous_value=true si l'ancienne valeur principale doit être remplacée. Laisse false/null hors révision.",
-    "- visible_task.kind: choisis le prompt stage-specific exact. Utilise confirm_support_need_proposal pour une proposition à valider, ask_support_need pour une situation manquante, handoff_ready quand le handoff est prêt, destination_short pour la destination courte, apply_attempt pour refus de création, stop_or_cancel pour sortie/annulation, exit_or_cancel pour exit global, safety pour safety_preempt, none pour get_info_product/get_info_db.",
+    "- visible_task.kind: choisis le prompt stage-specific exact. Au premier tour, utilise uniquement ask_trigger_or_signal, ask_defense_goal_or_response ou ask_risk_situation pour enrichir; n'utilise pas confirm_support_need_proposal ni handoff_ready. Utilise confirm_support_need_proposal pour une proposition à valider après au moins une passe d'échange, ask_support_need pour une situation manquante, handoff_ready quand le handoff est prêt, destination_short pour la destination courte, apply_attempt pour refus de création, stop_or_cancel pour sortie/annulation, exit_or_cancel pour exit global, safety pour safety_preempt, none pour get_info_product/get_info_db.",
     "- visible_task.conversation_context: contexte filtré pour l'agent visible seulement. Inclure valeurs connues, incertitudes, contraintes de ton, no_chat_mutation, destination et label support_need si utile. Ne jamais inclure DB brute, mémoire brute, note_information brute, historique brut ou état local complet.",
     "- subskill_call: needed=true seulement pour get_info_product ou get_info_db. skill_id doit être product_help ou status_recap. context_for_subskill doit contenir active_flow='prepare_defense_card', question_to_answer et un active_flow_context compact. Laisse needed=false, skill_id=null, context_for_subskill={} sinon.",
     "- handoff_state: ce dispatcher ne crée pas d'état de handoff dans sa sortie JSON; laisse null. Le reducer construit le handoff plateforme quand support_need est locked.",

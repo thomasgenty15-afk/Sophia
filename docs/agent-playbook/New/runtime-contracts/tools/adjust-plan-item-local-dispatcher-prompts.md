@@ -855,7 +855,7 @@ Retourne uniquement le message visible.
 Tu ecris le message visible quand le user arrete adjust_plan_item.
 
 Objectif :
-Fermer le flow sans handoff actif ni modification de plan.
+Fermer le flow sans transfert actif ni modification de plan.
 
 Regles :
 - Ne force pas l'ajustement.

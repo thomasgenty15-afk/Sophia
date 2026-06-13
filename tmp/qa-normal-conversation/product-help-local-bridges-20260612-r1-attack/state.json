@@ -1,0 +1,104 @@
+{
+  "run_id": "product-help-local-bridges-20260612-r1-attack",
+  "scope": "qa-normal-conversation-product-help-local-bridges-20260612-r1-attack",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-product-help-local-bridges-20260612-r1-attack-1781275169845@example.com",
+  "user_id": "2a7a4c94-f2f7-4e15-b333-155eae3c0f8d",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvY2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzUxMDksImV4cCI6MTgxMjgxMTE2OX0.GZjGWwqgq-VIzGHRIZo2zHhGzeca7XKnKRE_-H6MR-w",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvY2FsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTI3NTEwOSwiZXhwIjoxODEyODExMTY5fQ.YO4rZr7GooPphacj2_e2-xkqNifRoB1t1_wDYjABsrM",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIyYTdhNGM5NC1mMmY3LTRlMTUtYjMzMy0xNTVlYWUzYzBmOGQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxMjc4NzcwLCJpYXQiOjE3ODEyNzUxNzAsImVtYWlsIjoicWEtbm9ybWFsLXByb2R1Y3QtaGVscC1sb2NhbC1icmlkZ2VzLTIwMjYwNjEyLXIxLWF0dGFjay0xNzgxMjc1MTY5ODQ1QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1wcm9kdWN0LWhlbHAtbG9jYWwtYnJpZGdlcy0yMDI2MDYxMi1yMS1hdHRhY2stMTc4MTI3NTE2OTg0NUBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoicHJvZHVjdC1oZWxwLWxvY2FsLWJyaWRnZXMtMjAyNjA2MTItcjEtYXR0YWNrIiwic3ViIjoiMmE3YTRjOTQtZjJmNy00ZTE1LWIzMzMtMTU1ZWFlM2MwZjhkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODEyNzUxNzB9XSwic2Vzc2lvbl9pZCI6ImY5YzIyM2YyLWE2YWUtNGM4Yy1iODUzLWUwOWIxNjVlZDIxZCIsImlzX2Fub255bW91cyI6ZmFsc2V9.9wI4Q8mlM0JHhwWAMJf1C9OtdlKwMVrY528nf3hHqEU",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-12T14:39:30.168Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-12T14:39:39.329Z",
+      "user": "Je suis un peu perdu dans Sophia : une carte d'attaque et une carte de defense, ce n'est pas la meme chose ? Explique-moi juste la difference, sans rien creer.",
+      "http_status": 503,
+      "ok": false,
+      "empty_response": true,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "",
+      "trace_short": {
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": null
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "code": "BOOT_ERROR",
+        "message": "Worker failed to boot (please check logs)"
+      }
+    }
+  ],
+  "updated_at": "2026-06-12T14:39:39.330Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-12T14:40:47.961Z"
+}

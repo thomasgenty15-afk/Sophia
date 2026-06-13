@@ -1,0 +1,2460 @@
+{
+  "run_id": "weekly-full-r2-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+  "email": "qa-weekly-deep-weekly-full-r2-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-full-r2",
+  "created_at": "2026-06-12T13:34:35.394Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-06-12T13:34:35.419Z",
+      "user": "J'ai l'impression d'avoir avancé un peu sur mon objectif, surtout en début de semaine, mais la fin a été lourde et ça me fait sentir que c'est encore fragile. Je confirme que la fatigue est le vrai blocage. Avant de décider quoi alléger, petite question produit: si plus tard on prépare une carte d'attaque, je la retrouve où dans Sophia ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Tes cartes d'attaque seront toujours accessibles dans ton espace personnel pour que tu puisses les dégainer au besoin. C'est tout à fait normal que la fatigue pèse en ce moment, on garde cela en tête pour la suite de notre point hebdomadaire.",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-full-r2-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-full-r2-partial_habits_mission_partial-t01",
+        "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-full-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Tes cartes d'attaque seront toujours accessibles dans ton espace personnel pour que tu puisses les dégainer au besoin. C'est tout à fait normal que la fatigue pèse en ce moment, on garde cela en tête pour la suite de notre point hebdomadaire.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "weekly-full-r2-partial_habits_mission_partial-t01",
+              "source_message_id": "33990dc7-f623-4042-b076-9c5e655a202f",
+              "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "weekly_adaptive_review_v1",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_weekly_review_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_weekly_review_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "weekly_adaptive_review_v1",
+              "reason_code": "weekly_review_local_inline_tool_roundtrip",
+              "operation_type": "weekly_adaptive_review_v1",
+              "status": "inline_tool_roundtrip",
+              "flow_action": "inline_tool_roundtrip",
+              "visible_task": "inline_tool_return",
+              "confidence": "high",
+              "risk_score": 0,
+              "weekly_intent": {
+                "kind": "explicit_tool_request",
+                "summary": "Le user confirme la fatigue comme blocage majeur et pose une question produit sur la localisation des cartes d'attaque."
+              },
+              "handoff_updates": {
+                "status": "none",
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                }
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null
+              },
+              "local_flow_state": null,
+              "target_dispatcher": "product_help",
+              "note_information": {
+                "source_flow_id": "weekly_adaptive_review_v1",
+                "handoff_reason": "inline_tool",
+                "target_dispatcher": "product_help",
+                "handoff_context_for_next_dispatcher": "The user is performing their weekly review. They confirmed fatigue as the main blocker but have a quick question about where to find attack cards. Answer them and return to the weekly flow.",
+                "user_words": [
+                  "si plus tard on prépare une carte d'attaque, je la retrouve où dans Sophia ?"
+                ],
+                "structured_context": {
+                  "weekly_stage": "strategy_ready",
+                  "confirmed_signals": {
+                    "objective_delta": "slight_progress",
+                    "felt_progress": "worried",
+                    "felt_state": "tired_but_ok",
+                    "blocker": "fatigue"
+                  },
+                  "recommended_next_focus": "Answer product question then resume weekly strategy validation."
+                },
+                "confidence": "high"
+              },
+              "conversation_context": {
+                "state_summary": "Le user confirme la fatigue comme blocage majeur et pose une question produit sur la localisation des cartes d'attaque.",
+                "user_words": [
+                  "si plus tard on prépare une carte d'attaque, je la retrouve où dans Sophia ?"
+                ],
+                "week_window": {
+                  "start_date": "2026-06-08",
+                  "end_date": "2026-06-14"
+                },
+                "field_or_stage": "inline_tool_return",
+                "known_values": {
+                  "human_signals": {
+                    "objective_delta": "unknown",
+                    "felt_state": "unknown"
+                  },
+                  "felt_progress": "unknown",
+                  "validation_unlock_status": "locked_until_weekly_complete",
+                  "proposal_status": "none",
+                  "child_flow": {
+                    "status": "none",
+                    "flow_id": null,
+                    "reason": null,
+                    "expected_return_focus": null,
+                    "result_summary": null
+                  },
+                  "dominant_blocker_confirmation": "confirmed"
+                },
+                "missing_or_weak_values": [],
+                "weekly_reading": {
+                  "strategy_label_human": "semaine plus legere",
+                  "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                  "confidence": "high"
+                },
+                "plan_contexts": [
+                  {
+                    "transformation_id": "fca2500d-86ed-4a30-b73d-9be620ce1e46",
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "action_count": 6
+                  }
+                ],
+                "item_summaries": [
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "occurrence_id": "6ea0dc29-e74c-4898-935d-58e532e9af59",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "occurrence_id": "1b307a33-624e-4271-9976-66a5febace0c",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai commence mais trop fatigue",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai commence mais trop fatigue",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "occurrence_id": "8ffe4eb2-1273-4986-94e1-229ef9713a75",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "trop lourd en fin de semaine",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "too_hard",
+                      "matched_user_text": "trop lourd en fin de semaine",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                    "occurrence_id": "5f37a63a-d4bc-4410-ab4d-3e6e04f5742c",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                    "occurrence_id": "288f748d-048a-44d4-9c1c-c4f0a924e9d4",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai zappe en rentrant tard",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai zappe en rentrant tard",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "f0820de9-5128-45eb-a858-72cd7071b79f",
+                    "occurrence_id": "194dc4a1-fcb8-44f2-be7a-89f06b29d2d2",
+                    "title": "Convenir d'un signal de pause",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "message brouillon fait mais pas envoye",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "context",
+                      "matched_user_text": "message brouillon fait mais pas envoye",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  }
+                ],
+                "handoff_data": {
+                  "summary": null,
+                  "platform_destination": null,
+                  "scope": {
+                    "kind": "none",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "plan_item_ids": [],
+                    "scope_summary": null,
+                    "needs_scope_clarification": false
+                  },
+                  "requested_adjustment_summary": null,
+                  "revision_summary": null,
+                  "no_chat_mutation": true
+                },
+                "forgotten_progress": {
+                  "status": "none",
+                  "target_hint": null,
+                  "outcome_hint": null,
+                  "evidence": null,
+                  "no_plan_adjustment": true
+                },
+                "inline_result": {},
+                "tone_constraints": [
+                  "compact",
+                  "one_question_max_when_asking",
+                  "human_language"
+                ],
+                "do_not_say": [
+                  "bridge_week",
+                  "carry_over",
+                  "repeat_week",
+                  "level_review",
+                  "plan_patch",
+                  "item_decision",
+                  "dominant_blocker",
+                  "applique",
+                  "modifie le plan",
+                  "valide le plan",
+                  "enregistre le plan"
+                ],
+                "context_summary": null,
+                "evidence_used": [
+                  "Confirme que la fatigue est le vrai blocage",
+                  "Question produit sur la carte d'attaque",
+                  "Avancé un peu mais fragile"
+                ]
+              },
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "visible_fallback_used": false,
+              "qa_green_eligible": true,
+              "no_chat_mutation": true,
+              "no_durable_plan_mutation": true,
+              "evidence": [
+                "Confirme que la fatigue est le vrai blocage",
+                "Question produit sur la carte d'attaque",
+                "Avancé un peu mais fragile"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "weekly-full-r2-partial_habits_mission_partial-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-full-r2-partial_habits_mission_partial-t01",
+            "source_message_id": "33990dc7-f623-4042-b076-9c5e655a202f",
+            "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_inline_tool_roundtrip",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "inline_tool_roundtrip",
+            "flow_action": "inline_tool_roundtrip",
+            "visible_task": "inline_tool_return",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "explicit_tool_request",
+              "summary": "Le user confirme la fatigue comme blocage majeur et pose une question produit sur la localisation des cartes d'attaque."
+            },
+            "handoff_updates": {
+              "status": "none",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": null,
+            "target_dispatcher": "product_help",
+            "note_information": {
+              "source_flow_id": "weekly_adaptive_review_v1",
+              "handoff_reason": "inline_tool",
+              "target_dispatcher": "product_help",
+              "handoff_context_for_next_dispatcher": "The user is performing their weekly review. They confirmed fatigue as the main blocker but have a quick question about where to find attack cards. Answer them and return to the weekly flow.",
+              "user_words": [
+                "si plus tard on prépare une carte d'attaque, je la retrouve où dans Sophia ?"
+              ],
+              "structured_context": {
+                "weekly_stage": "strategy_ready",
+                "confirmed_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_progress": "worried",
+                  "felt_state": "tired_but_ok",
+                  "blocker": "fatigue"
+                },
+                "recommended_next_focus": "Answer product question then resume weekly strategy validation."
+              },
+              "confidence": "high"
+            },
+            "conversation_context": {
+              "state_summary": "Le user confirme la fatigue comme blocage majeur et pose une question produit sur la localisation des cartes d'attaque.",
+              "user_words": [
+                "si plus tard on prépare une carte d'attaque, je la retrouve où dans Sophia ?"
+              ],
+              "week_window": {
+                "start_date": "2026-06-08",
+                "end_date": "2026-06-14"
+              },
+              "field_or_stage": "inline_tool_return",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "unknown",
+                  "felt_state": "unknown"
+                },
+                "felt_progress": "unknown",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "proposal_status": "none",
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null
+                },
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [],
+              "weekly_reading": {
+                "strategy_label_human": "semaine plus legere",
+                "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "fca2500d-86ed-4a30-b73d-9be620ce1e46",
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "action_count": 6
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "occurrence_id": "6ea0dc29-e74c-4898-935d-58e532e9af59",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "occurrence_id": "1b307a33-624e-4271-9976-66a5febace0c",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai commence mais trop fatigue",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai commence mais trop fatigue",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "occurrence_id": "8ffe4eb2-1273-4986-94e1-229ef9713a75",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "trop lourd en fin de semaine",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "too_hard",
+                    "matched_user_text": "trop lourd en fin de semaine",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                  "occurrence_id": "5f37a63a-d4bc-4410-ab4d-3e6e04f5742c",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                  "occurrence_id": "288f748d-048a-44d4-9c1c-c4f0a924e9d4",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai zappe en rentrant tard",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai zappe en rentrant tard",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "f0820de9-5128-45eb-a858-72cd7071b79f",
+                  "occurrence_id": "194dc4a1-fcb8-44f2-be7a-89f06b29d2d2",
+                  "title": "Convenir d'un signal de pause",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "message brouillon fait mais pas envoye",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "context",
+                    "matched_user_text": "message brouillon fait mais pas envoye",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "no_chat_mutation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "plan_patch",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan"
+              ],
+              "context_summary": null,
+              "evidence_used": [
+                "Confirme que la fatigue est le vrai blocage",
+                "Question produit sur la carte d'attaque",
+                "Avancé un peu mais fragile"
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "Confirme que la fatigue est le vrai blocage",
+              "Question produit sur la carte d'attaque",
+              "Avancé un peu mais fragile"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-full-r2-partial_habits_mission_partial-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-06-12T13:35:23.253Z",
+      "user": "Ok, revenons au weekly. Oui, cette direction me va: il faut alléger la semaine prochaine. Je préfère garder le partage positif mais seulement deux fois, et rendre la respiration de pause vraiment mini. Tu peux préparer l'ajustement du Plan dans ce sens ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est entendu, on va alléger tes actions pour la semaine prochaine afin de mieux gérer ta fatigue. L'idée est de réduire la fréquence du partage positif et de passer sur une version très courte pour la respiration de pause.\n\nPour finaliser cela, rends-toi dans ton Plan : tu trouveras l'outil « Ajuster mon plan » juste sous ton niveau actif. Tu pourras y saisir cette proposition :\n\nAlléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-full-r2-partial_habits_mission_partial-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-full-r2-partial_habits_mission_partial-t02",
+        "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-full-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est entendu, on va alléger tes actions pour la semaine prochaine afin de mieux gérer ta fatigue. L'idée est de réduire la fréquence du partage positif et de passer sur une version très courte pour la respiration de pause.\n\nPour finaliser cela, rends-toi dans ton Plan : tu trouveras l'outil « Ajuster mon plan » juste sous ton niveau actif. Tu pourras y saisir cette proposition :\n\nAlléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "weekly-full-r2-partial_habits_mission_partial-t02",
+              "source_message_id": "16f438a2-9746-45b4-90bd-b7c586cfeaa5",
+              "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "adjust_plan_item",
+                  "explicitness": "explicit",
+                  "operation_input": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "source_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                    "handoff_reason": "explicit_user_request",
+                    "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+                    "structured_context": {
+                      "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                      "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff",
+                        "strategy": "bridge_week"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+                    },
+                    "note_information": {
+                      "source_flow_id": "weekly_adaptive_review_v1",
+                      "handoff_reason": "explicit_user_request",
+                      "target_dispatcher": "adjust_plan_item",
+                      "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+                      "user_words": [
+                        "garder le partage positif mais seulement deux fois",
+                        "rendre la respiration de pause vraiment mini",
+                        "Ok, revenons au weekly. Oui, cette direction me va: il faut alléger la semaine prochaine. Je préfère garder le partage positif mais seulement deux fois, et rendre la respiration de pause vraiment mini. Tu peux préparer l'ajustement du Plan dans ce sens ?"
+                      ],
+                      "structured_context": {
+                        "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                        "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                        "collected_state": {
+                          "return_to_weekly": true,
+                          "weekly_stage": "plan_handoff",
+                          "strategy": "bridge_week"
+                        },
+                        "unresolved_questions": [],
+                        "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+                      },
+                      "confidence": "high"
+                    }
+                  },
+                  "payload_hint": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "note_information": {
+                      "source_flow_id": "weekly_adaptive_review_v1",
+                      "handoff_reason": "explicit_user_request",
+                      "target_dispatcher": "adjust_plan_item",
+                      "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+                      "user_words": [
+                        "garder le partage positif mais seulement deux fois",
+                        "rendre la respiration de pause vraiment mini",
+                        "Ok, revenons au weekly. Oui, cette direction me va: il faut alléger la semaine prochaine. Je préfère garder le partage positif mais seulement deux fois, et rendre la respiration de pause vraiment mini. Tu peux préparer l'ajustement du Plan dans ce sens ?"
+                      ],
+                      "structured_context": {
+                        "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                        "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                        "collected_state": {
+                          "return_to_weekly": true,
+                          "weekly_stage": "plan_handoff",
+                          "strategy": "bridge_week"
+                        },
+                        "unresolved_questions": [],
+                        "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+                      },
+                      "confidence": "high"
+                    }
+                  },
+                  "confidence_band": "high",
+                  "ambiguity": "target_ambiguous",
+                  "user_intent": "adjust"
+                }
+              ],
+              "note_information": {
+                "source_flow_id": "weekly_adaptive_review_v1",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "adjust_plan_item",
+                "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+                "user_words": [
+                  "garder le partage positif mais seulement deux fois",
+                  "rendre la respiration de pause vraiment mini",
+                  "Ok, revenons au weekly. Oui, cette direction me va: il faut alléger la semaine prochaine. Je préfère garder le partage positif mais seulement deux fois, et rendre la respiration de pause vraiment mini. Tu peux préparer l'ajustement du Plan dans ce sens ?"
+                ],
+                "structured_context": {
+                  "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                  "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                  "collected_state": {
+                    "return_to_weekly": true,
+                    "weekly_stage": "plan_handoff",
+                    "strategy": "bridge_week"
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {
+                  "adjust_plan_item": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "weekly_adaptive_review_v1_handoff"
+                  }
+                }
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "adjust_plan_item",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item_skips_global_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "adjust_plan_item",
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "status": "draft_delivered",
+              "operation_id": null,
+              "input_draft": {
+                "operation_type": "adjust_plan_item",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_blocker_summary": "alléger la semaine prochaine à cause de la fatigue",
+                "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                "preserve": [
+                  "partage positif",
+                  "respiration de pause"
+                ],
+                "avoid": [],
+                "destination": {
+                  "product_area": "Plan",
+                  "instruction": "Reprendre cette proposition dans la surface Plan."
+                },
+                "missing_clarity": []
+              },
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "platform_handoff": {
+                "operation_type": "adjust_plan_item",
+                "status": "delivered",
+                "surface_id": "plan",
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "adjust_plan_item",
+                  "mode": "platform_handoff",
+                  "no_chat_mutation": true,
+                  "executable_from_chat": false,
+                  "user_blocker_summary": "alléger la semaine prochaine à cause de la fatigue",
+                  "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                  "preserve": [
+                    "partage positif",
+                    "respiration de pause"
+                  ],
+                  "avoid": [],
+                  "destination": {
+                    "product_area": "Plan",
+                    "instruction": "Reprendre cette proposition dans la surface Plan."
+                  },
+                  "missing_clarity": []
+                }
+              },
+              "skill_result": {
+                "handled": true,
+                "status": "handoff_delivered",
+                "user_intent": "start",
+                "reply": "C'est entendu, on va alléger tes actions pour la semaine prochaine afin de mieux gérer ta fatigue. L'idée est de réduire la fréquence du partage positif et de passer sur une version très courte pour la respiration de pause.\n\nPour finaliser cela, rends-toi dans ton Plan : tu trouveras l'outil « Ajuster mon plan » juste sous ton niveau actif. Tu pourras y saisir cette proposition :\n\nAlléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                "requested_effects": [],
+                "allowed_effects": [],
+                "blocked_effects": [],
+                "committed_effects": [],
+                "pending_confirmation": null,
+                "debug": {
+                  "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+                }
+              },
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "pending_confirmation": null,
+              "flow_action": "prepare_plan_handoff",
+              "local_flow_state": {
+                "skill_id": "adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "mode": "platform_handoff",
+                "status": "handoff_delivered",
+                "stage": "handoff",
+                "scope": {
+                  "kind": "specific_plan_item",
+                  "confidence": "high",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "level_id": null,
+                  "level_title": null,
+                  "plan_item_ids": [
+                    "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "75947912-3d10-4d9b-abd2-71b80012cfe5"
+                  ],
+                  "target_summary": "Partager un point positif et Respiration de pause",
+                  "needs_scope_clarification": false
+                },
+                "adjustment_need": {
+                  "reason_change": "alléger la semaine prochaine à cause de la fatigue",
+                  "requested_change": "Réduire le partage positif à 2 fois par semaine et rendre la respiration de pause 'mini' (très courte).",
+                  "change_kind": "reduce",
+                  "constraints": [
+                    "semaine prochaine"
+                  ],
+                  "preserve": [
+                    "partage positif",
+                    "respiration de pause"
+                  ],
+                  "avoid": [],
+                  "missing": []
+                },
+                "platform_handoff": {
+                  "status": "delivered",
+                  "destination": "Plan",
+                  "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                  "grouped_by_plan": [],
+                  "previous_value": null,
+                  "revised_value": null
+                },
+                "last_visible_task": "plan_handoff_ready",
+                "last_handoff_summary": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                "turn_count": 1,
+                "subskill_history": []
+              },
+              "visible_task": {
+                "kind": "plan_handoff_ready"
+              },
+              "conversation_context": {
+                "state_summary": "Le user souhaite alléger deux actions pour la semaine prochaine : réduire la fréquence du partage positif et l'intensité de la respiration.",
+                "user_words": [
+                  "alléger la semaine prochaine",
+                  "partage positif mais seulement deux fois",
+                  "respiration de pause vraiment mini"
+                ],
+                "field_or_stage": "handoff",
+                "known_values": {
+                  "scope": {
+                    "kind": "specific_plan_item",
+                    "confidence": "high",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "level_id": null,
+                    "level_title": null,
+                    "plan_item_ids": [
+                      "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                      "75947912-3d10-4d9b-abd2-71b80012cfe5"
+                    ],
+                    "target_summary": "Partager un point positif et Respiration de pause",
+                    "needs_scope_clarification": false
+                  },
+                  "adjustment_need": {
+                    "reason_change": "alléger la semaine prochaine à cause de la fatigue",
+                    "requested_change": "Réduire le partage positif à 2 fois par semaine et rendre la respiration de pause 'mini' (très courte).",
+                    "change_kind": "reduce",
+                    "constraints": [
+                      "semaine prochaine"
+                    ],
+                    "preserve": [
+                      "partage positif",
+                      "respiration de pause"
+                    ],
+                    "avoid": [],
+                    "missing": []
+                  },
+                  "constraints": [
+                    "semaine prochaine"
+                  ],
+                  "preserve": [
+                    "partage positif",
+                    "respiration de pause"
+                  ],
+                  "avoid": []
+                },
+                "missing_or_weak_values": [],
+                "selected_candidate": {
+                  "plan_item_ids": [
+                    "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "75947912-3d10-4d9b-abd2-71b80012cfe5"
+                  ],
+                  "plan_id": null,
+                  "plan_title": null,
+                  "level_id": null,
+                  "level_title": null,
+                  "target_summary": "Partager un point positif et Respiration de pause",
+                  "scope_kind": "specific_plan_item",
+                  "scope_confidence": "high"
+                },
+                "handoff_data": {
+                  "destination": "Plan",
+                  "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                  "grouped_by_plan": [],
+                  "previous_value": null,
+                  "revised_value": null
+                },
+                "tone_constraints": [],
+                "do_not_say": [
+                  "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                  "Ne mentionne pas les labels internes du dispatcher.",
+                  "Ne dis pas que le Plan est déjà modifié ou sauvegardé.",
+                  "Ne dis pas que Sophia a appliqué les changements."
+                ],
+                "context_summary": "Proposition d'ajustement prête à être reprise dans l'outil Plan.",
+                "evidence_used": [
+                  "alléger la semaine prochaine",
+                  "partage positif mais seulement deux fois",
+                  "respiration de pause vraiment mini",
+                  "alléger la semaine prochaine",
+                  "partage positif mais seulement deux fois",
+                  "respiration de pause vraiment mini"
+                ]
+              },
+              "handoff_core": {
+                "target_to_modify": "Partager un point positif et Respiration de pause",
+                "reason_change": "alléger la semaine prochaine à cause de la fatigue",
+                "requested_change": "Réduire le partage positif à 2 fois par semaine et rendre la respiration de pause 'mini' (très courte).",
+                "change_kind": "reduce",
+                "has_core_triptych": true,
+                "missing_or_weak_values": []
+              },
+              "risk_score": 0,
+              "runtime_trace": [
+                {
+                  "component": "adjust_plan_item.visible_agent",
+                  "stage": "plan_handoff_ready",
+                  "accepted": true,
+                  "issues": []
+                }
+              ]
+            },
+            "effect_ledger": {
+              "turn_id": "weekly-full-r2-partial_habits_mission_partial-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "weekly-full-r2-partial_habits_mission_partial-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.adjust_plan_item",
+                  "operation_type": "adjust_plan_item",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "adjust_plan_item",
+                  "status": "delivered",
+                  "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "no_chat_mutation": true,
+                    "status": "draft_delivered",
+                    "surface_id": "plan"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "plan",
+                  "no_chat_mutation": true,
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-full-r2-partial_habits_mission_partial-t02",
+            "source_message_id": "16f438a2-9746-45b4-90bd-b7c586cfeaa5",
+            "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "adjust_plan_item",
+                "explicitness": "explicit",
+                "operation_input": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "source_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                  "handoff_reason": "explicit_user_request",
+                  "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+                  "structured_context": {
+                    "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                    "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                    "collected_state": {
+                      "return_to_weekly": true,
+                      "weekly_stage": "plan_handoff",
+                      "strategy": "bridge_week"
+                    },
+                    "unresolved_questions": [],
+                    "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+                  },
+                  "note_information": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "handoff_reason": "explicit_user_request",
+                    "target_dispatcher": "adjust_plan_item",
+                    "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+                    "user_words": [
+                      "garder le partage positif mais seulement deux fois",
+                      "rendre la respiration de pause vraiment mini",
+                      "Ok, revenons au weekly. Oui, cette direction me va: il faut alléger la semaine prochaine. Je préfère garder le partage positif mais seulement deux fois, et rendre la respiration de pause vraiment mini. Tu peux préparer l'ajustement du Plan dans ce sens ?"
+                    ],
+                    "structured_context": {
+                      "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                      "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff",
+                        "strategy": "bridge_week"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+                    },
+                    "confidence": "high"
+                  }
+                },
+                "payload_hint": {
+                  "source_flow_id": "weekly_adaptive_review_v1",
+                  "note_information": {
+                    "source_flow_id": "weekly_adaptive_review_v1",
+                    "handoff_reason": "explicit_user_request",
+                    "target_dispatcher": "adjust_plan_item",
+                    "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+                    "user_words": [
+                      "garder le partage positif mais seulement deux fois",
+                      "rendre la respiration de pause vraiment mini",
+                      "Ok, revenons au weekly. Oui, cette direction me va: il faut alléger la semaine prochaine. Je préfère garder le partage positif mais seulement deux fois, et rendre la respiration de pause vraiment mini. Tu peux préparer l'ajustement du Plan dans ce sens ?"
+                    ],
+                    "structured_context": {
+                      "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                      "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                      "collected_state": {
+                        "return_to_weekly": true,
+                        "weekly_stage": "plan_handoff",
+                        "strategy": "bridge_week"
+                      },
+                      "unresolved_questions": [],
+                      "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+                    },
+                    "confidence": "high"
+                  }
+                },
+                "confidence_band": "high",
+                "ambiguity": "target_ambiguous",
+                "user_intent": "adjust"
+              }
+            ],
+            "note_information": {
+              "source_flow_id": "weekly_adaptive_review_v1",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "adjust_plan_item",
+              "handoff_context_for_next_dispatcher": "User wants to lighten next week's plan: 'Partager un point positif' reduced to 2x/week and 'Respiration de pause' made very short. This is a child flow of the weekly review.",
+              "user_words": [
+                "garder le partage positif mais seulement deux fois",
+                "rendre la respiration de pause vraiment mini",
+                "Ok, revenons au weekly. Oui, cette direction me va: il faut alléger la semaine prochaine. Je préfère garder le partage positif mais seulement deux fois, et rendre la respiration de pause vraiment mini. Tu peux préparer l'ajustement du Plan dans ce sens ?"
+              ],
+              "structured_context": {
+                "user_message_summary": "Demande d'ajustement de plan pour alléger la charge.",
+                "active_flow_summary": "Weekly review is the parent flow, waiting for plan adjustment to conclude.",
+                "collected_state": {
+                  "return_to_weekly": true,
+                  "weekly_stage": "plan_handoff",
+                  "strategy": "bridge_week"
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "Prepare the plan adjustment for the two items mentioned."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "adjust_plan_item": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "weekly_adaptive_review_v1_handoff"
+                }
+              }
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "adjust_plan_item",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item_skips_global_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "weekly_adaptive_review_v1_handoff_to_adjust_plan_item",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+            "operation_type": "adjust_plan_item",
+            "mode": "platform_handoff",
+            "status": "draft_delivered",
+            "operation_id": null,
+            "input_draft": {
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "user_blocker_summary": "alléger la semaine prochaine à cause de la fatigue",
+              "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+              "preserve": [
+                "partage positif",
+                "respiration de pause"
+              ],
+              "avoid": [],
+              "destination": {
+                "product_area": "Plan",
+                "instruction": "Reprendre cette proposition dans la surface Plan."
+              },
+              "missing_clarity": []
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "blocked_effects": [],
+            "committed_effects": [],
+            "platform_handoff": {
+              "operation_type": "adjust_plan_item",
+              "status": "delivered",
+              "surface_id": "plan",
+              "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+              "no_chat_mutation": true,
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "adjust_plan_item",
+                "mode": "platform_handoff",
+                "no_chat_mutation": true,
+                "executable_from_chat": false,
+                "user_blocker_summary": "alléger la semaine prochaine à cause de la fatigue",
+                "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                "preserve": [
+                  "partage positif",
+                  "respiration de pause"
+                ],
+                "avoid": [],
+                "destination": {
+                  "product_area": "Plan",
+                  "instruction": "Reprendre cette proposition dans la surface Plan."
+                },
+                "missing_clarity": []
+              }
+            },
+            "skill_result": {
+              "handled": true,
+              "status": "handoff_delivered",
+              "user_intent": "start",
+              "reply": "C'est entendu, on va alléger tes actions pour la semaine prochaine afin de mieux gérer ta fatigue. L'idée est de réduire la fréquence du partage positif et de passer sur une version très courte pour la respiration de pause.\n\nPour finaliser cela, rends-toi dans ton Plan : tu trouveras l'outil « Ajuster mon plan » juste sous ton niveau actif. Tu pourras y saisir cette proposition :\n\nAlléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "committed_effects": [],
+              "pending_confirmation": null,
+              "debug": {
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+              }
+            },
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "pending_confirmation": null,
+            "flow_action": "prepare_plan_handoff",
+            "local_flow_state": {
+              "skill_id": "adjust_plan_item",
+              "operation_type": "adjust_plan_item",
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "stage": "handoff",
+              "scope": {
+                "kind": "specific_plan_item",
+                "confidence": "high",
+                "plan_id": null,
+                "plan_title": null,
+                "level_id": null,
+                "level_title": null,
+                "plan_item_ids": [
+                  "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "75947912-3d10-4d9b-abd2-71b80012cfe5"
+                ],
+                "target_summary": "Partager un point positif et Respiration de pause",
+                "needs_scope_clarification": false
+              },
+              "adjustment_need": {
+                "reason_change": "alléger la semaine prochaine à cause de la fatigue",
+                "requested_change": "Réduire le partage positif à 2 fois par semaine et rendre la respiration de pause 'mini' (très courte).",
+                "change_kind": "reduce",
+                "constraints": [
+                  "semaine prochaine"
+                ],
+                "preserve": [
+                  "partage positif",
+                  "respiration de pause"
+                ],
+                "avoid": [],
+                "missing": []
+              },
+              "platform_handoff": {
+                "status": "delivered",
+                "destination": "Plan",
+                "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                "grouped_by_plan": [],
+                "previous_value": null,
+                "revised_value": null
+              },
+              "last_visible_task": "plan_handoff_ready",
+              "last_handoff_summary": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+              "turn_count": 1,
+              "subskill_history": []
+            },
+            "visible_task": {
+              "kind": "plan_handoff_ready"
+            },
+            "conversation_context": {
+              "state_summary": "Le user souhaite alléger deux actions pour la semaine prochaine : réduire la fréquence du partage positif et l'intensité de la respiration.",
+              "user_words": [
+                "alléger la semaine prochaine",
+                "partage positif mais seulement deux fois",
+                "respiration de pause vraiment mini"
+              ],
+              "field_or_stage": "handoff",
+              "known_values": {
+                "scope": {
+                  "kind": "specific_plan_item",
+                  "confidence": "high",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "level_id": null,
+                  "level_title": null,
+                  "plan_item_ids": [
+                    "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "75947912-3d10-4d9b-abd2-71b80012cfe5"
+                  ],
+                  "target_summary": "Partager un point positif et Respiration de pause",
+                  "needs_scope_clarification": false
+                },
+                "adjustment_need": {
+                  "reason_change": "alléger la semaine prochaine à cause de la fatigue",
+                  "requested_change": "Réduire le partage positif à 2 fois par semaine et rendre la respiration de pause 'mini' (très courte).",
+                  "change_kind": "reduce",
+                  "constraints": [
+                    "semaine prochaine"
+                  ],
+                  "preserve": [
+                    "partage positif",
+                    "respiration de pause"
+                  ],
+                  "avoid": [],
+                  "missing": []
+                },
+                "constraints": [
+                  "semaine prochaine"
+                ],
+                "preserve": [
+                  "partage positif",
+                  "respiration de pause"
+                ],
+                "avoid": []
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {
+                "plan_item_ids": [
+                  "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "75947912-3d10-4d9b-abd2-71b80012cfe5"
+                ],
+                "plan_id": null,
+                "plan_title": null,
+                "level_id": null,
+                "level_title": null,
+                "target_summary": "Partager un point positif et Respiration de pause",
+                "scope_kind": "specific_plan_item",
+                "scope_confidence": "high"
+              },
+              "handoff_data": {
+                "destination": "Plan",
+                "suggested_platform_input": "Alléger le programme : passer 'Partager un point positif' à 2x/semaine et simplifier 'Respiration de pause' en version mini pour la semaine prochaine.",
+                "grouped_by_plan": [],
+                "previous_value": null,
+                "revised_value": null
+              },
+              "tone_constraints": [],
+              "do_not_say": [
+                "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+                "Ne mentionne pas les labels internes du dispatcher.",
+                "Ne dis pas que le Plan est déjà modifié ou sauvegardé.",
+                "Ne dis pas que Sophia a appliqué les changements."
+              ],
+              "context_summary": "Proposition d'ajustement prête à être reprise dans l'outil Plan.",
+              "evidence_used": [
+                "alléger la semaine prochaine",
+                "partage positif mais seulement deux fois",
+                "respiration de pause vraiment mini",
+                "alléger la semaine prochaine",
+                "partage positif mais seulement deux fois",
+                "respiration de pause vraiment mini"
+              ]
+            },
+            "handoff_core": {
+              "target_to_modify": "Partager un point positif et Respiration de pause",
+              "reason_change": "alléger la semaine prochaine à cause de la fatigue",
+              "requested_change": "Réduire le partage positif à 2 fois par semaine et rendre la respiration de pause 'mini' (très courte).",
+              "change_kind": "reduce",
+              "has_core_triptych": true,
+              "missing_or_weak_values": []
+            },
+            "risk_score": 0,
+            "runtime_trace": [
+              {
+                "component": "adjust_plan_item.visible_agent",
+                "stage": "plan_handoff_ready",
+                "accepted": true,
+                "issues": []
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-full-r2-partial_habits_mission_partial-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "weekly-full-r2-partial_habits_mission_partial-t02:platform_handoff:delivered:adjust_plan_item:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.adjust_plan_item",
+                "operation_type": "adjust_plan_item",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "adjust_plan_item",
+                "status": "delivered",
+                "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "no_chat_mutation": true,
+                  "status": "draft_delivered",
+                  "surface_id": "plan"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "plan",
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-06-12T13:36:09.848Z",
+      "user": "Ok, c'est clair pour le Plan, je le ferai dans l'outil. Pour le weekly, je retiens que je progresse mais que la fatigue impose une semaine plus légère. On peut conclure comme ça.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est entendu. On reste sur cet objectif de simplifier pour la suite : deux partages positifs et des respirations très courtes pour respecter ton niveau d'énergie. On se retrouve dans ton plan pour démarrer ?",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-full-r2-partial_habits_mission_partial-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-full-r2-partial_habits_mission_partial-t03",
+        "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-full-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est entendu. On reste sur cet objectif de simplifier pour la suite : deux partages positifs et des respirations très courtes pour respecter ton niveau d'énergie. On se retrouve dans ton plan pour démarrer ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "weekly-full-r2-partial_habits_mission_partial-t03",
+              "source_message_id": "bdf7fd00-7794-409d-a409-52a0f8d1688e",
+              "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "weekly_adaptive_review_v1",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_weekly_review_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_weekly_review_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "weekly_adaptive_review_v1",
+              "reason_code": "weekly_review_local_complete_flow",
+              "operation_type": "weekly_adaptive_review_v1",
+              "status": "closed",
+              "flow_action": "complete_flow",
+              "visible_task": "complete_no_change",
+              "confidence": "high",
+              "risk_score": 0,
+              "weekly_intent": {
+                "kind": "weekly_confirmation",
+                "summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly."
+              },
+              "handoff_updates": {
+                "status": "delivered",
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "platform_destination": "Plan",
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                }
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null
+              },
+              "local_flow_state": {
+                "stage": "closing",
+                "proposal_status": "handoff_delivered",
+                "validation_unlock_status": "available",
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "neutral",
+                "last_user_signal": "Progression reconnue mais fatigue confirmée comme levier d'ajustement.",
+                "last_visible_summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly.",
+                "last_handoff_summary": "Garder le partage positif 2 fois par semaine et rendre la respiration de pause très courte.",
+                "child_flow": {
+                  "status": "completed",
+                  "flow_id": "adjust_plan_item",
+                  "reason": "Le user confirme l'allègement et demande d'ajuster le partage positif (2x) et la respiration (mini).",
+                  "expected_return_focus": "weekly_synthesis_and_closure",
+                  "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+                },
+                "turn_count": 2,
+                "max_turns": 6,
+                "updated_at": "2026-06-12T13:36:18.776Z"
+              },
+              "target_dispatcher": "none",
+              "note_information": null,
+              "conversation_context": {
+                "state_summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly.",
+                "user_words": [],
+                "week_window": {
+                  "start_date": "2026-06-08",
+                  "end_date": "2026-06-14"
+                },
+                "field_or_stage": "complete_no_change",
+                "known_values": {
+                  "human_signals": {
+                    "objective_delta": "slight_progress",
+                    "felt_state": "tired_but_ok"
+                  },
+                  "felt_progress": "neutral",
+                  "validation_unlock_status": "available",
+                  "proposal_status": "handoff_delivered",
+                  "child_flow": {
+                    "status": "completed",
+                    "flow_id": "adjust_plan_item",
+                    "reason": "Le user confirme l'allègement et demande d'ajuster le partage positif (2x) et la respiration (mini).",
+                    "expected_return_focus": "weekly_synthesis_and_closure",
+                    "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+                  },
+                  "dominant_blocker_confirmation": "confirmed"
+                },
+                "missing_or_weak_values": [],
+                "weekly_reading": {
+                  "strategy_label_human": "semaine plus legere",
+                  "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                  "confidence": "high"
+                },
+                "plan_contexts": [
+                  {
+                    "transformation_id": "fca2500d-86ed-4a30-b73d-9be620ce1e46",
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "action_count": 6
+                  }
+                ],
+                "item_summaries": [
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "occurrence_id": "6ea0dc29-e74c-4898-935d-58e532e9af59",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "occurrence_id": "1b307a33-624e-4271-9976-66a5febace0c",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai commence mais trop fatigue",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai commence mais trop fatigue",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                    "occurrence_id": "8ffe4eb2-1273-4986-94e1-229ef9713a75",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "trop lourd en fin de semaine",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "too_hard",
+                      "matched_user_text": "trop lourd en fin de semaine",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                    "occurrence_id": "5f37a63a-d4bc-4410-ab4d-3e6e04f5742c",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                    "occurrence_id": "288f748d-048a-44d4-9c1c-c4f0a924e9d4",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai zappe en rentrant tard",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai zappe en rentrant tard",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "f0820de9-5128-45eb-a858-72cd7071b79f",
+                    "occurrence_id": "194dc4a1-fcb8-44f2-be7a-89f06b29d2d2",
+                    "title": "Convenir d'un signal de pause",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "message brouillon fait mais pas envoye",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "context",
+                      "matched_user_text": "message brouillon fait mais pas envoye",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  }
+                ],
+                "handoff_data": {
+                  "summary": "Garder le partage positif 2 fois par semaine et rendre la respiration de pause très courte.",
+                  "platform_destination": "Plan",
+                  "scope": {
+                    "kind": "none",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "plan_item_ids": [],
+                    "scope_summary": null,
+                    "needs_scope_clarification": false
+                  },
+                  "requested_adjustment_summary": null,
+                  "revision_summary": null,
+                  "no_chat_mutation": true
+                },
+                "forgotten_progress": {
+                  "status": "none",
+                  "target_hint": null,
+                  "outcome_hint": null,
+                  "evidence": null,
+                  "no_plan_adjustment": true
+                },
+                "inline_result": {},
+                "tone_constraints": [
+                  "compact",
+                  "one_question_max_when_asking",
+                  "human_language"
+                ],
+                "do_not_say": [
+                  "bridge_week",
+                  "carry_over",
+                  "repeat_week",
+                  "level_review",
+                  "plan_patch",
+                  "item_decision",
+                  "dominant_blocker",
+                  "applique",
+                  "modifie le plan",
+                  "valide le plan",
+                  "enregistre le plan"
+                ],
+                "context_summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly.",
+                "evidence_used": [
+                  "je retiens que je progresse",
+                  "la fatigue impose une semaine plus légère",
+                  "On peut conclure comme ça"
+                ]
+              },
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "visible_fallback_used": false,
+              "qa_green_eligible": true,
+              "no_chat_mutation": true,
+              "no_durable_plan_mutation": true,
+              "evidence": [
+                "je retiens que je progresse",
+                "la fatigue impose une semaine plus légère",
+                "On peut conclure comme ça"
+              ],
+              "toolExecution": "none",
+              "executedTools": []
+            },
+            "effect_ledger": {
+              "turn_id": "weekly-full-r2-partial_habits_mission_partial-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "weekly-full-r2-partial_habits_mission_partial-t03",
+            "source_message_id": "bdf7fd00-7794-409d-a409-52a0f8d1688e",
+            "user_id": "2a1e1dc1-cfe2-4ee7-927f-f1c3ce9fa0cd",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_weekly_review_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_weekly_review_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "reason_code": "weekly_review_local_complete_flow",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "closed",
+            "flow_action": "complete_flow",
+            "visible_task": "complete_no_change",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_confirmation",
+              "summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly."
+            },
+            "handoff_updates": {
+              "status": "delivered",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": "Plan",
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "closing",
+              "proposal_status": "handoff_delivered",
+              "validation_unlock_status": "available",
+              "human_signals": {
+                "objective_delta": "slight_progress",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "neutral",
+              "last_user_signal": "Progression reconnue mais fatigue confirmée comme levier d'ajustement.",
+              "last_visible_summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly.",
+              "last_handoff_summary": "Garder le partage positif 2 fois par semaine et rendre la respiration de pause très courte.",
+              "child_flow": {
+                "status": "completed",
+                "flow_id": "adjust_plan_item",
+                "reason": "Le user confirme l'allègement et demande d'ajuster le partage positif (2x) et la respiration (mini).",
+                "expected_return_focus": "weekly_synthesis_and_closure",
+                "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+              },
+              "turn_count": 2,
+              "max_turns": 6,
+              "updated_at": "2026-06-12T13:36:18.776Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly.",
+              "user_words": [],
+              "week_window": {
+                "start_date": "2026-06-08",
+                "end_date": "2026-06-14"
+              },
+              "field_or_stage": "complete_no_change",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "slight_progress",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "neutral",
+                "validation_unlock_status": "available",
+                "proposal_status": "handoff_delivered",
+                "child_flow": {
+                  "status": "completed",
+                  "flow_id": "adjust_plan_item",
+                  "reason": "Le user confirme l'allègement et demande d'ajuster le partage positif (2x) et la respiration (mini).",
+                  "expected_return_focus": "weekly_synthesis_and_closure",
+                  "result_summary": "adjust_plan_item_local_plan_handoff_ready"
+                },
+                "dominant_blocker_confirmation": "confirmed"
+              },
+              "missing_or_weak_values": [],
+              "weekly_reading": {
+                "strategy_label_human": "semaine plus legere",
+                "reason_human": "La traction existe, mais les blocages indiquent une charge a alleger.",
+                "confidence": "high"
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "fca2500d-86ed-4a30-b73d-9be620ce1e46",
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "action_count": 6
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "occurrence_id": "6ea0dc29-e74c-4898-935d-58e532e9af59",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "occurrence_id": "1b307a33-624e-4271-9976-66a5febace0c",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai commence mais trop fatigue",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai commence mais trop fatigue",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a06ef621-0947-4ec4-b68d-1f9d30516b7a",
+                  "occurrence_id": "8ffe4eb2-1273-4986-94e1-229ef9713a75",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "trop lourd en fin de semaine",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "too_hard",
+                    "matched_user_text": "trop lourd en fin de semaine",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                  "occurrence_id": "5f37a63a-d4bc-4410-ab4d-3e6e04f5742c",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "75947912-3d10-4d9b-abd2-71b80012cfe5",
+                  "occurrence_id": "288f748d-048a-44d4-9c1c-c4f0a924e9d4",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai zappe en rentrant tard",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai zappe en rentrant tard",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "abedcacd-7768-4858-bde9-27f4f6edfde5",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "f0820de9-5128-45eb-a858-72cd7071b79f",
+                  "occurrence_id": "194dc4a1-fcb8-44f2-be7a-89f06b29d2d2",
+                  "title": "Convenir d'un signal de pause",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "message brouillon fait mais pas envoye",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "context",
+                    "matched_user_text": "message brouillon fait mais pas envoye",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": "Garder le partage positif 2 fois par semaine et rendre la respiration de pause très courte.",
+                "platform_destination": "Plan",
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "no_chat_mutation": true
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "plan_patch",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan"
+              ],
+              "context_summary": "Le user valide la synthèse (progrès malgré la fatigue) et souhaite conclure le weekly.",
+              "evidence_used": [
+                "je retiens que je progresse",
+                "la fatigue impose une semaine plus légère",
+                "On peut conclure comme ça"
+              ]
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_chat_mutation": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "je retiens que je progresse",
+              "la fatigue impose une semaine plus légère",
+              "On peut conclure comme ça"
+            ],
+            "toolExecution": "none",
+            "executedTools": []
+          },
+          "effect_ledger": {
+            "turn_id": "weekly-full-r2-partial_habits_mission_partial-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-12T13:36:21.896Z"
+}

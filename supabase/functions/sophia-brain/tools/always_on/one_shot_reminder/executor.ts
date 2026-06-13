@@ -39,6 +39,42 @@ import {
 } from "./time_parser.ts";
 let reminderWriteClient: SupabaseClient | null = null;
 
+function cleanReminderInstructionForStorage(value: string): string {
+  return compactText(
+    String(value ?? "")
+      .replace(/\s+/g, " ")
+      .replace(/\s+([,.;:!?])/g, "$1")
+      .replace(/[,.;:\s]+$/g, "")
+      .trim(),
+    220,
+  );
+}
+
+export function buildOneShotReminderMessagePayload(args: {
+  instruction: string;
+  requestText?: string | null;
+  timezone: string;
+  parseSource?: string | null;
+  sourceMessageId?: string | null;
+}): Record<string, unknown> {
+  const instruction = cleanReminderInstructionForStorage(args.instruction);
+  return {
+    source: "one_shot_reminder_executor",
+    reminder_kind: "one_shot",
+    reminder_instruction: instruction,
+    instruction:
+      `Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: ${instruction}.`,
+    event_grounding: compactText(
+      `L'utilisateur a demandé explicitement un rappel ponctuel à propos de: ${instruction}.`,
+      240,
+    ),
+    request_text: compactText(args.requestText ?? "", 500),
+    user_timezone: args.timezone,
+    parse_source: args.parseSource ?? "router",
+    source_message_id: args.sourceMessageId ?? null,
+  };
+}
+
 function isLocalSupabaseUrl(url: string): boolean {
   try {
     const host = new URL(String(url ?? "")).hostname.toLowerCase();
@@ -109,7 +145,9 @@ async function createReminderFromEffect(args: {
   locale: string;
 }): Promise<OneShotReminderCommittedEffect | OneShotReminderFailedEffect> {
   const scheduledFor = String(args.effect.scheduled_for ?? "");
-  const instruction = String(args.effect.reminder_instruction ?? "").trim();
+  const instruction = cleanReminderInstructionForStorage(
+    String(args.effect.reminder_instruction ?? "").trim(),
+  );
   if (!scheduledFor) {
     return { type: "create_one_shot_reminder", reason_code: "missing_time" };
   }
@@ -130,21 +168,13 @@ async function createReminderFromEffect(args: {
         event_context: eventContext,
         draft_message: null,
         message_mode: "dynamic",
-        message_payload: {
-          source: "one_shot_reminder_executor",
-          reminder_kind: "one_shot",
-          reminder_instruction: instruction,
-          instruction:
-            `Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de ${instruction}.`,
-          event_grounding: compactText(
-            `L'utilisateur a demandé explicitement un rappel ponctuel à propos de: ${instruction}.`,
-            240,
-          ),
-          request_text: compactText(args.effect.request_text ?? "", 500),
-          user_timezone: args.timezone,
-          parse_source: args.effect.reason_code ?? "router",
-          source_message_id: args.sourceMessageId ?? null,
-        },
+        message_payload: buildOneShotReminderMessagePayload({
+          instruction,
+          requestText: args.effect.request_text,
+          timezone: args.timezone,
+          parseSource: args.effect.reason_code ?? "router",
+          sourceMessageId: args.sourceMessageId ?? null,
+        }),
         scheduled_for: scheduledFor,
         status: "pending",
       } as any, { onConflict: "user_id,event_context,scheduled_for" })

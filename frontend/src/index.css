@@ -236,6 +236,43 @@
   --tw-shadow-color: rgb(0 45 33 / 0.2);
 }
 
+@media (max-width: 767px) {
+  .sophia-mobile-type .text-xs {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+  }
+
+  .sophia-mobile-type .text-sm {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+
+  .sophia-mobile-type .text-base {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .sophia-mobile-type .text-lg {
+    font-size: 0.9375rem;
+    line-height: 1.25rem;
+  }
+
+  .sophia-mobile-type .text-xl {
+    font-size: 1rem;
+    line-height: 1.375rem;
+  }
+
+  .sophia-mobile-type .text-2xl {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  .sophia-mobile-type .leading-6,
+  .sophia-mobile-type .leading-relaxed {
+    line-height: 1.35;
+  }
+}
+
 .sophia-action-skin .sophia-violet-surface .bg-violet-50 {
   background-color: rgb(245 243 255);
 }

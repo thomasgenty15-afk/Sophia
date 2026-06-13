@@ -68,7 +68,7 @@ Etats conceptuels a stabiliser dans le contrat :
 - feedback plan : `missing|positive|negative|mixed|skipped|unclear` ;
 - topic choice : `plan|other_topic|skip|unclear|missing` ;
 - progress/apply attempt pendant onboarding ;
-- stop local sans handoff ;
+- sortie via dispatcher global ;
 - exit global avec note information ;
 - handoff vers dispatcher local cible ;
 - safety preempt ;
@@ -774,7 +774,7 @@ Optionnel selon integration note globale :
    - `whatsapp_onboarding.local_dispatcher.start`
    - `whatsapp_onboarding.local_dispatcher.result`
    - `whatsapp_onboarding.reducer.reduced`
-   - `whatsapp_onboarding.local_stop_no_handoff`
+   - `whatsapp_onboarding.exit_to_global_dispatcher`
    - `whatsapp_onboarding.note_information_created`
    - `whatsapp_onboarding.safety_preempt`
    - `whatsapp_onboarding.visible_stage.start/complete`

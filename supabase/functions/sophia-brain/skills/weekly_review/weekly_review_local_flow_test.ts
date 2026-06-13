@@ -29,6 +29,25 @@ function weeklyState() {
         objective_delta: "unknown",
         felt_state: "unknown",
       },
+      weekly_gates: {
+        week_experience_status: "captured",
+        action_review_status: "captured",
+        global_progress_status: "missing",
+        felt_progress_status: "missing",
+        solution_fit_status: "missing",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+      detour_candidate: {
+        kind: "none",
+        source_stage: null,
+        target_action_or_plan: null,
+        fit_hypothesis: null,
+        readiness: "none",
+        user_consent: false,
+        scope: {},
+        return_focus: null,
+      },
       last_visible_summary: "Semaine chargee, alleger serait prudent.",
       last_handoff_summary: null,
       turn_count: 1,
@@ -74,6 +93,25 @@ function baseOutput(overrides: Record<string, unknown> = {}) {
       outcome_hint: null,
       evidence: null,
     },
+    weekly_gates: {
+      week_experience_status: "captured",
+      action_review_status: "captured",
+      global_progress_status: "captured",
+      felt_progress_status: "captured",
+      solution_fit_status: "missing",
+      synthesis_status: "missing",
+      closure_status: "missing",
+    },
+    detour_candidate: {
+      kind: "none",
+      source_stage: null,
+      target_action_or_plan: null,
+      fit_hypothesis: null,
+      readiness: "none",
+      user_consent: false,
+      scope: {},
+      return_focus: null,
+    },
     state_updates: {
       status: "open",
       weekly_stage: "strategy_ready",
@@ -82,8 +120,8 @@ function baseOutput(overrides: Record<string, unknown> = {}) {
       close_after_visible: false,
     },
     visible_task: {
-      kind: "weekly_reading",
-      instruction: "Donner la lecture weekly.",
+      kind: "qualify_solution_fit",
+      instruction: "Qualifier la prochaine piste weekly.",
     },
     exit_memo: {
       needed: false,
@@ -159,6 +197,8 @@ Deno.test("weekly dispatcher prompt documents field completion rules and exactly
       "- weekly_intent: resume l'intention weekly du message courant.",
     ),
   );
+  assert(prompt.includes("Frontiere chat/outils"));
+  assert(prompt.includes("- action_status_updates: liste les corrections"));
   assert(
     prompt.includes(
       "- visible_task.conversation_context: ce champ existe dans le contrat",
@@ -169,56 +209,11 @@ Deno.test("weekly dispatcher prompt documents field completion rules and exactly
       "- note_information: obligatoire pour exit_to_global_dispatcher",
     ),
   );
+  assert(prompt.includes("- weekly_gates: etat de progression du weekly."));
+  assert(prompt.includes("- detour_candidate: hypothese d'outil"));
+  assert(prompt.includes("weekly_synthesis -> weekly_closure"));
   const examples = prompt.match(/Exemple JSON [0-9]/g) ?? [];
   assertEquals(examples.length, 2);
-});
-
-Deno.test("weekly local reducer prepares Plan handoff without plan mutation", () => {
-  const output = normalizeWeeklyReviewLocalDispatcherOutput(
-    baseOutput({
-      flow_action: "prepare_plan_handoff",
-      weekly_intent: {
-        kind: "plan_handoff_request",
-        summary: "User wants a lighter next week.",
-      },
-      handoff_updates: {
-        status: "ready",
-        requested_adjustment_summary: "Alleger la semaine prochaine dans Plan.",
-        revision_summary: null,
-        platform_destination: "Plan",
-        scope: {
-          kind: "whole_week",
-          plan_id: null,
-          plan_title: null,
-          plan_item_ids: [],
-          scope_summary: "Toute la semaine",
-          needs_scope_clarification: false,
-        },
-      },
-      state_updates: {
-        status: "handoff_ready",
-        weekly_stage: "plan_handoff",
-        validation_unlock_status: "locked_until_weekly_complete",
-        turn_count_increment: 1,
-        close_after_visible: false,
-      },
-      visible_task: {
-        kind: "plan_handoff_ready",
-        instruction: "Redonner la proposition Plan.",
-      },
-    }),
-  );
-  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
-    previousWeeklyState: weeklyState(),
-    output,
-  });
-  assertEquals(reduced.tool_execution, "platform_handoff");
-  assertEquals(reduced.weekly_state?.status, "open");
-  assertEquals(
-    (reduced.weekly_state?.weekly_flow_state as any).proposal_status,
-    "handoff_delivered",
-  );
-  assertEquals((reduced.weekly_state as any).executedTools, undefined);
 });
 
 Deno.test("weekly local reducer continues normally with visible-safe context", () => {
@@ -231,7 +226,7 @@ Deno.test("weekly local reducer continues normally with visible-safe context", (
   assertEquals(reduced.exit_to_global_dispatcher, false);
   assertEquals(reduced.target_dispatcher, "none");
   assertEquals(reduced.note_information, null);
-  assertEquals(reduced.visible_task, "weekly_reading");
+  assertEquals(reduced.visible_task, "qualify_solution_fit");
   assertEquals(
     reduced.conversation_context?.state_summary,
     output.weekly_intent.summary,
@@ -248,14 +243,37 @@ Deno.test("weekly local reducer continues normally with visible-safe context", (
     (reduced.conversation_context?.known_values as any).felt_progress,
     "encouraged",
   );
+  assertEquals(
+    (reduced.conversation_context?.known_values as any)
+      .action_review_before_global_progress_required,
+    true,
+  );
+  assert(
+    reduced.conversation_context?.tone_constraints.includes(
+      "prefer_gender_neutral_wording_when_not_certain",
+    ) === true,
+  );
+  assert(
+    reduced.conversation_context?.do_not_say.includes(
+      "reussite pleine pour une action partielle",
+    ) === true,
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_adaptive_review as any)?.plan_patch,
+    undefined,
+  );
+  assert(
+    (reduced.weekly_state?.weekly_adaptive_review as any)?.constraints
+      ?.includes("no_legacy_plan_patch") === true,
+  );
 });
 
 Deno.test("weekly local reducer preserves user constraints in conversation context", () => {
   const output = normalizeWeeklyReviewLocalDispatcherOutput(
     baseOutput({
-      flow_action: "prepare_plan_handoff",
+      flow_action: "answer_weekly_question",
       weekly_intent: {
-        kind: "plan_handoff_request",
+        kind: "detour_request",
         summary: "User wants a lighter week without chat mutation.",
       },
       handoff_updates: {
@@ -274,8 +292,8 @@ Deno.test("weekly local reducer preserves user constraints in conversation conte
         },
       },
       visible_task: {
-        kind: "plan_handoff_ready",
-        instruction: "Presenter le handoff Plan.",
+        kind: "qualify_solution_fit",
+        instruction: "Qualifier le detour Plan sans le lancer.",
       },
     }),
   );
@@ -296,17 +314,295 @@ Deno.test("weekly local reducer preserves user constraints in conversation conte
   );
 });
 
+Deno.test("weekly local reducer lets user action status corrections override projection", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_progress_review: {
+      week_start_date: "2026-06-01",
+      week_end_date: "2026-06-07",
+      transformations: [{
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_title: "Plan principal",
+        actions: [{
+          plan_id: "plan-1",
+          plan_title: "Plan principal",
+          plan_item_id: "item-rangement",
+          occurrence_id: "occ-rangement",
+          title: "Rangement du soir",
+          family: "habit",
+          deviation: "done",
+          daily_evidence: { reason_text: "projection initiale done" },
+        }],
+      }],
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      action_status_updates: [{
+        plan_item_id: "item-rangement",
+        occurrence_id: "occ-rangement",
+        title: "Rangement du soir",
+        corrected_status: "partial",
+        user_evidence: "je l'ai fait trois jours puis j'ai relache",
+        source_turn_summary: "rangement partiel",
+      }],
+      visible_task: {
+        kind: "weekly_synthesis",
+        instruction: "Synthetiser sans embellir les statuts.",
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    reduced.conversation_context?.item_summaries[0].status,
+    "partial",
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any)
+      .user_corrected_action_statuses[0].corrected_status,
+    "partial",
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_adaptive_review as any)
+      .item_decisions[0].current_week_status,
+    "partial",
+  );
+});
+
+Deno.test("weekly local reducer blocks solution fit before global progress gate", () => {
+  const state = weeklyState();
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "missing",
+        felt_progress_status: "missing",
+        solution_fit_status: "missing",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+      visible_task: {
+        kind: "qualify_solution_fit",
+        instruction: "Qualifier une solution trop tot.",
+      },
+      state_updates: {
+        status: "open",
+        weekly_stage: "solution_fit",
+        validation_unlock_status: "locked_until_weekly_complete",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    reduced.reason_code,
+    "weekly_review_gate_order_requires_ask_global_progress_feeling",
+  );
+  assertEquals(reduced.visible_task, "ask_global_progress_feeling");
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).stage,
+    "global_progress",
+  );
+  assertEquals(
+    reduced.blocked_effects[0]?.reason_code,
+    "weekly_review_gate_order_requires_ask_global_progress_feeling",
+  );
+});
+
+Deno.test("weekly local reducer preserves post child flow revision before synthesis", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_flow_state: {
+      ...weeklyState().weekly_flow_state,
+      child_flow: {
+        status: "completed",
+        flow_id: "prepare_defense_card",
+        reason: "Defense card detour delivered.",
+        expected_return_focus: "weekly_synthesis_and_closure",
+        result_summary: "platform_handoff_delivered",
+        result_details: {
+          no_chat_mutation: true,
+          platform_destination:
+            "dans l'action concernée du Plan, section Cartes de défense",
+        },
+      },
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "complete",
+        felt_progress_status: "complete",
+        solution_fit_status: "complete",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      weekly_intent: {
+        kind: "weekly_confirmation",
+        summary:
+          "User validates the defense draft and revises the platform wording.",
+      },
+      handoff_updates: {
+        status: "delivered",
+        requested_adjustment_summary: null,
+        revision_summary:
+          "Dire quand je rentre fatiguée et viser la douche avant la boîte.",
+        platform_destination: "Plan",
+        scope: {
+          kind: "specific_item",
+          plan_id: "plan-1",
+          plan_title: "Plan principal",
+          plan_item_ids: ["item-1"],
+          scope_summary: "carte defense",
+          needs_scope_clarification: false,
+        },
+      },
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "complete",
+        felt_progress_status: "complete",
+        solution_fit_status: "complete",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+      visible_task: {
+        kind: "weekly_synthesis",
+        instruction: "Synthese trop rapide apres revision.",
+      },
+      state_updates: {
+        status: "open",
+        weekly_stage: "synthesis",
+        validation_unlock_status: "locked_until_weekly_complete",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    reduced.reason_code,
+    "weekly_review_gate_order_requires_return_from_child_flow",
+  );
+  assertEquals(reduced.visible_task, "return_from_child_flow");
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).child_flow.result_details
+      .revision_summary,
+    "Dire quand je rentre fatiguée et viser la douche avant la boîte.",
+  );
+  assertEquals(
+    (reduced.conversation_context?.handoff_data as any).revision_summary,
+    "Dire quand je rentre fatiguée et viser la douche avant la boîte.",
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).child_flow.result_details
+      .return_acknowledged,
+    true,
+  );
+});
+
+Deno.test("weekly local reducer allows synthesis after child return acknowledged", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_flow_state: {
+      ...weeklyState().weekly_flow_state,
+      child_flow: {
+        status: "completed",
+        flow_id: "prepare_defense_card",
+        reason: "Defense card detour delivered.",
+        expected_return_focus: "weekly_synthesis_and_closure",
+        result_summary: "platform_handoff_delivered",
+        result_details: {
+          no_chat_mutation: true,
+          return_acknowledged: true,
+          revision_summary:
+            "Clés dans la salle de bain, douche cinq minutes, phrase rituelle.",
+        },
+      },
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "complete",
+        felt_progress_status: "complete",
+        solution_fit_status: "complete",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      weekly_intent: {
+        kind: "weekly_confirmation",
+        summary: "User asks to synthesize after the child flow return.",
+      },
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "complete",
+        felt_progress_status: "complete",
+        solution_fit_status: "complete",
+        synthesis_status: "captured",
+        closure_status: "missing",
+      },
+      visible_task: {
+        kind: "weekly_synthesis",
+        instruction: "Synthese apres retour child flow.",
+      },
+      state_updates: {
+        status: "open",
+        weekly_stage: "synthesis",
+        validation_unlock_status: "locked_until_weekly_complete",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    reduced.reason_code,
+    "weekly_review_local_answer_weekly_question",
+  );
+  assertEquals(reduced.visible_task, "weekly_synthesis");
+  assertEquals(reduced.blocked_effects, []);
+});
+
 Deno.test("weekly visible prompt excludes raw user message and recent messages", () => {
   const prompt = buildWeeklyReviewVisibleAgentUserPrompt({
     user_id: "user-weekly-visible",
     request_id: "request-weekly-visible",
-    stage: "weekly_reading",
+    stage: "qualify_solution_fit",
     user_message: "raw weekly answer that must not be injected",
     recent_messages: [{ role: "assistant", content: "raw weekly history" }],
     conversation_context: {
       state_summary: "Weekly state summarized by reducer.",
       user_words: ["fatigue mais progression legere"],
-      field_or_stage: "weekly_reading",
+      field_or_stage: "qualify_solution_fit",
       known_values: {},
       missing_or_weak_values: [],
       selected_candidate: {},
@@ -324,7 +620,7 @@ Deno.test("weekly visible prompt excludes raw user message and recent messages",
           needs_scope_clarification: false,
         },
       },
-      next_focus: "weekly_reading",
+      next_focus: "qualify_solution_fit",
       tone_constraints: ["court"],
       do_not_say: [],
       context_summary: "Lecture weekly depuis conversation_context.",
@@ -345,6 +641,52 @@ Deno.test("weekly visible prompt excludes raw user message and recent messages",
   assert(!prompt.includes("recent_messages"));
   assert(!prompt.includes("raw weekly answer"));
   assert(!prompt.includes("raw weekly history"));
+});
+
+Deno.test("weekly visible context carries strict action review and synthesis constraints", () => {
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      visible_task: {
+        kind: "review_action_gaps",
+        instruction: "Review action statuses before global progress.",
+      },
+      weekly_gates: {
+        week_experience_status: "captured",
+        action_review_status: "captured",
+        global_progress_status: "missing",
+        felt_progress_status: "missing",
+        solution_fit_status: "missing",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+    }),
+  );
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: weeklyState(),
+    output,
+  });
+  const prompt = buildWeeklyReviewVisibleAgentUserPrompt({
+    user_id: "user-weekly-visible",
+    request_id: "request-weekly-visible",
+    stage: "review_action_gaps",
+    conversation_context: reduced.conversation_context!,
+  });
+  const parsed = JSON.parse(prompt);
+  assertEquals(
+    parsed.conversation_context.known_values
+      .action_review_before_global_progress_required,
+    true,
+  );
+  assertEquals(
+    parsed.conversation_context.known_values
+      .partial_statuses_must_remain_partial,
+    true,
+  );
+  assert(
+    parsed.conversation_context.tone_constraints.includes(
+      "do_not_use_gendered_adjectives_unless_conversation_context_confirms_gender",
+    ),
+  );
 });
 
 Deno.test("weekly local reducer blocks global exit without memo", () => {
@@ -416,6 +758,136 @@ Deno.test("weekly local reducer blocks local handoff without note_information", 
   assertEquals(reduced.target_dispatcher, "prepare_attack_card");
 });
 
+Deno.test("weekly local reducer keeps tool hypothesis in weekly until user confirms fit", () => {
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "handoff_to_local_flow",
+      target_dispatcher: "prepare_attack_card",
+      weekly_intent: {
+        kind: "explicit_tool_request",
+        summary: "Attack card may help but fit is not confirmed yet.",
+      },
+      detour_candidate: {
+        kind: "attack_card",
+        source_stage: "action_blocker",
+        target_action_or_plan: "action du matin",
+        fit_hypothesis: "Peut-etre un probleme de demarrage.",
+        readiness: "offer",
+        user_consent: false,
+        scope: { action: "action du matin" },
+        return_focus: "Revenir au weekly.",
+      },
+      note_information: noteInformation("prepare_attack_card"),
+      visible_task: {
+        kind: "exit_or_cancel",
+        instruction: "Legacy eager handoff.",
+      },
+    }),
+  );
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: weeklyState(),
+    output,
+  });
+  assertEquals(reduced.status, "answered");
+  assertEquals(
+    reduced.reason_code,
+    "weekly_review_child_handoff_requires_user_confirmed_fit",
+  );
+  assertEquals(reduced.visible_task, "qualify_attack_or_defense_fit");
+  assertEquals(reduced.target_dispatcher, "none");
+  assertEquals(reduced.tool_execution, "blocked");
+});
+
+Deno.test("weekly local reducer requires action focus before card handoff", () => {
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "handoff_to_local_flow",
+      target_dispatcher: "prepare_defense_card",
+      weekly_intent: {
+        kind: "explicit_tool_request",
+        summary: "Defense card requested without target action.",
+      },
+      detour_candidate: {
+        kind: "defense_card",
+        source_stage: "action_blocker",
+        target_action_or_plan: null,
+        fit_hypothesis: "Moment critique probable.",
+        readiness: "user_confirmed",
+        user_consent: true,
+        scope: {},
+        return_focus: "Revenir au weekly.",
+      },
+      note_information: noteInformation("prepare_defense_card"),
+      visible_task: {
+        kind: "exit_or_cancel",
+        instruction: "Handoff.",
+      },
+    }),
+  );
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: weeklyState(),
+    output,
+  });
+  assertEquals(reduced.status, "answered");
+  assertEquals(
+    reduced.reason_code,
+    "weekly_review_card_handoff_requires_action_focus",
+  );
+  assertEquals(reduced.visible_task, "explore_action_blocker");
+});
+
+Deno.test("weekly local reducer requires clear scope before adjust plan child flow", () => {
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "handoff_to_local_flow",
+      target_dispatcher: "adjust_plan_item",
+      weekly_intent: {
+        kind: "detour_request",
+        summary: "User wants a Plan change but scope is ambiguous.",
+      },
+      handoff_updates: {
+        status: "requested",
+        requested_adjustment_summary: "Alleger le Plan.",
+        revision_summary: null,
+        platform_destination: "Plan",
+        scope: {
+          kind: "ambiguous",
+          plan_id: null,
+          plan_title: null,
+          plan_item_ids: [],
+          scope_summary: null,
+          needs_scope_clarification: true,
+        },
+      },
+      detour_candidate: {
+        kind: "adjust_plan_item",
+        source_stage: "solution_fit",
+        target_action_or_plan: null,
+        fit_hypothesis: "Demande explicite mais perimetre flou.",
+        readiness: "user_confirmed",
+        user_consent: true,
+        scope: { kind: "ambiguous" },
+        return_focus: "Revenir au weekly.",
+      },
+      note_information: noteInformation("adjust_plan_item"),
+      visible_task: {
+        kind: "exit_or_cancel",
+        instruction: "Handoff.",
+      },
+    }),
+  );
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: weeklyState(),
+    output,
+  });
+  assertEquals(reduced.status, "answered");
+  assertEquals(
+    reduced.reason_code,
+    "weekly_review_adjust_plan_detour_requires_clear_scope",
+  );
+  assertEquals(reduced.visible_task, "qualify_solution_fit");
+});
+
 Deno.test("weekly local reducer hands off to attack card locally with note_information", () => {
   const output = normalizeWeeklyReviewLocalDispatcherOutput(
     baseOutput({
@@ -424,6 +896,16 @@ Deno.test("weekly local reducer hands off to attack card locally with note_infor
       weekly_intent: {
         kind: "explicit_tool_request",
         summary: "User asks for an attack card.",
+      },
+      detour_candidate: {
+        kind: "attack_card",
+        source_stage: "action_blocker",
+        target_action_or_plan: "action du matin",
+        fit_hypothesis: "Le user veut faciliter le demarrage de l'action.",
+        readiness: "user_confirmed",
+        user_consent: true,
+        scope: { action: "action du matin" },
+        return_focus: "Revenir au weekly pour synthese.",
       },
       note_information: noteInformation("prepare_attack_card"),
       visible_task: {
@@ -460,7 +942,7 @@ Deno.test("weekly local runtime suspends parent weekly during child flow handoff
           flow_action: "handoff_to_local_flow",
           target_dispatcher: "adjust_plan_item",
           weekly_intent: {
-            kind: "plan_handoff_request",
+            kind: "detour_request",
             summary: "User asks for a Plan adjustment as weekly detour.",
           },
           human_signal_updates: {
@@ -484,6 +966,30 @@ Deno.test("weekly local runtime suspends parent weekly during child flow handoff
               scope_summary: "action du matin",
               needs_scope_clarification: false,
             },
+          },
+          weekly_gates: {
+            week_experience_status: "complete",
+            action_review_status: "complete",
+            global_progress_status: "complete",
+            felt_progress_status: "complete",
+            solution_fit_status: "complete",
+            synthesis_status: "missing",
+            closure_status: "missing",
+          },
+          detour_candidate: {
+            kind: "adjust_plan_item",
+            source_stage: "solution_fit",
+            target_action_or_plan: "action du matin",
+            fit_hypothesis:
+              "Le user demande explicitement d'alleger cette action.",
+            readiness: "user_confirmed",
+            user_consent: true,
+            scope: {
+              kind: "specific_item",
+              plan_item_ids: ["item-1"],
+              scope_summary: "action du matin",
+            },
+            return_focus: "Revenir au weekly pour synthese et cloture.",
           },
           note_information: noteInformation("adjust_plan_item"),
           visible_task: {
@@ -509,6 +1015,31 @@ Deno.test("weekly local runtime suspends parent weekly during child flow handoff
   assertEquals(
     suspended.state_snapshot.weekly_flow_state.child_flow.flow_id,
     "adjust_plan_item",
+  );
+});
+
+Deno.test("weekly local runtime surfaces dispatcher timeout diagnostics", async () => {
+  const runtime = await runWeeklyReviewLocalRuntime({
+    supabase: {} as any,
+    userId: "user-weekly-timeout",
+    tempMemory: { __active_skill_state: weeklyState() },
+    activeSkillState: weeklyState(),
+    userMessage: "Action par action, voici un bilan dense.",
+    history: [],
+    dispatcher: async () => {
+      const error = new Error("Signal timed out.");
+      (error as any).name = "TimeoutError";
+      throw error;
+    },
+  });
+  const run = runtime?.toolSkillRun as any;
+  assertEquals(run?.status, "blocked");
+  assertEquals(run?.reason_code, "weekly_review_local_dispatcher_failed");
+  assertEquals(run?.dispatcher_failure_kind, "timeout");
+  assertEquals(run?.dispatcher_error_name, "TimeoutError");
+  assertEquals(
+    run?.blocked_effects?.[0]?.reason_code,
+    "local_dispatcher_timeout",
   );
 });
 
@@ -577,7 +1108,7 @@ Deno.test("weekly local reducer does not exit when user continues weekly", () =>
       exit_memo: {
         needed: true,
         reason: "topic_change",
-        user_intent_summary: "legacy memo should not force exit",
+        user_intent_summary: "memo should not force exit",
         local_flow_context: {
           skill_id: "weekly_adaptive_review_v1",
           weekly_stage: "strategy_ready",
@@ -590,7 +1121,7 @@ Deno.test("weekly local reducer does not exit when user continues weekly", () =>
         },
         handoff_hint_for_global_dispatcher: {
           likely_intent: "normal_coaching",
-          why: "legacy memo should not own routing",
+          why: "memo should not own routing",
           constraints: [],
         },
       },
@@ -616,7 +1147,7 @@ Deno.test("weekly local reducer treats tool mention hypothesis as weekly continu
           "User explores whether an attack card could help but keeps discussing the weekly blocker.",
       },
       visible_task: {
-        kind: "weekly_reading",
+        kind: "review_action_gaps",
         instruction: "Continue weekly; do not launch child flow yet.",
       },
     }),
@@ -631,25 +1162,26 @@ Deno.test("weekly local reducer treats tool mention hypothesis as weekly continu
   assertEquals(reduced.weekly_state?.status, "open");
 });
 
-Deno.test("weekly local reducer stops locally without global handoff", () => {
+Deno.test("weekly local reducer exits to global for explicit stop", () => {
   const output = normalizeWeeklyReviewLocalDispatcherOutput(
     baseOutput({
-      flow_action: "stop_local_no_handoff",
-      target_dispatcher: "none",
+      flow_action: "exit_to_global_dispatcher",
+      target_dispatcher: "global",
       weekly_intent: {
         kind: "stop",
         summary: "User wants to stop the weekly.",
       },
+      note_information: noteInformation("global", "topic_change"),
       state_updates: {
-        status: "stopped",
+        status: "exit_to_global",
         weekly_stage: "closing",
         validation_unlock_status: "locked_until_weekly_complete",
         turn_count_increment: 1,
         close_after_visible: true,
       },
       visible_task: {
-        kind: "stop_or_cancel",
-        instruction: "Stop locally.",
+        kind: "exit_or_cancel",
+        instruction: "Exit to global.",
       },
     }),
   );
@@ -657,15 +1189,15 @@ Deno.test("weekly local reducer stops locally without global handoff", () => {
     previousWeeklyState: weeklyState(),
     output,
   });
-  assertEquals(reduced.status, "closed");
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-  assertEquals(reduced.target_dispatcher, "none");
-  assertEquals(reduced.visible_task, "stop_or_cancel");
-  assertEquals(reduced.weekly_state?.status, "stopped");
-  assertEquals(reduced.note_information, null);
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.target_dispatcher, "global");
+  assertEquals(reduced.visible_task, "exit_or_cancel");
+  assertEquals(reduced.weekly_state, null);
+  assertEquals(reduced.note_information?.target_dispatcher, "global");
 });
 
-Deno.test("weekly local completion unlocks validation and stays non executable", () => {
+Deno.test("weekly local completion is blocked until synthesis and closure", () => {
   const output = normalizeWeeklyReviewLocalDispatcherOutput(
     baseOutput({
       flow_action: "complete_weekly_no_change",
@@ -681,7 +1213,54 @@ Deno.test("weekly local completion unlocks validation and stays non executable",
         close_after_visible: true,
       },
       visible_task: {
-        kind: "complete_no_change",
+        kind: "weekly_closure",
+        instruction: "Close weekly.",
+      },
+    }),
+  );
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: weeklyState(),
+    output,
+  });
+  assertEquals(reduced.status, "answered");
+  assertEquals(
+    reduced.reason_code,
+    "weekly_review_completion_requires_synthesis",
+  );
+  assertEquals(reduced.visible_task, "weekly_synthesis");
+  assertEquals(reduced.weekly_state?.status, "open");
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).validation_unlock_status,
+    "locked_until_weekly_complete",
+  );
+});
+
+Deno.test("weekly local closure unlocks validation and stays non executable", () => {
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "complete_weekly_no_change",
+      weekly_intent: {
+        kind: "weekly_confirmation",
+        summary: "Weekly synthesis and closure are complete.",
+      },
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "complete",
+        felt_progress_status: "complete",
+        solution_fit_status: "complete",
+        synthesis_status: "complete",
+        closure_status: "complete",
+      },
+      state_updates: {
+        status: "completed",
+        weekly_stage: "closure",
+        validation_unlock_status: "available",
+        turn_count_increment: 1,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "weekly_closure",
         instruction: "Close weekly.",
       },
     }),
@@ -692,10 +1271,58 @@ Deno.test("weekly local completion unlocks validation and stays non executable",
   });
   assertEquals(reduced.status, "closed");
   assertEquals(reduced.tool_execution, "none");
+  assertEquals(reduced.visible_task, "weekly_closure");
   assertEquals(reduced.weekly_state?.status, "completed");
   assertEquals(
     (reduced.weekly_state?.weekly_flow_state as any).validation_unlock_status,
     "available",
+  );
+  assertEquals(
+    (reduced.weekly_state?.validation_unlock as any).status,
+    "available",
+  );
+});
+
+Deno.test("weekly local reducer closes same turn when user confirms final closure", () => {
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "confirm_weekly_diagnostic",
+      weekly_intent: {
+        kind: "weekly_confirmation",
+        summary: "User confirms the weekly can be closed.",
+      },
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "complete",
+        felt_progress_status: "complete",
+        solution_fit_status: "complete",
+        synthesis_status: "complete",
+        closure_status: "missing",
+      },
+      state_updates: {
+        status: "open",
+        weekly_stage: "closure",
+        validation_unlock_status: "locked_until_weekly_complete",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "weekly_closure",
+        instruction: "Close weekly after confirmation.",
+      },
+    }),
+  );
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: weeklyState(),
+    output,
+  });
+  assertEquals(reduced.status, "closed");
+  assertEquals(reduced.weekly_state?.status, "completed");
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).weekly_gates
+      .closure_status,
+    "complete",
   );
   assertEquals(
     (reduced.weekly_state?.validation_unlock as any).status,

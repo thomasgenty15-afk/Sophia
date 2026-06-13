@@ -16,7 +16,7 @@ export function renderRecurringReminderPendingConfirmation(input: {
 }): string {
   return renderNonCommittedReply(
     input.confirmationMessage,
-    "Je peux préparer la version à reprendre dans la section Rappels.",
+    "Je peux préparer la version à reprendre dans la section Initiatives.",
   );
 }
 
@@ -71,7 +71,7 @@ export function renderRecurringReminderPlatformHandoff(input: {
   const handoff = input.handoffDraft ??
     (input.draft ? buildRecurringReminderHandoffDraft(input.draft) : null);
   if (!handoff) {
-    return "Je ne crée pas de rappel récurrent depuis le chat. Va dans Rappels pour créer le rappel récurrent.";
+    return "Je ne crée pas de rappel récurrent depuis le chat. Va dans Initiatives pour créer le rappel récurrent.";
   }
   const target = getHandoffTargetForOperation("create_recurring_reminder");
   const destination = target?.user_facing_destination ??
@@ -85,12 +85,12 @@ export function renderRecurringReminderPlatformHandoff(input: {
   const opening = input.prefix?.trim()
     ? input.prefix.trim()
     : status === "apply_attempt"
-    ? "Je ne peux pas programmer ce rappel récurrent depuis le chat. Je te redonne ce qu'il faut reprendre dans Rappels."
+    ? "Je ne peux pas programmer ce rappel récurrent depuis le chat. Je te redonne ce qu'il faut reprendre dans Initiatives."
     : status === "revise_handoff"
-    ? "Oui, je te mets la version à jour pour la section Rappels."
+    ? "Oui, je te mets la version à jour pour la section Initiatives."
     : status === "repeat_handoff"
-    ? "Bien sûr, voici quoi reprendre dans la section Rappels."
-    : "Ok, je te prépare ça pour la section Rappels.";
+    ? "Bien sûr, voici quoi reprendre dans la section Initiatives."
+    : "Ok, je te prépare ça pour la section Initiatives.";
 
   return `${opening}
 

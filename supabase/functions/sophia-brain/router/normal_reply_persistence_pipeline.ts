@@ -43,6 +43,7 @@ import type { BrainTracePhase } from "../../_shared/brain-trace.ts";
 import type { ConversationSkillOutput } from "../contracts/skill_output.v1.ts";
 import type { ProductRecommendation } from "../recommendation/recommendation_types.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
+import { extractHiddenFilRougeNote } from "../chat_text.ts";
 
 type TraceFn = (
   event: string,
@@ -308,6 +309,17 @@ export async function persistNormalReplyTurn(args: {
   }
 
   let mergedTempMemory = agentOut.tempMemory ?? tempMemory;
+  const hiddenFilRouge = extractHiddenFilRougeNote(agentOut.responseContent);
+  if (channel === "whatsapp" && hiddenFilRouge.note) {
+    mergedTempMemory = {
+      ...((mergedTempMemory ?? {}) as Record<string, unknown>),
+      __whatsapp_fil_rouge: {
+        text: hiddenFilRouge.note,
+        marker: hiddenFilRouge.marker,
+        updated_at: new Date().toISOString(),
+      },
+    };
+  }
   try {
     const latest = await getUserState(supabase, userId, scope);
     mergedTempMemory = {

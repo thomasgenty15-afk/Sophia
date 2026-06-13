@@ -15,6 +15,54 @@ type RouterContext = {
   >;
 };
 
+function researchForcesNormalReply(turnFrame: TurnFrame): boolean {
+  const signal = turnFrame.needs_research;
+  return signal?.value === true && Number(signal.confidence ?? 0) >= 0.55;
+}
+
+function hasFlowOpportunity(turnFrame: TurnFrame): boolean {
+  return Boolean(turnFrame.flow_opportunity);
+}
+
+function hasExplicitPendingConfirmationAnswer(turnFrame: TurnFrame): boolean {
+  const kind = turnFrame.confirmation_response?.kind;
+  return kind === "yes" || kind === "no" || kind === "correction_to_pending";
+}
+
+function researchBlockedPaths(args: {
+  skillStatus: string;
+  skillId?: string | null;
+  toolSkillStatus: string;
+  toolSkillOperation?: string | null;
+  hasOpportunity: boolean;
+}): RouteDecision["blocked_paths"] {
+  const blocked: RouteDecision["blocked_paths"] = [];
+  if (
+    args.toolSkillStatus === "start" || args.toolSkillStatus === "continue" ||
+    args.toolSkillStatus === "wait_for_confirmation"
+  ) {
+    blocked.push({
+      path: args.toolSkillOperation
+        ? `tool_skill.${args.toolSkillOperation}`
+        : "tool_skill",
+      reason_code: "needs_research_forces_normal_reply",
+    });
+  }
+  if (args.skillStatus !== "none" && args.skillId) {
+    blocked.push({
+      path: `conversation_skill.${args.skillId}`,
+      reason_code: "needs_research_forces_normal_reply",
+    });
+  }
+  if (args.hasOpportunity) {
+    blocked.push({
+      path: "flow_opportunity",
+      reason_code: "needs_research_forces_normal_reply",
+    });
+  }
+  return blocked;
+}
+
 function buildRouteDecision(
   context: RouterContext,
   args: {
@@ -101,6 +149,42 @@ export function runConversationRouters(input: {
       direct_effects_to_run: [],
     });
   }
+  if (
+    toolSkill.status === "execute_confirmed" ||
+    toolSkill.status === "cancel"
+  ) {
+    return buildRouteDecision(routeContext, {
+      response_owner: "pending_confirmation",
+      selected_handler: toolSkill.status,
+      reason_code: toolSkill.reason_code,
+    });
+  }
+  if (
+    input.pending_tool_skill_confirmation &&
+    hasExplicitPendingConfirmationAnswer(input.turn_frame)
+  ) {
+    return buildRouteDecision(routeContext, {
+      response_owner: "pending_confirmation",
+      selected_handler: toolSkill.status,
+      reason_code: toolSkill.reason_code,
+    });
+  }
+  if (researchForcesNormalReply(input.turn_frame)) {
+    return buildRouteDecision(routeContext, {
+      response_owner: "normal_reply",
+      blocked_paths: [
+        ...blockedPaths,
+        ...researchBlockedPaths({
+          skillStatus: skill.status,
+          skillId: skill.selected_skill_id,
+          toolSkillStatus: toolSkill.status,
+          toolSkillOperation: toolSkill.operation_type,
+          hasOpportunity: hasFlowOpportunity(input.turn_frame),
+        }),
+      ],
+      reason_code: "needs_research_forces_normal_reply",
+    });
+  }
   if (arbitration.selected_owner === "product_help") {
     return buildRouteDecision(routeContext, {
       response_owner: "product_help",
@@ -180,16 +264,6 @@ export function runConversationRouters(input: {
       response_owner: "tool_skill",
       selected_handler: arbitration.selected_handler,
       reason_code: arbitration.reason_code,
-    });
-  }
-  if (
-    toolSkill.status === "execute_confirmed" ||
-    toolSkill.status === "cancel"
-  ) {
-    return buildRouteDecision(routeContext, {
-      response_owner: "pending_confirmation",
-      selected_handler: toolSkill.status,
-      reason_code: toolSkill.reason_code,
     });
   }
   if (

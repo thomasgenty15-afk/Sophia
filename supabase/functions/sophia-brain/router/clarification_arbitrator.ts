@@ -28,7 +28,6 @@ import {
   createNoteInformation,
   type NoteInformation,
 } from "../contracts/note_information.v1.ts";
-import { visibleOutputStyleIssues } from "./response_style_policy.ts";
 import type { ClarificationVisibleAgent } from "../clarification/visible_agent.ts";
 import {
   buildActiveSkillClarificationCandidatesFromTurnFrame,
@@ -503,7 +502,7 @@ async function visibleMessage(args: {
   if (fromAgent?.trim()) return fromAgent.trim();
   const context = args.reducer.visible_task.conversation_context;
   const question = context.question?.trim();
-  if (question && visibleOutputStyleIssues(question).length === 0) {
+  if (question) {
     return question;
   }
   switch (args.reducer.visible_task.kind) {

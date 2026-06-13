@@ -207,7 +207,7 @@ Assertions minimales a appliquer sur tout Mode B long :
 - no_unexpected_abort
 - no_adjacent_strong_repetition
 - expected_skill_entry
-- expected_skill_handoff_or_no_handoff
+- expected_skill_transfer_or_no_transfer
 - no_forbidden_memory_fact
 - response_owner_contract_aligned
 ```

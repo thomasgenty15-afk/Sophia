@@ -72,7 +72,6 @@ type DashboardV2LogicParams = {
   plan: UserPlanV2Row | null;
   planItems: DashboardV2PlanItemRuntime[];
   planContentV3?: PlanContentV3 | null;
-  phase1Completed?: boolean;
   refetch: () => Promise<void>;
 };
 
@@ -260,7 +259,6 @@ function evaluateUnlockState(
 function buildPhaseRuntime(
   phases: PlanPhase[],
   planItems: DashboardV2PlanItemRuntime[],
-  phase1Completed: boolean,
   blueprint: PlanBlueprint | null | undefined,
   currentLevelRuntime: CurrentLevelRuntime | null | undefined,
 ): PhaseRuntimeData[] {
@@ -351,7 +349,7 @@ function buildPhaseRuntime(
         }
       } else if (allDone && !foundActive) {
         state = "completed";
-      } else if (!foundActive && phase1Completed) {
+      } else if (!foundActive) {
         state = "active";
         foundActive = true;
       } else {
@@ -483,7 +481,6 @@ export function useDashboardV2Logic({
   plan,
   planItems,
   planContentV3,
-  phase1Completed = false,
   refetch,
 }: DashboardV2LogicParams) {
   const [mutatingItemId, setMutatingItemId] = useState<string | null>(null);
@@ -505,11 +502,10 @@ export function useDashboardV2Logic({
     return buildPhaseRuntime(
       planContentV3.phases,
       planItems,
-      phase1Completed,
       planContentV3.plan_blueprint,
       planContentV3.current_level_runtime,
     );
-  }, [planContentV3, planItems, phase1Completed]);
+  }, [planContentV3, planItems]);
 
   const unlockStateByItemId = useMemo(() => {
     const map = new Map<string, DashboardV2UnlockState>();

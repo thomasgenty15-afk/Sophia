@@ -11,6 +11,7 @@ import {
 } from "../../../contracts/note_information.v1.ts";
 import type { SafetySignalContext } from "../../../safety/safety_context.ts";
 import {
+  isDefenseCardHandoffState,
   type DefenseCardHandoffDraft,
   type DefenseCardHandoffState,
 } from "./contract.ts";
@@ -230,8 +231,10 @@ function mergeOperationInputSeeds(
 function defenseCardFrameRecord(tempMemory: any) {
   const memory = tempMemory ?? {};
   return {
-    active: memory.__active_tool_skill_intake ??
-      memory.active_tool_skill_intake ?? null,
+    active: isDefenseCardHandoffState(memory.__active_defense_card_handoff)
+      ? memory.__active_defense_card_handoff
+      : memory.__active_tool_skill_intake ??
+        memory.active_tool_skill_intake ?? null,
     recommendation: memory.__pending_recommendation_operation ?? null,
   };
 }
@@ -251,8 +254,15 @@ export function writeDefenseCardFrameToTempMemory(
   delete next.__pending_tool_skill_confirmation;
   delete next.pending_tool_skill_confirmation;
   if ("active" in frame) {
-    if (frame.active) next.__active_tool_skill_intake = frame.active;
-    else delete next.__active_tool_skill_intake;
+    if (frame.active) {
+      next.__active_tool_skill_intake = frame.active;
+      if (isDefenseCardHandoffState(frame.active)) {
+        next.__active_defense_card_handoff = frame.active;
+      }
+    } else {
+      delete next.__active_tool_skill_intake;
+      delete next.__active_defense_card_handoff;
+    }
     delete next.active_tool_skill_intake;
   }
   if ("recommendation" in frame) {
@@ -440,21 +450,22 @@ function writeDefenseCardLocalHandoffState(args: {
 }) {
   const now = new Date().toISOString();
   const previous = args.previous ?? null;
+  const handoffState: DefenseCardHandoffState = {
+    operation_type: "prepare_defense_card",
+    skill_id: "prepare_defense_card",
+    mode: "platform_handoff",
+    status: args.status,
+    draft: args.draft,
+    local_state: args.localState,
+    turn_count: Number(previous?.turn_count ?? 0) + 1,
+    max_turns: Number(previous?.max_turns ?? 8),
+    created_at: String(previous?.created_at ?? now),
+    updated_at: now,
+    no_chat_mutation: true,
+    operation_input: recordValue(previous?.operation_input) ?? null,
+  };
   return writeDefenseCardFrameToTempMemory(args.tempMemory, {
-    active: {
-      operation_type: "prepare_defense_card",
-      skill_id: "prepare_defense_card",
-      mode: "platform_handoff",
-      status: args.status,
-      draft: args.draft,
-      local_state: args.localState,
-      turn_count: Number(previous?.turn_count ?? 0) + 1,
-      max_turns: Number(previous?.max_turns ?? 8),
-      created_at: String(previous?.created_at ?? now),
-      updated_at: now,
-      no_chat_mutation: true,
-      operation_input: previous?.operation_input ?? null,
-    },
+    active: handoffState,
   });
 }
 

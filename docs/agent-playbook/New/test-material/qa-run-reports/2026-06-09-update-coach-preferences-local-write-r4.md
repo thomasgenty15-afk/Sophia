@@ -130,7 +130,7 @@
 - Symptôme: le flow refuse correctement le réglage unsupported, mais finit par une question de confirmation inutile alors que la demande porte précisément sur les questions finales.
 - Source amont probable: visible prompt `unsupported_preference` / continuation state après unsupported.
 - Owner runtime: `update_coach_preferences` local visible task / reducer continuation.
-- Meilleure correction selon les guidelines: pour `unsupported_preference` sans mapping à confirmer, produire une explication courte et fermer localement (`stop_local_no_handoff` ou état done), sans demander confirmation.
+- Meilleure correction selon les guidelines: pour `unsupported_preference` sans mapping à confirmer, produire une explication courte et fermer localement (`exit_to_global_dispatcher` ou état done), sans demander confirmation.
 - Pourquoi ce n'est pas un patch local: le visible prompt doit être guidé par `conversation_context` et par une continuation correcte, pas par une phrase fixe.
 
 ### Tour 5

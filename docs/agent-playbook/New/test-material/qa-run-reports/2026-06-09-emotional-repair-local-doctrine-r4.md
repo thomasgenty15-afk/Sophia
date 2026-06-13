@@ -7,7 +7,7 @@
 - Persona: persona temporaire locale `qa-normal-emotional-repair-local-doctrine-r4-...@example.com`, Auth vérifié `200`.
 - Objectif: vérifier en conditions réelles les modifications du prompt dispatcher local `emotional_repair`, notamment remplissage champ par champ, contrainte "phrase courte", stop local et transition vers autre sujet.
 - Trajectoire: entrée émotionnelle -> phrase courte contrainte -> stop local -> nouvelle entrée émotionnelle -> changement de sujet produit.
-- Surfaces visées: `emotional_repair`, dispatcher local actif, `visible_task.conversation_context`, skip du dispatcher global, `stop_local_no_handoff`, `product_help`, state DB, side effects.
+- Surfaces visées: `emotional_repair`, dispatcher local actif, `visible_task.conversation_context`, skip du dispatcher global, `exit_to_global_dispatcher`, `product_help`, state DB, side effects.
 - Cadre IA réel: Supabase local, `/functions/v1/test-send-message`, `force_full_ai=true`, `include_trace=true`, aucun renderer déterministe, aucun fallback `processMessage`.
 - Validité QA: valide. Run exécuté hors sandbox comme demandé par les guidelines.
 - Nettoyage: cleanup ciblé exécuté sur `chat_messages`, `scheduled_checkins`, `user_chat_states`, `user_topic_memories`, `memory_items`, `auth.users`. `user_memories` a répondu `404` car table absente localement. Le fichier de state contenant les jetons locaux a été supprimé.
@@ -83,7 +83,7 @@
 - memory_plan: no route memory
 - executed_tools: `[]`
 - durable_effect: none
-- local detail: `flow_action=stop_local_no_handoff`, `visible_task=exit_or_cancel`, `status=complete`, `global_dispatcher_skipped=true`, active skill cleared after turn
+- local detail: `flow_action=exit_to_global_dispatcher`, `visible_task=exit_or_cancel`, `status=complete`, `global_dispatcher_skipped=true`, active skill cleared after turn
 
 ### Tour 4
 
@@ -166,7 +166,7 @@
 **Routage**
 - T1 et T4: entrée `emotional_repair` correcte par `skill_entry_signal`.
 - T2: flow actif maintenu, global dispatcher bloqué, `flow_action=provide_concrete_phrase`.
-- T3: flow actif maintenu, global dispatcher bloqué, `flow_action=stop_local_no_handoff`, active skill cleared après le tour. Le bug R3-B01 est vérifié corrigé en conditions réelles.
+- T3: flow actif maintenu, global dispatcher bloqué, `flow_action=exit_to_global_dispatcher`, active skill cleared après le tour. Le bug R3-B01 est vérifié corrigé en conditions réelles.
 - T5: `product_help` répond correctement, mais `active_flow_arbitration=no_active_flow` alors que T4 avait réactivé `emotional_repair`. Aucune `note_information` visible.
 
 **Skills / Operations / Tools**
@@ -176,7 +176,7 @@
 
 **State / DB**
 - Après T2: `__active_skill_state.skill_id=emotional_repair`, `turn_count=2`.
-- Après T3: `__active_skill_state=null`, conforme à `stop_local_no_handoff`.
+- Après T3: `__active_skill_state=null`, conforme à `exit_to_global_dispatcher`.
 - Après T4: `__active_skill_state.skill_id=emotional_repair`, actif.
 - Après T5: `__active_skill_state.skill_id=product_help`, `product_help_note_information=null`, `previous_skill_id=null`.
 
@@ -195,4 +195,4 @@
 
 `red` système, `green` sur les modifications prompt `emotional_repair`.
 
-Le correctif demandé fonctionne pour la contrainte "phrase courte" et pour `stop_local_no_handoff`. Il ne suffit pas à corriger la transition active vers `product_help`, car le runtime ne laisse pas le dispatcher local source produire une `note_information` au tour de changement de sujet.
+Le correctif demandé fonctionne pour la contrainte "phrase courte" et pour `exit_to_global_dispatcher`. Il ne suffit pas à corriger la transition active vers `product_help`, car le runtime ne laisse pas le dispatcher local source produire une `note_information` au tour de changement de sujet.

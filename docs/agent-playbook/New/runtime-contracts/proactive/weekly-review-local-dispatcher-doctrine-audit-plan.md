@@ -524,7 +524,7 @@ La note ne va jamais directement au prompt visible cible.
 | `forgotten_progress_ack` | commit progression reussi | committed_effect filtre | acknowledgement | parler d'ajustement Plan |
 | `forgotten_progress_blocked` | commit progression bloque | raison, cible manquante | explication courte | promettre une correction |
 | `inline_tool_return` | product/status inline revient | reponse inline filtree, etat weekly parent | reponse + retour weekly si utile | effacer parent flow |
-| `complete_no_change` | flow conclu sans handoff | resume, unlock status | cloture courte | proposer autre outil |
+| `complete_no_change` | flow conclu sans transition | resume, unlock status | cloture courte | proposer autre outil |
 | `stop_or_cancel` | arret/defer local | intention stop, statut | ack court | relancer global, question finale |
 | `exit_ack` | rare ack visible avant sortie | raison de sortie, cible | ack minimal si necessaire | traiter la nouvelle demande |
 | `safety_transition` | safety preempt demande transition | note safety minimale | transition minimale | conseil clinique, weekly |
@@ -740,7 +740,7 @@ Scenarios minimum :
 - `global_dispatcher_skipped`
 - `handoff_to_local_flow`
 - `inline_tool_roundtrip`
-- `local_stop_no_handoff`
+- `exit_to_global_dispatcher`
 - `safety_preempt`
 - `risk_score`
 

@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Loader2, RefreshCcw } from "lucide-react";
+import { Loader2, RefreshCcw } from "lucide-react";
 
 import { FreeTextCapture } from "../components/onboarding-v2/FreeTextCapture";
 import { TransformationFocusStep } from "../components/onboarding-v2/TransformationFocusStep";
@@ -11,21 +11,23 @@ import { CustomQuestionnaire } from "../components/onboarding-v2/CustomQuestionn
 import { MinimalProfile } from "../components/onboarding-v2/MinimalProfile";
 import { useAuth } from "../context/AuthContext";
 import {
+  clearOnboardingAuthHandoff,
   clearOnboardingV2Draft,
   createEmptyOnboardingV2Draft,
   flushDraftSync,
   generateCycleDraftQuestionnaireGuest,
   getStoredAnonymousSessionId,
+  hasFreshOnboardingAuthHandoff,
   hydrateDraftAfterAuth,
   intakeToTransformationsGuest,
   type JourneyContextTransition,
   loadDraftFromServer,
   loadOnboardingV2Draft,
+  markOnboardingAuthHandoff,
   type OnboardingLoadingRequest,
   type OnboardingV2Draft,
   type PlanReviewDraft,
   persistOnboardingV2DraftLocally,
-  type RoadmapTransitionDraft,
   type QuestionnaireSchemaV2,
   saveOnboardingV2Draft,
   toTransformationPreview,
@@ -41,6 +43,8 @@ import { supabase } from "../lib/supabase";
 import type {
   PlanContentV3,
   PlanTypeClassificationV1,
+  UserTransformationAspectRow,
+  UserTransformationRow,
 } from "../types/v2";
 
 type IntakeToTransformationsResponse = {
@@ -627,63 +631,6 @@ const DRAFT_STAGE_ORDER: OnboardingV2Draft["stage"][] = [
   "roadmap_transition",
 ];
 
-function normalizeJourneyContextTransition(
-  value: unknown,
-): JourneyContextTransition | null {
-  if (!value || typeof value !== "object") return null;
-
-  const source = value as Record<string, unknown>;
-  const rawParts = Array.isArray(source.parts) ? source.parts : [];
-  const parts = rawParts.flatMap((part): JourneyContextTransition["parts"] => {
-    if (!part || typeof part !== "object") return [];
-    const candidate = part as Record<string, unknown>;
-    const transformationId = typeof candidate.transformation_id === "string"
-      ? candidate.transformation_id.trim()
-      : "";
-    const partNumber = typeof candidate.part_number === "number"
-      ? candidate.part_number
-      : Number(candidate.part_number);
-    if (!transformationId || !Number.isFinite(partNumber) || partNumber < 1) {
-      return [];
-    }
-    return [{
-      transformation_id: transformationId,
-      title: typeof candidate.title === "string" ? candidate.title : null,
-      part_number: partNumber,
-      estimated_duration_months:
-        typeof candidate.estimated_duration_months === "number"
-          ? candidate.estimated_duration_months
-          : null,
-      status: typeof candidate.status === "string"
-        ? candidate.status as TransformationPreviewV2["status"]
-        : null,
-    }];
-  });
-
-  const isMultiPart = source.is_multi_part === true;
-  if (!isMultiPart) return null;
-
-  return {
-    is_multi_part: true,
-    part_number: typeof source.part_number === "number" ? source.part_number : null,
-    estimated_total_parts:
-      typeof source.estimated_total_parts === "number"
-        ? source.estimated_total_parts
-        : parts.length > 0
-        ? parts.length
-        : null,
-    continuation_hint:
-      typeof source.continuation_hint === "string"
-        ? source.continuation_hint
-        : null,
-    estimated_total_duration_months:
-      typeof source.estimated_total_duration_months === "number"
-        ? source.estimated_total_duration_months
-        : null,
-    parts,
-  };
-}
-
 function shouldAdoptServerDraft(
   localDraft: OnboardingV2Draft | null,
   serverDraft: { draft: OnboardingV2Draft; updated_at: string },
@@ -1193,7 +1140,6 @@ export default function OnboardingV2() {
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveUser]);
 
   useEffect(() => {
@@ -1238,10 +1184,10 @@ export default function OnboardingV2() {
 
       const structure = (cycleData.validated_structure ?? {}) as Record<
         string,
-        any
+        unknown
       >;
       const transformations = (transformationRows ?? []).map((row) =>
-        toTransformationPreview(row as any)
+        toTransformationPreview(row as UserTransformationRow)
       );
       const activeTransformation = transformations.find((item) =>
         item.id === cycleData.active_transformation_id
@@ -1288,22 +1234,24 @@ export default function OnboardingV2() {
           ? structure.provisional_groups
           : [],
         aspects: (aspectRows ?? [])
-          .filter((row: any) =>
+          .filter((row: UserTransformationAspectRow) =>
             row.status === "active"
           )
-          .map((row: any) => ({
+          .map((row: UserTransformationAspectRow) => ({
             label: row.label,
             raw_excerpt: row.raw_excerpt,
-            source_rank: row.source_rank,
+            source_rank: row.source_rank ?? 0,
             uncertainty_level: row.uncertainty_level,
-            uncertainty_reason: row.metadata?.uncertainty_reason ?? null,
+            uncertainty_reason: typeof row.metadata?.uncertainty_reason === "string"
+              ? row.metadata.uncertainty_reason
+              : null,
           })),
         deferred_aspects: (aspectRows ?? [])
-          .filter((row: any) => row.status === "deferred")
-          .map((row: any) => ({
+          .filter((row: UserTransformationAspectRow) => row.status === "deferred")
+          .map((row: UserTransformationAspectRow) => ({
             label: row.label,
             raw_excerpt: row.raw_excerpt,
-            source_rank: row.source_rank,
+            source_rank: row.source_rank ?? 0,
             uncertainty_level: row.uncertainty_level ?? "low",
             deferred_reason: row.deferred_reason,
           })),
@@ -1355,7 +1303,7 @@ export default function OnboardingV2() {
       if (cancelled || !cycleData || !Array.isArray(transformationRows)) return;
 
       const refreshedTransformations = transformationRows.map((row) =>
-        toTransformationPreview(row as any)
+        toTransformationPreview(row as UserTransformationRow)
       );
       const refreshedActiveTransformation = refreshedTransformations.find((item) =>
         item.id === cycleData.active_transformation_id
@@ -1447,6 +1395,12 @@ export default function OnboardingV2() {
     if (onboardingAuthLoading || !effectiveUser) return;
     if (draft.pending_auth_action === "analyze") return;
     if (!shouldAttemptPostAuthDraftHydration(draft)) return;
+    if (!hasFreshOnboardingAuthHandoff(draft)) {
+      clearOnboardingAuthHandoff();
+      clearOnboardingV2Draft();
+      setDraft(createEmptyOnboardingV2Draft());
+      return;
+    }
 
     const sessionId = getStoredAnonymousSessionId();
     if (!sessionId) return;
@@ -2170,7 +2124,9 @@ export default function OnboardingV2() {
         .select("*");
       if (error) throw error;
 
-      const insertedRows = (data ?? []).map((row) => toTransformationPreview(row as any));
+      const insertedRows = (data ?? []).map((row) =>
+        toTransformationPreview(row as UserTransformationRow)
+      );
       manualTransformations.forEach((transformation, index) => {
         const inserted = insertedRows[index];
         if (!inserted) return;
@@ -2636,6 +2592,19 @@ export default function OnboardingV2() {
       });
       // Flush immediately so the server has the answers before the user
       // completes signup — don't rely on the 500ms debounce alone.
+      markOnboardingAuthHandoff({
+        ...draft,
+        cycle_id: null,
+        cycle_status: "signup_pending",
+        questionnaire_answers: answers,
+        plan_review: null,
+        roadmap_transition: null,
+        transformations: draft.transformations.map((transformation) =>
+          transformation.id === transformationId
+            ? { ...transformation, questionnaire_answers: answers }
+            : transformation
+        ),
+      });
       flushDraftSync();
       navigate(AUTH_REDIRECT);
       return;

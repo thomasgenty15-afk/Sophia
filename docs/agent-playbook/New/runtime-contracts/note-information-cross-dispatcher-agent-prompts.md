@@ -393,7 +393,7 @@ Ajouter des logs avec tag stable, par exemple :
 - local_dispatcher_transition
 - note_information_created
 - note_information_consumed
-- local_stop_no_handoff
+- exit_to_global_dispatcher
 - local_to_global_with_note
 - local_to_safety_with_note
 - local_inline_tool_with_note

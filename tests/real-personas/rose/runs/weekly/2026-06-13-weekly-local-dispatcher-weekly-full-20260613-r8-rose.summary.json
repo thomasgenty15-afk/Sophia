@@ -1,0 +1,449 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, lançons le weekly. Cette semaine m’a laissée partagée : j’ai vu quelques vrais progrès, mais les fins de journée restent le moment où je me sens la plus fragile. J’aimerais qu’on fasse un bilan honnête, sans enjoliver.",
+    "assistant": "C'est noté pour la fatigue en fin de journée. Tu as bien tenu le rangement du matériel, mais le sas de décompression et la gestion du joint réflexe ont été plus difficiles. Pour le joint réflexe, qu'est-ce qui a rendu l'action seulement partielle ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "review_action_gaps",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Action par action : le rangement du matériel, je l’ai tenu lundi, mardi et mercredi, puis jeudi et vendredi j’ai relâché et la boîte est revenue sur la table. Pour le joint réflexe, j’ai mieux identifié le moment : surtout après le dîner. Le sas de décompression, je l’ai fait seulement deux soirs ; quand je rentre épuisée, la version prévue me paraît trop longue.",
+    "assistant": "C'est noté pour ces précisions. Le sas de décompression semble difficile à maintenir quand la fatigue est trop forte en fin de journée. Qu'est-ce qui permettrait de rendre ce moment plus court ou plus simple à aborder les soirs où l'énergie manque ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "explore_action_blocker",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Je reprends plus simplement : le rangement n’est pas une réussite complète, seulement trois jours. Le joint réflexe est surtout après le dîner. Le sas a marché deux soirs, mais il est trop long quand je suis épuisée.",
+    "assistant": "C'est très clair : le sas de décompression actuel est trop long pour les soirs de grande fatigue. Est-ce qu'une version de secours plus courte, de quelques minutes seulement, te semblerait plus réaliste pour ces moments-là ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "qualify_solution_fit",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t04",
+    "status": 200,
+    "ok": true,
+    "user": "C’est surtout le moment où l’énergie manque. Je rentre, je vois la boîte, et là j’ai une envie très automatique d’ouvrir avant même d’avoir commencé le sas. Si je tiens les dix premières minutes, après ça se calme.",
+    "assistant": "Ces 10 premières minutes au retour semblent être le point de bascule, surtout quand la fatigue s'en mêle et que la vue de la boîte déclenche le réflexe. On pourrait mettre en place une protection spécifique pour sécuriser ce court moment et aider à passer le cap. Est-ce que cette approche te paraît pertinente pour renforcer ton sas de décompression ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "qualify_attack_or_defense_fit",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Je dirais que j’ai un petit sentiment d’avancée, parce que je comprends beaucoup mieux le vrai moment dangereux. Mais émotionnellement je reste inquiète : j’ai peur que les soirs de fatigue me fassent retomber dans le pilote automatique.",
+    "assistant": "C'est normal d'appréhender ces moments de fatigue où le pilote automatique peut reprendre le dessus. Pour protéger tes premières minutes de retour, je te propose de préparer une carte de défense. Cela viendra nourrir ton bilan et nous reprendrons le fil de notre discussion juste après. On regarde ça ensemble ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "offer_child_detour",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, faisons ce détour défense. Je veux qu’elle protège précisément le retour à la maison, la boîte visible, et les dix premières minutes où je dois aller vers la douche plutôt que négocier avec moi-même.",
+    "assistant": "C'est vrai que ces dix premières minutes en rentrant, quand la fatigue est là et que tu vois la boîte, sont souvent les plus risquées. Pour t'aider à ne plus négocier avec toi-même, qu'est-ce qui te permettrait de filer directement sous la douche sans hésiter ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason_code": "weekly_adaptive_review_v1_handoff_to_prepare_defense_card",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "prepare_defense_card",
+        "status": "collecting",
+        "reason_code": "prepare_defense_card_local_collecting",
+        "flow_action": null,
+        "visible_task": null,
+        "toolExecution": null,
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, le signal principal c’est vraiment la boîte visible en rentrant. Ça déclenche la négociation intérieure : juste un peu, juste pour redescendre. La défense doit m’aider à casser ce pilote automatique pendant dix minutes.",
+    "assistant": "C'est un plan très efficace pour court-circuiter ce pilote automatique dès ton arrivée. Pour finaliser ta carte, rends-toi dans l'action concernée du Plan, section Cartes de défense. Il te suffit de recopier cette formulation dans le champ Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ? : Quand je rentre épuisée et que je vois la boîte, pour tenir les 10 premières minutes sans négocier et aller direct à la douche. La carte n'est pas créée automatiquement, c'est à toi de l'ajouter dans ton espace.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason_code": "active_prepare_defense_card_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "prepare_defense_card",
+        "status": "handoff_delivered",
+        "reason_code": "platform_handoff_delivered",
+        "flow_action": null,
+        "visible_task": null,
+        "toolExecution": null,
+        "executedTools": [],
+        "platform_handoff": {
+          "operation_type": "prepare_defense_card",
+          "status": "delivered",
+          "surface_id": "defense_cards",
+          "reason_code": "platform_handoff_delivered",
+          "no_chat_mutation": true,
+          "draft": {
+            "operation_type": "prepare_defense_card",
+            "mode": "platform_handoff",
+            "no_chat_mutation": true,
+            "executable_from_chat": false,
+            "target_summary": "Faire un sas de décompression (sans fumer)",
+            "risk_summary": "Retour à la maison et vue de la boîte",
+            "platform_flow": {
+              "route_kind": "plan_item_card",
+              "route_label": "Carte de défense liée à une mission ou habitude du plan",
+              "questionnaire_answers": [
+                {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "value": "Quand je rentre épuisée et que je vois la boîte, pour tenir les 10 premières minutes sans négocier et aller direct à la douche.",
+                  "status": "locked"
+                }
+              ]
+            },
+            "platform_fields": {
+              "route_kind": "plan_item_card",
+              "status": "complete",
+              "missing_field_ids": [],
+              "fields": [
+                {
+                  "field_id": "support_need",
+                  "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+                  "required": true,
+                  "status": "locked",
+                  "proposed_value": null,
+                  "locked_value": "Quand je rentre épuisée et que je vois la boîte, pour tenir les 10 premières minutes sans négocier et aller direct à la douche.",
+                  "user_evidence": [
+                    "Quand je rentre épuisée et que je vois la boîte, pour tenir les 10 premières minutes sans négocier et aller direct à la douche."
+                  ],
+                  "needs_user_confirmation": false,
+                  "evidence": [
+                    "prepare_defense_card_local_reducer"
+                  ]
+                }
+              ]
+            },
+            "recommendation": {
+              "platform_destination": "dans l'action concernée du Plan, section Cartes de défense",
+              "platform_steps": [
+                "ouvre l'action concernée dans le Plan",
+                "va dans sa section Cartes de défense",
+                "reprends les champs préparés par Sophia"
+              ]
+            },
+            "missing_decisions": []
+          }
+        },
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t08",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, le fond est bon. Je dirais juste “quand je rentre fatiguée” au féminin, et j’ajouterais que le but est de filer directement à la douche avant d’ouvrir la boîte.",
+    "assistant": "Cette semaine a été exigeante physiquement, mais tu as tenu bon. Tes actions sur le rangement, le joint réflexe et le sas de décompression sont restées partielles, la fatigue ayant rendu certains objectifs difficiles à tenir sur la durée. Malgré ton inquiétude, la direction est prise avec un léger progrès global. J'ai préparé les détails de ta stratégie de défense pour que tu puisses les saisir dans ton Plan. Est-ce qu'on termine ce point hebdo ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "weekly_synthesis",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t09",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, je l’ajouterai moi-même dans l’action du Plan. Reprenons le weekly : je veux que la synthèse dise bien que le rangement est partiel, que la carte est seulement préparée dans la conversation, et que l’objectif global avance un peu mais reste fragile.",
+    "assistant": "Cette semaine montre un engagement réel malgré une fatigue persistante. Le rangement, le sas de décompression et la gestion du joint réflexe restent partiels pour l'instant, ce qui rend la progression globale encourageante mais encore fragile. Les éléments de ta carte de défense ont été préparés pour que tu puisses les saisir dans la section dédiée de ton Plan afin de mieux protéger ton retour à la maison. Est-ce que cette synthèse te convient pour terminer le point hebdomadaire ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "weekly_synthesis",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 10,
+    "requestId": "qa-rose-2026-06-13-weekly-local-dispatcher-weekly-full-20260613-r8-rose-t10",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, cette synthèse me semble juste. On peut clôturer ce weekly comme ça.",
+    "assistant": "C'est entendu. Les éléments pour ta carte de défense sur le sas de décompression ont été préparés pour que tu puisses les saisir dans ton Plan, au niveau de l'action concernée. Notre point hebdomadaire est maintenant terminé. Prends bien soin de toi.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "closed",
+        "reason_code": "weekly_review_local_complete_flow",
+        "flow_action": "complete_flow",
+        "visible_task": "weekly_closure",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  }
+]

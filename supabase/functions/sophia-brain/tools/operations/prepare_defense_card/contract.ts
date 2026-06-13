@@ -38,6 +38,11 @@ export type DefenseCardHandoffDraft = {
   executable_from_chat: false;
   target_summary: string;
   risk_summary: string;
+  prepared_fields?: {
+    risk_context: string | null;
+    defense_action: string | null;
+    ritual_phrase: string | null;
+  } | null;
   platform_flow: {
     route_kind: "free_card" | "plan_item_card";
     route_label: string;
@@ -62,6 +67,7 @@ export type DefenseCardHandoffDraft = {
 };
 
 export type DefenseCardHandoffState = {
+  operation_type?: "prepare_defense_card";
   skill_id: "prepare_defense_card";
   mode: "platform_handoff";
   status: DefenseCardHandoffStatus;
@@ -74,3 +80,16 @@ export type DefenseCardHandoffState = {
   no_chat_mutation: true;
   operation_input?: Record<string, unknown> | null;
 };
+
+export function isDefenseCardHandoffState(
+  value: unknown,
+): value is DefenseCardHandoffState {
+  const record = value as any;
+  return Boolean(
+    record &&
+      typeof record === "object" &&
+      record.skill_id === "prepare_defense_card" &&
+      record.mode === "platform_handoff" &&
+      record.no_chat_mutation === true,
+  );
+}

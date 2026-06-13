@@ -77,9 +77,11 @@ Deno.test("adjust_plan_item visible prompt anchors handoff on why, what and exac
   assertStringIncludes(prompt, "sous le niveau actif");
   assertStringIncludes(prompt, "Ajuster mon plan");
   assertStringIncludes(prompt, "sans template fixe");
+  assertStringIncludes(prompt, "absente de conversation_context");
+  assertStringIncludes(prompt, "ne complete pas avec une supposition");
   assertStringIncludes(prompt, "VISIBLE_OUTPUT_STYLE_RULES");
   assertStringIncludes(prompt, "tutoiement");
-  assertStringIncludes(prompt, "Format WhatsApp");
+  assertStringIncludes(prompt, "Format conversationnel");
 });
 
 Deno.test("adjust_plan_item visible contract rejects handoff without target reason and change kind", () => {
@@ -130,16 +132,15 @@ Deno.test("adjust_plan_item visible contract accepts short local cancel without 
   assertEquals(issues, []);
 });
 
-Deno.test("adjust_plan_item visible contract rejects vouvoiement", () => {
+Deno.test("adjust_plan_item visible contract does not block style wording by regex", () => {
   const issues = adjustPlanVisibleContractIssues(
-    "Souhaitez-vous garder votre version dans le Plan ?",
+    "D'accord, ton rendez-vous reste juste un repère.",
     {
       user_id: "user-1",
-      stage: "plan_handoff_ready",
+      stage: "cancel_close",
       conversation_context: conversationContext(),
     },
   );
 
-  assert(issues.includes("forbidden_vouvoiement:votre"));
-  assert(issues.includes("forbidden_vouvoiement:souhaitez-vous"));
+  assertEquals(issues, []);
 });

@@ -724,4 +724,16 @@ Deno.test("daily action review visible agent receives only conversation_context 
     sanitizeDailyActionReviewVisibleText('"C\'est noté."'),
     "C'est noté.",
   );
+  assertEquals(
+    sanitizeDailyActionReviewVisibleText(
+      '["Bravo pour la respiration et les papiers."]',
+    ),
+    "Bravo pour la respiration et les papiers.",
+  );
+  assertEquals(
+    sanitizeDailyActionReviewVisibleText(
+      '{"content":"Bravo pour la respiration."}',
+    ),
+    "Bravo pour la respiration.",
+  );
 });

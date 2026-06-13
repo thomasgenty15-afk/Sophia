@@ -1,0 +1,109 @@
+{
+  "runDir": "/Users/ahmedamara/Dev/Sophia 2/tmp/daily-two-plans-action-help-full-20260612163709-r1",
+  "log": [
+    {
+      "table": "chat_messages",
+      "id": "342e28f9-0db1-4278-adf9-20dc7bdb0e2c",
+      "status": 200,
+      "body": [
+        {
+          "id": "342e28f9-0db1-4278-adf9-20dc7bdb0e2c",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "role": "assistant",
+          "content": "Tu as avancé sur Faire cinq minutes de respiration calme et Ranger deux papiers administratifs ?  \nQu’est-ce qui s’est passé pour ces deux actions aujourd’hui ?",
+          "agent_used": "companion",
+          "metadata": {
+            "to": "+336991300958",
+            "source": "scheduled_checkin",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "request_id": "6caca73e-2973-4c2d-8308-7fac23ebfe3b",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "plan_item_ids": [
+              "78910fed-197b-409f-ad0c-6bca04b63075",
+              "c4c76922-876f-4921-83af-14b1313f554f"
+            ],
+            "occurrence_ids": [
+              "3a47d532-87c4-418b-ad5a-4f978354215c",
+              "87435db2-bfce-4d09-bed6-c08264639033"
+            ],
+            "require_opted_in": true,
+            "whatsapp_buttons": [],
+            "whatsapp_template": null,
+            "simulated_whatsapp": true,
+            "original_checkin_id": "c2b50f1d-8bc8-4a43-80dd-ea5ddcc03844",
+            "outbound_tracking_id": "d3991f8a-38f3-436c-b722-f4c199b14502",
+            "wa_outbound_message_id": "wamid_WEB_SIM_6caca73e-2973-4c2d-8308-7fac23ebfe3b",
+            "simulation_bypassed_phone": false,
+            "simulation_bypassed_opt_in": null,
+            "already_resolved_occurrence_ids": []
+          },
+          "created_at": "2026-06-12T16:42:33.383069+00:00",
+          "scope": "whatsapp"
+        }
+      ]
+    },
+    {
+      "table": "scheduled_checkins",
+      "id": "c2b50f1d-8bc8-4a43-80dd-ea5ddcc03844",
+      "status": 200,
+      "body": []
+    },
+    {
+      "table": "user_habit_week_occurrences",
+      "id": "3a47d532-87c4-418b-ad5a-4f978354215c",
+      "status": 200,
+      "body": []
+    },
+    {
+      "table": "user_habit_week_occurrences",
+      "id": "87435db2-bfce-4d09-bed6-c08264639033",
+      "status": 200,
+      "body": []
+    },
+    {
+      "table": "user_plan_items",
+      "id": "78910fed-197b-409f-ad0c-6bca04b63075",
+      "status": 200,
+      "body": []
+    },
+    {
+      "table": "user_plan_items",
+      "id": "c4c76922-876f-4921-83af-14b1313f554f",
+      "status": 200,
+      "body": []
+    },
+    {
+      "table": "user_plans_v2",
+      "id": "4bd98c89-1d63-472d-88f0-5daedb91d70d",
+      "status": 200,
+      "body": []
+    },
+    {
+      "table": "user_plans_v2",
+      "id": "512e5794-5ac5-483a-b00e-927284a2f752",
+      "status": 200,
+      "body": []
+    },
+    {
+      "table": "scheduled_checkins",
+      "id": "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+      "restored": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "id": "666976c4-762d-4014-8eb0-c00a6b75f951",
+      "restored": true
+    }
+  ],
+  "verification": {
+    "qaCheckin": [],
+    "qaPending": [],
+    "qaEntries": [],
+    "qaPlans": [],
+    "qaMessages": [],
+    "qaPendingByRunId": [],
+    "qaMessagesByCheckin": []
+  }
+}
