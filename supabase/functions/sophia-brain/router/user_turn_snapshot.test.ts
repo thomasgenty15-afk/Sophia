@@ -68,6 +68,7 @@ Deno.test("buildUserTurnSnapshot captures active flows and explicit constraints"
         operation_type: "update_coach_preferences",
       },
       __turn_constraints: {
+        no_tool: true,
         no_potion: true,
         no_plan: true,
         no_protocol: true,
@@ -97,4 +98,25 @@ Deno.test("buildUserTurnSnapshot captures active flows and explicit constraints"
   assertEquals(snapshot.explicit_constraints.soft_support_only, true);
   assertEquals(snapshot.explicit_constraints.draft_only, true);
   assertEquals(snapshot.durable_state.active_reminders?.length, 1);
+});
+
+Deno.test("buildUserTurnSnapshot does not derive constraints from blocked_paths", () => {
+  const snapshot = buildUserTurnSnapshot({
+    turn_id: "turn-1",
+    user_id: "user-1",
+    source_message_id: "msg-1",
+    message: "Ne crée rien, montre seulement le brouillon.",
+    channel: "web",
+    timezone: "Europe/Paris",
+    turn_frame: turnFrame(),
+    route_decision: routeDecision({
+      blocked_paths: [{
+        path: "tool_skill_flow",
+        reason_code: "explicit_no_tool_request_blocks_tool_start",
+      }],
+    }),
+    temp_memory: {},
+  });
+
+  assertEquals(snapshot.explicit_constraints.no_tool, false);
 });

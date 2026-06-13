@@ -155,6 +155,8 @@ Deno.test("prepare_attack_card local dispatcher prompt documents real output fie
   assert(prompt.includes("risk_score 0-10"));
   assert(prompt.includes("platform_steps doit rester vide"));
   assert(prompt.includes("preserve_active_flow=true"));
+  assert(prompt.includes("question d'etat/ledger read-only"));
+  assert(prompt.includes("ce qui est seulement prepare a recopier"));
 });
 
 Deno.test("prepare_attack_card local dispatcher prompt documents transition rules without extra examples", () => {
@@ -176,6 +178,8 @@ Deno.test("prepare_attack_card local dispatcher prompt documents transition rule
   assertEquals(exampleCount, 2);
   assert(prompt.includes("continuation normale"));
   assert(prompt.includes("transition critique exit global"));
+  assert(prompt.includes("creation maintenant"));
+  assert(prompt.includes("frontiere: le chat peut preparer et guider"));
 });
 
 function lockedBase() {

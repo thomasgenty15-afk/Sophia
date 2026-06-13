@@ -4,6 +4,7 @@ import {
 } from "../../../_shared/gemini.ts";
 import type { RunSkillInput } from "../_shared/skill_helpers.ts";
 import type { NoteInformation } from "../../contracts/note_information.v1.ts";
+import { RECENT_MESSAGE_LIMITS } from "../../context/recent_messages_policy.ts";
 import {
   emptySafetySignal,
   type SafetyCrisisLocalDispatcherOutput,
@@ -327,7 +328,9 @@ export function setSafetyCrisisLocalDispatcherForTest(
 function compactRecentMessages(
   recentMessages: SafetyCrisisLocalDispatcherInput["recent_messages"],
 ) {
-  return recentMessages.slice(-8).map((message) => ({
+  return recentMessages.slice(-RECENT_MESSAGE_LIMITS.conversationRepair).map((
+    message,
+  ) => ({
     role: message.role,
     content: String(message.content ?? "").replace(/\s+/g, " ").trim().slice(
       0,

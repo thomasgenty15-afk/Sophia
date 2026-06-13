@@ -143,6 +143,7 @@ async function createReminderFromEffect(args: {
   requestId?: string | null;
   timezone: string;
   locale: string;
+  instructionIsCanonical?: boolean;
 }): Promise<OneShotReminderCommittedEffect | OneShotReminderFailedEffect> {
   const scheduledFor = String(args.effect.scheduled_for ?? "");
   const instruction = cleanReminderInstructionForStorage(
@@ -151,7 +152,11 @@ async function createReminderFromEffect(args: {
   if (!scheduledFor) {
     return { type: "create_one_shot_reminder", reason_code: "missing_time" };
   }
-  if (!instruction || isDegenerateReminderInstruction(instruction)) {
+  if (
+    !instruction ||
+    (!args.instructionIsCanonical &&
+      isDegenerateReminderInstruction(instruction))
+  ) {
     return {
       type: "create_one_shot_reminder",
       reason_code: "missing_instruction",
@@ -310,6 +315,7 @@ export async function maybeCreateOneShotReminder(params: {
   now?: Date;
   contextMessages?: string[];
   forceCreate?: boolean;
+  canonicalReminderInstruction?: string;
 }): Promise<OneShotReminderToolOutcome> {
   const canRecoverFromContext = params.forceCreate === true &&
     (params.contextMessages?.length ?? 0) > 0;
@@ -325,6 +331,28 @@ export async function maybeCreateOneShotReminder(params: {
     timezone: tctx.user_timezone,
     nowIso: tctx.now_utc,
   });
+  const hasCanonicalInstruction =
+    typeof params.canonicalReminderInstruction === "string";
+  const canonicalInstruction = hasCanonicalInstruction
+    ? params.canonicalReminderInstruction as string
+    : null;
+  if (!parsed && hasCanonicalInstruction) {
+    const scheduledFor = parseScheduledForFromMessage({
+      message: params.message,
+      timezone: tctx.user_timezone,
+      nowIso: tctx.now_utc,
+    });
+    if (scheduledFor) {
+      parsed = {
+        scheduledFor,
+        reminderInstruction: canonicalInstruction ?? "",
+        eventContext: `one_shot_reminder:${
+          slugify(canonicalInstruction) || "generic"
+        }`,
+        parseSource: "payload",
+      };
+    }
+  }
   if (!parsed && canRecoverFromContext) {
     const scheduledFor = parseScheduledForFromMessage({
       message: params.message,
@@ -348,19 +376,6 @@ export async function maybeCreateOneShotReminder(params: {
       }
     }
   }
-  if (!parsed && canRecoverFromContext) {
-    for (const ctx of params.contextMessages ?? []) {
-      const recovered = parseReminderFromMessage({
-        message: ctx,
-        timezone: tctx.user_timezone,
-        nowIso: tctx.now_utc,
-      });
-      if (recovered) {
-        parsed = recovered;
-        break;
-      }
-    }
-  }
   if (!parsed) {
     return {
       detected: true,
@@ -370,8 +385,11 @@ export async function maybeCreateOneShotReminder(params: {
     };
   }
 
-  let instruction = parsed.reminderInstruction;
+  let instruction = hasCanonicalInstruction
+    ? canonicalInstruction ?? ""
+    : parsed.reminderInstruction;
   if (
+    !hasCanonicalInstruction &&
     isDegenerateReminderInstruction(instruction) &&
     canRecoverFromContext
   ) {
@@ -383,7 +401,9 @@ export async function maybeCreateOneShotReminder(params: {
       }
     }
   }
-  if (isDegenerateReminderInstruction(instruction)) {
+  if (
+    !hasCanonicalInstruction && isDegenerateReminderInstruction(instruction)
+  ) {
     const fromDb = await loadLastReminderInstructionForUser(
       params.supabase,
       params.userId,
@@ -413,13 +433,14 @@ export async function maybeCreateOneShotReminder(params: {
       }),
       reminder_instruction: instruction,
       request_text: params.message,
-      reason_code: parsed.parseSource,
+      reason_code: hasCanonicalInstruction ? "payload" : parsed.parseSource,
     },
     supabase: params.supabase,
     userId: params.userId,
     requestId: params.requestId,
     timezone: tctx.user_timezone,
     locale: tctx.user_locale,
+    instructionIsCanonical: hasCanonicalInstruction,
   });
   if ("reason_code" in committed) {
     return {
@@ -439,7 +460,9 @@ export async function maybeCreateOneShotReminder(params: {
     reminder_instruction: committed.reminder_instruction ?? instruction,
     event_context: `one_shot_reminder:${slugify(instruction) || "generic"}`,
     inserted_checkin_id: committed.id ?? "",
-    parse_source: parsed.parseSource ?? "unknown",
+    parse_source: hasCanonicalInstruction
+      ? "payload"
+      : parsed.parseSource ?? "unknown",
   };
 }
 

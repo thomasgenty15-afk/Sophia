@@ -32,6 +32,12 @@ export function extractQuotedReminderInstruction(message: string): string {
     /(?:texte\s+exact|instruction|note|message)\s*:?\s*["'“”‘’]([^"'“”‘’]+)["'“”‘’]/i;
   const markerMatch = text.match(marker);
   if (markerMatch?.[1]) return cleanupInstructionCandidate(markerMatch[1]);
+  const colonSingleQuoted = text.match(
+    /:\s*['‘’]([^'‘’]{3,})['‘’](?:\s*[.?!])?\s*$/i,
+  );
+  if (colonSingleQuoted?.[1]) {
+    return cleanupInstructionCandidate(colonSingleQuoted[1]);
+  }
   const genericMatch = text.match(/["“”]([^"“”]{3,})["“”]/);
   return genericMatch?.[1] ? cleanupInstructionCandidate(genericMatch[1]) : "";
 }
@@ -97,12 +103,15 @@ export function extractReminderInstruction(message: string): string {
   }
 
   const purposePatterns = [
+    /\bdans\s+(?:\d{1,3}|un|une)\s+(?:minutes?|quart\s+d['’]heure|quart|heure)\s+(?:de|d['’](?!heure\b))\s*(.+)$/i,
+    /\b(?:rappelle(?:s)?(?:-moi)?|programme(?:-moi)?|mets(?:-moi)?|met(?:s)?|dis(?:-moi)?)\b.*?\bdans\s+(?:\d{1,3}|un|une)\s+(?:minutes?|quart\s+d['’]heure|quart|heure)[^,.!?;:]*?\s+de\s+(.+)$/i,
+    /\b(?:rappelle(?:s)?(?:-moi)?|programme(?:-moi)?|mets(?:-moi)?|met(?:s)?|dis(?:-moi)?)\b.*?\bdans\s+(?:\d{1,3}|un|une)\s+(?:minutes?|quart\s+d['’]heure|quart|heure)[^,.!?;:]*?\s+d['’](?!heure\b)\s*(.+)$/i,
     /\bme\s+dire\s+de\s+(.+)$/i,
     /\bdire\s+de\s+(.+)$/i,
     /\bde\s+mani[eè]re\s+[aà]\s+ce\s+que\s+je\s+(.+)$/i,
     /\bqu['’]?\s*il\s+faut\s+que\s+je\s+(.+)$/i,
-    /\bdans\s+(?:\d{1,3}|un|une)\s+(?:minutes?|quart|heure)[^,.!?;:]*?\s+d['’]\s*(.+)$/i,
-    /\bdans\s+(?:\d{1,3}|un|une)\s+(?:minutes?|quart|heure)[^,.!?;:]*?\s+de\s+(.+)$/i,
+    /\bdans\s+(?:\d{1,3}|un|une)\s+(?:minutes?|quart\s+d['’]heure|quart|heure)[^,.!?;:]*?\s+d['’](?!heure\b)\s*(.+)$/i,
+    /\bdans\s+(?:\d{1,3}|un|une)\s+(?:minutes?|quart\s+d['’]heure|quart|heure)[^,.!?;:]*?\s+de\s+(.+)$/i,
     /\b(?:\d{1,2}\s*(?:h|:)\s*\d{0,2})\s+(?:de|pour)\s+(.+)$/i,
     /\b(?:pour|afin\s+de)\s+(.+)$/i,
     /\b(?:rappelle(?:s)?(?:-moi)?|programme(?:-moi)?|mets(?:-moi)?|met(?:s)?|dis(?:-moi)?)\b(?!.*\bd['’]?\s*heure\b).*?\bde\s+(.+)$/i,
@@ -193,10 +202,13 @@ function cleanupInstructionCandidate(value: unknown): string {
   text = text.replace(/\s+/g, " ").trim();
 
   const cutPatterns = [
+    /\s*,?\s+et\s+apr[eè]s\s+(?:ça|ca)\b/i,
+    /\s*,?\s+et\s+ensuite\b/i,
     /\s*,?\s+et\s+l[àa]\s+tout\s+de\s+suite\b/i,
     /\s*,?\s+puis\s+juste\s+apr[eè]s\b/i,
     /\s*,?\s+et\s+retiens\s+aussi\b/i,
     /\s*,?\s+mais\s+si\b/i,
+    /\s*,?\s+(?:mets?|met|programme|rappelle)(?:-le|-la|\s+le|\s+la)?\s+(?:plut[oô]t\s+)?(?:dans|pour|a|à)\b/i,
     /\.\s*Celui\s+de\b/i,
     /\s*,?\s+et\s+garde\s+celui\s+de\b/i,
   ];
@@ -209,6 +221,7 @@ function cleanupInstructionCandidate(value: unknown): string {
     .replace(/^mani[eè]re\s+[aà]\s+ce\s+que\s+je\s+/i, "")
     .replace(/^qu['’]?\s*il\s+faut\s+que\s+je\s+/i, "")
     .replace(/^me\s+dire\s+de\s+/i, "")
+    .replace(/\bet\s+de\s+/gi, "et ")
     .replace(/\bfasse\b/i, "faire")
     .replace(/\bme\s+bouge\b/i, "me bouger")
     .replace(

@@ -10,6 +10,11 @@ import {
 import { POTION_DEFINITIONS } from "../../../../_shared/v2-potions.ts";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  type RecentChatMessage,
+  recentChatMessagesFromHistory,
+} from "../../../context/recent_messages_policy.ts";
 import type { SafetySignalContext } from "../../../safety/safety_context.ts";
 import {
   isPendingStatePotionRecommendationOperation,
@@ -84,11 +89,6 @@ type ToolExecutionStatus =
   | "uncertain"
   | "platform_handoff";
 
-type RecentChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
-
 type StatePotionHandoffRuntimeResult = {
   content: string;
   additionalContents?: string[];
@@ -113,17 +113,7 @@ const PLATFORM_STEPS = STATE_POTION_HANDOFF_TARGET?.platform_steps ?? [
 ];
 
 function recentMessagesFromHistory(history: unknown): RecentChatMessage[] {
-  if (!Array.isArray(history)) return [];
-  return history
-    .filter((message: any) =>
-      (message?.role === "user" || message?.role === "assistant") &&
-      typeof message?.content === "string" && message.content.trim()
-    )
-    .map((message: any) => ({
-      role: message.role as "user" | "assistant",
-      content: String(message.content),
-    }))
-    .slice(-8);
+  return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
 function normalizeControlText(value: unknown): string {
@@ -630,7 +620,7 @@ function appendPotionSubskillHistory<
         reply_summary: args.reply.slice(0, 500),
         created_at: new Date().toISOString(),
       },
-    ].slice(-8),
+    ].slice(-RECENT_MESSAGE_LIMITS.subskillHistory),
   };
 }
 

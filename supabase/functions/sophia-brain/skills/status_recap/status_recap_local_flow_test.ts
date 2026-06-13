@@ -175,7 +175,10 @@ Deno.test("status_recap dispatcher prompt documents field completion rules for i
   assertStringIncludes(prompt, "- note_information:");
   assertStringIncludes(prompt, "- exit_memo.needed:");
   assertStringIncludes(prompt, "- evidence:");
+  assertStringIncludes(prompt, "Critère d'ownership prioritaire");
+  assertStringIncludes(prompt, "réponds direct sur mon rapport");
   assertStringIncludes(prompt, "Transition Rules:");
+  assertStringIncludes(prompt, "Exit comportemental");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");

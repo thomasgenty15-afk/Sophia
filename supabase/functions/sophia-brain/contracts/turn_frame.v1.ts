@@ -33,10 +33,18 @@ export type FlowOpportunity = {
     | "adjust_plan_item"
     | "unknown";
   confidence: Exclude<ConfidenceBand, "critical">;
+  score?: number;
   priority: number;
   reason: string;
   evidence: string[];
   seed_context: Record<string, unknown>;
+};
+
+export type SkillSignal = {
+  detected: boolean;
+  confidence_band: ConfidenceBand;
+  score?: number;
+  reason?: string;
 };
 
 export type DispatcherMemoryTargetType =
@@ -200,6 +208,7 @@ export type TurnFrame = {
     adjust_plan_scope?: "specific_action" | "current_level" | "whole_plan";
     rejected_operations?: string[];
     confidence_band: ConfidenceBand;
+    score?: number;
     ambiguity: Ambiguity;
     user_intent:
       | "create"
@@ -212,21 +221,15 @@ export type TurnFrame = {
 
   flow_opportunity?: FlowOpportunity | null;
 
+  normal_reply_fit_score?: number;
+  normal_reply_fit_evidence?: string[];
+
   note_information?: NoteInformation | null;
 
   skill_signals: {
-    entry?: Record<
-      string,
-      { detected: boolean; confidence_band: ConfidenceBand; reason?: string }
-    >;
-    lifecycle?: Record<
-      string,
-      { detected: boolean; confidence_band: ConfidenceBand; reason?: string }
-    >;
-    exit?: Record<
-      string,
-      { detected: boolean; confidence_band: ConfidenceBand; reason?: string }
-    >;
+    entry?: Record<string, SkillSignal>;
+    lifecycle?: Record<string, SkillSignal>;
+    exit?: Record<string, SkillSignal>;
   };
 
   needs_research?: DispatcherResearchSignal;

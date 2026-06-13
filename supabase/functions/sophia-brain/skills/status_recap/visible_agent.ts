@@ -139,35 +139,66 @@ export function statusRecapCoverageRequirements(
   context: StatusRecapConversationContext,
 ): string[] {
   const facts = context.filtered_facts;
-  const globalScope = context.requested_categories.includes("all") ||
-    context.target_objects.includes("unknown") ||
-    context.stage === "status_compact";
+  const hasSpecificTargets = context.target_objects.some((target) =>
+    target !== "unknown"
+  );
+  const globalScope = (context.requested_categories.includes("all") ||
+    context.target_objects.includes("unknown")) && !hasSpecificTargets;
+  const categoryRequested = (
+    category: string,
+    target: string,
+  ) =>
+    globalScope ||
+    context.requested_categories.includes(category as any) ||
+    context.target_objects.includes(target as any);
   const requirements: string[] = [];
-  if (!globalScope) return requirements;
-  if (facts.attack_cards.length > 0) {
+  if (
+    facts.attack_cards.length > 0 &&
+    categoryRequested("attack_cards", "attack_card")
+  ) {
     requirements.push("mentionner les cartes d'attaque actives présentes");
   }
-  if (facts.defense_cards.length > 0) {
+  if (
+    facts.defense_cards.length > 0 &&
+    categoryRequested("defense_cards", "defense_card")
+  ) {
     requirements.push("mentionner les cartes de défense actives présentes");
   }
-  if (facts.one_shot_reminders.pending.length > 0) {
+  if (
+    facts.one_shot_reminders.pending.length > 0 &&
+    categoryRequested("one_shot_reminders", "one_shot_reminder")
+  ) {
     requirements.push("mentionner les rappels ponctuels actifs/en attente");
   }
-  if (facts.one_shot_reminders.cancelled_recent.length > 0) {
+  if (
+    facts.one_shot_reminders.cancelled_recent.length > 0 &&
+    categoryRequested("one_shot_reminders", "one_shot_reminder")
+  ) {
     requirements.push(
       "mentionner les rappels ponctuels annulés si le scope inclut les annulés ou est global",
     );
   }
-  if (facts.recurring_reminders.length > 0) {
+  if (
+    facts.recurring_reminders.length > 0 &&
+    categoryRequested("recurring_reminders", "recurring_reminder")
+  ) {
     requirements.push("mentionner les rappels récurrents actifs présents");
   }
-  if (facts.potion_sessions.length > 0) {
+  if (
+    facts.potion_sessions.length > 0 && categoryRequested("potions", "potion")
+  ) {
     requirements.push("mentionner les sessions/potions présentes");
   }
-  if (facts.coach_preferences.length > 0) {
+  if (
+    facts.coach_preferences.length > 0 &&
+    categoryRequested("coach_preferences", "coach_preference")
+  ) {
     requirements.push("mentionner les préférences coach explicites présentes");
   }
-  if (facts.recent_effect_history.length > 0) {
+  if (
+    facts.recent_effect_history.length > 0 &&
+    categoryRequested("recent_effects", "unknown")
+  ) {
     requirements.push(
       "mentionner les effets récents présents sans les compter comme objets durables",
     );
@@ -182,6 +213,8 @@ export function statusRecapRestitutionGuidance(
     "La restitution doit être conversationnelle: claire, courte, mais pas mécanique.",
     "Hors stage fait_prevu_fragile, n'utilise pas les labels imposés Fait, Prévu, Fragile; le user n'a pas forcément demandé cette grille.",
     "Ne transforme pas les coverage_requirements en titres visibles; ils servent seulement à vérifier que les faits importants ne sont pas oubliés.",
+    "Restitue les libellés complets présents dans filtered_facts quand le user demande ce qui existe ou ce qui a été créé; ne tronque pas un rappel, une carte ou une préférence en perdant une partie utile du libellé.",
+    "Ne restitue que les catégories demandées ou imposées par coverage_requirements. N'ajoute pas une catégorie voisine simplement parce qu'elle est présente dans filtered_facts.",
     "Tu peux grouper naturellement les faits proches dans une phrase ou une liste courte.",
     "Exemples de formes possibles selon le contexte: 'Je vois surtout...', 'Dans ton espace, il y a...', 'Côté rappels, je vois...', 'Sur les préférences coach, je vois...'. Ce sont des exemples de ton, pas des templates à recopier.",
     "Si un objet est annulé, dis simplement qu'il est annulé; ne l'appelle pas fragile sauf si le contexte parle vraiment d'incertitude, blocage ou instabilité.",

@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { RiskBand, TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  recentChatMessagesFromHistory,
+} from "../../../context/recent_messages_policy.ts";
 import { blocksToolSkills } from "../../../safety/safety_thresholds.ts";
 import type {
   CreateRecurringReminderCommittedEffect,
@@ -111,21 +115,8 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-function recentMessagesFromHistory(history: unknown): Array<{
-  role: "user" | "assistant";
-  content: string;
-}> {
-  if (!Array.isArray(history)) return [];
-  return history
-    .filter((message: any) =>
-      (message?.role === "user" || message?.role === "assistant") &&
-      typeof message?.content === "string" && message.content.trim()
-    )
-    .map((message: any) => ({
-      role: message.role as "user" | "assistant",
-      content: String(message.content),
-    }))
-    .slice(-8);
+function recentMessagesFromHistory(history: unknown) {
+  return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
 function contractRecoveryVisibleTask(args: {

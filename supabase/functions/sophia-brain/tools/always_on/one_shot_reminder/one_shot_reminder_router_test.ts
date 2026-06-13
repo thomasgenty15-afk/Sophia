@@ -7,6 +7,7 @@ import { maybeRunOneShotReminderDirectEffect } from "./router.ts";
 function fakeSupabase(options?: {
   pending?: Array<{ id: string; scheduled_for: string }>;
   failInsert?: boolean;
+  onUpsert?: (row: any) => void;
 }) {
   const pending = options?.pending ?? [];
   return {
@@ -49,6 +50,7 @@ function fakeSupabase(options?: {
           };
         },
         upsert(row: any) {
+          options?.onUpsert?.(row);
           return {
             select() {
               return {
@@ -136,6 +138,12 @@ Deno.test("create success reply keeps safety context after committed reminder", 
   assertEquals(result.status, "success");
   assertEquals(result.reply?.includes("C'est programmé pour"), true);
   assertEquals(
+    result.reply?.includes(
+      "je te rappellerai de vérifier que je reste en sécurité",
+    ),
+    true,
+  );
+  assertEquals(
     result.reply?.includes("garde ce qui peut te blesser hors de portée"),
     true,
   );
@@ -193,6 +201,53 @@ Deno.test("explicit unique reminder phrasing commits from active handoff exit", 
   assertEquals(result.committed_effects.length, 1);
 });
 
+Deno.test("create uses dispatcher instruction_hint as canonical reminder payload", async () => {
+  let writtenRow: any = null;
+  const instructionHint =
+    "ouvrir le fichier, sans essayer de régler tout le dossier";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onUpsert: (row) => {
+        writtenRow = row;
+      },
+    }),
+    userId: "user-1",
+    message:
+      "Alors rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier.",
+    now: new Date("2026-06-13T08:00:00.000Z"),
+    turnFrame: {
+      ...turnFrameWithDirectEffect("create_one_shot_reminder"),
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          raw_text:
+            "rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier.",
+          when_hint: "dans 25 minutes",
+          instruction_hint: instructionHint,
+        },
+      }],
+    } as any,
+  });
+
+  assertEquals(result.status, "success");
+  assertEquals(result.reminder_instruction, instructionHint);
+  assertEquals(
+    result.committed_effects[0]?.reminder_instruction,
+    instructionHint,
+  );
+  assertEquals(
+    writtenRow?.message_payload?.reminder_instruction,
+    instructionHint,
+  );
+  assertEquals(
+    writtenRow?.event_context,
+    "one_shot_reminder:ouvrir_le_fichier_sans_essayer_de_regler_tout_le_dossier",
+  );
+});
+
 Deno.test("one-shot exit with demain matin explicit hour commits", async () => {
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase(),
@@ -244,6 +299,27 @@ Deno.test("create_missing_time_blocks", async () => {
   });
   assertEquals(result.committed_effects.length, 0);
   assert(result.status === "needs_clarify" || result.status === "ignored");
+});
+
+Deno.test("create_missing_time_does_not_reuse_previous_context_commit", async () => {
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase(),
+    userId: "user-1",
+    message: "Rappelle-moi de vérifier le fichier.",
+    contextMessages: [
+      "Je suis un peu tendu là. Rappelle-moi dans 20 minutes de respirer doucement et de boire un verre d'eau.",
+    ],
+    now: new Date("2026-06-13T08:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder"),
+  });
+
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.executed_tools, []);
+  assertEquals(result.committed_effects, []);
+  assertEquals(result.blocked_effects, [{
+    type: "create_one_shot_reminder",
+    reason_code: "missing_time",
+  }]);
 });
 
 Deno.test("cancel_no_reminder_no_done_language", async () => {

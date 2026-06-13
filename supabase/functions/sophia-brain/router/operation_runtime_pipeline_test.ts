@@ -1,6 +1,11 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { STATUS_RECAP_FLOW_STATE_KEY } from "../skills/status_recap/local_flow.ts";
-import { runOperationRuntimePipeline } from "./operation_runtime_pipeline.ts";
+import {
+  mergeDirectEffectRuntimeIntoVisibleRuntime,
+  runDirectEffectLane,
+  runOperationRuntimePipeline,
+  turnFrameWithDirectEffectRuntime,
+} from "./operation_runtime_pipeline.ts";
 
 function fakeAttackSupabase() {
   return {
@@ -379,6 +384,106 @@ Deno.test("operation_runtime_pipeline non-complex operation is not converted to 
   );
 });
 
+Deno.test("direct_effect_lane can execute one-shot reminder from local dispatcher message intake", async () => {
+  const message =
+    "Rappelle-moi dans 40 minutes de relire mes notes sur ce dossier, et ensuite j'aimerais qu'on parle de pourquoi je bloque.";
+  const result = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase(),
+      userMessage: message,
+      routeDecision: baseRouteDecision({
+        response_owner: "conversation_handler",
+        selected_handler: "flow_opportunity_verification",
+        reason_code: "active_flow_opportunity_verification_local_dispatcher",
+        direct_effects_to_run: [],
+      }),
+      turnFrame: baseTurnFrame(),
+      clientNow: new Date("2026-06-13T08:00:00.000Z"),
+    }),
+    allowMessageIntakeFallback: true,
+  });
+
+  assertEquals(result.operationRuntime?.toolExecution, "success");
+  assertEquals(result.operationRuntime?.executedTools, [
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(
+    result.routeDecision?.selected_handler,
+    "flow_opportunity_verification",
+  );
+  assertEquals(result.routeDecision?.direct_effects_to_run, [
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(
+    (result.operationRuntime?.toolSkillRun as any)?.committed_effects[0]
+      ?.reminder_instruction,
+    "relire mes notes sur ce dossier",
+  );
+});
+
+Deno.test("direct effect runtime merges into visible owner without replacing selected handler", () => {
+  const directRuntime = {
+    content:
+      "C'est programmé pour aujourd'hui à 10:40: je te rappellerai de relire mes notes.",
+    nextTempMemory: {},
+    toolExecution: "success" as const,
+    executedTools: ["create_one_shot_reminder"],
+    toolSkillRun: {
+      selected_handler: "create_one_shot_reminder",
+      status: "success",
+      requested_effects: [{ type: "create_one_shot_reminder" }],
+      allowed_effects: [{ type: "create_one_shot_reminder" }],
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "checkin-1",
+        reminder_instruction: "relire mes notes",
+      }],
+      blocked_effects: [],
+    },
+  };
+  const visibleRuntime = {
+    content: "Oui, on peut regarder ce qui te bloque.",
+    nextTempMemory: {},
+    toolExecution: "none" as const,
+    executedTools: [],
+    toolSkillRun: {
+      selected_handler: "flow_opportunity_verification",
+      skill_id: "flow_opportunity_verification",
+      requested_effects: [],
+      allowed_effects: [],
+      committed_effects: [],
+      blocked_effects: [],
+    },
+  };
+  const merged = mergeDirectEffectRuntimeIntoVisibleRuntime({
+    directRuntime,
+    visibleRuntime,
+  });
+  const turnFrame = turnFrameWithDirectEffectRuntime(
+    baseTurnFrame(),
+    directRuntime,
+  ) as any;
+
+  assertEquals(
+    (merged?.toolSkillRun as any).selected_handler,
+    "flow_opportunity_verification",
+  );
+  assertEquals(merged?.toolExecution, "success");
+  assertEquals(merged?.executedTools, ["create_one_shot_reminder"]);
+  assertEquals(
+    ((merged?.toolSkillRun as any).committed_effects as unknown[]).length,
+    1,
+  );
+  assertEquals(
+    (merged?.toolSkillRun as any).direct_effect_lane.selected_handler,
+    "create_one_shot_reminder",
+  );
+  assertEquals(
+    turnFrame.direct_effect_lane.committed_effects[0].type,
+    "create_one_shot_reminder",
+  );
+});
+
 Deno.test("operation_runtime_pipeline active or closing status_recap flow runs status runtime without route signal", async () => {
   for (const status of ["active", "closing"] as const) {
     let statusRuntimeCalls = 0;
@@ -464,6 +569,57 @@ Deno.test("operation_runtime_pipeline passes turn frame direct effect to one-sho
   assertEquals(
     (result.operationRuntime?.toolSkillRun as any)?.committed_effects.length,
     1,
+  );
+});
+
+Deno.test("operation_runtime_pipeline runs direct effect from global second pass after local exit", async () => {
+  const message =
+    "Je change de sujet: programme-moi un rappel dans 30 minutes pour relancer le dossier.";
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    supabase: fakeOneShotSupabase(),
+    userMessage: message,
+    routeDecision: baseRouteDecision({
+      response_owner: "tool_skill",
+      selected_handler: "create_one_shot_reminder",
+      reason_code: "global_dispatcher_second_pass_after_local_exit",
+      direct_effects_to_run: ["create_one_shot_reminder"],
+      local_flow_exit_handoff: {
+        source_flow_id: "demotivation_repair",
+        note_information: {
+          source_flow_id: "demotivation_repair",
+          target_dispatcher: "global",
+          handoff_reason: "explicit_tool_request",
+        },
+      },
+    }),
+    turnFrame: baseTurnFrame({
+      note_information: {
+        source_flow_id: "demotivation_repair",
+        target_dispatcher: "global",
+        handoff_reason: "explicit_tool_request",
+      },
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: message },
+      }],
+    }),
+    activeSkillState: null,
+    activeOperationIntake: null,
+    pendingOperationConfirmation: null,
+    clientNow: new Date("2026-06-13T12:00:00.000Z"),
+  }));
+
+  assertEquals(result.operationRuntime?.toolExecution, "success");
+  assertEquals(result.operationRuntime?.executedTools, [
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(
+    (result.operationRuntime?.toolSkillRun as any)?.committed_effects[0]
+      ?.type,
+    "create_one_shot_reminder",
   );
 });
 

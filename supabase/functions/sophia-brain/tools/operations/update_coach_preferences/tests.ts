@@ -282,14 +282,6 @@ Deno.test("reducer blocks proposed, ambiguous, unsupported, punctual, invalid an
         },
       }),
       baseDecision({
-        preference_intent: {
-          kind: "punctual_instruction",
-          durability: "punctual",
-          support_status: "not_applicable",
-          summary: "ponctuel",
-        },
-      }),
-      baseDecision({
         preference_updates: [{
           ...(baseDecision().preference_updates[0]),
           value: "emoji" as CoachPreferenceLocalUpdate["value"],
@@ -307,6 +299,50 @@ Deno.test("reducer blocks proposed, ambiguous, unsupported, punctual, invalid an
       `unexpected status ${reduced.status}`,
     );
   }
+});
+
+Deno.test("reducer treats punctual coach posture as terminal non-durable ack", () => {
+  const previous = createCoachPreferenceLocalFlowState({
+    status: "collecting",
+    currentStage: "setting",
+    proposedUpdates: [baseDecision().preference_updates[0]],
+  });
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "punctual_instruction",
+      preference_intent: {
+        kind: "punctual_instruction",
+        durability: "punctual",
+        support_status: "not_applicable",
+        summary:
+          "Le user demande une adaptation locale sans modifier ses réglages.",
+      },
+      preference_updates: [],
+      missing_decisions: [],
+      visible_task: {
+        kind: "punctual_instruction_ack",
+        instruction:
+          "Confirmer l'adaptation locale sans write durable puis terminer.",
+      },
+    }),
+  });
+  assertEquals(reduced.status, "cancelled");
+  assertEquals(
+    reduced.reason_code,
+    "update_coach_preferences_punctual_instruction_ack",
+  );
+  assertEquals(reduced.visible_task, "punctual_instruction_ack");
+  assertEquals(reduced.write_updates, []);
+  assertEquals(reduced.local_state?.status, "cancelled");
+  assertEquals(reduced.local_state?.current_stage, "done");
+  assertEquals(reduced.local_state?.proposed_updates, []);
+  assertEquals(reduced.conversation_context.write_result.committed, false);
+  assert(
+    reduced.conversation_context.do_not_say.some((line) =>
+      line.includes("préférence durable")
+    ),
+  );
 });
 
 Deno.test("confirmation of active proposal becomes write-ready without parsing the message", () => {
@@ -424,22 +460,68 @@ Deno.test("direct clear write commits user_profile_facts and emits committed eff
 });
 
 Deno.test("punctual and unsupported requests do not write or claim durable success", async () => {
-  for (
-    const decision of [
-      baseDecision({
+  const punctualSupabase = fakeCoachSupabase();
+  const punctualRuntime = await maybeRunUpdateCoachPreferencesOperation({
+    supabase: punctualSupabase,
+    userId: "u1",
+    userMessage:
+      "Pour la suite de cette conversation seulement, pose moins de questions, mais ne change pas mes réglages.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __coach_preference_flow_state_v1: createCoachPreferenceLocalFlowState({
+        status: "collecting",
+        currentStage: "setting",
+      }),
+    },
+    turnFrame: null,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "test",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    safetyContextOutput: { risk_band: "none", evidence: [] } as any,
+    sourceMessageId: "m-punctual",
+    runLocalDispatcher: () =>
+      Promise.resolve(baseDecision({
         flow_action: "punctual_instruction",
         preference_intent: {
           kind: "punctual_instruction",
           durability: "punctual",
           support_status: "not_applicable",
-          summary: "consigne ponctuelle",
+          summary: "adaptation locale sans changement durable",
         },
         preference_updates: [],
         visible_task: {
           kind: "punctual_instruction_ack",
-          instruction: "Ack ponctuel.",
+          instruction: "Ack local sans write.",
         },
-      }),
+      })),
+    runVisibleAgent: visibleAgent(
+      "C'est entendu, j'adapte ça pour cet échange sans modifier tes réglages.",
+    ),
+  });
+  assertEquals(punctualRuntime?.executedTools, []);
+  assertEquals((punctualRuntime?.toolSkillRun as any)?.committed_effects, []);
+  assertEquals(punctualSupabase.state.wrote, false);
+  assertEquals(
+    (punctualRuntime?.toolSkillRun as any)?.reason_code,
+    "update_coach_preferences_punctual_instruction_ack",
+  );
+  assertEquals(
+    (punctualRuntime?.nextTempMemory as any)
+      .__coach_preference_flow_state_v1,
+    undefined,
+  );
+
+  for (
+    const decision of [
       baseDecision({
         flow_action: "unsupported_preference",
         preference_intent: {
@@ -815,14 +897,10 @@ Deno.test("local exit, safety and stop actions follow note_information doctrine"
       note_information: {
         needed: true,
         source_flow_id: "update_coach_preferences",
-        source_flow_presentation: "Flow local de préférences coach.",
-        source_flow_state_summary:
-          "Proposition non écrite; sortie demandée.",
         handoff_reason: "topic_change",
         target_dispatcher: "global",
         handoff_context_for_next_dispatcher:
           "Le user demande d'arrêter le flow de préférences.",
-        target_local_dispatcher_hint: null,
         user_words: ["stop"],
         structured_context: {
           source_flow: "update_coach_preferences",
@@ -830,14 +908,7 @@ Deno.test("local exit, safety and stop actions follow note_information doctrine"
           unresolved_questions: [],
           recommended_next_focus: "resume global routing",
         },
-        risk_score: 0,
-        no_chat_mutation: {
-          db_write_committed: false,
-          potion_session_created: false,
-          scheduled_checkin_created: false,
-          recurring_reminder_created: false,
-          executable_confirmation_generated: false,
-        },
+        confidence: "high",
       },
       exit_memo: {
         needed: true,
@@ -880,6 +951,9 @@ Deno.test("local dispatcher prompt explains real field completion rules", () => 
   assert(prompt.includes("explain_preferences"));
   assert(prompt.includes("Ne transmets jamais DB brute"));
   assert(prompt.includes("write_result.committed=false avant commit"));
+  assert(prompt.includes("modification ponctuelle de posture"));
+  assert(prompt.includes("ne pas changer ses réglages"));
+  assert(prompt.includes("flow_action=punctual_instruction"));
   assertEquals(prompt.match(/Example JSON \d/g)?.length, 2);
 });
 

@@ -12,6 +12,10 @@ import {
   type NoteInformation,
   type NoteInformationTargetDispatcher,
 } from "../../contracts/note_information.v1.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  recentChatMessagesFromHistory,
+} from "../../context/recent_messages_policy.ts";
 import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.ts";
 import {
   type ActiveActionCandidateForDirectEffects,
@@ -2625,19 +2629,8 @@ export async function runWeeklyReviewLocalDispatcher(input: {
   return normalizeWeeklyReviewLocalDispatcherOutput(raw);
 }
 
-function recentMessagesFromHistory(
-  history: unknown,
-): Array<{ role: "user" | "assistant"; content: string }> {
-  return Array.isArray(history)
-    ? history.flatMap((message) => {
-      const role = String((message as any)?.role ?? "");
-      const content = String((message as any)?.content ?? "").trim();
-      if ((role === "user" || role === "assistant") && content) {
-        return [{ role: role as "user" | "assistant", content }];
-      }
-      return [];
-    }).slice(-8)
-    : [];
+function recentMessagesFromHistory(history: unknown) {
+  return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
 function exitMemoForTempMemory(args: {

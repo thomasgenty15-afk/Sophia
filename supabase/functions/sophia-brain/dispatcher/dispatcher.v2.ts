@@ -502,6 +502,7 @@ function sanitizeToolSkillIntent(
     ? intent.rejected_operations.map((item: unknown) => String(item).trim())
       .filter(Boolean)
     : undefined;
+  const score = optionalScore(intent.score);
   return {
     operation_type: operationType,
     explicitness,
@@ -511,6 +512,7 @@ function sanitizeToolSkillIntent(
     adjust_plan_scope: adjustPlanScope,
     rejected_operations: rejectedOperations,
     confidence_band: confidenceBand,
+    ...(score !== undefined ? { score } : {}),
     ambiguity,
     user_intent: userIntent,
   };
@@ -568,6 +570,11 @@ function clamp01(value: unknown, fallback = 0): number {
   return Math.max(0, Math.min(1, n));
 }
 
+function optionalScore(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return clamp01(value);
+}
+
 function sanitizeResearchSignal(
   raw: unknown,
   fallback: DispatcherResearchSignal,
@@ -615,6 +622,7 @@ function sanitizeFlowOpportunity(raw: unknown): FlowOpportunity | null {
   ) {
     return null;
   }
+  const score = optionalScore(record.score);
   return {
     opportunity_id: typeof record.opportunity_id === "string"
       ? record.opportunity_id
@@ -622,6 +630,7 @@ function sanitizeFlowOpportunity(raw: unknown): FlowOpportunity | null {
     target_kind: targetKind,
     target_flow: targetFlow as FlowOpportunity["target_flow"],
     confidence,
+    ...(score !== undefined ? { score } : {}),
     priority: Number.isFinite(Number(record.priority))
       ? Number(record.priority)
       : 50,
@@ -634,6 +643,65 @@ function sanitizeFlowOpportunity(raw: unknown): FlowOpportunity | null {
         !Array.isArray(record.seed_context)
       ? record.seed_context as Record<string, unknown>
       : {},
+  };
+}
+
+function sanitizeSkillSignal(raw: unknown): {
+  detected: boolean;
+  confidence_band: ConfidenceBand;
+  score?: number;
+  reason?: string;
+} | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const signal = raw as Record<string, unknown>;
+  const confidenceRaw = String(signal.confidence_band ?? "").trim();
+  const confidenceBand: ConfidenceBand = confidenceRaw === "low" ||
+      confidenceRaw === "medium" || confidenceRaw === "high" ||
+      confidenceRaw === "critical"
+    ? confidenceRaw
+    : "low";
+  const score = optionalScore(signal.score);
+  const reason = String(signal.reason ?? "").trim();
+  return {
+    detected: signal.detected === true,
+    confidence_band: confidenceBand,
+    ...(score !== undefined ? { score } : {}),
+    ...(reason ? { reason } : {}),
+  };
+}
+
+function sanitizeSkillSignalGroup(raw: unknown): Record<
+  string,
+  NonNullable<
+    NonNullable<TurnFrame["skill_signals"]["entry"]>[string]
+  >
+> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const entries: Record<
+    string,
+    NonNullable<
+      NonNullable<TurnFrame["skill_signals"]["entry"]>[string]
+    >
+  > = {};
+  for (const [key, value] of Object.entries(raw)) {
+    const skillId = String(key ?? "").trim();
+    if (!skillId) continue;
+    const signal = sanitizeSkillSignal(value);
+    if (signal) entries[skillId] = signal as any;
+  }
+  return entries;
+}
+
+function sanitizeSkillSignals(
+  raw: unknown,
+): NonNullable<TurnFrame["skill_signals"]> {
+  const root = raw && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as Record<string, unknown>
+    : {};
+  return {
+    entry: sanitizeSkillSignalGroup(root.entry),
+    lifecycle: sanitizeSkillSignalGroup(root.lifecycle),
+    exit: sanitizeSkillSignalGroup(root.exit),
   };
 }
 
@@ -837,21 +905,7 @@ function sanitizeLlmTurnFrame(
     input.safety_context_output.risk_band,
     raw?.safety?.risk_band ?? baseline.safety.risk_band,
   );
-  const rawSkillSignals =
-    raw?.skill_signals && typeof raw.skill_signals === "object"
-      ? {
-        ...raw.skill_signals,
-        entry: {
-          ...(raw.skill_signals.entry ?? {}),
-        },
-        lifecycle: {
-          ...(raw.skill_signals.lifecycle ?? {}),
-        },
-        exit: {
-          ...(raw.skill_signals.exit ?? {}),
-        },
-      }
-      : {};
+  const rawSkillSignals = sanitizeSkillSignals(raw?.skill_signals);
   const shouldSuppressProductHelpForExplicitOperation =
     rawSkillSignals.entry?.product_help?.detected === true &&
     operationIntents.some((intent: TurnFrame["tool_skill_intents"][number]) =>
@@ -861,13 +915,11 @@ function sanitizeLlmTurnFrame(
       intent.user_intent !== "explain_only"
     );
   const skillSignals = shouldSuppressProductHelpForExplicitOperation
-    ? {
-      ...rawSkillSignals,
-      entry: {
-        ...(rawSkillSignals.entry ?? {}),
-        product_help: undefined,
-      },
-    }
+    ? (() => {
+      const entry = { ...(rawSkillSignals.entry ?? {}) };
+      delete entry.product_help;
+      return { ...rawSkillSignals, entry };
+    })()
     : rawSkillSignals;
   const baselineConversationRisk = baseline.conversation_risk ??
     evaluateConversationRisk(input);
@@ -917,6 +969,10 @@ function sanitizeLlmTurnFrame(
     : null;
   const safeRaw = { ...raw };
   delete safeRaw[["tool", "skill", "opportunity"].join("_")];
+  const normalReplyFitScore = optionalScore(raw?.normal_reply_fit_score);
+  const normalReplyFitEvidence = Array.isArray(raw?.normal_reply_fit_evidence)
+    ? raw.normal_reply_fit_evidence.map(String).slice(0, 8)
+    : undefined;
   return {
     ...baseline,
     ...safeRaw,
@@ -932,6 +988,12 @@ function sanitizeLlmTurnFrame(
         : baseline.safety.evidence,
     },
     conversation_risk: baselineConversationRisk,
+    ...(normalReplyFitScore !== undefined
+      ? { normal_reply_fit_score: normalReplyFitScore }
+      : {}),
+    ...(normalReplyFitEvidence !== undefined
+      ? { normal_reply_fit_evidence: normalReplyFitEvidence }
+      : {}),
     direct_effects: safetyBlocksToolSkills || reviewSkillActive
       ? []
       : Array.isArray(raw?.direct_effects)

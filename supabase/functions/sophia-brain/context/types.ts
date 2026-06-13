@@ -7,6 +7,7 @@
  */
 
 import type { AgentMode } from "../state-manager.ts";
+import { RECENT_MESSAGE_LIMITS } from "./recent_messages_policy.ts";
 
 type ContextProfileMode = AgentMode | "dispatcher" | "watcher";
 
@@ -117,7 +118,7 @@ export const CONTEXT_PROFILES: Partial<
     topic_memories: true,
     facts: true,
     short_term: true,
-    history_depth: 15,
+    history_depth: RECENT_MESSAGE_LIMITS.normalReplyContext,
   },
 
   sentry: {
@@ -140,7 +141,7 @@ export const CONTEXT_PROFILES: Partial<
     topic_memories: false,
     facts: false,
     short_term: false,
-    history_depth: 5,
+    history_depth: RECENT_MESSAGE_LIMITS.dispatcher,
   },
 
   watcher: {

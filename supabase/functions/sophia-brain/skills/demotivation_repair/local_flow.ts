@@ -558,7 +558,7 @@ function parseJsonObject(raw: unknown): unknown {
 function localDispatcherFieldCompletionRules(): string {
   return [
     "Field Completion Rules pour demotivation_repair:",
-    "- flow_action: decision principale du tour courant. Utilise answer_repair, ask_gentle_clarification, reduce_friction, restore_meaning, stabilize_energy, smaller_step, action_card_candidate ou repeat_last_repair pour continuer localement; exit_to_global_dispatcher si le user veut arreter ce flow ou apporte un nouveau sujet clair; cancel_flow/complete_flow/defer_flow seulement pour une issue metier locale deja prevue par le flow; safety_preempt pour safety; get_info_product/get_info_db pour une question inline; potion_bridge_offer/confirm_potion_bridge/handoff_to_local_flow seulement pour le bridge potion autorise.",
+    "- flow_action: decision principale du tour courant. Utilise answer_repair, ask_gentle_clarification, reduce_friction, restore_meaning, stabilize_energy, smaller_step, action_card_candidate ou repeat_last_repair pour continuer localement; exit_to_global_dispatcher si le user veut arreter ce flow, apporte un nouveau sujet clair, pose une question produit/statut autonome, ou demande explicitement un tool/flow hors demotivation_repair; cancel_flow/complete_flow/defer_flow seulement pour une issue metier locale deja prevue par le flow; safety_preempt pour safety; get_info_product/get_info_db seulement pour une question inline courte qui sert encore le repair actif; potion_bridge_offer/confirm_potion_bridge/handoff_to_local_flow seulement pour le bridge potion autorise.",
     "- confidence: high si l'intention du tour et le prochain stage sont clairs; medium si le sens est probable mais incomplet; low si tu dois clarifier, ralentir ou proteger contre une hypothese fragile.",
     "- risk_score: score 0..10 utile au flow local. Ne fabrique pas de safety. Si le risque safety est reel, flow_action=safety_preempt et visible_task.kind=safety.",
     "- repair_state.intent: classification locale de la demotivation du tour. Ne conserve que ce qui aide ce flow; si la cause est une hypothese, garde unclear ou un intent prudent.",
@@ -591,7 +591,7 @@ function localDispatcherFieldCompletionRules(): string {
     "- visible_task.conversation_context.handoff_data: target_dispatcher seulement pour transition ou roundtrip inline; null sinon; no_chat_mutation reste true.",
     "- visible_task.conversation_context.do_not_say: contraintes visibles importantes, surtout pas de promesse de creation, activation, rappel ou DB write.",
     "- exit_memo.needed: true seulement pour exit_to_global_dispatcher, safety_preempt ou transition qui a besoin d'un memo; false sinon.",
-    "- exit_memo.reason: cancelled quand le user veut arreter ce flow sans autre demande; topic_change pour nouveau sujet clair; explicit_tool_request si le user demande explicitement une capacite hors flow; inline_product/inline_status pour roundtrip; safety/potion_handoff selon le cas; none sinon.",
+    "- exit_memo.reason: cancelled quand le user veut arreter ce flow sans autre demande; topic_change pour nouveau sujet clair; explicit_tool_request si le user demande explicitement une capacite hors flow; inline_product/inline_status seulement pour roundtrip inline qui reste au service du repair actif; safety/potion_handoff selon le cas; none sinon.",
     "- exit_memo.flow_summary et handoff_hint_for_global_dispatcher: utiles pour le dispatcher cible; null si le flow continue localement.",
     "- exit_memo.potion_bridge_context: object seulement si le contexte bridge doit etre transmis; null sinon.",
     "- exit_memo.note_information: obligatoire pour exit_to_global_dispatcher; null si pas de changement de dispatcher. Structure conservee: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context doit etre succinct et non vide: user_message_summary, active_flow_summary, micro-geste ou sens retrouve, contraintes explicites comme stop/no_tool/no_potion/no_questions, unresolved_questions, recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
@@ -605,9 +605,11 @@ function localDispatcherTransitionRules(): string {
   return [
     "Transition Rules:",
     "- exit_to_global_dispatcher: le user veut arreter ce flow ou apporte un nouveau sujet clair hors demotivation_repair; exit_memo.note_information obligatoire; le global peut reprendre seulement apres cette note.",
+    "- Cas de sortie observes en QA et obligatoires: 1) le user annonce un changement de sujet ou passe a une conversation generale qui ne demande plus de repair; 2) le user pose une question produit/statut autonome a part, par exemple destination, emplacement, etat ou fonctionnement d'une surface Sophia; 3) le user demande explicitement de lancer un tool/flow comme une carte, un rappel, une preference ou un ajustement. Dans ces trois familles, produis exit_to_global_dispatcher avec exit_memo.note_information; ne reponds pas localement comme demotivation_repair.",
+    "- Si le message contient une intention concurrente explicite hors repair, le dispatcher global doit pouvoir reprocesser le message courant depuis exit_memo.note_information. Ne transforme pas cette intention en conseil conversationnel local.",
     "- cancel_flow/defer_flow/complete_flow: issue metier locale sans changement de dispatcher, visible_task.kind=exit_or_cancel, note_information null.",
     "- safety_preempt: safety prioritaire; note_information vers safety_crisis; le global normal ne fonctionne pas.",
-    "- get_info_product/get_info_db: question inline produit ou statut; produire le contexte necessaire et conserver l'etat parent.",
+    "- get_info_product/get_info_db: question inline produit ou statut seulement si elle est courte, au service direct du repair actif et ne demande pas un nouveau owner autonome. Sinon exit_to_global_dispatcher.",
     "- handoff_to_local_flow/confirm_potion_bridge: seulement vers select_state_potion apres offre locale persistable et consentement; note_information demotivation_repair obligatoire.",
     "- anti-faux-positif: si le user continue a parler de sa demotivation, revise une nuance ou repond a une question locale, reste owner du flow au lieu de sortir.",
   ].join("\n");
@@ -903,8 +905,7 @@ export const runDemotivationRepairLocalDispatcher:
           why_ready_or_blocked: "string",
           note_information: {
             source_flow_id: "demotivation_repair",
-            target_dispatcher:
-              "global|select_state_potion|safety_crisis|null",
+            target_dispatcher: "global|select_state_potion|safety_crisis|null",
             handoff_reason:
               "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|null",
             handoff_context_for_next_dispatcher: "string|null",
@@ -966,8 +967,7 @@ export const runDemotivationRepairLocalDispatcher:
           potion_bridge_context: "object|null",
           note_information: {
             source_flow_id: "demotivation_repair",
-            target_dispatcher:
-              "global|select_state_potion|safety_crisis|null",
+            target_dispatcher: "global|select_state_potion|safety_crisis|null",
             handoff_reason:
               "topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request|null",
             handoff_context_for_next_dispatcher: "string|null",

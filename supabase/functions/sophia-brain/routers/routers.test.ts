@@ -487,6 +487,259 @@ Deno.test("conversation routers keep emotional_repair owner over new tool skill 
   );
 });
 
+Deno.test("conversation routers keep normal reply over implicit tool starts when normal fit dominates", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      normal_reply_fit_score: 0.88,
+      normal_reply_fit_evidence: ["ordinary conversation can answer directly"],
+      tool_skill_intents: [{
+        operation_type: "prepare_defense_card",
+        explicitness: "implied",
+        confidence_band: "high",
+        score: 0.82,
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "normal_reply");
+  assertEquals(route.reason_code, "normal_reply_fit_dominates");
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "tool_skill.prepare_defense_card" &&
+      path.reason_code === "normal_reply_fit_dominates" &&
+      path.raw_score === 0.82 &&
+      path.normal_reply_fit_score === 0.88
+    ),
+    true,
+  );
+});
+
+Deno.test("conversation routers let explicit tool starts beat normal reply fit", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      normal_reply_fit_score: 0.9,
+      normal_reply_fit_evidence: ["conversation remains possible"],
+      tool_skill_intents: [{
+        operation_type: "prepare_defense_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        score: 0.78,
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "tool_skill");
+  assertEquals(route.selected_handler, "prepare_defense_card");
+});
+
+Deno.test("conversation routers keep normal reply over light repair signals", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      normal_reply_fit_score: 0.86,
+      normal_reply_fit_evidence: ["normal supportive answer can handle this"],
+      skill_signals: {
+        entry: {
+          demotivation_repair: {
+            detected: true,
+            confidence_band: "high",
+            score: 0.72,
+            reason: "low_energy_but_not_repair_owned",
+          },
+        },
+      },
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "normal_reply");
+  assertEquals(route.reason_code, "normal_reply_fit_dominates");
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "conversation_skill.demotivation_repair" &&
+      path.reason_code === "normal_reply_fit_dominates"
+    ),
+    true,
+  );
+});
+
+Deno.test("conversation routers let strong repair signals beat normal reply fit", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      normal_reply_fit_score: 0.72,
+      normal_reply_fit_evidence: ["conversation possible but not dominant"],
+      skill_signals: {
+        entry: {
+          demotivation_repair: {
+            detected: true,
+            confidence_band: "high",
+            score: 0.9,
+            reason: "clear_immediate_repair_need",
+          },
+        },
+      },
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "conversation_handler");
+  assertEquals(route.selected_handler, "demotivation_repair");
+});
+
+Deno.test("conversation routers let explicit action refusal demotivation beat attack card", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      normal_reply_fit_score: 0.9,
+      skill_signals: {
+        entry: {
+          demotivation_repair: {
+            detected: true,
+            confidence_band: "high",
+            score: 0.82,
+            reason: "explicit_action_refusal_focus_on_loss_of_desire",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        score: 0.9,
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "conversation_handler");
+  assertEquals(route.selected_handler, "demotivation_repair");
+  assertEquals(
+    route.reason_code,
+    "explicit_action_refusal_prefers_demotivation_repair",
+  );
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "tool_skill.prepare_attack_card" &&
+      path.reason_code ===
+        "explicit_action_refusal_prefers_demotivation_repair"
+    ),
+    true,
+  );
+});
+
+Deno.test("conversation routers block attack flow opportunity after explicit action refusal", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        entry: {
+          demotivation_repair: {
+            detected: true,
+            confidence_band: "high",
+            reason: "explicit_action_refusal_focus_on_loss_of_desire",
+          },
+        },
+      },
+      flow_opportunity: {
+        opportunity_id: "prepare_attack_card.execution_friction",
+        target_kind: "tool_skill",
+        target_flow: "prepare_attack_card",
+        confidence: "high",
+        score: 0.88,
+        priority: 70,
+        reason: "attack card opportunity",
+        evidence: ["execution friction"],
+        seed_context: {},
+      },
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "conversation_handler");
+  assertEquals(route.selected_handler, "demotivation_repair");
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "flow_opportunity.prepare_attack_card" &&
+      path.reason_code ===
+        "explicit_action_refusal_prefers_demotivation_repair"
+    ),
+    true,
+  );
+});
+
+Deno.test("conversation routers penalize repeated implicit flow offers", () => {
+  const route = runConversationRouters({
+    flow_intervention_context: {
+      last_flow_target: "prepare_defense_card",
+      turns_since_last_flow_decline: 2,
+    },
+    turn_frame: frame({
+      normal_reply_fit_score: 0.5,
+      normal_reply_fit_evidence: ["conversation still fits"],
+      tool_skill_intents: [{
+        operation_type: "prepare_defense_card",
+        explicitness: "implied",
+        confidence_band: "high",
+        score: 0.9,
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "normal_reply");
+  assertEquals(route.reason_code, "normal_reply_fit_dominates");
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "tool_skill.prepare_defense_card" &&
+      path.raw_score === 0.9 &&
+      path.adjusted_score === 0.55
+    ),
+    true,
+  );
+});
+
+Deno.test("conversation routers block weak flow opportunities when normal reply dominates", () => {
+  const route = runConversationRouters({
+    turn_frame: frame({
+      normal_reply_fit_score: 1,
+      normal_reply_fit_evidence: ["ordinary conversation remains dominant"],
+      flow_opportunity: {
+        opportunity_id: "prepare_defense_card.reflex_snacking",
+        target_kind: "tool_skill",
+        target_flow: "prepare_defense_card",
+        confidence: "medium",
+        score: 0.55,
+        priority: 40,
+        reason: "implicit defense card opportunity",
+        evidence: ["grignoter par reflexe"],
+        seed_context: {
+          target_hint: "grignotage par reflexe",
+          surface: "defense_card",
+        },
+      },
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "normal_reply");
+  assertEquals(
+    route.blocked_paths.some((path) =>
+      path.path === "flow_opportunity.prepare_defense_card" &&
+      path.reason_code === "normal_reply_fit_dominates" &&
+      path.raw_score === 0.55 &&
+      path.normal_reply_fit_score === 1
+    ),
+    true,
+  );
+});
+
 Deno.test("conversation routers keep active safety owner while deferring tool skills", () => {
   const route = runConversationRouters({
     active_skill_state: { skill_id: "safety_crisis" },

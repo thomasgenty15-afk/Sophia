@@ -1,0 +1,31 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-13-exitfix_real_r1c-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Non, pas de carte et pas de micro-action maintenant. Je veux juste comprendre pourquoi l’envie s’éteint aussi vite dès que je pense au dossier, et rester sur ce ressenti plutôt que chercher une solution tout de suite.",
+    "assistant": "C'est tout à fait légitime de vouloir comprendre ce qui se joue avant de chercher à avancer. Quand cette envie s'éteint brusquement face au dossier, est-ce que tu identifies un aspect précis qui semble « couper le courant » ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "skill_entry_signal",
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1c-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  }
+]

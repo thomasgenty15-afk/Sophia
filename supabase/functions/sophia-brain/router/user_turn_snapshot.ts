@@ -90,14 +90,9 @@ function deriveExplicitConstraints(args: {
     ...asRecord(args.tempMemory.__explicit_turn_constraints),
     ...asRecord(args.tempMemory.__turn_constraints),
   };
-  const blocked = args.routeDecision?.blocked_paths ?? [];
   const routeReason = args.routeDecision?.reason_code ?? "";
   const selectedHandler = args.routeDecision?.selected_handler ?? "";
-  const routeSignals = [
-    routeReason,
-    selectedHandler,
-    ...blocked.flatMap((path) => [path.path, path.reason_code]),
-  ];
+  const routeSignals = [routeReason, selectedHandler];
   const hasRouteSignal = (needle: string) =>
     routeSignals.some((signal) => stringIncludes(signal, needle));
 

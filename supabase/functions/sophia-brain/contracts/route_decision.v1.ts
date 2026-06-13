@@ -13,11 +13,19 @@ export type MemoryUseKind =
   | "context_only"
   | "none";
 
+export type BlockedPath = {
+  path: string;
+  reason_code: string;
+  raw_score?: number;
+  adjusted_score?: number;
+  normal_reply_fit_score?: number;
+};
+
 export type RouteDecision = {
   route_version: "v1";
   response_owner: ResponseOwner;
   selected_handler?: string;
-  blocked_paths: Array<{ path: string; reason_code: string }>;
+  blocked_paths: BlockedPath[];
   direct_effects_to_run: string[];
   reason_code: string;
   memory_used_for_route: boolean;

@@ -5,6 +5,7 @@ import type {
   FlowOpportunityTargetFlow,
   FlowOpportunityTargetKind,
 } from "./contract.ts";
+import { RECENT_MESSAGE_LIMITS } from "../../context/recent_messages_policy.ts";
 
 export const FLOW_OPPORTUNITY_STATE_KEY =
   "__flow_opportunity_verification_state_v1";
@@ -207,7 +208,7 @@ export function appendGetInfoHistory(args: {
         context: args.context,
         at: now,
       },
-    ].slice(-8),
+    ].slice(-RECENT_MESSAGE_LIMITS.subskillHistory),
     recent_user_messages: alreadyRecorded
       ? recent
       : [...recent, args.userMessage].filter(Boolean).slice(-5),

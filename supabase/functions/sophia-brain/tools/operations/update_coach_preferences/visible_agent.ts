@@ -43,7 +43,7 @@ const STAGE_PROMPTS: Record<CoachPreferenceVisibleTaskKind, string> = {
   confirm_supported_mapping:
     "Stage confirm_supported_mapping. Demande confirmation pour traduire la demande vers le réglage supporté proposé dans selected_candidate/known_values.proposed_updates. Ne dis pas que c'est enregistré.",
   punctual_instruction_ack:
-    "Stage punctual_instruction_ack. Accuse réception comme consigne ponctuelle pour cette réponse seulement. Ne prétends pas stocker une préférence durable.",
+    "Stage punctual_instruction_ack. Accuse réception comme adaptation locale pour le tour, l'échange courant ou la conversation actuelle selon conversation_context. Dis sobrement que les réglages/préférences durables ne sont pas modifiés quand c'est pertinent. Ne prétends jamais stocker une préférence durable.",
   unsupported_preference:
     "Stage unsupported_preference. Explique sobrement qu'il n'existe pas de réglage durable pour cette demande exacte. Propose seulement un mapping si conversation_context en fournit un.",
   get_info_db:

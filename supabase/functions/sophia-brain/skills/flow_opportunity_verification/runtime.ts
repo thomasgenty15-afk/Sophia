@@ -9,6 +9,10 @@ import {
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
 import type { ConversationSkillOutput } from "../../contracts/skill_output.v1.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  recentChatMessagesFromHistory,
+} from "../../context/recent_messages_policy.ts";
 import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.ts";
 import {
   createNoteInformation,
@@ -175,20 +179,68 @@ function targetKindMatchesFlow(
   return kind !== "unknown" && kind === targetKindForFlow(flow);
 }
 
-function recentMessagesFromHistory(history: unknown): Array<{
-  role: "user" | "assistant";
-  content: string;
-}> {
-  return Array.isArray(history)
-    ? history.flatMap((message) => {
-      const role = String((message as any)?.role ?? "");
-      const content = String((message as any)?.content ?? "").trim();
-      if ((role === "user" || role === "assistant") && content) {
-        return [{ role: role as "user" | "assistant", content }];
-      }
-      return [];
-    }).slice(-8)
+function recentMessagesFromHistory(history: unknown) {
+  return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
+}
+
+function directEffectLaneContext(turnFrame: TurnFrame | null):
+  | Record<
+    string,
+    unknown
+  >
+  | null {
+  const lane = (turnFrame as any)?.direct_effect_lane;
+  if (!lane || typeof lane !== "object" || Array.isArray(lane)) return null;
+  const committed = Array.isArray(lane.committed_effects)
+    ? lane.committed_effects
     : [];
+  const blocked = Array.isArray(lane.blocked_effects)
+    ? lane.blocked_effects
+    : [];
+  if (committed.length === 0 && blocked.length === 0) return null;
+  return {
+    committed_effects: committed,
+    blocked_effects: blocked,
+    executedTools: Array.isArray(lane.executedTools) ? lane.executedTools : [],
+    toolExecution: stringValue(lane.toolExecution) || "none",
+    visible_confirmation_hint: stringValue(lane.visible_confirmation_hint) ||
+      null,
+    confirmation_contract:
+      "Confirm only committed_effects. If blocked_effects exist, ask for the missing precision without saying the effect was created. Keep the current visible flow style.",
+  };
+}
+
+function visibleTaskWithDirectEffectLane(args: {
+  visibleTask: FlowOpportunityDispatcherOutput["visible_task"];
+  turnFrame: TurnFrame | null;
+}): FlowOpportunityDispatcherOutput["visible_task"] {
+  const directEffectResults = directEffectLaneContext(args.turnFrame);
+  if (!directEffectResults) return args.visibleTask;
+  return {
+    ...args.visibleTask,
+    conversation_context: {
+      ...(args.visibleTask.conversation_context ?? {}),
+      direct_effect_results: directEffectResults,
+      tone_constraints: [
+        ...stringArray(
+          (args.visibleTask.conversation_context as any)?.tone_constraints,
+          8,
+        ),
+        "Si tu confirmes un rappel ponctuel committé, adresse-toi au user au tutoiement.",
+      ],
+      do_not_say: [
+        ...stringArray(
+          (args.visibleTask.conversation_context as any)?.do_not_say,
+          12,
+        ),
+        "je vous rappellerai",
+        "souhaitez-vous",
+        "votre rappel",
+      ],
+    } as FlowOpportunityDispatcherOutput["visible_task"][
+      "conversation_context"
+    ],
+  };
 }
 
 type ConversationOpportunityTarget =
@@ -1355,7 +1407,10 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
   const content = await renderVisible({
     userId: args.userId,
     requestId: args.requestId ?? null,
-    visibleTask: reduced.visible_task,
+    visibleTask: visibleTaskWithDirectEffectLane({
+      visibleTask: reduced.visible_task,
+      turnFrame: args.turnFrame,
+    }),
     visibleAgent: args.runVisibleAgent,
   });
   const nextTempMemory = writeFlowOpportunityState(

@@ -1,7 +1,6 @@
 /// <reference path="../../tsserver-shims.d.ts" />
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import type { AgentMode } from "../state-manager.ts";
 import { logMessage, updateUserState } from "../state-manager.ts";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
@@ -30,9 +29,6 @@ import {
   stripHiddenHtmlComments,
 } from "./response_visibility_formatting.ts";
 import { effectiveResponseOwnerForOperationRuntime } from "./operation_response_owner.ts";
-import {
-  committedEffectsToConfirmFromToolSkillRun,
-} from "./direct_effect_local_context.ts";
 import { clearActiveToolFlow } from "./active_flow_state.ts";
 import {
   cleanWeeklyVisibleResponse,
@@ -62,6 +58,12 @@ export function routeDecisionForOperationTrace(args: {
   routeDecision: RouteDecision;
   toolSkillRun?: unknown;
 }): RouteDecision {
+  if (
+    args.routeDecision.response_owner === "normal_reply" &&
+    args.routeDecision.reason_code === "normal_reply_fit_dominates"
+  ) {
+    return args.routeDecision;
+  }
   const selectedHandler = String(
     (args.toolSkillRun as any)?.selected_handler ?? "",
   ).trim();
@@ -133,10 +135,12 @@ function appendUncoveredMessageFollowup(args: {
 
 export function appendOperationFollowup(args: {
   content: string;
-  operationRuntime: Pick<
-    OperationRuntimeResult,
-    "toolExecution" | "executedTools"
-  > & { toolSkillRun?: OperationRuntimeResult["toolSkillRun"] | null };
+  operationRuntime:
+    & Pick<
+      OperationRuntimeResult,
+      "toolExecution" | "executedTools"
+    >
+    & { toolSkillRun?: OperationRuntimeResult["toolSkillRun"] | null };
   turnFrame?: TurnFrame | null;
   userMessage?: string;
 }): string {
@@ -189,10 +193,12 @@ function hasCommittedOneShotReminderEffect(
 
 export function appendSafetyReminderPostCommitFollowup(args: {
   content: string;
-  operationRuntime: Pick<
-    OperationRuntimeResult,
-    "toolExecution" | "executedTools"
-  > & { toolSkillRun?: OperationRuntimeResult["toolSkillRun"] | null };
+  operationRuntime:
+    & Pick<
+      OperationRuntimeResult,
+      "toolExecution" | "executedTools"
+    >
+    & { toolSkillRun?: OperationRuntimeResult["toolSkillRun"] | null };
   turnFrame: TurnFrame | null;
 }): string {
   const content = String(args.content ?? "").trim();
@@ -341,78 +347,6 @@ export function restoreWeeklyParentAfterChildDetour(args: {
   delete next.active_skill_state;
   delete next.__suspended_flow_v1;
   return { tempMemory: next, restored: true, childFlowId };
-}
-
-function fallbackCommittedEffectConfirmation(
-  facts: ReturnType<typeof committedEffectsToConfirmFromToolSkillRun>,
-): string | null {
-  const first = facts[0];
-  if (!first) return null;
-  if (first.effect_type === "track_progress_plan_item") {
-    const title = String(first.structured_fact.target_title ?? "").trim() ||
-      "cette action";
-    const status = String(first.structured_fact.progress_status ?? "").trim();
-    const label = status === "missed"
-      ? "comme non faite"
-      : status === "partial"
-      ? "comme partiellement faite"
-      : "comme faite";
-    return `C'est bien enregistré pour « ${title} » ${label}.`;
-  }
-  const instruction = String(
-    first.structured_fact.reminder_instruction ??
-      first.structured_fact.instruction ??
-      "",
-  ).trim() || "ce rappel";
-  const scheduledFor = String(first.structured_fact.scheduled_for ?? "")
-    .trim();
-  return scheduledFor
-    ? `C'est bien programmé pour « ${instruction} » (${scheduledFor}).`
-    : `C'est bien programmé pour « ${instruction} ».`;
-}
-
-async function naturalCommittedEffectConfirmation(args: {
-  userId: string;
-  requestId?: string | null;
-  userMessage: string;
-  currentContent: string;
-  facts: ReturnType<typeof committedEffectsToConfirmFromToolSkillRun>;
-}): Promise<string | null> {
-  if (args.facts.length === 0) return null;
-  try {
-    const raw = await generateWithGemini(
-      "Tu es l'agent visible Sophia. Confirme avec tes propres mots un effet durable deja committé.",
-      JSON.stringify({
-        task: "confirm_committed_direct_effect_naturally",
-        user_message: args.userMessage,
-        current_runtime_content: args.currentContent,
-        committed_effects_to_confirm: args.facts,
-        instructions: [
-          "Reponds en francais, naturellement, comme Sophia.",
-          "Confirme seulement les effets committes fournis.",
-          "N'utilise pas de formule technique, pas de JSON, pas de mention de DB, dispatcher, runtime ou outil.",
-          "Ne dis pas qu'un effet est cree/enregistre s'il n'est pas dans committed_effects_to_confirm.",
-          "Une phrase courte suffit sauf si current_runtime_content contient deja une clarification utile.",
-        ],
-      }),
-      0.4,
-      false,
-      [],
-      "auto",
-      {
-        requestId: args.requestId ?? undefined,
-        userId: args.userId,
-        model: getGlobalAiModel("gemini-2.5-flash"),
-        source: "direct_effect.confirmation_visible_agent",
-        forceRealAi: true,
-        reasoningEffort: "low",
-      },
-    );
-    const text = String(raw ?? "").trim();
-    return text || fallbackCommittedEffectConfirmation(args.facts);
-  } catch {
-    return fallbackCommittedEffectConfirmation(args.facts);
-  }
 }
 
 const STATEFUL_CONVERSATION_LOCAL_SKILLS = new Set([
@@ -680,20 +614,8 @@ export async function handleOperationRuntimeResponse(args: {
   const rawOperationRuntimeContentBeforeAgenda = weeklyReturnMessage
     ? `${operationRuntime.content}\n\n${weeklyReturnMessage}`
     : operationRuntime.content;
-  const committedEffectsToConfirm = committedEffectsToConfirmFromToolSkillRun(
-    operationRuntime.toolSkillRun,
-  );
-  const operationContentForConfirmation = committedEffectsToConfirm.length > 0
-    ? await naturalCommittedEffectConfirmation({
-      userId,
-      requestId,
-      userMessage,
-      currentContent: String(rawOperationRuntimeContentBeforeAgenda ?? ""),
-      facts: committedEffectsToConfirm,
-    }) ?? String(rawOperationRuntimeContentBeforeAgenda ?? "")
-    : String(rawOperationRuntimeContentBeforeAgenda ?? "");
   const rawOperationRuntimeContent = appendOperationFollowup({
-    content: operationContentForConfirmation,
+    content: String(rawOperationRuntimeContentBeforeAgenda ?? ""),
     operationRuntime,
     turnFrame,
     userMessage,

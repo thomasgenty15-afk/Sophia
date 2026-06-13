@@ -9,11 +9,15 @@ import {
   normalizeNoteInformation,
   type NoteInformation,
 } from "../../../contracts/note_information.v1.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  recentChatMessagesFromHistory,
+} from "../../../context/recent_messages_policy.ts";
 import type { SafetySignalContext } from "../../../safety/safety_context.ts";
 import {
-  isDefenseCardHandoffState,
   type DefenseCardHandoffDraft,
   type DefenseCardHandoffState,
+  isDefenseCardHandoffState,
 } from "./contract.ts";
 import {
   createInitialPrepareDefenseCardLocalState,
@@ -282,21 +286,8 @@ export function clearDefenseCardFrame(tempMemory: any) {
   });
 }
 
-function recentMessagesFromHistory(history: unknown): Array<{
-  role: "user" | "assistant";
-  content: string;
-}> {
-  if (!Array.isArray(history)) return [];
-  return history
-    .filter((message: any) =>
-      (message?.role === "user" || message?.role === "assistant") &&
-      typeof message?.content === "string" && message.content.trim()
-    )
-    .map((message: any) => ({
-      role: message.role as "user" | "assistant",
-      content: String(message.content),
-    }))
-    .slice(-8);
+function recentMessagesFromHistory(history: unknown) {
+  return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
 function defenseCardLocalRuntimeTraceBase(args: {
@@ -437,7 +428,7 @@ function appendDefenseCardSubskillHistory(args: {
         reply_summary: args.reply.slice(0, 500),
         created_at: new Date().toISOString(),
       },
-    ].slice(-8),
+    ].slice(-RECENT_MESSAGE_LIMITS.subskillHistory),
   };
 }
 
@@ -509,7 +500,6 @@ function buildPrepareDefenseCardInboundNote(args: {
     handoff_context_for_next_dispatcher: JSON.stringify({
       route_reason: args.routeDecision.reason_code ?? null,
       operation_input: args.operationInput ?? null,
-      blocked_paths: args.routeDecision.blocked_paths ?? [],
       selected_handler: args.routeDecision.selected_handler,
     }),
     user_words: [],

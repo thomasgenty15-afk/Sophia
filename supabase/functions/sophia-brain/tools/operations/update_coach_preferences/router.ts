@@ -6,6 +6,10 @@ import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import type { ConversationSkillOutput } from "../../../contracts/skill_output.v1.ts";
 import {
+  RECENT_MESSAGE_LIMITS,
+  recentChatMessagesFromHistory,
+} from "../../../context/recent_messages_policy.ts";
+import {
   createNoteInformation,
   type NoteInformation,
   noteInformationForTrace,
@@ -80,21 +84,8 @@ type StatusRecapSubskillRunner = (args: {
   requestId?: string | null;
 }) => Promise<OperationRuntimeResult | null>;
 
-function recentMessagesFromHistory(history: unknown): Array<{
-  role: "user" | "assistant";
-  content: string;
-}> {
-  if (!Array.isArray(history)) return [];
-  return history
-    .filter((message: any) =>
-      (message?.role === "user" || message?.role === "assistant") &&
-      typeof message?.content === "string" && message.content.trim()
-    )
-    .map((message: any) => ({
-      role: message.role as "user" | "assistant",
-      content: String(message.content),
-    }))
-    .slice(-8);
+function recentMessagesFromHistory(history: unknown) {
+  return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
 function minimalTurnFrame(args: {
@@ -143,7 +134,7 @@ function appendCoachPreferenceSubskillHistory(args: {
       summary: args.summary ?? null,
       created_at: new Date().toISOString(),
     },
-  ].slice(-8);
+  ].slice(-RECENT_MESSAGE_LIMITS.subskillHistory);
   return {
     ...args.state,
     subskill_history: history,

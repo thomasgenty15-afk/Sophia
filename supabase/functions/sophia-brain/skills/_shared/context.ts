@@ -1,4 +1,5 @@
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
+import { RECENT_MESSAGE_LIMITS } from "../../context/recent_messages_policy.ts";
 import type { ActiveConversationSkillWorkingState } from "./active_skill_state.ts";
 
 export type SkillId =
@@ -83,10 +84,14 @@ export async function loadBaseSkillContext(
     }
     return true;
   });
+  const recentLimit = skillId === "emotional_repair" ||
+      skillId === "demotivation_repair" || skillId === "safety_crisis"
+    ? RECENT_MESSAGE_LIMITS.conversationRepair
+    : RECENT_MESSAGE_LIMITS.toolFlow;
   return {
     skill_id: skillId,
     user_id: input.user_id,
-    recent_messages: input.recent_messages.slice(-8),
+    recent_messages: input.recent_messages.slice(-recentLimit),
     active_skill_working_state: input.active_skill_working_state,
     turn_frame: input.turn_frame,
     relevant_memory_items: relevant,

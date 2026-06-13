@@ -162,12 +162,31 @@ function safetyFollowupForTurnFrame(
 
 function createReminderSuccessReply(args: {
   localLabel: string;
+  reminderInstruction?: string | null;
   turnFrame?: TurnFrame | null;
 }): string {
+  const instruction = String(args.reminderInstruction ?? "").trim();
+  const base = instruction
+    ? `C'est programmé pour ${args.localLabel}: je te rappellerai de ${instruction}.`
+    : `C'est programmé pour ${args.localLabel}.`;
   return [
-    `C'est programmé pour ${args.localLabel}.`,
+    base,
     safetyFollowupForTurnFrame(args.turnFrame),
   ].filter(Boolean).join(" ");
+}
+
+function canonicalInstructionHintFromTurnFrame(
+  turnFrame?: TurnFrame | null,
+): string | undefined {
+  const effect = (turnFrame?.direct_effects ?? []).find((candidate) =>
+    candidate.effect_type === "create_one_shot_reminder"
+  );
+  const hint = effect?.payload_hint &&
+      typeof effect.payload_hint === "object" &&
+      !Array.isArray(effect.payload_hint)
+    ? (effect.payload_hint as Record<string, unknown>).instruction_hint
+    : undefined;
+  return typeof hint === "string" ? hint : undefined;
 }
 
 /**
@@ -355,6 +374,9 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       requestId: args.requestId,
       now: args.now,
       contextMessages: args.contextMessages,
+      canonicalReminderInstruction: canonicalInstructionHintFromTurnFrame(
+        args.turnFrame,
+      ),
     });
     const createCommitted = committedCreateEffects(createOutcome);
     const committedEffects = [...cancelCommitted, ...createCommitted];
@@ -456,6 +478,9 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     now: args.now,
     contextMessages: args.contextMessages,
     forceCreate: hasExplicitCreateDirectEffect,
+    canonicalReminderInstruction: canonicalInstructionHintFromTurnFrame(
+      args.turnFrame,
+    ),
   });
   if (!outcome.detected) {
     return baseDirectEffectResult({
@@ -505,6 +530,7 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         reason_code: outcome.parse_source ?? "created",
         reply: createReminderSuccessReply({
           localLabel: outcome.scheduled_for_local_label,
+          reminderInstruction: outcome.reminder_instruction,
           turnFrame: args.turnFrame ?? null,
         }),
       }),

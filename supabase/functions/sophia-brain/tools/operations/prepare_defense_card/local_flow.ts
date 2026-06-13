@@ -9,6 +9,7 @@ import {
   type NoteInformation,
   type NoteInformationTargetDispatcher,
 } from "../../../contracts/note_information.v1.ts";
+import { RECENT_MESSAGE_LIMITS } from "../../../context/recent_messages_policy.ts";
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 import {
   directEffectLocalDispatcherPromptLines,
@@ -951,7 +952,9 @@ export function createInitialPrepareDefenseCardLocalState(
         (args.activeState as any)?.local_state
           ?.subskill_history,
       )
-      ? (args.activeState as any).local_state.subskill_history.slice(-8)
+      ? (args.activeState as any).local_state.subskill_history.slice(
+        -RECENT_MESSAGE_LIMITS.subskillHistory,
+      )
       : [],
   };
 }

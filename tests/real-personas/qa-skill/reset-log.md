@@ -319,3 +319,9 @@
 - 2026-06-13T00:31:12Z reset persona=qa-skill connection=all_skills_researchqa0613r1 user_id=b59a2c95-64cd-4781-8a6e-8df8b0d7abbb
 - 2026-06-13T00:48:43Z reset persona=qa-skill connection=all_skills_researchqa0613r1 user_id=b59a2c95-64cd-4781-8a6e-8df8b0d7abbb
 - 2026-06-13T00:50:32Z reset persona=qa-skill connection=all_skills_researchqa0613r1 user_id=b59a2c95-64cd-4781-8a6e-8df8b0d7abbb
+- 2026-06-13T12:10:48Z reset persona=qa-skill connection=demotivation_repair_exit_demotivation_repair_exit_policy_r1 user_id=c9020914-9a79-45d1-9f17-3d851073a5b8
+- 2026-06-13T12:43:02Z reset persona=qa-skill connection=attack-switch_20260613-r1 user_id=94b4f5d3-30dd-47c6-a228-9d341cfc9db6
+- 2026-06-13T13:06:45Z reset persona=qa-skill connection=attack-switch-platform_20260613-r2 user_id=d616ea0e-7a48-4c65-a706-86da59dd2f8e
+- 2026-06-13T13:16:29Z reset persona=qa-skill connection=demotivation_repair_exitfix_real_20260613_r1b user_id=3d0bff00-d2cb-472c-929e-557a3feca26e
+- 2026-06-13T13:16:29Z reset persona=qa-skill connection=demotivation_repair_exitfix_real_20260613_r1 user_id=50ed31c9-91e6-41f3-9e8f-c627481e34a2
+- 2026-06-13T13:16:32Z reset persona=qa-skill connection=demotivation_repair_exitfix_real_20260613_r1c user_id=d0666548-878c-49a9-8aeb-1a1c2aaae7f3

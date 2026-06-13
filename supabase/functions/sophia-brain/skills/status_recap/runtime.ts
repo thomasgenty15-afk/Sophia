@@ -6,6 +6,10 @@ import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.
 import { clearToolSkillFlowForDirectReminder } from "../../router/active_flow_state.ts";
 import { withDirectEffectLocalContext } from "../../router/direct_effect_local_context.ts";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  trimRecentChatMessages,
+} from "../../context/recent_messages_policy.ts";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
 import {
   createNoteInformation,
@@ -95,16 +99,7 @@ function statusRecapRouteSignal(routeDecision: RouteDecision | null): boolean {
 function recentMessagesFromHistory(
   history: unknown,
 ): Array<{ role: "user" | "assistant"; content: string }> {
-  return Array.isArray(history)
-    ? history.flatMap((message) => {
-      const role = String((message as any)?.role ?? "");
-      const content = String((message as any)?.content ?? "").trim();
-      if ((role === "user" || role === "assistant") && content) {
-        return [{ role: role as "user" | "assistant", content }];
-      }
-      return [];
-    }).slice(-8)
-    : [];
+  return trimRecentChatMessages(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
 function exitMemoForTempMemory(args: {

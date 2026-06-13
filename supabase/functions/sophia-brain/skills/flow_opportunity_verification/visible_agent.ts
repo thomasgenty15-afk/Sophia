@@ -82,6 +82,8 @@ function visibleSystemPrompt(input: FlowOpportunityVisibleAgentInput): string {
     "Tu ne routes pas, tu ne choisis pas le flow, tu ne valides pas de mutation.",
     "Tu utilises uniquement visible_task.conversation_context. Aucun autre contexte n'est disponible.",
     "N'affirme jamais qu'une preference, carte, potion, rappel ou plan a ete modifie sans commit du flow cible.",
+    "Si conversation_context.direct_effect_results contient committed_effects, confirme ces effets dans ton message visible, avec le style du flow courant.",
+    "Si conversation_context.direct_effect_results contient seulement blocked_effects, ne confirme aucun effet; demande la precision manquante naturellement.",
     "Ne mentionne jamais JSON, dispatcher, reducer, DB, table, prompt ou outil interne.",
     "Ne rends pas product_help; si product_help est appele, sa reponse visible appartient a product_help.",
     "Ne rends pas status_recap; le flow status_recap rendra les faits DB-grounded.",
@@ -98,6 +100,24 @@ export async function runFlowOpportunityVisibleAgent(
   if (input.stage === "none" || input.stage === "exit_ack") {
     return "";
   }
+  const directEffectResults = input.conversation_context &&
+      typeof input.conversation_context === "object" &&
+      !Array.isArray(input.conversation_context)
+    ? (input.conversation_context as Record<string, unknown>)
+      .direct_effect_results
+    : null;
+  const committedEffects = directEffectResults &&
+      typeof directEffectResults === "object" &&
+      !Array.isArray(directEffectResults) &&
+      Array.isArray((directEffectResults as any).committed_effects)
+    ? (directEffectResults as any).committed_effects
+    : [];
+  const blockedEffects = directEffectResults &&
+      typeof directEffectResults === "object" &&
+      !Array.isArray(directEffectResults) &&
+      Array.isArray((directEffectResults as any).blocked_effects)
+    ? (directEffectResults as any).blocked_effects
+    : [];
   const userPrompt = JSON.stringify({
     task: "write_flow_opportunity_visible_message",
     stage: input.stage,
@@ -108,7 +128,10 @@ export async function runFlowOpportunityVisibleAgent(
     hard_constraints: {
       toolExecution: "none",
       executedTools: [],
-      committed_effects: [],
+      committed_effects: committedEffects,
+      blocked_effects: blockedEffects,
+      must_confirm_committed_direct_effects: committedEffects.length > 0,
+      must_not_confirm_blocked_direct_effects: blockedEffects.length > 0,
       no_durable_claim_without_target_commit: true,
       no_product_help_rendering: true,
       no_status_recap_rendering: true,

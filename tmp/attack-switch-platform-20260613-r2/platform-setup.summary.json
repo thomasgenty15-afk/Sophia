@@ -1,0 +1,134 @@
+{
+  "run_id": "attack-switch-platform-20260613-r2",
+  "user_id": "d616ea0e-7a48-4c65-a706-86da59dd2f8e",
+  "email": "qa-qa-skill-attack-switch-platform-20260613-r2@example.com",
+  "cycle_id": "8840d87c-61a3-4662-87cb-b2e917c4b0c7",
+  "transformation_id": "a98f2107-5b0b-4752-9c1a-96bfa861f26d",
+  "plan_id": "e1315b44-8e33-4dbb-a82d-bcaef9062c22",
+  "attack_card_id": "9a1236bd-dd4b-405a-b2f5-c3e10dcfefc4",
+  "trigger": {
+    "activation_keyword": "URSSAF",
+    "activation_keyword_normalized": "urssaf",
+    "risk_situation": "L'envie de ranger le bureau pour fuir la connexion au portail",
+    "strength_anchor": "La tranquillité d'esprit et la fin du poids mental",
+    "first_response_intent": "Stopper l'esquive et ramener l'attention sur l'ouverture du portail et du dossier",
+    "assistant_prompt": "L'utilisateur risque de fuir vers le rangement. Rappelle-lui son besoin de tranquillité. Demande-lui de ne rien toucher sur son bureau et de cliquer uniquement sur le portail URSSAF puis sur son dossier."
+  },
+  "cards": [
+    {
+      "id": "9a1236bd-dd4b-405a-b2f5-c3e10dcfefc4",
+      "status": "active",
+      "scope_kind": "transformation",
+      "cycle_id": "8840d87c-61a3-4662-87cb-b2e917c4b0c7",
+      "transformation_id": "a98f2107-5b0b-4752-9c1a-96bfa861f26d",
+      "content": {
+        "summary": "Pour Stabiliser l'administratif, choisis la technique qui t'aidera le mieux a prendre de l'avance, puis suis son mini-parcours.",
+        "techniques": [
+          {
+            "title": "Le texte magique",
+            "pour_quoi": "Faire disparaitre le combat interieur quand tu commences a te trouver des excuses ou a negocier avec toi-meme.",
+            "questions": [
+              "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+              "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+              "Dans quel etat tu veux te remettre en ecrivant ce texte ?"
+            ],
+            "mode_emploi": "Ecris-le au moment ou tu sens la resistance monter, jusqu'a ce que ce soit moins un combat.",
+            "objet_genere": "Un texte a ecrire jusqu'a ce que le combat baisse et que l'action redevienne evidente.",
+            "technique_key": "texte_recadrage",
+            "generated_result": null
+          },
+          {
+            "title": "Mantra de force",
+            "pour_quoi": "Installer doucement plus de force interieure face a ce que tu as a faire, au lieu d'attendre d'etre fort sur le moment.",
+            "questions": [
+              "Par rapport a quelle action ou quel effort tu veux devenir plus solide ?",
+              "Pourquoi c'est important pour toi d'arreter de reculer la-dessus ?",
+              "Tu veux un mantra plutot calme, noble ou percutant ?"
+            ],
+            "mode_emploi": "Repete-le trois fois le matin, ou matin midi et soir si tu veux l'ancrer plus fort.",
+            "objet_genere": "Une phrase a te repeter pour faire evoluer peu a peu ton rapport a l'action.",
+            "technique_key": "mantra_force",
+            "generated_result": null
+          },
+          {
+            "title": "Ancre visuelle",
+            "pour_quoi": "Utiliser ton environnement consciemment pour qu'il te rappelle les engagements que tu as pris envers toi-meme.",
+            "questions": [
+              "Quel engagement envers toi-meme tu veux garder vivant ?",
+              "Dans quel lieu ou sur quel objet tu pourrais l'accrocher a ton quotidien ?",
+              "Quelle phrase courte devrait revenir quand tu le vois ?"
+            ],
+            "mode_emploi": "Place-la dans ton environnement pour qu'elle te recadre naturellement quand ton regard tombe dessus.",
+            "objet_genere": "Un repere visuel simple a utiliser, avec une phrase a te dire quand tu le vois.",
+            "technique_key": "ancre_visuelle",
+            "generated_result": null
+          },
+          {
+            "title": "Meditation de 5 minutes",
+            "pour_quoi": "Installer une image mentale claire et calme du bon comportement avant que la journee, les excuses ou la friction prennent toute la place.",
+            "questions": [
+              "Quelle action ou habitude tu veux te voir faire naturellement ?",
+              "A quel moment du matin pourrais-tu prendre 5 minutes pour te projeter calmement ?",
+              "Quelles sensations ou images t'aideraient a te voir deja en train de faire l'action ?"
+            ],
+            "mode_emploi": "Prends 5 minutes le matin pour te visualiser en train de faire l'action de facon calme, concrete et deja normale pour toi.",
+            "objet_genere": "Une courte meditation guidee pour te visualiser en train de faire l'action de facon naturelle.",
+            "technique_key": "visualisation_matinale",
+            "generated_result": null
+          },
+          {
+            "title": "Preparer le terrain",
+            "pour_quoi": "Installer les bonnes conditions avant que la friction n'arrive.",
+            "questions": [
+              "Par rapport a quelle action tu veux te rendre la vie plus simple ?",
+              "Qu'est-ce que tu pourrais preparer en avance pour enlever de la friction ?",
+              "Quand le moment arrive, qu'est-ce qui devrait deja etre pret autour de toi ?"
+            ],
+            "mode_emploi": "Prepare le terrain suffisamment tot pour que le bon geste devienne plus simple.",
+            "objet_genere": "Un environnement qui t'invite a faire la bonne chose quand le moment arrive.",
+            "technique_key": "preparer_terrain",
+            "generated_result": null
+          },
+          {
+            "title": "Mot de bascule",
+            "pour_quoi": "Avoir un mot simple a envoyer pour que Sophia comprenne tout de suite que tu es dans un moment ou tu peux craquer et t'aide a tenir.",
+            "questions": [
+              "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+              "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?"
+            ],
+            "mode_emploi": "Des que tu sens que ca devient tendu, envoie seulement le mot-cle. Sophia recupere le contexte et t'aide immediatement a tenir.",
+            "objet_genere": "Un mot-cle memorisable et un mini protocole de bascule a envoyer seul quand la tension monte.",
+            "technique_key": "pre_engagement",
+            "generated_result": {
+              "mode_emploi": "Garde ce mot en tête comme un bouton d'urgence. Si tes mains commencent à saisir un objet pour le ranger alors que tu devrais être sur le site de l'URSSAF, tape le mot-clé ici. Je te ramènerai immédiatement à l'essentiel pour libérer ton esprit du poids de cette tâche et protéger ta tranquillité.",
+              "generated_at": "2026-06-13T13:05:08.147Z",
+              "output_title": "Bascule URSSAF",
+              "generated_asset": "Envoie simplement le mot URSSAF dès que tu sens l'envie de ranger ton bureau au lieu de te connecter.",
+              "keyword_trigger": {
+                "risk_situation": "L'envie de ranger le bureau pour fuir la connexion au portail",
+                "strength_anchor": "La tranquillité d'esprit et la fin du poids mental",
+                "assistant_prompt": "L'utilisateur risque de fuir vers le rangement. Rappelle-lui son besoin de tranquillité. Demande-lui de ne rien toucher sur son bureau et de cliquer uniquement sur le portail URSSAF puis sur son dossier.",
+                "activation_keyword": "URSSAF",
+                "first_response_intent": "Stopper l'esquive et ramener l'attention sur l'ouverture du portail et du dossier",
+                "activation_keyword_normalized": "urssaf"
+              },
+              "supporting_points": [
+                "Ne touche à aucun objet sur ton bureau.",
+                "Ouvre l'onglet du portail.",
+                "Clique sur le dossier cible."
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "phase_id": null,
+        "plan_item_id": null,
+        "action_context": null,
+        "classification_type_key": null
+      },
+      "generated_at": "2026-06-13T13:05:01.606+00:00",
+      "last_updated_at": "2026-06-13T13:05:08.147+00:00"
+    }
+  ]
+}

@@ -1,4 +1,8 @@
 import { noteInformationForTrace } from "../../contracts/note_information.v1.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  trimRecentChatMessages,
+} from "../../context/recent_messages_policy.ts";
 import type { RunSkillInput } from "../_shared/skill_helpers.ts";
 import { baseOutput } from "../_shared/skill_helpers.ts";
 import { emptyConversationEffects } from "../_shared/conversation_skill_contract.ts";
@@ -30,16 +34,10 @@ export type RunDemotivationRepairSkillInput = RunSkillInput & {
 };
 
 function recentMessagesFromContext(input: RunDemotivationRepairSkillInput) {
-  return Array.isArray(input.context.recent_messages)
-    ? input.context.recent_messages.flatMap((message) => {
-      const role = String((message as any)?.role ?? "");
-      const content = String((message as any)?.content ?? "").trim();
-      if ((role === "user" || role === "assistant") && content) {
-        return [{ role: role as "user" | "assistant", content }];
-      }
-      return [];
-    }).slice(-8)
-    : [];
+  return trimRecentChatMessages(
+    input.context.recent_messages,
+    RECENT_MESSAGE_LIMITS.conversationRepair,
+  );
 }
 
 function safeLocalDispatcherOutput(

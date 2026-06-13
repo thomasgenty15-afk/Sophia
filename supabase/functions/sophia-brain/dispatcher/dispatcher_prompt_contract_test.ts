@@ -41,6 +41,23 @@ Deno.test("dispatcher prompt keeps product_help notes from recommending attack c
   );
 });
 
+Deno.test("dispatcher prompt requires reminder intent beyond duration or time", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Une duree, une heure ou un delai ne suffit jamais",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("parler deux minutes"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("direct_effects doit rester vide"),
+    true,
+  );
+});
+
 Deno.test("dispatcher prompt examples keep Plan refinement product_help focused on plan.adjustment", () => {
   const promptJson = buildDispatcherPrompt({
     user_message: "test",

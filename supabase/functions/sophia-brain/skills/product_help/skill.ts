@@ -17,6 +17,10 @@ import {
   type ProductHelpVisibleAgent,
   runProductHelpVisibleAgent,
 } from "./visible_agent.ts";
+import {
+  RECENT_MESSAGE_LIMITS,
+  trimRecentChatMessages,
+} from "../../context/recent_messages_policy.ts";
 
 export type ProductHelpRunSkillInput = RunSkillInput & {
   local_dispatcher?: ProductHelpLocalDispatcher;
@@ -24,16 +28,10 @@ export type ProductHelpRunSkillInput = RunSkillInput & {
 };
 
 function recentMessagesFromContext(input: ProductHelpRunSkillInput) {
-  return Array.isArray(input.context.recent_messages)
-    ? input.context.recent_messages.flatMap((message) => {
-      const role = String((message as any)?.role ?? "");
-      const content = String((message as any)?.content ?? "").trim();
-      if ((role === "user" || role === "assistant") && content) {
-        return [{ role: role as "user" | "assistant", content }];
-      }
-      return [];
-    }).slice(-8)
-    : [];
+  return trimRecentChatMessages(
+    input.context.recent_messages,
+    RECENT_MESSAGE_LIMITS.toolFlow,
+  );
 }
 
 function compactActiveFlowContext(

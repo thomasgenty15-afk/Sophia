@@ -386,6 +386,12 @@ Deno.test("status_recap compact restitution stays free-form and reserves fait pr
   assert(
     compactGuidance.includes("pas des templates à recopier"),
   );
+  assert(
+    compactGuidance.includes("Restitue les libellés complets"),
+  );
+  assert(
+    compactGuidance.includes("Ne restitue que les catégories demandées"),
+  );
 
   const explicitGuidance = statusRecapRestitutionGuidance(
     "fait_prevu_fragile",
@@ -394,5 +400,46 @@ Deno.test("status_recap compact restitution stays free-form and reserves fait pr
     explicitGuidance.includes(
       "utilise exactement les trois lignes Fait, Prévu, Fragile",
     ),
+  );
+});
+
+Deno.test("status_recap coverage follows requested targets instead of every filtered fact", () => {
+  const requirements = statusRecapCoverageRequirements({
+    stage: "status_compact",
+    requested_categories: ["all"],
+    target_objects: ["attack_card", "one_shot_reminder"],
+    filtered_facts: {
+      attack_cards: [],
+      defense_cards: [],
+      one_shot_reminders: {
+        pending: [{
+          id: "reminder-1",
+          scheduled_for: "2026-05-22T08:40:00+00:00",
+          local_time: "10:40",
+          instruction: "ouvrir le fichier sans résoudre tout le dossier",
+        }],
+        cancelled_recent: [],
+      },
+      recurring_reminders: [],
+      potion_sessions: [],
+      coach_preferences: [{
+        key: "coach.tone",
+        value: { value: "warm_direct" },
+        reason: "Default coach preferences",
+        source_type: "system_default",
+        updated_at: "2026-06-13T11:22:16.199Z",
+      }],
+      recent_effect_history: [],
+    },
+  } as any);
+
+  assert(
+    requirements.some((item) =>
+      item.includes("rappels ponctuels actifs/en attente")
+    ),
+  );
+  assertEquals(
+    requirements.some((item) => item.includes("préférences coach")),
+    false,
   );
 });

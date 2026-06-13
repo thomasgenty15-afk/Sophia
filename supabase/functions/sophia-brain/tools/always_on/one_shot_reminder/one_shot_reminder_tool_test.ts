@@ -263,6 +263,57 @@ Deno.test("parseOneShotReminderRequest isolates reminder before puis juste apres
   assertEquals(parsed.scheduledFor, "2026-06-03T13:28:00.000Z");
 });
 
+Deno.test("QA R1: parseOneShotReminderRequest keeps second topic out of reminder payload", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Ajoute un autre rappel dans 40 minutes pour relire mes notes sur ce dossier, et après ça j'aimerais comprendre pourquoi je me crispe dès que j'y pense.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-13T08:00:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(parsed.reminderInstruction, "relire mes notes sur ce dossier");
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:relire_mes_notes_sur_ce_dossier",
+  );
+  assertEquals(parsed.scheduledFor, "2026-06-13T08:40:00.000Z");
+});
+
+Deno.test("QA R1: parseOneShotReminderRequest preserves full emotional regulation instruction", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Je suis un peu tendu là. Rappelle-moi dans 20 minutes de respirer doucement et de boire un verre d'eau.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-13T08:00:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "respirer doucement et boire un verre d'eau",
+  );
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:respirer_doucement_et_boire_un_verre_d_eau",
+  );
+  assertEquals(parsed.scheduledFor, "2026-06-13T08:20:00.000Z");
+});
+
+Deno.test("QA R1: parseOneShotReminderRequest strips consumed correction time from instruction", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "D'accord. Pour vérifier le fichier, mets-le plutôt dans 30 minutes.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-06-13T08:00:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(parsed.reminderInstruction, "vérifier le fichier");
+  assertEquals(parsed.eventContext, "one_shot_reminder:verifier_le_fichier");
+  assertEquals(parsed.scheduledFor, "2026-06-13T08:30:00.000Z");
+});
+
 Deno.test("parseOneShotReminderRequest keeps attack verb when it belongs to reminder payload", () => {
   const parsed = parseOneShotReminderRequest({
     message:
@@ -448,6 +499,33 @@ Deno.test("parseOneShotReminderRequest parses bundle phrasing with me faire un r
   assertEquals(parsed.scheduledFor, "2026-03-19T11:38:40.000Z");
 });
 
+Deno.test("one-shot reminder parser strips single quote delimiters after colon", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Crée-moi un rappel ponctuel dans 25 minutes : 'relire seulement la première page du rapport'.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-22T08:00:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "relire seulement la première page du rapport",
+  );
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:relire_seulement_la_premiere_page_du_rapport",
+  );
+});
+
+Deno.test("one-shot reminder cleanup preserves internal apostrophes", () => {
+  const instruction = extractReminderInstruction(
+    "Rappelle-moi dans 20 minutes : vérifier l'objectif du jour.",
+  );
+
+  assertEquals(instruction, "vérifier l'objectif du jour");
+});
+
 Deno.test("one-shot reminder addon forbids timezone confirmation after success", () => {
   const addon = buildOneShotReminderAddon({
     detected: true,
@@ -459,6 +537,10 @@ Deno.test("one-shot reminder addon forbids timezone confirmation after success",
   } as any);
   assertEquals(
     addon.includes("Ne demande pas au user de confirmer le fuseau"),
+    true,
+  );
+  assertEquals(
+    addon.includes("Blend cette confirmation dans le message"),
     true,
   );
 });

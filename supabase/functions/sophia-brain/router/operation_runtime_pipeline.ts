@@ -23,6 +23,7 @@ import {
   readActiveFlowState,
 } from "./active_flow_state.ts";
 import {
+  classifyOneShotReminderDirectIntent,
   maybeRunOneShotReminderDirectEffect,
 } from "../tools/always_on/one_shot_reminder/router.ts";
 import { createTrackProgressPlanItemWrite } from "../tools/always_on/track_progress_plan_item/db.ts";
@@ -271,6 +272,338 @@ function routeRequestsDirectEffect(args: {
     turnFrameHasRunnableDirectEffect(args.turnFrame, args.effectType);
 }
 
+function routeWithDirectEffect(args: {
+  routeDecision: RouteDecision | null;
+  effectType: string;
+  reasonCode: string;
+}): RouteDecision | null {
+  if (!args.routeDecision) return null;
+  if (args.routeDecision.direct_effects_to_run.includes(args.effectType)) {
+    return args.routeDecision;
+  }
+  return {
+    ...args.routeDecision,
+    direct_effects_to_run: [
+      ...args.routeDecision.direct_effects_to_run,
+      args.effectType,
+    ],
+    reason_code: args.reasonCode,
+  };
+}
+
+function turnFrameWithDirectEffect(args: {
+  turnFrame: TurnFrame | null;
+  effectType: "create_one_shot_reminder";
+  rawText: string;
+}): TurnFrame | null {
+  if (!args.turnFrame) return null;
+  if (
+    args.turnFrame.direct_effects.some((effect) =>
+      effect.effect_type === args.effectType &&
+      effect.explicitness === "explicit" &&
+      effect.confidence_band !== "low"
+    )
+  ) {
+    return args.turnFrame;
+  }
+  return {
+    ...args.turnFrame,
+    direct_effects: [
+      ...args.turnFrame.direct_effects,
+      {
+        effect_type: args.effectType,
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: args.rawText },
+      },
+    ],
+  };
+}
+
+function oneShotReminderOperationRuntimeFromDirectEffect(args: {
+  tempMemory: any;
+  result: Awaited<ReturnType<typeof maybeRunOneShotReminderDirectEffect>>;
+}): OperationRuntimeResult | null {
+  if (!args.result.detected || !args.result.reply) return null;
+  return {
+    content: args.result.reply,
+    nextTempMemory: clearToolSkillFlowForDirectReminder(args.tempMemory),
+    toolExecution: args.result.status === "success" ||
+        args.result.status === "cancelled" ||
+        args.result.status === "replaced"
+      ? "success"
+      : args.result.status === "failed"
+      ? "failed"
+      : args.result.status === "no_reminder"
+      ? "none"
+      : "blocked",
+    executedTools: args.result.committed_effects.length > 0
+      ? args.result.executed_tools
+      : [],
+    toolSkillRun: {
+      selected_handler: args.result.intent === "cancel"
+        ? "cancel_one_shot_reminder"
+        : "create_one_shot_reminder",
+      status: args.result.status,
+      reason: args.result.debug.reason_code,
+      requested_effects: args.result.requested_effects,
+      allowed_effects: args.result.allowed_effects,
+      committed_effects: args.result.committed_effects,
+      blocked_effects: args.result.blocked_effects,
+    },
+  };
+}
+
+function hasRuntimeEffects(runtime: OperationRuntimeResult | null): boolean {
+  const run = runtime?.toolSkillRun ?? {};
+  return (
+    Array.isArray((run as any).requested_effects) &&
+    (run as any).requested_effects.length > 0
+  ) || (
+    Array.isArray((run as any).allowed_effects) &&
+    (run as any).allowed_effects.length > 0
+  ) || (
+    Array.isArray((run as any).committed_effects) &&
+    (run as any).committed_effects.length > 0
+  ) || (
+    Array.isArray((run as any).blocked_effects) &&
+    (run as any).blocked_effects.length > 0
+  );
+}
+
+export function turnFrameWithDirectEffectRuntime(
+  turnFrame: TurnFrame | null,
+  runtime: OperationRuntimeResult | null,
+): TurnFrame | null {
+  if (!turnFrame || !runtime || !hasRuntimeEffects(runtime)) return turnFrame;
+  return {
+    ...turnFrame,
+    direct_effect_lane: {
+      selected_handler: runtime.toolSkillRun.selected_handler ?? null,
+      toolExecution: runtime.toolExecution,
+      executedTools: runtime.executedTools,
+      requested_effects: Array.isArray(
+          runtime.toolSkillRun.requested_effects,
+        )
+        ? runtime.toolSkillRun.requested_effects
+        : [],
+      allowed_effects: Array.isArray(runtime.toolSkillRun.allowed_effects)
+        ? runtime.toolSkillRun.allowed_effects
+        : [],
+      committed_effects: Array.isArray(
+          runtime.toolSkillRun.committed_effects,
+        )
+        ? runtime.toolSkillRun.committed_effects
+        : [],
+      blocked_effects: Array.isArray(runtime.toolSkillRun.blocked_effects)
+        ? runtime.toolSkillRun.blocked_effects
+        : [],
+      visible_confirmation_hint: runtime.content,
+    },
+  } as TurnFrame;
+}
+
+function mergeEffectArray(
+  directRun: Record<string, unknown>,
+  visibleRun: Record<string, unknown>,
+  key:
+    | "requested_effects"
+    | "allowed_effects"
+    | "committed_effects"
+    | "blocked_effects",
+): unknown[] {
+  return [
+    ...(Array.isArray(directRun[key]) ? directRun[key] as unknown[] : []),
+    ...(Array.isArray(visibleRun[key]) ? visibleRun[key] as unknown[] : []),
+  ];
+}
+
+export function mergeDirectEffectRuntimeIntoVisibleRuntime(args: {
+  directRuntime: OperationRuntimeResult | null;
+  visibleRuntime: OperationRuntimeResult | null;
+}): OperationRuntimeResult | null {
+  if (!args.directRuntime) return args.visibleRuntime;
+  if (!args.visibleRuntime) return args.directRuntime;
+  const directContent = String(args.directRuntime.content ?? "").trim();
+  const visibleContent = String(args.visibleRuntime.content ?? "").trim();
+  const content = directContent && !visibleContent.includes(directContent)
+    ? [directContent, visibleContent].filter(Boolean).join("\n\n")
+    : visibleContent || directContent;
+  const directRun = args.directRuntime.toolSkillRun ?? {};
+  const visibleRun = args.visibleRuntime.toolSkillRun ?? {};
+  const committedEffects = mergeEffectArray(
+    directRun,
+    visibleRun,
+    "committed_effects",
+  );
+  const blockedEffects = mergeEffectArray(
+    directRun,
+    visibleRun,
+    "blocked_effects",
+  );
+  const executedTools = [
+    ...new Set([
+      ...args.directRuntime.executedTools,
+      ...args.visibleRuntime.executedTools,
+    ]),
+  ];
+  return {
+    ...args.visibleRuntime,
+    content,
+    toolExecution: args.directRuntime.toolExecution !== "none"
+      ? args.directRuntime.toolExecution
+      : args.visibleRuntime.toolExecution,
+    executedTools,
+    toolSkillRun: {
+      ...visibleRun,
+      requested_effects: mergeEffectArray(
+        directRun,
+        visibleRun,
+        "requested_effects",
+      ),
+      allowed_effects: mergeEffectArray(
+        directRun,
+        visibleRun,
+        "allowed_effects",
+      ),
+      committed_effects: committedEffects,
+      blocked_effects: blockedEffects,
+      direct_effect_lane: {
+        selected_handler: directRun.selected_handler ?? null,
+        status: directRun.status ?? null,
+        reason: directRun.reason ?? directRun.reason_code ?? null,
+        toolExecution: args.directRuntime.toolExecution,
+        executedTools: args.directRuntime.executedTools,
+        requested_effects: Array.isArray(directRun.requested_effects)
+          ? directRun.requested_effects
+          : [],
+        allowed_effects: Array.isArray(directRun.allowed_effects)
+          ? directRun.allowed_effects
+          : [],
+        committed_effects: Array.isArray(directRun.committed_effects)
+          ? directRun.committed_effects
+          : [],
+        blocked_effects: Array.isArray(directRun.blocked_effects)
+          ? directRun.blocked_effects
+          : [],
+      },
+    },
+  };
+}
+
+export type DirectEffectLaneResult = {
+  operationRuntime: OperationRuntimeResult | null;
+  routeDecision: RouteDecision | null;
+  turnFrame: TurnFrame | null;
+  tempMemory: any;
+  routeOrFrameChanged: boolean;
+};
+
+export async function runDirectEffectLane(
+  args: OperationRuntimePipelineInput & {
+    allowMessageIntakeFallback?: boolean;
+  },
+): Promise<DirectEffectLaneResult> {
+  let routeDecision = args.routeDecision;
+  let turnFrame = args.turnFrame;
+  let routeOrFrameChanged = false;
+
+  const routeSafetyActive = isSafetyRoute(routeDecision);
+  const { riskBand: runtimeSafetyRiskBand } = runtimeSafetyContextForTurn({
+    safetyContextOutput: args.safetyContextOutput,
+    routeDecision,
+    turnFrame,
+    tempMemory: args.tempMemory,
+    userMessage: args.userMessage,
+  });
+
+  const classified = args.allowMessageIntakeFallback
+    ? classifyOneShotReminderDirectIntent(
+      args.userMessage,
+      [
+        ...new Set([
+          ...(routeDecision?.direct_effects_to_run ?? []),
+          "create_one_shot_reminder",
+        ]),
+      ],
+    )
+    : null;
+  const fallbackOneShotDetected = Boolean(
+    classified?.detected &&
+      ["create", "cancel", "replace"].includes(String(classified.intent)),
+  );
+  const shouldRunOneShotReminderDirectEffect =
+    !routeIsProductHelp(routeDecision) &&
+    (routeRequestsDirectEffect({
+      routeDecision,
+      turnFrame,
+      effectType: "create_one_shot_reminder",
+    }) || fallbackOneShotDetected);
+
+  if (!shouldRunOneShotReminderDirectEffect) {
+    return {
+      operationRuntime: null,
+      routeDecision,
+      turnFrame,
+      tempMemory: args.tempMemory,
+      routeOrFrameChanged,
+    };
+  }
+
+  routeDecision = routeWithDirectEffect({
+    routeDecision,
+    effectType: "create_one_shot_reminder",
+    reasonCode: "direct_effect_lane_message_intake",
+  });
+  turnFrame = turnFrameWithDirectEffect({
+    turnFrame,
+    effectType: "create_one_shot_reminder",
+    rawText: args.userMessage,
+  });
+  routeOrFrameChanged = routeDecision !== args.routeDecision ||
+    turnFrame !== args.turnFrame;
+
+  const oneShotReminderDirectEffect =
+    (!blocksDirectEffects(runtimeSafetyRiskBand as any) || routeSafetyActive)
+      ? await maybeRunOneShotReminderDirectEffect({
+        supabase: args.supabase,
+        userId: args.userId,
+        message: args.userMessage,
+        requestId: args.requestId ?? undefined,
+        now: args.clientNow && Number.isFinite(args.clientNow.getTime())
+          ? args.clientNow
+          : undefined,
+        turnFrame,
+        pendingToolSkillConfirmation: args.pendingOperationConfirmation,
+        noMutationRequested: false,
+        contextMessages: (args.history ?? [])
+          .filter((m: any) =>
+            m?.role === "user" && typeof m?.content === "string"
+          )
+          .map((m: any) => String(m.content))
+          .filter((c: string) =>
+            c.trim() && c.trim() !== args.userMessage.trim()
+          )
+          .slice(-6)
+          .reverse(),
+      })
+      : null;
+  const operationRuntime = oneShotReminderDirectEffect
+    ? oneShotReminderOperationRuntimeFromDirectEffect({
+      tempMemory: args.tempMemory,
+      result: oneShotReminderDirectEffect,
+    })
+    : null;
+  return {
+    operationRuntime,
+    routeDecision,
+    turnFrame,
+    tempMemory: args.tempMemory,
+    routeOrFrameChanged,
+  };
+}
+
 function isPlatformHandoffOperation(operationType: string): boolean {
   return Boolean(getHandoffTargetForOperation(operationType));
 }
@@ -396,11 +729,7 @@ export async function runOperationRuntimePipeline(
   }
 
   const clarificationRequired = routeDecision?.reason_code ===
-      "clarification_required" ||
-    (routeDecision?.blocked_paths ?? []).some((path) =>
-      path.path === "operation_runtime_pipeline" &&
-      path.reason_code === "clarification_required"
-    );
+    "clarification_required";
   if (clarificationRequired && routeDecision) {
     const clarificationRoute: RouteDecision = {
       ...routeDecision,
@@ -648,66 +977,17 @@ export async function runOperationRuntimePipeline(
       })()
       : null;
 
-  const shouldRunOneShotReminderDirectEffect =
-    !routeIsProductHelp(routeDecision) &&
-    routeRequestsDirectEffect({
-      routeDecision,
-      turnFrame,
-      effectType: "create_one_shot_reminder",
-    });
-  const oneShotReminderDirectEffect = shouldRunOneShotReminderDirectEffect &&
-      (!blocksDirectEffects(runtimeSafetyRiskBand as any) || routeSafetyActive)
-    ? await maybeRunOneShotReminderDirectEffect({
-      supabase: args.supabase,
-      userId: args.userId,
-      message: args.userMessage,
-      requestId: args.requestId ?? undefined,
-      now: args.clientNow && Number.isFinite(args.clientNow.getTime())
-        ? args.clientNow
-        : undefined,
-      turnFrame,
-      pendingToolSkillConfirmation: args.pendingOperationConfirmation,
-      noMutationRequested: false,
-      contextMessages: (args.history ?? [])
-        .filter((m: any) =>
-          m?.role === "user" && typeof m?.content === "string"
-        )
-        .map((m: any) => String(m.content))
-        .filter((c: string) => c.trim() && c.trim() !== args.userMessage.trim())
-        .slice(-6)
-        .reverse(),
-    })
-    : null;
-  const oneShotReminderOperationRuntime: OperationRuntimeResult | null =
-    oneShotReminderDirectEffect?.detected && oneShotReminderDirectEffect.reply
-      ? {
-        content: oneShotReminderDirectEffect.reply,
-        nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
-        toolExecution: oneShotReminderDirectEffect.status === "success" ||
-            oneShotReminderDirectEffect.status === "cancelled" ||
-            oneShotReminderDirectEffect.status === "replaced"
-          ? "success"
-          : oneShotReminderDirectEffect.status === "failed"
-          ? "failed"
-          : oneShotReminderDirectEffect.status === "no_reminder"
-          ? "none"
-          : "blocked",
-        executedTools: oneShotReminderDirectEffect.committed_effects.length > 0
-          ? oneShotReminderDirectEffect.executed_tools
-          : [],
-        toolSkillRun: {
-          selected_handler: oneShotReminderDirectEffect.intent === "cancel"
-            ? "cancel_one_shot_reminder"
-            : "create_one_shot_reminder",
-          status: oneShotReminderDirectEffect.status,
-          reason: oneShotReminderDirectEffect.debug.reason_code,
-          requested_effects: oneShotReminderDirectEffect.requested_effects,
-          allowed_effects: oneShotReminderDirectEffect.allowed_effects,
-          committed_effects: oneShotReminderDirectEffect.committed_effects,
-          blocked_effects: oneShotReminderDirectEffect.blocked_effects,
-        },
-      }
-      : null;
+  const directEffectLane = await runDirectEffectLane({
+    ...args,
+    routeDecision,
+    turnFrame,
+    tempMemory,
+  });
+  routeDecision = directEffectLane.routeDecision;
+  turnFrame = directEffectLane.turnFrame;
+  routeOrFrameChanged = routeOrFrameChanged ||
+    directEffectLane.routeOrFrameChanged;
+  const oneShotReminderOperationRuntime = directEffectLane.operationRuntime;
 
   const routeIsCardToolSkill =
     routeDecision?.selected_handler === "prepare_defense_card" ||

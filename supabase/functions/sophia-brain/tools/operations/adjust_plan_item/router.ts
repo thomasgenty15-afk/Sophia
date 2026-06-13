@@ -31,6 +31,10 @@ import {
   type NoteInformation,
 } from "../../../contracts/note_information.v1.ts";
 import {
+  RECENT_MESSAGE_LIMITS,
+  recentChatMessagesFromHistory,
+} from "../../../context/recent_messages_policy.ts";
+import {
   adjustPlanSkillResult,
   ensureRuntimeHasSkillResult,
 } from "./runtime_adapter.ts";
@@ -49,13 +53,10 @@ function nowIso(): string {
 }
 
 function recentMessages(context: AdjustPlanRouterContext) {
-  return (context.history ?? [])
-    .map((turn: any) => ({
-      role: turn?.role === "assistant" ? "assistant" as const : "user" as const,
-      content: String(turn?.content ?? "").trim(),
-    }))
-    .filter((turn) => turn.content)
-    .slice(-10);
+  return recentChatMessagesFromHistory(
+    context.history,
+    RECENT_MESSAGE_LIMITS.toolFlow,
+  );
 }
 
 function turnFrameHasAdjustPlanIntent(
@@ -279,7 +280,7 @@ function appendAdjustPlanSubskillHistory(args: {
         reply_summary: args.reply.slice(0, 500),
         created_at: new Date().toISOString(),
       },
-    ].slice(-8),
+    ].slice(-RECENT_MESSAGE_LIMITS.subskillHistory),
   };
 }
 

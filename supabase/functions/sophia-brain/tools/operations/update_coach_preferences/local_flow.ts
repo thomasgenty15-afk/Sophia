@@ -780,6 +780,47 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     };
   }
   if (
+    output.flow_action === "punctual_instruction" ||
+    (output.preference_intent.kind === "punctual_instruction" &&
+      output.preference_intent.durability === "punctual")
+  ) {
+    return {
+      status: "cancelled",
+      reason_code: "update_coach_preferences_punctual_instruction_ack",
+      local_state: createCoachPreferenceLocalFlowState({
+        previous: args.previous,
+        status: "cancelled",
+        currentStage: "done",
+        proposedUpdates: [],
+        unsupportedParts: output.unsupported_parts,
+      }),
+      visible_task: "punctual_instruction_ack",
+      conversation_context: mergeConversationContext(conversationContext, {
+        field_or_stage: "done",
+        known_values: {
+          ...conversationContext.known_values,
+          proposed_updates: [],
+          committed_updates: [],
+        },
+        write_result: {
+          committed: false,
+          preference_keys: [],
+          blocked_reason: null,
+        },
+        do_not_say: [
+          "Ne pas dire que c'est enregistré, noté, gardé ou appliqué comme préférence durable.",
+          "Dire clairement que l'adaptation vaut seulement pour l'échange courant si c'est utile.",
+        ],
+      }),
+      note_information: null,
+      write_updates: [],
+      exit_to_global_dispatcher: false,
+      safety_preempt: false,
+      blocked_effects: [],
+      evidence,
+    };
+  }
+  if (
     output.flow_action === "safety_preempt" ||
     output.risk_score > RISK_WRITE_THRESHOLD
   ) {
@@ -1078,6 +1119,7 @@ export function dispatcherSystemPrompt(): string {
     "Ne stocke pas longueur exacte, emoji, jamais de question finale, ordre action-avant-question, format de réponse, règle conditionnelle cachée ou style trop spécifique.",
     "Si une demande hors support peut se traduire partiellement vers un réglage supporté, propose un mapping avec status=proposed et needs_user_confirmation=true.",
     "Si une demande est claire, durable et supportée, utilise flow_action=write_preferences et des preference_updates status=locked.",
+    "Une demande de modification ponctuelle de posture reste dans ce domaine mais ne modifie jamais les préférences: si le user dit que c'est seulement pour cette conversation, cet échange, maintenant, ce tour-ci, ou précise de ne pas changer ses réglages, utilise flow_action=punctual_instruction, preference_intent.kind=punctual_instruction, durability=punctual, preference_updates=[], visible_task.kind=punctual_instruction_ack, note_information.needed=false. Après l'ack, le flow est fini: aucune proposition durable, aucune clarification durable/ponctuelle, aucun write.",
     "Si le user confirme une proposition active, utilise flow_action=confirm_proposed_mapping; tu peux retourner l'update locked ou laisser preference_updates vide si l'état actif porte déjà la proposition.",
     "Si le user veut arrêter ce flow, utilise exit_to_global_dispatcher avec note_information target_dispatcher=global. Utilise cancel_flow seulement pour une annulation locale de préférence sans changement de dispatcher.",
     "Si le user change clairement de sujet, utilise exit_to_global_dispatcher avec note_information.needed=true target_dispatcher=global.",
@@ -1088,7 +1130,7 @@ export function dispatcherSystemPrompt(): string {
     ...directEffectLocalDispatcherPromptLines(),
     "",
     "Field Completion Rules:",
-    "- flow_action: décision principale du tour courant. Choisis l'action qui reflète le dernier message user, pas seulement active_state. Utilise write_preferences seulement pour une préférence durable, supportée, claire et lockable. Utilise clarify_durable_vs_punctual quand la durée est incertaine; clarify_supported_setting ou clarify_value quand le réglage ou l'intensité manque. Utilise propose_supported_mapping pour une demande partiellement représentable, confirm_proposed_mapping quand le user confirme une proposition active, revise_preferences quand il corrige une proposition ou une valeur, punctual_instruction pour une consigne valable seulement maintenant, unsupported_preference quand aucun réglage durable supporté ne couvre la demande, status_question pour une demande d'état DB, explain_preferences pour une explication produit, repeat_saved_preferences ou repeat_current_state pour répétition, exit_to_global_dispatcher pour arrêter le flow ou pour un nouveau sujet clair, cancel_flow pour annulation locale, complete_flow quand le flow est fini, handoff_to_local_flow seulement si une autre flow local doit reprendre, safety_preempt pour safety réelle.",
+    "- flow_action: décision principale du tour courant. Choisis l'action qui reflète le dernier message user, pas seulement active_state. Utilise write_preferences seulement pour une préférence durable, supportée, claire et lockable. Utilise clarify_durable_vs_punctual quand la durée est incertaine; clarify_supported_setting ou clarify_value quand le réglage ou l'intensité manque. Utilise propose_supported_mapping pour une demande partiellement représentable, confirm_proposed_mapping quand le user confirme une proposition active, revise_preferences quand il corrige une proposition ou une valeur, punctual_instruction pour une consigne locale/non durable valable seulement pour le tour, l'échange courant ou la conversation actuelle, surtout si le user ajoute de ne pas changer ses réglages. unsupported_preference quand aucun réglage durable supporté ne couvre la demande, status_question pour une demande d'état DB, explain_preferences pour une explication produit, repeat_saved_preferences ou repeat_current_state pour répétition, exit_to_global_dispatcher pour arrêter le flow ou pour un nouveau sujet clair, cancel_flow pour annulation locale, complete_flow quand le flow est fini, handoff_to_local_flow seulement si une autre flow local doit reprendre, safety_preempt pour safety réelle.",
     "- confidence: high si l'intention et la valeur sont claires; medium si l'intention est probable mais une décision manque; low si le dispatcher doit surtout clarifier ou se protéger. Le reducer bloque les writes low confidence.",
     "- risk_score: score numérique local de risque. Mets 0 pour absence de risque observé. N'invente pas de safety. Si risque réel élevé/critique, choisis safety_preempt et remplis safety + note_information.",
     "- preference_intent: état métier local du tour. kind classe l'intention utilisateur; durability décrit durable/punctual/ambiguous/not_applicable; support_status décrit supported/unsupported/partial/ambiguous/not_applicable; summary résume sans inventer de profil global. Ce champ guide le reducer pour autoriser ou bloquer l'écriture.",

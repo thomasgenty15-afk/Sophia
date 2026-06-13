@@ -98,7 +98,8 @@ export function withDirectEffectLocalContext<T extends Record<string, unknown>>(
   planSnapshot?: unknown,
   extraCandidates?: ActiveActionCandidateForDirectEffects[],
 ): T & {
-  active_action_candidates_for_direct_effects: ActiveActionCandidateForDirectEffects[];
+  active_action_candidates_for_direct_effects:
+    ActiveActionCandidateForDirectEffects[];
   direct_effect_tools: string[];
   direct_effect_tool_policy: Record<string, string>;
 } {
@@ -127,7 +128,7 @@ export function withDirectEffectLocalContext<T extends Record<string, unknown>>(
       track_progress_plan_item:
         "Use only when the user reports already-done/current progress. target_item_id must be copied from active_action_candidates_for_direct_effects.plan_item_id. Never invent ids; ambiguity or absent target means no direct effect.",
       create_one_shot_reminder:
-        "Use for one-time reminder requests only. The owner validates date, time and instruction; do not treat recurring reminders as one-shot.",
+        "Use for one-time reminder requests only. A duration/time is not enough: it must clearly refer to a wanted reminder/notification/programming request, not conversational pacing like 'talk for two minutes'. The owner validates date, time and instruction; do not treat recurring reminders as one-shot.",
     },
   };
 }
@@ -135,7 +136,7 @@ export function withDirectEffectLocalContext<T extends Record<string, unknown>>(
 export function directEffectLocalDispatcherPromptLines(): string[] {
   return [
     "Direct effects instantanes disponibles dans tous les dispatchers locaux sauf safety:",
-    "- create_one_shot_reminder: si le user demande un rappel ponctuel. Le dispatcher signale l'intention; l'owner valide date, heure, instruction et frontiere one-shot vs recurrent.",
+    "- create_one_shot_reminder: si le user demande un rappel ponctuel. Une duree/heure seule ne suffit pas: elle doit concerner un rappel voulu, pas le rythme de la conversation. Le dispatcher signale l'intention; l'owner valide date, heure, instruction et frontiere one-shot vs recurrent.",
     "- track_progress_plan_item: si le user rapporte un progres deja fait ou en cours sur une action active.",
     "- Pour track_progress_plan_item, target_item_id doit venir uniquement de platform_context.active_action_candidates_for_direct_effects[].plan_item_id ou du contexte direct equivalent. Ne jamais inventer un id.",
     "- Si plusieurs actions peuvent correspondre, si l'action est absente des candidates, si le user parle d'une intention future, ou si le statut n'est pas clair, ne cree pas de direct effect durable; demande/route une clarification.",

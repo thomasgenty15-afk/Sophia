@@ -4,6 +4,11 @@ import type {
 } from "../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
 import { runActiveFlowArbitrator } from "./active_flow_arbitrator.ts";
+import {
+  demotivationRepairOwnsAfterActionRefusal,
+  type FlowInterventionContext,
+  runInterventionPolicy,
+} from "./intervention_policy.ts";
 import { runSkillRouter } from "./skill_router.ts";
 import { runToolSkillRouter } from "./tool_skill_router.ts";
 
@@ -96,6 +101,7 @@ export function runConversationRouters(input: {
   active_skill_state?: unknown;
   active_tool_skill_intake?: unknown;
   pending_tool_skill_confirmation?: unknown;
+  flow_intervention_context?: FlowInterventionContext;
   safety_context_risk_band: RiskBand;
 }): RouteDecision {
   const skill = runSkillRouter(input);
@@ -104,6 +110,12 @@ export function runConversationRouters(input: {
     ...input,
     skill,
     tool_skill: toolSkill,
+  });
+  const intervention = runInterventionPolicy({
+    turn_frame: input.turn_frame,
+    skill,
+    tool_skill: toolSkill,
+    flow_intervention_context: input.flow_intervention_context,
   });
   const directEffectBlockedPaths = input.turn_frame.direct_effects
     .filter((effect) => effect.target_status !== "identified")
@@ -123,6 +135,7 @@ export function runConversationRouters(input: {
     ...skill.blocked_paths,
     ...toolSkill.blocked_paths,
     ...arbitration.blocked_paths,
+    ...intervention.blocked_paths,
     ...directEffectBlockedPaths,
     ...routeHintBlockedPaths,
   ];
@@ -298,6 +311,12 @@ export function runConversationRouters(input: {
     (skill.status === "start" || skill.status === "handoff") &&
     toolSkill.status === "start"
   ) {
+    if (intervention.block_conversation_skill_start) {
+      return buildRouteDecision(routeContext, {
+        response_owner: "normal_reply",
+        reason_code: "normal_reply_fit_dominates",
+      });
+    }
     return buildRouteDecision(routeContext, {
       response_owner: "conversation_handler",
       selected_handler: "emotional_repair",
@@ -308,11 +327,37 @@ export function runConversationRouters(input: {
       reason_code: skill.reason_code,
     });
   }
+  if (
+    skill.selected_skill_id === "demotivation_repair" &&
+    (skill.status === "start" || skill.status === "handoff") &&
+    toolSkill.status === "start" &&
+    toolSkill.operation_type === "prepare_attack_card" &&
+    demotivationRepairOwnsAfterActionRefusal(input.turn_frame)
+  ) {
+    return buildRouteDecision(routeContext, {
+      response_owner: "conversation_handler",
+      selected_handler: "demotivation_repair",
+      blocked_paths: blockedPaths,
+      reason_code: "explicit_action_refusal_prefers_demotivation_repair",
+    });
+  }
+  if (intervention.block_tool_skill_start) {
+    return buildRouteDecision(routeContext, {
+      response_owner: "normal_reply",
+      reason_code: "normal_reply_fit_dominates",
+    });
+  }
   if (toolSkill.status === "start" || toolSkill.status === "continue") {
     return buildRouteDecision(routeContext, {
       response_owner: "tool_skill",
       selected_handler: toolSkill.operation_type,
       reason_code: toolSkill.reason_code,
+    });
+  }
+  if (intervention.block_conversation_skill_start) {
+    return buildRouteDecision(routeContext, {
+      response_owner: "normal_reply",
+      reason_code: "normal_reply_fit_dominates",
     });
   }
   if (skill.status !== "none") {

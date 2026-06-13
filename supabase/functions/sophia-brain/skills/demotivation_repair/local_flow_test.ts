@@ -35,6 +35,9 @@ Deno.test("demotivation_repair dispatcher prompt documents local field completio
   assert(prompt.includes("- exit_memo.needed:"));
   assert(prompt.includes("- no_chat_mutation:"));
   assert(prompt.includes("Transition Rules:"));
+  assert(prompt.includes("Cas de sortie observes en QA et obligatoires"));
+  assert(prompt.includes("question produit/statut autonome"));
+  assert(prompt.includes("demande explicitement de lancer un tool/flow"));
 
   const examples = demotivationRepairDispatcherOutputExamples();
   assertEquals(examples.length, 2);
@@ -688,7 +691,8 @@ Deno.test("demotivation_repair clear topic change exits with note information", 
     "aide-moi plutot a prioriser mes mails",
   ]);
   assertEquals(
-    (result.note_information?.structured_context as any)?.recommended_next_focus,
+    (result.note_information?.structured_context as any)
+      ?.recommended_next_focus,
     undefined,
   );
   assert(
