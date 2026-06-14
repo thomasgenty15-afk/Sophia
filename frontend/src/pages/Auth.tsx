@@ -304,7 +304,7 @@ const Auth = () => {
 
       if (error) throw error;
 
-      const supabaseUrl = (import.meta as any)?.env?.VITE_SUPABASE_URL as string | undefined;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
       const isLocalSupabase =
         !!supabaseUrl &&
         (supabaseUrl.includes('127.0.0.1:54321') || supabaseUrl.includes('localhost:54321'));
@@ -396,6 +396,11 @@ const Auth = () => {
           );
         }
 
+        const detectedTimezone = detectBrowserTimezone();
+        const signupTimezone = tzFollowDevice
+          ? detectedTimezone || (timezone || "").trim() || DEFAULT_TIMEZONE
+          : (timezone || "").trim() || DEFAULT_TIMEZONE;
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -405,7 +410,7 @@ const Auth = () => {
                 phone: phoneNorm, // Stocker le téléphone (normalisé) dans les métadonnées
                 // Localization (stored on profiles via DB trigger)
                 locale: DEFAULT_LOCALE,
-                timezone: (timezone || "").trim() || DEFAULT_TIMEZONE,
+                timezone: signupTimezone,
                 tz_follow_device: tzFollowDevice
             },
             // Redirect vers une page dédiée (nouvel onglet après clic sur le lien email).
@@ -877,7 +882,15 @@ const Auth = () => {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setTzFollowDevice((v) => !v)}
+                        onClick={() =>
+                          setTzFollowDevice((value) => {
+                            const next = !value;
+                            if (next) {
+                              const detectedTimezone = detectBrowserTimezone();
+                              if (detectedTimezone) setTimezone(detectedTimezone);
+                            }
+                            return next;
+                          })}
                         className={`w-11 h-6 rounded-full p-1 transition-colors ${tzFollowDevice ? "bg-indigo-600" : "bg-slate-200"}`}
                         aria-pressed={tzFollowDevice}
                         aria-label="Activer l'itinérance"

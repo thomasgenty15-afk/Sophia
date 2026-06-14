@@ -180,11 +180,6 @@ export type DominantNeedKind =
   | "reactivation"
   | "general_presence";
 
-export type RelationPreferenceContactWindow =
-  | "morning"
-  | "afternoon"
-  | "evening";
-
 export type RendezVousKind =
   | "pre_event_grounding"
   | "post_friction_repair"
@@ -527,17 +522,6 @@ export type UserVictoryLedgerRow = {
   source_kind: "daily" | "weekly" | "chat" | "system";
   created_at: string;
   metadata: Record<string, unknown>;
-};
-
-export type UserRelationPreferencesRow = {
-  user_id: string;
-  preferred_contact_windows: RelationPreferenceContactWindow[] | null;
-  disliked_contact_windows: RelationPreferenceContactWindow[] | null;
-  preferred_tone: "gentle" | "direct" | "mixed" | null;
-  preferred_message_length: "short" | "medium" | null;
-  max_proactive_intensity: "low" | "medium" | "high" | null;
-  soft_no_contact_rules: Record<string, unknown> | null;
-  updated_at: string;
 };
 
 export type UserRendezVousRow = {

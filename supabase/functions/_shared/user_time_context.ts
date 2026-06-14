@@ -15,9 +15,19 @@ export type UserTimeContext = {
   prompt_block: string
 }
 
-function safeTz(raw: unknown): string {
+function validTzOrNull(raw: unknown): string | null {
   const tz = String(raw ?? "").trim()
-  return tz || DEFAULT_TIMEZONE
+  if (!tz) return null
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz }).format(new Date())
+    return tz
+  } catch {
+    return null
+  }
+}
+
+function safeTz(raw: unknown): string {
+  return validTzOrNull(raw) ?? DEFAULT_TIMEZONE
 }
 
 function safeLocale(raw: unknown): string {
@@ -110,19 +120,22 @@ export async function getUserTimeContext(args: {
   supabase: SupabaseClient
   userId: string
   now?: Date
+  timezoneOverride?: string | null
+  localeOverride?: string | null
 }): Promise<UserTimeContext> {
   const { supabase, userId } = args
   const { data } = await supabase
     .from("profiles")
-    .select("timezone, locale")
+    .select("timezone, locale, tz_follow_device")
     .eq("id", userId)
     .maybeSingle()
 
-  const tz = safeTz((data as any)?.timezone)
-  const locale = safeLocale((data as any)?.locale)
+  const followsDevice = Boolean((data as any)?.tz_follow_device)
+  const profileTz = safeTz((data as any)?.timezone)
+  const deviceTz = validTzOrNull(args.timezoneOverride)
+  const tz = followsDevice && deviceTz ? deviceTz : profileTz
+  const locale = safeLocale(args.localeOverride ?? (data as any)?.locale)
 
   return buildUserTimeContextFromValues({ now: args.now, timezone: tz, locale })
 }
-
-
 

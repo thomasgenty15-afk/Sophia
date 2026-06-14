@@ -33,6 +33,7 @@ import {
   computeOptInAndBilanContext,
   handleOptInAndDailyBilanActions,
 } from "./handlers_optin_bilan.ts";
+import { buildDefaultWhatsAppConversationContext } from "./normal_context.ts";
 import { handleWrongNumber } from "./handlers_wrong_number.ts";
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
@@ -180,25 +181,6 @@ function logWebhookTrace(args) {
   console.log(`[whatsapp-webhook] trace ${JSON.stringify(payload)}`);
 }
 
-function buildDefaultWhatsAppConversationContext() {
-  return [
-    "=== CONTEXTE WHATSAPP NORMAL ===",
-    "Surface: conversation WhatsApp/SMS courte, pas interface de coaching longue.",
-    "",
-    "HORS-SUJETS:",
-    "- Si le dernier message part sur un sujet hors plan (sport, fun, faim, culture, etc.), reponds utilement mais court: 1-2 phrases max sur ce sujet.",
-    "- Ensuite, si c'est naturel, propose un retour leger vers moi/le plan. Ne reste pas aspire dans le hors-sujet pendant plusieurs tours.",
-    "- Ne recycle pas les emojis, metaphores ou vocabulaire du hors-sujet dans les tours suivants s'ils n'ont plus de rapport.",
-    "- Si l'utilisateur demande explicitement de parler d'autre chose, respecte-le, mais garde un style bref et present.",
-    "",
-    "SUPPRESSION DE MESSAGES:",
-    "- Si l'utilisateur demande ce que change la suppression de messages dans l'interface: explique precisement que cela retire les lignes visibles de chat_messages/historique chat.",
-    "- Precise que cela ne reinitialise pas automatiquement les autres traces: preferences/facts, plan, memoires, etats de workflow, traces modules, rappels ou autres tables.",
-    "- Reponds toujours a la premiere personne: dis 'pour moi', jamais 'pour Sophia'.",
-    "- Pour retester proprement un onboarding, il faut utiliser la commande/reset de test, pas seulement supprimer les bulles.",
-    "=== FIN CONTEXTE WHATSAPP NORMAL ===",
-  ].join("\n");
-}
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   const requestStartedAtMs = Date.now();
@@ -663,6 +645,8 @@ Deno.serve(async (req) => {
             textLower,
             actionId,
             isOptInYesText,
+            whatsappOptedIn: Boolean(profile.whatsapp_opted_in),
+            whatsappState: profile.whatsapp_state ?? null,
           });
         const nowIso = new Date().toISOString();
         // Update inbound timestamps + opt-in/opt-out flags.

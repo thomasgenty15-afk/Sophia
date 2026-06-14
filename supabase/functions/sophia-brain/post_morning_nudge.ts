@@ -1,4 +1,5 @@
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "./router/response_style_policy.ts";
 import type {
   MorningNudgePayloadV2,
   PostMorningNudgeFlowKind,
@@ -1732,6 +1733,7 @@ function visibleSystemPrompt(
     "Tu ne remplis pas l'etat, tu ne routes pas, tu ne crees aucun effet durable.",
     "Tu utilises uniquement visible_task.conversation_context pour le contenu metier. Tu ne refais pas la decision du dispatcher.",
     "Ne dis pas qu'une action, carte, potion, rappel, preference ou modification de plan a ete creee.",
+    VISIBLE_OUTPUT_STYLE_RULES,
     "Retourne uniquement le message visible.",
   ];
   const byKind: Record<PostMorningNudgeActionVisibleTaskKind, string> = {
@@ -1940,6 +1942,7 @@ function suppressedVisibleSystemPrompt(
     "Tu utilises uniquement visible_task.conversation_context pour le contenu metier. Tu ne refais pas la decision du dispatcher.",
     "Ne pousse pas l'action par defaut. Ne dis pas que le plan est modifie, reporte ou allege.",
     "Ne dis pas qu'une action, carte, potion, rappel, preference ou modification de plan a ete creee.",
+    VISIBLE_OUTPUT_STYLE_RULES,
     "Retourne uniquement le message visible.",
   ];
   const byKind: Record<
@@ -2143,6 +2146,7 @@ function emotionalPresenceVisibleSystemPrompt(
     "Tu utilises uniquement visible_task.conversation_context pour le contenu metier. Tu ne refais pas la decision du dispatcher.",
     "Ne dis pas qu'une action, carte, potion, rappel, preference ou modification de plan a ete creee.",
     "N'invente aucune action cible et ne mets aucune pression d'execution.",
+    VISIBLE_OUTPUT_STYLE_RULES,
     "Retourne uniquement le message visible.",
   ];
   const byKind: Record<

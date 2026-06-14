@@ -135,12 +135,12 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
     useState<UserTransformationRow | null>(null);
   const [hasIncompleteCycle, setHasIncompleteCycle] = useState(false);
 
-  const refetch = useCallback(async () => {
+  const refetch = useCallback(async (options?: { silent?: boolean }) => {
     if (!user) return;
 
-    setLoading(true);
+    if (!options?.silent) setLoading(true);
     setError(null);
-    setLevelToolRecommendationsAvailable(null);
+    if (!options?.silent) setLevelToolRecommendationsAvailable(null);
 
     try {
       const { data: profileRow, error: profileError } = await supabase

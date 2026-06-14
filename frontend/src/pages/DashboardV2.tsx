@@ -87,6 +87,7 @@ import {
   toTransformationPreview,
 } from "../lib/onboardingV2";
 import { newRequestId, requestHeaders } from "../lib/requestId";
+import { detectBrowserTimezone } from "../lib/localization";
 import {
   buildMultiPartTransitionQuestionnaireSchema,
   buildSimpleTransitionQuestionnaireSchema,
@@ -126,8 +127,11 @@ async function invokeFunctionWithTimeout<T>(
   timeoutMs = 180_000,
 ): Promise<T> {
   const requestId = newRequestId();
+  const requestBody = name === "generate-plan-v2"
+    ? { ...body, ...buildClientTimePayload() }
+    : body;
   const invokePromise = supabase.functions.invoke<T>(name, {
-    body,
+    body: requestBody,
     headers: requestHeaders(requestId),
   });
 
@@ -148,6 +152,13 @@ async function invokeFunctionWithTimeout<T>(
   const { data, error } = result;
   if (error) throw error;
   return data as T;
+}
+
+function buildClientTimePayload(): Record<string, unknown> {
+  return {
+    client_now_iso: new Date().toISOString(),
+    client_timezone: detectBrowserTimezone(),
+  };
 }
 
 function extractTransformationJourneyMetadata(
@@ -2203,6 +2214,7 @@ export default function DashboardV2() {
           transformation_id: nextSequencedTransformation.id,
           mode: "preview",
           pace: cycle.requested_pace ?? undefined,
+          ...buildClientTimePayload(),
         },
       });
       if (error) throw error;

@@ -25,10 +25,6 @@ import {
   levelReviewDashboardUrl,
 } from "../_shared/level_review_checkins.ts";
 import { completeLevelV1 } from "../complete-level-v1/index.ts";
-import {
-  allowsContactWindow,
-  getUserRelationPreferences,
-} from "../sophia-brain/relation_preferences_engine.ts";
 
 const DEFAULT_LIMIT = 200;
 const PENDING_CHECKIN_STATUSES = ["pending", "retrying", "awaiting_user"];
@@ -330,12 +326,9 @@ Deno.serve(async (req) => {
         : NaN;
       const whatsappAllowed = Boolean(profile?.whatsapp_opted_in) &&
         isWhatsappSchedulingTierEligible(profile?.access_tier) &&
-        !(Number.isFinite(pauseUntilMs) && pauseUntilMs > effectiveNow.getTime());
-      const relationPreferences = whatsappAllowed
-        ? await getUserRelationPreferences(admin as any, row.user_id).catch(() => null)
-        : null;
-      const allowsMorning = whatsappAllowed &&
-        allowsContactWindow(relationPreferences, "morning");
+        !(Number.isFinite(pauseUntilMs) &&
+          pauseUntilMs > effectiveNow.getTime());
+      const allowsMorning = whatsappAllowed;
 
       if (localDate > endDate) {
         actions.push({

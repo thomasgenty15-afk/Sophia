@@ -27,7 +27,6 @@ import {
   readRepairMode,
   writeRepairMode,
 } from "../repair_mode_engine.ts";
-import { inferAndPersistRelationPreferences } from "../relation_preferences_engine.ts";
 import { logMomentumStateObservability } from "../../_shared/momentum-observability.ts";
 import { logMomentumUserReplyAfterOutreachIfRelevant } from "../../_shared/momentum-observability.ts";
 import { logCoachingObservabilityEvent } from "../../_shared/coaching-observability.ts";
@@ -545,16 +544,6 @@ export async function persistNormalReplyTurn(args: {
     } catch (error) {
       console.warn("[Router] repair_mode_exited_v2 log failed:", error);
     }
-  }
-  try {
-    await inferAndPersistRelationPreferences({
-      supabase,
-      userId,
-      timezone: userTime?.user_timezone ?? "Europe/Paris",
-      nowIso: nextLastInteraction,
-    });
-  } catch (error) {
-    console.warn("[Router] relation preferences inference failed:", error);
   }
   const coachingMemory = readCoachingInterventionMemory(mergedTempMemory);
 

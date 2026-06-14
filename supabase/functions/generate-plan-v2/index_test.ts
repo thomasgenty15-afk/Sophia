@@ -353,6 +353,146 @@ Deno.test("validateGeneratedPlanAgainstContext accepts matching plan fixture", (
   assertEquals(validated.transformation_id, "transfo-1");
 });
 
+Deno.test("validateGeneratedPlanAgainstContext fills a skipped future display level after regeneration", () => {
+  const plan = makePlanFixture();
+  plan.current_level_runtime = {
+    phase_id: "phase-1",
+    level_order: 1,
+    title: plan.phases[0].title,
+    phase_objective: plan.phases[0].phase_objective,
+    rationale: plan.phases[0].rationale,
+    what_this_phase_targets: plan.phases[0].what_this_phase_targets,
+    why_this_now: plan.phases[0].why_this_now,
+    how_this_phase_works: plan.phases[0].how_this_phase_works,
+    duration_weeks: 1,
+    phase_metric_target: plan.phases[0].phase_metric_target,
+    maintained_foundation: [],
+    heartbeat: plan.phases[0].heartbeat,
+    weeks: [
+      {
+        week_order: 1,
+        title: "Semaine 1",
+        weekly_target_value: 3,
+        weekly_target_label: "3 ouvertures",
+        progression_note: "Demarrer leger.",
+        action_focus: ["Ouvrir la conversation"],
+        item_assignments: [
+          { temp_id: "gen-p1-clarifications-001" },
+          { temp_id: "gen-p1-habits-001", weekly_reps: 3 },
+        ],
+        reps_summary: "3 fois",
+        mission_days: [],
+        success_signal: "Le contact est rouvert.",
+      },
+    ],
+    review_focus: [],
+  };
+  plan.plan_blueprint = {
+    global_objective: "Faire face plus tot aux sujets evites.",
+    estimated_levels_count: 2,
+    levels: [
+      {
+        phase_id: "phase-2",
+        level_order: 3,
+        title: "Passer a l'action",
+        intention: "Transformer l'ouverture en message envoye.",
+        estimated_duration_weeks: 3,
+        preview_summary: "Convertir l'ouverture en action visible.",
+      },
+      {
+        phase_id: "phase-3",
+        level_order: 4,
+        title: "Stabiliser",
+        intention: "Rendre le rythme tenable.",
+        estimated_duration_weeks: 4,
+        preview_summary: "Installer une cadence durable.",
+      },
+    ],
+  };
+
+  const validated = validateGeneratedPlanAgainstContext(plan, {
+    cycleId: "cycle-1",
+    transformationId: "transfo-1",
+  });
+
+  assertEquals(validated.current_level_runtime?.level_order, 1);
+  assertEquals(
+    validated.plan_blueprint?.levels.map((level) => level.level_order),
+    [2, 3],
+  );
+});
+
+Deno.test("validateGeneratedPlanAgainstContext keeps misnumbered future blueprint content", () => {
+  const plan = makePlanFixture();
+  plan.current_level_runtime = {
+    phase_id: "phase-1",
+    level_order: 1,
+    title: plan.phases[0].title,
+    phase_objective: plan.phases[0].phase_objective,
+    rationale: plan.phases[0].rationale,
+    what_this_phase_targets: plan.phases[0].what_this_phase_targets,
+    why_this_now: plan.phases[0].why_this_now,
+    how_this_phase_works: plan.phases[0].how_this_phase_works,
+    duration_weeks: 1,
+    phase_metric_target: plan.phases[0].phase_metric_target,
+    maintained_foundation: [],
+    heartbeat: plan.phases[0].heartbeat,
+    weeks: [
+      {
+        week_order: 1,
+        title: "Semaine 1",
+        weekly_target_value: 3,
+        weekly_target_label: "3 ouvertures",
+        progression_note: "Demarrer leger.",
+        action_focus: ["Ouvrir la conversation"],
+        item_assignments: [
+          { temp_id: "gen-p1-clarifications-001" },
+          { temp_id: "gen-p1-habits-001", weekly_reps: 3 },
+        ],
+        reps_summary: "3 fois",
+        mission_days: [],
+        success_signal: "Le contact est rouvert.",
+      },
+    ],
+    review_focus: [],
+  };
+  plan.plan_blueprint = {
+    global_objective: "Faire face plus tot aux sujets evites.",
+    estimated_levels_count: 2,
+    levels: [
+      {
+        phase_id: "phase-2",
+        level_order: 1,
+        title: "Passer a l'action",
+        intention: "Transformer l'ouverture en message envoye.",
+        estimated_duration_weeks: 3,
+        preview_summary: "Convertir l'ouverture en action visible.",
+      },
+      {
+        phase_id: "phase-3",
+        level_order: 3,
+        title: "Stabiliser",
+        intention: "Rendre le rythme tenable.",
+        estimated_duration_weeks: 4,
+        preview_summary: "Installer une cadence durable.",
+      },
+    ],
+  };
+
+  const validated = validateGeneratedPlanAgainstContext(plan, {
+    cycleId: "cycle-1",
+    transformationId: "transfo-1",
+  });
+
+  assertEquals(
+    validated.plan_blueprint?.levels.map((level) => [
+      level.phase_id,
+      level.level_order,
+    ]),
+    [["phase-2", 2], ["phase-3", 3]],
+  );
+});
+
 Deno.test("validateGeneratedPlanAgainstContext rejects mismatched trusted ids", () => {
   const plan = makePlanFixture();
   plan.cycle_id = "cycle-2";

@@ -86,6 +86,26 @@ Deno.serve(async (req) => {
       (body?.messageMetadata ?? body?.message_metadata ?? body?.metadata) as
         | Record<string, unknown>
         | undefined;
+    const clientNowIso =
+      typeof body?.clientNowIso === "string"
+        ? body.clientNowIso
+        : typeof body?.client_now_iso === "string"
+        ? body.client_now_iso
+        : typeof messageMetadata?.clientNowIso === "string"
+        ? messageMetadata.clientNowIso
+        : typeof messageMetadata?.client_now_iso === "string"
+        ? messageMetadata.client_now_iso
+        : null;
+    const clientTimezone =
+      typeof body?.clientTimezone === "string"
+        ? body.clientTimezone
+        : typeof body?.client_timezone === "string"
+        ? body.client_timezone
+        : typeof messageMetadata?.clientTimezone === "string"
+        ? messageMetadata.clientTimezone
+        : typeof messageMetadata?.client_timezone === "string"
+        ? messageMetadata.client_timezone
+        : null;
     const channel = (body?.channel as ("web" | "whatsapp") | undefined) ??
       "web";
     const scope =
@@ -201,7 +221,7 @@ Deno.serve(async (req) => {
       user.id,
       message,
       history,
-      { requestId, channel, scope },
+      { requestId, channel, scope, clientNowIso, clientTimezone },
       {
         logMessages: typeof logMessages === "boolean" ? logMessages : undefined,
         forceMode: (forceMode === "dispatcher" || forceMode === "sentry" ||

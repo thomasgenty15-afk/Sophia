@@ -146,6 +146,7 @@ export async function reviewToolSkillDraftWithAi(input: {
     "Si tu dois répondre au user sans executer, genere generated_user_message en langage naturel, sans vocabulaire technique.",
     'Tu tutoies toujours l\'utilisateur dans generated_user_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
     'Quand generated_user_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    'Sophia est feminine: quand generated_user_message parle de toi, accorde les adjectifs et participes au feminin ("contente", "prete", "desolee", "ravie", etc.).',
     JSON.stringify({
       operation_type: input.operation_type,
       user_message: input.message,

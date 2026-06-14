@@ -8,18 +8,12 @@ import type {
   ProactiveWindowDecision,
   ProactiveWindowKind,
   RepairModeState,
-  UserRelationPreferencesRow,
   WeeklyConversationDigest,
 } from "../_shared/v2-types.ts";
 import type { ProactiveWindowDecidedPayload } from "../_shared/v2-events.ts";
 import type { PlanItemRuntimeRow } from "../_shared/v2-runtime.ts";
 import type { MomentumStateLabel, StoredMomentumV2 } from "./momentum_state.ts";
 import { getMomentumPolicyDefinition } from "./momentum_policy.ts";
-import {
-  allowsContactWindow,
-  contactWindowFromIso,
-  maxBudgetAllowedByRelationPreferences,
-} from "./relation_preferences_engine.ts";
 import {
   checkPostureCooldown,
   checkReactivationCooldown,
@@ -42,7 +36,6 @@ export interface ProactiveWindowInput {
   conversationPulse: ConversationPulse | null;
   weeklyDigest?: WeeklyConversationDigest | null;
   repairMode: RepairModeState | null;
-  relationPreferences?: UserRelationPreferencesRow | null;
   proactiveHistory: ProactiveHistoryEntry[];
   upcomingEvents: UpcomingEvent[];
   planItems: PlanItemRuntimeRow[];
@@ -604,21 +597,8 @@ export function evaluateProactiveWindow(
     selectedBudgetClass === "notable" && confidenceGate.max_budget === "light"
       ? selectConfidenceSafeLightWindow(input)
       : selectedWindowKind;
-  const relationBudgetCap = maxBudgetAllowedByRelationPreferences(
-    input.relationPreferences,
-  );
-  const effectiveWindowKind = relationBudgetCap === "light" &&
-      WINDOW_BUDGET_CLASS[confidenceCappedWindowKind] === "notable"
-    ? selectConfidenceSafeLightWindow(input)
-    : confidenceCappedWindowKind;
+  const effectiveWindowKind = confidenceCappedWindowKind;
   const effectiveBudget = WINDOW_BUDGET_CLASS[effectiveWindowKind];
-  const contactWindow = contactWindowFromIso(input.nowIso, input.timezone);
-  if (!allowsContactWindow(input.relationPreferences, contactWindow)) {
-    return skipOutput(
-      `relation_preferences_blocked:contact_window:${contactWindow}`,
-      confidence,
-    );
-  }
 
   // Step 6: Budget check
   const budgetStatus = computeBudgetStatus(

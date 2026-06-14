@@ -11,6 +11,8 @@ Deno.test("visible output style rules define shared conversation contract", () =
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "tutoiement");
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "Format conversationnel");
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "message court");
+  assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "accorde les adjectifs");
+  assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "contente");
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "une seule question");
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "internals");
 });

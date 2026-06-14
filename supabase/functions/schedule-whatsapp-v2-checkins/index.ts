@@ -19,6 +19,7 @@ import {
   buildLightMorningFallbackMessage,
   buildLightMorningInstruction,
   loadTodayActionOccurrences,
+  localDateYmdInTimezone,
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
   shouldScheduleLightMorningGreeting,
   type TodayActionOccurrenceSchedule,
@@ -29,13 +30,9 @@ import {
   randomMorningEncouragementLocalTime,
 } from "../_shared/proactive_checkin_timing.ts";
 import {
-  allowsContactWindow,
-  getUserRelationPreferences,
-} from "../sophia-brain/relation_preferences_engine.ts";
-import {
-  birthdayGreetingEventContext,
   BIRTHDAY_GREETING_EVENING_LOCAL_TIME,
   BIRTHDAY_GREETING_MORNING_LOCAL_TIME,
+  birthdayGreetingEventContext,
   birthdayGreetingScheduledFor,
   birthdayMatchesLocalDate,
   buildBirthdayGreetingMessage,
@@ -218,50 +215,6 @@ async function cancelFutureWeeklyCheckins(params: {
   if (error) throw error;
 }
 
-async function cancelFutureWeeklyPlanningCheckins(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  nowIso: string;
-  untilIso?: string | null;
-}): Promise<void> {
-  let query = params.supabaseAdmin
-    .from("scheduled_checkins")
-    .delete()
-    .eq("user_id", params.userId)
-    .eq("event_context", WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT)
-    .in("status", MORNING_PENDING_STATUSES)
-    .gte("scheduled_for", params.nowIso);
-
-  if (params.untilIso) {
-    query = query.lt("scheduled_for", params.untilIso);
-  }
-
-  const { error } = await query;
-  if (error) throw error;
-}
-
-async function cancelFutureWeeklyProgressReviewCheckins(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  nowIso: string;
-  untilIso?: string | null;
-}): Promise<void> {
-  let query = params.supabaseAdmin
-    .from("scheduled_checkins")
-    .delete()
-    .eq("user_id", params.userId)
-    .eq("event_context", WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT)
-    .in("status", MORNING_PENDING_STATUSES)
-    .gte("scheduled_for", params.nowIso);
-
-  if (params.untilIso) {
-    query = query.lt("scheduled_for", params.untilIso);
-  }
-
-  const { error } = await query;
-  if (error) throw error;
-}
-
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   try {
@@ -280,7 +233,7 @@ Deno.serve(async (req) => {
     let profilesQuery = supabaseAdmin
       .from("profiles")
       .select(
-        "id,full_name,birth_date,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier",
+        "id,full_name,birth_date,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier,trial_start",
       )
       .order("id", { ascending: true });
 
@@ -298,6 +251,7 @@ Deno.serve(async (req) => {
     let actionEveningReviewScheduled = 0;
     let weeklyPlanningPromptScheduled = 0;
     let weeklyProgressReviewScheduled = 0;
+    let weeklyProgressReviewSkippedNewUser = 0;
     let birthdayGreetingScheduled = 0;
     let skipped = 0;
     let candidates = 0;
@@ -309,6 +263,12 @@ Deno.serve(async (req) => {
       const now = new Date();
       const nowIso = now.toISOString();
       const timezone = cleanText(profile.timezone, "Europe/Paris");
+      const localDate = localDateYmdInTimezone(timezone, now);
+      const trialStartIso = cleanText(profile.trial_start);
+      const isAccountCreatedToday = trialStartIso
+        ? localDateYmdInTimezone(timezone, new Date(trialStartIso)) ===
+          localDate
+        : false;
 
       if (!Boolean(profile.whatsapp_opted_in)) {
         skipped++;
@@ -365,47 +325,8 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const relationPreferences = await getUserRelationPreferences(
-        supabaseAdmin as any,
-        userId,
-      ).catch(() => null);
-      const allowsMorning = allowsContactWindow(relationPreferences, "morning");
-      const allowsEvening = allowsContactWindow(relationPreferences, "evening");
-      if (!allowsMorning) {
-        await cancelFutureMorningCheckins({
-          supabaseAdmin,
-          userId,
-          nowIso,
-        });
-        await cancelFutureWeeklyPlanningCheckins({
-          supabaseAdmin,
-          userId,
-          nowIso,
-        });
-      }
-      if (!allowsEvening) {
-        await cancelFutureActionEveningReviewCheckins({
-          supabaseAdmin,
-          userId,
-          nowIso,
-        });
-        await cancelFutureWeeklyProgressReviewCheckins({
-          supabaseAdmin,
-          userId,
-          nowIso,
-        });
-      }
-      if (!allowsMorning && !allowsEvening) {
-        await cancelFutureWeeklyCheckins({
-          supabaseAdmin,
-          userId,
-          nowIso,
-        });
-      }
-      if (!allowsMorning && !allowsEvening) {
-        skipped++;
-        continue;
-      }
+      const allowsMorning = true;
+      const allowsEvening = true;
 
       const todayScheduleRaw = await loadTodayActionOccurrences(
         supabaseAdmin as any,
@@ -611,8 +532,7 @@ Deno.serve(async (req) => {
                 reviewed_local_date: hasOpenActionsFromYesterday
                   ? yesterdaySchedule.local_date
                   : null,
-                morning_encouragement_local_time:
-                  morningEncouragementLocalTime,
+                morning_encouragement_local_time: morningEncouragementLocalTime,
                 transformations: selectedSchedule.transformations,
                 occurrence_ids: selectedSchedule.transformations.flatMap((
                   entry,
@@ -845,6 +765,10 @@ Deno.serve(async (req) => {
       }
 
       if (shouldTryWeeklyProgressReview) {
+        if (isAccountCreatedToday) {
+          weeklyProgressReviewSkippedNewUser++;
+          continue;
+        }
         const weekStartDate = currentWeekStartForTimezone(timezone, now);
         const review = await loadWeeklyProgressReview(supabaseAdmin as any, {
           userId,
@@ -853,64 +777,58 @@ Deno.serve(async (req) => {
           now,
           dashboardUrl,
         });
-        const plannedCount = review.transformations.reduce(
-          (sum, transformation) => sum + transformation.summary.planned_count,
-          0,
+        const scheduledFor = computeScheduledForFromLocal({
+          timezone,
+          dayOffset: 0,
+          localTimeHHMM: WEEKLY_PROGRESS_REVIEW_LOCAL_TIME,
+          now,
+        });
+        const summary = review.transformations.reduce(
+          (acc, transformation) => {
+            acc.done += transformation.summary.done_count;
+            acc.partial += transformation.summary.partial_count;
+            acc.missed += transformation.summary.missed_count;
+            acc.planned += transformation.summary.planned_count;
+            return acc;
+          },
+          { done: 0, partial: 0, missed: 0, planned: 0 },
         );
-        if (plannedCount > 0) {
-          const scheduledFor = computeScheduledForFromLocal({
-            timezone,
-            dayOffset: 0,
-            localTimeHHMM: WEEKLY_PROGRESS_REVIEW_LOCAL_TIME,
-            now,
-          });
-          const summary = review.transformations.reduce(
-            (acc, transformation) => {
-              acc.done += transformation.summary.done_count;
-              acc.partial += transformation.summary.partial_count;
-              acc.missed += transformation.summary.missed_count;
-              acc.planned += transformation.summary.planned_count;
-              return acc;
-            },
-            { done: 0, partial: 0, missed: 0, planned: 0 },
+        const { error: weeklyReviewErr } = await supabaseAdmin
+          .from("scheduled_checkins")
+          .upsert(
+            {
+              user_id: userId,
+              origin: "weekly_review",
+              event_context: WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
+              draft_message: buildWeeklyProgressReviewFallbackMessage(
+                summary,
+              ),
+              message_mode: "dynamic",
+              message_payload: {
+                source: "schedule_weekly_progress_review_v2",
+                version: 1,
+                timezone,
+                week_start_date: review.week_start_date,
+                week_end_date: review.week_end_date,
+                dashboard_url: dashboardUrl,
+                weekly_progress_review: review,
+                instruction: buildWeeklyProgressReviewInstruction(review),
+                event_grounding: buildWeeklyProgressReviewGrounding(review),
+                generated_at: nowIso,
+              },
+              scheduled_for: scheduledFor,
+              status: "pending",
+            } as any,
+            { onConflict: "user_id,event_context,scheduled_for" },
           );
-          const { error: weeklyReviewErr } = await supabaseAdmin
-            .from("scheduled_checkins")
-            .upsert(
-              {
-                user_id: userId,
-                origin: "weekly_review",
-                event_context: WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
-                draft_message: buildWeeklyProgressReviewFallbackMessage(
-                  summary,
-                ),
-                message_mode: "dynamic",
-                message_payload: {
-                  source: "schedule_weekly_progress_review_v2",
-                  version: 1,
-                  timezone,
-                  week_start_date: review.week_start_date,
-                  week_end_date: review.week_end_date,
-                  dashboard_url: dashboardUrl,
-                  weekly_progress_review: review,
-                  instruction: buildWeeklyProgressReviewInstruction(review),
-                  event_grounding: buildWeeklyProgressReviewGrounding(review),
-                  generated_at: nowIso,
-                },
-                scheduled_for: scheduledFor,
-                status: "pending",
-              } as any,
-              { onConflict: "user_id,event_context,scheduled_for" },
-            );
-          if (weeklyReviewErr) {
-            console.error(
-              `[schedule-whatsapp-v2-checkins] request_id=${requestId} weekly_review_upsert_failed user_id=${userId}`,
-              weeklyReviewErr,
-            );
-          } else {
-            scheduled++;
-            weeklyProgressReviewScheduled++;
-          }
+        if (weeklyReviewErr) {
+          console.error(
+            `[schedule-whatsapp-v2-checkins] request_id=${requestId} weekly_review_upsert_failed user_id=${userId}`,
+            weeklyReviewErr,
+          );
+        } else {
+          scheduled++;
+          weeklyProgressReviewScheduled++;
         }
       }
     }
@@ -926,6 +844,8 @@ Deno.serve(async (req) => {
         action_evening_review_scheduled: actionEveningReviewScheduled,
         weekly_planning_prompt_scheduled: weeklyPlanningPromptScheduled,
         weekly_progress_review_scheduled: weeklyProgressReviewScheduled,
+        weekly_progress_review_skipped_new_user:
+          weeklyProgressReviewSkippedNewUser,
         birthday_greeting_scheduled: birthdayGreetingScheduled,
         skipped,
         candidates,

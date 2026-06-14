@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { newRequestId, requestHeaders } from '../lib/requestId';
+import { detectBrowserTimezone } from '../lib/localization';
 
 export type Message = {
   id: string;
@@ -10,6 +11,12 @@ export type Message = {
   created_at: string;
   metadata?: Record<string, unknown> | null;
 };
+
+function getErrorMessage(err: unknown, fallback: string) {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string" && err) return err;
+  return fallback;
+}
 
 export function useChat(opts?: {
   scope?: string;
@@ -103,6 +110,8 @@ export function useChat(opts?: {
           history: messages.slice(-10),
           channel,
           scope,
+          client_now_iso: new Date().toISOString(),
+          client_timezone: detectBrowserTimezone(),
           client_request_id: clientRequestId,
           force_onboarding_flow: forceOnboardingFlow,
         },
@@ -122,25 +131,13 @@ export function useChat(opts?: {
       };
       setMessages(prev => [...prev, botMsg]);
       
-      // Petit hack : On recharge les messages récents après un court délai pour avoir les vrais ID DB
-      // (Optionnel, mais plus propre pour la suppression future)
-      setTimeout(async () => {
-         const { data } = await supabase
-            .from('chat_messages')
-            .select('*')
-            .eq('scope', scope)
-            .order('created_at', { ascending: false })
-            .limit(2);
-         // On pourrait synchroniser ici, mais restons simple pour l'instant.
-      }, 1000);
-
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Chat Error:', err);
-      setError(err.message || "Une erreur est survenue");
+      setError(getErrorMessage(err, "Une erreur est survenue"));
     } finally {
       setIsLoading(false);
     }
-  }, [messages, scope, channel, whatsappSim, forceOnboardingFlow, loadHistory, waitForAssistantDelivery]);
+  }, [messages, scope, channel, whatsappSim, forceOnboardingFlow, waitForAssistantDelivery]);
 
   const sendWhatsAppSimButton = useCallback(async (title: string) => {
     const cleanTitle = title.trim();
@@ -168,13 +165,13 @@ export function useChat(opts?: {
       });
       if (fnError) throw fnError;
       await waitForAssistantDelivery(previousAssistantCount);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('WhatsApp Sim Button Error:', err);
-      setError(err.message || "Impossible d'envoyer la réponse WhatsApp simulée");
+      setError(getErrorMessage(err, "Impossible d'envoyer la réponse WhatsApp simulée"));
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, loadHistory, messages, waitForAssistantDelivery]);
+  }, [isLoading, messages, waitForAssistantDelivery]);
 
   const triggerWhatsAppSimEvent = useCallback(async (event: string) => {
     try {
@@ -187,9 +184,9 @@ export function useChat(opts?: {
       });
       if (fnError) throw fnError;
       await loadHistory();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('WhatsApp Sim Trigger Error:', err);
-      setError(err.message || "Impossible de lancer l'événement WhatsApp simulé");
+      setError(getErrorMessage(err, "Impossible de lancer l'événement WhatsApp simulé"));
     } finally {
       setIsTriggeringSim(false);
     }

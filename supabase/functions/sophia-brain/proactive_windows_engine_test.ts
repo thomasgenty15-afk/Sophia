@@ -480,35 +480,6 @@ Deno.test("evaluate: medium confidence downgrades notable need to light-only pos
   assertEquals(output.posture, "open_door");
 });
 
-Deno.test("evaluate: relation preferences low intensity downgrades notable window to light", () => {
-  const input = defaultInput({
-    relationPreferences: {
-      user_id: "user-1",
-      preferred_contact_windows: ["morning"],
-      disliked_contact_windows: null,
-      preferred_tone: "gentle",
-      preferred_message_length: "short",
-      max_proactive_intensity: "low",
-      soft_no_contact_rules: null,
-      updated_at: NOW_ISO,
-    },
-    upcomingEvents: [
-      {
-        title: "Rendez-vous important",
-        scheduled_at: new Date(
-          new Date(NOW_ISO).getTime() + 6 * 60 * 60 * 1000,
-        ).toISOString(),
-        event_type: "meeting",
-        source: "detect-future-events",
-      },
-    ],
-  });
-  const output = evaluateProactiveWindow(input);
-  assertEquals(output.decision, "create_window");
-  assertEquals(output.window_kind, "morning_presence");
-  assertEquals(output.budget_class, "light");
-});
-
 Deno.test("evaluate: repair mode → downgrade_to_soft_presence", () => {
   const input = defaultInput({
     repairMode: {
@@ -524,27 +495,6 @@ Deno.test("evaluate: repair mode → downgrade_to_soft_presence", () => {
   const output = evaluateProactiveWindow(input);
   assertEquals(output.decision, "downgrade_to_soft_presence");
   assertEquals(output.posture, "protective_pause");
-});
-
-Deno.test("evaluate: disliked contact window blocks proactive send", () => {
-  const input = defaultInput({
-    relationPreferences: {
-      user_id: "user-1",
-      preferred_contact_windows: null,
-      disliked_contact_windows: ["morning"],
-      preferred_tone: null,
-      preferred_message_length: null,
-      max_proactive_intensity: null,
-      soft_no_contact_rules: { avoid_day_parts: ["morning"] },
-      updated_at: NOW_ISO,
-    },
-  });
-  const output = evaluateProactiveWindow(input);
-  assertEquals(output.decision, "skip");
-  assertEquals(
-    output.reason,
-    "relation_preferences_blocked:contact_window:morning",
-  );
 });
 
 Deno.test("evaluate: policy min gap blocks a follow-up proactive", () => {

@@ -286,6 +286,7 @@ export async function fillAdjustPlanSlotsWithAi(
     "Si les slots minimaux sont tous remplis et missing_slots=[], next_question doit être une courte validation de trajectoire générée par IA: elle résume les changements envisagés, dit que rien n'est encore appliqué, et demande si tu peux préparer la proposition concrète.",
     'Tu tutoies toujours l\'utilisateur dans next_question. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
     'Quand next_question parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    'Sophia est feminine: quand next_question parle de toi, accorde les adjectifs et participes au feminin ("contente", "prete", "desolee", "ravie", etc.).',
     "Retourne uniquement du JSON valide.",
   ].join("\n");
   const userPrompt = JSON.stringify({
@@ -412,6 +413,7 @@ export async function writeAdjustPlanNextQuestionWithAi(
     "Tu écris uniquement le prochain message user-facing de Sophia, en français naturel.",
     "Tu ne remplis pas les slots et tu ne modifies pas le plan.",
     'Quand le message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    'Sophia est feminine: quand le message parle de toi, accorde les adjectifs et participes au feminin ("contente", "prete", "desolee", "ravie", etc.).',
     "Le message doit être court, humain, concret, et directement basé sur current_state, missing_slots, draft et plan_snapshot.",
     "Ne demande jamais une information déjà présente dans current_state, operation_input ou le dernier message utilisateur.",
     "Si le user a déjà donné la raison et la cible, demande seulement la précision réellement manquante.",

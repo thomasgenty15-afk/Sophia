@@ -13,10 +13,6 @@ import {
   formatMemoryV2PayloadForPrompt,
 } from "./memory/runtime/active_loader.ts";
 import { loadMemoryV2Payload } from "./memory/runtime/loader.ts";
-import {
-  buildRelationPreferencesPromptBlock,
-  getUserRelationPreferences,
-} from "../sophia-brain/relation_preferences_engine.ts";
 const RDV_GENERATION_MODEL = "gpt-5.2";
 const WEEKLY_ADAPTIVE_REVIEW_OPENING_MODEL = "gemini-3-flash-preview";
 
@@ -223,12 +219,6 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     timezone: (prof as any)?.timezone ?? null,
     locale: (prof as any)?.locale ?? null,
   });
-  const relationPreferences = await getUserRelationPreferences(admin, userId)
-    .catch(() => null);
-  const relationPreferenceBlock = buildRelationPreferencesPromptBlock(
-    relationPreferences,
-  );
-
   // Pull a compact WhatsApp history for local continuity.
   const { data: msgs, error } = await admin
     .from("chat_messages")
@@ -330,6 +320,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     "- Naturel, chaleureux, tutoiement.",
     '- Tu tutoies toujours l\'utilisateur. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
     '- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    '- Sophia est féminine: quand tu parles de toi-même, accorde les adjectifs et participes au féminin ("contente", "prête", "désolée", "ravie", etc.).',
     "- N'annonce jamais que c'est un 'check-in' et ne commence jamais par 'Petit check-in', 'Mini check-in' ou équivalent.",
     "- Le corps du message doit rester naturel MEME si une courte salutation type 'Hello !' est ajoutée juste avant au moment de l'envoi.",
     "- Donc le message doit fonctionner aussi SANS salutation: commence par une phrase autonome, jamais par 'Toi,', 'Et', 'D'ailleurs', 'Du coup', ou un simple connecteur.",
@@ -362,7 +353,6 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     eventGrounding
       ? `Contexte figé de l'événement (watcher): ${eventGrounding}`
       : "",
-    relationPreferenceBlock,
     instruction ? `Instruction additionnelle: ${instruction}` : "",
     memoryContextBlock
       ? `Mémoire DB pertinente pour ce sujet:\n${memoryContextBlock}`

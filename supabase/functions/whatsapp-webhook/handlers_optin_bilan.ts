@@ -8,26 +8,30 @@ import { buildAdaptiveOnboardingContext } from "./onboarding_context.ts";
 
 declare const Deno: any;
 export async function computeOptInAndBilanContext(params: any) {
-  async function hasRecentOptInPrompt(admin: any, userId: string) {
+  async function getLatestRecentAssistantPurpose(admin: any, userId: string) {
     const since = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() // 30h window
     ;
     const { data, error } = await admin.from("chat_messages").select(
       "id, metadata, created_at",
     ).eq("user_id", userId).eq("role", "assistant").gte("created_at", since)
-      .filter("metadata->>channel", "eq", "whatsapp").filter(
-        "metadata->>purpose",
-        "eq",
-        "optin",
-      ).order("created_at", {
+      .filter("metadata->>channel", "eq", "whatsapp").order("created_at", {
         ascending: false,
       }).limit(1).maybeSingle();
     if (error) throw error;
-    return Boolean(data);
+    return String((data as any)?.metadata?.purpose ?? "").trim();
   }
-  const isOptInYes = params.actionId === "OPTIN_YES" ||
-    (params.isOptInYesText
-      ? await hasRecentOptInPrompt(params.admin, params.userId)
-      : false);
+  const latestAssistantPurpose = await getLatestRecentAssistantPurpose(
+    params.admin,
+    params.userId,
+  );
+  const alreadyOptedIn = params.whatsappOptedIn === true;
+  const hasActiveWhatsappState = String(params.whatsappState ?? "").trim()
+    .length > 0;
+  const textOptInYes = params.isOptInYesText === true &&
+    latestAssistantPurpose === "optin" &&
+    !alreadyOptedIn &&
+    !hasActiveWhatsappState;
+  const isOptInYes = params.actionId === "OPTIN_YES" || textOptInYes;
   async function getRecentBilanPromptPurpose(admin: any, userId: string) {
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6h window
     ;

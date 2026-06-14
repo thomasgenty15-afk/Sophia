@@ -5,8 +5,7 @@
  *
  * The proactive windows engine remains a pure function; this module consumes
  * its output, enriches it with additional context (repair mode history, weekly
- * bilan decisions, event memory, relation preferences), and decides the
- * delivery channel.
+ * bilan decisions, event memory), and decides the delivery channel.
  */
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
@@ -18,7 +17,6 @@ import type {
   ProactiveBudgetClass,
   RendezVousKind,
   RepairModeState,
-  UserRelationPreferencesRow,
   WeeklyConversationDigest,
   WeeklyDecision,
 } from "../_shared/v2-types.ts";
@@ -38,7 +36,6 @@ import {
 } from "../_shared/v2-rendez-vous.ts";
 import { loadProactiveHistory, registerCooldown } from "./cooldown_engine.ts";
 import { readMomentumStateV2 } from "./momentum_state.ts";
-import { getUserRelationPreferences } from "./relation_preferences_engine.ts";
 import { readRepairMode } from "./repair_mode_engine.ts";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -436,7 +433,6 @@ export async function resolveRendezVousDecisionForRuntime(args: {
   tempMemory: unknown;
   timezone: string;
   nowIso: string;
-  relationPreferences?: UserRelationPreferencesRow | null;
 }): Promise<{
   proactiveOutput: ProactiveWindowOutput;
   decision: RendezVousDecisionResult;
@@ -448,10 +444,6 @@ export async function resolveRendezVousDecisionForRuntime(args: {
   }
 
   const transformationId = cleanText(args.runtime.transformation?.id) || null;
-  const relationPreferences = args.relationPreferences ??
-    await getUserRelationPreferences(args.supabase as any, args.userId).catch(
-      () => null,
-    );
   const momentumV2 = readMomentumStateV2(args.tempMemory);
   const repairMode = readRepairMode(args.tempMemory);
 
@@ -497,7 +489,6 @@ export async function resolveRendezVousDecisionForRuntime(args: {
     conversationPulse,
     weeklyDigest,
     repairMode,
-    relationPreferences,
     proactiveHistory,
     upcomingEvents,
     planItems: args.planItems,

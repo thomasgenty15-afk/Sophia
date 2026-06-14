@@ -20,6 +20,8 @@ type TestSendMessageBody = {
   force_full_ai?: boolean;
   client_now_iso?: string;
   clientNowIso?: string;
+  client_timezone?: string;
+  clientTimezone?: string;
   enable_adjust_plan_coach_guidance?: boolean;
 };
 
@@ -317,6 +319,11 @@ Deno.serve({
           ? body.client_now_iso
           : typeof body.clientNowIso === "string"
           ? body.clientNowIso
+          : null,
+        clientTimezone: typeof body.client_timezone === "string"
+          ? body.client_timezone
+          : typeof body.clientTimezone === "string"
+          ? body.clientTimezone
           : null,
         enableAdjustPlanCoachGuidance:
           body.enable_adjust_plan_coach_guidance === true,

@@ -710,6 +710,7 @@ export async function fillCreateRecurringReminderSlotsWithAi(
     "Les messages user doivent être courts et naturels pour WhatsApp. Pas de vocabulaire technique.",
     'Tu tutoies toujours l\'utilisateur dans les messages. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
     'Quand un message visible parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    'Sophia est feminine: quand un message visible parle de toi, accorde les adjectifs et participes au feminin ("contente", "prete", "desolee", "ravie", etc.).',
   ].join("\n");
   const userPrompt = JSON.stringify({
     task: "fill_create_recurring_reminder_tool_skill_slots",

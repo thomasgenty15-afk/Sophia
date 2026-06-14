@@ -56,6 +56,8 @@ const REQUEST_SCHEMA = z.object({
   feedback: z.string().trim().min(1).max(4000).optional(),
   force_regenerate: z.boolean().optional(),
   pace: z.enum(["cool", "normal", "intense"]).optional(),
+  client_now_iso: z.string().trim().min(1).optional(),
+  client_timezone: z.string().trim().min(1).optional(),
   preview_plan_id: z.string().uuid().optional(),
   preserve_active_transformation_id: z.string().trim().min(1).optional(),
   adjustment_context: z.object({
@@ -631,6 +633,8 @@ async function handleRequest(req: Request): Promise<Response> {
       feedback: parsedBody.data.feedback ?? null,
       forceRegenerate: parsedBody.data.force_regenerate === true,
       pace: parsedBody.data.pace ?? null,
+      clientNowIso: parsedBody.data.client_now_iso ?? null,
+      clientTimezone: parsedBody.data.client_timezone ?? null,
       previewPlanId: parsedBody.data.preview_plan_id ?? null,
       preserveActiveTransformationId:
         parsedBody.data.preserve_active_transformation_id ?? null,
@@ -729,6 +733,8 @@ export async function generatePlanV2ForTransformation(params: {
   feedback: string | null;
   forceRegenerate: boolean;
   pace: "cool" | "normal" | "intense" | null;
+  clientNowIso?: string | null;
+  clientTimezone?: string | null;
   previewPlanId: string | null;
   preserveActiveTransformationId: string | null;
   adjustmentContext: PlanAdjustmentGenerationContext | null;
@@ -741,7 +747,10 @@ export async function generatePlanV2ForTransformation(params: {
   roadmapChanged: boolean;
   journeyContext: JourneyContextResponse | null;
 }> {
-  const now = new Date().toISOString();
+  const clientNow = params.clientNowIso ? new Date(params.clientNowIso) : null;
+  const now = clientNow && Number.isFinite(clientNow.getTime())
+    ? clientNow.toISOString()
+    : new Date().toISOString();
   const context = await loadTransformationContext(
     params.admin,
     params.userId,
@@ -842,6 +851,7 @@ export async function generatePlanV2ForTransformation(params: {
       context,
       planRow: latestDraftPlan,
       now,
+      clientTimezone: params.clientTimezone ?? null,
       distributeIfMissing: true,
       preserveActiveTransformationId: params.preserveActiveTransformationId,
     });
@@ -885,6 +895,7 @@ export async function generatePlanV2ForTransformation(params: {
         context,
         planRow: persistedLockedPlan,
         now,
+        clientTimezone: params.clientTimezone ?? null,
         distributeIfMissing: false,
         preserveActiveTransformationId: params.preserveActiveTransformationId,
       });
@@ -949,6 +960,7 @@ export async function generatePlanV2ForTransformation(params: {
       planId: partialPlan.id,
       context,
       now,
+      clientTimezone: params.clientTimezone ?? null,
       preserveActiveTransformationId: params.preserveActiveTransformationId,
     });
     if (recoveryResult) return recoveryResult;
@@ -1072,6 +1084,7 @@ export async function generatePlanV2ForTransformation(params: {
     supabase: params.admin,
     userId: params.userId,
     now: new Date(now),
+    timezoneOverride: params.clientTimezone ?? null,
   });
   const scheduleAnchor = buildScheduleAnchorFromUserTimeContext({
     userTimeContext,
@@ -1138,6 +1151,10 @@ export async function generatePlanV2ForTransformation(params: {
     user_timezone: userTimeContext.user_timezone,
     user_local_date: userTimeContext.user_local_date,
     user_local_human: userTimeContext.user_local_human,
+    user_local_datetime: userTimeContext.user_local_datetime,
+    user_local_time: userTimeContext.user_local_time,
+    user_local_hour: userTimeContext.user_local_hour,
+    user_day_part: userTimeContext.day_part,
     anchor_week_start: scheduleAnchor.anchor_week_start,
     anchor_week_end: scheduleAnchor.anchor_week_end,
     days_remaining_in_anchor_week: scheduleAnchor.days_remaining_in_anchor_week,
@@ -1249,6 +1266,7 @@ export async function generatePlanV2ForTransformation(params: {
     context,
     planRow,
     now,
+    clientTimezone: params.clientTimezone ?? null,
     distributeIfMissing: true,
     preserveActiveTransformationId: params.preserveActiveTransformationId,
   });
@@ -2169,6 +2187,7 @@ async function activatePersistedPlan(args: {
   context: TransformationContext;
   planRow: UserPlanV2Row;
   now: string;
+  clientTimezone?: string | null;
   distributeIfMissing: boolean;
   preserveActiveTransformationId: string | null;
 }): Promise<{
@@ -2191,6 +2210,7 @@ async function activatePersistedPlan(args: {
     supabase: args.admin,
     userId: args.userId,
     now: new Date(args.now),
+    timezoneOverride: args.clientTimezone ?? null,
   });
   const adjustmentRevision =
     isPlainObject(persistedPlan.metadata?.plan_adjustment_revision)
@@ -2463,6 +2483,7 @@ async function tryRecoverPartialGeneration(params: {
   planId: string;
   context: TransformationContext;
   now: string;
+  clientTimezone?: string | null;
   preserveActiveTransformationId: string | null;
 }): Promise<
   {
@@ -2495,6 +2516,7 @@ async function tryRecoverPartialGeneration(params: {
     context,
     planRow,
     now,
+    clientTimezone: params.clientTimezone ?? null,
     distributeIfMissing: false,
     preserveActiveTransformationId: params.preserveActiveTransformationId,
   });
@@ -3311,14 +3333,6 @@ function normalizeGeneratedPlanForValidation(raw: unknown): unknown {
       !Array.isArray(candidate.plan_blueprint)
       ? candidate.plan_blueprint as Record<string, unknown>
       : null;
-  const normalizedBlueprint = blueprint && Array.isArray(blueprint.levels)
-    ? {
-      ...blueprint,
-      // This field is consumed as a denormalized count in the UI/data model.
-      // Keep it mechanically aligned with the actual future levels array.
-      estimated_levels_count: blueprint.levels.length,
-    }
-    : blueprint;
   const currentLevelRuntime = candidate.current_level_runtime &&
       typeof candidate.current_level_runtime === "object" &&
       !Array.isArray(candidate.current_level_runtime)
@@ -3334,39 +3348,63 @@ function normalizeGeneratedPlanForValidation(raw: unknown): unknown {
       phase.phase_id.trim() === currentLevelPhaseId
     ) ?? null
     : null;
+  const currentLevelPhaseOrder = isPlainObject(currentLevelPhase) &&
+      typeof currentLevelPhase.phase_order === "number" &&
+      Number.isInteger(currentLevelPhase.phase_order) &&
+      currentLevelPhase.phase_order >= 1
+    ? currentLevelPhase.phase_order
+    : null;
   const currentLevelPhaseItemsByTempId = buildPhaseItemsByTempId(
     isPlainObject(currentLevelPhase) ? currentLevelPhase : null,
   );
+  const runtimeLevelOrder = currentLevelPhaseOrder ??
+    (typeof currentLevelRuntime?.level_order === "number" &&
+        Number.isInteger(currentLevelRuntime.level_order) &&
+        currentLevelRuntime.level_order >= 1
+      ? currentLevelRuntime.level_order
+      : null);
+  const normalizedBlueprint = blueprint && Array.isArray(blueprint.levels)
+    ? normalizePlanBlueprintLevels({
+      blueprint,
+      currentLevelOrder: runtimeLevelOrder,
+      currentPhaseId: currentLevelPhaseId || null,
+    })
+    : blueprint;
   const normalizedCurrentLevelRuntime =
-    currentLevelRuntime && Array.isArray(currentLevelRuntime.weeks)
+    currentLevelRuntime
       ? {
         ...currentLevelRuntime,
-        weeks: currentLevelRuntime.weeks.map((week) => {
-          if (!week || typeof week !== "object" || Array.isArray(week)) {
-            return week;
+        ...(runtimeLevelOrder != null ? { level_order: runtimeLevelOrder } : {}),
+        ...(Array.isArray(currentLevelRuntime.weeks)
+          ? {
+            weeks: currentLevelRuntime.weeks.map((week) => {
+              if (!week || typeof week !== "object" || Array.isArray(week)) {
+                return week;
+              }
+
+              const weekRecord = week as Record<string, unknown>;
+              const missionDays = Array.isArray(weekRecord.mission_days)
+                ? weekRecord.mission_days
+                  .filter((day): day is string => typeof day === "string")
+                  .map((day) => day.trim())
+                  .filter((day, index, array) =>
+                    day.length > 0 && array.indexOf(day) === index
+                  )
+                : [];
+              const oneShotAssignmentCount = countOneShotAssignments({
+                week: weekRecord,
+                phaseItemsByTempId: currentLevelPhaseItemsByTempId,
+              });
+
+              return {
+                ...weekRecord,
+                mission_days: oneShotAssignmentCount > 0
+                  ? missionDays.slice(0, oneShotAssignmentCount)
+                  : [],
+              };
+            }),
           }
-
-          const weekRecord = week as Record<string, unknown>;
-          const missionDays = Array.isArray(weekRecord.mission_days)
-            ? weekRecord.mission_days
-              .filter((day): day is string => typeof day === "string")
-              .map((day) => day.trim())
-              .filter((day, index, array) =>
-                day.length > 0 && array.indexOf(day) === index
-              )
-            : [];
-          const oneShotAssignmentCount = countOneShotAssignments({
-            week: weekRecord,
-            phaseItemsByTempId: currentLevelPhaseItemsByTempId,
-          });
-
-          return {
-            ...weekRecord,
-            mission_days: oneShotAssignmentCount > 0
-              ? missionDays.slice(0, oneShotAssignmentCount)
-              : [],
-          };
-        }),
+          : {}),
       }
       : currentLevelRuntime;
   const metadata =
@@ -3466,6 +3504,47 @@ function buildPhaseItemsByTempId(
   }
 
   return itemsByTempId;
+}
+
+function normalizePlanBlueprintLevels(args: {
+  blueprint: Record<string, unknown>;
+  currentLevelOrder: number | null;
+  currentPhaseId: string | null;
+}): Record<string, unknown> {
+  const rawLevels = Array.isArray(args.blueprint.levels)
+    ? args.blueprint.levels
+    : [];
+  const currentLevelOrder = args.currentLevelOrder ?? 1;
+  const levels = rawLevels
+    .filter(isPlainObject)
+    .filter((level) => {
+      const phaseId = typeof level.phase_id === "string"
+        ? level.phase_id.trim()
+        : "";
+      return !args.currentPhaseId || phaseId !== args.currentPhaseId;
+    })
+    .sort((a, b) => {
+      const aOrder = Number(a.level_order);
+      const bOrder = Number(b.level_order);
+      if (Number.isInteger(aOrder) && Number.isInteger(bOrder)) {
+        return aOrder - bOrder;
+      }
+      if (Number.isInteger(aOrder)) return -1;
+      if (Number.isInteger(bOrder)) return 1;
+      return 0;
+    })
+    .map((level, index) => ({
+      ...level,
+      level_order: currentLevelOrder + index + 1,
+    }));
+
+  return {
+    ...args.blueprint,
+    // This field is consumed as a denormalized count in the UI/data model.
+    // Keep it mechanically aligned with the actual future levels array.
+    estimated_levels_count: levels.length,
+    levels,
+  };
 }
 
 function countOneShotAssignments(args: {

@@ -1426,6 +1426,7 @@ export async function processMessage(
     forceBrainTrace?: boolean;
     enableAdjustPlanCoachGuidance?: boolean;
     clientNowIso?: string | null;
+    clientTimezone?: string | null;
   },
   opts?: {
     logMessages?: boolean;
@@ -1789,6 +1790,7 @@ export async function processMessage(
     now: clientNow && Number.isFinite(clientNow.getTime())
       ? clientNow
       : undefined,
+    timezoneOverride: meta?.clientTimezone ?? null,
   }).catch(() => null as any);
 
   const currentMessagePlanTarget = resolvePlanItemTargetFromText(

@@ -113,7 +113,7 @@ export type UsePhase1Result = {
 
 export function usePhase1(
   transformation: UserTransformationRow | null,
-  refetch: () => Promise<void>,
+  refetch: (options?: { silent?: boolean }) => Promise<void>,
 ): UsePhase1Result {
   const [localPhase1, setLocalPhase1] = useState<Phase1Payload | null>(null);
   const [preparingStart, setPreparingStart] = useState(false);
@@ -183,7 +183,7 @@ export function usePhase1(
       );
       if (error) throw error;
       if (data?.phase_1) setLocalPhase1(data.phase_1);
-      await refetch();
+      await refetch({ silent: true });
     } catch (error) {
       console.error("[usePhase1] prepareStart failed:", error);
     } finally {
@@ -206,7 +206,7 @@ export function usePhase1(
       );
       if (error) throw error;
       if (data?.phase_1) setLocalPhase1(data.phase_1);
-      await refetch();
+      await refetch({ silent: true });
     } catch (error) {
       console.error("[usePhase1] prepareDeepWhy failed:", error);
     } finally {
@@ -233,7 +233,7 @@ export function usePhase1(
       );
       if (error) throw error;
       if (data?.phase_1) setLocalPhase1(data.phase_1);
-      await refetch();
+      await refetch({ silent: true });
     } catch (error) {
       console.error("[usePhase1] prepareStory failed:", error);
     } finally {
@@ -274,11 +274,6 @@ export function usePhase1(
       if (error) throw error;
       if (data?.phase_1) setLocalPhase1(data.phase_1);
 
-      // Refresh as soon as the deep why is saved so the UI can move
-      // immediately to the story-loading state instead of waiting for the
-      // story generation request to complete.
-      await refetch();
-
       if (shouldPrepareStory) {
         setPreparingStory(true);
         try {
@@ -296,10 +291,12 @@ export function usePhase1(
           );
           if (storyError) throw storyError;
           if (storyData?.phase_1) setLocalPhase1(storyData.phase_1);
-          await refetch();
+          await refetch({ silent: true });
         } finally {
           setPreparingStory(false);
         }
+      } else {
+        await refetch({ silent: true });
       }
     } catch (error) {
       console.error("[usePhase1] saveDeepWhyAnswers failed:", error);
@@ -319,13 +316,25 @@ export function usePhase1(
         },
       });
       if (error) throw error;
-      await refetch();
+      setLocalPhase1((current) => {
+        const base = current ?? phase1;
+        return base
+          ? {
+            ...base,
+            runtime: {
+              ...base.runtime,
+              ...patch,
+            },
+          }
+          : current;
+      });
+      await refetch({ silent: true });
     } catch (error) {
       console.error("[usePhase1] updateRuntime failed:", error);
     } finally {
       setUpdatingRuntime(false);
     }
-  }, [refetch, transformationId, updatingRuntime]);
+  }, [phase1, refetch, transformationId, updatingRuntime]);
 
   const markStoryViewed = useCallback(async () => {
     if (phase1?.runtime.story_viewed_or_validated) return;

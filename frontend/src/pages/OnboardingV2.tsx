@@ -40,6 +40,7 @@ import {
 } from "../lib/multiPartTransitionQuestionnaire";
 import { newRequestId, requestHeaders } from "../lib/requestId";
 import { supabase } from "../lib/supabase";
+import { detectBrowserTimezone } from "../lib/localization";
 import type {
   PlanContentV3,
   PlanTypeClassificationV1,
@@ -1748,8 +1749,11 @@ export default function OnboardingV2() {
     },
   ): Promise<T> {
     const requestId = newRequestId();
+    const requestBody = name === "generate-plan-v2"
+      ? { ...body, ...buildClientTimePayload() }
+      : body;
     const invokePromise = supabase.functions.invoke(name, {
-      body,
+      body: requestBody,
       headers: requestHeaders(requestId),
     });
     const timeoutMs = options?.timeoutMs ?? null;
@@ -1817,6 +1821,13 @@ export default function OnboardingV2() {
       at: new Date().toISOString(),
     });
     return data as T;
+  }
+
+  function buildClientTimePayload(): Record<string, unknown> {
+    return {
+      client_now_iso: new Date().toISOString(),
+      client_timezone: detectBrowserTimezone(),
+    };
   }
 
   async function handleAnalyzeAsGuest() {

@@ -122,6 +122,14 @@ export type PlanGenerationInput = {
   user_local_date?: string | null;
   /** Date locale lisible pour le prompt. */
   user_local_human?: string | null;
+  /** Date-heure locale utilisateur au format YYYY-MM-DDTHH:mm:ss. */
+  user_local_datetime?: string | null;
+  /** Heure locale utilisateur au format HH:mm:ss. */
+  user_local_time?: string | null;
+  /** Heure locale utilisateur arrondie, 0-23. */
+  user_local_hour?: number | null;
+  /** Partie de journée locale au moment de la génération. */
+  user_day_part?: "night" | "morning" | "afternoon" | "evening" | null;
   /** Debut de la semaine ISO locale courante. */
   anchor_week_start?: string | null;
   /** Fin de la semaine ISO locale courante. */
@@ -1114,6 +1122,9 @@ Règles obligatoires :
 - la semaine 1 du niveau courant doit tenir compte du nombre de jours RESTANTS dans la semaine locale en cours
 - si la génération tombe en milieu de semaine, la semaine 1 est une **semaine partielle**, pas une semaine de 7 jours
 - n'écris jamais une semaine 1 comme si elle avait 7 jours pleins si ce n'est pas le cas
+- pour le jour même, vérifie la faisabilité réelle à partir de l'heure locale de génération : ne prévois jamais aujourd'hui une action située dans un créneau déjà passé ou irréaliste à tenir avant la fin de journée
+- si la première action utile du plan dépend d'un créneau déjà passé aujourd'hui (ex: se lever tôt, routine du matin, appel en journée, préparation avant un événement), le plan doit démarrer demain pour cette action, et aujourd'hui ne doit contenir au plus qu'un micro-setup encore faisable
+- pour les sujets de sommeil ou de réveil, ne demande jamais de "se lever tôt aujourd'hui" si la journée est déjà commencée ; fais plutôt commencer le réveil demain et limite aujourd'hui à une préparation réaliste du soir si elle reste faisable
 - les dates sont des repères d'organisation, pas des deadlines punitives
 - garde un ton cadrant mais non culpabilisant
 
@@ -1273,6 +1284,7 @@ Règles strictes :
 - une clarification ou une mission doit être assignée seulement à la ou aux semaines où elle sert vraiment
 - si le niveau dure plus d'une semaine, chaque semaine doit contenir au moins **1 habitude** et au moins **1 autre item** (\`mission\` ou \`clarification\`)
 - si le niveau dure exactement une semaine, cette semaine doit contenir au moins **1 habitude + 1 mission + 1 clarification** si le sujet s'y prête
+- en semaine 1, distingue toujours ce qui est faisable **aujourd'hui** de ce qui doit commencer demain ; ne mets pas dans l'objectif d'aujourd'hui une répétition ou un créneau déjà manqué
 - si une habitude n'a pas d'axe naturel d'intensification hors fréquence, garde-la stable et fais surtout monter la fréquence ; n'invente pas une difficulté artificielle
 - si une habitude a un axe qualitatif naturel (durée de tenue, qualité du geste, contexte plus difficile, réduction d'une aide artificielle, intensité un peu plus élevée), fais monter cette qualité d'une semaine à l'autre
 - dans ce cas, un mix des deux est souvent meilleur : fréquence qui monte vers le cap final + intensification qualitative progressive, sans faire deux sauts trop violents d'un coup
@@ -1805,6 +1817,16 @@ Rappels :
   const timeLines = [
     `- Fuseau utilisateur : ${input.user_timezone ?? "Non renseigné"}`,
     `- Date locale actuelle : ${input.user_local_date ?? "Non renseignée"}`,
+    `- Date-heure locale actuelle : ${
+      input.user_local_datetime ?? "Non renseignée"
+    }`,
+    `- Heure locale actuelle : ${input.user_local_time ?? "Non renseignée"}`,
+    `- Heure locale arrondie : ${
+      typeof input.user_local_hour === "number"
+        ? input.user_local_hour
+        : "Non renseignée"
+    }`,
+    `- Moment de la journée : ${input.user_day_part ?? "Non renseigné"}`,
     `- Repère calendaire local : ${input.user_local_human ?? "Non renseigné"}`,
     `- Semaine locale en cours : ${input.anchor_week_start ?? "?"} -> ${
       input.anchor_week_end ?? "?"
@@ -1938,6 +1960,7 @@ Rappels importants :
 - \`plan_blueprint.estimated_levels_count\` n'est pas une estimation libre : il doit être exactement égal à \`plan_blueprint.levels.length\`
 - si \`plan_blueprint.levels\` contient 0 niveau, alors \`plan_blueprint.estimated_levels_count\` doit aussi valoir 0
 - le premier niveau de \`plan_blueprint.levels\` doit commencer strictement après \`current_level_runtime.level_order\`
+- les \`level_order\` futurs doivent être contigus : si \`current_level_runtime.level_order = 1\`, le premier futur est 2, puis 3, puis 4 ; ne saute jamais de numéro
 - retourne un \`current_level_runtime\` détaillé uniquement pour le niveau courant
 - si le feedback contient un "Bilan de fin de niveau", traite-le comme le signal de coaching prioritaire pour générer le prochain niveau: conserve les acquis déclarés, ajuste la charge d'après les difficultés et les statuts réels des actions, et ne répète jamais le niveau déjà terminé comme niveau courant
 - dans ce cas, l'objectif du nouveau niveau courant doit contribuer explicitement à l'objectif global de transformation et rester cohérent avec la logique du plan existant, sauf si le bilan justifie clairement une réorientation
@@ -1949,6 +1972,9 @@ Rappels importants :
 - les semaines servent surtout à préciser le dosage, les répétitions et les jours de mission ; n'invente pas forcément de nouvelles actions chaque semaine
 - si \`is_partial_anchor_week = true\`, la semaine 1 correspond uniquement a la portion restante de la semaine locale en cours ; adapte sa charge en conséquence
 - si \`days_remaining_in_anchor_week\` est faible, la semaine 1 doit être explicitement plus légère que les suivantes
+- pour le jour même, vérifie la faisabilité temporelle réelle avec \`user_local_datetime\`, \`user_local_time\`, \`user_local_hour\` et \`user_day_part\` : aucune action "aujourd'hui" ne doit supposer un créneau déjà passé
+- si une action de démarrage serait impossible aujourd'hui parce que son bon créneau est passé, fais commencer cette action demain ; aujourd'hui peut seulement contenir un micro-setup encore réaliste
+- cas sommeil/réveil : ne planifie jamais "se lever tôt aujourd'hui" si l'heure locale indique que le réveil est déjà passé ; démarre le réveil demain et garde aujourd'hui pour une préparation du soir si elle est faisable
 - \`heartbeat.target\` représente toujours le cap FINAL du niveau de plan
 - chaque entrée de \`current_level_runtime.weeks\` doit expliciter la montée hebdomadaire vers ce cap via :
   - \`weekly_target_value\` : la cible chiffrée de la semaine sur la mesure du niveau
@@ -2629,6 +2655,7 @@ function validateBlueprintAgainstCurrentLevel(args: {
     return issues;
   }
 
+  const orders: number[] = [];
   for (const level of args.blueprint.levels) {
     if (!isPlainObject(level)) continue;
 
@@ -2643,6 +2670,19 @@ function validateBlueprintAgainstCurrentLevel(args: {
       issues.push(
         "plan_blueprint levels must all be strictly after current_level_runtime.level_order",
       );
+    } else if (Number.isInteger(order)) {
+      orders.push(order);
+    }
+  }
+
+  orders.sort((a, b) => a - b);
+  for (let index = 0; index < orders.length; index += 1) {
+    const expectedOrder = runtimeOrder + index + 1;
+    if (orders[index] !== expectedOrder) {
+      issues.push(
+        `plan_blueprint levels must be contiguous after current_level_runtime.level_order; expected level_order ${expectedOrder}, got ${orders[index]}`,
+      );
+      break;
     }
   }
 

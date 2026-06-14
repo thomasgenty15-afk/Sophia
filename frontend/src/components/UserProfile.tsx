@@ -17,7 +17,6 @@ import { supabase } from '../lib/supabase';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useNavigate } from 'react-router-dom';
 
-import { getEffectiveTier } from '../lib/entitlements';
 import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
 
 interface UserProfileProps {
@@ -29,19 +28,43 @@ interface UserProfileProps {
 
 type TabType = 'general' | 'subscription' | 'settings';
 
+type Profile = {
+  full_name: string | null;
+  phone_number?: string | null;
+  timezone?: string | null;
+  locale?: string | null;
+  tz_follow_device?: boolean | null;
+};
+
+type ProfilePhoneUpdate = {
+  phone_number: string | null;
+  phone_verified_at: null;
+  whatsapp_opted_in: boolean;
+  whatsapp_bilan_opted_in: boolean;
+  whatsapp_last_inbound_at: null;
+  whatsapp_last_outbound_at: null;
+  whatsapp_state: null;
+  whatsapp_state_updated_at: string;
+  phone_invalid: boolean;
+  whatsapp_optin_sent_at: null;
+  whatsapp_opted_out_at: null;
+  whatsapp_optout_reason: null;
+  whatsapp_optout_confirmed_at: null;
+};
+
+function getErrorMessage(err: unknown, fallback: string) {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string" && err) return err;
+  return fallback;
+}
+
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initialTab }) => {
   const { user, signOut, subscription, trialEnd, accessTier } = useAuth();
   const navigate = useNavigate();
   const shouldRender = isOpen;
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTab ?? 'general');
-  const [profile, setProfile] = useState<{
-    full_name: string | null;
-    phone_number?: string | null;
-    timezone?: string | null;
-    locale?: string | null;
-    tz_follow_device?: boolean | null;
-  } | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [billingLoading, setBillingLoading] = useState<boolean>(false);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState<boolean>(false);
@@ -87,18 +110,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
           .single();
         
         if (data) {
-          setProfile(data);
-          setFullNameDraft((data as any)?.full_name || user?.user_metadata?.full_name || "");
-          const p = ((data as any)?.phone_number ?? "") as string;
+          const loadedProfile = data as Profile;
+          setProfile(loadedProfile);
+          setFullNameDraft(loadedProfile.full_name || user?.user_metadata?.full_name || "");
+          const p = loadedProfile.phone_number ?? "";
           // IMPORTANT: Ne pas écraser phoneDraft si l'utilisateur est en train d'éditer ?
           // Pour faire simple et éviter les conflits, on update le draft seulement si on vient d'ouvrir ou charger.
           // Ici c'est le fetch initial.
           setPhoneDraft(p);
           setOriginalPhone(p);
 
-          const tz = (((data as any)?.timezone ?? "") as string).trim();
+          const tz = (loadedProfile.timezone ?? "").trim();
           setTimezoneDraft(tz || detectBrowserTimezone() || DEFAULT_TIMEZONE);
-          setTzFollowDeviceDraft(Boolean((data as any)?.tz_follow_device));
+          setTzFollowDeviceDraft(Boolean(loadedProfile.tz_follow_device));
         }
       };
       fetchProfile();
@@ -197,7 +221,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       }
 
       const nowIso = new Date().toISOString();
-      const updatePayload: any = {
+      const updatePayload: ProfilePhoneUpdate = {
         phone_number: nextPhone,
         // Reset phone verification marker (new number must be re-validated)
         phone_verified_at: null,
@@ -225,7 +249,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       if (error) throw error;
 
       if (data) {
-        setProfile((prev: any) => ({ ...prev, phone_number: data.phone_number }));
+        setProfile((prev) => ({ ...(prev ?? { full_name: null }), phone_number: data.phone_number }));
         setOriginalPhone(data.phone_number ?? "");
         setPhoneDraft(data.phone_number ?? "");
       }
@@ -256,8 +280,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
 
       setPhoneSuccess("Numéro modifié avec succès.");
       setPhoneEditOpen(false);
-    } catch (err: any) {
-      const msg = err?.message || "Impossible d’enregistrer le numéro.";
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err, "Impossible d’enregistrer le numéro.");
       if (typeof msg === "string" && (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique"))) {
         setPhoneError("Ce numéro est déjà utilisé par un autre compte.");
       } else {
@@ -290,13 +314,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       if (error) throw error;
 
       if (data) {
-        setProfile((prev: any) => ({ ...prev, full_name: data.full_name }));
+        setProfile((prev) => ({ ...(prev ?? { full_name: null }), full_name: data.full_name }));
         setFullNameDraft(data.full_name ?? "");
       }
 
       setSaveSuccess("Informations enregistrées.");
-    } catch (err: any) {
-      setSaveError(err?.message || "Impossible d’enregistrer.");
+    } catch (err: unknown) {
+      setSaveError(getErrorMessage(err, "Impossible d’enregistrer."));
     } finally {
       setSaveLoading(false);
     }
@@ -333,8 +357,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       }
       setEmailSuccess("Demande envoyée. Vérifie tes emails pour confirmer le changement.");
       setEmailEditOpen(false);
-    } catch (err: any) {
-      setEmailError(err?.message || "Impossible de modifier l’email.");
+    } catch (err: unknown) {
+      setEmailError(getErrorMessage(err, "Impossible de modifier l’email."));
     } finally {
       setEmailLoading(false);
     }
@@ -346,7 +370,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setPrefsError(null);
     setPrefsSuccess(null);
     try {
-      const nextTimezone = (timezoneDraft ?? "").trim() || DEFAULT_TIMEZONE;
+      const detectedTimezone = detectBrowserTimezone();
+      const nextTimezone = tzFollowDeviceDraft
+        ? detectedTimezone || (timezoneDraft ?? "").trim() || DEFAULT_TIMEZONE
+        : (timezoneDraft ?? "").trim() || DEFAULT_TIMEZONE;
       const { data, error } = await supabase
         .from("profiles")
         .update({
@@ -361,13 +388,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
 
       if (error) throw error;
       if (data) {
-        setProfile((prev: any) => ({ ...prev, ...data }));
-        setTimezoneDraft(((data as any)?.timezone ?? "") || nextTimezone);
-        setTzFollowDeviceDraft(Boolean((data as any)?.tz_follow_device));
+        const prefsProfile = data as Pick<Profile, "timezone" | "locale" | "tz_follow_device">;
+        setProfile((prev) => ({ ...(prev ?? { full_name: null }), ...prefsProfile }));
+        setTimezoneDraft((prefsProfile.timezone ?? "") || nextTimezone);
+        setTzFollowDeviceDraft(Boolean(prefsProfile.tz_follow_device));
       }
       setPrefsSuccess("Préférences enregistrées.");
-    } catch (err: any) {
-      setPrefsError(err?.message || "Impossible d’enregistrer les préférences.");
+    } catch (err: unknown) {
+      setPrefsError(getErrorMessage(err, "Impossible d’enregistrer les préférences."));
     } finally {
       setPrefsLoading(false);
     }
@@ -393,10 +421,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   const now = Date.now();
   const trialActive = accessTier === "trial";
   const subActive = accessTier === "system" || accessTier === "alliance" || accessTier === "architecte";
-  const softLocked = accessTier === "none";
-  const currentTier = getEffectiveTier(subscription);
   const isMaxTier = accessTier === 'architecte';
-  const subInterval = ((subscription as any)?.interval as ('monthly' | 'yearly' | null | undefined)) ?? null;
+  const subInterval = subscription?.interval ?? null;
   const canSwitchArchitecteInterval = isMaxTier && subInterval === "monthly";
 
   const trialDaysLeft = trialEnd
@@ -417,11 +443,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         headers: requestHeaders(reqId),
       });
       if (error) throw error;
-      const url = (data as any)?.url as string | undefined;
+      const url = (data as { url?: string } | null)?.url;
       if (!url) throw new Error("Portal URL manquante");
       window.location.href = url;
-    } catch (err: any) {
-      setBillingError(err?.message ?? "Erreur portail");
+    } catch (err: unknown) {
+      setBillingError(getErrorMessage(err, "Erreur portail"));
     } finally {
       setBillingLoading(false);
     }
@@ -744,8 +770,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     {subActive && (
                       <div className="text-xs text-slate-300 mb-2">
                         {accessTierToPlanLabel(accessTier)}
-                        {intervalLabel((subscription as any)?.interval) ? (
-                          <span className="opacity-70"> · {intervalLabel((subscription as any)?.interval)}</span>
+                        {intervalLabel(subscription?.interval) ? (
+                          <span className="opacity-70"> · {intervalLabel(subscription?.interval)}</span>
                         ) : null}
                       </div>
                     )}
@@ -912,7 +938,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                       </div>
                       <button
                         type="button"
-                        onClick={() => setTzFollowDeviceDraft((v) => !v)}
+                        onClick={() =>
+                          setTzFollowDeviceDraft((value) => {
+                            const next = !value;
+                            if (next) {
+                              const detectedTimezone = detectBrowserTimezone();
+                              if (detectedTimezone) setTimezoneDraft(detectedTimezone);
+                            }
+                            return next;
+                          })}
                         className={`w-10 h-5 rounded-full p-1 cursor-pointer transition-colors ${
                           tzFollowDeviceDraft
                             ? (isArchitect ? "bg-emerald-600" : "bg-blue-600")
