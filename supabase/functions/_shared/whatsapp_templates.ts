@@ -60,6 +60,12 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<string, WhatsAppTemplateDefinitio
       "Hello {{1}} 🙂\nJ’aimerais prendre rapidement de tes nouvelles. C’est ok pour toi ?",
     buttons: ["Oui !", "Une prochaine fois !"],
   },
+  sophia_birthday_v1: {
+    name: "sophia_birthday_v1",
+    body:
+      "Joyeux anniversaire {{1}} !\nJe pense à toi aujourd'hui. Je te souhaite une journée douce, vivante, et vraiment à toi.",
+    buttons: [],
+  },
   sophia_optin_v2: {
     name: "sophia_optin_v2",
     body:
@@ -126,4 +132,3 @@ export function renderWhatsAppTemplate(args: {
     params: effectiveParams,
   };
 }
-

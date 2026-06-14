@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 
 import type { QuestionnaireSchemaV2 } from "../../lib/onboardingV2";
@@ -6,6 +6,7 @@ import type { QuestionnaireSchemaV2 } from "../../lib/onboardingV2";
 type QuestionnaireAnswerValue = string | string[];
 const OTHER_PREFIX = "__other__:";
 const TIME_OF_DAY_PATTERN = /^([01]\d|2[0-3]):(00|30)$/;
+const ANSWER_CHANGE_DEBOUNCE_MS = 350;
 const TIME_HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) =>
   String(index).padStart(2, "0")
 );
@@ -294,6 +295,9 @@ export function CustomQuestionnaire({
     () => normalizeAnswers(initialAnswers, schema),
   );
   const [error, setError] = useState<string | null>(null);
+  const latestAnswersRef = useRef(answers);
+  const onChangeRef = useRef(onChange);
+  const pendingOnChangeTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const normalized = normalizeAnswers(initialAnswers, schema);
@@ -301,8 +305,50 @@ export function CustomQuestionnaire({
   }, [initialAnswers, schema]);
 
   useEffect(() => {
-    onChange?.(answers);
+    latestAnswersRef.current = answers;
+  }, [answers]);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  const flushPendingOnChange = useCallback((
+    nextAnswers: Record<string, QuestionnaireAnswerValue> = latestAnswersRef.current,
+  ) => {
+    latestAnswersRef.current = nextAnswers;
+    if (pendingOnChangeTimeoutRef.current !== null) {
+      window.clearTimeout(pendingOnChangeTimeoutRef.current);
+      pendingOnChangeTimeoutRef.current = null;
+    }
+    onChangeRef.current?.(nextAnswers);
+  }, []);
+
+  useEffect(() => {
+    latestAnswersRef.current = answers;
+    if (!onChange) return;
+
+    if (pendingOnChangeTimeoutRef.current !== null) {
+      window.clearTimeout(pendingOnChangeTimeoutRef.current);
+    }
+
+    pendingOnChangeTimeoutRef.current = window.setTimeout(() => {
+      pendingOnChangeTimeoutRef.current = null;
+      onChangeRef.current?.(latestAnswersRef.current);
+    }, ANSWER_CHANGE_DEBOUNCE_MS);
+
+    return () => {
+      if (pendingOnChangeTimeoutRef.current !== null) {
+        window.clearTimeout(pendingOnChangeTimeoutRef.current);
+        pendingOnChangeTimeoutRef.current = null;
+      }
+    };
   }, [answers, onChange]);
+
+  useEffect(() => {
+    return () => {
+      flushPendingOnChange();
+    };
+  }, [flushPendingOnChange]);
 
   const questions = useMemo(
     () => getVisibleQuestions(schema.questions, answers),
@@ -320,14 +366,14 @@ export function CustomQuestionnaire({
     });
   }, [schema.questions, answers]);
 
-  if (!currentQuestion) return null;
-  const currentAnswer = answers[currentQuestion.id];
-  const currentQuestionUsesTimeInput = isClockTimeQuestion(currentQuestion);
-
   const progress = useMemo(
     () => ((index + 1) / Math.max(questions.length, 1)) * 100,
     [index, questions.length],
   );
+
+  if (!currentQuestion) return null;
+  const currentAnswer = answers[currentQuestion.id];
+  const currentQuestionUsesTimeInput = isClockTimeQuestion(currentQuestion);
   const currentOtherText = extractOtherText(currentAnswer);
   const otherSelected = hasOtherSelected(currentAnswer);
   const currentTimeParts = currentQuestionUsesTimeInput
@@ -446,6 +492,7 @@ export function CustomQuestionnaire({
       setError("Réponds à cette question pour continuer.");
       return;
     }
+    flushPendingOnChange(answers);
     setError(null);
     if (index === questions.length - 1) {
       onSubmit(answers);
@@ -458,6 +505,7 @@ export function CustomQuestionnaire({
     if (!allowBackwardNavigation) {
       return;
     }
+    flushPendingOnChange(answers);
     if (index === 0) {
       onBack?.();
       return;

@@ -146,6 +146,15 @@ function getFallbackTemplate(purpose: string | undefined) {
       injectBodyNameParam: true,
     };
   }
+  if (p === "birthday_greeting") {
+    return {
+      name: (Deno.env.get("WHATSAPP_BIRTHDAY_TEMPLATE_NAME") ??
+        "sophia_birthday_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_BIRTHDAY_TEMPLATE_LANG") ??
+        "fr").trim(),
+      injectBodyNameParam: true,
+    };
+  }
   return {
     name: (Deno.env.get("WHATSAPP_OPTIN_TEMPLATE_NAME") ?? "sophia_optin_v1")
       .trim(),

@@ -20,6 +20,9 @@ import {
   normalizeAccessEndedReason,
 } from "../_shared/access_ended_whatsapp.ts";
 import {
+  isBirthdayGreetingEventContext,
+} from "../_shared/birthday_checkins.ts";
+import {
   allowRelaunchGreetingFromLastMessage,
   applyScheduledCheckinGreetingPolicy,
   applyWhatsappProactiveOpeningPolicy,
@@ -1957,6 +1960,7 @@ Deno.serve(async (req) => {
         eventContext === WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT;
       const isWeeklyProgressReview =
         eventContext === WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT;
+      const isBirthdayGreeting = isBirthdayGreetingEventContext(eventContext);
       const isLevelReviewReminder = isLevelReviewReminderEventContext(
         eventContext,
       );
@@ -3488,6 +3492,8 @@ Deno.serve(async (req) => {
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
       const checkinPurpose = recurringReminderId
         ? "recurring_reminder"
+        : isBirthdayGreeting
+        ? "birthday_greeting"
         : "scheduled_checkin";
       const recurringReminderNeedsTemplate = Boolean(recurringReminderId) &&
         !in24hConversationWindow;
@@ -3889,6 +3895,20 @@ Deno.serve(async (req) => {
           errorMessage: msg,
           requestId: downstreamRequestId,
         });
+        continue;
+      }
+
+      if (sentViaWhatsapp && usedTemplate && isBirthdayGreeting) {
+        await markScheduledCheckinDeliveryState({
+          supabaseAdmin,
+          checkinId: checkin.id,
+          status: "sent",
+          attemptCount,
+          draftMessage: renderedDraftMessage,
+          errorMessage: null,
+          requestId,
+        });
+        processedCount++;
         continue;
       }
 

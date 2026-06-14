@@ -33,6 +33,14 @@ import {
   getUserRelationPreferences,
 } from "../sophia-brain/relation_preferences_engine.ts";
 import {
+  birthdayGreetingEventContext,
+  BIRTHDAY_GREETING_EVENING_LOCAL_TIME,
+  BIRTHDAY_GREETING_MORNING_LOCAL_TIME,
+  birthdayGreetingScheduledFor,
+  birthdayMatchesLocalDate,
+  buildBirthdayGreetingMessage,
+} from "../_shared/birthday_checkins.ts";
+import {
   listMorningNudgeEventContexts,
 } from "../sophia-brain/momentum_morning_nudge.ts";
 import {
@@ -118,6 +126,22 @@ function getSiteUrl(): string {
     Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL"),
     "https://app.sophia.app",
   );
+}
+
+async function hasActiveBirthdayGreetingForEvent(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  eventContext: string;
+}): Promise<boolean> {
+  const { data, error } = await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .select("id")
+    .eq("user_id", params.userId)
+    .eq("event_context", params.eventContext)
+    .in("status", ["pending", "retrying", "awaiting_user", "sent"])
+    .limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
 }
 
 async function cancelFutureMorningCheckins(params: {
@@ -256,7 +280,7 @@ Deno.serve(async (req) => {
     let profilesQuery = supabaseAdmin
       .from("profiles")
       .select(
-        "id,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier",
+        "id,full_name,birth_date,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier",
       )
       .order("id", { ascending: true });
 
@@ -274,6 +298,7 @@ Deno.serve(async (req) => {
     let actionEveningReviewScheduled = 0;
     let weeklyPlanningPromptScheduled = 0;
     let weeklyProgressReviewScheduled = 0;
+    let birthdayGreetingScheduled = 0;
     let skipped = 0;
     let candidates = 0;
 
@@ -444,12 +469,20 @@ Deno.serve(async (req) => {
         localWeekday === "mon";
       const shouldTryWeeklyProgressReview = allowsEvening &&
         localWeekday === "sun";
+      const birthdayMatch = birthdayMatchesLocalDate({
+        birthDate: profile.birth_date,
+        timezone,
+        now,
+      });
+      const shouldTryBirthdayGreeting = birthdayMatch.matches &&
+        (allowsMorning || allowsEvening);
       const hasAnyCandidate = (allowsMorning &&
         (hasOpenActionsFromYesterday || hasActionsToday ||
           shouldSendLightGreeting)) ||
         (allowsEvening && (hasActionsToday || hasOpenActionsFromYesterday)) ||
         shouldTryWeeklyPlanningPrompt ||
-        shouldTryWeeklyProgressReview;
+        shouldTryWeeklyProgressReview ||
+        shouldTryBirthdayGreeting;
 
       if (!hasAnyCandidate) {
         skipped++;
@@ -457,6 +490,63 @@ Deno.serve(async (req) => {
       }
 
       candidates++;
+
+      if (shouldTryBirthdayGreeting) {
+        const birthdayEventContext = birthdayGreetingEventContext(
+          birthdayMatch.localDate,
+        );
+        const alreadyScheduled = await hasActiveBirthdayGreetingForEvent({
+          supabaseAdmin,
+          userId,
+          eventContext: birthdayEventContext,
+        });
+        if (!alreadyScheduled) {
+          const birthdayLocalTime = allowsMorning
+            ? BIRTHDAY_GREETING_MORNING_LOCAL_TIME
+            : BIRTHDAY_GREETING_EVENING_LOCAL_TIME;
+          const scheduledFor = birthdayGreetingScheduledFor({
+            timezone,
+            localTimeHHMM: birthdayLocalTime,
+            now,
+          });
+          const draftMessage = buildBirthdayGreetingMessage({
+            fullName: profile.full_name,
+          });
+          const { error: birthdayErr } = await supabaseAdmin
+            .from("scheduled_checkins")
+            .upsert(
+              {
+                user_id: userId,
+                origin: "unknown",
+                event_context: birthdayEventContext,
+                draft_message: draftMessage,
+                message_mode: "static",
+                message_payload: {
+                  source: "schedule_birthday_greeting_v1",
+                  version: 1,
+                  checkin_kind: "birthday_greeting",
+                  timezone,
+                  birthday_local_date: birthdayMatch.localDate,
+                  birthday_local_time: birthdayLocalTime,
+                  birth_month_day: birthdayMatch.birthMonthDay,
+                  generated_at: nowIso,
+                },
+                scheduled_for: scheduledFor,
+                status: "pending",
+              } as any,
+              { onConflict: "user_id,event_context,scheduled_for" },
+            );
+          if (birthdayErr) {
+            console.error(
+              `[schedule-whatsapp-v2-checkins] request_id=${requestId} birthday_upsert_failed user_id=${userId}`,
+              birthdayErr,
+            );
+          } else {
+            scheduled++;
+            birthdayGreetingScheduled++;
+          }
+        }
+      }
 
       if (
         allowsMorning &&
@@ -836,6 +926,7 @@ Deno.serve(async (req) => {
         action_evening_review_scheduled: actionEveningReviewScheduled,
         weekly_planning_prompt_scheduled: weeklyPlanningPromptScheduled,
         weekly_progress_review_scheduled: weeklyProgressReviewScheduled,
+        birthday_greeting_scheduled: birthdayGreetingScheduled,
         skipped,
         candidates,
         request_id: requestId,
