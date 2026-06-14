@@ -56,6 +56,7 @@ const REQUEST_SCHEMA = z.object({
   feedback: z.string().trim().min(1).max(4000).optional(),
   force_regenerate: z.boolean().optional(),
   pace: z.enum(["cool", "normal", "intense"]).optional(),
+  preview_plan_id: z.string().uuid().optional(),
   preserve_active_transformation_id: z.string().trim().min(1).optional(),
   adjustment_context: z.object({
     review_id: z.string().uuid().optional(),
@@ -616,6 +617,7 @@ async function handleRequest(req: Request): Promise<Response> {
       has_feedback: Boolean(parsedBody.data.feedback?.trim()),
       force_regenerate: parsedBody.data.force_regenerate === true,
       pace: parsedBody.data.pace ?? null,
+      preview_plan_id: parsedBody.data.preview_plan_id ?? null,
       preserve_active_transformation_id:
         parsedBody.data.preserve_active_transformation_id ?? null,
     });
@@ -629,6 +631,7 @@ async function handleRequest(req: Request): Promise<Response> {
       feedback: parsedBody.data.feedback ?? null,
       forceRegenerate: parsedBody.data.force_regenerate === true,
       pace: parsedBody.data.pace ?? null,
+      previewPlanId: parsedBody.data.preview_plan_id ?? null,
       preserveActiveTransformationId:
         parsedBody.data.preserve_active_transformation_id ?? null,
       adjustmentContext: parsedBody.data.adjustment_context
@@ -726,6 +729,7 @@ export async function generatePlanV2ForTransformation(params: {
   feedback: string | null;
   forceRegenerate: boolean;
   pace: "cool" | "normal" | "intense" | null;
+  previewPlanId: string | null;
   preserveActiveTransformationId: string | null;
   adjustmentContext: PlanAdjustmentGenerationContext | null;
 }): Promise<{
@@ -768,7 +772,20 @@ export async function generatePlanV2ForTransformation(params: {
     };
   }
 
-  const latestDraftPlan = await loadLatestDraftPlan({
+  const requestedPlanIsLocked = params.previewPlanId
+    ? context.existingPlans.some((plan) =>
+      plan.id === params.previewPlanId &&
+      (plan.status === "active" || plan.status === "paused")
+    )
+    : false;
+  const selectedDraftPlan = params.previewPlanId && !requestedPlanIsLocked
+    ? await loadDraftPlanById({
+      admin: params.admin,
+      transformationId: params.transformationId,
+      planId: params.previewPlanId,
+    })
+    : null;
+  const latestDraftPlan = selectedDraftPlan ?? await loadLatestDraftPlan({
     admin: params.admin,
     transformationId: params.transformationId,
   });
@@ -784,6 +801,7 @@ export async function generatePlanV2ForTransformation(params: {
       transformation_title: context.transformation.title ?? null,
       latest_draft_plan_id: latestDraftPlan?.id ?? null,
       latest_draft_plan_status: latestDraftPlan?.status ?? null,
+      requested_preview_plan_id: params.previewPlanId,
       existing_plans: context.existingPlans.map((plan) => ({
         id: plan.id,
         status: plan.status,
@@ -801,7 +819,10 @@ export async function generatePlanV2ForTransformation(params: {
       transformation_id: params.transformationId,
       draft_plan_id: latestDraftPlan.id,
     });
-    if (isActivePlanAdjustment) {
+    if (
+      isActivePlanAdjustment ||
+      latestDraftPlan.last_generation_reason === "plan_adjustment"
+    ) {
       await archiveLockedPlansForTransformation({
         admin: params.admin,
         transformationId: params.transformationId,
@@ -830,7 +851,14 @@ export async function generatePlanV2ForTransformation(params: {
   const lockedPlan = context.existingPlans.find((plan) =>
     plan.status === "active" || plan.status === "paused"
   );
-  const activeAdjustmentBasePlanRow = isActivePlanAdjustment && lockedPlan
+  const shouldRegenerateFromLockedPlan =
+    params.mode === "preview" &&
+    lockedPlan != null &&
+    (params.forceRegenerate || Boolean(params.feedback?.trim()));
+  const isActivePlanReplacement = isActivePlanAdjustment ||
+    shouldRegenerateFromLockedPlan;
+  const activeAdjustmentBasePlanRow =
+    (isActivePlanAdjustment || shouldRegenerateFromLockedPlan) && lockedPlan
     ? await loadPlanById({
       admin: params.admin,
       planId: lockedPlan.id,
@@ -862,7 +890,7 @@ export async function generatePlanV2ForTransformation(params: {
       });
     }
 
-    if (params.mode === "preview") {
+    if (params.mode === "preview" && !shouldRegenerateFromLockedPlan) {
       const persistedLockedPlan = await loadPlanById({
         admin: params.admin,
         planId: lockedPlan.id,
@@ -892,10 +920,12 @@ export async function generatePlanV2ForTransformation(params: {
       };
     }
 
-    throw new GeneratePlanV2Error(
-      409,
-      "Transformation already has an active V2 plan",
-    );
+    if (!shouldRegenerateFromLockedPlan) {
+      throw new GeneratePlanV2Error(
+        409,
+        "Transformation already has an active V2 plan",
+      );
+    }
   }
 
   // A "generated" plan that has no distributed items is a stuck artifact from a
@@ -990,7 +1020,7 @@ export async function generatePlanV2ForTransformation(params: {
   }
 
   const attemptNumber = computeNextGenerationAttempt(context.existingPlans);
-  if (!isActivePlanAdjustment && attemptNumber > 2) {
+  if (!isActivePlanReplacement && attemptNumber > 2) {
     throw new GeneratePlanV2Error(
       409,
       "Maximum plan generation attempts reached for this transformation",
@@ -1165,7 +1195,7 @@ export async function generatePlanV2ForTransformation(params: {
     status: params.mode === "preview" ? "draft" : "generated",
     generationFeedback,
     generationInputSnapshot,
-    generationReason: isActivePlanAdjustment ? "plan_adjustment" : null,
+    generationReason: isActivePlanReplacement ? "plan_adjustment" : null,
   });
 
   const { error: insertPlanError } = await params.admin
@@ -1915,6 +1945,34 @@ async function loadLatestDraftPlan(args: {
   }
 
   return (data as UserPlanV2Row | null) ?? null;
+}
+
+async function loadDraftPlanById(args: {
+  admin: SupabaseClient;
+  transformationId: string;
+  planId: string;
+}): Promise<UserPlanV2Row> {
+  const { data, error } = await args.admin
+    .from("user_plans_v2")
+    .select("*")
+    .eq("id", args.planId)
+    .eq("transformation_id", args.transformationId)
+    .eq("status", "draft")
+    .maybeSingle();
+
+  if (error) {
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to load requested draft preview plan",
+      { cause: error },
+    );
+  }
+
+  if (!data) {
+    throw new GeneratePlanV2Error(404, "Requested draft preview plan not found");
+  }
+
+  return data as UserPlanV2Row;
 }
 
 async function deleteOtherPlansForTransformation(args: {

@@ -142,6 +142,7 @@ export type RoadmapTransitionDraft = {
 };
 
 export type PlanReviewDraft = {
+  plan_id: string | null;
   plan_preview: PlanContentV3;
   feedback: string;
 };

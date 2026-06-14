@@ -610,6 +610,7 @@ export async function completeLevelV1(args: {
       feedback: regenerationFeedback,
       forceRegenerate: true,
       pace: null,
+      previewPlanId: null,
       preserveActiveTransformationId: transformation.id,
       adjustmentContext: {
         reviewId,

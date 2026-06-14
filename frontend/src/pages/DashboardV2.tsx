@@ -2238,6 +2238,7 @@ export default function DashboardV2() {
         questionnaire_schema: transitionQuestionnaireSchema,
         questionnaire_answers: answers,
         plan_review: {
+          plan_id: response.plan_id,
           plan_preview: response.plan_preview,
           feedback: "",
         },

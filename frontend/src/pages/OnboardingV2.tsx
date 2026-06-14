@@ -91,6 +91,16 @@ type GeneratePlanResponse = {
   journey_context?: JourneyContextTransition | null;
 };
 
+type GeneratePlanRequest = {
+  transformation_id: string;
+  mode: "generate_and_activate" | "preview" | "confirm";
+  feedback?: string;
+  force_regenerate?: boolean;
+  pace?: "cool" | "normal" | "intense";
+  preview_plan_id?: string;
+  preserve_active_transformation_id?: string;
+};
+
 type ClassifyPlanTypeResponse = {
   request_id: string;
   transformation_id: string;
@@ -866,7 +876,7 @@ export default function OnboardingV2() {
     requestStartedAt: string;
     maxWaitMs?: number;
     pollIntervalMs?: number;
-  }): Promise<PlanContentV3 | null> => {
+  }): Promise<RecoveredPlanPreview | null> => {
     const maxWaitMs = args.maxWaitMs ?? 90_000;
     const pollIntervalMs = args.pollIntervalMs ?? 3_000;
     const deadline = Date.now() + maxWaitMs;
@@ -893,7 +903,7 @@ export default function OnboardingV2() {
             plan_id: recovered.planId,
             updated_at: recovered.updatedAt,
           });
-          return recovered.plan;
+          return recovered;
         }
       } catch (error) {
         console.warn("[onboarding][plan_preview_recovery][query_failed]", {
@@ -983,6 +993,7 @@ export default function OnboardingV2() {
           cycle_status: "ready_for_plan",
           stage: "plan_review",
           plan_review: {
+            plan_id: recovered.planId,
             plan_preview: recovered.plan,
             feedback: draft.plan_review?.feedback ?? "",
           },
@@ -2522,6 +2533,7 @@ export default function OnboardingV2() {
         if (!isOnboardingActionCurrent(actionToken)) return;
 
         const planReview: PlanReviewDraft = {
+          plan_id: response.plan_id,
           plan_preview: response.plan_preview,
           feedback: "",
         };
@@ -2542,7 +2554,8 @@ export default function OnboardingV2() {
             persistDraft(setDraft, {
               stage: "plan_review",
               plan_review: {
-                plan_preview: recoveredPreview,
+                plan_id: recoveredPreview.planId,
+                plan_preview: recoveredPreview.plan,
                 feedback: "",
               },
             });
@@ -2756,6 +2769,7 @@ export default function OnboardingV2() {
       updatedTransformations = nextTransformations;
 
       const planReview: PlanReviewDraft = {
+        plan_id: response.plan_id,
         plan_preview: response.plan_preview,
         feedback: "",
       };
@@ -2779,7 +2793,8 @@ export default function OnboardingV2() {
             cycle_status: "ready_for_plan",
             stage: "plan_review",
             plan_review: {
-              plan_preview: recoveredPreview,
+              plan_id: recoveredPreview.planId,
+              plan_preview: recoveredPreview.plan,
               feedback: "",
             },
             transformations: updatedTransformations ?? draft.transformations,
@@ -2878,13 +2893,15 @@ export default function OnboardingV2() {
     try {
       persistDraft(setDraft, { stage: "generating_plan" });
 
-      const response = await invokeFunction<GeneratePlanResponse>("generate-plan-v2", {
+      const payload: GeneratePlanRequest = {
         transformation_id: currentTransformation.id,
         mode: "preview",
         force_regenerate: true,
         pace: draft.profile.pace || undefined,
+        preview_plan_id: draft.plan_review.plan_id ?? undefined,
         ...(feedback ? { feedback } : {}),
-      }, {
+      };
+      const response = await invokeFunction<GeneratePlanResponse>("generate-plan-v2", payload, {
         timeoutMs: 180_000,
       });
       if (!isOnboardingActionCurrent(actionToken)) return;
@@ -2896,6 +2913,7 @@ export default function OnboardingV2() {
       persistDraft(setDraft, {
         stage: "plan_review",
         plan_review: {
+          plan_id: response.plan_id,
           plan_preview: response.plan_preview,
           feedback: "",
         },
@@ -2912,7 +2930,8 @@ export default function OnboardingV2() {
           persistDraft(setDraft, {
             stage: "plan_review",
             plan_review: {
-              plan_preview: recoveredPreview,
+              plan_id: recoveredPreview.planId,
+              plan_preview: recoveredPreview.plan,
               feedback: "",
             },
           });
@@ -2948,17 +2967,20 @@ export default function OnboardingV2() {
         transformation_title: currentTransformation.title ?? null,
         preserved_active_transformation_id: preservedCycleActiveTransformationId,
         has_plan_review: Boolean(draft.plan_review),
+        plan_review_id: draft.plan_review?.plan_id ?? null,
         plan_review_title: draft.plan_review?.plan_preview?.title ?? null,
       });
 
-      await invokeFunction<GeneratePlanResponse>("generate-plan-v2", {
+      const payload: GeneratePlanRequest = {
         transformation_id: currentTransformation.id,
         mode: "confirm",
+        preview_plan_id: draft.plan_review?.plan_id ?? undefined,
         ...(!isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema) &&
             preservedCycleActiveTransformationId
           ? { preserve_active_transformation_id: preservedCycleActiveTransformationId }
           : {}),
-      }, {
+      };
+      await invokeFunction<GeneratePlanResponse>("generate-plan-v2", payload, {
         timeoutMs: 180_000,
       });
       if (!isOnboardingActionCurrent(actionToken)) return;

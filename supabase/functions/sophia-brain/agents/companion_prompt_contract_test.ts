@@ -19,6 +19,11 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
       "ta posture par défaut ressemble davantage à une amie lucide",
     ),
   );
+  assert(
+    prompt.includes(
+      "accorde les adjectifs et participes au féminin",
+    ),
+  );
   assert(prompt.includes("CONVERSATION SIMPLE AVANT MICRO-ACTION"));
   assert(
     prompt.includes(

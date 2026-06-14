@@ -190,10 +190,15 @@ export function PlanReviewScreen({
   onConfirm,
 }: PlanReviewScreenProps) {
   const canRegenerate = !isBusy;
+  const hasPendingFeedback = feedback.trim().length > 0;
+  const canConfirm = !isBusy && !hasPendingFeedback;
   const phase1Preview = extractPhase1Preview(plan);
   const currentGeneratedLevel = plan.phases[0] ?? null;
   const futureLevels = buildFutureLevelPreviews(plan);
   const startWindowLabel = buildStartWindowLabel(plan);
+  const regeneratePrimaryClass = hasPendingFeedback
+    ? "border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-200/50 hover:bg-blue-700 hover:shadow-blue-300/50"
+    : "border-gray-200 bg-white text-gray-700 shadow-sm hover:border-blue-200 hover:bg-gray-50 hover:text-gray-900";
 
   return (
     <section className="mx-auto w-full max-w-4xl space-y-6">
@@ -634,7 +639,7 @@ export function PlanReviewScreen({
             type="button"
             onClick={() => onRegenerate()}
             disabled={!canRegenerate}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:border-blue-200 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+            className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50 ${regeneratePrimaryClass}`}
           >
             {isBusy ? (
               <>
@@ -652,7 +657,9 @@ export function PlanReviewScreen({
           <button
             type="button"
             onClick={onConfirm}
-            disabled={isBusy}
+            disabled={!canConfirm}
+            aria-disabled={!canConfirm}
+            title={hasPendingFeedback ? "Régénère le plan avant de le valider." : undefined}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-200/50 transition-all hover:bg-blue-700 hover:shadow-blue-300/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isBusy ? (
