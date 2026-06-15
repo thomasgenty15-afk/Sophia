@@ -146,20 +146,12 @@ function getFallbackTemplate(purpose: string | undefined) {
       injectBodyNameParam: true,
     };
   }
-  if (p === "birthday_greeting") {
-    return {
-      name: (Deno.env.get("WHATSAPP_BIRTHDAY_TEMPLATE_NAME") ??
-        "sophia_birthday_v1").trim(),
-      language: (Deno.env.get("WHATSAPP_BIRTHDAY_TEMPLATE_LANG") ??
-        "fr").trim(),
-      injectBodyNameParam: true,
-    };
-  }
   return {
-    name: (Deno.env.get("WHATSAPP_OPTIN_TEMPLATE_NAME") ?? "sophia_optin_v1")
+    name: (Deno.env.get("WHATSAPP_GLOBAL_REACH_TEMPLATE_NAME") ??
+      "global_reach_template").trim(),
+    language: (Deno.env.get("WHATSAPP_GLOBAL_REACH_TEMPLATE_LANG") ?? "fr")
       .trim(),
-    language: (Deno.env.get("WHATSAPP_OPTIN_TEMPLATE_LANG") ?? "fr").trim(),
-    injectBodyNameParam: true,
+    injectBodyNameParam: false,
   };
 }
 

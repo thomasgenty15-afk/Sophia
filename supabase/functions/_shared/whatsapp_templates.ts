@@ -6,7 +6,15 @@ export type WhatsAppTemplateDefinition = {
   buttons: string[];
 };
 
-export const WHATSAPP_TEMPLATE_CATALOG: Record<string, WhatsAppTemplateDefinition> = {
+export const WHATSAPP_TEMPLATE_CATALOG: Record<
+  string,
+  WhatsAppTemplateDefinition
+> = {
+  global_reach_template: {
+    name: "global_reach_template",
+    body: "J'ai une info pour toi, je peux te la donner ? 😊",
+    buttons: ["Oui!", "Plus tard!"],
+  },
   weekly_planning_validation_v1: {
     name: "weekly_planning_validation_v1",
     body:
@@ -28,7 +36,7 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<string, WhatsAppTemplateDefinitio
   sophia_winback_step3_opendoor: {
     name: "sophia_winback_step3_opendoor",
     body:
-      'Je te laisse la porte ouverte, sans urgence.\nMême un simple “salut” et on repart tranquillement.',
+      "Je te laisse la porte ouverte, sans urgence.\nMême un simple “salut” et on repart tranquillement.",
     buttons: ["Salut", "Pause", "Stop"],
   },
   sophia_reminder_consent_v1_: {
@@ -108,7 +116,9 @@ export function renderWhatsAppTemplate(args: {
   const name = cleanText(args.name);
   const definition = WHATSAPP_TEMPLATE_CATALOG[name];
   const params = extractTemplateBodyParams(args.components);
-  const effectiveParams = params.length > 0 ? params : (args.fallbackParams ?? []);
+  const effectiveParams = params.length > 0
+    ? params
+    : (args.fallbackParams ?? []);
   if (!definition) {
     return {
       name,
@@ -119,10 +129,13 @@ export function renderWhatsAppTemplate(args: {
     };
   }
 
-  const content = definition.body.replace(/\{\{(\d+)\}\}/g, (_match, indexRaw) => {
-    const index = Number.parseInt(String(indexRaw), 10) - 1;
-    return cleanText(effectiveParams[index]) || `{{${indexRaw}}}`;
-  });
+  const content = definition.body.replace(
+    /\{\{(\d+)\}\}/g,
+    (_match, indexRaw) => {
+      const index = Number.parseInt(String(indexRaw), 10) - 1;
+      return cleanText(effectiveParams[index]) || `{{${indexRaw}}}`;
+    },
+  );
 
   return {
     name,
