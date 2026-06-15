@@ -1,0 +1,541 @@
+{
+  "run_id": "qa-discovery-naive-20t-20260616-r1",
+  "created_at": "2026-06-15T22:06:00.897Z",
+  "supabase_url": "http://127.0.0.1:54321",
+  "auth": {
+    "user_id": "7cf10123-7cc3-461a-924e-e1bbcacb1801",
+    "email": "qa-phase2-qa-discovery-naive-20t-20260616-r1@example.com",
+    "password": "Qa1!9356d169-6455-485c-a831-37d2595edcba"
+  },
+  "scenarios": {
+    "discovery_naive": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Je sais pas trop comment m'y prendre aujourd'hui. J'ai un dossier important qui traîne et je sens que je vais encore repousser.",
+          "assistant": "Je te comprends… quand un dossier “important” traîne, ton cerveau le voit comme trop gros, donc il repousse pour se protéger. Et du coup, plus ça traîne, plus ça grossit dans ta tête 😕\n\nOn n’a pas besoin de “tout faire” maintenant. Juste de casser la friction: le but c’est de transformer le dossier en une première action minuscule (celle qui met ton pied dans la porte).\n\nPar où ça coince le plus pour toi dans ce dossier (le démarrage, le contenu, ou le format/quoi produire) ?",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "bf6903d0-f8a5-44dc-ba5d-170662ab2981",
+                  "query_hint": "dossier important",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "habitudes.procrastination",
+                  "query_hint": "patterns d'évitement sur les dossiers",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": null,
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 2,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t02",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "C'est surtout le démarrage. J'ouvre le dossier, je regarde deux lignes, et je pars faire autre chose.",
+          "assistant": "Oui, je vois exactement le mécanisme : au moment où tu ouvres, ton cerveau scanne “trop énorme / pas pour maintenant” et te coupe net dès les deux premières lignes. 😅\n\nDu coup, le vrai levier c’est pas “forcer à lire”, c’est “changer la nature du démarrage” : viser une mini-compréhension qui ne te demande pas d’y rester. En pratique, au lieu de “regarder deux lignes”, tu te donnes juste une mission ultra étroite de 20 secondes, du style : repérer uniquement (1) la consigne / question en haut du doc, ou (2) ce qu’on attend comme résultat final, et stop.\n\nSi tu veux, je peux t’aider à formuler la micro-mission exacte pour ton dossier, sans que ça ressemble à un gros engagement.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "bf6903d0-f8a5-44dc-ba5d-170662ab2981",
+                  "query_hint": "dossier important",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": null,
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 3,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t03",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Oui, fais-moi un truc simple pour que je lance sans réfléchir, parce que sinon je sais que je vais esquiver.",
+          "assistant": "Pour ton dossier important et éviter d'esquiver le démarrage après deux lignes, je te propose d'utiliser **Le texte magique**. C'est une technique simple pour rester dans l'action sans trop réfléchir. Est-ce que ça te convient ?",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "tool_skill_intent_start",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "bf6903d0-f8a5-44dc-ba5d-170662ab2981",
+                  "query_hint": "dossier important",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "prepare_attack_card",
+                "explicitness": "explicit",
+                "target_hint": "dossier important",
+                "operation_input": {
+                  "target_action_hint": "dossier important",
+                  "evidence": [
+                    "fais-moi un truc simple pour que je lance sans réfléchir",
+                    "sinon je sais que je vais esquiver"
+                  ]
+                },
+                "confidence_band": "high",
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "tool_skill_opportunity": null,
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 4,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t04",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Oui mais je ne sais pas ce que c'est. Fais au plus court, je veux juste un déclencheur que je puisse suivre.",
+          "assistant": "Pour ton dossier important et éviter de décrocher après deux lignes, le « Mot de bascule » est le déclencheur le plus court. Ça te va ?",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_prepare_attack_card_local_dispatcher",
+            "active_flow_arbitration": null,
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": null,
+            "level_reference": null,
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": null,
+            "skill_signals": {},
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 5,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t05",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Oui vas-y, mets-moi ça en place.",
+          "assistant": "Est-ce que le moment critique pour ton dossier important est bien celui où tu l'ouvres et que tu décroches après les deux premières lignes ?",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_prepare_attack_card_local_dispatcher",
+            "active_flow_arbitration": null,
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": null,
+            "level_reference": null,
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": null,
+            "skill_signals": {},
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 6,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t06",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Oui exactement, c'est au moment où je vois les deux premières lignes et je panique un peu.",
+          "assistant": "Quand tu tiens bon face à ce dossier malgré la panique des premières lignes, qu'est-ce que tu protèges de vraiment important chez toi ?",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_prepare_attack_card_local_dispatcher",
+            "active_flow_arbitration": null,
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": null,
+            "level_reference": null,
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": null,
+            "skill_signals": {},
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 7,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t07",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Là c'est trop profond pour moi. Je veux juste une phrase courte à me dire quand j'ouvre le fichier.",
+          "assistant": "D'accord, restons sur quelque chose de simple pour ton dossier important. Pour t'aider à ne pas décrocher après les deux premières lignes, est-ce que la phrase « Juste l'ouverture » te convient comme mot de bascule ?",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_prepare_attack_card_local_dispatcher",
+            "active_flow_arbitration": null,
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": null,
+            "level_reference": null,
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": null,
+            "skill_signals": {},
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        },
+        {
+          "turn": 8,
+          "request_id": "qa-discovery-naive-20t-20260616-r1-discovery_naive-t08",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Oui, ça me va.",
+          "assistant": "C'est parfait pour ton mot de bascule. Pour terminer, quand tu tiens bon sur ton dossier important au lieu d'esquiver le démarrage, est-ce que ça te va si on dit que tu protèges ton calme ?",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_prepare_attack_card_local_dispatcher",
+            "active_flow_arbitration": null,
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "action_reference": null,
+            "level_reference": null,
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": null,
+            "skill_signals": {},
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    }
+  },
+  "seed": {
+    "cycle_id": "0b437b8e-bf4c-4b02-a64b-dc2f8f95d9aa",
+    "previous_transformation_id": "6c3fa514-6b07-4f4f-a3e2-923996337c4f",
+    "transformation_id": "db419063-3860-4b85-9897-3d4897b94a38",
+    "plan_id": "3cb9e486-82d2-4c08-999d-d9f0ece1e236",
+    "focus_item_id": "4850ead4-2afb-459e-8574-fee2f53fcac5",
+    "focus_previous_item_id": "e3f55b08-a30f-4384-837e-6d359113d3f8",
+    "walk_item_id": "9aaa7929-388b-4750-8986-eca232007f47",
+    "mission_item_id": "8f2270c5-7ac5-449c-a1d4-09d5efbfe130",
+    "clarification_item_id": "bf6903d0-f8a5-44dc-ba5d-170662ab2981",
+    "items": [
+      {
+        "id": "4850ead4-2afb-459e-8574-fee2f53fcac5",
+        "title": "Session focus courte",
+        "kind": "habit",
+        "dimension": "habits",
+        "action_family_key": "habit:session_focus"
+      },
+      {
+        "id": "9aaa7929-388b-4750-8986-eca232007f47",
+        "title": "Marche de decompression",
+        "kind": "habit",
+        "dimension": "habits",
+        "action_family_key": "habit:marche_decompression"
+      },
+      {
+        "id": "8f2270c5-7ac5-449c-a1d4-09d5efbfe130",
+        "title": "Bloquer les creneaux de la semaine",
+        "kind": "task",
+        "dimension": "missions",
+        "action_family_key": null
+      },
+      {
+        "id": "bf6903d0-f8a5-44dc-ba5d-170662ab2981",
+        "title": "Clarifier le premier pas du dossier",
+        "kind": "task",
+        "dimension": "clarifications",
+        "action_family_key": null
+      }
+    ],
+    "memory_items": [
+      {
+        "id": "07023652-3d9b-4000-bef8-0893fea72a5f",
+        "kind": "action_observation",
+        "canonical_key": "qa_action_exact:4850ead4-2afb-459e-8574-fee2f53fcac5",
+        "metadata": {
+          "memory_type": "action_execution_profile",
+          "source": "phase2_real_qa_seed"
+        }
+      },
+      {
+        "id": "3b720c15-3649-4b0a-af6a-8b1a6dc1935e",
+        "kind": "action_observation",
+        "canonical_key": "qa_action_family:habit:session_focus",
+        "metadata": {
+          "memory_type": "action_execution_profile",
+          "source": "phase2_real_qa_seed"
+        }
+      },
+      {
+        "id": "9b187913-f0a8-472b-b244-8830869e6097",
+        "kind": "statement",
+        "canonical_key": "level_execution_handoff:6c3fa514-6b07-4f4f-a3e2-923996337c4f",
+        "metadata": {
+          "memory_type": "level_execution_handoff",
+          "source": "phase2_real_qa_seed",
+          "previous_level_id": "6c3fa514-6b07-4f4f-a3e2-923996337c4f",
+          "previous_transformation_id": "6c3fa514-6b07-4f4f-a3e2-923996337c4f",
+          "next_level_id": "db419063-3860-4b85-9897-3d4897b94a38",
+          "next_transformation_id": "db419063-3860-4b85-9897-3d4897b94a38"
+        }
+      }
+    ]
+  }
+}

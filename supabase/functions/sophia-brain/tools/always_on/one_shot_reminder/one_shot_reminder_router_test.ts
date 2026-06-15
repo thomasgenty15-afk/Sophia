@@ -139,9 +139,13 @@ Deno.test("create success reply keeps safety context after committed reminder", 
   assertEquals(result.reply?.includes("C'est programmé pour"), true);
   assertEquals(
     result.reply?.includes(
-      "je te ferai un rappel pour vérifier que je reste en sécurité",
+      "je te ferai le rappel demandé",
     ),
     true,
+  );
+  assertEquals(
+    result.reply?.includes("je te ferai un rappel pour vérifier"),
+    false,
   );
   assertEquals(
     result.reply?.includes("garde ce qui peut te blesser hors de portée"),
@@ -322,7 +326,7 @@ Deno.test("create_missing_time_does_not_reuse_previous_context_commit", async ()
   }]);
 });
 
-Deno.test("cancel_no_reminder_no_done_language", async () => {
+Deno.test("cancel_request_is_blocked_without_mutation", async () => {
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase({ pending: [] }),
     userId: "user-1",
@@ -331,7 +335,17 @@ Deno.test("cancel_no_reminder_no_done_language", async () => {
     turnFrame: turnFrameWithDirectEffect("cancel_one_shot_reminder"),
   });
   assertEquals(result.committed_effects.length, 0);
-  assertEquals(result.status, "no_reminder");
+  assertEquals(result.executed_tools, []);
+  assertEquals(result.attempted_effects, []);
+  assertEquals(result.status, "blocked");
+  assertEquals(
+    result.debug.reason_code,
+    "one_shot_reminder_cancel_unsupported",
+  );
+  assertEquals(result.blocked_effects, [{
+    type: "cancel_one_shot_reminder",
+    reason_code: "one_shot_reminder_cancel_unsupported",
+  }]);
 });
 
 Deno.test("no_tool_blocks_create", async () => {

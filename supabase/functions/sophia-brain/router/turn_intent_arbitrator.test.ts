@@ -178,6 +178,87 @@ Deno.test("L3 asks clarification when attack and defense card intents compete", 
   assertEquals(result.routeDecision.direct_effects_to_run, []);
 });
 
+Deno.test("L3 asks clarification when attack and defense card intents are target ambiguous", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "je veux préparer une carte mais j'hésite entre sortir du lit et éviter le téléphone",
+    routeDecision: routeDecision({ response_owner: "normal_reply" }),
+    turnFrame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: "sortir du lit",
+        confidence_band: "high",
+        ambiguity: "target_ambiguous",
+        user_intent: "create",
+      }, {
+        operation_type: "prepare_defense_card",
+        explicitness: "explicit",
+        target_hint: "réflexe téléphone au réveil",
+        confidence_band: "medium",
+        ambiguity: "target_ambiguous",
+        user_intent: "create",
+      }],
+    }),
+    tempMemory: {},
+  });
+
+  assertEquals(
+    result.routeDecision.response_owner,
+    "orientation_clarification",
+  );
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "orientation_clarification",
+  );
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_attack_defense_card_ambiguity",
+  );
+  assertEquals(result.turnFrame.flow_opportunity, null);
+});
+
+Deno.test("L3 does not ask attack/defense clarification from explain-only card comparison", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "explique-moi la différence entre carte d'attaque et carte de défense",
+    routeDecision: routeDecision({ response_owner: "product_help" }),
+    turnFrame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "weak",
+        target_hint: "différence produit",
+        confidence_band: "medium",
+        ambiguity: "target_ambiguous",
+        user_intent: "explain_only",
+      }, {
+        operation_type: "prepare_defense_card",
+        explicitness: "weak",
+        target_hint: "différence produit",
+        confidence_band: "medium",
+        ambiguity: "target_ambiguous",
+        user_intent: "explain_only",
+      }],
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "product comparison",
+          },
+        },
+        lifecycle: {},
+        exit: {},
+      },
+    }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.routeDecision.response_owner, "product_help");
+  assertEquals(result.routeDecision.selected_handler, "product_help");
+  assertEquals(result.turnFrame.tool_skill_intents, []);
+});
+
 Deno.test("L3 keeps active prepare_defense_card owner for local exit decision", () => {
   const result = arbitrateTurnIntent({
     userMessage:

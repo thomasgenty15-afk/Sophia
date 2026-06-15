@@ -2,8 +2,8 @@ import type {
   CycleStatus,
   DeferredReason,
   PlanContentV3,
-  ProfessionalSupportV1,
   PlanTypeClassificationV1,
+  ProfessionalSupportV1,
   TransformationStatus,
   UserTransformationRow,
 } from "../types/v2";
@@ -187,6 +187,7 @@ export type OnboardingV2Draft = {
   plan_review: PlanReviewDraft | null;
   roadmap_transition: RoadmapTransitionDraft | null;
   loading_request: OnboardingLoadingRequest | null;
+  created_at: string;
   updated_at: string;
 };
 
@@ -195,6 +196,7 @@ const SESSION_KEY = "sophia:onboarding_v2_draft_session:v1";
 const AUTH_HANDOFF_KEY = "sophia:onboarding_v2_auth_handoff:v1";
 const DRAFT_SYNC_DEBOUNCE_MS = 500;
 const AUTH_HANDOFF_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+export const ONBOARDING_V2_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 
 let draftSyncTimeout: number | null = null;
 let queuedDraftForSync: OnboardingV2Draft | null = null;
@@ -231,9 +233,7 @@ function uuidv4(): string {
   const segment = () =>
     Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 
-  return `${segment()}${segment()}-${segment()}-${segment()}-${
-    segment()
-  }-${segment()}${segment()}${segment()}`;
+  return `${segment()}${segment()}-${segment()}-${segment()}-${segment()}-${segment()}${segment()}${segment()}`;
 }
 
 function getCycleDraftBaseUrl(): string | null {
@@ -265,7 +265,9 @@ export function getStoredAnonymousSessionId(): string | null {
 }
 
 function ensureAnonymousSessionId(sessionId?: string | null): string {
-  const resolved = String(sessionId ?? getStoredAnonymousSessionId() ?? uuidv4())
+  const resolved = String(
+    sessionId ?? getStoredAnonymousSessionId() ?? uuidv4(),
+  )
     .trim();
   return persistAnonymousSessionId(resolved || uuidv4());
 }
@@ -276,6 +278,15 @@ export function normalizeOnboardingV2Draft(
   const anonymousSessionId = ensureAnonymousSessionId(
     draft?.anonymous_session_id,
   );
+  const nowIso = new Date().toISOString();
+  const updatedAt =
+    typeof draft?.updated_at === "string" && draft.updated_at.trim()
+      ? draft.updated_at
+      : nowIso;
+  const createdAt =
+    typeof draft?.created_at === "string" && draft.created_at.trim()
+      ? draft.created_at
+      : updatedAt;
 
   const baseDraft: OnboardingV2Draft = {
     version: 1,
@@ -305,7 +316,8 @@ export function normalizeOnboardingV2Draft(
     plan_review: null,
     roadmap_transition: null,
     loading_request: null,
-    updated_at: new Date().toISOString(),
+    created_at: createdAt,
+    updated_at: nowIso,
   };
 
   return {
@@ -316,10 +328,19 @@ export function normalizeOnboardingV2Draft(
       ...baseDraft.profile,
       ...(draft?.profile ?? {}),
     },
-    updated_at: typeof draft?.updated_at === "string" && draft.updated_at.trim()
-      ? draft.updated_at
-      : new Date().toISOString(),
+    created_at: createdAt,
+    updated_at: updatedAt,
   };
+}
+
+export function isOnboardingV2DraftExpired(
+  draft: Pick<OnboardingV2Draft, "created_at" | "updated_at" | "stage">,
+  nowMs = Date.now(),
+): boolean {
+  if (draft.stage === "completed") return false;
+  const createdAt = Date.parse(draft.created_at || draft.updated_at);
+  if (!Number.isFinite(createdAt)) return false;
+  return nowMs - createdAt > ONBOARDING_V2_MAX_AGE_MS;
 }
 
 export function persistOnboardingV2DraftLocally(
@@ -345,7 +366,12 @@ export function loadOnboardingV2Draft(): OnboardingV2Draft | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<OnboardingV2Draft>;
     if (!parsed || parsed.version !== 1) return null;
-    return normalizeOnboardingV2Draft(parsed);
+    const draft = normalizeOnboardingV2Draft(parsed);
+    if (isOnboardingV2DraftExpired(draft)) {
+      clearOnboardingV2Draft();
+      return null;
+    }
+    return draft;
   } catch {
     return null;
   }
@@ -403,7 +429,9 @@ export function flushDraftSync(): void {
   }
 }
 
-export async function syncDraftToServer(draft: OnboardingV2Draft): Promise<void> {
+export async function syncDraftToServer(
+  draft: OnboardingV2Draft,
+): Promise<void> {
   const baseUrl = getCycleDraftBaseUrl();
   const anonKey = getCycleDraftAnonKey();
   if (!baseUrl || !anonKey) return;
@@ -455,7 +483,8 @@ export async function loadDraftFromServer(
     // ahead of the client clock, causing the server draft to incorrectly win
     // over a freshly updated local draft (e.g. after clicking "← Retour").
     const draftPayloadUpdatedAt =
-      typeof payload.draft.updated_at === "string" && payload.draft.updated_at.trim()
+      typeof payload.draft.updated_at === "string" &&
+        payload.draft.updated_at.trim()
         ? payload.draft.updated_at
         : payload.updated_at;
 
@@ -464,6 +493,7 @@ export async function loadDraftFromServer(
       anonymous_session_id: sessionId,
       updated_at: draftPayloadUpdatedAt,
     });
+    if (isOnboardingV2DraftExpired(draft)) return null;
 
     return {
       draft,
@@ -635,7 +665,9 @@ export function clearOnboardingAuthHandoff(): void {
   }
 }
 
-export function hasFreshOnboardingAuthHandoff(draft: OnboardingV2Draft): boolean {
+export function hasFreshOnboardingAuthHandoff(
+  draft: OnboardingV2Draft,
+): boolean {
   try {
     const raw = localStorage.getItem(AUTH_HANDOFF_KEY);
     if (!raw) return false;
@@ -644,7 +676,9 @@ export function hasFreshOnboardingAuthHandoff(draft: OnboardingV2Draft): boolean
       anonymous_session_id?: unknown;
       created_at?: unknown;
     };
-    if (parsed.anonymous_session_id !== draft.anonymous_session_id) return false;
+    if (parsed.anonymous_session_id !== draft.anonymous_session_id) {
+      return false;
+    }
     if (typeof parsed.created_at !== "string") return false;
 
     const createdAt = Date.parse(parsed.created_at);
@@ -694,12 +728,11 @@ export function toTransformationPreview(
       ? onboardingV2.selection_context
       : null,
     is_manual: onboardingV2?.is_manual === true,
-    plan_type_classification:
-      onboardingV2?.plan_type_classification &&
+    plan_type_classification: onboardingV2?.plan_type_classification &&
         typeof onboardingV2.plan_type_classification === "object" &&
         !Array.isArray(onboardingV2.plan_type_classification)
-        ? onboardingV2.plan_type_classification as PlanTypeClassificationV1
-        : null,
+      ? onboardingV2.plan_type_classification as PlanTypeClassificationV1
+      : null,
     professional_support: extractProfessionalSupport(
       transformation.handoff_payload,
     ),

@@ -13,6 +13,7 @@ import type {
   CreateRecurringReminderLocalFields,
   CreateRecurringReminderLocalFlowAction,
   CreateRecurringReminderNoteInformation,
+  CreateRecurringReminderStateMutationAudit,
   CreateRecurringReminderVisibleTask,
   CreateRecurringReminderVisibleTaskKind,
   RecurringReminderHandoffDraft,
@@ -78,6 +79,7 @@ export type CreateRecurringReminderReducerResult = {
   note_information: CreateRecurringReminderNoteInformation;
   exit_to_global_dispatcher: boolean;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: CreateRecurringReminderStateMutationAudit;
   evidence: string[];
 };
 
@@ -98,7 +100,6 @@ const FLOW_ACTIONS = new Set([
   "get_info_db",
   "exit_to_global_dispatcher",
   "cancel_flow",
-  "exit_to_global_dispatcher",
   "safety_preempt",
 ]);
 
@@ -683,6 +684,8 @@ export function normalizeCreateRecurringReminderLocalDispatcherOutput(
     flow_action: action,
     confidence: confidence(root.confidence),
     risk_score: riskScore(root.risk_score),
+    modified_fields: stringArray(root.modified_fields),
+    clear_fields: stringArray(root.clear_fields),
     recurring_state: {
       phase: enumValue(
         stateRoot.phase,
@@ -879,28 +882,344 @@ function buildHandoffDraftFromFields(
   return buildRecurringReminderHandoffDraft(draft);
 }
 
-function createLocalState(args: {
+const SERVER_OWNED_STATE_FIELDS = [
+  "draft",
+  "fields",
+  "last_visible_task",
+  "note_information",
+  "pending_offer",
+  "pending_confirmation",
+  "last_selected_option",
+  "active_subflow_context",
+  "exit_memo",
+  "local_state_summary",
+  "previous_flow_summary",
+  "status",
+  "turn_count",
+  "created_at",
+  "updated_at",
+] as const;
+
+function canonicalServerOwnedField(value: string): string | null {
+  switch (value) {
+    case "draft":
+    case "handoff_draft":
+    case "pending_offer":
+      return "draft";
+    case "fields":
+    case "recurring_fields":
+    case "collected_fields":
+      return "fields";
+    case "visible_task":
+    case "last_visible_task":
+      return "last_visible_task";
+    case "note":
+    case "note_information":
+    case "handoff_note":
+      return "note_information";
+    case "pending_confirmation":
+    case "last_selected_option":
+    case "active_subflow_context":
+    case "exit_memo":
+    case "local_state_summary":
+    case "previous_flow_summary":
+    case "status":
+    case "turn_count":
+    case "created_at":
+    case "updated_at":
+      return value;
+    default:
+      return null;
+  }
+}
+
+function declaredServerOwnedFields(values: string[] | undefined): string[] {
+  return Array.from(
+    new Set(
+      (values ?? [])
+        .map((item) => canonicalServerOwnedField(item))
+        .filter((item): item is string => Boolean(item)),
+    ),
+  );
+}
+
+function createStateMutationAudit(
+  output: CreateRecurringReminderLocalDispatcherOutput,
+): CreateRecurringReminderStateMutationAudit {
+  return {
+    server_owned_fields: [...SERVER_OWNED_STATE_FIELDS],
+    modified_fields_declared: declaredServerOwnedFields(output.modified_fields),
+    clear_fields_declared: declaredServerOwnedFields(output.clear_fields),
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function addAuditField(
+  audit: CreateRecurringReminderStateMutationAudit,
+  key:
+    | "applied_fields"
+    | "preserved_fields"
+    | "restored_fields"
+    | "cleared_fields",
+  field: string,
+) {
+  if (!audit[key].includes(field)) audit[key].push(field);
+}
+
+function rejectAuditChange(
+  audit: CreateRecurringReminderStateMutationAudit,
+  field: string,
+  reason_code: string,
+  transition: CreateRecurringReminderLocalFlowAction,
+  requested: "modify" | "clear",
+) {
+  addAuditField(audit, "restored_fields", field);
+  audit.rejected_changes.push({
+    field,
+    reason_code,
+    requested,
+    transition,
+  });
+}
+
+function rejectDeclaredMutations(
+  audit: CreateRecurringReminderStateMutationAudit,
+  output: CreateRecurringReminderLocalDispatcherOutput,
+  transition: CreateRecurringReminderLocalFlowAction,
+  allowedModify: Set<string>,
+  allowedClear: Set<string>,
+) {
+  for (const field of audit.modified_fields_declared) {
+    if (!allowedModify.has(field)) {
+      rejectAuditChange(
+        audit,
+        field,
+        "server_owned_modify_not_allowed_for_transition",
+        transition,
+        "modify",
+      );
+    }
+  }
+  for (const field of audit.clear_fields_declared) {
+    if (!allowedClear.has(field)) {
+      rejectAuditChange(
+        audit,
+        field,
+        "server_owned_clear_not_allowed_for_transition",
+        transition,
+        "clear",
+      );
+    }
+  }
+  void output;
+}
+
+function terminalStateAudit(args: {
   previous: RecurringReminderHandoffState | null;
-  status: RecurringReminderHandoffStatus;
+  output: CreateRecurringReminderLocalDispatcherOutput;
+  transition: CreateRecurringReminderLocalFlowAction;
+}): CreateRecurringReminderStateMutationAudit {
+  const audit = createStateMutationAudit(args.output);
+  const terminalClear = new Set<string>(SERVER_OWNED_STATE_FIELDS);
+  rejectDeclaredMutations(
+    audit,
+    args.output,
+    args.transition,
+    new Set(),
+    terminalClear,
+  );
+  if (args.previous) {
+    for (const field of SERVER_OWNED_STATE_FIELDS) {
+      addAuditField(audit, "cleared_fields", field);
+    }
+  }
+  return audit;
+}
+
+function shouldBuildOrReplaceDraft(args: {
+  action: CreateRecurringReminderLocalFlowAction;
+  output: CreateRecurringReminderLocalDispatcherOutput;
   fields: CreateRecurringReminderLocalFields;
-  draft: RecurringReminderHandoffDraft | null;
+}): boolean {
+  if (
+    !minimumFieldsReady(args.fields) ||
+    args.output.recurring_state.one_shot_conflict === "clear_one_shot"
+  ) {
+    return false;
+  }
+  return args.action === "handoff_ready" ||
+    args.action === "revise_handoff" ||
+    args.action === "repeat_handoff" ||
+    args.action === "platform_destination_followup" ||
+    args.action === "apply_attempt" ||
+    args.output.recurring_state.minimum_fields_ready === true;
+}
+
+function mergeCreateRecurringReminderLocalState(args: {
+  previous: RecurringReminderHandoffState | null;
+  output: CreateRecurringReminderLocalDispatcherOutput;
+  transition: CreateRecurringReminderLocalFlowAction;
+  fields: CreateRecurringReminderLocalFields;
   visibleTask: CreateRecurringReminderVisibleTask;
   note: CreateRecurringReminderNoteInformation;
-}): RecurringReminderHandoffState {
-  const now = new Date().toISOString();
-  return {
+  now: string;
+  status: RecurringReminderHandoffStatus;
+  constraints?: string[];
+}): {
+  local_state: RecurringReminderHandoffState;
+  handoff_draft: RecurringReminderHandoffDraft | null;
+  state_mutation_audit: CreateRecurringReminderStateMutationAudit;
+  blocked_effects: Array<{ type: string; reason_code: string }>;
+  reason_code: string | null;
+} {
+  const audit = createStateMutationAudit(args.output);
+  const blocked_effects: Array<{ type: string; reason_code: string }> = [];
+  let reason_code: string | null = null;
+  const allowedModify = new Set<string>([
+    "fields",
+    "last_visible_task",
+    "status",
+  ]);
+  const allowedClear = new Set<string>();
+
+  let fields = args.fields;
+  if (audit.clear_fields_declared.includes("fields") && args.previous?.fields) {
+    fields = args.previous.fields;
+    reason_code = reason_code ?? "blocked_by_constraint";
+  } else if (args.previous?.fields === fields) {
+    addAuditField(audit, "preserved_fields", "fields");
+  } else {
+    addAuditField(audit, "applied_fields", "fields");
+  }
+
+  let draft = args.previous?.draft ?? null;
+  const canReplaceDraft = shouldBuildOrReplaceDraft({
+    action: args.transition,
+    output: args.output,
+    fields,
+  });
+  if (canReplaceDraft) {
+    allowedModify.add("draft");
+    try {
+      draft = buildHandoffDraftFromFields(fields);
+      addAuditField(audit, "applied_fields", "draft");
+    } catch (error) {
+      reason_code = error instanceof Error
+        ? error.message
+        : "create_recurring_reminder_draft_build_failed";
+      blocked_effects.push({
+        type: "create_recurring_reminder",
+        reason_code: "draft_build_failed",
+      });
+      if (args.previous?.draft) {
+        draft = args.previous.draft;
+        addAuditField(audit, "restored_fields", "draft");
+      } else {
+        draft = null;
+      }
+    }
+  } else if (draft) {
+    addAuditField(audit, "preserved_fields", "draft");
+  } else if (
+    args.transition === "repeat_handoff" ||
+    args.transition === "platform_destination_followup" ||
+    args.transition === "apply_attempt"
+  ) {
+    reason_code = reason_code ?? "missing_previous_offer";
+    blocked_effects.push({
+      type: "create_recurring_reminder",
+      reason_code: "missing_previous_offer",
+    });
+  } else if (
+    args.transition === "handoff_ready" ||
+    args.transition === "revise_handoff"
+  ) {
+    reason_code = reason_code ?? "not_stabilized_enough";
+    blocked_effects.push({
+      type: "create_recurring_reminder",
+      reason_code: "not_stabilized_enough",
+    });
+  }
+
+  if (audit.clear_fields_declared.includes("draft") && args.previous?.draft) {
+    draft = args.previous.draft;
+    reason_code = reason_code ?? "blocked_by_constraint";
+  }
+
+  const note = args.note.needed
+    ? args.note
+    : args.previous?.note_information ?? args.note;
+  if (args.note.needed) {
+    allowedModify.add("note_information");
+    addAuditField(audit, "applied_fields", "note_information");
+  } else if (args.previous?.note_information) {
+    addAuditField(audit, "preserved_fields", "note_information");
+  }
+
+  rejectDeclaredMutations(
+    audit,
+    args.output,
+    args.transition,
+    allowedModify,
+    allowedClear,
+  );
+
+  for (
+    const field of [
+      "pending_offer",
+      "pending_confirmation",
+      "last_selected_option",
+      "active_subflow_context",
+      "exit_memo",
+      "local_state_summary",
+      "previous_flow_summary",
+    ]
+  ) {
+    if ((args.previous as Record<string, unknown> | null)?.[field] != null) {
+      addAuditField(audit, "preserved_fields", field);
+    }
+  }
+  addAuditField(audit, "applied_fields", "last_visible_task");
+  addAuditField(audit, "applied_fields", "status");
+  addAuditField(audit, "applied_fields", "turn_count");
+  addAuditField(audit, "preserved_fields", "created_at");
+  addAuditField(audit, "applied_fields", "updated_at");
+
+  const state: RecurringReminderHandoffState = {
     skill_id: "create_recurring_reminder",
     mode: "platform_handoff",
     status: args.status,
-    draft: args.draft,
-    fields: args.fields,
+    draft,
+    fields,
     last_visible_task: args.visibleTask,
-    note_information: args.note,
+    note_information: note,
+    pending_offer: args.previous?.pending_offer ?? null,
+    pending_confirmation: args.previous?.pending_confirmation ?? null,
+    last_selected_option: args.previous?.last_selected_option ?? null,
+    active_subflow_context: args.previous?.active_subflow_context ?? null,
+    exit_memo: args.previous?.exit_memo ?? null,
+    local_state_summary: args.previous?.local_state_summary ?? null,
+    previous_flow_summary: args.previous?.previous_flow_summary ?? null,
     turn_count: Number(args.previous?.turn_count ?? 0) + 1,
     max_turns: Number(args.previous?.max_turns ?? 6) || 6,
-    created_at: args.previous?.created_at ?? now,
-    updated_at: now,
+    created_at: args.previous?.created_at ?? args.now,
+    updated_at: args.now,
     executable_from_chat: false,
+    no_chat_mutation: true,
+    state_mutation_audit: audit,
+  };
+
+  void args.constraints;
+  return {
+    local_state: state,
+    handoff_draft: draft,
+    state_mutation_audit: audit,
+    blocked_effects,
+    reason_code,
   };
 }
 
@@ -997,6 +1316,7 @@ export function reduceCreateRecurringReminderLocalDispatcherOutput(args: {
   const note = output.note_information;
   const evidence = output.evidence;
   const status = statusForAction(action);
+  const now = new Date().toISOString();
   let visibleTask = reducerVisibleTask({
     task: output.visible_task,
     fields,
@@ -1016,6 +1336,11 @@ export function reduceCreateRecurringReminderLocalDispatcherOutput(args: {
       note_information: note,
       exit_to_global_dispatcher: true,
       blocked_effects: [],
+      state_mutation_audit: terminalStateAudit({
+        previous: args.previous,
+        output,
+        transition: action,
+      }),
       evidence,
     };
   }
@@ -1030,32 +1355,41 @@ export function reduceCreateRecurringReminderLocalDispatcherOutput(args: {
       note_information: note,
       exit_to_global_dispatcher: false,
       blocked_effects: [],
+      state_mutation_audit: terminalStateAudit({
+        previous: args.previous,
+        output,
+        transition: action,
+      }),
       evidence,
     };
   }
 
   if (action === "safety_preempt" || output.risk_score > 7) {
+    const merged = mergeCreateRecurringReminderLocalState({
+      previous: args.previous,
+      output,
+      transition: action,
+      fields,
+      visibleTask,
+      note,
+      now,
+      status: "blocked",
+    });
     return {
       status: "safety",
       reason_code: action === "safety_preempt"
         ? "create_recurring_reminder_safety_preempt"
         : "create_recurring_reminder_risk_score_blocked",
-      local_state: createLocalState({
-        previous: args.previous,
-        status: "blocked",
-        fields,
-        draft: null,
-        visibleTask,
-        note,
-      }),
+      local_state: merged.local_state,
       visible_task: visibleTask,
-      handoff_draft: null,
+      handoff_draft: merged.handoff_draft,
       note_information: note,
       exit_to_global_dispatcher: false,
       blocked_effects: [{
         type: "create_recurring_reminder",
         reason_code: "safety_preempt",
       }],
+      state_mutation_audit: merged.state_mutation_audit,
       evidence,
     };
   }
@@ -1070,16 +1404,31 @@ export function reduceCreateRecurringReminderLocalDispatcherOutput(args: {
       note_information: note,
       exit_to_global_dispatcher: false,
       blocked_effects: [],
+      state_mutation_audit: terminalStateAudit({
+        previous: args.previous,
+        output,
+        transition: action,
+      }),
       evidence,
     };
   }
 
   if (action === "get_info_product" || action === "get_info_db") {
+    const merged = mergeCreateRecurringReminderLocalState({
+      previous: args.previous,
+      output,
+      transition: action,
+      fields,
+      visibleTask,
+      note,
+      now,
+      status: args.previous?.status ?? "collecting",
+    });
     visibleTask = reducerVisibleTask({
       task: { ...output.visible_task, kind: "inline_tool_return" },
-      fields,
+      fields: merged.local_state.fields ?? fields,
       note,
-      draft: args.previous?.draft ?? null,
+      draft: merged.handoff_draft,
       action,
       evidence,
       inlineToolResult: {
@@ -1089,96 +1438,70 @@ export function reduceCreateRecurringReminderLocalDispatcherOutput(args: {
         target_dispatcher: note.target_dispatcher,
       },
     });
-    const state = createLocalState({
-      previous: args.previous,
-      status: args.previous?.status ?? "collecting",
-      fields,
-      draft: args.previous?.draft ?? null,
-      visibleTask,
-      note,
-    });
+    const state = {
+      ...merged.local_state,
+      last_visible_task: visibleTask,
+    };
     return {
       status: "inline_tool",
       reason_code: `create_recurring_reminder_${action}`,
       local_state: state,
       visible_task: visibleTask,
-      handoff_draft: state.draft ?? null,
+      handoff_draft: merged.handoff_draft,
       note_information: note,
       exit_to_global_dispatcher: false,
-      blocked_effects: [],
+      blocked_effects: merged.blocked_effects,
+      state_mutation_audit: merged.state_mutation_audit,
       evidence,
     };
   }
 
-  let draft = args.previous?.draft ?? null;
-  const canBuildDraft = minimumFieldsReady(fields) &&
-    output.recurring_state.one_shot_conflict !== "clear_one_shot";
-  if (
-    canBuildDraft &&
-    (action === "handoff_ready" || action === "revise_handoff" ||
-      output.recurring_state.minimum_fields_ready)
-  ) {
-    try {
-      draft = buildHandoffDraftFromFields(fields);
-    } catch (error) {
-      return {
-        status: "blocked",
-        reason_code: error instanceof Error
-          ? error.message
-          : "create_recurring_reminder_draft_build_failed",
-        local_state: createLocalState({
-          previous: args.previous,
-          status: "blocked",
-          fields,
-          draft: null,
-          visibleTask,
-          note,
-        }),
-        visible_task: visibleTask,
-        handoff_draft: null,
-        note_information: note,
-        exit_to_global_dispatcher: false,
-        blocked_effects: [{
-          type: "create_recurring_reminder",
-          reason_code: "draft_build_failed",
-        }],
-        evidence,
-      };
-    }
-  }
+  const merged = mergeCreateRecurringReminderLocalState({
+    previous: args.previous,
+    output,
+    transition: action,
+    fields,
+    visibleTask,
+    note,
+    now,
+    status,
+  });
   visibleTask = reducerVisibleTask({
     task: output.visible_task,
-    fields,
+    fields: merged.local_state.fields ?? fields,
     note,
-    draft,
+    draft: merged.handoff_draft,
     action,
     evidence,
   });
 
-  const ready = Boolean(draft) &&
+  const ready = Boolean(merged.handoff_draft) &&
     (action === "handoff_ready" || action === "revise_handoff" ||
       action === "repeat_handoff" ||
       action === "platform_destination_followup" ||
       action === "apply_attempt");
-  const state = createLocalState({
-    previous: args.previous,
+  const state = {
+    ...merged.local_state,
     status: ready ? status : "collecting",
-    fields,
-    draft,
-    visibleTask,
-    note,
-  });
+    last_visible_task: visibleTask,
+  };
   return {
-    status: ready ? "handoff_ready" : "collecting",
-    reason_code: ready
-      ? `create_recurring_reminder_${status}`
-      : `create_recurring_reminder_${action}`,
+    status: merged.blocked_effects.length && !ready
+      ? "collecting"
+      : ready
+      ? "handoff_ready"
+      : "collecting",
+    reason_code: merged.reason_code ??
+      (ready
+        ? `create_recurring_reminder_${status}`
+        : `create_recurring_reminder_${action}`),
     local_state: state,
     visible_task: visibleTask,
-    handoff_draft: draft,
+    handoff_draft: merged.handoff_draft,
     note_information: note,
     exit_to_global_dispatcher: false,
-    blocked_effects: [],
+    blocked_effects: merged.blocked_effects,
+    state_mutation_audit: merged.state_mutation_audit,
     evidence,
   };
 }
@@ -1197,6 +1520,7 @@ export function buildCreateRecurringReminderLocalDispatcherSystemPrompt(): strin
     "db_context_pack est compact et sert à raisonner. micro_memory_context est optionnelle, 0 à 4 items, et ne doit jamais être copiée brute dans visible_task.conversation_context.",
     "visible_task.conversation_context est le seul contexte filtré destiné à l'agent visible. Il doit contenir seulement ce que l'agent peut dire, demander ou résumer.",
     "note_information est obligatoire dès qu'un autre dispatcher intervient. Ne change pas sa structure: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 à 3 fragments du message courant. structured_context est succinct et non vide: user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note.",
+    "Ne sérialise jamais active_flow_context, parent_flow_context, conversation_context, visible_task, dispatcher_context ou note_information entrante dans note_information; résume-les en 1-2 phrases et champs filtrés.",
     ...directEffectLocalDispatcherPromptLines(),
     "Stages visibles autorisés: ask_recurrence, ask_time, ask_content, ask_destination_binding, clarify_one_shot_vs_recurring, handoff_ready, revise_handoff, repeat_handoff, platform_destination_followup, apply_attempt, handoff_to_one_shot, inline_tool_return, stop_or_cancel, exit_ack, safety, contract_recovery.",
     [
@@ -1226,7 +1550,7 @@ export function buildCreateRecurringReminderLocalDispatcherSystemPrompt(): strin
       "",
       "visible_task.conversation_context: seul contexte utilisable par l'agent visible. source_flow vaut create_recurring_reminder. stage_goal explique le but du stage. current_user_message_summary résume le message courant sans le copier brut si inutile. active_flow_summary résume l'état du flow. collected_state inclut seulement champs filtrés et limites committed_effects, pas de DB brute ni mémoire brute. known_values contient les valeurs que le visible peut dire. missing_or_weak_values et unresolved_questions contiennent les incertitudes. question_to_ask est null sauf stage question. handoff contient le brouillon visible-agent-safe si pertinent. inline_tool_result reste null sauf retour inline. note_information_summary peut résumer la transition, jamais copier la note brute. evidence_used contient les indices réellement utilisés. tone_constraints et do_not_say cadrent le style et les interdits.",
       "",
-      "note_information: needed false pour continuation locale, repeat, revise et apply_attempt. needed true pour exit_to_global_dispatcher, safety_preempt, handoff_to_one_shot, get_info_product et get_info_db. source_flow_id vaut create_recurring_reminder. target_dispatcher vaut global, safety_crisis, one_shot_reminder, product_help ou status_recap selon l'action. handoff_context_for_next_dispatcher et structured_context doivent être exploitables par le dispatcher cible: user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus. La note ne va jamais brute au prompt visible et ne contient pas de champs legacy.",
+      "note_information: needed false pour continuation locale, repeat, revise et apply_attempt. needed true pour exit_to_global_dispatcher, safety_preempt, handoff_to_one_shot, get_info_product et get_info_db. source_flow_id vaut create_recurring_reminder. target_dispatcher vaut global, safety_crisis, one_shot_reminder, product_help ou status_recap selon l'action. handoff_context_for_next_dispatcher et structured_context doivent être exploitables par le dispatcher cible: user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence, recommended_next_focus. Ne copie jamais active_flow_context, parent_flow_context, conversation_context, visible_task, dispatcher_context ou note_information entrante; résume-les. La note ne va jamais brute au prompt visible et ne contient pas de champs legacy.",
       "",
       "committed_effects: tous les champs restent false. Ce flow ne crée pas de rappel récurrent, n'écrit pas en DB, ne crée pas scheduled_checkin, potion_session ni confirmation exécutable. Toute sortie qui suggère une mutation est invalide.",
       "",

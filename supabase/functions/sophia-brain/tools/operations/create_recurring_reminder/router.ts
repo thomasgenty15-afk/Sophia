@@ -476,6 +476,21 @@ async function runCreateRecurringReminderLocalFlow(args: {
           local_reducer: {
             status: reduced.status,
             reason_code: reduced.reason_code,
+            flow_action: output.flow_action,
+            selected_target: output.fields.destination.target_label ??
+              output.fields.destination.value,
+            pending_state_present: Boolean(args.frame.handoff_state),
+            direct_handoff_flag: output.flow_action === "handoff_to_one_shot",
+            candidate_list_summary: {
+              recurrence: output.fields.recurrence.cadence_label,
+              time: output.fields.recurrence.time,
+              content: output.fields.reminder_content.message,
+              destination: output.fields.destination.value,
+            },
+            constraints: output.handoff_draft.avoid,
+            stabilization_ready: output.recurring_state.minimum_fields_ready,
+            blocked_effects: reduced.blocked_effects,
+            state_mutation_audit: reduced.state_mutation_audit,
             note_information: reduced.note_information,
             visible_task: inlineVisibleTask,
           },
@@ -527,6 +542,21 @@ async function runCreateRecurringReminderLocalFlow(args: {
         local_reducer: {
           status: reduced.status,
           reason_code: reduced.reason_code,
+          flow_action: output.flow_action,
+          visible_task: reduced.visible_task,
+          selected_target: output.fields.destination.target_label ??
+            output.fields.destination.value,
+          pending_state_present: Boolean(args.frame.handoff_state),
+          direct_handoff_flag: output.flow_action === "handoff_to_one_shot",
+          candidate_list_summary: {
+            recurrence: output.fields.recurrence.cadence_label,
+            time: output.fields.recurrence.time,
+            content: output.fields.reminder_content.message,
+            destination: output.fields.destination.value,
+          },
+          constraints: output.handoff_draft.avoid,
+          stabilization_ready: output.recurring_state.minimum_fields_ready,
+          state_mutation_audit: reduced.state_mutation_audit,
           note_information: reduced.note_information,
           exit_to_global_dispatcher: reduced.exit_to_global_dispatcher,
           blocked_effects: reduced.blocked_effects,

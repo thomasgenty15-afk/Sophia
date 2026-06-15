@@ -41,6 +41,47 @@ function recentMessagesFromHistory(history: unknown) {
   return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function stringValue(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function compactInlineCollectedState(
+  context: InlineInfoToolContext,
+): Record<string, unknown> {
+  const activeFlowContext = isRecord(context.active_flow_context)
+    ? context.active_flow_context
+    : {};
+  const fields = isRecord(activeFlowContext.fields)
+    ? activeFlowContext.fields
+    : {};
+  const recurrence = isRecord(fields.recurrence) ? fields.recurrence : {};
+  const reminderContent = isRecord(fields.reminder_content)
+    ? fields.reminder_content
+    : {};
+  const destination = isRecord(fields.destination) ? fields.destination : {};
+  const handoffDraft = isRecord(activeFlowContext.handoff_draft)
+    ? activeFlowContext.handoff_draft
+    : {};
+  const dispatcherContext = isRecord(context.dispatcher_context)
+    ? context.dispatcher_context
+    : {};
+  return {
+    flow_action: stringValue(dispatcherContext.flow_action),
+    recurrence_status: stringValue(recurrence.status),
+    time_present: Boolean(stringValue(recurrence.time)),
+    content_status: stringValue(reminderContent.status),
+    destination_value: stringValue(destination.value),
+    handoff_ready: handoffDraft.ready === true,
+    platform_destination: stringValue(handoffDraft.platform_destination),
+  };
+}
+
 function minimalTurnFrame(args: {
   userId: string;
   userMessage: string;
@@ -70,7 +111,7 @@ function minimalTurnFrame(args: {
   };
 }
 
-function noteForInlineInfo(
+export function noteForInlineInfo(
   context: InlineInfoToolContext,
   targetDispatcher: Extract<
     NoteInformationTargetDispatcher,
@@ -78,25 +119,22 @@ function noteForInlineInfo(
   >,
 ): NoteInformation {
   if (context.note_information) return context.note_information;
+  const collectedState = compactInlineCollectedState(context);
+  const status = context.active_flow_status ?? "active";
   return createNoteInformation({
     source_flow_id: context.active_flow,
     handoff_reason: "inline_tool",
     target_dispatcher: targetDispatcher,
-    handoff_context_for_next_dispatcher: JSON.stringify({
-      active_flow: context.active_flow,
-      active_flow_status: context.active_flow_status ?? null,
-      question_to_answer: context.question_to_answer,
-      active_flow_context: context.active_flow_context,
-      dispatcher_context: context.dispatcher_context ?? null,
-      preserve_active_flow: true,
-    }),
+    handoff_context_for_next_dispatcher:
+      `Inline ${targetDispatcher} question from ${context.active_flow}: ${context.question_to_answer}. Parent flow must resume after the answer.`,
+    user_words: [context.question_to_answer].filter(Boolean).slice(0, 1),
     structured_context: {
       active_flow: context.active_flow,
-      active_flow_summary: String(context.active_flow_status ?? "active"),
-      active_flow_status: context.active_flow_status ?? null,
+      active_flow_summary:
+        `${context.active_flow} is ${status}; inline ${targetDispatcher} should answer only the product/status question.`,
+      active_flow_status: status,
       question_to_answer: context.question_to_answer,
-      active_flow_context: context.active_flow_context,
-      dispatcher_context: context.dispatcher_context ?? null,
+      collected_state: collectedState,
       preserve_active_flow: true,
       unresolved_questions: [],
       recommended_next_focus: targetDispatcher,

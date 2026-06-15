@@ -61,11 +61,46 @@ export type StatusRecapReducerResult = {
   local_state: StatusRecapLocalFlowState | null;
   visible_task: StatusRecapVisibleTaskKind;
   exit_to_global_dispatcher: boolean;
+  handoff_to_local_flow: boolean;
   conversation_context: StatusRecapConversationContext;
   answer_summary: string | null;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: StatusRecapStateMutationAudit;
   evidence: string[];
 };
+
+export type StatusRecapStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{ field: string; reason_code: string }>;
+};
+
+type StatusRecapLocalTransition =
+  | "answer"
+  | "blocked"
+  | "cancel"
+  | "exit_to_global"
+  | "handoff_to_local_flow"
+  | "safety";
+
+const STATUS_RECAP_SERVER_OWNED_FIELDS = [
+  "flow_state.status",
+  "flow_state.last_intent",
+  "flow_state.last_target_objects",
+  "flow_state.last_projection_summary",
+  "flow_state.last_answer_summary",
+  "flow_state.turn_count",
+  "flow_state.max_turns",
+  "flow_state.created_at",
+  "flow_state.updated_at",
+  "exit_memo",
+  "note_information",
+] as const;
 
 const FLOW_ACTIONS = new Set([
   "answer_status",
@@ -133,6 +168,8 @@ const READ_CATEGORIES = new Set([
   "one_shot_reminders",
   "recurring_reminders",
   "potions",
+  "plan_items",
+  "plan_progress",
   "coach_preferences",
   "recent_effects",
   "all",
@@ -267,8 +304,50 @@ export function statusRecapProjectionSummary(
       projection.one_shot_reminders.cancelled_recent.length,
     recurring_reminder_count: projection.recurring_reminders.length,
     potion_session_count: projection.potion_sessions.length,
+    plan_item_count: projection.plan_items?.length ?? 0,
+    plan_progress_entry_count: projection.plan_progress_entries?.length ?? 0,
     coach_preference_count: projection.coach_preferences.length,
     recent_effect_history_count: projection.recent_effect_history.length,
+  };
+}
+
+function emptyStatusRecapProjectionSummary(): StatusRecapProjectionSummary {
+  return {
+    attack_card_count: 0,
+    defense_card_count: 0,
+    one_shot_pending_count: 0,
+    one_shot_cancelled_recent_count: 0,
+    recurring_reminder_count: 0,
+    potion_session_count: 0,
+    plan_item_count: 0,
+    plan_progress_entry_count: 0,
+    coach_preference_count: 0,
+    recent_effect_history_count: 0,
+  };
+}
+
+function countValue(value: unknown): number {
+  const count = Number(value ?? 0);
+  return Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
+}
+
+function projectionSummaryFromUnknown(
+  value: unknown,
+): StatusRecapProjectionSummary {
+  if (!isRecord(value)) return emptyStatusRecapProjectionSummary();
+  return {
+    attack_card_count: countValue(value.attack_card_count),
+    defense_card_count: countValue(value.defense_card_count),
+    one_shot_pending_count: countValue(value.one_shot_pending_count),
+    one_shot_cancelled_recent_count: countValue(
+      value.one_shot_cancelled_recent_count,
+    ),
+    recurring_reminder_count: countValue(value.recurring_reminder_count),
+    potion_session_count: countValue(value.potion_session_count),
+    plan_item_count: countValue(value.plan_item_count),
+    plan_progress_entry_count: countValue(value.plan_progress_entry_count),
+    coach_preference_count: countValue(value.coach_preference_count),
+    recent_effect_history_count: countValue(value.recent_effect_history_count),
   };
 }
 
@@ -284,6 +363,8 @@ export function buildStatusRecapDbContextPack(
       "one_shot_reminders",
       "recurring_reminders",
       "potions",
+      "plan_items",
+      "plan_progress",
       "coach_preferences",
       "recent_effects",
     ],
@@ -302,6 +383,8 @@ function emptyStatusRecapProjection(): StatusRecapProjection {
     one_shot_reminders: { pending: [], cancelled_recent: [] },
     recurring_reminders: [],
     potion_sessions: [],
+    plan_items: [],
+    plan_progress_entries: [],
     coach_preferences: [],
     recent_effect_history: [],
   };
@@ -356,6 +439,13 @@ function filterStatusRecapProjectionForVisibleContext(args: {
   if (include("potions", "potion")) {
     filtered.potion_sessions = args.projection.potion_sessions;
   }
+  if (include("plan_items", "plan_item")) {
+    filtered.plan_items = args.projection.plan_items ?? [];
+  }
+  if (include("plan_progress", "plan_item")) {
+    filtered.plan_progress_entries = args.projection.plan_progress_entries ??
+      [];
+  }
   if (include("coach_preferences", "coach_preference")) {
     filtered.coach_preferences = args.projection.coach_preferences;
   }
@@ -387,7 +477,36 @@ export function readStatusRecapFlowState(
   ) {
     return null;
   }
-  return raw as StatusRecapLocalFlowState;
+  const lastIntent = enumValue<StatusRecapLocalFlowState["last_intent"]>(
+    raw.last_intent,
+    new Set([
+      "durable_status",
+      "object_status",
+      "recent_effects_recap",
+      "fait_prevu_fragile",
+      "cancelled_objects",
+      "coach_preferences_status",
+      "human_recap_no_db",
+      "unclear",
+    ]),
+    "unclear",
+  );
+  const createdAt = stringValue(raw.created_at) || new Date().toISOString();
+  return {
+    skill_id: "status_recap",
+    mode: "local_readonly_flow",
+    status: status as StatusRecapLocalFlowState["status"],
+    last_intent: lastIntent,
+    last_target_objects: objectTypes(raw.last_target_objects),
+    last_projection_summary: projectionSummaryFromUnknown(
+      raw.last_projection_summary,
+    ),
+    last_answer_summary: stringValue(raw.last_answer_summary) || null,
+    turn_count: countValue(raw.turn_count),
+    max_turns: countValue(raw.max_turns) || 3,
+    created_at: createdAt,
+    updated_at: stringValue(raw.updated_at) || createdAt,
+  };
 }
 
 export function hasActiveStatusRecapFlow(tempMemory: unknown): boolean {
@@ -430,6 +549,210 @@ export function createStatusRecapFlowState(args: {
     max_turns: maxTurns,
     created_at: args.previous?.created_at ?? now,
     updated_at: now,
+  };
+}
+
+function baseStateMutationAudit(): StatusRecapStateMutationAudit {
+  return {
+    server_owned_fields: [...STATUS_RECAP_SERVER_OWNED_FIELDS],
+    modified_fields_declared: [],
+    clear_fields_declared: [],
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function auditApply(
+  audit: StatusRecapStateMutationAudit,
+  field: string,
+) {
+  if (!audit.applied_fields.includes(field)) audit.applied_fields.push(field);
+}
+
+function auditPreserve(
+  audit: StatusRecapStateMutationAudit,
+  field: string,
+) {
+  if (!audit.preserved_fields.includes(field)) {
+    audit.preserved_fields.push(field);
+  }
+}
+
+function auditReject(
+  audit: StatusRecapStateMutationAudit,
+  field: string,
+  reasonCode: string,
+) {
+  if (!audit.restored_fields.includes(field)) audit.restored_fields.push(field);
+  audit.rejected_changes.push({ field, reason_code: reasonCode });
+}
+
+function meaningfulTargets(
+  targets: StatusRecapObjectType[],
+): StatusRecapObjectType[] {
+  const filtered = targets.filter((target) => target !== "unknown");
+  return filtered.length ? filtered : [];
+}
+
+function localStateIntentFromOutput(
+  output: StatusRecapLocalDispatcherOutput,
+): StatusRecapLocalFlowState["last_intent"] | null {
+  const kind = output.status_intent.kind;
+  if (
+    kind === "durable_status" ||
+    kind === "object_status" ||
+    kind === "recent_effects_recap" ||
+    kind === "fait_prevu_fragile" ||
+    kind === "cancelled_objects" ||
+    kind === "coach_preferences_status" ||
+    kind === "human_recap_no_db" ||
+    kind === "unclear"
+  ) {
+    return kind;
+  }
+  return null;
+}
+
+function transitionStatus(
+  transition: StatusRecapLocalTransition,
+): StatusRecapLocalFlowState["status"] {
+  if (
+    transition === "exit_to_global" || transition === "handoff_to_local_flow"
+  ) {
+    return "exit_to_global";
+  }
+  if (transition === "safety") return "safety";
+  if (transition === "cancel") return "closed";
+  return "active";
+}
+
+export function mergeStatusRecapLocalState(args: {
+  previous: StatusRecapLocalFlowState | null;
+  output: StatusRecapLocalDispatcherOutput;
+  transition: StatusRecapLocalTransition;
+  now?: string;
+  constraints?: {
+    allowTurnCountZero?: boolean;
+    preservePreviousAnswer?: boolean;
+  };
+  projectionSummary: StatusRecapProjectionSummary;
+  answerSummary: string | null;
+}): {
+  local_state: StatusRecapLocalFlowState;
+  state_mutation_audit: StatusRecapStateMutationAudit;
+} {
+  const audit = baseStateMutationAudit();
+  const now = args.now ?? new Date().toISOString();
+  const previous = args.previous;
+  const declaredStatus = args.output.state_updates.status;
+  const expectedStatus = transitionStatus(args.transition);
+  audit.modified_fields_declared.push(
+    "flow_state.status",
+    "flow_state.turn_count",
+  );
+  if (args.output.state_updates.close_after_visible) {
+    audit.clear_fields_declared.push("flow_state");
+    if (args.transition === "cancel") {
+      audit.cleared_fields.push("flow_state");
+    } else {
+      auditReject(audit, "flow_state", "blocked_by_constraint");
+    }
+  }
+
+  if (declaredStatus !== expectedStatus) {
+    auditReject(audit, "flow_state.status", "invalid_status_transition");
+  } else {
+    auditApply(audit, "flow_state.status");
+  }
+
+  const rawIncrement = Number(args.output.state_updates.turn_count_increment);
+  const turnIncrement =
+    args.constraints?.allowTurnCountZero && rawIncrement === 0 ? 0 : 1;
+  if (rawIncrement !== turnIncrement) {
+    auditReject(audit, "flow_state.turn_count", "invalid_status_transition");
+  } else {
+    auditApply(audit, "flow_state.turn_count");
+  }
+
+  const previousIntent = previous?.last_intent ?? "unclear";
+  const outputIntent = localStateIntentFromOutput(args.output);
+  const replaceLastAnswer = args.transition === "answer" &&
+    !args.constraints?.preservePreviousAnswer &&
+    args.output.flow_action !== "repeat_last_status" &&
+    args.output.flow_action !== "explain_sources";
+  const replaceIntent = replaceLastAnswer && outputIntent !== null;
+  const outputTargets = meaningfulTargets(args.output.target_objects);
+  const replaceTargets = replaceLastAnswer && outputTargets.length > 0;
+
+  const lastIntent = replaceIntent ? outputIntent : previousIntent;
+  if (replaceIntent) {
+    audit.modified_fields_declared.push("flow_state.last_intent");
+    auditApply(audit, "flow_state.last_intent");
+  } else {
+    auditPreserve(audit, "flow_state.last_intent");
+    if (
+      args.output.status_intent.kind === "not_status" || outputIntent === null
+    ) {
+      auditReject(audit, "flow_state.last_intent", "invalid_status_transition");
+    }
+  }
+
+  const lastTargetObjects = replaceTargets
+    ? outputTargets
+    : previous?.last_target_objects ?? args.output.target_objects;
+  if (replaceTargets) {
+    audit.modified_fields_declared.push("flow_state.last_target_objects");
+    auditApply(audit, "flow_state.last_target_objects");
+  } else {
+    auditPreserve(audit, "flow_state.last_target_objects");
+    if (args.output.target_objects.length === 0) {
+      auditReject(
+        audit,
+        "flow_state.last_target_objects",
+        "selected_option_missing",
+      );
+    }
+  }
+
+  const lastAnswerSummary = replaceLastAnswer && args.answerSummary
+    ? args.answerSummary
+    : previous?.last_answer_summary ?? args.answerSummary;
+  if (replaceLastAnswer && args.answerSummary) {
+    audit.modified_fields_declared.push("flow_state.last_answer_summary");
+    auditApply(audit, "flow_state.last_answer_summary");
+  } else {
+    auditPreserve(audit, "flow_state.last_answer_summary");
+  }
+
+  audit.modified_fields_declared.push("flow_state.last_projection_summary");
+  auditApply(audit, "flow_state.last_projection_summary");
+  auditPreserve(audit, "flow_state.max_turns");
+  auditPreserve(audit, "flow_state.created_at");
+  auditApply(audit, "flow_state.updated_at");
+
+  return {
+    local_state: {
+      skill_id: "status_recap",
+      mode: "local_readonly_flow",
+      status: expectedStatus,
+      last_intent: lastIntent,
+      last_target_objects: lastTargetObjects.length
+        ? lastTargetObjects
+        : ["unknown"],
+      last_projection_summary: args.projectionSummary,
+      last_answer_summary: lastAnswerSummary ?? null,
+      turn_count: Math.max(
+        0,
+        Number(previous?.turn_count ?? 0) + turnIncrement,
+      ),
+      max_turns: Number(previous?.max_turns ?? 3) || 3,
+      created_at: previous?.created_at ?? now,
+      updated_at: now,
+    },
+    state_mutation_audit: audit,
   };
 }
 
@@ -635,6 +958,7 @@ export function buildStatusRecapConversationContext(args: {
     visible_instruction: args.output.visible_task.instruction || null,
     status_intent_summary: args.output.status_intent.summary,
     projection_summary: args.projectionSummary,
+    user_facing_inventory: args.projection,
     requested_categories: args.output.read_scope.requested_categories,
     target_objects: args.output.target_objects,
     include_cancelled: args.output.read_scope.include_cancelled,
@@ -675,20 +999,31 @@ export function reduceStatusRecapLocalDispatcherOutput(args: {
   const output = args.output;
   const summary = answerSummary(output);
   if (output.flow_action === "exit_to_global_dispatcher") {
+    const merged = mergeStatusRecapLocalState({
+      previous: args.previous,
+      output,
+      transition: output.exit_memo.needed && output.exit_memo.reason !== "none"
+        ? "exit_to_global"
+        : "blocked",
+      projectionSummary,
+      answerSummary: null,
+      constraints: { allowTurnCountZero: true, preservePreviousAnswer: true },
+    });
     if (!output.exit_memo.needed || output.exit_memo.reason === "none") {
+      merged.state_mutation_audit.rejected_changes.push({
+        field: "exit_memo",
+        reason_code: "missing_exit_memo",
+      });
+      if (!merged.state_mutation_audit.restored_fields.includes("exit_memo")) {
+        merged.state_mutation_audit.restored_fields.push("exit_memo");
+      }
       return {
         status: "blocked",
-        reason_code: "status_recap_exit_memo_required",
-        local_state: createStatusRecapFlowState({
-          previous: args.previous,
-          status: "active",
-          lastIntent: "unclear",
-          lastTargetObjects: output.target_objects,
-          lastProjectionSummary: projectionSummary,
-          lastAnswerSummary: args.previous?.last_answer_summary ?? null,
-        }),
+        reason_code: "status_recap_missing_exit_memo",
+        local_state: merged.local_state,
         visible_task: "exit_ack",
         exit_to_global_dispatcher: false,
+        handoff_to_local_flow: false,
         conversation_context: buildStatusRecapConversationContext({
           currentUserMessage: args.currentUserMessage ?? "",
           output,
@@ -701,25 +1036,19 @@ export function reduceStatusRecapLocalDispatcherOutput(args: {
         answer_summary: null,
         blocked_effects: [{
           type: "status_recap",
-          reason_code: "exit_memo_required",
+          reason_code: "missing_exit_memo",
         }],
+        state_mutation_audit: merged.state_mutation_audit,
         evidence: output.evidence,
       };
     }
     return {
       status: "exit",
       reason_code: "status_recap_local_exit_to_global_dispatcher",
-      local_state: createStatusRecapFlowState({
-        previous: args.previous,
-        status: "exit_to_global",
-        lastIntent: args.previous?.last_intent ?? "unclear",
-        lastTargetObjects: args.previous?.last_target_objects ??
-          output.target_objects,
-        lastProjectionSummary: projectionSummary,
-        lastAnswerSummary: args.previous?.last_answer_summary ?? null,
-      }),
+      local_state: merged.local_state,
       visible_task: "exit_ack",
       exit_to_global_dispatcher: true,
+      handoff_to_local_flow: false,
       conversation_context: buildStatusRecapConversationContext({
         currentUserMessage: args.currentUserMessage ?? "",
         output,
@@ -731,23 +1060,103 @@ export function reduceStatusRecapLocalDispatcherOutput(args: {
       }),
       answer_summary: null,
       blocked_effects: [],
+      state_mutation_audit: merged.state_mutation_audit,
+      evidence: output.evidence,
+    };
+  }
+  if (output.flow_action === "handoff_to_local_flow") {
+    const validHandoff = output.exit_memo.needed &&
+      output.exit_memo.reason !== "none" &&
+      Boolean(output.note_information);
+    const merged = mergeStatusRecapLocalState({
+      previous: args.previous,
+      output,
+      transition: validHandoff ? "handoff_to_local_flow" : "blocked",
+      projectionSummary,
+      answerSummary: null,
+      constraints: { allowTurnCountZero: true, preservePreviousAnswer: true },
+    });
+    if (!validHandoff) {
+      merged.state_mutation_audit.rejected_changes.push({
+        field: "note_information",
+        reason_code: output.exit_memo.needed
+          ? "direct_handoff_flag_missing"
+          : "missing_exit_memo",
+      });
+      if (
+        !merged.state_mutation_audit.restored_fields.includes(
+          "note_information",
+        )
+      ) {
+        merged.state_mutation_audit.restored_fields.push("note_information");
+      }
+      return {
+        status: "blocked",
+        reason_code: output.exit_memo.needed
+          ? "status_recap_direct_handoff_flag_missing"
+          : "status_recap_missing_exit_memo",
+        local_state: merged.local_state,
+        visible_task: "narrow_scope_question",
+        exit_to_global_dispatcher: false,
+        handoff_to_local_flow: false,
+        conversation_context: buildStatusRecapConversationContext({
+          currentUserMessage: args.currentUserMessage ?? "",
+          output,
+          projection: args.projection,
+          projectionSummary,
+          previous: args.previous,
+          visibleTask: "narrow_scope_question",
+          noteInformationInbound: args.noteInformationInbound ?? null,
+        }),
+        answer_summary: null,
+        blocked_effects: [{
+          type: "status_recap",
+          reason_code: output.exit_memo.needed
+            ? "direct_handoff_flag_missing"
+            : "missing_exit_memo",
+        }],
+        state_mutation_audit: merged.state_mutation_audit,
+        evidence: output.evidence,
+      };
+    }
+    return {
+      status: "exit",
+      reason_code: "status_recap_local_handoff_to_local_flow",
+      local_state: merged.local_state,
+      visible_task: "exit_ack",
+      exit_to_global_dispatcher: false,
+      handoff_to_local_flow: true,
+      conversation_context: buildStatusRecapConversationContext({
+        currentUserMessage: args.currentUserMessage ?? "",
+        output,
+        projection: args.projection,
+        projectionSummary,
+        previous: args.previous,
+        visibleTask: "exit_ack",
+        noteInformationInbound: args.noteInformationInbound ?? null,
+      }),
+      answer_summary: null,
+      blocked_effects: [],
+      state_mutation_audit: merged.state_mutation_audit,
       evidence: output.evidence,
     };
   }
   if (output.flow_action === "safety_preempt" || output.risk_score >= 7) {
+    const merged = mergeStatusRecapLocalState({
+      previous: args.previous,
+      output,
+      transition: "safety",
+      projectionSummary,
+      answerSummary: null,
+      constraints: { preservePreviousAnswer: true },
+    });
     return {
       status: "safety",
       reason_code: "status_recap_safety_preempt",
-      local_state: createStatusRecapFlowState({
-        previous: args.previous,
-        status: "safety",
-        lastIntent: "unclear",
-        lastTargetObjects: output.target_objects,
-        lastProjectionSummary: projectionSummary,
-        lastAnswerSummary: args.previous?.last_answer_summary ?? null,
-      }),
+      local_state: merged.local_state,
       visible_task: "safety",
       exit_to_global_dispatcher: false,
+      handoff_to_local_flow: false,
       conversation_context: buildStatusRecapConversationContext({
         currentUserMessage: args.currentUserMessage ?? "",
         output,
@@ -762,24 +1171,26 @@ export function reduceStatusRecapLocalDispatcherOutput(args: {
         type: "status_recap",
         reason_code: "safety_preempt",
       }],
+      state_mutation_audit: merged.state_mutation_audit,
       evidence: output.evidence,
     };
   }
   if (output.flow_action === "cancel_flow") {
+    const merged = mergeStatusRecapLocalState({
+      previous: args.previous,
+      output,
+      transition: "cancel",
+      projectionSummary,
+      answerSummary: null,
+      constraints: { preservePreviousAnswer: true },
+    });
     return {
       status: "closed",
       reason_code: "status_recap_local_cancelled",
-      local_state: createStatusRecapFlowState({
-        previous: args.previous,
-        status: "closed",
-        lastIntent: args.previous?.last_intent ?? "unclear",
-        lastTargetObjects: args.previous?.last_target_objects ??
-          output.target_objects,
-        lastProjectionSummary: projectionSummary,
-        lastAnswerSummary: args.previous?.last_answer_summary ?? null,
-      }),
+      local_state: merged.local_state,
       visible_task: "stop_or_cancel",
       exit_to_global_dispatcher: false,
+      handoff_to_local_flow: false,
       conversation_context: buildStatusRecapConversationContext({
         currentUserMessage: args.currentUserMessage ?? "",
         output,
@@ -791,6 +1202,7 @@ export function reduceStatusRecapLocalDispatcherOutput(args: {
       }),
       answer_summary: null,
       blocked_effects: [],
+      state_mutation_audit: merged.state_mutation_audit,
       evidence: output.evidence,
     };
   }
@@ -810,23 +1222,26 @@ export function reduceStatusRecapLocalDispatcherOutput(args: {
   const intentKind = STATUS_INTENTS.has(output.status_intent.kind)
     ? output.status_intent.kind
     : "unclear";
-  const localState = createStatusRecapFlowState({
+  const localStateMerge = mergeStatusRecapLocalState({
     previous: args.previous,
-    status: "active",
-    lastIntent: intentKind === "not_status" || intentKind === "safety"
-      ? "unclear"
-      : intentKind,
-    lastTargetObjects: output.target_objects,
-    lastProjectionSummary: projectionSummary,
-    lastAnswerSummary: summary,
-    turnCountIncrement: output.state_updates.turn_count_increment,
+    output: {
+      ...output,
+      status_intent: {
+        ...output.status_intent,
+        kind: intentKind,
+      },
+    },
+    transition: "answer",
+    projectionSummary,
+    answerSummary: summary,
   });
   return {
     status: "answered",
     reason_code: `status_recap_local_${output.flow_action}`,
-    local_state: localState,
+    local_state: localStateMerge.local_state,
     visible_task: visibleTask,
     exit_to_global_dispatcher: false,
+    handoff_to_local_flow: false,
     conversation_context: buildStatusRecapConversationContext({
       currentUserMessage: args.currentUserMessage ?? "",
       output,
@@ -838,6 +1253,7 @@ export function reduceStatusRecapLocalDispatcherOutput(args: {
     }),
     answer_summary: summary,
     blocked_effects: [],
+    state_mutation_audit: localStateMerge.state_mutation_audit,
     evidence: output.evidence,
   };
 }
@@ -854,6 +1270,7 @@ export function dispatcherSystemPrompt(): string {
     "Critère d'ownership prioritaire: juge le message courant avant l'inertie du flow actif. Reste dans status_recap seulement si le message courant demande encore un état, un récap factuel, une source, une répétition, une projection DB ou une clarification directement liée au dernier status.",
     "Si le message courant donne une consigne de posture conversationnelle, demande une réponse directe, demande un avis/aide/conseil hors état produit, ou parle d'un sujet humain qui n'est plus une lecture DB Sophia, retourne exit_to_global_dispatcher. Exemples de calibration: 'pour la suite sois plus direct', 'réponds direct sur mon rapport', 'je parle du rapport pas de mémoire Sophia', 'hors statut maintenant', 'sans récap ni préférences coach', 'réponds comme une personne'.",
     "Scope exact: si le user demande ce qui a été créé, enregistré, modifié, fait ou pas fait pendant l'échange, traite ça comme un status d'effets récents: flow_action=answer_recent_effects, status_intent.kind=recent_effects_recap, read_scope.requested_categories=['recent_effects'], visible_task.kind=recent_effects. N'élargis pas à all et n'inclus pas les préférences coach existantes sauf si le message demande explicitement les préférences ou si un effet récent a réellement modifié une préférence.",
+    "Important: read_scope décrit le périmètre demandé; il ne doit pas priver l'agent visible des faits user-facing utiles. Le reducer fournit un user_facing_inventory complet et read-only, puis l'agent visible choisit dans cet inventaire selon read_scope, target_objects et le message user.",
     ...directEffectLocalDispatcherPromptLines(),
     "Si le user veut juste arrêter le flow sans nouveau sujet clair, utilise exit_to_global_dispatcher avec note_information exploitable; le global ne peut reprendre qu'après cette note.",
     "Un recap humain de conversation n'est pas un status DB: utilise human_recap_no_db ou exit_to_global_dispatcher vers normal_coaching.",
@@ -867,7 +1284,7 @@ export function dispatcherSystemPrompt(): string {
     "- status_intent.requires_db_projection: true pour toute réponse status DB-grounded. false seulement pour stop/cancel, exit, safety, ou human_recap_no_db sans état produit.",
     "- status_intent.requires_effect_history: true uniquement pour answer_recent_effects ou si le user demande les actions/effets récents; sinon false.",
     "- target_objects: objets concernés par la lecture. Utilise unknown pour status global ou cible absente. Ne crée pas d'id, ne déduis pas une catégorie si le message ne la porte pas clairement.",
-    "- read_scope.requested_categories: catégories DB à lire dans la projection. all pour status global, catégories précises quand le user les demande. Le visible agent recevra seulement les filtered_facts correspondant au contexte construit par le reducer.",
+    "- read_scope.requested_categories: catégories qui décrivent le périmètre à restituer. all pour status global, catégories précises quand le user les demande. Ne mets pas all pour une demande récente ciblée juste parce que l'inventaire complet existe.",
     "- read_scope.include_cancelled: true pour annulés/supprimés/abandonnés ou answer_cancelled_objects; false sinon.",
     "- read_scope.include_recent_failed_or_blocked_effects: true seulement si le user demande explicitement les échecs, blocages ou tentatives non abouties. Pour 'ce qui a été créé/noté/enregistré', laisse false: ces blocages restent des traces système, pas des faits user-facing.",
     "- read_scope.format: compact pour état global, object_answer pour objet précis, recap pour récapitulatif structuré, fait_prevu_fragile seulement pour ce format exact.",
@@ -876,7 +1293,7 @@ export function dispatcherSystemPrompt(): string {
     "- state_updates.close_after_visible: true si le flow doit se fermer après le message visible; false si une suite locale reste plausible.",
     "- visible_task.kind: stage visible exact. Choisis status_compact, object_status, coach_preferences_status, cancelled_objects, recent_effects, fait_prevu_fragile, narrow_scope_question, repeat_status, explain_sources, no_source, human_recap_redirect, stop_or_cancel, exit_ack ou safety. N'utilise pas un stage générique si un stage précis existe. En stop/cancel, utilise stop_or_cancel; en exit, exit_ack; en safety, safety.",
     "- visible_task.instruction: consigne courte pour le prompt visible local. Elle ne doit pas être une réponse visible complète, ne doit pas router, ne doit pas remplir des champs métier, et ne doit jamais contenir de DB brute ou note_information brute.",
-    "- visible_task.conversation_context: ne le fournis pas depuis le dispatcher; le reducer le construit depuis status_intent, read_scope, projection, état précédent et contraintes. Ce contexte est le seul contexte utilisable par l'agent visible; il doit rester filtré, read-only, sans mémoire brute et sans note_information brute.",
+    "- visible_task.conversation_context: ne le fournis pas depuis le dispatcher; le reducer le construit depuis status_intent, read_scope, projection, état précédent et contraintes. Ce contexte contient un inventaire user-facing complet et un périmètre strict; il doit rester read-only, sans mémoire brute, sans internals et sans note_information brute.",
     "- note_information: null quand status_recap reste owner ou s'annule localement sans changement de dispatcher. Obligatoire pour exit_to_global_dispatcher, handoff_to_local_flow et safety_preempt. Elle est consommée par le dispatcher cible, jamais transmise brute au prompt visible. structured_context doit inclure le sens du handoff, l'état read-only utile, les contraintes, unresolved_questions, confidence, evidence et recommended_next_focus.",
     "- exit_memo.needed: false pour continuation locale, répétition, sources, no_source ou cancel_flow local. true pour exit_to_global_dispatcher, handoff_to_local_flow ou safety_preempt.",
     "- exit_memo.reason: none hors transition. Utilise topic_change, explicit_tool_request, product_help, preference_update, new_goal, confirmation_for_other_flow ou safety selon la raison réelle du message courant.",
@@ -898,7 +1315,7 @@ export function dispatcherSystemPrompt(): string {
     'EXAMPLE_JSON_1_CONTINUATION {"flow_action":"answer_object_status","confidence":"high","risk_score":0,"status_intent":{"kind":"object_status","summary":"Le user demande le statut des rappels actifs.","requires_db_projection":true,"requires_effect_history":false},"target_objects":["one_shot_reminder","recurring_reminder"],"read_scope":{"requested_categories":["one_shot_reminders","recurring_reminders"],"include_cancelled":false,"include_recent_failed_or_blocked_effects":false,"format":"object_answer"},"state_updates":{"status":"active","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"object_status","instruction":"Répondre seulement sur les rappels présents dans filtered_facts."},"note_information":null,"exit_memo":{"needed":false,"reason":"none","user_intent_summary":null,"local_flow_context":{"skill_id":"status_recap","last_intent":"object_status","last_target_objects":["one_shot_reminder","recurring_reminder"],"last_answer_summary":null,"last_projection_summary":null},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":null,"constraints":[]}},"evidence":["demande de statut sur les rappels"]}',
     'EXAMPLE_JSON_2_SAFETY_TRANSITION {"flow_action":"safety_preempt","confidence":"high","risk_score":8,"status_intent":{"kind":"safety","summary":"Le message courant contient un risque prioritaire qui interrompt le status recap.","requires_db_projection":false,"requires_effect_history":false},"target_objects":["unknown"],"read_scope":{"requested_categories":["all"],"include_cancelled":false,"include_recent_failed_or_blocked_effects":false,"format":"compact"},"state_updates":{"status":"safety","turn_count_increment":1,"close_after_visible":true},"visible_task":{"kind":"safety","instruction":"Ne pas répondre au status; transférer la priorité safety."},"note_information":{"source_flow_id":"status_recap","handoff_reason":"safety","target_dispatcher":"safety_crisis","handoff_context_for_next_dispatcher":"Le message courant doit être traité par safety_crisis avant toute réponse status.","user_words":["message user synthétisé"],"structured_context":{"source_flow":"status_recap","target_dispatcher":"safety_crisis","handoff_reason":"safety","user_message_summary":"risque prioritaire","active_flow_summary":"status recap read-only","collected_state":{},"unresolved_questions":[],"confidence":"high","evidence":["signal safety courant"],"recommended_next_focus":"sécurité immédiate"},"confidence":"high"},"exit_memo":{"needed":true,"reason":"safety","user_intent_summary":"risque prioritaire","local_flow_context":{"skill_id":"status_recap","last_intent":"unclear","last_target_objects":["unknown"],"last_answer_summary":null,"last_projection_summary":null},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":"Safety owns next turn; do not run global dispatcher.","constraints":["Status recap was read-only and did not mutate anything."]}},"evidence":["signal safety courant"]}',
     "",
-    'Retourne exactement ce JSON: {"flow_action":"answer_status|answer_object_status|answer_coach_preferences_status|answer_cancelled_objects|answer_recent_effects|answer_fait_prevu_fragile|narrow_scope|repeat_last_status|explain_sources|no_source_status|human_recap_no_db|exit_to_global_dispatcher|cancel_flow|handoff_to_local_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"status_intent":{"kind":"durable_status|object_status|recent_effects_recap|fait_prevu_fragile|cancelled_objects|coach_preferences_status|human_recap_no_db|unclear|not_status|safety","summary":"string","requires_db_projection":true,"requires_effect_history":false},"target_objects":["attack_card|defense_card|one_shot_reminder|recurring_reminder|potion|coach_preference|plan_item|memory|unknown"],"read_scope":{"requested_categories":["attack_cards|defense_cards|one_shot_reminders|recurring_reminders|potions|coach_preferences|recent_effects|all"],"include_cancelled":false,"include_recent_failed_or_blocked_effects":false,"format":"compact|object_answer|recap|fait_prevu_fragile"},"state_updates":{"status":"active|closing|closed|exit_to_global|safety","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"status_compact|object_status|coach_preferences_status|cancelled_objects|recent_effects|fait_prevu_fragile|narrow_scope_question|repeat_status|explain_sources|no_source|human_recap_redirect|stop_or_cancel|exit_ack|safety","instruction":"string"},"note_information":null,"exit_memo":{"needed":false,"reason":"topic_change|explicit_tool_request|product_help|preference_update|new_goal|confirmation_for_other_flow|safety|unknown|none","user_intent_summary":"string|null","local_flow_context":{"skill_id":"status_recap","last_intent":"string|null","last_target_objects":[],"last_answer_summary":"string|null","last_projection_summary":"string|null"},"handoff_hint_for_global_dispatcher":{"likely_intent":"prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|one_shot_reminder|recurring_reminder|product_help|normal_coaching|unknown","why":"string|null","constraints":["Status recap was read-only and did not mutate anything.","Do not treat previous status facts as a request to create or modify unless the current user message asks for it."]}},"evidence":["string"]}',
+    'Retourne exactement ce JSON: {"flow_action":"answer_status|answer_object_status|answer_coach_preferences_status|answer_cancelled_objects|answer_recent_effects|answer_fait_prevu_fragile|narrow_scope|repeat_last_status|explain_sources|no_source_status|human_recap_no_db|exit_to_global_dispatcher|cancel_flow|handoff_to_local_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"status_intent":{"kind":"durable_status|object_status|recent_effects_recap|fait_prevu_fragile|cancelled_objects|coach_preferences_status|human_recap_no_db|unclear|not_status|safety","summary":"string","requires_db_projection":true,"requires_effect_history":false},"target_objects":["attack_card|defense_card|one_shot_reminder|recurring_reminder|potion|coach_preference|plan_item|memory|unknown"],"read_scope":{"requested_categories":["attack_cards|defense_cards|one_shot_reminders|recurring_reminders|potions|plan_items|plan_progress|coach_preferences|recent_effects|all"],"include_cancelled":false,"include_recent_failed_or_blocked_effects":false,"format":"compact|object_answer|recap|fait_prevu_fragile"},"state_updates":{"status":"active|closing|closed|exit_to_global|safety","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"status_compact|object_status|coach_preferences_status|cancelled_objects|recent_effects|fait_prevu_fragile|narrow_scope_question|repeat_status|explain_sources|no_source|human_recap_redirect|stop_or_cancel|exit_ack|safety","instruction":"string"},"note_information":null,"exit_memo":{"needed":false,"reason":"topic_change|explicit_tool_request|product_help|preference_update|new_goal|confirmation_for_other_flow|safety|unknown|none","user_intent_summary":"string|null","local_flow_context":{"skill_id":"status_recap","last_intent":"string|null","last_target_objects":[],"last_answer_summary":"string|null","last_projection_summary":"string|null"},"handoff_hint_for_global_dispatcher":{"likely_intent":"prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|one_shot_reminder|recurring_reminder|product_help|normal_coaching|unknown","why":"string|null","constraints":["Status recap was read-only and did not mutate anything.","Do not treat previous status facts as a request to create or modify unless the current user message asks for it."]}},"evidence":["string"]}',
   ].join("\n");
 }
 

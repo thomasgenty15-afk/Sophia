@@ -277,6 +277,44 @@ export type PrepareDefenseCardLocalState = {
   subskill_history: Array<Record<string, unknown>>;
 };
 
+export type PrepareDefenseCardServerOwnedField =
+  | "route_kind"
+  | "platform_destination"
+  | "tool_fit_state"
+  | "attachment_state"
+  | "risk_state"
+  | "trigger_state"
+  | "defense_goal_state"
+  | "defense_response_hint_state"
+  | "support_need_state"
+  | "last_visible_task"
+  | "last_handoff_delivered"
+  | "subskill_history";
+
+export type PrepareDefenseCardStateMutationAudit = {
+  server_owned_fields: PrepareDefenseCardServerOwnedField[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    reason_code:
+      | "missing_previous_offer"
+      | "pending_confirmation_missing"
+      | "direct_handoff_flag_missing"
+      | "selected_option_missing"
+      | "durable_need_missing"
+      | "candidate_missing"
+      | "blocked_by_constraint"
+      | "not_stabilized_enough"
+      | "invalid_status_transition";
+    attempted_action: PrepareDefenseCardLocalFlowAction;
+  }>;
+};
+
 export type PrepareDefenseCardLocalDispatcherOutput = {
   flow_action: PrepareDefenseCardLocalFlowAction;
   confidence: "low" | "medium" | "high";
@@ -389,6 +427,7 @@ export type PrepareDefenseCardReducerResult = {
   subskill_context: Record<string, unknown> | null;
   risk_assessment: PrepareDefenseCardRiskAssessment;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: PrepareDefenseCardStateMutationAudit;
 };
 
 function stringValue(value: unknown): string | null {
@@ -406,6 +445,89 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+const SERVER_OWNED_FIELDS: PrepareDefenseCardServerOwnedField[] = [
+  "route_kind",
+  "platform_destination",
+  "tool_fit_state",
+  "attachment_state",
+  "risk_state",
+  "trigger_state",
+  "defense_goal_state",
+  "defense_response_hint_state",
+  "support_need_state",
+  "last_visible_task",
+  "last_handoff_delivered",
+  "subskill_history",
+];
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function createStateMutationAudit(
+  output: PrepareDefenseCardLocalDispatcherOutput,
+): PrepareDefenseCardStateMutationAudit {
+  const slotUpdateKeys = Object.keys(output.slot_updates ?? {});
+  const platformUpdateKeys = Object.keys(output.platform_field_updates ?? {})
+    .map((key) => key === "support_need" ? "support_need_state" : key);
+  const declaredModified = uniqueStrings([
+    ...slotUpdateKeys,
+    ...platformUpdateKeys,
+    output.revision.is_revision && output.revision.revision_target
+      ? `${output.revision.revision_target}_state`
+      : "",
+  ]);
+  const root = output as unknown as Record<string, unknown>;
+  const declaredClear = uniqueStrings([
+    ...stringArray(root.clear_fields),
+    ...stringArray(root.clear_fields_declared),
+    ...stringArray(objectValue(root.state_updates).clear_fields),
+  ]);
+  return {
+    server_owned_fields: [...SERVER_OWNED_FIELDS],
+    modified_fields_declared: declaredModified,
+    clear_fields_declared: declaredClear,
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function auditApplied(
+  audit: PrepareDefenseCardStateMutationAudit,
+  field: string,
+) {
+  audit.applied_fields = uniqueStrings([...audit.applied_fields, field]);
+}
+
+function auditPreserved(
+  audit: PrepareDefenseCardStateMutationAudit,
+  field: string,
+) {
+  audit.preserved_fields = uniqueStrings([...audit.preserved_fields, field]);
+}
+
+function auditRestored(
+  audit: PrepareDefenseCardStateMutationAudit,
+  field: string,
+  reason_code: PrepareDefenseCardStateMutationAudit["rejected_changes"][number][
+    "reason_code"
+  ],
+  attempted_action: PrepareDefenseCardLocalFlowAction,
+) {
+  audit.restored_fields = uniqueStrings([...audit.restored_fields, field]);
+  audit.rejected_changes = [
+    ...audit.rejected_changes,
+    { field, reason_code, attempted_action },
+  ];
+}
+
+function sameJson(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
@@ -949,6 +1071,77 @@ export function createInitialPrepareDefenseCardLocalState(
         -RECENT_MESSAGE_LIMITS.subskillHistory,
       )
       : [],
+  };
+}
+
+function hasOwn(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
+export function normalizePrepareDefenseCardLocalState(
+  raw: unknown,
+  fallback: PrepareDefenseCardLocalState =
+    createInitialPrepareDefenseCardLocalState(),
+): PrepareDefenseCardLocalState {
+  const root = objectValue(raw);
+  if (!Object.keys(root).length) return fallback;
+  const route = routeKind(root.route_kind) ?? fallback.route_kind ??
+    "free_card";
+  const subskillHistory = Array.isArray(root.subskill_history)
+    ? root.subskill_history.filter((item) =>
+      item && typeof item === "object" && !Array.isArray(item)
+    ).map((item) => item as Record<string, unknown>).slice(
+      -RECENT_MESSAGE_LIMITS.subskillHistory,
+    )
+    : fallback.subskill_history;
+  return {
+    flow_id: "prepare_defense_card",
+    route_kind: route,
+    platform_destination: stringValue(root.platform_destination) ??
+      defenseCardPlatformDestinationForRoute(route),
+    tool_fit_state: hasOwn(root, "tool_fit_state")
+      ? { ...fallback.tool_fit_state, ...toolFitState(root.tool_fit_state) }
+      : fallback.tool_fit_state,
+    attachment_state: hasOwn(root, "attachment_state")
+      ? mergeStatusSlot(
+        fallback.attachment_state,
+        attachmentState(root.attachment_state),
+      )
+      : fallback.attachment_state,
+    risk_state: hasOwn(root, "risk_state")
+      ? mergeStatusSlot(fallback.risk_state, riskState(root.risk_state))
+      : fallback.risk_state,
+    trigger_state: hasOwn(root, "trigger_state")
+      ? mergeStatusSlot(
+        fallback.trigger_state,
+        triggerState(root.trigger_state),
+      )
+      : fallback.trigger_state,
+    defense_goal_state: hasOwn(root, "defense_goal_state")
+      ? mergeStatusSlot(
+        fallback.defense_goal_state,
+        goalState(root.defense_goal_state),
+      )
+      : fallback.defense_goal_state,
+    defense_response_hint_state: hasOwn(root, "defense_response_hint_state")
+      ? mergeStatusSlot(
+        fallback.defense_response_hint_state,
+        responseHintState(root.defense_response_hint_state),
+      )
+      : fallback.defense_response_hint_state,
+    support_need_state: hasOwn(root, "support_need_state")
+      ? mergeSupportNeed(
+        fallback.support_need_state,
+        supportNeedState(root.support_need_state),
+      )
+      : fallback.support_need_state,
+    last_visible_task: stringValue(root.last_visible_task)
+      ? visibleTaskKind(root.last_visible_task)
+      : fallback.last_visible_task,
+    last_handoff_delivered: typeof root.last_handoff_delivered === "boolean"
+      ? root.last_handoff_delivered
+      : fallback.last_handoff_delivered,
+    subskill_history: subskillHistory,
   };
 }
 
@@ -1515,11 +1708,349 @@ function shouldForceFirstTurnEnrichment(args: {
       args.output.visible_task.kind === "handoff_ready");
 }
 
+function actionAllowsSlotMutation(
+  action: PrepareDefenseCardLocalFlowAction,
+  field: PrepareDefenseCardServerOwnedField,
+): boolean {
+  if (
+    action === "get_info_product" ||
+    action === "get_info_db" ||
+    action === "apply_attempt" ||
+    action === "repeat_handoff" ||
+    action === "platform_destination_followup"
+  ) return false;
+  if (
+    action === "exit_to_global_dispatcher" ||
+    action === "cancel_flow" ||
+    action === "defer_flow" ||
+    action === "safety_preempt"
+  ) return false;
+  if (field === "route_kind" || field === "platform_destination") {
+    return action === "answer_current_field" ||
+      action === "confirm_attachment_candidate" ||
+      action === "revise_attachment" ||
+      action === "revise_current_field" ||
+      action === "handoff_ready";
+  }
+  if (field === "tool_fit_state") {
+    return action === "answer_current_field" ||
+      action === "clarify_attack_vs_defense" ||
+      action === "confirm_proposed_field" ||
+      action === "handoff_ready";
+  }
+  if (field === "attachment_state") {
+    return action === "answer_current_field" ||
+      action === "confirm_attachment_candidate" ||
+      action === "revise_attachment" ||
+      action === "revise_current_field" ||
+      action === "handoff_ready";
+  }
+  if (field === "risk_state") {
+    return action === "answer_current_field" ||
+      action === "revise_risk" ||
+      action === "revise_current_field" ||
+      action === "handoff_ready";
+  }
+  if (
+    field === "trigger_state" ||
+    field === "defense_goal_state" ||
+    field === "defense_response_hint_state"
+  ) {
+    return action === "answer_current_field" ||
+      action === "confirm_proposed_field" ||
+      action === "revise_current_field" ||
+      action === "handoff_ready";
+  }
+  if (field === "support_need_state") {
+    return action === "answer_current_field" ||
+      action === "confirm_proposed_field" ||
+      action === "revise_support_need" ||
+      action === "revise_current_field" ||
+      action === "handoff_ready";
+  }
+  return false;
+}
+
+function slotHasUsableValue(slot: { status: string }): boolean {
+  const raw = slot as Record<string, unknown>;
+  if (slot.status === "missing" || slot.status === "ambiguous") return false;
+  return Boolean(
+    stringValue(raw.locked_value) ||
+      stringValue(raw.candidate_value) ||
+      stringValue(raw.label) ||
+      stringValue(raw.description) ||
+      stringValue(raw.value) ||
+      stringValue(raw.timing_hint) ||
+      stringValue(raw.context_hint) ||
+      stringValue(raw.reason),
+  );
+}
+
+function mergeServerOwnedStatusSlot<T extends { status: string }>(args: {
+  previous: T;
+  incoming: T;
+  field: PrepareDefenseCardServerOwnedField;
+  action: PrepareDefenseCardLocalFlowAction;
+  audit: PrepareDefenseCardStateMutationAudit;
+  allowLockedDowngrade?: boolean;
+}): T {
+  if (!slotHasUsableValue(args.incoming)) {
+    if (
+      args.previous.status !== "missing" && args.incoming.status === "missing"
+    ) {
+      auditPreserved(args.audit, args.field);
+    }
+    return args.previous;
+  }
+  if (!actionAllowsSlotMutation(args.action, args.field)) {
+    if (!sameJson(args.previous, args.incoming)) {
+      auditRestored(
+        args.audit,
+        args.field,
+        "blocked_by_constraint",
+        args.action,
+      );
+    }
+    return args.previous;
+  }
+  if (
+    args.previous.status === "locked" &&
+    args.incoming.status !== "locked" &&
+    args.allowLockedDowngrade !== true
+  ) {
+    auditRestored(
+      args.audit,
+      args.field,
+      "invalid_status_transition",
+      args.action,
+    );
+    return args.previous;
+  }
+  const next = mergeStatusSlot(args.previous, args.incoming);
+  if (!sameJson(args.previous, next)) auditApplied(args.audit, args.field);
+  else auditPreserved(args.audit, args.field);
+  return next;
+}
+
+function mergeServerOwnedSupportNeed(args: {
+  previous: PrepareDefenseCardSupportNeedState;
+  incoming: PrepareDefenseCardSupportNeedState;
+  action: PrepareDefenseCardLocalFlowAction;
+  audit: PrepareDefenseCardStateMutationAudit;
+}): PrepareDefenseCardSupportNeedState {
+  const previous = args.previous;
+  const incoming = args.incoming;
+  if (
+    args.action === "confirm_proposed_field" &&
+    previous.status === "proposed" &&
+    Boolean(previous.candidate_value) &&
+    incoming.status !== "locked"
+  ) {
+    auditApplied(args.audit, "support_need_state");
+    return {
+      ...previous,
+      status: "locked",
+      candidate_value: null,
+      locked_value: previous.candidate_value,
+      previous_value: previous.locked_value ?? previous.previous_value,
+      needs_user_confirmation: false,
+      why_status: previous.why_status ??
+        "Verrouillé par confirmation de la candidate précédente.",
+    };
+  }
+  if (
+    args.action === "confirm_proposed_field" &&
+    previous.status !== "proposed" &&
+    !incoming.locked_value &&
+    !incoming.candidate_value
+  ) {
+    auditRestored(
+      args.audit,
+      "support_need_state",
+      "missing_previous_offer",
+      args.action,
+    );
+    return previous;
+  }
+  if (incoming.status === "missing") {
+    if (previous.status !== "missing") {
+      auditPreserved(args.audit, "support_need_state");
+    }
+    return previous;
+  }
+  if (!actionAllowsSlotMutation(args.action, "support_need_state")) {
+    if (!sameJson(previous, incoming)) {
+      auditRestored(
+        args.audit,
+        "support_need_state",
+        "blocked_by_constraint",
+        args.action,
+      );
+    }
+    return previous;
+  }
+  if (incoming.status === "locked" && !incoming.locked_value) {
+    auditRestored(
+      args.audit,
+      "support_need_state",
+      "durable_need_missing",
+      args.action,
+    );
+    return previous;
+  }
+  if (incoming.status === "proposed" && !incoming.candidate_value) {
+    auditRestored(
+      args.audit,
+      "support_need_state",
+      "candidate_missing",
+      args.action,
+    );
+    return previous;
+  }
+  if (previous.status === "locked" && incoming.status !== "locked") {
+    auditRestored(
+      args.audit,
+      "support_need_state",
+      "invalid_status_transition",
+      args.action,
+    );
+    return previous;
+  }
+  const next = mergeSupportNeed(previous, incoming);
+  if (!sameJson(previous, next)) auditApplied(args.audit, "support_need_state");
+  else auditPreserved(args.audit, "support_need_state");
+  return next;
+}
+
+export function mergePrepareDefenseCardLocalState(args: {
+  previous: PrepareDefenseCardLocalState;
+  output: PrepareDefenseCardLocalDispatcherOutput;
+  transition?: PrepareDefenseCardLocalFlowAction;
+  now?: string;
+  constraints?: Record<string, unknown>;
+}): {
+  state: PrepareDefenseCardLocalState;
+  audit: PrepareDefenseCardStateMutationAudit;
+} {
+  void args.now;
+  void args.constraints;
+  const action = args.transition ?? args.output.flow_action;
+  const audit = createStateMutationAudit(args.output);
+  const previous = normalizePrepareDefenseCardLocalState(
+    args.previous,
+    createInitialPrepareDefenseCardLocalState(),
+  );
+  let route = previous.route_kind ?? "free_card";
+  if (args.output.route_kind && args.output.route_kind !== route) {
+    if (
+      actionAllowsSlotMutation(action, "route_kind") &&
+      previous.last_handoff_delivered !== true
+    ) {
+      route = args.output.route_kind;
+      auditApplied(audit, "route_kind");
+      auditApplied(audit, "platform_destination");
+    } else {
+      auditRestored(audit, "route_kind", "invalid_status_transition", action);
+      auditRestored(
+        audit,
+        "platform_destination",
+        "invalid_status_transition",
+        action,
+      );
+    }
+  } else {
+    auditPreserved(audit, "route_kind");
+    auditPreserved(audit, "platform_destination");
+  }
+  const toolFit = args.output.tool_fit_state.status === "ambiguous" &&
+      previous.tool_fit_state.status !== "ambiguous"
+    ? previous.tool_fit_state
+    : {
+      ...previous.tool_fit_state,
+      ...args.output.tool_fit_state,
+    };
+  if (!sameJson(previous.tool_fit_state, toolFit)) {
+    if (actionAllowsSlotMutation(action, "tool_fit_state")) {
+      auditApplied(audit, "tool_fit_state");
+    } else {
+      auditRestored(audit, "tool_fit_state", "blocked_by_constraint", action);
+    }
+  } else {
+    auditPreserved(audit, "tool_fit_state");
+  }
+  const safeToolFit = actionAllowsSlotMutation(action, "tool_fit_state")
+    ? toolFit
+    : previous.tool_fit_state;
+  return {
+    state: {
+      ...previous,
+      route_kind: route,
+      platform_destination: defenseCardPlatformDestinationForRoute(route),
+      tool_fit_state: safeToolFit,
+      attachment_state: mergeServerOwnedStatusSlot({
+        previous: previous.attachment_state,
+        incoming: args.output.attachment_state,
+        field: "attachment_state",
+        action,
+        audit,
+        allowLockedDowngrade: action === "revise_attachment" ||
+          action === "revise_current_field",
+      }),
+      risk_state: mergeServerOwnedStatusSlot({
+        previous: previous.risk_state,
+        incoming: args.output.risk_state,
+        field: "risk_state",
+        action,
+        audit,
+        allowLockedDowngrade: action === "revise_risk" ||
+          action === "revise_current_field",
+      }),
+      trigger_state: mergeServerOwnedStatusSlot({
+        previous: previous.trigger_state,
+        incoming: args.output.trigger_state,
+        field: "trigger_state",
+        action,
+        audit,
+        allowLockedDowngrade: action === "revise_current_field",
+      }),
+      defense_goal_state: mergeServerOwnedStatusSlot({
+        previous: previous.defense_goal_state,
+        incoming: args.output.defense_goal_state,
+        field: "defense_goal_state",
+        action,
+        audit,
+        allowLockedDowngrade: action === "revise_current_field",
+      }),
+      defense_response_hint_state: mergeServerOwnedStatusSlot({
+        previous: previous.defense_response_hint_state,
+        incoming: args.output.defense_response_hint_state,
+        field: "defense_response_hint_state",
+        action,
+        audit,
+        allowLockedDowngrade: action === "revise_current_field",
+      }),
+      support_need_state: mergeServerOwnedSupportNeed({
+        previous: previous.support_need_state,
+        incoming: args.output.support_need_state,
+        action,
+        audit,
+      }),
+      last_visible_task: previous.last_visible_task,
+      last_handoff_delivered: previous.last_handoff_delivered,
+      subskill_history: previous.subskill_history,
+    },
+    audit,
+  };
+}
+
 export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
   previous: PrepareDefenseCardLocalState | null;
   output: PrepareDefenseCardLocalDispatcherOutput;
 }): PrepareDefenseCardReducerResult {
-  const previous = args.previous ?? createInitialPrepareDefenseCardLocalState();
+  const previous = normalizePrepareDefenseCardLocalState(
+    args.previous,
+    createInitialPrepareDefenseCardLocalState(),
+  );
   const rawFlowAction = String((args.output as any)?.flow_action ?? "");
   const output: PrepareDefenseCardLocalDispatcherOutput =
     rawFlowAction === "handoff_to_local_dispatcher" ||
@@ -1538,6 +2069,12 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
         },
       }
       : args.output;
+  const merged = mergePrepareDefenseCardLocalState({
+    previous,
+    output,
+    transition: output.flow_action,
+  });
+  const mutationAudit = merged.audit;
   const toolFlags = {
     get_info_product: false,
     get_info_db: false,
@@ -1585,6 +2122,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (
@@ -1603,6 +2141,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "cancel_flow") {
@@ -1617,40 +2156,10 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
-  let reduced: PrepareDefenseCardLocalState = {
-    ...previous,
-    route_kind: output.route_kind ?? previous.route_kind ?? "free_card",
-    platform_destination: defenseCardPlatformDestinationForRoute(
-      output.route_kind ?? previous.route_kind ?? "free_card",
-    ),
-    tool_fit_state: output.tool_fit_state.status === "ambiguous" &&
-        previous.tool_fit_state.status !== "ambiguous"
-      ? previous.tool_fit_state
-      : { ...previous.tool_fit_state, ...output.tool_fit_state },
-    attachment_state: mergeStatusSlot(
-      previous.attachment_state,
-      output.attachment_state,
-    ),
-    risk_state: mergeStatusSlot(previous.risk_state, output.risk_state),
-    trigger_state: mergeStatusSlot(
-      previous.trigger_state,
-      output.trigger_state,
-    ),
-    defense_goal_state: mergeStatusSlot(
-      previous.defense_goal_state,
-      output.defense_goal_state,
-    ),
-    defense_response_hint_state: mergeStatusSlot(
-      previous.defense_response_hint_state,
-      output.defense_response_hint_state,
-    ),
-    support_need_state: mergeSupportNeed(
-      previous.support_need_state,
-      output.support_need_state,
-    ),
-  };
+  let reduced: PrepareDefenseCardLocalState = merged.state;
   const forceFirstTurnEnrichment = shouldForceFirstTurnEnrichment({
     previous,
     output,
@@ -1673,6 +2182,12 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
           "Proposition conservée; première passe d'enrichissement requise avant verrouillage.",
       },
     };
+    auditRestored(
+      mutationAudit,
+      "support_need_state",
+      "not_stabilized_enough",
+      output.flow_action,
+    );
   }
   if (
     [
@@ -1728,6 +2243,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       subskill_context: output.subskill_call.context_for_subskill,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "get_info_db") {
@@ -1744,6 +2260,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       subskill_context: output.subskill_call.context_for_subskill,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "safety_preempt") {
@@ -1760,6 +2277,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "apply_attempt") {
@@ -1777,6 +2295,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
         type: "create_defense_card",
         reason_code: "chat_creation_disabled_platform_handoff",
       }],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "repeat_handoff") {
@@ -1791,6 +2310,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "platform_destination_followup") {
@@ -1805,6 +2325,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (draft && ready) {
@@ -1824,13 +2345,21 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
+  const blockedReason = output.flow_action === "handoff_ready"
+    ? reduced.tool_fit_state.status !== "defense"
+      ? "not_stabilized_enough"
+      : !reduced.support_need_state.locked_value
+      ? "durable_need_missing"
+      : "direct_handoff_flag_missing"
+    : "prepare_defense_card_local_collecting";
   return {
     status: visibleTask === "clarify_attack_vs_defense"
       ? "clarifying"
       : "collecting",
-    reason_code: "prepare_defense_card_local_collecting",
+    reason_code: blockedReason,
     local_state: state,
     draft: null,
     visible_task: visibleTask,
@@ -1841,6 +2370,7 @@ export function reducePrepareDefenseCardLocalDispatcherOutput(args: {
     ...toolFlags,
     risk_assessment: output.risk_assessment,
     blocked_effects: [],
+    state_mutation_audit: mutationAudit,
   };
 }
 

@@ -11,6 +11,10 @@ import type {
 } from "./contract.ts";
 import { localDispatcherSystemPrompt } from "./local_dispatcher.ts";
 import { reduceClarificationLocalDispatcherOutput } from "./reducer.ts";
+import {
+  CLARIFICATION_FLOW_STATE_KEY,
+  readClarificationLocalState,
+} from "./state.ts";
 
 const candidates: ClarificationCandidateSignal[] = [{
   candidate_id: "product_help",
@@ -105,6 +109,7 @@ function output(
       structured_context: {},
       ...(overrides.note_information ?? {}),
     },
+    state_updates: overrides.state_updates,
     evidence: overrides.evidence ?? ["test"],
   };
 }
@@ -133,6 +138,27 @@ function previous(): ClarificationLocalState {
     created_at: now,
     updated_at: now,
     executable_from_chat: false,
+  };
+}
+
+function previousWithPending(): ClarificationLocalState {
+  return {
+    ...previous(),
+    pending_offer: {
+      offer_id: "offer-1",
+      question: "Tu veux l'explication ou la préparer ?",
+      candidate_ids: ["product_help", "prepare_attack_card"],
+    },
+    pending_confirmation: {
+      confirmation_id: "confirm-1",
+      candidate_id: "prepare_attack_card",
+      label: "préparer une carte d'attaque",
+    },
+    current_question: "Tu veux l'explication ou la préparer ?",
+    active_clarification_context: {
+      candidate_ids: ["product_help", "prepare_attack_card"],
+      current_question: "Tu veux l'explication ou la préparer ?",
+    },
   };
 }
 
@@ -206,7 +232,7 @@ Deno.test("clarification reducer rejects absent selected candidate", () => {
   });
   assertEquals(result.status, "continue");
   assertEquals(result.visible_task.kind, "ask_simpler_choice");
-  assertEquals(result.reason_code, "clarification_selected_candidate_absent");
+  assertEquals(result.reason_code, "candidate_missing");
   assertEquals(result.note_information, null);
 });
 
@@ -223,7 +249,7 @@ Deno.test("clarification reducer rejects low-confidence resolution", () => {
   assertEquals(result.status, "continue");
   assertEquals(
     result.reason_code,
-    "clarification_low_confidence_resolution_rejected",
+    "not_stabilized_enough",
   );
   assertEquals(result.note_information, null);
 });
@@ -337,6 +363,288 @@ Deno.test("clarification reducer anti false positive keeps continuation local", 
   assertEquals(result.exit_to_global_dispatcher, false);
   assertEquals(result.note_information, null);
   assertEquals(result.local_state?.status, "still_ambiguous");
+});
+
+Deno.test("clarification next turn preserves active candidates after question", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previous(),
+    output: output("ask_disambiguation", {
+      clarification_state: {
+        candidate_signals: [candidates[0]],
+        user_words: ["je ne sais pas encore"],
+      } as any,
+      state_updates: {
+        modified_fields: ["candidate_signals"],
+        clear_fields: [],
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(
+    result.local_state?.candidate_signals.map((candidate) =>
+      candidate.candidate_id
+    ),
+    ["product_help", "prepare_attack_card"],
+  );
+  assert(
+    result.state_mutation_audit.restored_fields.includes("candidate_signals"),
+  );
+  assertEquals(result.diagnosis.pending_offer_present, true);
+});
+
+Deno.test("clarification ambiguous answer preserves candidates and continues", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previous(),
+    output: output("still_ambiguous", {
+      clarification_state: {
+        selected_candidate_id: null,
+        candidate_signals: [],
+        user_words: ["je sais pas trop"],
+      } as any,
+      state_updates: {
+        clear_fields: ["candidate_signals", "pending_offer"],
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.local_state?.status, "still_ambiguous");
+  assertEquals(result.local_state?.candidate_signals.length, 2);
+  assert(
+    result.state_mutation_audit.restored_fields.includes("candidate_signals"),
+  );
+  assert(
+    result.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "candidate_signals" &&
+      change.reason_code === "clear_not_allowed_for_transition"
+    ),
+  );
+});
+
+Deno.test("clarification invalid confirmation preserves pending offer and confirmation", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previousWithPending(),
+    output: output("resolved_to_candidate", {
+      confidence: "medium",
+      clarification_state: {
+        selected_candidate_id: null,
+        user_words: ["oui enfin pas exactement"],
+      } as any,
+      state_updates: {
+        clear_fields: ["pending_offer", "pending_confirmation"],
+      },
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.reason_code, "selected_option_missing");
+  assertEquals(result.local_state?.pending_offer?.offer_id, "offer-1");
+  assertEquals(
+    result.local_state?.pending_confirmation?.confirmation_id,
+    "confirm-1",
+  );
+  assert(result.state_mutation_audit.restored_fields.includes("pending_offer"));
+  assert(
+    result.state_mutation_audit.restored_fields.includes(
+      "pending_confirmation",
+    ),
+  );
+});
+
+Deno.test("clarification clear answer locks resolved candidate", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previous(),
+    output: output("resolved_to_candidate", {
+      confidence: "high",
+      clarification_state: {
+        selected_candidate_id: "prepare_attack_card",
+        user_words: ["je veux préparer"],
+      } as any,
+    }),
+  });
+
+  assertEquals(result.status, "resolved");
+  assertEquals(result.selected_candidate?.candidate_id, "prepare_attack_card");
+  assertEquals(
+    (result.note_information?.structured_context as any).resolved_candidate
+      .candidate_id,
+    "prepare_attack_card",
+  );
+  assertEquals(
+    ((result.note_information?.structured_context as any).rejected_candidates as
+      ClarificationCandidateSignal[]).map((candidate) => candidate.candidate_id),
+    ["product_help"],
+  );
+  assert(result.state_mutation_audit.cleared_fields.includes("pending_offer"));
+});
+
+Deno.test("clarification valid confirmation closes active state with handoff note", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previousWithPending(),
+    output: output("resolved_to_candidate", {
+      confidence: "high",
+      clarification_state: {
+        selected_candidate_id: "prepare_attack_card",
+        user_words: ["oui prépare la carte"],
+      } as any,
+    }),
+  });
+
+  assertEquals(result.status, "resolved");
+  assertEquals(result.local_state, null);
+  assertEquals(result.note_information?.target_dispatcher, "prepare_attack_card");
+  assertEquals(result.diagnosis.direct_handoff_flag_present, true);
+  assert(result.state_mutation_audit.cleared_fields.includes("pending_offer"));
+  assert(
+    result.state_mutation_audit.cleared_fields.includes(
+      "pending_confirmation",
+    ),
+  );
+});
+
+Deno.test("clarification explicit refusal clears pending without durable effect", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previousWithPending(),
+    output: output("cancel_clarification", {
+      clarification_state: {
+        user_words: ["non laisse tomber"],
+      } as any,
+    }),
+  });
+
+  assertEquals(result.status, "cancelled");
+  assertEquals(result.local_state, null);
+  assertEquals(result.note_information, null);
+  assertEquals(result.blocked_effects, []);
+  assert(result.state_mutation_audit.cleared_fields.includes("pending_offer"));
+});
+
+Deno.test("clarification explicit correction replaces only the matching candidate", () => {
+  const correctedAttack = {
+    ...candidates[1],
+    label: "préparer une carte d'attaque pour le réveil",
+    why_plausible: "Correction explicite vers le réveil.",
+  };
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previous(),
+    output: output("revise_understanding", {
+      clarification_state: {
+        candidate_signals: [correctedAttack],
+        user_words: ["non je parle du réveil"],
+      } as any,
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.local_state?.candidate_signals.length, 2);
+  assertEquals(
+    result.local_state?.candidate_signals.find((candidate) =>
+      candidate.candidate_id === "prepare_attack_card"
+    )?.label,
+    "préparer une carte d'attaque pour le réveil",
+  );
+  assertEquals(
+    result.local_state?.candidate_signals.find((candidate) =>
+      candidate.candidate_id === "product_help"
+    )?.label,
+    "une explication sur Sophia",
+  );
+});
+
+Deno.test("clarification topic change exits cleanly with exit memo", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previous(),
+    output: output("exit_to_global_dispatcher", {
+      state_updates: {
+        clear_fields: ["candidate_signals", "pending_offer"],
+      },
+    }),
+  });
+
+  assertEquals(result.status, "topic_change");
+  assertEquals(result.local_state, null);
+  assertEquals(result.note_information?.target_dispatcher, "global");
+  assertEquals(
+    (result.note_information?.structured_context as any).exit_memo
+      .source_flow_id,
+    "clarification",
+  );
+  assert(result.state_mutation_audit.cleared_fields.includes("candidate_signals"));
+});
+
+Deno.test("clarification non-actionable mention does not handoff", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previousWithPending(),
+    output: output("explain_candidate_options", {
+      clarification_state: {
+        selected_candidate_id: null,
+        user_words: ["une carte attaque c'est quoi déjà ?"],
+      } as any,
+    }),
+  });
+
+  assertEquals(result.status, "continue");
+  assertEquals(result.note_information, null);
+  assertEquals(result.exit_to_global_dispatcher, false);
+  assertEquals(result.local_state?.pending_offer?.offer_id, "offer-1");
+  assertEquals(result.diagnosis.direct_handoff_flag_present, false);
+});
+
+Deno.test("clarification legacy active state remains readable", () => {
+  const legacy = {
+    [CLARIFICATION_FLOW_STATE_KEY]: {
+      skill_id: "clarification",
+      mode: "local_flow",
+      clarification_id: "legacy-clar",
+      status: "asking",
+      turn_count: 1,
+      candidate_signals: candidates,
+      source_dispatcher: "global",
+      ambiguity_kind: "intent",
+      conflict_summary: "legacy conflict",
+    },
+  };
+
+  const state = readClarificationLocalState(legacy);
+  assertEquals(state?.clarification_id, "legacy-clar");
+  assertEquals(state?.max_turns, 4);
+  assertEquals(state?.candidate_signals.length, 2);
+  assertEquals(state?.pending_offer, null);
+});
+
+Deno.test("clarification partial legacy state is not used as valid active state", () => {
+  const partial = {
+    [CLARIFICATION_FLOW_STATE_KEY]: {
+      skill_id: "clarification",
+      mode: "local_flow",
+      clarification_id: "legacy-partial",
+      status: "asking",
+      turn_count: 1,
+      candidate_signals: [],
+    },
+  };
+
+  assertEquals(readClarificationLocalState(partial), null);
+});
+
+Deno.test("clarification reducer exposes mutation audit in diagnosis", () => {
+  const result = reduceClarificationLocalDispatcherOutput({
+    previous: previous(),
+    output: output("still_ambiguous", {
+      state_updates: {
+        modified_fields: ["source_flow_id"],
+      },
+    }),
+  });
+
+  assert(result.diagnosis.state_mutation_audit.server_owned_fields.includes(
+    "source_flow_id",
+  ));
+  assert(result.diagnosis.state_mutation_audit.restored_fields.includes(
+    "source_flow_id",
+  ));
+  assertEquals(result.diagnosis.candidate_count, 2);
 });
 
 Deno.test("clarification reducer inline product/status keeps parent flow", () => {

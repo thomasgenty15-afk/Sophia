@@ -235,6 +235,8 @@ export function visibleSystemPrompt(
     "Tu reçois uniquement visible_task.conversation_context, déjà filtré par le dispatcher local et le reducer.",
     "N'utilise aucune connaissance DB, mémoire brute, historique brut ou état local non présent dans conversation_context.",
     "Tu dois formuler naturellement, sans template fixe, sans renderer déterministe et sans modèle répétitif.",
+    "Avant de parler de l'action ou du blocage, adapte les informations de conversation_context au point de vue du user: ne recopie pas betement les slots bruts, transforme les possessifs et resume les phrases longues si besoin.",
+    "Exemple: si la cible brute est 'ranger mes papiers demain matin' et que le blocage brut est 'je vais vouloir tout trier parfaitement et ca va me bloquer', ne dis pas 'je t'aide a ranger mes papiers'; dis plutot 'pour ton rangement de papiers demain matin' et resume le blocage comme 'le piege du tri parfait'.",
     "Le chat ne crée jamais de carte d'attaque. Ne prétends jamais avoir créé, ajouté, activé, sauvegardé ou lancé une carte.",
     "Après une révision, ne prétends jamais avoir pris en compte, noté, gardé, mémorisé, enregistré ou sauvegardé la nouvelle formulation; donne seulement la formulation actuelle à recopier.",
     "N'invente jamais de technique. Labels autorisés uniquement: Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain, Mot de bascule.",

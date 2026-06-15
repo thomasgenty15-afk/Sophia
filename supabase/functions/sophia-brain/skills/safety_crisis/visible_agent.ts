@@ -88,7 +88,10 @@ const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
   product_tool_boundary: [
     "Stage product_tool_boundary.",
     "Differer la demande produit, outil, plan, potion, carte, rappel ou statut mentionnee dans conversation_context.handoff_data.deferred_product_or_tool_request.",
-    "Ne lance rien, ne confirme rien, ne donne pas de chemin plateforme. Reviens a une seule prochaine action safety.",
+    "Ne redige pas le contenu demande: aucune carte, aucun plan, aucune potion, aucun statut, aucun texte pret a copier-coller, aucun titre d'artefact, aucune liste de personnalisation produit.",
+    "Ne demande pas d'horaire, de details produit, de destination plateforme ou de confirmation pour cette demande differee.",
+    "Dis simplement que tu le gardes de cote pour apres la stabilisation, puis reviens a une seule prochaine action safety.",
+    "Exception: les rappels ponctuels explicitement autorises ne passent pas par ce stage; si tu es dans ce stage, aucun rappel ne doit etre confirme.",
   ].join("\n"),
   stop_or_cancel: [
     "Stage stop_or_cancel.",
@@ -159,6 +162,26 @@ function validateVisibleMessage(
     message.normalize("NFD").toLowerCase().indexOf("c'est resolu") >= 0
   ) {
     return { ok: false, reason: "premature_resolution_claim" };
+  }
+  if (task.kind === "product_tool_boundary") {
+    const normalized = message.normalize("NFD").toLowerCase();
+    const blockedArtifactMarkers = [
+      "carte -",
+      "carte –",
+      "carte:",
+      "plan -",
+      "plan –",
+      "potion -",
+      "potion –",
+      "statut -",
+      "statut –",
+      "prete a copier",
+      "pret a copier",
+      "copier-coller",
+    ];
+    if (blockedArtifactMarkers.some((marker) => normalized.includes(marker))) {
+      return { ok: false, reason: "product_artifact_generated" };
+    }
   }
   return { ok: true, reason: null };
 }

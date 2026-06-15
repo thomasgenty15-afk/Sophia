@@ -5,6 +5,7 @@ import {
 import type { ClarteDispatcherOutput } from "../contract.ts";
 import {
   createInitialClarteState,
+  normalizeClarteDispatcherOutput,
   reduceClarteDispatcherOutput,
 } from "./clarte_flow.ts";
 
@@ -49,12 +50,6 @@ function decision(
       flow_summary: null,
       collected_value: fieldState.locked_value ?? fieldState.candidate_value,
       handoff_hint_for_global_dispatcher: null,
-    },
-    executable_from_chat: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
     },
     risk_assessment: overrides.risk_assessment ?? {
       risk_score: 0,
@@ -361,5 +356,206 @@ Deno.test("clarte reducer routes status recap inline with local context", () => 
   assertEquals(
     reduced.subskill_context?.active_flow,
     "select_state_potion.clarte",
+  );
+});
+
+Deno.test("clarte reducer preserves bridge context on next turn", () => {
+  const originBridgeContext = {
+    origin_flow: "purpose_anchor",
+    selected_potion: "clarte",
+    note_information: {
+      target_flow: "select_state_potion.clarte",
+    },
+  };
+  const previous = createInitialClarteState(null, originBridgeContext);
+  const reduced = reduceClarteDispatcherOutput({
+    previous,
+    decision: decision({
+      field_state: {
+        status: "proposed",
+        candidate_value: "Je ne comprends plus pourquoi ce plan compte.",
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: true,
+        why_status: "Proposition à confirmer.",
+      },
+    }),
+  });
+
+  assertEquals(
+    reduced.clarte_state?.origin_bridge_context,
+    originBridgeContext,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "origin_bridge_context",
+    ),
+    true,
+  );
+});
+
+Deno.test("clarte reducer preserves filled slot on invalid clarification", () => {
+  const value = "Je fais les actions, mais elles n'ont plus de sens pour moi.";
+  const previous = {
+    ...createInitialClarteState(null),
+    field_state: {
+      status: "locked" as const,
+      candidate_value: null,
+      locked_value: value,
+      previous_value: null,
+      needs_user_confirmation: false,
+      why_status: "locked",
+    },
+  };
+  const reduced = reduceClarteDispatcherOutput({
+    previous,
+    decision: decision({
+      field_state: {
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "Clarification invalide.",
+      },
+    }),
+  });
+
+  assertEquals(reduced.clarte_state?.field_state.locked_value, value);
+  assertEquals(reduced.visible_task, "handoff_ready");
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes("field_state"),
+    true,
+  );
+});
+
+Deno.test("clarte reducer invalid confirmation keeps pending field", () => {
+  const previous = createInitialClarteState(null);
+  const reduced = reduceClarteDispatcherOutput({
+    previous,
+    decision: decision({
+      flow_action: "confirm_proposed_field",
+      field_state: {
+        status: "locked",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "Confirmation sans proposition.",
+      },
+    }),
+  });
+
+  assertEquals(reduced.reason_code, "clarte_pending_confirmation_missing");
+  assertEquals(reduced.clarte_state?.field_state.status, "missing");
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((item) =>
+      item.reason_code === "pending_confirmation_missing"
+    ),
+    true,
+  );
+});
+
+Deno.test("clarte reducer explicit revision replaces only the field", () => {
+  const originBridgeContext = { origin_flow: "purpose_anchor" };
+  const oldValue = "Je ne vois plus le lien avec mon pourquoi.";
+  const newValue =
+    "Je fais les actions, mais je ne sens plus pourquoi elles comptent.";
+  const previous = {
+    ...createInitialClarteState(null, originBridgeContext),
+    field_state: {
+      status: "locked" as const,
+      candidate_value: null,
+      locked_value: oldValue,
+      previous_value: null,
+      needs_user_confirmation: false,
+      why_status: "old",
+    },
+  };
+  const reduced = reduceClarteDispatcherOutput({
+    previous,
+    decision: decision({
+      flow_action: "revise_current_field",
+      revision: {
+        is_revision: true,
+        replacement_value: newValue,
+        replaces_previous_value: true,
+      },
+    }),
+  });
+
+  assertEquals(reduced.clarte_state?.field_state.locked_value, newValue);
+  assertEquals(
+    reduced.clarte_state?.origin_bridge_context,
+    originBridgeContext,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.applied_fields.includes("field_state"),
+    true,
+  );
+});
+
+Deno.test("clarte normalizer does not let another potion replace selection", () => {
+  const normalized = normalizeClarteDispatcherOutput({
+    flow_action: "answer_current_field",
+    confidence: "high",
+    selected_potion: "amour",
+    field_id: "plan_meaning_loss_reason",
+    field_state: {
+      status: "missing",
+      candidate_value: null,
+      locked_value: null,
+      previous_value: null,
+      needs_user_confirmation: false,
+      why_status: "Mention non corrective d'une autre potion.",
+    },
+    revision: {
+      is_revision: false,
+      replacement_value: null,
+      replaces_previous_value: false,
+    },
+    visible_task: { kind: "ask_deeper" },
+    exit_memo: {
+      needed: false,
+      reason: "none",
+      flow_summary: null,
+      collected_value: null,
+      handoff_hint_for_global_dispatcher: null,
+    },
+    risk_assessment: {
+      risk_score: 0,
+      risk_band: "none",
+      safety_preempt: false,
+      reason_codes: [],
+    },
+    evidence: ["test"],
+  });
+
+  assertEquals(normalized.selected_potion, "clarte");
+});
+
+Deno.test("clarte reducer delivered handoff closes stage with audit", () => {
+  const value = "Je veux comprendre pourquoi ce plan ne me parle plus.";
+  const reduced = reduceClarteDispatcherOutput({
+    previous: createInitialClarteState(null),
+    decision: decision({
+      field_state: {
+        status: "locked",
+        candidate_value: null,
+        locked_value: value,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "Réponse claire.",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "handoff_delivered");
+  assertEquals(reduced.clarte_state?.last_handoff_delivered, true);
+  assertEquals(
+    reduced.state_mutation_audit.applied_fields.includes(
+      "last_handoff_delivered",
+    ),
+    true,
   );
 });

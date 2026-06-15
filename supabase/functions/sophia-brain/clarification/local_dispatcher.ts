@@ -499,6 +499,9 @@ export function normalizeClarificationLocalDispatcherOutput(args: {
       inlineRoot.kind ?? inlineRoot.tool_name,
     );
   const noteRoot = isRecord(root.note_information) ? root.note_information : {};
+  const stateUpdatesRoot = isRecord(root.state_updates)
+    ? root.state_updates
+    : {};
   return {
     flow_action: action,
     confidence: confidence(root.confidence),
@@ -610,6 +613,10 @@ export function normalizeClarificationLocalDispatcherOutput(args: {
       user_words: stringArray(noteRoot.user_words, 3),
       structured_context: objectValue(noteRoot.structured_context),
       confidence: confidence(noteRoot.confidence),
+    },
+    state_updates: {
+      modified_fields: stringArray(stateUpdatesRoot.modified_fields, 12),
+      clear_fields: stringArray(stateUpdatesRoot.clear_fields, 12),
     },
     evidence: stringArray(root.evidence),
   };

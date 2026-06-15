@@ -68,7 +68,19 @@ export type CoachPreferenceReducerResult = {
   exit_to_global_dispatcher: boolean;
   safety_preempt: boolean;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: CoachPreferenceStateMutationAudit;
   evidence: string[];
+};
+
+export type CoachPreferenceStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{ field: string; reason_code: string }>;
 };
 
 const FLOW_ACTIONS = new Set([
@@ -143,6 +155,28 @@ const SUPPORT_STATUSES = new Set([
 
 const UPDATE_STATUSES = new Set(["missing", "proposed", "locked", "rejected"]);
 const RISK_WRITE_THRESHOLD = 6;
+const SERVER_OWNED_STATE_FIELDS = [
+  "status",
+  "current_stage",
+  "proposed_updates",
+  "last_committed_updates",
+  "unsupported_parts",
+  "subskill_history",
+  "turn_count",
+  "created_at",
+  "updated_at",
+];
+
+type CoachPreferenceStateTransition =
+  | "collecting"
+  | "proposal"
+  | "write_ready"
+  | "blocked"
+  | "unsupported"
+  | "cancelled"
+  | "exit"
+  | "safety"
+  | "punctual";
 
 function stringValue(value: unknown): string {
   return String(value ?? "").trim();
@@ -685,6 +719,190 @@ export function createCoachPreferenceLocalFlowState(args: {
   };
 }
 
+function sameJson(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function emptyStateMutationAudit(): CoachPreferenceStateMutationAudit {
+  return {
+    server_owned_fields: [...SERVER_OWNED_STATE_FIELDS],
+    modified_fields_declared: [],
+    clear_fields_declared: [],
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+export function mergeCoachPreferenceLocalState(args: {
+  previous: CoachPreferenceLocalFlowState | null;
+  transition: CoachPreferenceStateTransition;
+  status: CoachPreferenceLocalFlowState["status"];
+  currentStage: CoachPreferenceLocalFlowState["current_stage"];
+  proposedUpdates?: CoachPreferenceLocalUpdate[];
+  lastCommittedUpdates?: CoachPreferenceLocalUpdate[];
+  unsupportedParts?: string[];
+  subskillHistory?: CoachPreferenceLocalFlowState["subskill_history"];
+}): {
+  state: CoachPreferenceLocalFlowState;
+  audit: CoachPreferenceStateMutationAudit;
+} {
+  const audit = emptyStateMutationAudit();
+  const previousProposed = args.previous?.proposed_updates ?? [];
+  const previousUnsupported = args.previous?.unsupported_parts ?? [];
+  const previousCommitted = args.previous?.last_committed_updates ?? [];
+  const previousSubskillHistory = args.previous?.subskill_history ?? [];
+  const transitionMayClear = new Set<CoachPreferenceStateTransition>([
+    "write_ready",
+    "cancelled",
+    "exit",
+    "safety",
+    "punctual",
+  ]).has(args.transition);
+  const transitionMayReplaceProposal = new Set<CoachPreferenceStateTransition>([
+    "proposal",
+    "write_ready",
+    "cancelled",
+    "exit",
+    "safety",
+    "punctual",
+  ]).has(args.transition);
+  const transitionMayReplaceUnsupported = new Set<
+    CoachPreferenceStateTransition
+  >([
+    "proposal",
+    "write_ready",
+    "blocked",
+    "unsupported",
+    "cancelled",
+    "exit",
+    "safety",
+    "punctual",
+  ]).has(args.transition);
+
+  let proposedUpdates = previousProposed;
+  if (typeof args.proposedUpdates === "undefined") {
+    audit.preserved_fields.push("proposed_updates");
+  } else if (
+    args.proposedUpdates.length === 0 && previousProposed.length > 0 &&
+    !transitionMayClear
+  ) {
+    proposedUpdates = previousProposed;
+    audit.restored_fields.push("proposed_updates");
+    audit.rejected_changes.push({
+      field: "proposed_updates",
+      reason_code: "unauthorized_clear_pending_offer",
+    });
+  } else if (sameJson(args.proposedUpdates, previousProposed)) {
+    proposedUpdates = previousProposed;
+    audit.preserved_fields.push("proposed_updates");
+  } else if (transitionMayReplaceProposal) {
+    proposedUpdates = args.proposedUpdates;
+    if (args.proposedUpdates.length === 0 && previousProposed.length > 0) {
+      audit.cleared_fields.push("proposed_updates");
+    } else if (!sameJson(args.proposedUpdates, previousProposed)) {
+      audit.applied_fields.push("proposed_updates");
+    } else {
+      audit.preserved_fields.push("proposed_updates");
+    }
+  } else {
+    proposedUpdates = previousProposed;
+    audit.restored_fields.push("proposed_updates");
+    audit.rejected_changes.push({
+      field: "proposed_updates",
+      reason_code: "invalid_status_transition",
+    });
+  }
+
+  let unsupportedParts = previousUnsupported;
+  if (typeof args.unsupportedParts === "undefined") {
+    audit.preserved_fields.push("unsupported_parts");
+  } else if (
+    args.unsupportedParts.length === 0 && previousUnsupported.length > 0 &&
+    !transitionMayClear
+  ) {
+    unsupportedParts = previousUnsupported;
+    audit.restored_fields.push("unsupported_parts");
+    audit.rejected_changes.push({
+      field: "unsupported_parts",
+      reason_code: "unauthorized_clear_flow_context",
+    });
+  } else if (sameJson(args.unsupportedParts, previousUnsupported)) {
+    unsupportedParts = previousUnsupported;
+    audit.preserved_fields.push("unsupported_parts");
+  } else if (transitionMayReplaceUnsupported) {
+    unsupportedParts = args.unsupportedParts;
+    if (args.unsupportedParts.length === 0 && previousUnsupported.length > 0) {
+      audit.cleared_fields.push("unsupported_parts");
+    } else if (!sameJson(args.unsupportedParts, previousUnsupported)) {
+      audit.applied_fields.push("unsupported_parts");
+    } else {
+      audit.preserved_fields.push("unsupported_parts");
+    }
+  } else {
+    unsupportedParts = previousUnsupported;
+    audit.restored_fields.push("unsupported_parts");
+    audit.rejected_changes.push({
+      field: "unsupported_parts",
+      reason_code: "invalid_status_transition",
+    });
+  }
+
+  const lastCommittedUpdates = args.lastCommittedUpdates ??
+    previousCommitted;
+  if (typeof args.lastCommittedUpdates === "undefined") {
+    audit.preserved_fields.push("last_committed_updates");
+  } else if (!sameJson(lastCommittedUpdates, previousCommitted)) {
+    audit.applied_fields.push("last_committed_updates");
+  } else {
+    audit.preserved_fields.push("last_committed_updates");
+  }
+
+  const subskillHistory = args.subskillHistory ?? previousSubskillHistory;
+  if (typeof args.subskillHistory === "undefined") {
+    audit.preserved_fields.push("subskill_history");
+  } else if (!sameJson(subskillHistory, previousSubskillHistory)) {
+    audit.applied_fields.push("subskill_history");
+  } else {
+    audit.preserved_fields.push("subskill_history");
+  }
+
+  if (args.previous?.status === args.status) {
+    audit.preserved_fields.push("status");
+  } else {
+    audit.applied_fields.push("status");
+  }
+  if (args.previous?.current_stage === args.currentStage) {
+    audit.preserved_fields.push("current_stage");
+  } else {
+    audit.applied_fields.push("current_stage");
+  }
+  audit.applied_fields.push("turn_count", "updated_at");
+  if (!args.previous?.created_at) audit.applied_fields.push("created_at");
+  else audit.preserved_fields.push("created_at");
+
+  return {
+    state: createCoachPreferenceLocalFlowState({
+      previous: args.previous,
+      status: args.status,
+      currentStage: args.currentStage,
+      proposedUpdates,
+      lastCommittedUpdates,
+      unsupportedParts,
+      subskillHistory,
+    }),
+    audit: {
+      ...audit,
+      applied_fields: [...new Set(audit.applied_fields)],
+      preserved_fields: [...new Set(audit.preserved_fields)],
+      restored_fields: [...new Set(audit.restored_fields)],
+      cleared_fields: [...new Set(audit.cleared_fields)],
+    },
+  };
+}
+
 function validationIssues(
   updates: CoachPreferenceLocalUpdate[],
 ): string[] {
@@ -734,15 +952,30 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     }),
     output.visible_task.conversation_context,
   );
+  const mergedState = (stateArgs: {
+    transition: CoachPreferenceStateTransition;
+    status: CoachPreferenceLocalFlowState["status"];
+    currentStage: CoachPreferenceLocalFlowState["current_stage"];
+    proposedUpdates?: CoachPreferenceLocalUpdate[];
+    lastCommittedUpdates?: CoachPreferenceLocalUpdate[];
+    unsupportedParts?: string[];
+  }) =>
+    mergeCoachPreferenceLocalState({
+      previous: args.previous,
+      ...stateArgs,
+    });
   if (output.flow_action === "exit_to_global_dispatcher") {
+    const mutation = mergedState({
+      transition: "exit",
+      status: "exit",
+      currentStage: "done",
+      proposedUpdates: [],
+      unsupportedParts: [],
+    });
     return {
       status: "exit",
       reason_code: "update_coach_preferences_local_exit_to_global_dispatcher",
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "exit",
-        currentStage: "done",
-      }),
+      local_state: mutation.state,
       visible_task: "exit_or_cancel",
       conversation_context: mergeConversationContext(conversationContext, {
         field_or_stage: "done",
@@ -752,6 +985,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
       exit_to_global_dispatcher: true,
       safety_preempt: false,
       blocked_effects: [],
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
@@ -759,14 +993,17 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     output.flow_action === "cancel_flow" ||
     output.flow_action === "complete_flow"
   ) {
+    const mutation = mergedState({
+      transition: "cancelled",
+      status: "cancelled",
+      currentStage: "done",
+      proposedUpdates: [],
+      unsupportedParts: [],
+    });
     return {
       status: "cancelled",
       reason_code: "update_coach_preferences_local_cancelled",
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "cancelled",
-        currentStage: "done",
-      }),
+      local_state: mutation.state,
       visible_task: "exit_or_cancel",
       conversation_context: mergeConversationContext(conversationContext, {
         field_or_stage: "done",
@@ -776,6 +1013,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       safety_preempt: false,
       blocked_effects: [],
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
@@ -784,16 +1022,17 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     (output.preference_intent.kind === "punctual_instruction" &&
       output.preference_intent.durability === "punctual")
   ) {
+    const mutation = mergedState({
+      transition: "punctual",
+      status: "cancelled",
+      currentStage: "done",
+      proposedUpdates: [],
+      unsupportedParts: output.unsupported_parts,
+    });
     return {
       status: "cancelled",
       reason_code: "update_coach_preferences_punctual_instruction_ack",
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "cancelled",
-        currentStage: "done",
-        proposedUpdates: [],
-        unsupportedParts: output.unsupported_parts,
-      }),
+      local_state: mutation.state,
       visible_task: "punctual_instruction_ack",
       conversation_context: mergeConversationContext(conversationContext, {
         field_or_stage: "done",
@@ -817,6 +1056,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       safety_preempt: false,
       blocked_effects: [],
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
@@ -824,17 +1064,19 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     output.flow_action === "safety_preempt" ||
     output.risk_score > RISK_WRITE_THRESHOLD
   ) {
+    const mutation = mergedState({
+      transition: "safety",
+      status: "blocked",
+      currentStage: "done",
+      proposedUpdates: [],
+      unsupportedParts: output.unsupported_parts,
+    });
     return {
       status: "blocked",
       reason_code: output.flow_action === "safety_preempt"
         ? "update_coach_preferences_safety_preempt"
         : "update_coach_preferences_risk_score_blocked",
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "blocked",
-        currentStage: "done",
-        unsupportedParts: output.unsupported_parts,
-      }),
+      local_state: mutation.state,
       visible_task: output.flow_action === "safety_preempt"
         ? "safety_transition"
         : "write_failed_or_blocked",
@@ -860,6 +1102,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
           ? "safety_preempt"
           : "risk_score_blocked",
       }],
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
@@ -874,16 +1117,17 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     : output.preference_updates;
   const issues = validationIssues(proposedUpdates);
   if (issues.length > 0) {
+    const mutation = mergedState({
+      transition: "blocked",
+      status: "blocked",
+      currentStage: "setting",
+      proposedUpdates: args.previous?.proposed_updates ?? [],
+      unsupportedParts: output.unsupported_parts,
+    });
     return {
       status: "blocked",
       reason_code: `update_coach_preferences_${issues[0]}`,
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "blocked",
-        currentStage: "setting",
-        proposedUpdates: [],
-        unsupportedParts: output.unsupported_parts,
-      }),
+      local_state: mutation.state,
       visible_task: "write_failed_or_blocked",
       conversation_context: mergeConversationContext(conversationContext, {
         write_result: {
@@ -900,6 +1144,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
         type: "update_coach_preferences",
         reason_code,
       })),
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
@@ -908,26 +1153,26 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     update.status === "proposed" || update.needs_user_confirmation
   );
   if (hasProposed || output.flow_action === "propose_supported_mapping") {
+    const nextProposedUpdates = proposedUpdates.filter((update) =>
+      update.status !== "rejected" && update.status !== "missing"
+    );
+    const mutation = mergedState({
+      transition: "proposal",
+      status: "proposed",
+      currentStage: "confirmation",
+      proposedUpdates: nextProposedUpdates,
+      unsupportedParts: output.unsupported_parts,
+    });
     return {
       status: "proposed",
       reason_code: "update_coach_preferences_mapping_proposed",
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "proposed",
-        currentStage: "confirmation",
-        proposedUpdates: proposedUpdates.filter((update) =>
-          update.status !== "rejected" && update.status !== "missing"
-        ),
-        unsupportedParts: output.unsupported_parts,
-      }),
+      local_state: mutation.state,
       visible_task: "confirm_supported_mapping",
       conversation_context: mergeConversationContext(conversationContext, {
         field_or_stage: "confirmation",
         known_values: {
           ...conversationContext.known_values,
-          proposed_updates: proposedUpdates.filter((update) =>
-            update.status !== "rejected" && update.status !== "missing"
-          ),
+          proposed_updates: nextProposedUpdates,
         },
       }),
       note_information: null,
@@ -935,6 +1180,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       safety_preempt: false,
       blocked_effects: [],
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
@@ -962,17 +1208,18 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
       reason: update.reason ||
         "Mapping partiel vers un réglage durable supporté.",
     }));
+    const mutation = mergedState({
+      transition: "proposal",
+      status: "proposed",
+      currentStage: "confirmation",
+      proposedUpdates: confirmationUpdates,
+      unsupportedParts: output.unsupported_parts,
+    });
     return {
       status: "proposed",
       reason_code:
         "update_coach_preferences_partial_mapping_requires_confirmation",
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "proposed",
-        currentStage: "confirmation",
-        proposedUpdates: confirmationUpdates,
-        unsupportedParts: output.unsupported_parts,
-      }),
+      local_state: mutation.state,
       visible_task: "confirm_supported_mapping",
       conversation_context: mergeConversationContext(conversationContext, {
         field_or_stage: "confirmation",
@@ -996,11 +1243,18 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       safety_preempt: false,
       blocked_effects: [],
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
+  const missingPreviousOffer =
+    output.flow_action === "confirm_proposed_mapping" &&
+    output.preference_updates.length === 0 &&
+    (args.previous?.proposed_updates ?? []).length === 0;
   const writeBlockedReason = output.confidence === "low"
     ? "low_confidence"
+    : missingPreviousOffer
+    ? "missing_previous_offer"
     : output.preference_intent.kind !== "durable_supported"
     ? "intent_not_durable_supported"
     : output.preference_intent.durability !== "durable"
@@ -1016,18 +1270,18 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     output.flow_action === "confirm_proposed_mapping"
   ) {
     if (writeBlockedReason) {
+      const mutation = mergedState({
+        transition: "blocked",
+        status: "blocked",
+        currentStage: "setting",
+        proposedUpdates: args.previous?.proposed_updates ??
+          proposedUpdates.filter((update) => update.status !== "locked"),
+        unsupportedParts: output.unsupported_parts,
+      });
       return {
         status: "blocked",
         reason_code: `update_coach_preferences_${writeBlockedReason}`,
-        local_state: createCoachPreferenceLocalFlowState({
-          previous: args.previous,
-          status: "blocked",
-          currentStage: "setting",
-          proposedUpdates: proposedUpdates.filter((update) =>
-            update.status !== "locked"
-          ),
-          unsupportedParts: output.unsupported_parts,
-        }),
+        local_state: mutation.state,
         visible_task: "write_failed_or_blocked",
         conversation_context: mergeConversationContext(conversationContext, {
           write_result: {
@@ -1044,20 +1298,21 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
           type: "update_coach_preferences",
           reason_code: writeBlockedReason,
         }],
+        state_mutation_audit: mutation.audit,
         evidence,
       };
     }
+    const mutation = mergedState({
+      transition: "write_ready",
+      status: "write_ready",
+      currentStage: "done",
+      proposedUpdates: [],
+      unsupportedParts: output.unsupported_parts,
+    });
     return {
       status: "write_ready",
       reason_code: "update_coach_preferences_write_ready",
-      local_state: createCoachPreferenceLocalFlowState({
-        previous: args.previous,
-        status: "write_ready",
-        currentStage: "done",
-        proposedUpdates: [],
-        lastCommittedUpdates: [],
-        unsupportedParts: output.unsupported_parts,
-      }),
+      local_state: mutation.state,
       visible_task: "preference_saved",
       conversation_context: mergeConversationContext(conversationContext, {
         field_or_stage: "done",
@@ -1077,6 +1332,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       safety_preempt: false,
       blocked_effects: [],
+      state_mutation_audit: mutation.audit,
       evidence,
     };
   }
@@ -1086,16 +1342,21 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     : output.missing_decisions.includes("value")
     ? "value"
     : "setting";
+  const isUnsupportedPreference =
+    output.flow_action === "unsupported_preference" ||
+    output.preference_intent.kind === "durable_unsupported" ||
+    output.preference_intent.support_status === "unsupported";
+  const mutation = mergedState({
+    transition: isUnsupportedPreference ? "unsupported" : "collecting",
+    status: "collecting",
+    currentStage: stage,
+    proposedUpdates: args.previous?.proposed_updates ?? [],
+    unsupportedParts: output.unsupported_parts,
+  });
   return {
     status: "collecting",
     reason_code: `update_coach_preferences_${output.flow_action}`,
-    local_state: createCoachPreferenceLocalFlowState({
-      previous: args.previous,
-      status: "collecting",
-      currentStage: stage,
-      proposedUpdates: args.previous?.proposed_updates ?? [],
-      unsupportedParts: output.unsupported_parts,
-    }),
+    local_state: mutation.state,
     visible_task: visibleTaskForClarification(output),
     conversation_context: conversationContext,
     note_information: noteInformation,
@@ -1103,6 +1364,7 @@ export function reduceCoachPreferenceLocalDispatcherOutput(args: {
     exit_to_global_dispatcher: false,
     safety_preempt: false,
     blocked_effects: [],
+    state_mutation_audit: mutation.audit,
     evidence,
   };
 }

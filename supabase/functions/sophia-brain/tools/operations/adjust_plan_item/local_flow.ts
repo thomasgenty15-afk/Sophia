@@ -160,6 +160,8 @@ export type AdjustPlanLocalState = {
   platform_handoff: AdjustPlanPlatformHandoff;
   last_visible_task: AdjustPlanVisibleTaskKind | null;
   last_handoff_summary: string | null;
+  local_state_summary: string | null;
+  previous_flow_summary: string | null;
   turn_count: number;
   subskill_history: Array<Record<string, unknown>>;
 };
@@ -194,6 +196,8 @@ export type AdjustPlanLocalDispatcherOutput = {
     stage: AdjustPlanLocalStage;
     turn_count_increment: number;
     close_after_visible: boolean;
+    modified_fields?: string[];
+    clear_fields?: string[];
   };
   visible_task: {
     kind: AdjustPlanVisibleTaskKind;
@@ -227,6 +231,17 @@ export type AdjustPlanLocalDispatcherOutput = {
     value: NoteInformation | null;
   };
   evidence: string[];
+};
+
+export type AdjustPlanStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{ field: string; reason_code: string }>;
 };
 
 export type AdjustPlanLocalDispatcherInput = {
@@ -269,6 +284,7 @@ export type AdjustPlanReducerResult = {
   blocked_effects: Array<{ type: string; reason_code: string }>;
   exit_memo: AdjustPlanLocalDispatcherOutput["exit_memo"] | null;
   note_information: NoteInformation | null;
+  state_mutation_audit: AdjustPlanStateMutationAudit;
 };
 
 const FLOW_ACTIONS = new Set([
@@ -356,6 +372,36 @@ const STAGES = new Set([
   "closing",
 ]);
 
+const SERVER_OWNED_FIELDS = [
+  "scope",
+  "adjustment_need",
+  "platform_handoff",
+  "last_visible_task",
+  "last_handoff_summary",
+  "local_state_summary",
+  "previous_flow_summary",
+  "subskill_history",
+  "exit_memo",
+  "note_information",
+] as const;
+
+type AdjustPlanServerOwnedField = typeof SERVER_OWNED_FIELDS[number];
+
+type AdjustPlanStateTransition =
+  | "collecting"
+  | "prepare_handoff"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "destination_followup"
+  | "explain_handoff"
+  | "apply_attempt"
+  | "inline_tool"
+  | "handoff_to_local_flow"
+  | "exit_to_global_dispatcher"
+  | "safety_preempt"
+  | "cancel"
+  | "blocked";
+
 function stringValue(value: unknown): string {
   return String(value ?? "").trim();
 }
@@ -369,6 +415,26 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.map((item) => stringValue(item)).filter(Boolean).slice(0, 20)
     : [];
+}
+
+function addUnique(target: string[], value: string): void {
+  if (value && !target.includes(value)) target.push(value);
+}
+
+function emptyStateMutationAudit(
+  output?: AdjustPlanLocalDispatcherOutput,
+): AdjustPlanStateMutationAudit {
+  const stateUpdates = output?.state_updates;
+  return {
+    server_owned_fields: [...SERVER_OWNED_FIELDS],
+    modified_fields_declared: stringArray(stateUpdates?.modified_fields),
+    clear_fields_declared: stringArray(stateUpdates?.clear_fields),
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
 }
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
@@ -653,6 +719,8 @@ export function createInitialAdjustPlanLocalState(): AdjustPlanLocalState {
     },
     last_visible_task: null,
     last_handoff_summary: null,
+    local_state_summary: null,
+    previous_flow_summary: null,
     turn_count: 0,
     subskill_history: [],
   };
@@ -669,6 +737,58 @@ export function isAdjustPlanLocalState(
       root.operation_type === "adjust_plan_item" &&
       root.mode === "platform_handoff",
   );
+}
+
+export function normalizeAdjustPlanLocalState(
+  value: unknown,
+): AdjustPlanLocalState | null {
+  if (!isAdjustPlanLocalState(value)) return null;
+  const root = record(value);
+  const initial = createInitialAdjustPlanLocalState();
+  const status = enumValue<AdjustPlanLocalState["status"]>(
+    root.status,
+    STATE_STATUSES,
+    initial.status,
+  );
+  const stage = enumValue<AdjustPlanLocalStage>(
+    root.stage,
+    STAGES,
+    initial.stage,
+  );
+  return {
+    ...initial,
+    status,
+    stage,
+    scope: mergeScope(initial.scope, normalizeScope(root.scope)),
+    adjustment_need: mergeNeed(
+      initial.adjustment_need,
+      normalizeNeed(root.adjustment_need),
+    ),
+    platform_handoff: mergeHandoff(
+      initial.platform_handoff,
+      normalizePlatformHandoff(root.platform_handoff),
+    ),
+    last_visible_task: enumValue<AdjustPlanVisibleTaskKind>(
+      root.last_visible_task,
+      VISIBLE_TASKS,
+      "none",
+    ) === "none"
+      ? null
+      : enumValue<AdjustPlanVisibleTaskKind>(
+        root.last_visible_task,
+        VISIBLE_TASKS,
+        "none",
+      ),
+    last_handoff_summary: nullableString(root.last_handoff_summary),
+    local_state_summary: nullableString(root.local_state_summary),
+    previous_flow_summary: nullableString(root.previous_flow_summary),
+    turn_count: Math.max(0, Number(root.turn_count ?? 0) || 0),
+    subskill_history: Array.isArray(root.subskill_history)
+      ? root.subskill_history.filter((item) =>
+        item && typeof item === "object" && !Array.isArray(item)
+      ).slice(-8)
+      : [],
+  };
 }
 
 export function normalizeAdjustPlanLocalDispatcherOutput(
@@ -790,6 +910,8 @@ export function normalizeAdjustPlanLocalDispatcherOutput(
         Math.min(3, Number(stateRoot.turn_count_increment ?? 1) || 1),
       ),
       close_after_visible: stateRoot.close_after_visible === true,
+      modified_fields: stringArray(stateRoot.modified_fields),
+      clear_fields: stringArray(stateRoot.clear_fields),
     },
     visible_task: {
       kind: enumValue<AdjustPlanVisibleTaskKind>(
@@ -906,6 +1028,254 @@ function mergeHandoff(
     previous_value: incoming.previous_value ?? previous.previous_value,
     revised_value: incoming.revised_value ?? previous.revised_value,
   };
+}
+
+function transitionForOutput(
+  output: AdjustPlanLocalDispatcherOutput,
+): AdjustPlanStateTransition {
+  if (output.flow_action === "exit_to_global_dispatcher") {
+    return "exit_to_global_dispatcher";
+  }
+  if (
+    output.flow_action === "cancel_flow" ||
+    output.flow_action === "defer_flow" ||
+    output.flow_action === "complete_flow"
+  ) return "cancel";
+  if (output.flow_action === "safety_preempt") return "safety_preempt";
+  if (output.flow_action === "handoff_to_local_flow") {
+    return "handoff_to_local_flow";
+  }
+  if (
+    output.flow_action === "get_info_db" ||
+    output.flow_action === "get_info_product" ||
+    output.flow_action === "inline_tool_roundtrip"
+  ) return "inline_tool";
+  if (output.flow_action === "prepare_plan_handoff") return "prepare_handoff";
+  if (output.flow_action === "revise_plan_handoff") return "revise_handoff";
+  if (output.flow_action === "repeat_plan_handoff") return "repeat_handoff";
+  if (output.flow_action === "platform_destination_followup") {
+    return "destination_followup";
+  }
+  if (output.flow_action === "explain_handoff") return "explain_handoff";
+  if (output.flow_action === "apply_attempt") return "apply_attempt";
+  if (output.flow_action === "contract_recovery") return "blocked";
+  return "collecting";
+}
+
+function canReplaceField(
+  transition: AdjustPlanStateTransition,
+  field: AdjustPlanServerOwnedField,
+): boolean {
+  if (field === "scope" || field === "adjustment_need") {
+    return transition === "collecting" ||
+      transition === "prepare_handoff" ||
+      transition === "revise_handoff";
+  }
+  if (field === "platform_handoff") {
+    return transition === "prepare_handoff" ||
+      transition === "revise_handoff";
+  }
+  if (
+    field === "last_visible_task" ||
+    field === "last_handoff_summary" ||
+    field === "local_state_summary"
+  ) return true;
+  if (field === "subskill_history") return transition === "inline_tool";
+  return false;
+}
+
+function canClearField(
+  transition: AdjustPlanStateTransition,
+  field: AdjustPlanServerOwnedField,
+): boolean {
+  if (
+    field === "exit_memo" ||
+    field === "note_information" ||
+    field === "previous_flow_summary"
+  ) {
+    return transition === "exit_to_global_dispatcher" ||
+      transition === "handoff_to_local_flow" ||
+      transition === "safety_preempt" ||
+      transition === "cancel";
+  }
+  return transition === "exit_to_global_dispatcher" ||
+    transition === "handoff_to_local_flow" ||
+    transition === "safety_preempt" ||
+    transition === "cancel";
+}
+
+function scopeHasSignal(scope: AdjustPlanLocalScope): boolean {
+  return scope.kind !== "unknown" ||
+    Boolean(
+      scope.plan_id ||
+        scope.plan_title ||
+        scope.level_id ||
+        scope.level_title ||
+        scope.plan_item_ids.length > 0 ||
+        scope.target_summary,
+    );
+}
+
+function needHasSignal(need: AdjustPlanLocalNeed): boolean {
+  return Boolean(
+    need.reason_change ||
+      need.requested_change ||
+      need.change_kind ||
+      need.constraints.length > 0 ||
+      need.preserve.length > 0 ||
+      need.avoid.length > 0 ||
+      need.missing.length > 0,
+  );
+}
+
+function handoffHasSignal(handoff: AdjustPlanPlatformHandoff): boolean {
+  return handoff.status !== "none" ||
+    Boolean(
+      handoff.destination ||
+        handoff.suggested_platform_input ||
+        handoff.grouped_by_plan.length > 0 ||
+        handoff.previous_value ||
+        handoff.revised_value,
+    );
+}
+
+export function mergeAdjustPlanLocalState(args: {
+  previous: AdjustPlanLocalState | null;
+  output: AdjustPlanLocalDispatcherOutput;
+  transition?: AdjustPlanStateTransition;
+  now?: string;
+  constraints?: Record<string, unknown>;
+}): { state: AdjustPlanLocalState; audit: AdjustPlanStateMutationAudit } {
+  const previous = args.previous ?? createInitialAdjustPlanLocalState();
+  const output = args.output;
+  const transition = args.transition ?? transitionForOutput(output);
+  const audit = emptyStateMutationAudit(output);
+  const declaredModified = new Set(audit.modified_fields_declared);
+  const declaredClear = new Set(audit.clear_fields_declared);
+  const canFillMissingScope = transition === "apply_attempt" &&
+    !hasTargetToModify(previous);
+  const canFillMissingNeed = transition === "apply_attempt" &&
+    (!previous.adjustment_need.reason_change ||
+      !previous.adjustment_need.requested_change ||
+      !hasActionableChangeKind(previous.adjustment_need));
+
+  const nextScope = scopeHasSignal(output.scope)
+    ? canReplaceField(transition, "scope") || canFillMissingScope
+      ? mergeScope(previous.scope, output.scope)
+      : previous.scope
+    : previous.scope;
+  const nextNeed = needHasSignal(output.adjustment_need)
+    ? canReplaceField(transition, "adjustment_need") || canFillMissingNeed
+      ? mergeNeed(previous.adjustment_need, output.adjustment_need)
+      : previous.adjustment_need
+    : previous.adjustment_need;
+  let nextHandoff = previous.platform_handoff;
+  if (handoffHasSignal(output.platform_handoff)) {
+    nextHandoff = canReplaceField(transition, "platform_handoff")
+      ? mergeHandoff(previous.platform_handoff, output.platform_handoff)
+      : previous.platform_handoff;
+  }
+
+  const state: AdjustPlanLocalState = {
+    ...previous,
+    status: output.state_updates.status,
+    stage: output.state_updates.stage,
+    scope: nextScope,
+    adjustment_need: nextNeed,
+    platform_handoff: nextHandoff,
+    local_state_summary: output.adjust_plan_intent.summary ||
+      previous.local_state_summary,
+    previous_flow_summary: previous.previous_flow_summary,
+    subskill_history: previous.subskill_history ?? [],
+    turn_count: previous.turn_count + output.state_updates.turn_count_increment,
+  };
+
+  for (const field of SERVER_OWNED_FIELDS) {
+    if (declaredClear.has(field)) {
+      if (canClearField(transition, field)) {
+        addUnique(audit.cleared_fields, field);
+      } else {
+        addUnique(audit.restored_fields, field);
+        audit.rejected_changes.push({
+          field,
+          reason_code: "clear_not_allowed_for_transition",
+        });
+      }
+      continue;
+    }
+    if (declaredModified.has(field) && !canReplaceField(transition, field)) {
+      addUnique(audit.restored_fields, field);
+      audit.rejected_changes.push({
+        field,
+        reason_code: "modify_not_allowed_for_transition",
+      });
+      continue;
+    }
+    if (field === "scope") {
+      if (
+        scopeHasSignal(output.scope) &&
+        (canReplaceField(transition, field) || canFillMissingScope)
+      ) {
+        addUnique(audit.applied_fields, field);
+      } else if (scopeHasSignal(output.scope)) {
+        addUnique(audit.restored_fields, field);
+        audit.rejected_changes.push({
+          field,
+          reason_code: "modify_not_allowed_for_transition",
+        });
+      } else {
+        addUnique(audit.preserved_fields, field);
+      }
+      continue;
+    }
+    if (field === "adjustment_need") {
+      if (
+        needHasSignal(output.adjustment_need) &&
+        (canReplaceField(transition, field) || canFillMissingNeed)
+      ) {
+        addUnique(audit.applied_fields, field);
+      } else if (needHasSignal(output.adjustment_need)) {
+        addUnique(audit.restored_fields, field);
+        audit.rejected_changes.push({
+          field,
+          reason_code: "modify_not_allowed_for_transition",
+        });
+      } else {
+        addUnique(audit.preserved_fields, field);
+      }
+      continue;
+    }
+    if (field === "platform_handoff") {
+      if (
+        handoffHasSignal(output.platform_handoff) &&
+        canReplaceField(transition, field)
+      ) {
+        addUnique(audit.applied_fields, field);
+      } else if (handoffHasSignal(output.platform_handoff)) {
+        addUnique(audit.restored_fields, field);
+        audit.rejected_changes.push({
+          field,
+          reason_code: "modify_not_allowed_for_transition",
+        });
+      } else if (hasHandoffValue(previous)) {
+        addUnique(audit.restored_fields, field);
+      } else {
+        addUnique(audit.preserved_fields, field);
+      }
+      continue;
+    }
+    if (
+      field === "last_visible_task" ||
+      field === "last_handoff_summary" ||
+      field === "local_state_summary"
+    ) {
+      addUnique(audit.applied_fields, field);
+    } else {
+      addUnique(audit.preserved_fields, field);
+    }
+  }
+
+  return { state, audit };
 }
 
 function hasHandoffValue(state: AdjustPlanLocalState): boolean {
@@ -1154,12 +1524,85 @@ function visibleTaskForOutput(
   return output.visible_task.kind;
 }
 
+function terminalAudit(args: {
+  previous: AdjustPlanLocalState | null;
+  output: AdjustPlanLocalDispatcherOutput;
+  transition: AdjustPlanStateTransition;
+}): AdjustPlanStateMutationAudit {
+  const audit = emptyStateMutationAudit(args.output);
+  if (args.previous) {
+    for (const field of SERVER_OWNED_FIELDS) {
+      if (canClearField(args.transition, field)) {
+        addUnique(audit.cleared_fields, field);
+      } else {
+        addUnique(audit.preserved_fields, field);
+      }
+    }
+  }
+  for (const field of audit.modified_fields_declared) {
+    if (
+      SERVER_OWNED_FIELDS.includes(field as AdjustPlanServerOwnedField) &&
+      !canReplaceField(args.transition, field as AdjustPlanServerOwnedField)
+    ) {
+      audit.rejected_changes.push({
+        field,
+        reason_code: "modify_not_allowed_for_transition",
+      });
+    }
+  }
+  for (const field of audit.clear_fields_declared) {
+    if (
+      SERVER_OWNED_FIELDS.includes(field as AdjustPlanServerOwnedField) &&
+      !canClearField(args.transition, field as AdjustPlanServerOwnedField)
+    ) {
+      audit.rejected_changes.push({
+        field,
+        reason_code: "clear_not_allowed_for_transition",
+      });
+    }
+  }
+  return audit;
+}
+
+function refusedTransitionReasonCode(args: {
+  output: AdjustPlanLocalDispatcherOutput;
+  visibleTask: AdjustPlanVisibleTaskKind;
+  state: AdjustPlanLocalState;
+}): string | null {
+  const handoffLike = args.output.flow_action === "prepare_plan_handoff" ||
+    args.output.flow_action === "revise_plan_handoff" ||
+    args.output.flow_action === "repeat_plan_handoff" ||
+    args.output.flow_action === "apply_attempt";
+  if (!handoffLike) return null;
+  if (
+    args.visibleTask !== "clarify_scope" &&
+    args.visibleTask !== "clarify_adjustment_need" &&
+    args.visibleTask !== "contract_recovery"
+  ) return null;
+  const missing = missingHandoffCoreFields(args.state);
+  if (missing.includes("target_to_modify")) {
+    return "adjust_plan_item_candidate_missing";
+  }
+  if (
+    missing.includes("reason_change") ||
+    missing.includes("requested_change") ||
+    missing.includes("change_kind")
+  ) {
+    return "adjust_plan_item_durable_need_missing";
+  }
+  if (!hasHandoffValue(args.state)) {
+    return "adjust_plan_item_pending_offer_missing";
+  }
+  return "adjust_plan_item_not_stabilized_enough";
+}
+
 export function reduceAdjustPlanLocalDispatcherOutput(args: {
   previous: AdjustPlanLocalState | null;
   output: AdjustPlanLocalDispatcherOutput;
 }): AdjustPlanReducerResult {
   const previous = args.previous ?? createInitialAdjustPlanLocalState();
   const output = args.output;
+  const transition = transitionForOutput(output);
   const toolFlags = {
     get_info_db: false,
     get_info_product: false,
@@ -1168,6 +1611,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
     subskill_context: null as Record<string, unknown> | null,
   };
   if (output.flow_action === "exit_to_global_dispatcher") {
+    const audit = terminalAudit({ previous, output, transition });
     return {
       status: "topic_change",
       reason_code: "adjust_plan_item_local_exit_to_global_dispatcher",
@@ -1181,6 +1625,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: output.exit_memo,
       note_information: output.note_information.value,
+      state_mutation_audit: audit,
     };
   }
   if (
@@ -1188,6 +1633,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
     output.flow_action === "defer_flow" ||
     output.flow_action === "complete_flow"
   ) {
+    const audit = terminalAudit({ previous, output, transition });
     const conversationContext = buildConversationContext({
       state: previous,
       output,
@@ -1206,24 +1652,17 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: null,
       note_information: null,
+      state_mutation_audit: audit,
     };
   }
 
-  const merged: AdjustPlanLocalState = {
-    ...previous,
-    status: output.state_updates.status,
-    stage: output.state_updates.stage,
-    scope: mergeScope(previous.scope, output.scope),
-    adjustment_need: mergeNeed(
-      previous.adjustment_need,
-      output.adjustment_need,
-    ),
-    platform_handoff: mergeHandoff(
-      previous.platform_handoff,
-      output.platform_handoff,
-    ),
-    turn_count: previous.turn_count + output.state_updates.turn_count_increment,
-  };
+  const mergedResult = mergeAdjustPlanLocalState({
+    previous,
+    output,
+    transition,
+  });
+  const merged = mergedResult.state;
+  const mutationAudit = mergedResult.audit;
   const visibleTask = visibleTaskForOutput(output, merged);
   const nextState: AdjustPlanLocalState = {
     ...merged,
@@ -1268,7 +1707,13 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
           item.suggested_platform_input
         ).join(" | ")
       : merged.last_handoff_summary,
+    local_state_summary: output.adjust_plan_intent.summary ||
+      merged.local_state_summary,
   };
+  addUnique(mutationAudit.applied_fields, "last_visible_task");
+  if (nextState.last_handoff_summary !== merged.last_handoff_summary) {
+    addUnique(mutationAudit.applied_fields, "last_handoff_summary");
+  }
   const draft = hasCompleteHandoffCore(nextState)
     ? draftFromState(nextState)
     : null;
@@ -1300,6 +1745,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: null,
       note_information: output.note_information.value,
+      state_mutation_audit: mutationAudit,
     };
   }
 
@@ -1325,6 +1771,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: null,
       note_information: output.note_information.value,
+      state_mutation_audit: mutationAudit,
     };
   }
 
@@ -1347,6 +1794,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: output.exit_memo,
       note_information: output.note_information.value,
+      state_mutation_audit: mutationAudit,
     };
   }
 
@@ -1365,6 +1813,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: null,
       note_information: output.note_information.value,
+      state_mutation_audit: mutationAudit,
     };
   }
   if (
@@ -1386,6 +1835,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       }],
       exit_memo: null,
       note_information: null,
+      state_mutation_audit: mutationAudit,
     };
   }
   if (
@@ -1405,6 +1855,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: null,
       note_information: null,
+      state_mutation_audit: mutationAudit,
     };
   }
   if (visibleTask === "contract_recovery") {
@@ -1424,6 +1875,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       }],
       exit_memo: null,
       note_information: null,
+      state_mutation_audit: mutationAudit,
     };
   }
   if (
@@ -1445,15 +1897,21 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
       blocked_effects: [],
       exit_memo: null,
       note_information: null,
+      state_mutation_audit: mutationAudit,
     };
   }
+  const refusedReasonCode = refusedTransitionReasonCode({
+    output,
+    visibleTask,
+    state: nextState,
+  });
   return {
     status: visibleTask === "clarify_scope" ||
         visibleTask === "clarify_adjustment_need" ||
         visibleTask === "clarify_constraints"
       ? "clarifying"
       : "collecting",
-    reason_code: `adjust_plan_item_local_${visibleTask}`,
+    reason_code: refusedReasonCode ?? `adjust_plan_item_local_${visibleTask}`,
     local_state: nextState,
     draft: null,
     visible_task: visibleTask,
@@ -1464,6 +1922,7 @@ export function reduceAdjustPlanLocalDispatcherOutput(args: {
     blocked_effects: [],
     exit_memo: null,
     note_information: null,
+    state_mutation_audit: mutationAudit,
   };
 }
 

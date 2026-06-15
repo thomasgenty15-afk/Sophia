@@ -1,6 +1,53 @@
 import { runWhatsAppOnboardingLocalFlow } from "./onboarding/local_flow.ts";
 import { isWhatsAppOnboardingLocalState } from "./onboarding/state.ts";
 
+export const WHATSAPP_ONBOARDING_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+export function isWhatsAppOnboardingExpired(args: {
+  whatsappState: unknown;
+  startedAt: unknown;
+  stateUpdatedAt?: unknown;
+  nowMs?: number;
+}): boolean {
+  if (!isWhatsAppOnboardingLocalState(args.whatsappState)) return false;
+  const startedRaw = String(args.startedAt ?? "").trim();
+  const fallbackRaw = String(args.stateUpdatedAt ?? "").trim();
+  const anchorRaw = startedRaw || fallbackRaw;
+  if (!anchorRaw) return false;
+  const anchorMs = new Date(anchorRaw).getTime();
+  if (!Number.isFinite(anchorMs)) return false;
+  const nowMs = Number.isFinite(args.nowMs) ? args.nowMs! : Date.now();
+  return nowMs - anchorMs > WHATSAPP_ONBOARDING_MAX_AGE_MS;
+}
+
+export async function clearExpiredWhatsAppOnboardingState(params: {
+  admin: any;
+  userId: string;
+  whatsappState: unknown;
+  startedAt: unknown;
+  stateUpdatedAt?: unknown;
+  nowIso?: string;
+}): Promise<boolean> {
+  const nowIso = params.nowIso ?? new Date().toISOString();
+  if (
+    !isWhatsAppOnboardingExpired({
+      whatsappState: params.whatsappState,
+      startedAt: params.startedAt,
+      stateUpdatedAt: params.stateUpdatedAt,
+      nowMs: new Date(nowIso).getTime(),
+    })
+  ) {
+    return false;
+  }
+
+  await params.admin.from("profiles").update({
+    whatsapp_state: null,
+    whatsapp_state_updated_at: nowIso,
+    whatsapp_onboarding_started_at: null,
+  }).eq("id", params.userId);
+  return true;
+}
+
 export function isWhatsAppPreferenceOnboardingDoneFromTempMemory(
   tempMemory: unknown,
 ): boolean {

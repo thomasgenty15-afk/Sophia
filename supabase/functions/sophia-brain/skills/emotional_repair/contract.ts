@@ -8,6 +8,7 @@ export type EmotionalRepairIntent =
   | "emotion_lowered_action_blocked"
   | "asks_concrete_phrase"
   | "asks_regulation_without_potion"
+  | "asks_potion_bridge"
   | "asks_recurring_support"
   | "status_or_meta_question"
   | "action_card_ready"
@@ -153,6 +154,26 @@ export type EmotionalRepairPotionBridgeContext = {
   handoff_instruction_for_potion_subskill: string;
 };
 
+export type EmotionalRepairStateChangeIntent = {
+  modified_fields: string[];
+  clear_fields: string[];
+  reason: string | null;
+};
+
+export type EmotionalRepairStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    reason_code: string;
+  }>;
+};
+
 export type EmotionalRepairLocalState = {
   skill_id: "emotional_repair";
   mode: "local_repair_flow";
@@ -250,6 +271,7 @@ export type EmotionalRepairLocalDispatcherOutput = {
     prefill_candidates: EmotionalRepairBridgePrefillCandidates;
     missing_before_handoff: string[];
     why_ready_or_blocked: string;
+    user_requested_direct_handoff: boolean;
   };
   visible_task: EmotionalRepairVisibleTask;
   exit_memo: {
@@ -265,6 +287,7 @@ export type EmotionalRepairLocalDispatcherOutput = {
     handoff_hint_for_global_dispatcher: string | null;
     potion_bridge_context: Record<string, unknown> | null;
   };
+  state_change_intent: EmotionalRepairStateChangeIntent;
   evidence: string[];
 };
 

@@ -12,6 +12,9 @@ import {
   type SafetyCrisisLocalDispatcherOutput,
   type SafetyCrisisPhase,
   type SafetyCrisisReduction,
+  type SafetyCrisisStateMutationAudit,
+  type SafetyCrisisStateMutationRejectedChange,
+  type SafetyCrisisStatePatch,
   type SafetyCrisisVisibleTask,
   type SafetyCrisisVisibleTaskKind,
   type SafetyCrisisWorkingState,
@@ -70,6 +73,206 @@ function noChatMutation() {
     scheduled_checkin_created: false,
     recurring_reminder_created: false,
     executable_confirmation_generated: false,
+  };
+}
+
+const SAFETY_SERVER_OWNED_FIELDS = [
+  "phase",
+  "risk_band",
+  "trigger_summary",
+  "immediate_danger",
+  "has_means_nearby",
+  "user_not_alone",
+  "emergency_help_mentioned",
+  "human_support_mentioned",
+  "consecutive_deescalated_turns",
+  "last_user_safety_signal",
+  "last_assistant_safety_step",
+  "exit_memo",
+  "pending_offer",
+  "pending_confirmation",
+  "last_selected_option",
+  "active_subflow_context",
+  "handoff_note",
+  "note_information",
+  "local_state_summary",
+  "previous_flow_summary",
+] as const;
+
+function hasOwnField(value: unknown, field: string): boolean {
+  return Boolean(
+    value && typeof value === "object" && !Array.isArray(value) &&
+      Object.prototype.hasOwnProperty.call(value, field),
+  );
+}
+
+function stableJson(value: unknown): string {
+  if (value === undefined) return "__undefined__";
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function valuesEqual(a: unknown, b: unknown): boolean {
+  return stableJson(a) === stableJson(b);
+}
+
+function declaredServerOwnedFields(fields: string[] | undefined): string[] {
+  const allowed = new Set<string>(SAFETY_SERVER_OWNED_FIELDS);
+  return Array.isArray(fields)
+    ? fields.map((field) => String(field ?? "").trim()).filter((field) =>
+      allowed.has(field)
+    )
+    : [];
+}
+
+function resolutionRefusalReason(args: {
+  previousPhase: SafetyCrisisPhase;
+  previousDeescalations: number;
+  noCurrentImmediateDanger: boolean;
+  meansSafe: boolean;
+  humanSupportAvailable: boolean;
+  userCurrentlyAlone: boolean;
+  currentRiskSignal: boolean;
+}): string {
+  if (args.previousPhase !== "exit_check") {
+    return "missing_previous_exit_check";
+  }
+  if (args.previousDeescalations < 1) {
+    return "not_stabilized_enough";
+  }
+  if (!args.noCurrentImmediateDanger) {
+    return "immediate_danger_absent_missing";
+  }
+  if (!args.meansSafe) return "means_safe_missing";
+  if (!args.humanSupportAvailable || args.userCurrentlyAlone) {
+    return "human_support_or_not_alone_missing";
+  }
+  if (args.currentRiskSignal) return "no_fresh_risk_signal_missing";
+  return "missing_resolution_facts";
+}
+
+function rejectedChange(
+  field: string,
+  requestedAction: "modify" | "clear",
+  reasonCode: SafetyCrisisStateMutationRejectedChange["reason_code"],
+): SafetyCrisisStateMutationRejectedChange {
+  return {
+    field,
+    requested_action: requestedAction,
+    reason_code: reasonCode,
+  };
+}
+
+export function mergeSafetyCrisisLocalState(args: {
+  previous: SafetyCrisisWorkingState;
+  output?: SafetyCrisisLocalDispatcherOutput | null;
+  transition: {
+    phase: SafetyCrisisPhase;
+    reason_code: string;
+    resolved: boolean;
+  };
+  computed: SafetyCrisisStatePatch;
+  now: string;
+  constraints?: {
+    allow_clear_pending_runtime?: boolean;
+  };
+}): {
+  statePatch: SafetyCrisisStatePatch;
+  audit: SafetyCrisisStateMutationAudit;
+} {
+  void args.now;
+  void args.constraints;
+  const previous = args.previous ?? {};
+  const modifiedDeclared = declaredServerOwnedFields(
+    args.output?.modified_fields,
+  );
+  const clearDeclared = declaredServerOwnedFields(args.output?.clear_fields);
+  const next: SafetyCrisisStatePatch = {
+    ...args.computed,
+    trigger_summary: previous.trigger_summary ??
+      args.computed.trigger_summary ?? null,
+    local_state_summary: args.computed.summary ?? previous.local_state_summary ??
+      null,
+    previous_flow_summary: previous.previous_flow_summary ?? null,
+  };
+
+  for (
+    const field of [
+      "pending_offer",
+      "pending_confirmation",
+      "last_selected_option",
+      "active_subflow_context",
+      "handoff_note",
+      "note_information",
+    ] as const
+  ) {
+    if (hasOwnField(previous, field)) {
+      if (
+        args.transition.resolved &&
+        (field === "pending_offer" ||
+          field === "pending_confirmation" ||
+          field === "last_selected_option" ||
+          field === "active_subflow_context")
+      ) {
+        next[field] = null;
+      } else {
+        next[field] = previous[field] as never;
+      }
+    }
+  }
+
+  const appliedFields: string[] = [];
+  const preservedFields: string[] = [];
+  const clearedFields: string[] = [];
+  const restoredFields: string[] = [];
+  const rejectedChanges: SafetyCrisisStateMutationRejectedChange[] = [];
+
+  for (const field of SAFETY_SERVER_OWNED_FIELDS) {
+    const previousHasField = hasOwnField(previous, field);
+    const previousValue = (previous as Record<string, unknown>)[field];
+    const nextHasField = hasOwnField(next, field);
+    const nextValue = (next as Record<string, unknown>)[field];
+    if (previousHasField && (!nextHasField || nextValue === null)) {
+      clearedFields.push(field);
+    } else if (previousHasField && valuesEqual(previousValue, nextValue)) {
+      preservedFields.push(field);
+    } else if (nextHasField && !valuesEqual(previousValue, nextValue)) {
+      appliedFields.push(field);
+    }
+  }
+
+  for (const field of clearDeclared) {
+    if (!clearedFields.includes(field)) {
+      if (hasOwnField(previous, field)) restoredFields.push(field);
+      rejectedChanges.push(
+        rejectedChange(field, "clear", "transition_not_authorized"),
+      );
+    }
+  }
+  for (const field of modifiedDeclared) {
+    if (!appliedFields.includes(field)) {
+      if (hasOwnField(previous, field)) restoredFields.push(field);
+      rejectedChanges.push(
+        rejectedChange(field, "modify", "transition_not_authorized"),
+      );
+    }
+  }
+
+  return {
+    statePatch: next,
+    audit: {
+      server_owned_fields: [...SAFETY_SERVER_OWNED_FIELDS],
+      modified_fields_declared: modifiedDeclared,
+      clear_fields_declared: clearDeclared,
+      applied_fields: [...new Set(appliedFields)],
+      preserved_fields: [...new Set(preservedFields)],
+      restored_fields: [...new Set(restoredFields)],
+      cleared_fields: [...new Set(clearedFields)],
+      rejected_changes: rejectedChanges,
+    },
   };
 }
 
@@ -300,6 +503,7 @@ function visibleTaskKindFor(args: {
   phase: SafetyCrisisPhase;
   riskBand: SafetyRiskBand;
   dispatcherOutput?: SafetyCrisisLocalDispatcherOutput | null;
+  exitRefusalReason?: string | null;
 }): { kind: SafetyCrisisVisibleTaskKind; reasonCode: string } {
   const output = args.dispatcherOutput;
   if (
@@ -317,7 +521,23 @@ function visibleTaskKindFor(args: {
       reasonCode: "safety_crisis.repeat_current_step",
     };
   }
-  if (output?.flow_action === "exit_to_global_dispatcher") {
+  if (args.phase === "resolved") {
+    return {
+      kind: "resolved_exit",
+      reasonCode: "safety_crisis.resolved_exit",
+    };
+  }
+  if (
+    output?.flow_action === "exit_to_global_dispatcher" ||
+    output?.flow_action === "wants_to_exit" ||
+    output?.exit_request.requested === true
+  ) {
+    if (args.exitRefusalReason) {
+      return {
+        kind: "exit_check",
+        reasonCode: `safety_crisis.${args.exitRefusalReason}`,
+      };
+    }
     return {
       kind: "stop_or_cancel",
       reasonCode: "safety_crisis.exit_to_global_dispatcher",
@@ -331,12 +551,6 @@ function visibleTaskKindFor(args: {
     return {
       kind: "safety_escalation",
       reasonCode: "safety_crisis.escalated",
-    };
-  }
-  if (args.phase === "resolved") {
-    return {
-      kind: "resolved_exit",
-      reasonCode: "safety_crisis.resolved_exit",
     };
   }
   return {
@@ -420,6 +634,21 @@ export function reduceSafetyCrisis(args: {
     humanSupportAvailable &&
     args.signals.user_currently_alone !== true &&
     !currentRiskSignal;
+  const exitRequested = args.dispatcherOutput?.flow_action ===
+      "exit_to_global_dispatcher" ||
+    args.dispatcherOutput?.flow_action === "wants_to_exit" ||
+    args.dispatcherOutput?.exit_request.requested === true;
+  const exitRefusalReason = exitRequested && !canResolve
+    ? resolutionRefusalReason({
+      previousPhase,
+      previousDeescalations,
+      noCurrentImmediateDanger,
+      meansSafe,
+      humanSupportAvailable,
+      userCurrentlyAlone: args.signals.user_currently_alone === true,
+      currentRiskSignal,
+    })
+    : null;
 
   let phase: SafetyCrisisPhase;
   if (canResolve) {
@@ -522,17 +751,33 @@ export function reduceSafetyCrisis(args: {
     })
     : null;
   statePatchBase.exit_memo = exitMemo;
+  const merged = mergeSafetyCrisisLocalState({
+    previous,
+    output: args.dispatcherOutput,
+    transition: {
+      phase,
+      reason_code: exitRefusalReason
+        ? `safety_crisis.${exitRefusalReason}`
+        : phase === "resolved"
+        ? "safety_crisis.resolved_exit"
+        : `safety_crisis.${phase}`,
+      resolved: phase === "resolved",
+    },
+    computed: statePatchBase,
+    now: new Date().toISOString(),
+  });
   const task = visibleTaskKindFor({
     phase,
     riskBand,
     dispatcherOutput: args.dispatcherOutput,
+    exitRefusalReason,
   });
   const visibleTask = buildVisibleTask({
     kind: task.kind,
     phase,
     riskBand,
     signals: args.signals,
-    statePatch: statePatchBase,
+    statePatch: merged.statePatch,
     previousState: previous,
     dispatcherOutput: args.dispatcherOutput,
     currentUserMessage: args.currentUserMessage,
@@ -543,11 +788,12 @@ export function reduceSafetyCrisis(args: {
     phase,
     riskBand,
     statePatch: {
-      ...statePatchBase,
+      ...merged.statePatch,
       visible_task: visibleTask,
     },
     visibleTask,
     exitMemo,
     reasonCode: task.reasonCode,
+    stateMutationAudit: merged.audit,
   };
 }

@@ -24,6 +24,7 @@ import {
   maybeCompletePendingRendezVous,
 } from "./handlers_pending.ts";
 import {
+  clearExpiredWhatsAppOnboardingState,
   handleOnboardingState,
   hasCompletedWhatsAppPreferenceOnboarding,
   isWhatsAppPlanFinalizationWaitState,
@@ -485,12 +486,12 @@ Deno.serve(async (req) => {
         const simUserId = loopback ? String(msg.sim_user_id ?? "").trim() : "";
         const { data: candidates, error: profErr } = simUserId
           ? await admin.from("profiles").select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end, onboarding_completed",
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed",
           ).eq("id", simUserId).limit(1)
           : await admin.from(
             "profiles",
           ).select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end, onboarding_completed",
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed",
           ) // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." from manual input.
             // We try a small set of safe variants to avoid false "unknown number" prompts.
             .in(
@@ -638,6 +639,22 @@ Deno.serve(async (req) => {
           });
           continue;
         }
+        const expiredOnboardingCleared =
+          await clearExpiredWhatsAppOnboardingState({
+            admin,
+            userId: profile.id,
+            whatsappState: profile.whatsapp_state ?? null,
+            startedAt: profile.whatsapp_onboarding_started_at ?? null,
+            stateUpdatedAt: profile.whatsapp_state_updated_at ?? null,
+          });
+        if (expiredOnboardingCleared) {
+          profile.whatsapp_state = null;
+          profile.whatsapp_state_updated_at = new Date().toISOString();
+          profile.whatsapp_onboarding_started_at = null;
+          console.log(
+            `[WhatsApp] Cleared expired onboarding state for user ${profile.id}`,
+          );
+        }
         const { isOptInYes, recentBilanPurpose } =
           await computeOptInAndBilanContext({
             admin,
@@ -779,6 +796,7 @@ Deno.serve(async (req) => {
             await admin.from("profiles").update({
               whatsapp_state: "awaiting_plan_finalization",
               whatsapp_state_updated_at: nowIso2,
+              whatsapp_onboarding_started_at: nowIso2,
             }).eq("id", profile.id);
             const didHandleOnboarding = await handleOnboardingState({
               admin,

@@ -11,9 +11,10 @@ export const APAISEMENT_POTION_SUBSKILL: StatePotionDetailSubSkillDefinition = {
   ],
   extraction_rules: [
     "pressure_source = ce qui met le user sous pression maintenant.",
+    "Si le user donne des marqueurs corporels, temporels ou concrets de la pression, conserve-les dans pressure_source quand ils aident a retrouver l'etat a apaiser.",
     "Ne verrouille pas pressure_source sur une reponse trop vague si on ne sait pas ce qui met vraiment le user sous pression; propose une formulation et demande validation.",
     "pressure_state = une option canonique parmi stresse, a_cran, submerge.",
     "Ne demande pas quelle action du plan est concernee et n'invente pas d'action du plan.",
-    "Si le user exprime avoir besoin de respirer, ralentir ou relacher, utilise-le seulement pour colorer generated_user_message; ce n'est pas un champ requis.",
+    "Si le user exprime avoir besoin de respirer, ralentir ou relacher, garde cette contrainte dans pressure_source quand elle precise ce que la potion doit aider a apaiser; ne la transforme pas en action a faire.",
   ],
 };

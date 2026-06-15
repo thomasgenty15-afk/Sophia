@@ -74,8 +74,56 @@ export type ProductHelpReducerResult = {
   conversation_context: ProductHelpConversationContext;
   note_information: NoteInformation | null;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: ProductHelpStateMutationAudit;
   evidence: string[];
 };
+
+export type ProductHelpStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{ field: string; reason_code: string }>;
+};
+
+type ProductHelpStateTransition =
+  | "answer_continue"
+  | "answer_close"
+  | "exit_to_global_dispatcher"
+  | "handoff_to_local_dispatcher"
+  | "inline_status_roundtrip"
+  | "safety_preempt"
+  | "blocked"
+  | "inline_return";
+
+const PRODUCT_HELP_SERVER_OWNED_FIELDS = [
+  "product_help_local_state",
+  "active_product_surface",
+  "active_product_topic",
+  "source_flow_context",
+  "parent_flow_context",
+  "product_help_subskill_history",
+  "suspended_flow_snapshot",
+  "exit_memo",
+  "handoff_note",
+  "last_answered_product_question",
+  "skill_id",
+  "mode",
+  "status",
+  "product_help_state.stage",
+  "product_help_state.last_intent",
+  "product_help_state.last_target",
+  "product_help_state.last_answer_summary",
+  "product_help_state.last_catalog_feature_ids",
+  "product_help_state.last_locations",
+  "product_help_state.parent_flow_context",
+  "product_help_state.turn_count",
+  "product_help_state.max_turns",
+  "product_help_state.updated_at",
+] as const;
 
 const FLOW_ACTIONS = new Set([
   "answer_product_question",
@@ -328,23 +376,7 @@ export function readProductHelpFlowState(
   const local = isRecord(working.product_help_local_state)
     ? working.product_help_local_state
     : working;
-  if (!isRecord(local) || local.skill_id !== "product_help") return null;
-  if (local.mode !== "standalone") return null;
-  const status = stringValue(local.status);
-  if (
-    ![
-      "open",
-      "answered",
-      "closing",
-      "stopped",
-      "handoff",
-      "exit_to_global",
-      "safety",
-    ].includes(status)
-  ) {
-    return null;
-  }
-  return local as ProductHelpLocalFlowState;
+  return normalizeStoredProductHelpFlowState(local);
 }
 
 export function hasActiveProductHelpFlow(activeSkillState: unknown): boolean {
@@ -354,38 +386,333 @@ export function hasActiveProductHelpFlow(activeSkillState: unknown): boolean {
   );
 }
 
-function createProductHelpFlowState(args: {
-  previous?: ProductHelpLocalFlowState | null;
-  status: ProductHelpLocalFlowState["status"];
-  stage: ProductHelpLocalFlowState["product_help_state"]["stage"];
-  lastIntent: string | null;
-  lastTarget: Record<string, unknown>;
-  lastAnswerSummary: string | null;
-  lastCatalogFeatureIds: string[];
-  lastLocations: string[];
-  turnCountIncrement?: number;
-}): ProductHelpLocalFlowState {
-  const now = new Date().toISOString();
-  const previousTurns = Number(
-    args.previous?.product_help_state.turn_count ?? 0,
+const PRODUCT_HELP_STATUSES = new Set([
+  "open",
+  "answered",
+  "closing",
+  "stopped",
+  "handoff",
+  "exit_to_global",
+  "safety",
+]);
+
+const PRODUCT_HELP_STAGES = new Set([
+  "answering",
+  "clarifying",
+  "bridge_explained",
+  "status_inline",
+  "handoff",
+  "closing",
+]);
+
+function normalizeStoredProductHelpFlowState(
+  local: unknown,
+): ProductHelpLocalFlowState | null {
+  if (!isRecord(local) || local.skill_id !== "product_help") return null;
+  if (local.mode && local.mode !== "standalone") return null;
+  const productRoot = isRecord(local.product_help_state)
+    ? local.product_help_state
+    : local;
+  const status = enumValue<ProductHelpLocalFlowState["status"]>(
+    local.status,
+    PRODUCT_HELP_STATUSES,
+    "open",
   );
-  const increment = Number(args.turnCountIncrement ?? 1);
+  const fallbackStage = status === "handoff"
+    ? "handoff"
+    : status === "closing" || status === "stopped" ||
+        status === "exit_to_global" || status === "safety"
+    ? "closing"
+    : "answering";
+  const maxTurns = Number(productRoot.max_turns ?? local.max_turns ?? 3);
+  const turnCount = Number(productRoot.turn_count ?? local.turn_count ?? 0);
   return {
     skill_id: "product_help",
-    status: args.status,
+    status,
     mode: "standalone",
     product_help_state: {
-      stage: args.stage,
-      last_intent: args.lastIntent,
-      last_target: args.lastTarget,
-      last_answer_summary: args.lastAnswerSummary,
-      last_catalog_feature_ids: args.lastCatalogFeatureIds.slice(0, 8),
-      last_locations: args.lastLocations.slice(0, 8),
+      stage: enumValue<
+        ProductHelpLocalFlowState["product_help_state"]["stage"]
+      >(productRoot.stage, PRODUCT_HELP_STAGES, fallbackStage),
+      last_intent: stringValue(productRoot.last_intent ?? local.last_intent) ||
+        null,
+      last_target: recordValue(productRoot.last_target ?? local.last_target),
+      last_answer_summary: stringValue(
+        productRoot.last_answer_summary ?? local.last_answer_summary,
+      ) || null,
+      last_catalog_feature_ids: stringArray(
+        productRoot.last_catalog_feature_ids ?? local.last_catalog_feature_ids,
+        8,
+      ),
+      last_locations: stringArray(
+        productRoot.last_locations ?? local.last_locations,
+        8,
+      ),
       parent_flow_context: null,
-      turn_count: Math.max(0, previousTurns + increment),
-      max_turns: Number(args.previous?.product_help_state.max_turns ?? 3) || 3,
+      turn_count: Number.isFinite(turnCount) ? Math.max(0, turnCount) : 0,
+      max_turns: Number.isFinite(maxTurns) && maxTurns > 0 ? maxTurns : 3,
+      updated_at: stringValue(productRoot.updated_at ?? local.updated_at) ||
+        new Date().toISOString(),
+    },
+  };
+}
+
+function hasUsefulTarget(target: Record<string, unknown>): boolean {
+  if (Object.keys(target).length === 0) return false;
+  if (stringValue(target.kind) === "unknown") {
+    return Boolean(
+      stringValue(target.feature_id) ||
+        stringValue(target.object_type) && stringValue(target.object_type) !==
+            "unknown" ||
+        stringValue(target.object_ref),
+    );
+  }
+  return true;
+}
+
+function sameJson(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [
+    ...new Set(values.map((value) => stringValue(value)).filter(Boolean)),
+  ];
+}
+
+function createStateMutationAudit(
+  output: ProductHelpLocalDispatcherOutput,
+): ProductHelpStateMutationAudit {
+  return {
+    server_owned_fields: [...PRODUCT_HELP_SERVER_OWNED_FIELDS],
+    modified_fields_declared: uniqueStrings(
+      output.state_updates.modified_fields ?? [],
+    ),
+    clear_fields_declared: uniqueStrings(
+      output.state_updates.clear_fields ?? [],
+    ),
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function recordMutationAuditField(args: {
+  audit: ProductHelpStateMutationAudit;
+  field: string;
+  previousValue: unknown;
+  nextValue: unknown;
+}) {
+  if (sameJson(args.previousValue, args.nextValue)) {
+    args.audit.preserved_fields.push(args.field);
+  } else {
+    args.audit.applied_fields.push(args.field);
+  }
+}
+
+function finalizeStateMutationAudit(
+  audit: ProductHelpStateMutationAudit,
+): ProductHelpStateMutationAudit {
+  const serverOwned = new Set(audit.server_owned_fields);
+  const applied = new Set(audit.applied_fields);
+  for (const field of audit.clear_fields_declared) {
+    if (!serverOwned.has(field)) continue;
+    audit.restored_fields.push(field);
+    audit.rejected_changes.push({
+      field,
+      reason_code: "server_owned_field_clear_not_allowed",
+    });
+  }
+  for (const field of audit.modified_fields_declared) {
+    if (!serverOwned.has(field) || applied.has(field)) continue;
+    audit.restored_fields.push(field);
+    audit.rejected_changes.push({
+      field,
+      reason_code: "server_owned_field_modify_not_applied",
+    });
+  }
+  audit.applied_fields = uniqueStrings(audit.applied_fields);
+  audit.preserved_fields = uniqueStrings(audit.preserved_fields);
+  audit.restored_fields = uniqueStrings(audit.restored_fields);
+  audit.cleared_fields = uniqueStrings(audit.cleared_fields);
+  return audit;
+}
+
+export function mergeProductHelpLocalState(args: {
+  previous: ProductHelpLocalFlowState | null;
+  output: ProductHelpLocalDispatcherOutput;
+  transition: ProductHelpStateTransition;
+  now?: string;
+  status?: ProductHelpLocalFlowState["status"];
+  stage?: ProductHelpLocalFlowState["product_help_state"]["stage"];
+  lastIntent?: string | null;
+  lastTarget?: Record<string, unknown>;
+  lastAnswerSummary?: string | null;
+  lastCatalogFeatureIds?: string[];
+  lastLocations?: string[];
+  turnCountIncrement?: number;
+}): {
+  local_state: ProductHelpLocalFlowState | null;
+  audit: ProductHelpStateMutationAudit;
+} {
+  const audit = createStateMutationAudit(args.output);
+  const previous = normalizeStoredProductHelpFlowState(args.previous);
+  if (args.output.mode === "inline" || args.transition === "inline_return") {
+    audit.cleared_fields.push("product_help_local_state");
+    return {
+      local_state: null,
+      audit: finalizeStateMutationAudit(audit),
+    };
+  }
+  if (args.transition === "blocked") {
+    for (const field of PRODUCT_HELP_SERVER_OWNED_FIELDS) {
+      audit.preserved_fields.push(field);
+    }
+    return {
+      local_state: previous,
+      audit: finalizeStateMutationAudit(audit),
+    };
+  }
+  const previousProduct = previous?.product_help_state;
+  const now = args.now ?? new Date().toISOString();
+  const increment = Number(args.turnCountIncrement ?? 1);
+  const targetCandidate = args.lastTarget ?? {};
+  const lastTarget = hasUsefulTarget(targetCandidate)
+    ? targetCandidate
+    : previousProduct?.last_target ?? {};
+  const catalogFeatureIds = args.lastCatalogFeatureIds?.length
+    ? args.lastCatalogFeatureIds.slice(0, 8)
+    : previousProduct?.last_catalog_feature_ids ?? [];
+  const locations = args.lastLocations?.length
+    ? args.lastLocations.slice(0, 8)
+    : previousProduct?.last_locations ?? [];
+  const shouldReplaceAnswerSummary = args.transition !==
+      "exit_to_global_dispatcher" && args.transition !== "safety_preempt";
+  const lastAnswerSummary = shouldReplaceAnswerSummary &&
+      stringValue(args.lastAnswerSummary)
+    ? stringValue(args.lastAnswerSummary)
+    : previousProduct?.last_answer_summary ?? null;
+  const lastIntent = stringValue(args.lastIntent) ||
+    previousProduct?.last_intent ||
+    null;
+  const previousTurns = Number(previousProduct?.turn_count ?? 0);
+  const nextState: ProductHelpLocalFlowState = {
+    skill_id: "product_help",
+    status: args.status ?? previous?.status ?? "answered",
+    mode: "standalone",
+    product_help_state: {
+      stage: args.stage ?? previousProduct?.stage ?? "answering",
+      last_intent: lastIntent,
+      last_target: lastTarget,
+      last_answer_summary: lastAnswerSummary,
+      last_catalog_feature_ids: catalogFeatureIds,
+      last_locations: locations,
+      parent_flow_context: null,
+      turn_count: Math.max(
+        0,
+        previousTurns +
+          (Number.isFinite(increment) ? Math.max(0, increment) : 1),
+      ),
+      max_turns: Number(previousProduct?.max_turns ?? 3) || 3,
       updated_at: now,
     },
+  };
+  const previousComparable = previous ?? {
+    skill_id: "product_help",
+    status: null,
+    mode: "standalone",
+    product_help_state: {
+      stage: null,
+      last_intent: null,
+      last_target: {},
+      last_answer_summary: null,
+      last_catalog_feature_ids: [],
+      last_locations: [],
+      parent_flow_context: null,
+      turn_count: 0,
+      max_turns: 3,
+      updated_at: null,
+    },
+  };
+  recordMutationAuditField({
+    audit,
+    field: "skill_id",
+    previousValue: previousComparable.skill_id,
+    nextValue: nextState.skill_id,
+  });
+  recordMutationAuditField({
+    audit,
+    field: "mode",
+    previousValue: previousComparable.mode,
+    nextValue: nextState.mode,
+  });
+  recordMutationAuditField({
+    audit,
+    field: "status",
+    previousValue: previousComparable.status,
+    nextValue: nextState.status,
+  });
+  for (
+    const [field, previousValue, nextValue] of [
+      [
+        "product_help_state.stage",
+        previousComparable.product_help_state.stage,
+        nextState.product_help_state.stage,
+      ],
+      [
+        "product_help_state.last_intent",
+        previousComparable.product_help_state.last_intent,
+        nextState.product_help_state.last_intent,
+      ],
+      [
+        "product_help_state.last_target",
+        previousComparable.product_help_state.last_target,
+        nextState.product_help_state.last_target,
+      ],
+      [
+        "product_help_state.last_answer_summary",
+        previousComparable.product_help_state.last_answer_summary,
+        nextState.product_help_state.last_answer_summary,
+      ],
+      [
+        "product_help_state.last_catalog_feature_ids",
+        previousComparable.product_help_state.last_catalog_feature_ids,
+        nextState.product_help_state.last_catalog_feature_ids,
+      ],
+      [
+        "product_help_state.last_locations",
+        previousComparable.product_help_state.last_locations,
+        nextState.product_help_state.last_locations,
+      ],
+      [
+        "product_help_state.parent_flow_context",
+        previousComparable.product_help_state.parent_flow_context,
+        nextState.product_help_state.parent_flow_context,
+      ],
+      [
+        "product_help_state.turn_count",
+        previousComparable.product_help_state.turn_count,
+        nextState.product_help_state.turn_count,
+      ],
+      [
+        "product_help_state.max_turns",
+        previousComparable.product_help_state.max_turns,
+        nextState.product_help_state.max_turns,
+      ],
+      [
+        "product_help_state.updated_at",
+        previousComparable.product_help_state.updated_at,
+        nextState.product_help_state.updated_at,
+      ],
+    ] as Array<[string, unknown, unknown]>
+  ) {
+    recordMutationAuditField({ audit, field, previousValue, nextValue });
+  }
+  return {
+    local_state: nextState,
+    audit: finalizeStateMutationAudit(audit),
   };
 }
 
@@ -651,6 +978,8 @@ export function normalizeProductHelpLocalDispatcherOutput(
         flowAction === "close_product_help" ||
         flowAction === "exit_to_global_dispatcher",
       preserve_parent_flow: stateRoot.preserve_parent_flow !== false,
+      modified_fields: stringArray(stateRoot.modified_fields, 20),
+      clear_fields: stringArray(stateRoot.clear_fields, 20),
     },
     visible_task: visibleTask,
     return_to_parent: {
@@ -858,11 +1187,25 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
 }): ProductHelpReducerResult {
   const output = args.output;
   const summary = answerSummary(output);
+  const catalogLocations = args.catalogCandidates.flatMap((feature) =>
+    feature.locations.map((location) => location.surface)
+  );
+  const mergeState = (
+    transition: ProductHelpStateTransition,
+    overrides: Partial<Parameters<typeof mergeProductHelpLocalState>[0]> = {},
+  ) =>
+    mergeProductHelpLocalState({
+      previous: args.previous,
+      output,
+      transition,
+      ...overrides,
+    });
   if (output.mode === "inline" && !output.state_updates.preserve_parent_flow) {
+    const stateMerge = mergeState("blocked");
     return {
       status: "blocked",
       reason_code: "product_help_inline_parent_preservation_required",
-      local_state: null,
+      local_state: stateMerge.local_state,
       visible_task: "safety_transition",
       exit_to_global_dispatcher: false,
       handoff_to_local_dispatcher: false,
@@ -878,15 +1221,17 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
         type: "product_help",
         reason_code: "parent_preservation_required",
       }],
+      state_mutation_audit: stateMerge.audit,
       evidence: output.evidence,
     };
   }
   if (output.flow_action === "exit_to_global_dispatcher") {
     if (!output.note_information) {
+      const stateMerge = mergeState("blocked");
       return {
         status: "blocked",
-        reason_code: "product_help_note_information_required",
-        local_state: args.previous,
+        reason_code: "product_help_exit_note_information_missing",
+        local_state: stateMerge.local_state,
         visible_task: "stop_or_cancel",
         exit_to_global_dispatcher: false,
         handoff_to_local_dispatcher: false,
@@ -901,29 +1246,21 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
         note_information: null,
         blocked_effects: [{
           type: "product_help",
-          reason_code: "note_information_required",
+          reason_code: "note_information_missing",
         }],
+        state_mutation_audit: stateMerge.audit,
         evidence: output.evidence,
       };
     }
+    const stateMerge = mergeState("exit_to_global_dispatcher", {
+      status: "exit_to_global",
+      stage: "closing",
+      turnCountIncrement: output.state_updates.turn_count_increment,
+    });
     return {
       status: "exit",
       reason_code: "product_help_exit_to_global_dispatcher",
-      local_state: output.mode === "standalone"
-        ? createProductHelpFlowState({
-          previous: args.previous,
-          status: "exit_to_global",
-          stage: args.previous?.product_help_state.stage ?? "closing",
-          lastIntent: args.previous?.product_help_state.last_intent ?? null,
-          lastTarget: args.previous?.product_help_state.last_target ?? {},
-          lastAnswerSummary:
-            args.previous?.product_help_state.last_answer_summary ?? null,
-          lastCatalogFeatureIds:
-            args.previous?.product_help_state.last_catalog_feature_ids ?? [],
-          lastLocations: args.previous?.product_help_state.last_locations ?? [],
-          turnCountIncrement: output.state_updates.turn_count_increment,
-        })
-        : null,
+      local_state: stateMerge.local_state,
       visible_task: "exit_ack",
       exit_to_global_dispatcher: true,
       handoff_to_local_dispatcher: false,
@@ -939,15 +1276,17 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
       }),
       note_information: output.note_information,
       blocked_effects: [],
+      state_mutation_audit: stateMerge.audit,
       evidence: output.evidence,
     };
   }
   if (output.flow_action === "handoff_to_local_dispatcher") {
     if (!output.note_information) {
+      const stateMerge = mergeState("blocked");
       return {
         status: "blocked",
-        reason_code: "product_help_handoff_note_information_required",
-        local_state: args.previous,
+        reason_code: "product_help_direct_handoff_note_information_missing",
+        local_state: stateMerge.local_state,
         visible_task: "stop_or_cancel",
         exit_to_global_dispatcher: false,
         handoff_to_local_dispatcher: false,
@@ -962,8 +1301,9 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
         note_information: null,
         blocked_effects: [{
           type: "product_help",
-          reason_code: "note_information_required",
+          reason_code: "direct_handoff_flag_missing",
         }],
+        state_mutation_audit: stateMerge.audit,
         evidence: output.evidence,
       };
     }
@@ -971,10 +1311,11 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
       output.note_information.target_dispatcher === "global" ||
       output.note_information.target_dispatcher === "product_help"
     ) {
+      const stateMerge = mergeState("blocked");
       return {
         status: "blocked",
         reason_code: "product_help_handoff_target_invalid",
-        local_state: args.previous,
+        local_state: stateMerge.local_state,
         visible_task: "stop_or_cancel",
         exit_to_global_dispatcher: false,
         handoff_to_local_dispatcher: false,
@@ -989,29 +1330,26 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
         note_information: output.note_information,
         blocked_effects: [{
           type: "product_help",
-          reason_code: "handoff_target_invalid",
+          reason_code: "invalid_status_transition",
         }],
+        state_mutation_audit: stateMerge.audit,
         evidence: output.evidence,
       };
     }
+    const stateMerge = mergeState("handoff_to_local_dispatcher", {
+      status: "handoff",
+      stage: "handoff",
+      lastIntent: output.product_help_intent.kind,
+      lastTarget: output.target as unknown as Record<string, unknown>,
+      lastAnswerSummary: summary,
+      lastCatalogFeatureIds: output.grounding.catalog_feature_ids,
+      lastLocations: catalogLocations,
+      turnCountIncrement: output.state_updates.turn_count_increment,
+    });
     return {
       status: "handoff",
       reason_code: "product_help_handoff_to_local_dispatcher",
-      local_state: output.mode === "standalone"
-        ? createProductHelpFlowState({
-          previous: args.previous,
-          status: "handoff",
-          stage: "handoff",
-          lastIntent: output.product_help_intent.kind,
-          lastTarget: output.target as unknown as Record<string, unknown>,
-          lastAnswerSummary: summary,
-          lastCatalogFeatureIds: output.grounding.catalog_feature_ids,
-          lastLocations: args.catalogCandidates.flatMap((feature) =>
-            feature.locations.map((location) => location.surface)
-          ),
-          turnCountIncrement: output.state_updates.turn_count_increment,
-        })
-        : null,
+      local_state: stateMerge.local_state,
       visible_task: "exit_ack",
       exit_to_global_dispatcher: false,
       handoff_to_local_dispatcher: true,
@@ -1028,6 +1366,7 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
       }),
       note_information: output.note_information,
       blocked_effects: [],
+      state_mutation_audit: stateMerge.audit,
       evidence: output.evidence,
     };
   }
@@ -1051,23 +1390,21 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
       },
       confidence: output.confidence,
     });
+    const stateMerge = mergeState("safety_preempt", {
+      status: "safety",
+      stage: "closing",
+      lastIntent: "safety",
+      lastTarget: {},
+      lastAnswerSummary:
+        args.previous?.product_help_state.last_answer_summary ?? null,
+      lastCatalogFeatureIds: [],
+      lastLocations: [],
+      turnCountIncrement: output.state_updates.turn_count_increment,
+    });
     return {
       status: "safety",
       reason_code: "product_help_safety_preempt",
-      local_state: output.mode === "standalone"
-        ? createProductHelpFlowState({
-          previous: args.previous,
-          status: "safety",
-          stage: "closing",
-          lastIntent: "safety",
-          lastTarget: {},
-          lastAnswerSummary:
-            args.previous?.product_help_state.last_answer_summary ?? null,
-          lastCatalogFeatureIds: [],
-          lastLocations: [],
-          turnCountIncrement: output.state_updates.turn_count_increment,
-        })
-        : null,
+      local_state: stateMerge.local_state,
       visible_task: "safety_transition",
       exit_to_global_dispatcher: false,
       handoff_to_local_dispatcher: true,
@@ -1087,15 +1424,17 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
         type: "product_help",
         reason_code: "safety_preempt",
       }],
+      state_mutation_audit: stateMerge.audit,
       evidence: output.evidence,
     };
   }
   if (output.flow_action === "inline_status_roundtrip") {
     if (!output.note_information) {
+      const stateMerge = mergeState("blocked");
       return {
         status: "blocked",
-        reason_code: "product_help_handoff_note_information_required",
-        local_state: args.previous,
+        reason_code: "product_help_status_roundtrip_note_information_missing",
+        local_state: stateMerge.local_state,
         visible_task: "stop_or_cancel",
         exit_to_global_dispatcher: false,
         handoff_to_local_dispatcher: false,
@@ -1110,29 +1449,26 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
         note_information: null,
         blocked_effects: [{
           type: "product_help",
-          reason_code: "note_information_required",
+          reason_code: "note_information_missing",
         }],
+        state_mutation_audit: stateMerge.audit,
         evidence: output.evidence,
       };
     }
+    const stateMerge = mergeState("inline_status_roundtrip", {
+      status: "handoff",
+      stage: "status_inline",
+      lastIntent: output.product_help_intent.kind,
+      lastTarget: output.target as unknown as Record<string, unknown>,
+      lastAnswerSummary: summary,
+      lastCatalogFeatureIds: output.grounding.catalog_feature_ids,
+      lastLocations: catalogLocations,
+      turnCountIncrement: output.state_updates.turn_count_increment,
+    });
     return {
       status: "handoff",
       reason_code: "product_help_inline_status_roundtrip",
-      local_state: output.mode === "standalone"
-        ? createProductHelpFlowState({
-          previous: args.previous,
-          status: "handoff",
-          stage: "status_inline",
-          lastIntent: output.product_help_intent.kind,
-          lastTarget: output.target as unknown as Record<string, unknown>,
-          lastAnswerSummary: summary,
-          lastCatalogFeatureIds: output.grounding.catalog_feature_ids,
-          lastLocations: args.catalogCandidates.flatMap((feature) =>
-            feature.locations.map((location) => location.surface)
-          ),
-          turnCountIncrement: output.state_updates.turn_count_increment,
-        })
-        : null,
+      local_state: stateMerge.local_state,
       visible_task: "exit_ack",
       exit_to_global_dispatcher: false,
       handoff_to_local_dispatcher: true,
@@ -1148,6 +1484,7 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
       }),
       note_information: output.note_information,
       blocked_effects: [],
+      state_mutation_audit: stateMerge.audit,
       evidence: output.evidence,
     };
   }
@@ -1165,45 +1502,37 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
   const nextTurns = previousTurns + output.state_updates.turn_count_increment;
   const maxTurns = Number(args.previous?.product_help_state.max_turns ?? 3) ||
     3;
+  const resolvedProductAnswer = output.state_updates.status === "answered" &&
+    output.flow_action !== "clarify_product_question" &&
+    output.flow_action !== "bridge_explanation_only";
   const shouldClose = output.mode === "inline" ||
+    resolvedProductAnswer ||
     output.state_updates.close_after_visible ||
     output.flow_action === "close_product_help" ||
     nextTurns >= maxTurns;
-  const localState = output.mode === "standalone" && !shouldClose
-    ? createProductHelpFlowState({
-      previous: args.previous,
-      status: output.state_updates.status === "open" ? "open" : "answered",
-      stage: output.state_updates.stage,
+  const stateMerge = mergeState(
+    shouldClose ? "answer_close" : "answer_continue",
+    {
+      status: shouldClose
+        ? "closing"
+        : output.state_updates.status === "open"
+        ? "open"
+        : "answered",
+      stage: shouldClose ? "closing" : output.state_updates.stage,
       lastIntent: output.product_help_intent.kind,
       lastTarget: output.target as unknown as Record<string, unknown>,
       lastAnswerSummary: summary,
       lastCatalogFeatureIds: output.grounding.catalog_feature_ids,
-      lastLocations: args.catalogCandidates.flatMap((feature) =>
-        feature.locations.map((location) => location.surface)
-      ),
+      lastLocations: catalogLocations,
       turnCountIncrement: output.state_updates.turn_count_increment,
-    })
-    : output.mode === "standalone" && shouldClose
-    ? createProductHelpFlowState({
-      previous: args.previous,
-      status: "closing",
-      stage: "closing",
-      lastIntent: output.product_help_intent.kind,
-      lastTarget: output.target as unknown as Record<string, unknown>,
-      lastAnswerSummary: summary,
-      lastCatalogFeatureIds: output.grounding.catalog_feature_ids,
-      lastLocations: args.catalogCandidates.flatMap((feature) =>
-        feature.locations.map((location) => location.surface)
-      ),
-      turnCountIncrement: output.state_updates.turn_count_increment,
-    })
-    : null;
+    },
+  );
   return {
     status: shouldClose ? "closing" : "answered",
     reason_code: output.flow_action === "apply_attempt"
       ? "product_help_apply_attempt_no_mutation"
       : `product_help_local_${output.flow_action}`,
-    local_state: localState,
+    local_state: stateMerge.local_state,
     visible_task: visibleTask,
     exit_to_global_dispatcher: false,
     handoff_to_local_dispatcher: false,
@@ -1221,6 +1550,7 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
     }),
     note_information: output.note_information,
     blocked_effects: [],
+    state_mutation_audit: stateMerge.audit,
     evidence: output.evidence,
   };
 }
@@ -1240,11 +1570,13 @@ function dispatcherSystemPrompt(): string {
     "Priorite de decision: affiner une action existante du Plan prime sur Carte d'attaque. Si le user demande comment rendre une action du Plan plus concrete, moins floue, ou adaptee, cible plan.adjustment / adjust_plan_item. \"Sans toucher au reste du Plan\" veut dire ajustement cible, explication sans mutation immediate, ou modification locale seulement; ca ne veut pas dire Carte d'attaque. Utilise Carte d'attaque seulement si le user demande explicitement une carte, un premier geste pour demarrer, ou une preparation d'execution.",
     "Si note_information_inbound ou catalog_candidates recommandent Carte d'attaque mais que current_user_message parle d'affiner une action existante du Plan, le message courant gagne: corrige vers plan.adjustment / adjust_plan_item dans target et conversation_context.",
     "Ponts locaux autorises depuis product_help: prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, adjust_plan_item, update_coach_preferences. one_shot_reminder n'est pas un handoff local product_help: pour un rappel ponctuel, utilise exit_to_global_dispatcher avec note_information.target_dispatcher=global.",
+    "Pour un rappel ponctuel deja programme, ne dis jamais qu'il peut etre modifie ou annule depuis le chat. Explique seulement que Sophia peut creer un nouveau rappel ponctuel si le user donne quoi rappeler et quand.",
     "Pour une question de statut DB, utilise inline_status_roundtrip vers status_recap avec note_information; ne rends pas toi-meme un status DB.",
     "Pour un abandon sans nouveau sujet clair, utilise exit_to_global_dispatcher avec note_information; ne pose pas de question finale dans product_help.",
     "Pour un changement de sujet clair, utilise exit_to_global_dispatcher avec note_information.target_dispatcher=global.",
     "Pour safety, utilise safety_preempt avec note_information.target_dispatcher=safety_crisis; ne relance pas global.",
     "Si tu changes de dispatcher, note_information est obligatoire et garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct, non vide, sans DB brute, memoire brute, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ni committed_effects.",
+    "Ne jamais serialiser active_flow_context, parent_flow_context, conversation_context, visible_task, dispatcher_context ou note_information entrante dans note_information; resume-les en 1-2 phrases et champs filtres.",
     "Si une question porte sur l'etat d'un objet reel, n'affirme rien sans source recent_committed_effects, active_flow_context ou db_projection_sources.",
     ...directEffectLocalDispatcherPromptLines(),
     "Field Completion Rules:",
@@ -1262,7 +1594,7 @@ function dispatcherSystemPrompt(): string {
     "- visible_task.conversation_context: seul contexte donne au visible agent. Remplis state_summary, user_words, field_or_stage, known_values, missing_or_weak_values, selected_candidate, handoff_data, tone_constraints, do_not_say, context_summary, evidence_used. Filtre tout: pas de DB brute, pas de memoire brute, pas de note_information brute. Inclure les contraintes utilisateur utiles, les valeurs connues, les incertitudes, le ton et les limites d'affirmation.",
     "- return_to_parent: utilise needed=true en mode inline ou return_to_parent_flow/inline_tool_return. parent_skill_id vient du parent connu, sinon null. return_summary resume ce que product_help a apporte. preserve_parent_state reste true.",
     "- exit_memo: needed=true pour exit_to_global_dispatcher, safety_preempt, inline_status_roundtrip ou tout changement d'ownership. Pour une demande operationnelle, reason=explicit_tool_request et handoff_hint_for_global_dispatcher.likely_intent porte le flow probable comme prepare_attack_card. needed=false et reason=none pour une continuation locale. local_flow_context resume product_help sans effets durables; committed_effects reste vide sauf source externe deja commitee.",
-    "- note_information: obligatoire pour handoff_to_local_dispatcher, exit_to_global_dispatcher, inline_status_roundtrip et safety_preempt. target_dispatcher=prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, adjust_plan_item ou update_coach_preferences pour un pont tool local clair; global seulement pour un vrai changement de sujet non-tool ou un rappel ponctuel one_shot_reminder; safety_crisis pour safety; status_recap pour statut DB. handoff_context_for_next_dispatcher et structured_context doivent donner le sens de la sortie, l'etat product_help utile, les contraintes et le prochain focus. Elle est consommee par le dispatcher cible et ne va jamais brute au visible prompt. Mets null pour une continuation locale ou close_product_help sans changement de dispatcher.",
+    "- note_information: obligatoire pour handoff_to_local_dispatcher, exit_to_global_dispatcher, inline_status_roundtrip et safety_preempt. target_dispatcher=prepare_attack_card, prepare_defense_card, select_state_potion, create_recurring_reminder, adjust_plan_item ou update_coach_preferences pour un pont tool local clair; global seulement pour un vrai changement de sujet non-tool ou un rappel ponctuel one_shot_reminder; safety_crisis pour safety; status_recap pour statut DB. handoff_context_for_next_dispatcher et structured_context doivent donner le sens de la sortie, l'etat product_help utile, les contraintes et le prochain focus. Elle est consommee par le dispatcher cible et ne va jamais brute au visible prompt. Ne copie jamais active_flow_context, parent_flow_context, conversation_context, visible_task, dispatcher_context ou note_information entrante; resume-les. Mets null pour une continuation locale ou close_product_help sans changement de dispatcher.",
     "- evidence: indices semantiques ou sources vraiment utilises, courts et verifiables: mots du user, feature id, source active_flow/db. Pas de pseudo-preuves et pas de long dump.",
     "Transition Rules:",
     "- handoff_to_local_dispatcher: user demande clairement un tool flow autorise comme preparer une carte d'attaque, ajuster un plan, creer un rappel recurrent, changer une preference ou choisir une potion, avec intention d'action maintenant. Ne l'utilise pas pour expliquer une surface, dire ou retrouver une carte, comparer attaque/defense, ou repondre a comment ca marche. note_information obligatoire vers le dispatcher cible, visible_task.kind=exit_ack, state_updates.status=handoff, pas de reponse au sujet cible dans product_help, aucun effet durable.",

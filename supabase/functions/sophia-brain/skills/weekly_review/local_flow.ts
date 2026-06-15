@@ -258,6 +258,8 @@ export type WeeklyReviewLocalDispatcherOutput = {
   flow_action: WeeklyReviewLocalFlowAction;
   confidence: "low" | "medium" | "high";
   risk_score: number;
+  modified_fields: string[];
+  clear_fields: string[];
   target_dispatcher: NoteInformationTargetDispatcher | "none";
   weekly_intent: {
     kind:
@@ -369,8 +371,78 @@ export type WeeklyReviewReducerResult = {
   note_information: NoteInformation | null;
   conversation_context: WeeklyReviewConversationContext | null;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: WeeklyReviewStateMutationAudit;
   evidence: string[];
 };
+
+export type WeeklyReviewServerOwnedField =
+  | "weekly_flow_state"
+  | "stage"
+  | "proposal_status"
+  | "validation_unlock_status"
+  | "human_signals"
+  | "felt_progress"
+  | "weekly_gates"
+  | "daily_derived_evidence"
+  | "synthesis_state"
+  | "weekly_adaptive_review"
+  | "weekly_adaptive_review.plan_patch"
+  | "weekly_adaptive_review.plan_patch.requires_confirmation"
+  | "weekly_adaptive_review.pending_confirmation"
+  | "detour_candidate"
+  | "last_user_signal"
+  | "last_visible_summary"
+  | "last_handoff_summary"
+  | "child_flow"
+  | "suspended_weekly_snapshot"
+  | "completed_child_result"
+  | "user_corrected_action_statuses"
+  | "turn_count"
+  | "max_turns";
+
+export type WeeklyReviewStateMutationAudit = {
+  server_owned_fields: WeeklyReviewServerOwnedField[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    reason_code: string;
+  }>;
+};
+
+const WEEKLY_FLOW_SERVER_OWNED_FIELDS: WeeklyReviewServerOwnedField[] = [
+  "stage",
+  "proposal_status",
+  "validation_unlock_status",
+  "human_signals",
+  "felt_progress",
+  "weekly_gates",
+  "detour_candidate",
+  "last_user_signal",
+  "last_visible_summary",
+  "last_handoff_summary",
+  "child_flow",
+  "user_corrected_action_statuses",
+  "turn_count",
+  "max_turns",
+];
+
+const WEEKLY_SERVER_OWNED_FIELDS: WeeklyReviewServerOwnedField[] = [
+  "weekly_flow_state",
+  ...WEEKLY_FLOW_SERVER_OWNED_FIELDS,
+  "daily_derived_evidence",
+  "synthesis_state",
+  "weekly_adaptive_review",
+  "weekly_adaptive_review.plan_patch",
+  "weekly_adaptive_review.plan_patch.requires_confirmation",
+  "weekly_adaptive_review.pending_confirmation",
+  "suspended_weekly_snapshot",
+  "completed_child_result",
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -389,6 +461,14 @@ function stringArray(value: unknown, max = 12): string[] {
   return Array.isArray(value)
     ? value.map((item) => cleanText(item)).filter(Boolean).slice(0, max)
     : [];
+}
+
+function addUnique(list: string[], value: string): void {
+  if (!list.includes(value)) list.push(value);
+}
+
+function sameJson(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 }
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
@@ -753,6 +833,245 @@ function mergeWeeklyGates(
   };
 }
 
+type WeeklyReviewStateMergeConstraints = {
+  allowValidationUnlock?: boolean;
+  allowDetourChange?: boolean;
+  allowDetourClear?: boolean;
+  allowChildFlowChange?: boolean;
+  allowChildFlowClear?: boolean;
+  allowGateRegression?: boolean;
+};
+
+function createWeeklyStateMutationAudit(
+  output?: Pick<
+    WeeklyReviewLocalDispatcherOutput,
+    "modified_fields" | "clear_fields"
+  >,
+): WeeklyReviewStateMutationAudit {
+  return {
+    server_owned_fields: [...WEEKLY_SERVER_OWNED_FIELDS],
+    modified_fields_declared: output?.modified_fields ?? [],
+    clear_fields_declared: output?.clear_fields ?? [],
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function weeklyServerOwnedFieldFromText(
+  value: string,
+): WeeklyReviewServerOwnedField | null {
+  const text = cleanText(value);
+  const compact = text.split(".").pop() ?? "";
+  const field = (WEEKLY_SERVER_OWNED_FIELDS as string[]).includes(text)
+    ? text
+    : compact;
+  return (WEEKLY_SERVER_OWNED_FIELDS as string[]).includes(field)
+    ? field as WeeklyReviewServerOwnedField
+    : null;
+}
+
+function rejectWeeklyStateMutation(
+  audit: WeeklyReviewStateMutationAudit,
+  field: WeeklyReviewServerOwnedField,
+  reasonCode: string,
+): void {
+  addUnique(audit.restored_fields, field);
+  audit.rejected_changes.push({
+    field,
+    reason_code: reasonCode,
+  });
+}
+
+function weeklyGateRank(status: WeeklyReviewGateStatus): number {
+  switch (status) {
+    case "missing":
+      return 0;
+    case "captured":
+      return 1;
+    case "needs_deeper":
+      return 2;
+    case "complete":
+      return 3;
+  }
+}
+
+function preserveNonRegressingWeeklyGates(args: {
+  previous: WeeklyReviewGates;
+  proposed: WeeklyReviewGates;
+  allowGateRegression?: boolean;
+  audit: WeeklyReviewStateMutationAudit;
+}): WeeklyReviewGates {
+  if (args.allowGateRegression) return args.proposed;
+  const next: WeeklyReviewGates = { ...args.proposed };
+  for (
+    const key of Object.keys(args.previous) as Array<keyof WeeklyReviewGates>
+  ) {
+    if (
+      weeklyGateRank(args.proposed[key]) < weeklyGateRank(args.previous[key])
+    ) {
+      next[key] = args.previous[key];
+      rejectWeeklyStateMutation(
+        args.audit,
+        "weekly_gates",
+        "not_stabilized_enough",
+      );
+    }
+  }
+  return next;
+}
+
+function mergeWeeklyReviewLocalState(args: {
+  previous: WeeklyReviewLocalFlowState;
+  proposed: WeeklyReviewLocalFlowState;
+  output: WeeklyReviewLocalDispatcherOutput;
+  transition: string;
+  now: string;
+  constraints?: WeeklyReviewStateMergeConstraints;
+}): {
+  state: WeeklyReviewLocalFlowState;
+  audit: WeeklyReviewStateMutationAudit;
+} {
+  void args.transition;
+  const audit = createWeeklyStateMutationAudit(args.output);
+  const constraints = args.constraints ?? {};
+  const next: WeeklyReviewLocalFlowState = {
+    ...args.proposed,
+    updated_at: args.now,
+  };
+
+  next.weekly_gates = preserveNonRegressingWeeklyGates({
+    previous: args.previous.weekly_gates,
+    proposed: next.weekly_gates,
+    allowGateRegression: constraints.allowGateRegression,
+    audit,
+  });
+
+  if (
+    next.validation_unlock_status === "available" &&
+    !constraints.allowValidationUnlock
+  ) {
+    next.validation_unlock_status = args.previous.validation_unlock_status;
+    rejectWeeklyStateMutation(
+      audit,
+      "validation_unlock_status",
+      "invalid_status_transition",
+    );
+  }
+
+  if (next.max_turns !== args.previous.max_turns) {
+    next.max_turns = args.previous.max_turns;
+    rejectWeeklyStateMutation(audit, "max_turns", "blocked_by_constraint");
+  }
+
+  if (
+    next.turn_count < args.previous.turn_count ||
+    next.turn_count > args.previous.turn_count + 2
+  ) {
+    next.turn_count = args.previous.turn_count +
+      Math.max(0, Math.min(2, args.output.state_updates.turn_count_increment));
+    rejectWeeklyStateMutation(audit, "turn_count", "invalid_status_transition");
+  }
+
+  if (
+    args.previous.detour_candidate.kind !== "none" &&
+    next.detour_candidate.kind === "none" &&
+    !constraints.allowDetourClear
+  ) {
+    next.detour_candidate = args.previous.detour_candidate;
+    rejectWeeklyStateMutation(
+      audit,
+      "detour_candidate",
+      "selected_option_missing",
+    );
+  } else if (
+    !sameJson(args.previous.detour_candidate, next.detour_candidate) &&
+    next.detour_candidate.kind !== "none" &&
+    !constraints.allowDetourChange
+  ) {
+    next.detour_candidate = args.previous.detour_candidate;
+    rejectWeeklyStateMutation(
+      audit,
+      "detour_candidate",
+      "direct_handoff_flag_missing",
+    );
+  }
+
+  if (
+    args.previous.child_flow.status !== "none" &&
+    next.child_flow.status === "none" &&
+    !constraints.allowChildFlowClear
+  ) {
+    next.child_flow = args.previous.child_flow;
+    rejectWeeklyStateMutation(
+      audit,
+      "child_flow",
+      "pending_confirmation_missing",
+    );
+  } else if (
+    !sameJson(args.previous.child_flow, next.child_flow) &&
+    !constraints.allowChildFlowChange
+  ) {
+    next.child_flow = args.previous.child_flow;
+    rejectWeeklyStateMutation(audit, "child_flow", "invalid_status_transition");
+  }
+
+  if (
+    next.user_corrected_action_statuses.length <
+      args.previous.user_corrected_action_statuses.length
+  ) {
+    next.user_corrected_action_statuses =
+      args.previous.user_corrected_action_statuses;
+    rejectWeeklyStateMutation(
+      audit,
+      "user_corrected_action_statuses",
+      "candidate_missing",
+    );
+  }
+
+  for (const declaredClear of args.output.clear_fields) {
+    const field = weeklyServerOwnedFieldFromText(declaredClear);
+    if (!field) continue;
+    if (!WEEKLY_FLOW_SERVER_OWNED_FIELDS.includes(field)) {
+      rejectWeeklyStateMutation(audit, field, "blocked_by_constraint");
+      continue;
+    }
+    const clearAllowed = (field === "detour_candidate" &&
+      constraints.allowDetourClear) ||
+      (field === "child_flow" && constraints.allowChildFlowClear);
+    if (clearAllowed) {
+      addUnique(audit.cleared_fields, field);
+    } else {
+      (next as any)[field] = (args.previous as any)[field];
+      rejectWeeklyStateMutation(audit, field, "blocked_by_constraint");
+    }
+  }
+
+  for (const declaredModification of args.output.modified_fields) {
+    const field = weeklyServerOwnedFieldFromText(declaredModification);
+    if (!field) continue;
+    if (!WEEKLY_FLOW_SERVER_OWNED_FIELDS.includes(field)) {
+      addUnique(audit.preserved_fields, field);
+      continue;
+    }
+    if (sameJson((args.previous as any)[field], (next as any)[field])) {
+      addUnique(audit.preserved_fields, field);
+    }
+  }
+
+  for (const field of WEEKLY_FLOW_SERVER_OWNED_FIELDS) {
+    if (sameJson((args.previous as any)[field], (next as any)[field])) {
+      addUnique(audit.preserved_fields, field);
+    } else {
+      addUnique(audit.applied_fields, field);
+    }
+  }
+
+  return { state: next, audit };
+}
+
 function defaultDetourCandidate(): WeeklyReviewDetourCandidate {
   return {
     kind: "none",
@@ -1016,6 +1335,8 @@ export function normalizeWeeklyReviewLocalDispatcherOutput(
     flow_action: action,
     confidence: confidence(root.confidence),
     risk_score: riskScore(root.risk_score),
+    modified_fields: stringArray(root.modified_fields, 30),
+    clear_fields: stringArray(root.clear_fields, 30),
     target_dispatcher: targetDispatcher,
     weekly_intent: weeklyIntent,
     human_signal_updates: {
@@ -1282,6 +1603,25 @@ function maybeRecomputeWeeklyReview(args: {
   void args.action;
   const previous = isRecord(args.previousReview) ? args.previousReview : {};
   const evidence = isRecord(previous.evidence) ? previous.evidence : {};
+  const previousPlanPatch = isRecord(previous.plan_patch)
+    ? previous.plan_patch
+    : null;
+  const preservedPlanPatch = previousPlanPatch
+    ? {
+      ...previousPlanPatch,
+      requires_confirmation: true,
+    }
+    : undefined;
+  const previousPendingConfirmation = isRecord(previous.pending_confirmation)
+    ? previous.pending_confirmation
+    : null;
+  const pendingConfirmation = preservedPlanPatch
+    ? previousPendingConfirmation ?? {
+      kind: "plan_patch",
+      status: "pending",
+      source: "weekly_adaptive_review_v1",
+    }
+    : previousPendingConfirmation ?? undefined;
   const previousItemDecisions = Array.isArray(previous.item_decisions)
     ? previous.item_decisions.slice(0, 12)
     : [];
@@ -1339,6 +1679,10 @@ function maybeRecomputeWeeklyReview(args: {
       missed_count: Number((evidence as any).missed_count ?? 0) || 0,
       dominant_blockers: stringArray((evidence as any).dominant_blockers, 4),
     },
+    ...(preservedPlanPatch ? { plan_patch: preservedPlanPatch } : {}),
+    ...(pendingConfirmation
+      ? { pending_confirmation: pendingConfirmation }
+      : {}),
     human_signals: args.humanSignals,
     item_decisions: correctedItemDecisions,
     user_corrected_action_statuses: args.actionStatusCorrections,
@@ -1352,12 +1696,61 @@ function maybeRecomputeWeeklyReview(args: {
   };
 }
 
+function addWeeklyAdaptiveReviewMutationAudit(args: {
+  audit: WeeklyReviewStateMutationAudit;
+  previousReview: unknown;
+  nextReview: unknown;
+}): void {
+  const previous = isRecord(args.previousReview) ? args.previousReview : {};
+  const next = isRecord(args.nextReview) ? args.nextReview : {};
+  if (sameJson(previous.evidence, next.evidence)) {
+    addUnique(args.audit.preserved_fields, "daily_derived_evidence");
+  } else {
+    addUnique(args.audit.applied_fields, "daily_derived_evidence");
+  }
+  if (sameJson(previous.plan_patch, next.plan_patch)) {
+    addUnique(args.audit.preserved_fields, "weekly_adaptive_review.plan_patch");
+  } else if (isRecord(previous.plan_patch) && isRecord(next.plan_patch)) {
+    addUnique(args.audit.restored_fields, "weekly_adaptive_review.plan_patch");
+    args.audit.rejected_changes.push({
+      field: "weekly_adaptive_review.plan_patch",
+      reason_code: "pending_confirmation_missing",
+    });
+  } else if (isRecord(next.plan_patch)) {
+    addUnique(args.audit.applied_fields, "weekly_adaptive_review.plan_patch");
+  }
+  if (isRecord(next.plan_patch)) {
+    addUnique(
+      args.audit.applied_fields,
+      "weekly_adaptive_review.plan_patch.requires_confirmation",
+    );
+  }
+  if (sameJson(previous.pending_confirmation, next.pending_confirmation)) {
+    addUnique(
+      args.audit.preserved_fields,
+      "weekly_adaptive_review.pending_confirmation",
+    );
+  } else if (isRecord(next.pending_confirmation)) {
+    addUnique(
+      args.audit.applied_fields,
+      "weekly_adaptive_review.pending_confirmation",
+    );
+  }
+}
+
 function summarizeOutput(output: WeeklyReviewLocalDispatcherOutput): string {
   return output.weekly_intent.summary ||
     output.handoff_updates.revision_summary ||
     output.handoff_updates.requested_adjustment_summary ||
     output.visible_task.instruction ||
     `${output.flow_action}:${output.visible_task.kind}`;
+}
+
+function weeklyDetourClearAllowed(
+  output: WeeklyReviewLocalDispatcherOutput,
+): boolean {
+  return output.handoff_updates.status === "cancelled" ||
+    output.weekly_intent.kind === "weekly_rejection";
 }
 
 function buildHandoffSummary(
@@ -1767,6 +2160,8 @@ function buildWeeklyConversationContext(args: {
         args.output.handoff_updates.requested_adjustment_summary,
       revision_summary: args.output.handoff_updates.revision_summary ??
         childRevisionSummary,
+      executable_from_chat: false,
+      requires_platform_confirmation: true,
     },
     forgotten_progress: {
       ...args.output.forgotten_progress,
@@ -2028,6 +2423,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
   const output = args.output;
   const summary = summarizeOutput(output);
   const now = new Date().toISOString();
+  const baseAudit = createWeeklyStateMutationAudit(output);
   const nextSignals: WeeklyHumanSignals = {
     objective_delta: output.human_signal_updates.objective_delta ??
       previousFlow.human_signals.objective_delta,
@@ -2056,8 +2452,11 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     previousFlow.user_corrected_action_statuses,
     output.action_status_updates,
   );
+  const detourClearAllowed = weeklyDetourClearAllowed(output);
   const nextDetour = output.detour_candidate.kind === "none"
-    ? previousFlow.detour_candidate
+    ? detourClearAllowed
+      ? output.detour_candidate
+      : previousFlow.detour_candidate
     : output.detour_candidate;
   const handoffSummary = buildHandoffSummary(output, previousFlow);
   const childFlowForTurn = childFlowWithRevision(
@@ -2084,13 +2483,20 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
         turn_count: turnCount,
         updated_at: now,
       };
+      const blockedMerge = mergeWeeklyReviewLocalState({
+        previous: previousFlow,
+        proposed: blockedFlow,
+        output,
+        transition: "weekly_review_note_information_required",
+        now,
+      });
       return {
         status: "blocked",
         reason_code: "weekly_review_note_information_required",
         weekly_state: {
           ...args.previousWeeklyState,
           status: "open",
-          weekly_flow_state: blockedFlow,
+          weekly_flow_state: blockedMerge.state,
           updated_at: now,
         },
         visible_task: "exit_or_cancel",
@@ -2111,6 +2517,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
           type: "weekly_adaptive_review_v1",
           reason_code: "note_information_required",
         }],
+        state_mutation_audit: blockedMerge.audit,
         evidence: output.evidence,
       };
     }
@@ -2130,6 +2537,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       note_information: output.note_information,
       conversation_context: null,
       blocked_effects: [],
+      state_mutation_audit: baseAudit,
       evidence: output.evidence,
     };
   }
@@ -2151,6 +2559,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
         type: "weekly_adaptive_review_v1",
         reason_code: "safety_preempt",
       }],
+      state_mutation_audit: baseAudit,
       evidence: output.evidence,
     };
   }
@@ -2177,10 +2586,22 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       max_turns: maxTurns,
       updated_at: now,
     };
+    const guardedMerge = mergeWeeklyReviewLocalState({
+      previous: previousFlow,
+      proposed: guardedFlow,
+      output,
+      transition: childGuard.reason_code,
+      now,
+      constraints: {
+        allowDetourChange: output.detour_candidate.kind !== "none",
+        allowDetourClear: detourClearAllowed,
+        allowChildFlowChange: Boolean(output.handoff_updates.revision_summary),
+      },
+    });
     const guardedState = {
       ...args.previousWeeklyState,
       status: "open",
-      weekly_flow_state: guardedFlow,
+      weekly_flow_state: guardedMerge.state,
       updated_at: now,
     };
     return {
@@ -2205,6 +2626,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
         type: "weekly_adaptive_review_v1",
         reason_code: childGuard.reason_code,
       }],
+      state_mutation_audit: guardedMerge.audit,
       evidence: output.evidence,
     };
   }
@@ -2223,6 +2645,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       note_information: output.note_information,
       conversation_context: null,
       blocked_effects: [],
+      state_mutation_audit: baseAudit,
       evidence: output.evidence,
     };
   }
@@ -2247,6 +2670,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
         visibleTask: "inline_tool_return",
       }),
       blocked_effects: [],
+      state_mutation_audit: baseAudit,
       evidence: output.evidence,
     };
   }
@@ -2285,10 +2709,24 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       max_turns: maxTurns,
       updated_at: now,
     };
+    const guardedMerge = mergeWeeklyReviewLocalState({
+      previous: previousFlow,
+      proposed: guardedFlow,
+      output,
+      transition: gateOrderGuard.reason_code,
+      now,
+      constraints: {
+        allowDetourChange: output.detour_candidate.kind !== "none",
+        allowDetourClear: detourClearAllowed,
+        allowChildFlowChange: gateOrderGuard.visible_task ===
+            "return_from_child_flow" ||
+          Boolean(output.handoff_updates.revision_summary),
+      },
+    });
     const guardedState = {
       ...args.previousWeeklyState,
       status: "open",
-      weekly_flow_state: guardedFlow,
+      weekly_flow_state: guardedMerge.state,
       updated_at: now,
     };
     return {
@@ -2313,6 +2751,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
         type: "weekly_adaptive_review_v1",
         reason_code: gateOrderGuard.reason_code,
       }],
+      state_mutation_audit: guardedMerge.audit,
       evidence: output.evidence,
     };
   }
@@ -2348,10 +2787,22 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       max_turns: maxTurns,
       updated_at: now,
     };
+    const guardedMerge = mergeWeeklyReviewLocalState({
+      previous: previousFlow,
+      proposed: guardedFlow,
+      output,
+      transition: continuationGuard.reason_code,
+      now,
+      constraints: {
+        allowDetourChange: output.detour_candidate.kind !== "none",
+        allowDetourClear: detourClearAllowed,
+        allowChildFlowChange: Boolean(output.handoff_updates.revision_summary),
+      },
+    });
     const guardedState = {
       ...args.previousWeeklyState,
       status: "open",
-      weekly_flow_state: guardedFlow,
+      weekly_flow_state: guardedMerge.state,
       updated_at: now,
     };
     return {
@@ -2373,6 +2824,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
         visibleTask: continuationGuard.visible_task,
       }),
       blocked_effects: [],
+      state_mutation_audit: guardedMerge.audit,
       evidence: output.evidence,
     };
   }
@@ -2418,6 +2870,23 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     max_turns: maxTurns,
     updated_at: now,
   };
+  const nextMerge = mergeWeeklyReviewLocalState({
+    previous: previousFlow,
+    proposed: nextFlow,
+    output,
+    transition: `weekly_review_local_${output.flow_action}`,
+    now,
+    constraints: {
+      allowValidationUnlock: nextStatus === "completed",
+      allowDetourChange: output.detour_candidate.kind !== "none",
+      allowDetourClear: detourClearAllowed,
+      allowChildFlowChange: output.visible_task.kind ===
+          "return_from_child_flow" ||
+        Boolean(output.handoff_updates.revision_summary),
+    },
+  });
+  const effectiveValidationUnlockStatus =
+    nextMerge.state.validation_unlock_status;
   const nextAdaptiveReview = maybeRecomputeWeeklyReview({
     previousReview: args.previousWeeklyState.weekly_adaptive_review,
     projection: args.previousWeeklyState.weekly_progress_review,
@@ -2425,14 +2894,19 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     actionStatusCorrections: nextActionStatusCorrections,
     action: output.flow_action,
   });
+  addWeeklyAdaptiveReviewMutationAudit({
+    audit: nextMerge.audit,
+    previousReview: args.previousWeeklyState.weekly_adaptive_review,
+    nextReview: nextAdaptiveReview,
+  });
   const nextWeeklyState: Record<string, unknown> = {
     ...args.previousWeeklyState,
     status: nextStatus === "completed" || nextStatus === "stopped"
       ? nextStatus
       : "open",
     weekly_adaptive_review: nextAdaptiveReview,
-    weekly_flow_state: nextFlow,
-    validation_unlock: validationUnlockStatus === "available"
+    weekly_flow_state: nextMerge.state,
+    validation_unlock: effectiveValidationUnlockStatus === "available"
       ? {
         status: "available",
         meaning:
@@ -2468,6 +2942,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     note_information: null,
     conversation_context: conversationContext,
     blocked_effects: [],
+    state_mutation_audit: nextMerge.audit,
     evidence: output.evidence,
   };
 }
@@ -2685,6 +3160,46 @@ function nextMemoryAfterWeeklyReduction(args: {
   return next;
 }
 
+function weeklyReviewShortTrace(args: {
+  reduced: WeeklyReviewReducerResult;
+  output: WeeklyReviewLocalDispatcherOutput;
+}): Record<string, unknown> {
+  const flow = isRecord(args.reduced.weekly_state?.weekly_flow_state)
+    ? args.reduced.weekly_state.weekly_flow_state
+    : {};
+  const childFlow = isRecord(flow.child_flow) ? flow.child_flow : {};
+  const detour = isRecord(flow.detour_candidate) ? flow.detour_candidate : {};
+  const pendingStatePresent = cleanText(detour.kind) !== "" &&
+      cleanText(detour.kind) !== "none" ||
+    cleanText(childFlow.status) !== "" &&
+      cleanText(childFlow.status) !== "none";
+  const candidateSummary = args.output.detour_candidate.kind === "none"
+    ? []
+    : [{
+      kind: args.output.detour_candidate.kind,
+      target: args.output.detour_candidate.target_action_or_plan,
+      readiness: args.output.detour_candidate.readiness,
+      user_consent: args.output.detour_candidate.user_consent,
+    }];
+  return {
+    flow_action: args.output.flow_action,
+    visible_task: args.reduced.visible_task,
+    selected_target: args.output.detour_candidate.target_action_or_plan ??
+      args.output.handoff_updates.scope.scope_summary,
+    pending_state_present: pendingStatePresent,
+    direct_handoff_flag: args.output.flow_action === "handoff_to_local_flow" &&
+      args.output.detour_candidate.user_consent === true,
+    candidate_summary: candidateSummary,
+    constraint_list: [
+      "no_chat_plan_mutation",
+      "weekly_parent_returns_after_child_flow",
+    ],
+    readiness: args.output.detour_candidate.readiness,
+    blocked_effects: args.reduced.blocked_effects,
+    state_mutation_audit: args.reduced.state_mutation_audit,
+  };
+}
+
 function fallbackWeeklyVisibleMessage(args: {
   visibleTask: WeeklyReviewVisibleTaskKind;
   handoffSummary: string | null;
@@ -2829,6 +3344,8 @@ export async function runWeeklyReviewLocalRuntime(args: {
         target_dispatcher: reduced.target_dispatcher,
         note_information: reduced.note_information,
         exit_memo: nextTempMemory[WEEKLY_REVIEW_EXIT_MEMO_KEY],
+        short_trace: weeklyReviewShortTrace({ reduced, output }),
+        state_mutation_audit: reduced.state_mutation_audit,
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
@@ -2898,6 +3415,8 @@ export async function runWeeklyReviewLocalRuntime(args: {
       target_dispatcher: reduced.target_dispatcher,
       note_information: reduced.note_information,
       conversation_context: conversationContext,
+      short_trace: weeklyReviewShortTrace({ reduced, output }),
+      state_mutation_audit: reduced.state_mutation_audit,
       requested_effects: [],
       allowed_effects: [],
       committed_effects: [],

@@ -71,6 +71,7 @@ function visibleSystemPrompt(input: ProductHelpVisibleAgentInput): string {
     "Tu écris uniquement le prochain message visible de Sophia.",
     "Tu ne routes pas, tu ne lances aucun flow, tu ne remplis aucun champ d'un autre flow.",
     "product_help est strictement non-mutant: ne dis jamais que tu as créé, modifié, annulé, activé, programmé, enregistré ou appliqué quelque chose.",
+    "Pour un rappel ponctuel déjà programmé, ne dis pas que le user peut le modifier ou l'annuler depuis le chat. Dis seulement que Sophia peut créer un nouveau rappel ponctuel si le user donne quoi rappeler et quand.",
     "Tu écris seulement à partir de conversation_context. Tu ne lis pas de DB brute, de mémoire brute, ni de contexte hors conversation_context.",
     "N'invente aucun objet réel: pour affirmer qu'un objet existe ou a un état, il faut une source dans conversation_context.known_values.grounded_sources, conversation_context.known_values.grounding.db_sources_used ou active_flow_used.",
     "Ne rends pas un status recap complet.",

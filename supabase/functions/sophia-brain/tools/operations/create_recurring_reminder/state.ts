@@ -15,12 +15,26 @@ function objectRecord(value: unknown): Record<string, unknown> | null {
 
 function handoffState(value: unknown): RecurringReminderHandoffState | null {
   const record = objectRecord(value);
+  const nonExecutableLegacy = record?.executable_from_chat === false ||
+    record?.no_chat_mutation === true ||
+    record?.operation_type === "create_recurring_reminder";
   if (
     record?.skill_id !== "create_recurring_reminder" ||
     record?.mode !== "platform_handoff" ||
-    record?.executable_from_chat !== false
+    !nonExecutableLegacy
   ) return null;
-  return record as RecurringReminderHandoffState;
+  return {
+    ...record,
+    executable_from_chat: false,
+    turn_count: Number(record.turn_count ?? 0) || 0,
+    max_turns: Number(record.max_turns ?? 6) || 6,
+    created_at: typeof record.created_at === "string"
+      ? record.created_at
+      : new Date().toISOString(),
+    updated_at: typeof record.updated_at === "string"
+      ? record.updated_at
+      : new Date().toISOString(),
+  } as RecurringReminderHandoffState;
 }
 
 export function loadRecurringReminderFrameFromTempMemory(

@@ -846,10 +846,10 @@ Deno.test("route replay passes all 25 fixtures with S2 runtime", async () => {
 // par buildDispatcherPrompt, sous la forme attendue.
 // ---------------------------------------------------------------------------
 
-Deno.test("dispatcher prompt version reflects active skill stable description contract s26", () => {
+Deno.test("dispatcher prompt version reflects card pair clarification contract", () => {
   assertEquals(
     DISPATCHER_V2_PROMPT_VERSION,
-    "dispatcher_v2_prompt_2026_06_s29_status_recap_entry",
+    "dispatcher_v2_prompt_2026_06_s32_card_pair_clarification",
   );
 });
 

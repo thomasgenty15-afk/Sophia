@@ -23,6 +23,7 @@ import {
   type DemotivationRepairPhase,
   type DemotivationRepairPotionBridgeContext,
   type DemotivationRepairResponseContract,
+  type DemotivationRepairStateMutationAudit,
   type DemotivationRepairVisiblePotionLabel,
   type DemotivationRepairVisibleTask,
   type DemotivationRepairVisibleTaskKind,
@@ -72,6 +73,7 @@ export type DemotivationRepairReducerResult = {
   constraints: DemotivationRepairConstraint[];
   blocked_effects: Array<{ type: string; reason_code: string }>;
   evidence: string[];
+  state_mutation_audit: DemotivationRepairStateMutationAudit;
 };
 
 const FLOW_ACTIONS: readonly DemotivationRepairLocalFlowAction[] = [
@@ -445,6 +447,9 @@ export function normalizeDemotivationRepairLocalDispatcherOutput(
     repairState.summary,
     repairState.user_words,
   );
+  const stateChangeIntent = isRecord(root.state_change_intent)
+    ? root.state_change_intent
+    : {};
   const exitMemo = isRecord(root.exit_memo) ? root.exit_memo : {};
   const bridgeNote = bridge.note_information === null
     ? null
@@ -502,6 +507,11 @@ export function normalizeDemotivationRepairLocalDispatcherOutput(
       note_information: bridgeNote,
     },
     visible_task: visibleTask,
+    state_change_intent: {
+      modified_fields: stringArray(stateChangeIntent.modified_fields, 12),
+      clear_fields: stringArray(stateChangeIntent.clear_fields, 12),
+      reason: stringValue(stateChangeIntent.reason),
+    },
     exit_memo: {
       needed: exitMemo.needed === true,
       reason: enumValue(
@@ -582,6 +592,7 @@ function localDispatcherFieldCompletionRules(): string {
     "- visible_task.conversation_context.selected_candidate: null si aucune offre visible persistable. Ne mets une potion que si le stage visible peut la mentionner.",
     "- visible_task.conversation_context.handoff_data: target_dispatcher seulement pour transition ou roundtrip inline; null sinon.",
     "- visible_task.conversation_context.do_not_say: contraintes visibles importantes, surtout pas de promesse de creation, activation, rappel ou DB write.",
+    "- state_change_intent: optionnel pour observabilite seulement. Liste modified_fields/clear_fields si tu penses modifier ou vider un champ d'etat local, mais le reducer reste source de verite et peut refuser ou restaurer.",
     "- exit_memo.needed: true seulement pour exit_to_global_dispatcher, safety_preempt ou transition qui a besoin d'un memo; false sinon.",
     "- exit_memo.reason: cancelled quand le user veut arreter ce flow sans autre demande; topic_change pour nouveau sujet clair; explicit_tool_request si le user demande explicitement une capacite hors flow; inline_product/inline_status seulement pour roundtrip inline qui reste au service du repair actif; safety/potion_handoff selon le cas; none sinon.",
     "- exit_memo.flow_summary et handoff_hint_for_global_dispatcher: utiles pour le dispatcher cible; null si le flow continue localement.",
@@ -683,6 +694,11 @@ export function demotivationRepairDispatcherOutputExamples() {
             max_questions: 1,
           },
         },
+        state_change_intent: {
+          modified_fields: ["repair_state", "previous_repair_summary"],
+          clear_fields: [],
+          reason: "continuer le repair motivationnel local",
+        },
         exit_memo: {
           needed: false,
           reason: "none",
@@ -764,6 +780,14 @@ export function demotivationRepairDispatcherOutputExamples() {
             memory_context_summary: null,
             max_questions: 0,
           },
+        },
+        state_change_intent: {
+          modified_fields: [],
+          clear_fields: [
+            "last_potion_bridge_offer",
+            "active_potion_handoff_context",
+          ],
+          reason: "safety preempt terminal",
         },
         exit_memo: {
           needed: true,
@@ -933,6 +957,11 @@ export const runDemotivationRepairLocalDispatcher:
             memory_context_summary: "string|null",
             max_questions: "0|1",
           },
+        },
+        state_change_intent: {
+          modified_fields: ["string"],
+          clear_fields: ["string"],
+          reason: "string|null",
         },
         exit_memo: {
           needed: false,
@@ -1533,7 +1562,399 @@ export function readDemotivationRepairLocalState(
   if (!isRecord(state) || state.skill_id !== "demotivation_repair") {
     return null;
   }
-  return state as DemotivationRepairLocalState;
+  return {
+    ...(state as DemotivationRepairLocalState),
+    repair_state: normalizeRepairState(state.repair_state),
+    last_potion_bridge_offer: normalizePersistedPotionBridgeOffer(
+      state.last_potion_bridge_offer,
+    ),
+    active_potion_handoff_context: isRecord(
+        state.active_potion_handoff_context,
+      )
+      ? state
+        .active_potion_handoff_context as DemotivationRepairPotionBridgeContext
+      : null,
+  };
+}
+
+function normalizePersistedPotionBridgeOffer(
+  raw: unknown,
+): DemotivationRepairLocalState["last_potion_bridge_offer"] {
+  if (!isRecord(raw)) return null;
+  const selectedPotion = bridgePotion(raw.selected_potion);
+  const durableNeed = isRecord(raw.durable_need) ? raw.durable_need : {};
+  const durableNeedKind = nullableEnumValue(durableNeed.kind, NEEDS);
+  const note = isRecord(raw.note_information) ? raw.note_information : null;
+  if (!selectedPotion || !durableNeedKind || !note) return null;
+  const noteTarget = String(
+    note.target_dispatcher ?? note.target_flow ?? "",
+  ).trim();
+  if (noteTarget !== "select_state_potion") return null;
+  return {
+    selected_potion: selectedPotion,
+    visible_potion_label: demotivationRepairVisiblePotionLabel(
+      selectedPotion,
+    )!,
+    durable_need: {
+      kind: durableNeedKind,
+      summary: stringValue(durableNeed.summary) ??
+        "Besoin durable diagnostiqué.",
+    },
+    prefill_candidates: normalizePrefillCandidates(raw.prefill_candidates),
+    selection_reason: stringValue(raw.selection_reason) ??
+      "Offre potion persistée.",
+    offered_at_turn: Number(raw.offered_at_turn ?? 0) || 0,
+    note_information: note as DemotivationRepairNoteInformation,
+  };
+}
+
+const SERVER_OWNED_STATE_FIELDS = [
+  "repair_state",
+  "selected_bridge_target",
+  "last_potion_bridge_offer",
+  "last_potion_bridge_offer.selected_potion",
+  "last_potion_bridge_offer.note_information",
+  "previous_repair_summary",
+  "active_potion_handoff_context",
+  "active_potion_handoff_context.note_information",
+] as const;
+
+const DEFAULT_REPAIR_SUMMARY = "Réparation motivationnelle en cours.";
+
+function declaredFieldIncludes(fields: string[], field: string): boolean {
+  return fields.some((candidate) =>
+    candidate === field || candidate.startsWith(`${field}.`)
+  );
+}
+
+function pushUnique(target: string[], field: string) {
+  if (!target.includes(field)) target.push(field);
+}
+
+function createStateMutationAudit(
+  output: DemotivationRepairLocalDispatcherOutput,
+): DemotivationRepairStateMutationAudit {
+  return {
+    server_owned_fields: [...SERVER_OWNED_STATE_FIELDS],
+    modified_fields_declared: output.state_change_intent.modified_fields.slice(
+      0,
+      12,
+    ),
+    clear_fields_declared: output.state_change_intent.clear_fields.slice(0, 12),
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function terminalStateAudit(args: {
+  output: DemotivationRepairLocalDispatcherOutput;
+  previous: DemotivationRepairLocalState | null;
+  clearedFields?: string[];
+}): DemotivationRepairStateMutationAudit {
+  const audit = createStateMutationAudit(args.output);
+  for (const field of args.clearedFields ?? []) {
+    if (
+      field === "last_potion_bridge_offer" &&
+      !args.previous?.last_potion_bridge_offer
+    ) continue;
+    if (
+      field === "active_potion_handoff_context" &&
+      !args.previous?.active_potion_handoff_context
+    ) continue;
+    pushUnique(audit.cleared_fields, field);
+  }
+  return audit;
+}
+
+function stableRepairState(args: {
+  previous: DemotivationRepairLocalState | null;
+  output: DemotivationRepairLocalDispatcherOutput;
+  audit: DemotivationRepairStateMutationAudit;
+}): DemotivationRepairLocalState["repair_state"] {
+  const declaredClear = declaredFieldIncludes(
+    args.output.state_change_intent.clear_fields,
+    "repair_state",
+  );
+  if (declaredClear && args.previous?.repair_state) {
+    pushUnique(args.audit.restored_fields, "repair_state");
+    args.audit.rejected_changes.push({
+      field: "repair_state",
+      reason_code: "server_owned_clear_requires_authorized_transition",
+    });
+    return args.previous.repair_state;
+  }
+  const previous = args.previous?.repair_state;
+  const output = args.output.repair_state;
+  const repaired = previous
+    ? {
+      ...output,
+      summary: output.summary === DEFAULT_REPAIR_SUMMARY
+        ? previous.summary
+        : output.summary,
+      user_words: output.user_words.length > 0
+        ? output.user_words
+        : previous.user_words,
+    }
+    : output;
+  pushUnique(args.audit.applied_fields, "repair_state");
+  return repaired;
+}
+
+function stablePreviousRepairSummary(args: {
+  previous: DemotivationRepairLocalState | null;
+  repairState: DemotivationRepairLocalState["repair_state"];
+  output: DemotivationRepairLocalDispatcherOutput;
+  audit: DemotivationRepairStateMutationAudit;
+}): string | null {
+  const declaredClear = declaredFieldIncludes(
+    args.output.state_change_intent.clear_fields,
+    "previous_repair_summary",
+  );
+  if (declaredClear && args.previous?.previous_repair_summary) {
+    pushUnique(args.audit.restored_fields, "previous_repair_summary");
+    args.audit.rejected_changes.push({
+      field: "previous_repair_summary",
+      reason_code: "server_owned_clear_requires_authorized_transition",
+    });
+    return args.previous.previous_repair_summary;
+  }
+  pushUnique(args.audit.applied_fields, "previous_repair_summary");
+  return args.repairState.summary;
+}
+
+function bridgeBlockedReason(args: {
+  output: DemotivationRepairLocalDispatcherOutput;
+  constraints: DemotivationRepairConstraint[];
+}): string {
+  if (
+    args.constraints.includes("no_potion") ||
+    args.constraints.includes("no_tool") ||
+    args.output.repair_state.intent === "asks_no_tool_support"
+  ) return "blocked_by_constraint";
+  if (args.output.repair_state.motivation_source_diagnosed !== true) {
+    return "not_stabilized_enough";
+  }
+  if (
+    args.output.response_contract.allow_tool_suggestion !== true ||
+    args.output.response_contract.allow_potion_suggestion !== true
+  ) return "blocked_by_constraint";
+  return "invalid_status_transition";
+}
+
+function potionOfferBlockedReason(args: {
+  output: DemotivationRepairLocalDispatcherOutput;
+  constraints: DemotivationRepairConstraint[];
+  selectedPotion: DemotivationRepairBridgePotion | null;
+  bridgeIsBlocked: boolean;
+}): string {
+  if (args.bridgeIsBlocked) {
+    return bridgeBlockedReason({
+      output: args.output,
+      constraints: args.constraints,
+    });
+  }
+  if (!args.selectedPotion) return "selected_option_missing";
+  if (args.output.potion_bridge.status !== "offered_waiting_consent") {
+    return "invalid_status_transition";
+  }
+  if (args.output.potion_bridge.selected_potion !== args.selectedPotion) {
+    return "selected_option_missing";
+  }
+  if (!args.output.potion_bridge.durable_need.kind) {
+    return "durable_need_missing";
+  }
+  const candidate = args.output.potion_bridge.candidate_potions.find(
+    (item) => item.potion_type === args.selectedPotion,
+  );
+  if (!candidate) return "candidate_missing";
+  if (candidate.confidence === "low") return "not_stabilized_enough";
+  return "invalid_status_transition";
+}
+
+function potionConfirmBlockedReason(args: {
+  output: DemotivationRepairLocalDispatcherOutput;
+  constraints: DemotivationRepairConstraint[];
+  previous: DemotivationRepairLocalState | null;
+  selectedPotion: DemotivationRepairBridgePotion | null;
+  bridgeIsBlocked: boolean;
+}): string {
+  if (args.bridgeIsBlocked) {
+    return bridgeBlockedReason({
+      output: args.output,
+      constraints: args.constraints,
+    });
+  }
+  if (!args.selectedPotion) return "selected_option_missing";
+  if (args.output.potion_bridge.status !== "confirmed_handoff") {
+    return "direct_handoff_flag_missing";
+  }
+  if (!args.previous?.last_potion_bridge_offer) {
+    return "missing_previous_offer";
+  }
+  if (
+    args.previous.last_potion_bridge_offer.selected_potion !==
+      args.selectedPotion
+  ) return "selected_option_mismatch";
+  return "invalid_status_transition";
+}
+
+function mergeDemotivationRepairLocalState(args: {
+  previous: DemotivationRepairLocalState | null;
+  output: DemotivationRepairLocalDispatcherOutput;
+  status: DemotivationRepairLocalState["status"];
+  visibleTaskKind: DemotivationRepairVisibleTaskKind;
+  turnCount: number;
+  now: string;
+  selectedPotion: DemotivationRepairBridgePotion | null;
+  shouldOffer: boolean;
+  offerContext: DemotivationRepairPotionBridgeContext | null;
+  handoffContext: DemotivationRepairPotionBridgeContext | null;
+  constraints: DemotivationRepairConstraint[];
+}): {
+  local_state: DemotivationRepairLocalState;
+  state_mutation_audit: DemotivationRepairStateMutationAudit;
+} {
+  const audit = createStateMutationAudit(args.output);
+  const declaredOfferModify = declaredFieldIncludes(
+    args.output.state_change_intent.modified_fields,
+    "last_potion_bridge_offer",
+  );
+  const declaredOfferClear = declaredFieldIncludes(
+    args.output.state_change_intent.clear_fields,
+    "last_potion_bridge_offer",
+  );
+  const declaredHandoffModify = declaredFieldIncludes(
+    args.output.state_change_intent.modified_fields,
+    "active_potion_handoff_context",
+  );
+  const declaredHandoffClear = declaredFieldIncludes(
+    args.output.state_change_intent.clear_fields,
+    "active_potion_handoff_context",
+  );
+  const declaredSelectedTargetModify = declaredFieldIncludes(
+    args.output.state_change_intent.modified_fields,
+    "selected_bridge_target",
+  );
+  const declaredSelectedTargetClear = declaredFieldIncludes(
+    args.output.state_change_intent.clear_fields,
+    "selected_bridge_target",
+  );
+
+  const repairState = stableRepairState({
+    previous: args.previous,
+    output: args.output,
+    audit,
+  });
+  const previousRepairSummary = stablePreviousRepairSummary({
+    previous: args.previous,
+    repairState,
+    output: args.output,
+    audit,
+  });
+
+  let lastOffer = normalizePersistedPotionBridgeOffer(
+    args.previous?.last_potion_bridge_offer,
+  );
+  let activeHandoffContext = args.previous?.active_potion_handoff_context ??
+    null;
+  const canClearOffer = Boolean(args.handoffContext) ||
+    args.constraints.includes("no_potion") ||
+    args.constraints.includes("no_tool");
+
+  if (args.shouldOffer && args.selectedPotion && args.offerContext) {
+    lastOffer = {
+      selected_potion: args.selectedPotion,
+      visible_potion_label: demotivationRepairVisiblePotionLabel(
+        args.selectedPotion,
+      )!,
+      durable_need: args.offerContext.durable_need,
+      prefill_candidates: args.output.potion_bridge.prefill_candidates,
+      selection_reason: args.output.potion_bridge.why_ready_or_blocked,
+      offered_at_turn: args.turnCount,
+      note_information: args.offerContext.note_information,
+    };
+    pushUnique(audit.applied_fields, "last_potion_bridge_offer");
+    pushUnique(
+      audit.applied_fields,
+      "last_potion_bridge_offer.selected_potion",
+    );
+    pushUnique(audit.applied_fields, "selected_bridge_target");
+  } else if (canClearOffer) {
+    if (lastOffer) pushUnique(audit.cleared_fields, "last_potion_bridge_offer");
+    lastOffer = null;
+  } else if (lastOffer) {
+    if (declaredOfferClear || declaredOfferModify) {
+      pushUnique(audit.restored_fields, "last_potion_bridge_offer");
+      audit.rejected_changes.push({
+        field: "last_potion_bridge_offer",
+        reason_code: declaredOfferClear
+          ? "server_owned_clear_requires_authorized_transition"
+          : "server_owned_modify_requires_persistable_offer",
+      });
+    } else {
+      pushUnique(audit.preserved_fields, "last_potion_bridge_offer");
+    }
+  }
+
+  if (args.handoffContext) {
+    activeHandoffContext = args.handoffContext;
+    pushUnique(audit.applied_fields, "active_potion_handoff_context");
+    pushUnique(audit.applied_fields, "selected_bridge_target");
+  } else if (activeHandoffContext) {
+    if (declaredHandoffClear || declaredHandoffModify) {
+      pushUnique(audit.restored_fields, "active_potion_handoff_context");
+      audit.rejected_changes.push({
+        field: "active_potion_handoff_context",
+        reason_code: declaredHandoffClear
+          ? "server_owned_clear_requires_authorized_transition"
+          : "server_owned_modify_requires_confirmed_handoff",
+      });
+    } else {
+      pushUnique(audit.preserved_fields, "active_potion_handoff_context");
+    }
+  }
+  const selectedTargetExists = Boolean(
+    lastOffer?.selected_potion ?? activeHandoffContext?.selected_potion,
+  );
+  if (
+    selectedTargetExists &&
+    !args.shouldOffer &&
+    !args.handoffContext &&
+    (declaredSelectedTargetClear || declaredSelectedTargetModify)
+  ) {
+    pushUnique(audit.restored_fields, "selected_bridge_target");
+    audit.rejected_changes.push({
+      field: "selected_bridge_target",
+      reason_code: declaredSelectedTargetClear
+        ? "server_owned_clear_requires_authorized_transition"
+        : "server_owned_modify_requires_authorized_transition",
+    });
+  } else if (
+    selectedTargetExists && !args.shouldOffer && !args.handoffContext
+  ) {
+    pushUnique(audit.preserved_fields, "selected_bridge_target");
+  }
+
+  return {
+    local_state: {
+      skill_id: "demotivation_repair",
+      mode: "local_repair_flow",
+      status: args.status,
+      repair_state: repairState,
+      last_visible_task: args.visibleTaskKind,
+      last_potion_bridge_offer: lastOffer,
+      active_potion_handoff_context: activeHandoffContext,
+      previous_repair_summary: previousRepairSummary,
+      turn_count: args.turnCount,
+      max_turns: Number(args.previous?.max_turns ?? 6) || 6,
+      created_at: args.previous?.created_at ?? args.now,
+      updated_at: args.now,
+    },
+    state_mutation_audit: audit,
+  };
 }
 
 export function reduceDemotivationRepairLocalDispatcherOutput(args: {
@@ -1543,6 +1964,18 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
   turn_frame?: TurnFrame | null;
 }): DemotivationRepairReducerResult {
   const safetyRisk = args.turn_frame?.safety?.risk_band ?? "none";
+  const constraints = constraintsWithInvariants({
+    output: args.output,
+    explicitConstraints: args.explicit_constraints ?? [],
+  });
+  const previous: DemotivationRepairLocalState | null = args.previous
+    ? {
+      ...args.previous,
+      last_potion_bridge_offer: normalizePersistedPotionBridgeOffer(
+        args.previous.last_potion_bridge_offer,
+      ),
+    }
+    : null;
   if (
     safetyRisk === "high" ||
     safetyRisk === "critical" ||
@@ -1557,7 +1990,7 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
         selectedPotion: null,
         potionLabel: null,
         bridgeContextSummary: null,
-        constraints: args.output.constraints,
+        constraints,
         evidence: args.output.evidence,
       }),
     };
@@ -1575,21 +2008,25 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       note_information: noteInformation,
       exit_to_global_dispatcher: false,
       reason_code: "safety_preempt",
-      constraints: args.output.constraints,
+      constraints,
       blocked_effects: [{
         type: "demotivation_repair",
         reason_code: "safety_preempt",
       }],
       evidence: args.output.evidence,
+      state_mutation_audit: terminalStateAudit({
+        output: args.output,
+        previous,
+        clearedFields: [
+          "last_potion_bridge_offer",
+          "active_potion_handoff_context",
+        ],
+      }),
     };
   }
-  const constraints = constraintsWithInvariants({
-    output: args.output,
-    explicitConstraints: args.explicit_constraints ?? [],
-  });
   const blocked = bridgeBlocked({ output: args.output, constraints });
   const selectedPotion = args.output.potion_bridge.selected_potion ??
-    args.previous?.last_potion_bridge_offer?.selected_potion ??
+    previous?.last_potion_bridge_offer?.selected_potion ??
     null;
   const offerIsPersistable = isPersistablePotionOffer({
     output: args.output,
@@ -1604,6 +2041,17 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
   });
   const actionCardNotAllowed =
     args.output.flow_action === "action_card_candidate" && !actionCardIsAllowed;
+  const confirmAttempted = args.output.flow_action ===
+      "confirm_potion_bridge" ||
+    args.output.flow_action === "handoff_to_local_flow";
+  const confirmed = Boolean(
+    confirmAttempted &&
+      args.output.potion_bridge.status === "confirmed_handoff" &&
+      selectedPotion &&
+      !blocked &&
+      previous?.last_potion_bridge_offer?.selected_potion ===
+        selectedPotion,
+  );
   const visibleTaskKind = visibleKindForOutput(
     args.output,
     blocked,
@@ -1618,19 +2066,11 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
     conversation_context: conversationContextForVisibleTask({
       output: args.output,
       visibleTaskKind,
-      selectedPotion: offerIsPersistable ||
-          args.output.flow_action === "confirm_potion_bridge" ||
-          args.output.flow_action === "handoff_to_local_flow"
-        ? selectedPotion
+      selectedPotion: offerIsPersistable || confirmed ? selectedPotion : null,
+      potionLabel: offerIsPersistable || confirmed
+        ? demotivationRepairVisiblePotionLabel(selectedPotion)
         : null,
-      potionLabel: !(offerIsPersistable ||
-          args.output.flow_action === "confirm_potion_bridge" ||
-          args.output.flow_action === "handoff_to_local_flow")
-        ? null
-        : demotivationRepairVisiblePotionLabel(selectedPotion),
-      bridgeContextSummary: offerIsPersistable ||
-          args.output.flow_action === "confirm_potion_bridge" ||
-          args.output.flow_action === "handoff_to_local_flow"
+      bridgeContextSummary: offerIsPersistable || confirmed
         ? dispatcherBridgeContextSummary ??
           args.output.potion_bridge.why_ready_or_blocked
         : null,
@@ -1640,6 +2080,59 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
   };
   const now = new Date().toISOString();
   const turnCount = Number(args.previous?.turn_count ?? 0) + 1;
+
+  if (confirmAttempted && !confirmed) {
+    const blockedReason = potionConfirmBlockedReason({
+      output: args.output,
+      constraints,
+      previous,
+      selectedPotion,
+      bridgeIsBlocked: blocked,
+    });
+    const fallbackVisibleTask: DemotivationRepairVisibleTask = {
+      ...visibleTask,
+      kind: visibleTaskKind,
+      conversation_context: conversationContextForVisibleTask({
+        output: args.output,
+        visibleTaskKind,
+        selectedPotion: null,
+        potionLabel: null,
+        bridgeContextSummary: null,
+        constraints,
+        evidence: args.output.evidence,
+      }),
+    };
+    const merged = mergeDemotivationRepairLocalState({
+      previous,
+      output: args.output,
+      status: "active",
+      visibleTaskKind: fallbackVisibleTask.kind,
+      turnCount,
+      now,
+      selectedPotion,
+      shouldOffer: false,
+      offerContext: null,
+      handoffContext: null,
+      constraints,
+    });
+    return {
+      status: "continue",
+      response_intent: args.output.repair_state.phase,
+      local_state: merged.local_state,
+      visible_task: fallbackVisibleTask,
+      potion_bridge_context: null,
+      note_information: null,
+      exit_to_global_dispatcher: false,
+      reason_code: blockedReason,
+      constraints,
+      blocked_effects: [{
+        type: "select_state_potion",
+        reason_code: blockedReason,
+      }],
+      evidence: args.output.evidence,
+      state_mutation_audit: merged.state_mutation_audit,
+    };
+  }
 
   if (args.output.flow_action === "exit_to_global_dispatcher") {
     const noteInformation = args.output.exit_memo.note_information ??
@@ -1662,6 +2155,14 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,
+      state_mutation_audit: terminalStateAudit({
+        output: args.output,
+        previous,
+        clearedFields: [
+          "last_potion_bridge_offer",
+          "active_potion_handoff_context",
+        ],
+      }),
     };
   }
   if (
@@ -1685,6 +2186,14 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,
+      state_mutation_audit: terminalStateAudit({
+        output: args.output,
+        previous,
+        clearedFields: [
+          "last_potion_bridge_offer",
+          "active_potion_handoff_context",
+        ],
+      }),
     };
   }
   if (
@@ -1701,23 +2210,23 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
         args.output.exit_memo.handoff_hint_for_global_dispatcher ??
           args.output.repair_state.summary,
     });
+    const merged = mergeDemotivationRepairLocalState({
+      previous,
+      output: args.output,
+      status: "active",
+      visibleTaskKind: visibleTask.kind,
+      turnCount,
+      now,
+      selectedPotion,
+      shouldOffer: false,
+      offerContext: null,
+      handoffContext: null,
+      constraints,
+    });
     return {
       status: "continue",
       response_intent: args.output.flow_action,
-      local_state: {
-        skill_id: "demotivation_repair",
-        mode: "local_repair_flow",
-        status: "active",
-        repair_state: args.output.repair_state,
-        last_visible_task: visibleTask.kind,
-        last_potion_bridge_offer: args.previous?.last_potion_bridge_offer ??
-          null,
-        previous_repair_summary: args.output.repair_state.summary,
-        turn_count: turnCount,
-        max_turns: Number(args.previous?.max_turns ?? 6) || 6,
-        created_at: args.previous?.created_at ?? now,
-        updated_at: now,
-      },
+      local_state: merged.local_state,
       visible_task: visibleTask,
       potion_bridge_context: null,
       note_information: noteInformation,
@@ -1728,40 +2237,33 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,
+      state_mutation_audit: merged.state_mutation_audit,
     };
   }
 
-  const confirmed = (
-    args.output.flow_action === "confirm_potion_bridge" ||
-    args.output.flow_action === "handoff_to_local_flow"
-  ) &&
-    args.output.potion_bridge.status === "confirmed_handoff" &&
-    selectedPotion &&
-    !blocked &&
-    args.previous?.last_potion_bridge_offer?.selected_potion === selectedPotion;
-  if (confirmed) {
+  if (confirmed && selectedPotion) {
     const context = bridgeContext({
       output: args.output,
       selectedPotion,
       confidence: fieldConfidence("handoff"),
     });
+    const merged = mergeDemotivationRepairLocalState({
+      previous,
+      output: args.output,
+      status: "handoff_to_potion",
+      visibleTaskKind: visibleTask.kind,
+      turnCount,
+      now,
+      selectedPotion,
+      shouldOffer: false,
+      offerContext: null,
+      handoffContext: context,
+      constraints,
+    });
     return {
       status: "handoff",
       response_intent: "handoff_to_select_state_potion",
-      local_state: {
-        ...(args.previous ?? {
-          skill_id: "demotivation_repair",
-          mode: "local_repair_flow",
-          turn_count: 0,
-          max_turns: 6,
-          created_at: now,
-        } as DemotivationRepairLocalState),
-        status: "handoff_to_potion",
-        repair_state: args.output.repair_state,
-        last_visible_task: visibleTask.kind,
-        previous_repair_summary: args.output.repair_state.summary,
-        updated_at: now,
-      },
+      local_state: merged.local_state,
       visible_task: visibleTask,
       potion_bridge_context: context,
       note_information: context.note_information,
@@ -1770,6 +2272,7 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,
+      state_mutation_audit: merged.state_mutation_audit,
     };
   }
 
@@ -1781,53 +2284,53 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       confidence: fieldConfidence("offer"),
     })
     : null;
-  const lastOffer = shouldOffer
-    ? {
-      selected_potion: selectedPotion,
-      visible_potion_label: demotivationRepairVisiblePotionLabel(
-        selectedPotion,
-      )!,
-      durable_need: offerContext!.durable_need,
-      prefill_candidates: args.output.potion_bridge.prefill_candidates,
-      selection_reason: args.output.potion_bridge.why_ready_or_blocked,
-      offered_at_turn: turnCount,
-      note_information: offerContext!.note_information,
-    }
-    : args.previous?.last_potion_bridge_offer ?? null;
+  const merged = mergeDemotivationRepairLocalState({
+    previous,
+    output: args.output,
+    status: "active",
+    visibleTaskKind: visibleTask.kind,
+    turnCount,
+    now,
+    selectedPotion,
+    shouldOffer,
+    offerContext,
+    handoffContext: null,
+    constraints,
+  });
+  const bridgeBlockedReasonCode = bridgeOfferNotPersistable
+    ? potionOfferBlockedReason({
+      output: args.output,
+      constraints,
+      selectedPotion,
+      bridgeIsBlocked: blocked,
+    })
+    : null;
   return {
     status: "continue",
     response_intent: args.output.repair_state.phase,
-    local_state: {
-      skill_id: "demotivation_repair",
-      mode: "local_repair_flow",
-      status: "active",
-      repair_state: args.output.repair_state,
-      last_visible_task: visibleTask.kind,
-      last_potion_bridge_offer: lastOffer,
-      previous_repair_summary: args.output.repair_state.summary,
-      turn_count: turnCount,
-      max_turns: Number(args.previous?.max_turns ?? 6) || 6,
-      created_at: args.previous?.created_at ?? now,
-      updated_at: now,
-    },
+    local_state: merged.local_state,
     visible_task: visibleTask,
     potion_bridge_context: null,
     note_information: null,
     exit_to_global_dispatcher: false,
     reason_code: bridgeOfferNotPersistable
-      ? "demotivation_repair_potion_bridge_blocked"
+      ? bridgeBlockedReasonCode!
       : actionCardNotAllowed
       ? "demotivation_repair_action_card_candidate_blocked"
       : "demotivation_repair_local_continue",
     constraints,
     blocked_effects: [
       ...(bridgeOfferNotPersistable
-        ? [{ type: "select_state_potion", reason_code: "bridge_not_mature" }]
+        ? [{
+          type: "select_state_potion",
+          reason_code: bridgeBlockedReasonCode!,
+        }]
         : []),
       ...(actionCardNotAllowed
         ? [{ type: "action_card", reason_code: "stage_not_mature" }]
         : []),
     ],
     evidence: args.output.evidence,
+    state_mutation_audit: merged.state_mutation_audit,
   };
 }

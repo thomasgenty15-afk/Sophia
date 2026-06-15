@@ -54,7 +54,7 @@ Deno.test("effect ledger maps update_coach_preferences executor commit", () => {
 
 Deno.test("conversation skill reply override lets product_help own its factual answer", () => {
   const reply =
-    "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.\n\nPour le modifier ou l'annuler, le plus fiable est de me le redire ici clairement.";
+    "Le rappel ponctuel que je t'ai programmé est un rappel ponctuel déjà enregistré.\n\nJe ne peux pas le modifier ou l'annuler depuis le chat; je peux seulement créer un nouveau rappel ponctuel si tu me donnes quoi rappeler et quand.";
   const overridden = directConversationSkillReplyOverride({
     routeDecision: { response_owner: "product_help" } as any,
     skillOutput: {

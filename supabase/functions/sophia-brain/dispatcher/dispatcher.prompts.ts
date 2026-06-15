@@ -6,7 +6,7 @@ import {
 } from "../router/direct_effect_local_context.ts";
 
 export const DISPATCHER_V2_PROMPT_VERSION =
-  "dispatcher_v2_prompt_2026_06_s31_priority_boundaries";
+  "dispatcher_v2_prompt_2026_06_s32_card_pair_clarification";
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -60,6 +60,7 @@ Frontieres critiques:
 - Product_help plan refinement: si le user demande comment rendre une action existante du Plan moins floue, plus concrete, mieux adaptee, ou faisable sans toucher au reste du Plan, route product_help si c'est une question de fonctionnement. Dans sa note_information, le prochain focus est plan.adjustment / adjust_plan_item. Ne mentionne pas prepare_attack_card, Attack Card ou Carte d'attaque dans recommended_next_focus pour ce cas.
 - Tool adjust_plan_item: si le user demande de faire la modification maintenant sur une action existante du Plan, route adjust_plan_item. "Sans toucher au reste du Plan" signifie ajustement cible ou absence de mutation immediate; ce n'est jamais une raison de proposer une carte.
 - Attack card: route prepare_attack_card seulement si le user demande une carte, un declencheur, un truc d'attaque, ou une aide explicite pour demarrer/executer une action voulue. Une question sur comment rendre une action du Plan plus concrete n'est pas une carte sauf demande explicite de carte ou de demarrage.
+- Ambiguite carte attaque/defense: si le user veut preparer/creer une carte et hesite entre demarrer une action voulue et se proteger d'un obstacle, emets deux tool_skill_intents concurrents: prepare_attack_card et prepare_defense_card. Ne compresse pas ce cas en un seul intent target_ambiguous et ne route pas normal_reply. La clarification transverse choisira par quoi commencer.
 - Product_help vs status_recap: retrouver/modifier/annuler une surface dans l'interface = product_help; savoir ce qui existe vraiment pour le user = status_recap.
 - Handoff local: tout signal non-normal doit avoir une note_information exploitable pour le dispatcher cible; cette note explique, elle ne decide pas a la place du champ de routing.
 
@@ -524,6 +525,45 @@ export function buildDispatcherPrompt(input: {
           skill_signals_entry: {},
           note:
             "Deux tool skills platform explicites et compatibles: conserve les deux signaux. N'exécute rien depuis le chat; la clarification transverse doit demander par quoi commencer ou distinguer les cibles.",
+        },
+      },
+      {
+        user_message:
+          "Demain matin je veux préparer une carte, mais j'hésite entre m'aider à sortir du lit et me protéger du téléphone au réveil.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [{
+            operation_type: "prepare_attack_card",
+            explicitness: "explicit",
+            target_hint: "sortir du lit demain matin",
+            confidence_band: "high",
+            ambiguity: "target_ambiguous",
+            user_intent: "create",
+            operation_input: {
+              target_action_hint: "sortir du lit demain matin",
+              evidence: [
+                "préparer une carte",
+                "m'aider à sortir du lit",
+              ],
+            },
+          }, {
+            operation_type: "prepare_defense_card",
+            explicitness: "explicit",
+            target_hint: "réflexe téléphone au réveil",
+            confidence_band: "high",
+            ambiguity: "target_ambiguous",
+            user_intent: "create",
+            operation_input: {
+              target_obstacle_hint: "téléphone au réveil",
+              evidence: [
+                "préparer une carte",
+                "me protéger du téléphone au réveil",
+              ],
+            },
+          }],
+          skill_signals_entry: {},
+          note:
+            "Intention tool claire + deux cibles produit concurrentes. Ne réponds pas en normal_reply et ne choisis pas une carte à la place du user: laisse orientation_clarification arbitrer entre prepare_attack_card et prepare_defense_card.",
         },
       },
       {

@@ -39,3 +39,14 @@ Deno.test("prepare_defense_card visible contract does not block style wording by
 
   assertEquals(issues, []);
 });
+
+Deno.test("prepare_defense_card destination_short prompt forbids full handoff repetition", () => {
+  const prompt = visibleSystemPrompt({
+    ...input,
+    stage: "destination_short",
+  });
+
+  assertStringIncludes(prompt, "1 à 2 phrases maximum");
+  assertStringIncludes(prompt, "Ne répète pas le contexte de risque");
+  assertStringIncludes(prompt, "ni tout le handoff");
+});

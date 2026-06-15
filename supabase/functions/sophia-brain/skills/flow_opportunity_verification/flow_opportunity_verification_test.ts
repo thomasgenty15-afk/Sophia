@@ -199,7 +199,37 @@ Deno.test("flow opportunity selection keeps direct status as direct route", () =
   assertEquals(selected, null);
 });
 
-Deno.test("flow opportunity selection promotes implicit status signal", () => {
+Deno.test("flow opportunity selection does not promote candidates after normal reply wins", () => {
+  const selected = selectFlowOpportunityForTurn({
+    turnFrame: turnFrame({
+      normal_reply_fit_score: 0.95,
+      skill_signals: {
+        entry: {
+          emotional_repair: {
+            detected: true,
+            confidence_band: "medium",
+            reason: "light emotional support opportunity",
+          },
+        },
+      },
+    }),
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      reason_code: "normal_reply_fit_dominates",
+      blocked_paths: [{
+        path: "conversation_skill.emotional_repair",
+        reason_code: "normal_reply_fit_dominates",
+        raw_score: 0.7,
+        adjusted_score: 0.7,
+        normal_reply_fit_score: 0.95,
+      }],
+    }),
+    tempMemory: {},
+  });
+  assertEquals(selected, null);
+});
+
+Deno.test("flow opportunity selection can promote implicit status signal before final arbitration", () => {
   const selected = selectFlowOpportunityForTurn({
     turnFrame: turnFrame({
       skill_signals: {
@@ -212,7 +242,7 @@ Deno.test("flow opportunity selection promotes implicit status signal", () => {
         },
       },
     }),
-    routeDecision: routeDecision(),
+    routeDecision: null,
     tempMemory: {},
   });
   assertEquals(selected?.target_flow, "status_recap");
@@ -237,7 +267,7 @@ Deno.test("flow opportunity selection accepts canonical product_help opportunity
         },
       },
     } as any),
-    routeDecision: routeDecision(),
+    routeDecision: null,
     tempMemory: {},
   });
   assertEquals(selected?.target_flow, "product_help");
@@ -262,7 +292,7 @@ Deno.test("flow opportunity selection rejects target_kind/target_flow mismatch",
         },
       },
     } as any),
-    routeDecision: routeDecision(),
+    routeDecision: null,
     tempMemory: {},
   });
   assertEquals(selected, null);
@@ -287,7 +317,7 @@ Deno.test("flow opportunity selection accepts canonical tool skill opportunity",
         },
       },
     } as any),
-    routeDecision: routeDecision(),
+    routeDecision: null,
     tempMemory: {},
   });
   assertEquals(selected?.target_flow, "update_coach_preferences");
@@ -296,6 +326,26 @@ Deno.test("flow opportunity selection accepts canonical tool skill opportunity",
     selected?.opportunity_id,
     "update_coach_preferences.question_tendency",
   );
+});
+
+Deno.test("flow opportunity selection does not invent target for weak candidate evidence", () => {
+  const selected = selectFlowOpportunityForTurn({
+    turnFrame: turnFrame({
+      flow_opportunity: {
+        opportunity_id: "weak.theme_mention",
+        target_kind: "unknown",
+        target_flow: "unknown",
+        confidence: "low",
+        priority: 10,
+        reason: "theme mention without actionable fit",
+        evidence: ["j'ai pense a mes cartes"],
+        seed_context: { target_hint: "cartes" },
+      },
+    } as any),
+    routeDecision: null,
+    tempMemory: {},
+  });
+  assertEquals(selected, null);
 });
 
 Deno.test("flow opportunity reducer preserves anchor through product_help", () => {
@@ -339,6 +389,220 @@ Deno.test("flow opportunity reducer preserves anchor through product_help", () =
   assertEquals(reduced.local_state?.turn_count, 2);
   assert(reduced.note_information);
   assertEquals(reduced.note_information.target_dispatcher, "product_help");
+});
+
+Deno.test("flow opportunity continuation preserves server-owned target fields despite IA mutation", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const output = buildInitialOfferDispatcherOutput({
+    opportunity_id: opportunity.opportunity_id,
+    target_flow: opportunity.target_flow,
+    target_action: opportunity.target_action,
+    target_context: opportunity.seed_context,
+    reason: opportunity.reason,
+    evidence: opportunity.evidence,
+  });
+  const reduced = reduceFlowOpportunityDispatcherOutput({
+    previous,
+    output: {
+      ...output,
+      flow_action: "repeat_current_state",
+      modified_fields: ["target_flow", "target_context"],
+      opportunity: {
+        ...output.opportunity,
+        target_flow: "product_help",
+        target_kind: "skill",
+      },
+      target_flow_input: {
+        ...output.target_flow_input,
+        seed_context: { surface: "product_help", target_hint: "mutated" },
+      },
+      state_patch: {
+        ...output.state_patch,
+        target_flow: "product_help",
+        target_kind: "skill",
+        target_context: { surface: "product_help", target_hint: "mutated" },
+      },
+    },
+    userMessage: "Redis-moi juste l'offre.",
+  });
+
+  assertEquals(reduced.local_state?.target_flow, previous.target_flow);
+  assertEquals(reduced.local_state?.target_context, previous.target_context);
+  assert(
+    reduced.state_mutation_audit.restored_fields.includes("target_flow"),
+  );
+  assert(
+    reduced.state_mutation_audit.restored_fields.includes("target_context"),
+  );
+  assertEquals(
+    reduced.state_mutation_audit.modified_fields_declared,
+    ["target_flow", "target_context"],
+  );
+});
+
+Deno.test("flow opportunity explicit correction replaces only corrected target", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const correctedContext = {
+    focus: ["coach_preference"],
+    surface: "coach_preferences",
+    target_hint: "ton plus direct",
+  };
+  const output = buildInitialOfferDispatcherOutput({
+    opportunity_id: "update_coach_preferences.direct_tone",
+    target_kind: "tool_skill",
+    target_flow: "update_coach_preferences",
+    target_action: "run_update_coach_preferences",
+    target_context: correctedContext,
+    reason: "user corrected target from status to coach preferences",
+    evidence: ["non, je parle du ton direct"],
+  });
+  const reduced = reduceFlowOpportunityDispatcherOutput({
+    previous,
+    output: {
+      ...output,
+      flow_action: "correct_target_flow",
+      modified_fields: ["target_flow", "target_context"],
+      visible_task: visibleTask("correct_target_flow_ack"),
+    },
+    userMessage: "Non, je parle du ton direct de Sophia, pas du recap.",
+  });
+
+  assertEquals(reduced.local_state?.target_flow, "update_coach_preferences");
+  assertEquals(reduced.local_state?.target_context, correctedContext);
+  assertEquals(reduced.local_state?.origin, previous.origin);
+  assert(
+    reduced.state_mutation_audit.applied_fields.includes("target_flow"),
+  );
+  assert(
+    reduced.state_mutation_audit.applied_fields.includes("target_context"),
+  );
+  assertEquals(reduced.handoff_to_local_flow, false);
+});
+
+Deno.test("flow opportunity invalid confirmation preserves pending offer", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const output = buildInitialOfferDispatcherOutput({
+    opportunity_id: opportunity.opportunity_id,
+    target_flow: opportunity.target_flow,
+    target_action: opportunity.target_action,
+    target_context: opportunity.seed_context,
+    reason: opportunity.reason,
+    evidence: opportunity.evidence,
+  });
+  const reduced = reduceFlowOpportunityDispatcherOutput({
+    previous,
+    output: {
+      ...output,
+      flow_action: "handoff_to_local_flow",
+      confidence: "high",
+      clear_fields: ["target_context", "confirmation_anchor"],
+      opportunity: {
+        ...output.opportunity,
+        confirmation_anchor_still_valid: false,
+      },
+      state_patch: {
+        ...output.state_patch,
+        confirmation_anchor: {},
+      },
+    },
+    userMessage: "Oui enfin peut-être, je ne suis pas sûr.",
+  });
+
+  assertEquals(reduced.handoff_to_local_flow, false);
+  assertEquals(reduced.reason_code, "pending_confirmation_missing");
+  assertEquals(reduced.local_state?.opportunity_id, previous.opportunity_id);
+  assertEquals(
+    reduced.local_state?.confirmation_anchor,
+    previous.confirmation_anchor,
+  );
+  assert(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "pending_confirmation_missing"
+    ),
+  );
+});
+
+Deno.test("flow opportunity valid local exit clears server-owned state", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const output = buildInitialOfferDispatcherOutput({
+    opportunity_id: opportunity.opportunity_id,
+    target_flow: opportunity.target_flow,
+    target_action: opportunity.target_action,
+    target_context: opportunity.seed_context,
+    reason: opportunity.reason,
+    evidence: opportunity.evidence,
+  });
+  const reduced = reduceFlowOpportunityDispatcherOutput({
+    previous,
+    output: {
+      ...output,
+      flow_action: "cancel_flow",
+      clear_fields: ["target_context", "confirmation_anchor"],
+      visible_task: visibleTask("stop_or_cancel"),
+    },
+    userMessage: "Laisse tomber finalement.",
+  });
+
+  assertEquals(reduced.local_state, null);
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assert(
+    reduced.state_mutation_audit.cleared_fields.includes("target_context"),
+  );
+  assert(
+    reduced.state_mutation_audit.cleared_fields.includes(
+      "confirmation_anchor",
+    ),
+  );
+});
+
+Deno.test("flow opportunity reader tolerates older active state without target_kind or anchor", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const legacy = {
+    ...previous,
+    target_kind: undefined,
+    confirmation_anchor: undefined,
+  };
+  const read = readFlowOpportunityState(
+    writeFlowOpportunityState({}, legacy as any),
+  );
+  assertEquals(read?.target_kind, "skill");
+  assertEquals(read?.confirmation_anchor.target_kind, "skill");
+  assertEquals(read?.confirmation_anchor.target_flow, "status_recap");
+  assertEquals(read?.target_flow, "status_recap");
+});
+
+Deno.test("flow opportunity reader tolerates partially filled old state without target_context", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const legacy = {
+    ...previous,
+    target_context: undefined,
+    confirmation_anchor: undefined,
+  };
+  const read = readFlowOpportunityState(
+    writeFlowOpportunityState({}, legacy as any),
+  );
+
+  assertEquals(read?.target_context, {});
+  assertEquals(read?.confirmation_anchor.target_context, {});
+  assertEquals(read?.target_flow, "status_recap");
 });
 
 Deno.test("flow opportunity reducer blocks adjust_plan handoff when keep-plan constraint is structured", () => {
@@ -398,9 +662,15 @@ Deno.test("flow opportunity reducer blocks adjust_plan handoff when keep-plan co
   assertEquals(reduced.status, "blocked");
   assertEquals(
     reduced.reason_code,
-    "keep_plan_constraint_blocks_adjust_plan_handoff",
+    "blocked_by_constraint",
   );
   assertEquals(reduced.handoff_to_local_flow, false);
+  assertEquals(reduced.local_state?.target_context, previous.target_context);
+  assert(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "blocked_by_constraint"
+    ),
+  );
 });
 
 Deno.test("flow opportunity reducer preserves anchor through status_recap info round-trip", () => {
@@ -467,7 +737,76 @@ Deno.test("flow opportunity reducer blocks low confidence handoff", () => {
   assertEquals(reduced.handoff_to_local_flow, false);
   assertEquals(
     reduced.blocked_effects[0].reason_code,
-    "low_confidence_blocks_handoff",
+    "not_stabilized_enough",
+  );
+});
+
+Deno.test("flow opportunity direct valid request clears parent state for handoff", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const output = buildInitialOfferDispatcherOutput({
+    opportunity_id: opportunity.opportunity_id,
+    target_flow: opportunity.target_flow,
+    target_action: opportunity.target_action,
+    target_context: opportunity.seed_context,
+    reason: opportunity.reason,
+    evidence: opportunity.evidence,
+  });
+  const reduced = reduceFlowOpportunityDispatcherOutput({
+    previous,
+    output: {
+      ...output,
+      flow_action: "handoff_to_local_flow",
+      confidence: "high",
+      visible_task: visibleTask("handoff_status_recap_ready"),
+      note_information: {
+        needed: true,
+        note: null,
+      },
+    },
+    userMessage: "Oui, fais le point maintenant.",
+  });
+
+  assertEquals(reduced.handoff_to_local_flow, true);
+  assertEquals(reduced.local_state, null);
+  assertEquals(reduced.target_flow, "status_recap");
+  assert(
+    reduced.state_mutation_audit.cleared_fields.includes("target_context"),
+  );
+  assert(reduced.note_information);
+  assertEquals(reduced.note_information.target_dispatcher, "status_recap");
+});
+
+Deno.test("flow opportunity non-actionable mention does not trigger handoff", () => {
+  const previous = createFlowOpportunityState({
+    opportunity,
+    userMessage: "Je sais plus ce qu'il y a dans ma carte.",
+  });
+  const output = buildInitialOfferDispatcherOutput({
+    opportunity_id: opportunity.opportunity_id,
+    target_flow: opportunity.target_flow,
+    target_action: opportunity.target_action,
+    target_context: opportunity.seed_context,
+    reason: opportunity.reason,
+    evidence: opportunity.evidence,
+  });
+  const reduced = reduceFlowOpportunityDispatcherOutput({
+    previous,
+    output: {
+      ...output,
+      flow_action: "repeat_current_state",
+      confidence: "medium",
+      visible_task: visibleTask("repeat_current_state"),
+    },
+    userMessage: "Je pensais juste a ce recap, continue a m'expliquer.",
+  });
+
+  assertEquals(reduced.handoff_to_local_flow, false);
+  assertEquals(reduced.local_state?.target_flow, previous.target_flow);
+  assert(
+    reduced.state_mutation_audit.preserved_fields.includes("target_context"),
   );
 });
 
@@ -663,7 +1002,7 @@ Deno.test("flow opportunity runtime initial offer creates active state without t
     userTimezone: "Europe/Paris",
     tempMemory: {},
     turnFrame: turnFrame({ flow_opportunity: opportunity }),
-    routeDecision: routeDecision(),
+    routeDecision: null,
     safetyContextOutput: {
       risk_band: "low",
       reason_codes: [],
@@ -690,10 +1029,61 @@ Deno.test("flow opportunity runtime initial offer creates active state without t
     (runtime.toolSkillRun as any).note_information_inbound.target_dispatcher,
     "verification_opportunities",
   );
+  assert((runtime.toolSkillRun as any).state_mutation_audit);
+  assert(
+    Array.isArray(
+      (runtime.toolSkillRun as any).state_mutation_audit.server_owned_fields,
+    ),
+  );
   const state = readFlowOpportunityState(runtime.nextTempMemory);
   assertEquals(state?.skill_id, "flow_opportunity_verification");
   assertEquals(state?.target_flow, "status_recap");
   assert(state?.confirmation_anchor);
+});
+
+Deno.test("flow opportunity runtime does not start after normal reply arbitration", async () => {
+  const runtime = await maybeRunFlowOpportunityVerificationRuntime({
+    supabase: {} as any,
+    userId: "user_1",
+    userMessage: "Je me sens un peu bete, mais je veux juste parler.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: turnFrame({
+      normal_reply_fit_score: 0.95,
+      flow_opportunity: {
+        opportunity_id: "emotional_repair.implicit_need",
+        target_kind: "skill",
+        target_flow: "emotional_repair",
+        target_action: "run_emotional_repair",
+        confidence: "medium",
+        priority: 70,
+        reason: "light emotional support opportunity",
+        evidence: ["user expresses mild shame"],
+        seed_context: {},
+      },
+    } as any),
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      reason_code: "normal_reply_fit_dominates",
+      blocked_paths: [{
+        path: "conversation_skill.emotional_repair",
+        reason_code: "normal_reply_fit_dominates",
+        raw_score: 0.7,
+        adjusted_score: 0.7,
+        normal_reply_fit_score: 0.95,
+      }],
+    }),
+    safetyContextOutput: {
+      risk_band: "low",
+      reason_codes: [],
+      evidence: [],
+    } as any,
+    runVisibleAgent: () => {
+      throw new Error("visible agent must not run");
+    },
+  });
+  assertEquals(runtime, null);
 });
 
 Deno.test("flow opportunity runtime exit_to_global_dispatcher stores note for global", async () => {

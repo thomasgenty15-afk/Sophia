@@ -1,0 +1,3552 @@
+{
+  "run_id": "onboarding-server-owned-20260615-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+  "phone_number": "+15553862752",
+  "user_id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJkMTExNGQxNS00ZDcxLTQ2YjYtYWUwZi1hMDI1ZmVmYjA4MGQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxNTU3NDYyLCJpYXQiOjE3ODE1NTM4NjIsImVtYWlsIjoicWEtd2Etb25iLW9uYm9hcmRpbmctc2VydmVyLW93bmVkLTIwMjYwNjE1LXIxLTE3ODE1NTM4NjI1MTZAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtd2Etb25iLW9uYm9hcmRpbmctc2VydmVyLW93bmVkLTIwMjYwNjE1LXIxLTE3ODE1NTM4NjI1MTZAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6Im9uYm9hcmRpbmctc2VydmVyLW93bmVkLTIwMjYwNjE1LXIxIiwic3ViIjoiZDExMTRkMTUtNGQ3MS00NmI2LWFlMGYtYTAyNWZlZmIwODBkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE1NTM4NjJ9XSwic2Vzc2lvbl9pZCI6ImFjOTNlMjdjLTYxZjktNDZhZS1hMzcwLWZkMmY5NjZiOGNkYiIsImlzX2Fub255bW91cyI6ZmFsc2V9.l6S-eFmvtFoiGTye3utby3LZxVlfMWulSmTLDE0IAy0",
+  "created_at": "2026-06-15T20:04:22.751Z",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "onboarding-server-owned-20260615-r1-t01",
+      "user": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t01"
+      },
+      "assistant": "Salut ! Je suis ravie de te retrouver ici. Je termine de préparer ton plan sur le web pour que tout soit bien en place. Je te fais signe dès qu'on peut attaquer ?",
+      "assistant_metadata": {
+        "channel": "whatsapp",
+        "purpose": "whatsapp_onboarding_plan_wait",
+        "flow_action": "plan_not_ready_wait",
+        "plan_status": "missing",
+        "reason_code": "whatsapp_onboarding_plan_not_ready",
+        "is_proactive": false,
+        "visible_task": "plan_wait",
+        "reducer_status": "owned",
+        "whatsapp_state": "awaiting_plan_finalization",
+        "selected_handler": "whatsapp_onboarding",
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "next_whatsapp_state": "awaiting_plan_finalization",
+        "outbound_tracking_id": "415d778d-89fb-49d5-ac03-806f575b8ea7",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+        "wa_outbound_message_id": "wamid_DISABLED",
+        "allow_track_progress_plan_item": false
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": "awaiting_plan_finalization",
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "82f28f3c-14c9-4942-af29-b05d2d845d30",
+              "role": "assistant",
+              "content": "Salut ! Je suis ravie de te retrouver ici. Je termine de préparer ton plan sur le web pour que tout soit bien en place. Je te fais signe dès qu'on peut attaquer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_wait",
+                "flow_action": "plan_not_ready_wait",
+                "plan_status": "missing",
+                "reason_code": "whatsapp_onboarding_plan_not_ready",
+                "is_proactive": false,
+                "visible_task": "plan_wait",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "awaiting_plan_finalization",
+                "outbound_tracking_id": "415d778d-89fb-49d5-ac03-806f575b8ea7",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:04:46.353417+00:00"
+            },
+            {
+              "id": "a43a0262-ce7d-4adb-bd78-a101b3171135",
+              "role": "user",
+              "content": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "4c74ded5-7009-447d-9719-58df77afc387",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t01",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:04:33.595829+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant ferme",
+                "value": "warm_direct"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Normale",
+                "value": "normal"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": false,
+                  "updated_at": "2026-06-15T20:04:41.496Z",
+                  "flow_action": "plan_not_ready_wait",
+                  "plan_status": "missing",
+                  "reason_code": "whatsapp_onboarding_plan_not_ready",
+                  "visible_task": "plan_wait",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=awaiting_plan_finalization; flow_action=plan_not_ready_wait; status=owned; reason_code=whatsapp_onboarding_plan_not_ready; visible_task=plan_wait; plan_status=missing; plan_ready=false",
+                  "next_whatsapp_state": "awaiting_plan_finalization",
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": null,
+                  "current_whatsapp_state": "awaiting_plan_finalization",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:04:41.4974+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:04:46.394Z"
+    },
+    {
+      "turn": 2,
+      "request_id": "onboarding-server-owned-20260615-r1-t02",
+      "user": "Ok, j'ai validé le plan sur le site. C'est prêt normalement.",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t02"
+      },
+      "assistant": "C'est tout bon, j'ai bien reçu ton plan ! On va pouvoir s'attaquer à tes relances pro.\n\nJuste une petite question pour la suite : tu préfères que je sois plutôt douce, directe, ou un mix des deux avec toi ?",
+      "assistant_metadata": {
+        "channel": "whatsapp",
+        "purpose": "whatsapp_onboarding_plan_ready_resume_preferences",
+        "flow_action": "plan_ready_resume_preferences",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_plan_ready_resume_preferences",
+        "is_proactive": false,
+        "visible_task": "plan_ready_resume_preferences",
+        "reducer_status": "owned",
+        "whatsapp_state": "awaiting_plan_finalization",
+        "selected_handler": "whatsapp_onboarding",
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "next_whatsapp_state": "onboarding_pref_tone",
+        "outbound_tracking_id": "1b43383a-7028-41da-b4cf-03b015af7f00",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+        "wa_outbound_message_id": "wamid_DISABLED",
+        "allow_track_progress_plan_item": false
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": "onboarding_pref_tone",
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "03df1019-9eb7-4826-81ac-ae13928e40cb",
+              "role": "assistant",
+              "content": "C'est tout bon, j'ai bien reçu ton plan ! On va pouvoir s'attaquer à tes relances pro.\n\nJuste une petite question pour la suite : tu préfères que je sois plutôt douce, directe, ou un mix des deux avec toi ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "flow_action": "plan_ready_resume_preferences",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "is_proactive": false,
+                "visible_task": "plan_ready_resume_preferences",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_tone",
+                "outbound_tracking_id": "1b43383a-7028-41da-b4cf-03b015af7f00",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:11.532795+00:00"
+            },
+            {
+              "id": "16cee5e6-0b08-4683-afef-ce46001907e1",
+              "role": "user",
+              "content": "Ok, j'ai validé le plan sur le site. C'est prêt normalement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "b6be35d6-7dbb-4fec-bb16-f6ff0f6fcd32",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t02",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:01.009174+00:00"
+            },
+            {
+              "id": "82f28f3c-14c9-4942-af29-b05d2d845d30",
+              "role": "assistant",
+              "content": "Salut ! Je suis ravie de te retrouver ici. Je termine de préparer ton plan sur le web pour que tout soit bien en place. Je te fais signe dès qu'on peut attaquer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_wait",
+                "flow_action": "plan_not_ready_wait",
+                "plan_status": "missing",
+                "reason_code": "whatsapp_onboarding_plan_not_ready",
+                "is_proactive": false,
+                "visible_task": "plan_wait",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "awaiting_plan_finalization",
+                "outbound_tracking_id": "415d778d-89fb-49d5-ac03-806f575b8ea7",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:04:46.353417+00:00"
+            },
+            {
+              "id": "a43a0262-ce7d-4adb-bd78-a101b3171135",
+              "role": "user",
+              "content": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "4c74ded5-7009-447d-9719-58df77afc387",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t01",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:04:33.595829+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant ferme",
+                "value": "warm_direct"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Normale",
+                "value": "normal"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "title": "Routine contacts pro",
+              "status": "active",
+              "version": 1,
+              "activated_at": "2026-06-15T20:04:54.779+00:00",
+              "created_at": "2026-06-15T20:04:54.825062+00:00"
+            }
+          ]
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "9d76d715-33e6-46ea-baf0-14f055b44488",
+              "title": "Lister cinq contacts prioritaires",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 1,
+              "created_at": "2026-06-15T20:04:54.835999+00:00"
+            },
+            {
+              "id": "8829fa2b-d815-405d-85d5-dbf5a0e28e90",
+              "title": "Envoyer un message simple à une personne",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 2,
+              "created_at": "2026-06-15T20:04:54.848088+00:00"
+            }
+          ]
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": true,
+                  "updated_at": "2026-06-15T20:05:08.160Z",
+                  "flow_action": "plan_ready_resume_preferences",
+                  "plan_status": "active",
+                  "reason_code": "whatsapp_onboarding_plan_ready_resume_preferences",
+                  "visible_task": "plan_ready_resume_preferences",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=awaiting_plan_finalization; flow_action=plan_ready_resume_preferences; status=owned; reason_code=whatsapp_onboarding_plan_ready_resume_preferences; visible_task=plan_ready_resume_preferences; plan_status=active; plan_ready=true",
+                  "next_whatsapp_state": "onboarding_pref_tone",
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": null,
+                  "current_whatsapp_state": "awaiting_plan_finalization",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:05:08.160967+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:05:11.573Z"
+    },
+    {
+      "turn": 3,
+      "request_id": "onboarding-server-owned-20260615-r1-t03",
+      "user": "Un mix des deux. Douce au départ, mais directe si je tourne en rond.",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t03"
+      },
+      "assistant": "C'est bien noté pour le ton ! Un mix de douceur et de franchise quand c'est nécessaire, ça me va très bien. 👌\n\nD'ailleurs, si tu décroches un peu, tu préfères que je te challenge comment : de façon légère, équilibrée ou plutôt directe ?",
+      "assistant_metadata": {
+        "channel": "whatsapp",
+        "purpose": "whatsapp_onboarding_preference_saved_next_challenge",
+        "flow_action": "answer_tone",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_preference_saved",
+        "is_proactive": false,
+        "visible_task": "preference_saved_next_challenge",
+        "reducer_status": "owned",
+        "whatsapp_state": "onboarding_pref_tone",
+        "selected_handler": "whatsapp_onboarding",
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "next_whatsapp_state": "onboarding_pref_challenge",
+        "outbound_tracking_id": "630066c6-deff-4dca-992d-ac2adb88cf94",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+        "wa_outbound_message_id": "wamid_DISABLED",
+        "allow_track_progress_plan_item": false
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": "onboarding_pref_challenge",
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "24993d22-3a40-4b3c-8577-ff4934c456b2",
+              "role": "assistant",
+              "content": "C'est bien noté pour le ton ! Un mix de douceur et de franchise quand c'est nécessaire, ça me va très bien. 👌\n\nD'ailleurs, si tu décroches un peu, tu préfères que je te challenge comment : de façon légère, équilibrée ou plutôt directe ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_challenge",
+                "flow_action": "answer_tone",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_challenge",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_tone",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_challenge",
+                "outbound_tracking_id": "630066c6-deff-4dca-992d-ac2adb88cf94",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:31.317622+00:00"
+            },
+            {
+              "id": "aa6658b1-a4b1-4b2d-a89a-9355624360c4",
+              "role": "user",
+              "content": "Un mix des deux. Douce au départ, mais directe si je tourne en rond.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "0ad61566-8f66-4ccd-b202-1a02c5126d29",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t03",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:20.353403+00:00"
+            },
+            {
+              "id": "03df1019-9eb7-4826-81ac-ae13928e40cb",
+              "role": "assistant",
+              "content": "C'est tout bon, j'ai bien reçu ton plan ! On va pouvoir s'attaquer à tes relances pro.\n\nJuste une petite question pour la suite : tu préfères que je sois plutôt douce, directe, ou un mix des deux avec toi ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "flow_action": "plan_ready_resume_preferences",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "is_proactive": false,
+                "visible_task": "plan_ready_resume_preferences",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_tone",
+                "outbound_tracking_id": "1b43383a-7028-41da-b4cf-03b015af7f00",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:11.532795+00:00"
+            },
+            {
+              "id": "16cee5e6-0b08-4683-afef-ce46001907e1",
+              "role": "user",
+              "content": "Ok, j'ai validé le plan sur le site. C'est prêt normalement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "b6be35d6-7dbb-4fec-bb16-f6ff0f6fcd32",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t02",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:01.009174+00:00"
+            },
+            {
+              "id": "82f28f3c-14c9-4942-af29-b05d2d845d30",
+              "role": "assistant",
+              "content": "Salut ! Je suis ravie de te retrouver ici. Je termine de préparer ton plan sur le web pour que tout soit bien en place. Je te fais signe dès qu'on peut attaquer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_wait",
+                "flow_action": "plan_not_ready_wait",
+                "plan_status": "missing",
+                "reason_code": "whatsapp_onboarding_plan_not_ready",
+                "is_proactive": false,
+                "visible_task": "plan_wait",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "awaiting_plan_finalization",
+                "outbound_tracking_id": "415d778d-89fb-49d5-ac03-806f575b8ea7",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:04:46.353417+00:00"
+            },
+            {
+              "id": "a43a0262-ce7d-4adb-bd78-a101b3171135",
+              "role": "user",
+              "content": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "4c74ded5-7009-447d-9719-58df77afc387",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t01",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:04:33.595829+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant et direct",
+                "notes": "Douce au départ, mais directe si l'utilisateur tourne en rond.",
+                "value": "warm_direct"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested a mix of soft and direct tones.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+              "updated_at": "2026-06-15T20:05:28.475+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Normale",
+                "value": "normal"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "title": "Routine contacts pro",
+              "status": "active",
+              "version": 1,
+              "activated_at": "2026-06-15T20:04:54.779+00:00",
+              "created_at": "2026-06-15T20:04:54.825062+00:00"
+            }
+          ]
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "9d76d715-33e6-46ea-baf0-14f055b44488",
+              "title": "Lister cinq contacts prioritaires",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 1,
+              "created_at": "2026-06-15T20:04:54.835999+00:00"
+            },
+            {
+              "id": "8829fa2b-d815-405d-85d5-dbf5a0e28e90",
+              "title": "Envoyer un message simple à une personne",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 2,
+              "created_at": "2026-06-15T20:04:54.848088+00:00"
+            }
+          ]
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": true,
+                  "updated_at": "2026-06-15T20:05:28.482Z",
+                  "flow_action": "answer_tone",
+                  "plan_status": "active",
+                  "reason_code": "whatsapp_onboarding_preference_saved",
+                  "visible_task": "preference_saved_next_challenge",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=onboarding_pref_tone; flow_action=answer_tone; status=owned; reason_code=whatsapp_onboarding_preference_saved; visible_task=preference_saved_next_challenge; plan_status=active; plan_ready=true",
+                  "next_whatsapp_state": "onboarding_pref_challenge",
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": "coach.tone",
+                  "current_whatsapp_state": "onboarding_pref_tone",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:05:28.483896+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:05:31.354Z"
+    },
+    {
+      "turn": 4,
+      "request_id": "onboarding-server-owned-20260615-r1-t04",
+      "user": "Attends, pour le ton évite d'être trop sèche quand même. Pour le challenge, équilibré ça me va.",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t04"
+      },
+      "assistant": "C'est bien noté pour le challenge équilibré, je ferai attention à ne pas être trop sèche ! 😉\n\nDernière petite chose : tu préfères que je pose peu de questions, que je creuse un peu, ou que je te questionne franchement quand ça peut t'aider ?",
+      "assistant_metadata": {
+        "channel": "whatsapp",
+        "purpose": "whatsapp_onboarding_preference_saved_next_questions",
+        "flow_action": "answer_challenge",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_preference_saved",
+        "is_proactive": false,
+        "visible_task": "preference_saved_next_questions",
+        "reducer_status": "owned",
+        "whatsapp_state": "onboarding_pref_challenge",
+        "selected_handler": "whatsapp_onboarding",
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "next_whatsapp_state": "onboarding_pref_questions",
+        "outbound_tracking_id": "0792b4b7-0756-4cec-aa5a-d07d435c5b05",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+        "wa_outbound_message_id": "wamid_DISABLED",
+        "allow_track_progress_plan_item": false
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": "onboarding_pref_questions",
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "704ac10b-12fa-4c94-806a-f98ac5095c6a",
+              "role": "assistant",
+              "content": "C'est bien noté pour le challenge équilibré, je ferai attention à ne pas être trop sèche ! 😉\n\nDernière petite chose : tu préfères que je pose peu de questions, que je creuse un peu, ou que je te questionne franchement quand ça peut t'aider ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_questions",
+                "flow_action": "answer_challenge",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_questions",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_challenge",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_questions",
+                "outbound_tracking_id": "0792b4b7-0756-4cec-aa5a-d07d435c5b05",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:54.093821+00:00"
+            },
+            {
+              "id": "ea2865bd-5612-4949-a164-d88dd2a569fc",
+              "role": "user",
+              "content": "Attends, pour le ton évite d'être trop sèche quand même. Pour le challenge, équilibré ça me va.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "80dfbeb5-776a-4c02-ada4-b266922e8ed0",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t04",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:40.724607+00:00"
+            },
+            {
+              "id": "24993d22-3a40-4b3c-8577-ff4934c456b2",
+              "role": "assistant",
+              "content": "C'est bien noté pour le ton ! Un mix de douceur et de franchise quand c'est nécessaire, ça me va très bien. 👌\n\nD'ailleurs, si tu décroches un peu, tu préfères que je te challenge comment : de façon légère, équilibrée ou plutôt directe ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_challenge",
+                "flow_action": "answer_tone",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_challenge",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_tone",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_challenge",
+                "outbound_tracking_id": "630066c6-deff-4dca-992d-ac2adb88cf94",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:31.317622+00:00"
+            },
+            {
+              "id": "aa6658b1-a4b1-4b2d-a89a-9355624360c4",
+              "role": "user",
+              "content": "Un mix des deux. Douce au départ, mais directe si je tourne en rond.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "0ad61566-8f66-4ccd-b202-1a02c5126d29",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t03",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:20.353403+00:00"
+            },
+            {
+              "id": "03df1019-9eb7-4826-81ac-ae13928e40cb",
+              "role": "assistant",
+              "content": "C'est tout bon, j'ai bien reçu ton plan ! On va pouvoir s'attaquer à tes relances pro.\n\nJuste une petite question pour la suite : tu préfères que je sois plutôt douce, directe, ou un mix des deux avec toi ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "flow_action": "plan_ready_resume_preferences",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "is_proactive": false,
+                "visible_task": "plan_ready_resume_preferences",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_tone",
+                "outbound_tracking_id": "1b43383a-7028-41da-b4cf-03b015af7f00",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:11.532795+00:00"
+            },
+            {
+              "id": "16cee5e6-0b08-4683-afef-ce46001907e1",
+              "role": "user",
+              "content": "Ok, j'ai validé le plan sur le site. C'est prêt normalement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "b6be35d6-7dbb-4fec-bb16-f6ff0f6fcd32",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t02",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:01.009174+00:00"
+            },
+            {
+              "id": "82f28f3c-14c9-4942-af29-b05d2d845d30",
+              "role": "assistant",
+              "content": "Salut ! Je suis ravie de te retrouver ici. Je termine de préparer ton plan sur le web pour que tout soit bien en place. Je te fais signe dès qu'on peut attaquer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_wait",
+                "flow_action": "plan_not_ready_wait",
+                "plan_status": "missing",
+                "reason_code": "whatsapp_onboarding_plan_not_ready",
+                "is_proactive": false,
+                "visible_task": "plan_wait",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "awaiting_plan_finalization",
+                "outbound_tracking_id": "415d778d-89fb-49d5-ac03-806f575b8ea7",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:04:46.353417+00:00"
+            },
+            {
+              "id": "a43a0262-ce7d-4adb-bd78-a101b3171135",
+              "role": "user",
+              "content": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "4c74ded5-7009-447d-9719-58df77afc387",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.1.1781553872871",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t01",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:04:33.595829+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "notes": "L'utilisateur souhaite un niveau de challenge équilibré.",
+                "value": "balanced"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly chose 'équilibré'.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+              "updated_at": "2026-06-15T20:05:50.691+00:00"
+            },
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant et direct",
+                "notes": "Douce au départ, mais directe si l'utilisateur tourne en rond.",
+                "value": "warm_direct"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested a mix of soft and direct tones.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+              "updated_at": "2026-06-15T20:05:28.475+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Normale",
+                "value": "normal"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "title": "Routine contacts pro",
+              "status": "active",
+              "version": 1,
+              "activated_at": "2026-06-15T20:04:54.779+00:00",
+              "created_at": "2026-06-15T20:04:54.825062+00:00"
+            }
+          ]
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "9d76d715-33e6-46ea-baf0-14f055b44488",
+              "title": "Lister cinq contacts prioritaires",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 1,
+              "created_at": "2026-06-15T20:04:54.835999+00:00"
+            },
+            {
+              "id": "8829fa2b-d815-405d-85d5-dbf5a0e28e90",
+              "title": "Envoyer un message simple à une personne",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 2,
+              "created_at": "2026-06-15T20:04:54.848088+00:00"
+            }
+          ]
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": true,
+                  "updated_at": "2026-06-15T20:05:50.698Z",
+                  "flow_action": "answer_challenge",
+                  "plan_status": "active",
+                  "reason_code": "whatsapp_onboarding_preference_saved",
+                  "visible_task": "preference_saved_next_questions",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=onboarding_pref_challenge; flow_action=answer_challenge; status=owned; reason_code=whatsapp_onboarding_preference_saved; visible_task=preference_saved_next_questions; plan_status=active; plan_ready=true",
+                  "next_whatsapp_state": "onboarding_pref_questions",
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": "coach.challenge_level",
+                  "current_whatsapp_state": "onboarding_pref_challenge",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:05:50.699867+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:05:54.142Z"
+    },
+    {
+      "turn": 5,
+      "request_id": "onboarding-server-owned-20260615-r1-t05",
+      "user": "Pose peu de questions. Si je suis clair, avance directement.",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t05"
+      },
+      "assistant": "C'est bien noté, je vais à l'essentiel. Voici ton plan pour relancer tes contacts pro sereinement : qu'en penses-tu, est-ce que ça te convient ?",
+      "assistant_metadata": {
+        "channel": "whatsapp",
+        "purpose": "whatsapp_onboarding_ask_plan_feedback",
+        "flow_action": "answer_questions",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_preference_saved",
+        "is_proactive": false,
+        "visible_task": "ask_plan_feedback",
+        "reducer_status": "owned",
+        "whatsapp_state": "onboarding_pref_questions",
+        "selected_handler": "whatsapp_onboarding",
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "next_whatsapp_state": "onboarding_plan_creation_feedback",
+        "outbound_tracking_id": "fdede9e0-f733-4d2b-858c-db1647c131dc",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+        "wa_outbound_message_id": "wamid_DISABLED",
+        "allow_track_progress_plan_item": false
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": "onboarding_plan_creation_feedback",
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d75df618-cced-4f9a-87fe-b821441ba37d",
+              "role": "assistant",
+              "content": "C'est bien noté, je vais à l'essentiel. Voici ton plan pour relancer tes contacts pro sereinement : qu'en penses-tu, est-ce que ça te convient ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_ask_plan_feedback",
+                "flow_action": "answer_questions",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "ask_plan_feedback",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_questions",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_plan_creation_feedback",
+                "outbound_tracking_id": "fdede9e0-f733-4d2b-858c-db1647c131dc",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:06:13.851701+00:00"
+            },
+            {
+              "id": "5da47b48-2706-44ae-95c1-e38fec166001",
+              "role": "user",
+              "content": "Pose peu de questions. Si je suis clair, avance directement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "a76500e7-665e-41ec-9e6f-fe90bde11faa",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t05",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:06:01.852405+00:00"
+            },
+            {
+              "id": "704ac10b-12fa-4c94-806a-f98ac5095c6a",
+              "role": "assistant",
+              "content": "C'est bien noté pour le challenge équilibré, je ferai attention à ne pas être trop sèche ! 😉\n\nDernière petite chose : tu préfères que je pose peu de questions, que je creuse un peu, ou que je te questionne franchement quand ça peut t'aider ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_questions",
+                "flow_action": "answer_challenge",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_questions",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_challenge",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_questions",
+                "outbound_tracking_id": "0792b4b7-0756-4cec-aa5a-d07d435c5b05",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:54.093821+00:00"
+            },
+            {
+              "id": "ea2865bd-5612-4949-a164-d88dd2a569fc",
+              "role": "user",
+              "content": "Attends, pour le ton évite d'être trop sèche quand même. Pour le challenge, équilibré ça me va.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "80dfbeb5-776a-4c02-ada4-b266922e8ed0",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t04",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:40.724607+00:00"
+            },
+            {
+              "id": "24993d22-3a40-4b3c-8577-ff4934c456b2",
+              "role": "assistant",
+              "content": "C'est bien noté pour le ton ! Un mix de douceur et de franchise quand c'est nécessaire, ça me va très bien. 👌\n\nD'ailleurs, si tu décroches un peu, tu préfères que je te challenge comment : de façon légère, équilibrée ou plutôt directe ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_challenge",
+                "flow_action": "answer_tone",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_challenge",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_tone",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_challenge",
+                "outbound_tracking_id": "630066c6-deff-4dca-992d-ac2adb88cf94",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:31.317622+00:00"
+            },
+            {
+              "id": "aa6658b1-a4b1-4b2d-a89a-9355624360c4",
+              "role": "user",
+              "content": "Un mix des deux. Douce au départ, mais directe si je tourne en rond.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "0ad61566-8f66-4ccd-b202-1a02c5126d29",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t03",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:20.353403+00:00"
+            },
+            {
+              "id": "03df1019-9eb7-4826-81ac-ae13928e40cb",
+              "role": "assistant",
+              "content": "C'est tout bon, j'ai bien reçu ton plan ! On va pouvoir s'attaquer à tes relances pro.\n\nJuste une petite question pour la suite : tu préfères que je sois plutôt douce, directe, ou un mix des deux avec toi ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "flow_action": "plan_ready_resume_preferences",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_plan_ready_resume_preferences",
+                "is_proactive": false,
+                "visible_task": "plan_ready_resume_preferences",
+                "reducer_status": "owned",
+                "whatsapp_state": "awaiting_plan_finalization",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_tone",
+                "outbound_tracking_id": "1b43383a-7028-41da-b4cf-03b015af7f00",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:11.532795+00:00"
+            },
+            {
+              "id": "16cee5e6-0b08-4683-afef-ce46001907e1",
+              "role": "user",
+              "content": "Ok, j'ai validé le plan sur le site. C'est prêt normalement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "b6be35d6-7dbb-4fec-bb16-f6ff0f6fcd32",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.2.1781553900959",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t02",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:01.009174+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Peu de questions",
+                "notes": "Avancer directement si le message est clair.",
+                "value": "low"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested few questions and direct progress.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+              "updated_at": "2026-06-15T20:06:10.251+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "notes": "L'utilisateur souhaite un niveau de challenge équilibré.",
+                "value": "balanced"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly chose 'équilibré'.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+              "updated_at": "2026-06-15T20:05:50.691+00:00"
+            },
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant et direct",
+                "notes": "Douce au départ, mais directe si l'utilisateur tourne en rond.",
+                "value": "warm_direct"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested a mix of soft and direct tones.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+              "updated_at": "2026-06-15T20:05:28.475+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "title": "Routine contacts pro",
+              "status": "active",
+              "version": 1,
+              "activated_at": "2026-06-15T20:04:54.779+00:00",
+              "created_at": "2026-06-15T20:04:54.825062+00:00"
+            }
+          ]
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "9d76d715-33e6-46ea-baf0-14f055b44488",
+              "title": "Lister cinq contacts prioritaires",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 1,
+              "created_at": "2026-06-15T20:04:54.835999+00:00"
+            },
+            {
+              "id": "8829fa2b-d815-405d-85d5-dbf5a0e28e90",
+              "title": "Envoyer un message simple à une personne",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 2,
+              "created_at": "2026-06-15T20:04:54.848088+00:00"
+            }
+          ]
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": true,
+                  "updated_at": "2026-06-15T20:06:10.259Z",
+                  "flow_action": "answer_questions",
+                  "plan_status": "active",
+                  "reason_code": "whatsapp_onboarding_preference_saved",
+                  "visible_task": "ask_plan_feedback",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=onboarding_pref_questions; flow_action=answer_questions; status=owned; reason_code=whatsapp_onboarding_preference_saved; visible_task=ask_plan_feedback; plan_status=active; plan_ready=true",
+                  "next_whatsapp_state": "onboarding_plan_creation_feedback",
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": "coach.question_tendency",
+                  "current_whatsapp_state": "onboarding_pref_questions",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:06:10.26082+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:06:13.893Z"
+    },
+    {
+      "turn": 6,
+      "request_id": "onboarding-server-owned-20260615-r1-t06",
+      "user": "Oui, ça me convient. J'aime bien que ce soit simple, je veux juste éviter de me mettre trop de pression.",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t06"
+      },
+      "assistant": "C'est entendu, on reste sur du simple et sans pression. On commence par ton plan pour les contacts pro ou il y a un autre sujet plus important pour toi aujourd'hui ?",
+      "assistant_metadata": {
+        "channel": "whatsapp",
+        "purpose": "whatsapp_onboarding_ask_topic_choice",
+        "flow_action": "answer_plan_feedback",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_plan_feedback_received",
+        "is_proactive": false,
+        "visible_task": "ask_topic_choice",
+        "reducer_status": "owned",
+        "whatsapp_state": "onboarding_plan_creation_feedback",
+        "selected_handler": "whatsapp_onboarding",
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "next_whatsapp_state": "onboarding_topic_choice",
+        "outbound_tracking_id": "3854fadb-ab9f-4d8d-b2b4-02809cd8e053",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.6.1781553984746",
+        "wa_outbound_message_id": "wamid_DISABLED",
+        "allow_track_progress_plan_item": false
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": "onboarding_topic_choice",
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "850c08ea-1eca-4e43-8ca2-f6f0ac252a87",
+              "role": "assistant",
+              "content": "C'est entendu, on reste sur du simple et sans pression. On commence par ton plan pour les contacts pro ou il y a un autre sujet plus important pour toi aujourd'hui ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_ask_topic_choice",
+                "flow_action": "answer_plan_feedback",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_plan_feedback_received",
+                "is_proactive": false,
+                "visible_task": "ask_topic_choice",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_plan_creation_feedback",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_topic_choice",
+                "outbound_tracking_id": "3854fadb-ab9f-4d8d-b2b4-02809cd8e053",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.6.1781553984746",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:07:16.992448+00:00"
+            },
+            {
+              "id": "b65f5930-9593-4e16-bc0e-e7a4510c0b04",
+              "role": "user",
+              "content": "Oui, ça me convient. J'aime bien que ce soit simple, je veux juste éviter de me mettre trop de pression.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "7b926b85-9a2e-4d54-ade4-34e5dbe79fa4",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.6.1781553984746",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t06",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:06:24.783945+00:00"
+            },
+            {
+              "id": "d75df618-cced-4f9a-87fe-b821441ba37d",
+              "role": "assistant",
+              "content": "C'est bien noté, je vais à l'essentiel. Voici ton plan pour relancer tes contacts pro sereinement : qu'en penses-tu, est-ce que ça te convient ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_ask_plan_feedback",
+                "flow_action": "answer_questions",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "ask_plan_feedback",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_questions",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_plan_creation_feedback",
+                "outbound_tracking_id": "fdede9e0-f733-4d2b-858c-db1647c131dc",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:06:13.851701+00:00"
+            },
+            {
+              "id": "5da47b48-2706-44ae-95c1-e38fec166001",
+              "role": "user",
+              "content": "Pose peu de questions. Si je suis clair, avance directement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "a76500e7-665e-41ec-9e6f-fe90bde11faa",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t05",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:06:01.852405+00:00"
+            },
+            {
+              "id": "704ac10b-12fa-4c94-806a-f98ac5095c6a",
+              "role": "assistant",
+              "content": "C'est bien noté pour le challenge équilibré, je ferai attention à ne pas être trop sèche ! 😉\n\nDernière petite chose : tu préfères que je pose peu de questions, que je creuse un peu, ou que je te questionne franchement quand ça peut t'aider ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_questions",
+                "flow_action": "answer_challenge",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_questions",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_challenge",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_questions",
+                "outbound_tracking_id": "0792b4b7-0756-4cec-aa5a-d07d435c5b05",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:54.093821+00:00"
+            },
+            {
+              "id": "ea2865bd-5612-4949-a164-d88dd2a569fc",
+              "role": "user",
+              "content": "Attends, pour le ton évite d'être trop sèche quand même. Pour le challenge, équilibré ça me va.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "80dfbeb5-776a-4c02-ada4-b266922e8ed0",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t04",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:40.724607+00:00"
+            },
+            {
+              "id": "24993d22-3a40-4b3c-8577-ff4934c456b2",
+              "role": "assistant",
+              "content": "C'est bien noté pour le ton ! Un mix de douceur et de franchise quand c'est nécessaire, ça me va très bien. 👌\n\nD'ailleurs, si tu décroches un peu, tu préfères que je te challenge comment : de façon légère, équilibrée ou plutôt directe ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_challenge",
+                "flow_action": "answer_tone",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_challenge",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_tone",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_challenge",
+                "outbound_tracking_id": "630066c6-deff-4dca-992d-ac2adb88cf94",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:31.317622+00:00"
+            },
+            {
+              "id": "aa6658b1-a4b1-4b2d-a89a-9355624360c4",
+              "role": "user",
+              "content": "Un mix des deux. Douce au départ, mais directe si je tourne en rond.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "0ad61566-8f66-4ccd-b202-1a02c5126d29",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t03",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:20.353403+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Peu de questions",
+                "notes": "Avancer directement si le message est clair.",
+                "value": "low"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested few questions and direct progress.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+              "updated_at": "2026-06-15T20:06:10.251+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "notes": "L'utilisateur souhaite un niveau de challenge équilibré.",
+                "value": "balanced"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly chose 'équilibré'.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+              "updated_at": "2026-06-15T20:05:50.691+00:00"
+            },
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant et direct",
+                "notes": "Douce au départ, mais directe si l'utilisateur tourne en rond.",
+                "value": "warm_direct"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested a mix of soft and direct tones.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+              "updated_at": "2026-06-15T20:05:28.475+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "title": "Routine contacts pro",
+              "status": "active",
+              "version": 1,
+              "activated_at": "2026-06-15T20:04:54.779+00:00",
+              "created_at": "2026-06-15T20:04:54.825062+00:00"
+            }
+          ]
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "9d76d715-33e6-46ea-baf0-14f055b44488",
+              "title": "Lister cinq contacts prioritaires",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 1,
+              "created_at": "2026-06-15T20:04:54.835999+00:00"
+            },
+            {
+              "id": "8829fa2b-d815-405d-85d5-dbf5a0e28e90",
+              "title": "Envoyer un message simple à une personne",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 2,
+              "created_at": "2026-06-15T20:04:54.848088+00:00"
+            }
+          ]
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": true,
+                  "updated_at": "2026-06-15T20:07:14.166Z",
+                  "flow_action": "answer_plan_feedback",
+                  "plan_status": "active",
+                  "reason_code": "whatsapp_onboarding_plan_feedback_received",
+                  "visible_task": "ask_topic_choice",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=onboarding_plan_creation_feedback; flow_action=answer_plan_feedback; status=owned; reason_code=whatsapp_onboarding_plan_feedback_received; visible_task=ask_topic_choice; plan_status=active; plan_ready=true",
+                  "next_whatsapp_state": "onboarding_topic_choice",
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": null,
+                  "current_whatsapp_state": "onboarding_plan_creation_feedback",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:07:14.168073+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:07:17.033Z"
+    },
+    {
+      "turn": 7,
+      "request_id": "onboarding-server-owned-20260615-r1-t07",
+      "user": "On commence par le plan. Donne-moi juste le premier pas concret.",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t07"
+      },
+      "assistant": "C'est parti. L'idée est de lister cinq contacts prioritaires et d'envoyer un petit message à l'un d'entre eux pour relancer la machine en douceur.\n\nQui est la première personne qui te vient à l'esprit ?",
+      "assistant_metadata": {
+        "channel": "whatsapp",
+        "purpose": "whatsapp_onboarding_complete_to_plan",
+        "flow_action": "complete_onboarding",
+        "plan_status": "active",
+        "reason_code": "whatsapp_onboarding_complete_to_plan",
+        "is_proactive": false,
+        "visible_task": "complete_to_plan",
+        "reducer_status": "owned",
+        "whatsapp_state": "onboarding_topic_choice",
+        "selected_handler": "whatsapp_onboarding",
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "next_whatsapp_state": null,
+        "outbound_tracking_id": "10589443-3532-4247-96c9-ed2d56483d29",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.7.1781554047211",
+        "wa_outbound_message_id": "wamid_DISABLED",
+        "allow_track_progress_plan_item": false
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": null,
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "6b008a27-c058-48c8-88a2-be74f1a4ee27",
+              "role": "assistant",
+              "content": "C'est parti. L'idée est de lister cinq contacts prioritaires et d'envoyer un petit message à l'un d'entre eux pour relancer la machine en douceur.\n\nQui est la première personne qui te vient à l'esprit ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_complete_to_plan",
+                "flow_action": "complete_onboarding",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_complete_to_plan",
+                "is_proactive": false,
+                "visible_task": "complete_to_plan",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_topic_choice",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": null,
+                "outbound_tracking_id": "10589443-3532-4247-96c9-ed2d56483d29",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.7.1781554047211",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:07:41.901189+00:00"
+            },
+            {
+              "id": "c0c2106d-d3f7-428f-a51c-0aa45e465227",
+              "role": "user",
+              "content": "On commence par le plan. Donne-moi juste le premier pas concret.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "69c3f842-9da3-4353-8bd8-32fbee4775f4",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.7.1781554047211",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t07",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:07:27.253617+00:00"
+            },
+            {
+              "id": "850c08ea-1eca-4e43-8ca2-f6f0ac252a87",
+              "role": "assistant",
+              "content": "C'est entendu, on reste sur du simple et sans pression. On commence par ton plan pour les contacts pro ou il y a un autre sujet plus important pour toi aujourd'hui ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_ask_topic_choice",
+                "flow_action": "answer_plan_feedback",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_plan_feedback_received",
+                "is_proactive": false,
+                "visible_task": "ask_topic_choice",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_plan_creation_feedback",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_topic_choice",
+                "outbound_tracking_id": "3854fadb-ab9f-4d8d-b2b4-02809cd8e053",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.6.1781553984746",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:07:16.992448+00:00"
+            },
+            {
+              "id": "b65f5930-9593-4e16-bc0e-e7a4510c0b04",
+              "role": "user",
+              "content": "Oui, ça me convient. J'aime bien que ce soit simple, je veux juste éviter de me mettre trop de pression.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "7b926b85-9a2e-4d54-ade4-34e5dbe79fa4",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.6.1781553984746",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t06",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:06:24.783945+00:00"
+            },
+            {
+              "id": "d75df618-cced-4f9a-87fe-b821441ba37d",
+              "role": "assistant",
+              "content": "C'est bien noté, je vais à l'essentiel. Voici ton plan pour relancer tes contacts pro sereinement : qu'en penses-tu, est-ce que ça te convient ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_ask_plan_feedback",
+                "flow_action": "answer_questions",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "ask_plan_feedback",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_questions",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_plan_creation_feedback",
+                "outbound_tracking_id": "fdede9e0-f733-4d2b-858c-db1647c131dc",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:06:13.851701+00:00"
+            },
+            {
+              "id": "5da47b48-2706-44ae-95c1-e38fec166001",
+              "role": "user",
+              "content": "Pose peu de questions. Si je suis clair, avance directement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "a76500e7-665e-41ec-9e6f-fe90bde11faa",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t05",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:06:01.852405+00:00"
+            },
+            {
+              "id": "704ac10b-12fa-4c94-806a-f98ac5095c6a",
+              "role": "assistant",
+              "content": "C'est bien noté pour le challenge équilibré, je ferai attention à ne pas être trop sèche ! 😉\n\nDernière petite chose : tu préfères que je pose peu de questions, que je creuse un peu, ou que je te questionne franchement quand ça peut t'aider ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_preference_saved_next_questions",
+                "flow_action": "answer_challenge",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "preference_saved_next_questions",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_challenge",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_pref_questions",
+                "outbound_tracking_id": "0792b4b7-0756-4cec-aa5a-d07d435c5b05",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:05:54.093821+00:00"
+            },
+            {
+              "id": "ea2865bd-5612-4949-a164-d88dd2a569fc",
+              "role": "user",
+              "content": "Attends, pour le ton évite d'être trop sèche quand même. Pour le challenge, équilibré ça me va.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "80dfbeb5-776a-4c02-ada4-b266922e8ed0",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t04",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:05:40.724607+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Peu de questions",
+                "notes": "Avancer directement si le message est clair.",
+                "value": "low"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested few questions and direct progress.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+              "updated_at": "2026-06-15T20:06:10.251+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "notes": "L'utilisateur souhaite un niveau de challenge équilibré.",
+                "value": "balanced"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly chose 'équilibré'.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+              "updated_at": "2026-06-15T20:05:50.691+00:00"
+            },
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant et direct",
+                "notes": "Douce au départ, mais directe si l'utilisateur tourne en rond.",
+                "value": "warm_direct"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested a mix of soft and direct tones.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+              "updated_at": "2026-06-15T20:05:28.475+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "title": "Routine contacts pro",
+              "status": "active",
+              "version": 1,
+              "activated_at": "2026-06-15T20:04:54.779+00:00",
+              "created_at": "2026-06-15T20:04:54.825062+00:00"
+            }
+          ]
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "9d76d715-33e6-46ea-baf0-14f055b44488",
+              "title": "Lister cinq contacts prioritaires",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 1,
+              "created_at": "2026-06-15T20:04:54.835999+00:00"
+            },
+            {
+              "id": "8829fa2b-d815-405d-85d5-dbf5a0e28e90",
+              "title": "Envoyer un message simple à une personne",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 2,
+              "created_at": "2026-06-15T20:04:54.848088+00:00"
+            }
+          ]
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__whatsapp_onboarding_done": {
+                  "source": "completed",
+                  "completed_at": "2026-06-15T20:07:38.119Z"
+                },
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": true,
+                  "updated_at": "2026-06-15T20:07:38.119Z",
+                  "flow_action": "complete_onboarding",
+                  "plan_status": "active",
+                  "reason_code": "whatsapp_onboarding_complete_to_plan",
+                  "visible_task": "complete_to_plan",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=onboarding_topic_choice; flow_action=complete_onboarding; status=owned; reason_code=whatsapp_onboarding_complete_to_plan; visible_task=complete_to_plan; plan_status=active; plan_ready=true",
+                  "next_whatsapp_state": null,
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": null,
+                  "current_whatsapp_state": "onboarding_topic_choice",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:07:38.120223+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:07:41.944Z"
+    },
+    {
+      "turn": 8,
+      "request_id": "onboarding-server-owned-20260615-r1-t08",
+      "user": "Nadia me vient en tête, mais je ne sais pas quoi lui écrire sans faire trop formel.",
+      "http_status": 200,
+      "ok": true,
+      "response_body": {
+        "ok": true,
+        "request_id": "onboarding-server-owned-20260615-r1-t08"
+      },
+      "assistant": "Je te comprends 😅 “trop formel” bloque vite… du coup l’idée c’est de rester simple, chaleureux, et très court.\n\nTu peux envoyer un message du style :\n1) “Hello Nadia ! Ça fait un moment—j’espère que tu vas bien 🙂 Je pensais à toi.”\n2) “Hey Nadia, petite pensée en passant. Comment ça va en ce moment ?”\n3) “Coucou Nadia, j’espère que tu passes une bonne semaine. À bientôt !”\n\nTu préfères que ça fasse plutôt “petite relance sympa” ou plutôt “récap + demande de nouvelle” ? 😊",
+      "assistant_metadata": {
+        "trace": {
+          "turn_frame": {
+            "direct_effects": [],
+            "flow_opportunity": {
+              "score": 0.65,
+              "reason": "Obstacle concret d'exécution (peur du ton formel) sur une action voulue (envoyer un message).",
+              "evidence": [
+                "je ne sais pas quoi lui écrire sans faire trop formel"
+              ],
+              "priority": 60,
+              "confidence": "medium",
+              "target_flow": "prepare_attack_card",
+              "target_kind": "tool_skill",
+              "seed_context": {
+                "surface": "attack_card",
+                "target_hint": "envoyer un message à Nadia"
+              },
+              "opportunity_id": "prepare_attack_card.message_friction"
+            },
+            "tool_skill_intents": [],
+            "normal_reply_fit_score": 0.85
+          },
+          "effect_ledger": {
+            "counts": {
+              "asked": 0,
+              "failed": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "proposed": 0,
+              "resolved": 0,
+              "cancelled": 0,
+              "committed": 0,
+              "delivered": 0,
+              "requested": 0,
+              "superseded": 0,
+              "topic_change": 0
+            },
+            "entries": [],
+            "turn_id": "445030a9-5898-44b6-a0dd-d3c7c374fc8d"
+          },
+          "route_decision": {
+            "reason_code": "normal_reply_default",
+            "blocked_paths": [
+              {
+                "path": "flow_opportunity.prepare_attack_card",
+                "raw_score": 0.65,
+                "reason_code": "normal_reply_fit_dominates",
+                "adjusted_score": 0.65,
+                "normal_reply_fit_score": 0.85
+              },
+              {
+                "path": "flow_opportunity.prepare_attack_card",
+                "raw_score": 0.65,
+                "reason_code": "normal_reply_fit_dominates",
+                "adjusted_score": 0.65,
+                "normal_reply_fit_score": 0.85
+              }
+            ],
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "direct_effects_to_run": []
+          },
+          "tool_skill_run": null
+        },
+        "channel": "whatsapp",
+        "purpose": "whatsapp_default_brain_reply",
+        "reason_code": "normal_reply_default",
+        "is_proactive": false,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "multi_message_count": 1,
+        "multi_message_index": 0,
+        "has_hidden_fil_rouge": false,
+        "outbound_tracking_id": "8e98d03e-5d3e-489f-977b-a1077a6faec4",
+        "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.8.1781554079684",
+        "wa_outbound_message_id": "wamid_DISABLED"
+      },
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "d1114d15-4d71-46b6-ae0f-a025fefb080d",
+              "email": "qa-wa-onb-onboarding-server-owned-20260615-r1-1781553862516@example.com",
+              "phone_number": "+15553862752",
+              "whatsapp_state": null,
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "debc5ca3-83a1-427f-9a9d-847b3bb461de",
+              "role": "assistant",
+              "content": "Je te comprends 😅 “trop formel” bloque vite… du coup l’idée c’est de rester simple, chaleureux, et très court.\n\nTu peux envoyer un message du style :\n1) “Hello Nadia ! Ça fait un moment—j’espère que tu vas bien 🙂 Je pensais à toi.”\n2) “Hey Nadia, petite pensée en passant. Comment ça va en ce moment ?”\n3) “Coucou Nadia, j’espère que tu passes une bonne semaine. À bientôt !”\n\nTu préfères que ça fasse plutôt “petite relance sympa” ou plutôt “récap + demande de nouvelle” ? 😊",
+              "metadata": {
+                "trace": {
+                  "turn_frame": {
+                    "direct_effects": [],
+                    "flow_opportunity": {
+                      "score": 0.65,
+                      "reason": "Obstacle concret d'exécution (peur du ton formel) sur une action voulue (envoyer un message).",
+                      "evidence": [
+                        "je ne sais pas quoi lui écrire sans faire trop formel"
+                      ],
+                      "priority": 60,
+                      "confidence": "medium",
+                      "target_flow": "prepare_attack_card",
+                      "target_kind": "tool_skill",
+                      "seed_context": {
+                        "surface": "attack_card",
+                        "target_hint": "envoyer un message à Nadia"
+                      },
+                      "opportunity_id": "prepare_attack_card.message_friction"
+                    },
+                    "tool_skill_intents": [],
+                    "normal_reply_fit_score": 0.85
+                  },
+                  "effect_ledger": {
+                    "counts": {
+                      "asked": 0,
+                      "failed": 0,
+                      "allowed": 0,
+                      "blocked": 0,
+                      "proposed": 0,
+                      "resolved": 0,
+                      "cancelled": 0,
+                      "committed": 0,
+                      "delivered": 0,
+                      "requested": 0,
+                      "superseded": 0,
+                      "topic_change": 0
+                    },
+                    "entries": [],
+                    "turn_id": "445030a9-5898-44b6-a0dd-d3c7c374fc8d"
+                  },
+                  "route_decision": {
+                    "reason_code": "normal_reply_default",
+                    "blocked_paths": [
+                      {
+                        "path": "flow_opportunity.prepare_attack_card",
+                        "raw_score": 0.65,
+                        "reason_code": "normal_reply_fit_dominates",
+                        "adjusted_score": 0.65,
+                        "normal_reply_fit_score": 0.85
+                      },
+                      {
+                        "path": "flow_opportunity.prepare_attack_card",
+                        "raw_score": 0.65,
+                        "reason_code": "normal_reply_fit_dominates",
+                        "adjusted_score": 0.65,
+                        "normal_reply_fit_score": 0.85
+                      }
+                    ],
+                    "response_owner": "normal_reply",
+                    "selected_handler": null,
+                    "direct_effects_to_run": []
+                  },
+                  "tool_skill_run": null
+                },
+                "channel": "whatsapp",
+                "purpose": "whatsapp_default_brain_reply",
+                "reason_code": "normal_reply_default",
+                "is_proactive": false,
+                "response_owner": "normal_reply",
+                "selected_handler": null,
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "has_hidden_fil_rouge": false,
+                "outbound_tracking_id": "8e98d03e-5d3e-489f-977b-a1077a6faec4",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.8.1781554079684",
+                "wa_outbound_message_id": "wamid_DISABLED"
+              },
+              "created_at": "2026-06-15T20:08:08.995666+00:00"
+            },
+            {
+              "id": "2dadfe30-9359-49c7-a08c-6c46d618be8a",
+              "role": "user",
+              "content": "Nadia me vient en tête, mais je ne sais pas quoi lui écrire sans faire trop formel.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "445030a9-5898-44b6-a0dd-d3c7c374fc8d",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.8.1781554079684",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t08",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:08:00.48385+00:00"
+            },
+            {
+              "id": "6b008a27-c058-48c8-88a2-be74f1a4ee27",
+              "role": "assistant",
+              "content": "C'est parti. L'idée est de lister cinq contacts prioritaires et d'envoyer un petit message à l'un d'entre eux pour relancer la machine en douceur.\n\nQui est la première personne qui te vient à l'esprit ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_complete_to_plan",
+                "flow_action": "complete_onboarding",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_complete_to_plan",
+                "is_proactive": false,
+                "visible_task": "complete_to_plan",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_topic_choice",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": null,
+                "outbound_tracking_id": "10589443-3532-4247-96c9-ed2d56483d29",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.7.1781554047211",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:07:41.901189+00:00"
+            },
+            {
+              "id": "c0c2106d-d3f7-428f-a51c-0aa45e465227",
+              "role": "user",
+              "content": "On commence par le plan. Donne-moi juste le premier pas concret.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "69c3f842-9da3-4353-8bd8-32fbee4775f4",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.7.1781554047211",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t07",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:07:27.253617+00:00"
+            },
+            {
+              "id": "850c08ea-1eca-4e43-8ca2-f6f0ac252a87",
+              "role": "assistant",
+              "content": "C'est entendu, on reste sur du simple et sans pression. On commence par ton plan pour les contacts pro ou il y a un autre sujet plus important pour toi aujourd'hui ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_ask_topic_choice",
+                "flow_action": "answer_plan_feedback",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_plan_feedback_received",
+                "is_proactive": false,
+                "visible_task": "ask_topic_choice",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_plan_creation_feedback",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_topic_choice",
+                "outbound_tracking_id": "3854fadb-ab9f-4d8d-b2b4-02809cd8e053",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.6.1781553984746",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:07:16.992448+00:00"
+            },
+            {
+              "id": "b65f5930-9593-4e16-bc0e-e7a4510c0b04",
+              "role": "user",
+              "content": "Oui, ça me convient. J'aime bien que ce soit simple, je veux juste éviter de me mettre trop de pression.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "7b926b85-9a2e-4d54-ade4-34e5dbe79fa4",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.6.1781553984746",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t06",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:06:24.783945+00:00"
+            },
+            {
+              "id": "d75df618-cced-4f9a-87fe-b821441ba37d",
+              "role": "assistant",
+              "content": "C'est bien noté, je vais à l'essentiel. Voici ton plan pour relancer tes contacts pro sereinement : qu'en penses-tu, est-ce que ça te convient ?",
+              "metadata": {
+                "channel": "whatsapp",
+                "purpose": "whatsapp_onboarding_ask_plan_feedback",
+                "flow_action": "answer_questions",
+                "plan_status": "active",
+                "reason_code": "whatsapp_onboarding_preference_saved",
+                "is_proactive": false,
+                "visible_task": "ask_plan_feedback",
+                "reducer_status": "owned",
+                "whatsapp_state": "onboarding_pref_questions",
+                "selected_handler": "whatsapp_onboarding",
+                "multi_message_count": 1,
+                "multi_message_index": 0,
+                "next_whatsapp_state": "onboarding_plan_creation_feedback",
+                "outbound_tracking_id": "fdede9e0-f733-4d2b-858c-db1647c131dc",
+                "reply_to_wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_outbound_message_id": "wamid_DISABLED",
+                "allow_track_progress_plan_item": false
+              },
+              "created_at": "2026-06-15T20:06:13.851701+00:00"
+            },
+            {
+              "id": "5da47b48-2706-44ae-95c1-e38fec166001",
+              "role": "user",
+              "content": "Pose peu de questions. Si je suis clair, avance directement.",
+              "metadata": {
+                "channel": "whatsapp",
+                "wa_from": "+15553862752",
+                "wa_type": "text",
+                "request_id": "a76500e7-665e-41ec-9e6f-fe90bde11faa",
+                "wa_message_id": "wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+                "wa_profile_name": "QA Onboarding",
+                "wa_interactive_id": null,
+                "webhook_request_id": "onboarding-server-owned-20260615-r1-t05",
+                "wa_interactive_title": null
+              },
+              "created_at": "2026-06-15T20:06:01.852405+00:00"
+            }
+          ]
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Peu de questions",
+                "notes": "Avancer directement si le message est clair.",
+                "value": "low"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested few questions and direct progress.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.5.1781553961802",
+              "updated_at": "2026-06-15T20:06:10.251+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "notes": "L'utilisateur souhaite un niveau de challenge équilibré.",
+                "value": "balanced"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly chose 'équilibré'.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.4.1781553940675",
+              "updated_at": "2026-06-15T20:05:50.691+00:00"
+            },
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant et direct",
+                "notes": "Douce au départ, mais directe si l'utilisateur tourne en rond.",
+                "value": "warm_direct"
+              },
+              "source_type": "explicit_user",
+              "reason": "whatsapp_onboarding_local_flow:User explicitly requested a mix of soft and direct tones.; wa_message_id=wamid.onboarding-server-owned-20260615-r1.3.1781553920314",
+              "updated_at": "2026-06-15T20:05:28.475+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T20:04:22.621127+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "title": "Routine contacts pro",
+              "status": "active",
+              "version": 1,
+              "activated_at": "2026-06-15T20:04:54.779+00:00",
+              "created_at": "2026-06-15T20:04:54.825062+00:00"
+            }
+          ]
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "9d76d715-33e6-46ea-baf0-14f055b44488",
+              "title": "Lister cinq contacts prioritaires",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 1,
+              "created_at": "2026-06-15T20:04:54.835999+00:00"
+            },
+            {
+              "id": "8829fa2b-d815-405d-85d5-dbf5a0e28e90",
+              "title": "Envoyer un message simple à une personne",
+              "status": "active",
+              "current_reps": 0,
+              "target_reps": 1,
+              "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+              "activation_order": 2,
+              "created_at": "2026-06-15T20:04:54.848088+00:00"
+            }
+          ]
+        },
+        "entries": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-06-15T20:08:08.976Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-06-15T20:08:08.976Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-06-15T20:08:08.976Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-06-15T20:08:08.976Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-06-15T20:08:08.976Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-06-15T20:08:08.976Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": null,
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "low",
+                  "recent_turns": [
+                    1
+                  ],
+                  "last_updated_at": "2026-06-15T20:08:08.965Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__whatsapp_onboarding_done": {
+                  "source": "completed",
+                  "completed_at": "2026-06-15T20:07:38.119Z"
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__whatsapp_onboarding_local_flow": {
+                  "version": 1,
+                  "exit_memo": null,
+                  "plan_ready": true,
+                  "updated_at": "2026-06-15T20:07:38.119Z",
+                  "flow_action": "complete_onboarding",
+                  "plan_status": "active",
+                  "reason_code": "whatsapp_onboarding_complete_to_plan",
+                  "visible_task": "complete_to_plan",
+                  "note_information": null,
+                  "local_state_summary": "whatsapp_state=onboarding_topic_choice; flow_action=complete_onboarding; status=owned; reason_code=whatsapp_onboarding_complete_to_plan; visible_task=complete_to_plan; plan_status=active; plan_ready=true",
+                  "next_whatsapp_state": null,
+                  "previous_flow_summary": null,
+                  "active_subflow_context": null,
+                  "current_preference_key": null,
+                  "current_whatsapp_state": "onboarding_topic_choice",
+                  "activation_note_information": {
+                    "user_words": [
+                      "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                    ],
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "whatsapp_webhook_state",
+                    "target_dispatcher": "other_local",
+                    "structured_context": {
+                      "plan_ready": false,
+                      "plan_status": "missing",
+                      "source_flow": "whatsapp_webhook_state",
+                      "whatsapp_state": "awaiting_plan_finalization",
+                      "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                      "active_plan_item_count": 0,
+                      "recommended_next_focus": "whatsapp_onboarding"
+                    },
+                    "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                  }
+                },
+                "__whatsapp_onboarding_activation_note": {
+                  "user_words": [
+                    "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?"
+                  ],
+                  "handoff_reason": "bridge",
+                  "source_flow_id": "whatsapp_webhook_state",
+                  "target_dispatcher": "other_local",
+                  "structured_context": {
+                    "plan_ready": false,
+                    "plan_status": "missing",
+                    "source_flow": "whatsapp_webhook_state",
+                    "whatsapp_state": "awaiting_plan_finalization",
+                    "active_flow_summary": "whatsapp_state=awaiting_plan_finalization; plan_status=missing; plan_ready=false",
+                    "unresolved_questions": [],
+                    "user_message_summary": "Salut Sophia, je suis sur WhatsApp maintenant. On peut commencer ?",
+                    "active_plan_item_count": 0,
+                    "recommended_next_focus": "whatsapp_onboarding"
+                  },
+                  "handoff_context_for_next_dispatcher": "WhatsApp webhook found an active onboarding state and is activating whatsapp_onboarding.local_dispatcher for this turn."
+                }
+              },
+              "updated_at": "2026-06-15T20:08:08.977872+00:00"
+            }
+          ]
+        }
+      },
+      "sent_at": "2026-06-15T20:08:09.035Z"
+    }
+  ],
+  "touched": {
+    "cycle_ids": [
+      "ca65ac1d-6202-4dfa-8f5d-43a92623bfc0"
+    ],
+    "transformation_ids": [
+      "6c1a5f76-7e20-4dae-aeb0-0ca1f45d9091"
+    ],
+    "plan_ids": [
+      "f717ea30-8509-4540-9a22-d5b6dfe20a6c"
+    ],
+    "item_ids": [
+      "9d76d715-33e6-46ea-baf0-14f055b44488",
+      "8829fa2b-d815-405d-85d5-dbf5a0e28e90"
+    ]
+  },
+  "updated_at": "2026-06-15T20:08:09.036Z",
+  "seeded_plan": {
+    "cycle_id": "ca65ac1d-6202-4dfa-8f5d-43a92623bfc0",
+    "transformation_id": "6c1a5f76-7e20-4dae-aeb0-0ca1f45d9091",
+    "plan_id": "f717ea30-8509-4540-9a22-d5b6dfe20a6c",
+    "item_ids": [
+      "9d76d715-33e6-46ea-baf0-14f055b44488",
+      "8829fa2b-d815-405d-85d5-dbf5a0e28e90"
+    ]
+  },
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "whatsapp_outbound_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "whatsapp_inbound_dedup",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_profile_facts",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_plan_item_entries",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_plan_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_plans_v2",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_cycles",
+      "id": "ca65ac1d-6202-4dfa-8f5d-43a92623bfc0",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_transformations",
+      "id": "6c1a5f76-7e20-4dae-aeb0-0ca1f45d9091",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-15T20:09:18.368Z"
+}

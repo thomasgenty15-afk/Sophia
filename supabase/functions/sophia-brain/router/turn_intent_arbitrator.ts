@@ -145,12 +145,26 @@ function routeableToolIntent(
   );
 }
 
+function competingCardClarificationIntent(
+  input: TurnIntentArbitrationInput,
+  operationType: "prepare_attack_card" | "prepare_defense_card",
+): TurnFrame["tool_skill_intents"][number] | undefined {
+  return input.turnFrame.tool_skill_intents.find((intent) =>
+    intent.operation_type === operationType &&
+    intent.user_intent !== "explain_only" &&
+    !(intent.rejected_operations ?? []).includes(operationType) &&
+    confidenceRank(intent.confidence_band) >= confidenceRank("medium") &&
+    (intent.ambiguity === "none" || intent.ambiguity === "target_ambiguous" ||
+      intent.ambiguity === "both")
+  );
+}
+
 function hasCompetingAttackAndDefenseCardIntents(
   input: TurnIntentArbitrationInput,
 ): boolean {
   return Boolean(
-    routeableToolIntent(input, "prepare_attack_card") &&
-      routeableToolIntent(input, "prepare_defense_card"),
+    competingCardClarificationIntent(input, "prepare_attack_card") &&
+      competingCardClarificationIntent(input, "prepare_defense_card"),
   );
 }
 

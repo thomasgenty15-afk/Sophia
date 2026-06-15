@@ -242,7 +242,7 @@ const VISIBLE_STAGE_PROMPTS: Record<PrepareDefenseCardVisibleTaskKind, string> =
     revision_done:
       "Révision: dis sobrement que la formulation à recopier est la nouvelle version, puis redonne uniquement l'élément corrigé avec le label exact si support_need change. N'écris pas que tu as pris en compte, noté, gardé, mémorisé ou enregistré la correction.",
     destination_short:
-      "Destination: réponds court avec l'endroit où mettre la carte et, si disponible, la valeur exacte à recopier.",
+      "Destination: réponds en 1 à 2 phrases maximum avec seulement l'endroit où mettre la carte. Si la valeur support_need est disponible, tu peux ajouter le champ exact et sa valeur en une phrase courte. Ne répète pas le contexte de risque, l'action de défense, les étapes détaillées, ni tout le handoff sauf si le user demande explicitement de tout redire.",
     apply_attempt:
       "Tentative de création: dis que Sophia ne crée pas la carte depuis le chat, puis donne la destination et les données exactes si disponibles.",
     repeat_handoff:

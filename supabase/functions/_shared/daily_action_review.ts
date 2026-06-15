@@ -13,9 +13,11 @@ export type DayCode = typeof DAY_CODES[number];
 
 import {
   DAILY_REVIEW_DEFAULT_CONSTRAINTS,
+  type DailyReviewBlockedEffect,
   type DailyReviewConstraint,
   type DailyReviewEffectPlan,
   type DailyReviewIntent,
+  type DailyReviewStateMutationAudit,
 } from "./daily_action_review/contract.ts";
 import {
   dailyActionReviewFocusTargets as selectFocusTargetsFromSelector,
@@ -28,6 +30,7 @@ import {
 } from "./daily_action_review/opening.ts";
 
 export type {
+  DailyReviewBlockedEffect,
   DailyReviewCommittedEffect,
   DailyReviewConstraint,
   DailyReviewDecision,
@@ -37,6 +40,7 @@ export type {
   DailyReviewFailedEffect,
   DailyReviewIntent,
   DailyReviewItemUpdate,
+  DailyReviewStateMutationAudit,
   DailyReviewStatus,
 } from "./daily_action_review/contract.ts";
 
@@ -145,6 +149,8 @@ export type DailyActionReviewState = {
     DailyActionReviewActionIntelligence
   >;
   last_user_text?: string | null;
+  state_mutation_audit?: DailyReviewStateMutationAudit;
+  blocked_effects?: DailyReviewBlockedEffect[];
 };
 
 export type DailyActionReviewOpeningPlan = {
@@ -162,6 +168,8 @@ export type DailyActionReviewSkillResult = {
   nextQuestion: string | null;
   generatedUserMessage: string | null;
   shouldApplyEffects: boolean;
+  stateMutationAudit?: DailyReviewStateMutationAudit;
+  diagnosis?: Record<string, unknown>;
 };
 
 const FRENCH_DAY_LABELS: Record<DayCode, string> = {
@@ -540,6 +548,7 @@ export function stateFromUnknown(
         items,
       ),
     last_user_text: cleanText(existing.last_user_text) || null,
+    blocked_effects: [],
   };
 }
 

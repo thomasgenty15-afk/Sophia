@@ -100,6 +100,37 @@ function compactDbContextPack(input: RunEmotionalRepairSkillInput) {
   };
 }
 
+function potionBridgeTraceFields(decision: {
+  potion_bridge: {
+    user_requested_direct_handoff?: boolean;
+    selected_potion?: unknown;
+    durable_need?: { kind?: unknown };
+    candidate_potions?: unknown;
+  };
+  repair_state: {
+    emotional_dominance?: unknown;
+    emotion_stabilized_enough_for_tool?: unknown;
+  };
+}) {
+  return {
+    potion_bridge_direct_handoff:
+      decision.potion_bridge.user_requested_direct_handoff === true,
+    potion_bridge_selected_potion: decision.potion_bridge.selected_potion ??
+      null,
+    potion_bridge_durable_need_kind:
+      decision.potion_bridge.durable_need?.kind ?? null,
+    potion_bridge_candidate_potions: Array.isArray(
+        decision.potion_bridge.candidate_potions,
+      )
+      ? decision.potion_bridge.candidate_potions
+      : [],
+    repair_emotional_dominance: decision.repair_state.emotional_dominance ??
+      null,
+    repair_stabilized_enough_for_tool:
+      decision.repair_state.emotion_stabilized_enough_for_tool === true,
+  };
+}
+
 function microMemoryContext(input: RunEmotionalRepairSkillInput) {
   const exclusions: string[] = [];
   const items = (input.context.relevant_memory_items ?? []).flatMap((item) => {
@@ -343,6 +374,8 @@ export async function runEmotionalRepairSkill(
         exit_memo: decision.exit_memo,
         reason_code: reduced.reason_code,
         evidence: reduced.evidence,
+        state_mutation_audit: reduced.state_mutation_audit,
+        ...potionBridgeTraceFields(decision),
       },
       recommendation_need: {
         needed: false,
@@ -411,6 +444,8 @@ export async function runEmotionalRepairSkill(
         visible_task: "safety",
         reason_code: reduced.reason_code,
         evidence: reduced.evidence,
+        state_mutation_audit: reduced.state_mutation_audit,
+        ...potionBridgeTraceFields(decision),
         note_information: safetyNoteInformation,
       },
       recommendation_need: {
@@ -460,6 +495,8 @@ export async function runEmotionalRepairSkill(
         decision.potion_bridge.selected_potion,
       reason_code: reduced.reason_code,
       evidence: reduced.evidence,
+      state_mutation_audit: reduced.state_mutation_audit,
+      ...potionBridgeTraceFields(decision),
     },
     recommendation_need: {
       needed: false,

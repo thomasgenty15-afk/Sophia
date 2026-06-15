@@ -59,7 +59,6 @@ function draft(): AdjustPlanHandoffDraft {
     operation_type: "adjust_plan_item",
     mode: "platform_handoff",
     executable_from_chat: false,
-    executable_from_chat: false,
     user_blocker_summary: "le plan est trop dense cette semaine",
     suggested_platform_input:
       "Je veux alléger cette semaine sans abandonner l'objectif : garder l'intention du signal de pause, mais en faire une version plus courte et facile à lancer.",
@@ -237,12 +236,100 @@ Deno.test("direct adjust_plan request uses local dispatcher and Plan handoff", a
       missing_or_weak_values: [],
     },
   );
+  assertEquals(
+    Array.isArray((runtime.toolSkillRun as any).state_mutation_audit
+      .server_owned_fields),
+    true,
+  );
+  assertEquals(
+    (runtime.toolSkillRun as any).diagnosis.flow_action,
+    "prepare_plan_handoff",
+  );
   assertNoTemplateLanguage(runtime.content);
   assertNoExecutionClaim(runtime.content);
   assertEquals(
     (runtime.nextTempMemory as any).__adjust_plan_handoff_state.mode,
     "platform_handoff",
   );
+});
+
+Deno.test("old active adjust_plan local state remains readable in router", async () => {
+  const output = dispatcherOutput({
+    flow_action: "repeat_plan_handoff",
+    state_updates: {
+      status: "handoff_ready",
+      stage: "handoff",
+      turn_count_increment: 1,
+      close_after_visible: false,
+    },
+    visible_task: {
+      kind: "repeat_plan_handoff",
+      instruction: "Repeat previous Plan handoff.",
+      conversation_context: null,
+    },
+  });
+  const runtime = await maybeRunAdjustPlanItemOperation({
+    context: context({
+      message: "redis-moi ce que je dois mettre",
+      tempMemory: {
+        __adjust_plan_handoff_state: {
+          skill_id: "adjust_plan_item",
+          mode: "platform_handoff",
+          status: "draft_delivered",
+          draft: draft(),
+          turn_count: 1,
+          max_turns: 6,
+          created_at: "2026-06-03T10:00:00.000Z",
+          updated_at: "2026-06-03T10:00:00.000Z",
+          executable_from_chat: false,
+          local_flow_state: {
+            skill_id: "adjust_plan_item",
+            operation_type: "adjust_plan_item",
+            mode: "platform_handoff",
+            status: "handoff_delivered",
+            stage: "handoff",
+            scope: {
+              kind: "specific_plan_item",
+              confidence: "high",
+              plan_id: "plan-1",
+              plan_title: "Plan principal",
+              plan_item_ids: ["item-1"],
+              target_summary: "Signal de pause",
+              needs_scope_clarification: false,
+            },
+            adjustment_need: {
+              reason_change: "trop dense",
+              requested_change: "alleger",
+              change_kind: "reduce",
+            },
+            platform_handoff: {
+              status: "delivered",
+              destination: "Plan",
+              suggested_platform_input: "Alleger Signal de pause.",
+              grouped_by_plan: [],
+            },
+          },
+        },
+      },
+    }),
+    deps: {
+      localDispatcher: async (input: any) => {
+        assertEquals(input.note_information_inbound, null);
+        assertEquals(input.local_state.local_state_summary, null);
+        return output;
+      },
+      visibleAgent: async (input: any) =>
+        `Plan: ${input.conversation_context.handoff_data.suggested_platform_input}`,
+    },
+  });
+
+  assert(runtime);
+  assertEquals(
+    (runtime.toolSkillRun as any).state_mutation_audit.restored_fields
+      .includes("platform_handoff"),
+    true,
+  );
+  assertStringIncludes(runtime.content, "Alleger Signal de pause");
 });
 
 Deno.test("whole-plan-like request does not create executable scope or patch", async () => {

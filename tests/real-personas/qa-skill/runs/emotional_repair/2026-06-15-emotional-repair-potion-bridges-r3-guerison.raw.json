@@ -1,0 +1,1674 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t01",
+    "auth_method": "refresh_token",
+    "user": "Depuis une discussion qui m'a blessé, je rumine et j'ai honte de ma réaction. Je veux d'abord que tu m'aides à remettre ça à une taille humaine, sans exercice compliqué.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t01",
+      "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est épuisant de porter cette honte après une discussion difficile. Je comprends que tu aies besoin de ramener tout ça à une taille plus humaine. \n\nIl est important de faire la part des choses : ce que tu as ressenti ou la manière dont tu as réagi à ce moment-là est un événement isolé, pas un verdict définitif sur qui tu es. On a parfois tendance à transformer un incident en une vérité sur soi, alors que c'est simplement le signe que tu as été blessé ou dépassé par la situation. Tu as le droit de laisser cette pression redescendre sans avoir rien d'autre à faire que de respirer un peu.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t01",
+            "source_message_id": "e9e99796-ba4c-4c3a-b7d8-60d7adc70539",
+            "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "emotional_repair",
+              "handoff_context_for_next_dispatcher": "User is experiencing shame and rumination after a hurtful discussion. They explicitly ask for help to 'remettre ça à une taille humaine' without complicated exercises. Focus on immediate emotional containment and perspective shifting.",
+              "user_words": [
+                "discussion qui m'a blessé",
+                "rumine",
+                "honte de ma réaction"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.emotional_repair",
+                "target_kind": "skill",
+                "target_flow": "emotional_repair",
+                "emotional_state": "shame_and_rumination",
+                "constraints": [
+                  "no_complicated_exercises"
+                ],
+                "evidence": [
+                  "honte de ma réaction",
+                  "rumine",
+                  "remettre ça à une taille humaine"
+                ],
+                "recommended_next_focus": "Start emotional repair flow focusing on de-escalating shame and providing perspective without cognitive heavy lifting."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "score": 0.95,
+                  "reason": "user_reports_shame_and_rumination_after_hurtful_discussion"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.15,
+            "normal_reply_fit_evidence": [
+              "Le besoin de réparation émotionnelle immédiate est explicite et prioritaire sur une discussion normale."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "emotional_repair",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "de_shame",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est épuisant de porter cette honte après une discussion difficile. Je comprends que tu aies besoin de ramener tout ça à une taille plus humaine. \n\nIl est important de faire la part des choses : ce que tu as ressenti ou la manière dont tu as réagi à ce moment-là est un événement isolé, pas un verdict définitif sur qui tu es. On a parfois tendance à transformer un incident en une vérité sur soi, alors que c'est simplement le signe que tu as été blessé ou dépassé par la situation. Tu as le droit de laisser cette pression redescendre sans avoir rien d'autre à faire que de respirer un peu.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "answer_repair",
+                "visible_task": "de_shame",
+                "potion_bridge_status": "not_applicable",
+                "selected_potion": null,
+                "reason_code": "emotional_repair_local_continue",
+                "evidence": [
+                  "L'utilisateur nomme explicitement la honte ('honte de ma réaction').",
+                  "L'utilisateur demande une réduction de l'échelle émotionnelle ('taille humaine').",
+                  "L'utilisateur pose une contrainte forte contre les exercices ('sans exercice compliqué')."
+                ],
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "last_potion_bridge_offer"
+                  ],
+                  "modified_fields_declared": [
+                    "repair_state"
+                  ],
+                  "clear_fields_declared": [],
+                  "applied_fields": [],
+                  "preserved_fields": [],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                }
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_protocol",
+                  "no_technique",
+                  "soft_support_only",
+                  "no_potion",
+                  "no_plan",
+                  "no_questions",
+                  "no_tool"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "emotional_repair_local_state": {
+                  "skill_id": "emotional_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "shame_or_guilt",
+                    "phase": "de_shame",
+                    "emotional_dominance": "high",
+                    "context_domain": "relationship",
+                    "summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                    "user_words": [
+                      "discussion qui m'a blessé",
+                      "honte de ma réaction",
+                      "taille humaine",
+                      "sans exercice compliqué"
+                    ],
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "last_visible_task": "de_shame",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-15T16:29:37.704Z",
+                  "updated_at": "2026-06-15T16:29:37.704Z"
+                },
+                "emotional_repair_visible_task": {
+                  "kind": "de_shame",
+                  "conversation_context": {
+                    "state_summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                    "user_words": [
+                      "discussion qui m'a blessé",
+                      "honte de ma réaction",
+                      "taille humaine",
+                      "sans exercice compliqué"
+                    ],
+                    "field_or_stage": "de_shame",
+                    "known_values": {
+                      "intent": "shame_or_guilt",
+                      "phase": "de_shame",
+                      "emotional_dominance": "high",
+                      "context_domain": "relationship",
+                      "identity_freeze_risk": true,
+                      "emotion_stabilized_enough_for_tool": false
+                    },
+                    "missing_or_weak_values": [
+                      "stabilisation émotionnelle",
+                      "consentement explicite"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "healing_after_hurt",
+                      "durable_need_summary": "Besoin de cicatriser après une interaction sociale blessante et de réduire la charge de la honte."
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null
+                    },
+                    "tone_constraints": [
+                      "soft",
+                      "no_protocol",
+                      "no_technique",
+                      "soft_support_only",
+                      "no_potion",
+                      "no_plan",
+                      "no_questions",
+                      "no_tool"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de protocole.",
+                      "Ne propose pas de technique ou exercice.",
+                      "Ne propose pas de potion."
+                    ],
+                    "context_summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                    "evidence_used": [
+                      "L'utilisateur nomme explicitement la honte ('honte de ma réaction').",
+                      "L'utilisateur demande une réduction de l'échelle émotionnelle ('taille humaine').",
+                      "L'utilisateur pose une contrainte forte contre les exercices ('sans exercice compliqué')."
+                    ],
+                    "max_questions": 0
+                  }
+                },
+                "emotional_repair_potion_handoff": null,
+                "summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t01",
+          "source_message_id": "e9e99796-ba4c-4c3a-b7d8-60d7adc70539",
+          "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "emotional_repair",
+            "handoff_context_for_next_dispatcher": "User is experiencing shame and rumination after a hurtful discussion. They explicitly ask for help to 'remettre ça à une taille humaine' without complicated exercises. Focus on immediate emotional containment and perspective shifting.",
+            "user_words": [
+              "discussion qui m'a blessé",
+              "rumine",
+              "honte de ma réaction"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.emotional_repair",
+              "target_kind": "skill",
+              "target_flow": "emotional_repair",
+              "emotional_state": "shame_and_rumination",
+              "constraints": [
+                "no_complicated_exercises"
+              ],
+              "evidence": [
+                "honte de ma réaction",
+                "rumine",
+                "remettre ça à une taille humaine"
+              ],
+              "recommended_next_focus": "Start emotional repair flow focusing on de-escalating shame and providing perspective without cognitive heavy lifting."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "score": 0.95,
+                "reason": "user_reports_shame_and_rumination_after_hurtful_discussion"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.15,
+          "normal_reply_fit_evidence": [
+            "Le besoin de réparation émotionnelle immédiate est explicite et prioritaire sur une discussion normale."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "emotional_repair",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "emotional_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "emotional_repair",
+            "status": "continue",
+            "response_intent": "de_shame",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est épuisant de porter cette honte après une discussion difficile. Je comprends que tu aies besoin de ramener tout ça à une taille plus humaine. \n\nIl est important de faire la part des choses : ce que tu as ressenti ou la manière dont tu as réagi à ce moment-là est un événement isolé, pas un verdict définitif sur qui tu es. On a parfois tendance à transformer un incident en une vérité sur soi, alors que c'est simplement le signe que tu as été blessé ou dépassé par la situation. Tu as le droit de laisser cette pression redescendre sans avoir rien d'autre à faire que de respirer un peu.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "answer_repair",
+              "visible_task": "de_shame",
+              "potion_bridge_status": "not_applicable",
+              "selected_potion": null,
+              "reason_code": "emotional_repair_local_continue",
+              "evidence": [
+                "L'utilisateur nomme explicitement la honte ('honte de ma réaction').",
+                "L'utilisateur demande une réduction de l'échelle émotionnelle ('taille humaine').",
+                "L'utilisateur pose une contrainte forte contre les exercices ('sans exercice compliqué')."
+              ],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "last_potion_bridge_offer"
+                ],
+                "modified_fields_declared": [
+                  "repair_state"
+                ],
+                "clear_fields_declared": [],
+                "applied_fields": [],
+                "preserved_fields": [],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_protocol",
+                "no_technique",
+                "soft_support_only",
+                "no_potion",
+                "no_plan",
+                "no_questions",
+                "no_tool"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "emotional_repair_local_state": {
+                "skill_id": "emotional_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "shame_or_guilt",
+                  "phase": "de_shame",
+                  "emotional_dominance": "high",
+                  "context_domain": "relationship",
+                  "summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                  "user_words": [
+                    "discussion qui m'a blessé",
+                    "honte de ma réaction",
+                    "taille humaine",
+                    "sans exercice compliqué"
+                  ],
+                  "identity_freeze_risk": true,
+                  "emotion_stabilized_enough_for_tool": false
+                },
+                "last_visible_task": "de_shame",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-15T16:29:37.704Z",
+                "updated_at": "2026-06-15T16:29:37.704Z"
+              },
+              "emotional_repair_visible_task": {
+                "kind": "de_shame",
+                "conversation_context": {
+                  "state_summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                  "user_words": [
+                    "discussion qui m'a blessé",
+                    "honte de ma réaction",
+                    "taille humaine",
+                    "sans exercice compliqué"
+                  ],
+                  "field_or_stage": "de_shame",
+                  "known_values": {
+                    "intent": "shame_or_guilt",
+                    "phase": "de_shame",
+                    "emotional_dominance": "high",
+                    "context_domain": "relationship",
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "missing_or_weak_values": [
+                    "stabilisation émotionnelle",
+                    "consentement explicite"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": "healing_after_hurt",
+                    "durable_need_summary": "Besoin de cicatriser après une interaction sociale blessante et de réduire la charge de la honte."
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null
+                  },
+                  "tone_constraints": [
+                    "soft",
+                    "no_protocol",
+                    "no_technique",
+                    "soft_support_only",
+                    "no_potion",
+                    "no_plan",
+                    "no_questions",
+                    "no_tool"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de protocole.",
+                    "Ne propose pas de technique ou exercice.",
+                    "Ne propose pas de potion."
+                  ],
+                  "context_summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes.",
+                  "evidence_used": [
+                    "L'utilisateur nomme explicitement la honte ('honte de ma réaction').",
+                    "L'utilisateur demande une réduction de l'échelle émotionnelle ('taille humaine').",
+                    "L'utilisateur pose une contrainte forte contre les exercices ('sans exercice compliqué')."
+                  ],
+                  "max_questions": 0
+                }
+              },
+              "emotional_repair_potion_handoff": null,
+              "summary": "L'utilisateur ressent de la honte et rumine suite à une discussion blessante. Il cherche à dé-escalader l'intensité émotionnelle sans passer par des exercices complexes."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t02",
+    "auth_method": "refresh_token",
+    "user": "Ça redescend un peu. Je veux bien passer sur une potion de guérison pour ne pas rester coincé dans la blessure.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t02",
+      "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je suis contente que la pression retombe. On va regarder cette potion de guérison pour t'aider à cicatriser et à ne pas rester sur cette blessure.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t02",
+            "source_message_id": "5cb70d64-43db-4549-beb6-0165596d8e4d",
+            "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "emotional_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_emotional_repair_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_emotional_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "emotional_repair",
+            "reason_code": "emotional_repair_handoff_to_select_state_potion",
+            "skill_id": "emotional_repair",
+            "mode": "conversation_skill_local_flow",
+            "status": "handoff",
+            "response_intent": "handoff_to_select_state_potion",
+            "flow_action": "confirm_potion_bridge",
+            "visible_task": "potion_bridge_handoff",
+            "global_dispatcher_skipped": true,
+            "source_dispatcher_local": "emotional_repair.local_dispatcher",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "runtime_trace": [
+              {
+                "component": "emotional_repair",
+                "event": "local_dispatcher_turn",
+                "global_dispatcher_skipped": true,
+                "safety_handoff": false
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t02",
+          "source_message_id": "5cb70d64-43db-4549-beb6-0165596d8e4d",
+          "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "emotional_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_emotional_repair_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_emotional_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "emotional_repair",
+          "reason_code": "emotional_repair_handoff_to_select_state_potion",
+          "skill_id": "emotional_repair",
+          "mode": "conversation_skill_local_flow",
+          "status": "handoff",
+          "response_intent": "handoff_to_select_state_potion",
+          "flow_action": "confirm_potion_bridge",
+          "visible_task": "potion_bridge_handoff",
+          "global_dispatcher_skipped": true,
+          "source_dispatcher_local": "emotional_repair.local_dispatcher",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "runtime_trace": [
+            {
+              "component": "emotional_repair",
+              "event": "local_dispatcher_turn",
+              "global_dispatcher_skipped": true,
+              "safety_handoff": false
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03",
+    "auth_method": "refresh_token",
+    "user": "Oui, on continue. La blessure principale, c'est cette discussion où je me suis senti jugé, et je veux surtout cicatriser la honte qui reste.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03",
+      "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ta Potion de guérison est prête ! Tu peux l'utiliser dès maintenant dans la section État / Potions de ton espace.\n\nVoici les éléments à reporter :\nQu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? : discussion où je me suis senti jugé\nTu ressens surtout quoi ? : De la honte\n\nJe suis ravie d'avoir pu t'aider à mettre des mots sur ce que tu traverses. Est-ce que tu as besoin d'autre chose ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "platform_handoff",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03",
+            "source_message_id": "d193289c-29a7-4ed9-a081-b5bfc59039bf",
+            "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.guerison",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_guerison_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_guerison_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.guerison",
+            "reason_code": "guerison_handoff_delivered",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.guerison",
+                "event": "active_guerison_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "clarifying"
+              },
+              {
+                "component": "select_state_potion",
+                "event": "origin_context_consumed",
+                "origin_flow": "emotional_repair",
+                "selected_potion": "guerison",
+                "origin_flow_summary": null,
+                "target_flow": null
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.guerison",
+                "flow_action": "answer_current_field",
+                "confidence": "high",
+                "selected_potion": "guerison",
+                "current_field_id": null,
+                "visible_task": "handoff_ready",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.guerison",
+                "status": "handoff_delivered",
+                "reason_code": "guerison_handoff_delivered",
+                "visible_task": "handoff_ready",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.guerison",
+                "visible_task": "handoff_ready",
+                "field_or_stage": "handoff_ready"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "handoff_ready",
+                "handoff_status": "handoff_delivered",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": null,
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "guerison_handoff_delivered",
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "executable_from_chat": false,
+                "user_state_summary": "discussion où je me suis senti jugé ; De la honte",
+                "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+                "recommendation": {
+                  "potion_label": "Potion de guérison",
+                  "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion de guérison"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "guerison",
+                    "potion_title": "Potion de guérison",
+                    "answers": [
+                      {
+                        "question_id": "recent_hurt",
+                        "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                        "value": "discussion où je me suis senti jugé",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "dominant_feeling",
+                        "question_label": "Tu ressens surtout quoi ?",
+                        "value": "De la honte",
+                        "option_value": "honte",
+                        "option_label": "De la honte"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.guerison",
+                "status": "delivered",
+                "reason_code": "guerison_handoff_delivered",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "handoff_delivered",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03",
+          "source_message_id": "d193289c-29a7-4ed9-a081-b5bfc59039bf",
+          "user_id": "d1a4d2df-7cfe-44b9-9be1-c11d57d9e607",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion.guerison",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_guerison_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_guerison_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion.guerison",
+          "reason_code": "guerison_handoff_delivered",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "status": "handoff_delivered",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "select_state_potion.guerison",
+              "event": "active_guerison_turn_start",
+              "global_dispatcher_available": false,
+              "previous_status": "clarifying"
+            },
+            {
+              "component": "select_state_potion",
+              "event": "origin_context_consumed",
+              "origin_flow": "emotional_repair",
+              "selected_potion": "guerison",
+              "origin_flow_summary": null,
+              "target_flow": null
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "decision",
+              "flow": "select_state_potion.guerison",
+              "flow_action": "answer_current_field",
+              "confidence": "high",
+              "selected_potion": "guerison",
+              "current_field_id": null,
+              "visible_task": "handoff_ready",
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "exit_reason": null
+            },
+            {
+              "component": "local_reducer",
+              "event": "reduced",
+              "flow": "select_state_potion.guerison",
+              "status": "handoff_delivered",
+              "reason_code": "guerison_handoff_delivered",
+              "visible_task": "handoff_ready",
+              "current_field_id": null,
+              "exit_to_global_dispatcher": false
+            },
+            {
+              "component": "local_reducer",
+              "event": "conversation_context_built",
+              "flow": "select_state_potion.guerison",
+              "visible_task": "handoff_ready",
+              "field_or_stage": "handoff_ready"
+            },
+            {
+              "component": "visible_stage",
+              "event": "start",
+              "stage": "potion_subskill_task",
+              "clarte_visible_task": null,
+              "potion_subskill_visible_task": "handoff_ready",
+              "handoff_status": "handoff_delivered",
+              "conversation_context_provided": true
+            },
+            {
+              "component": "visible_agent",
+              "stage": "potion_subskill_task",
+              "attempt": 1,
+              "accepted": true,
+              "issues": []
+            },
+            {
+              "component": "visible_stage",
+              "event": "complete",
+              "stage": "potion_subskill_task"
+            }
+          ],
+          "note_information": null,
+          "handoff": {
+            "target": "state_potions"
+          },
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "guerison_handoff_delivered",
+            "executable_from_chat": false,
+            "draft": {
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "user_state_summary": "discussion où je me suis senti jugé ; De la honte",
+              "desired_shift_summary": "te relever, degonfler la honte, repartir plus proprement",
+              "recommendation": {
+                "potion_label": "Potion de guérison",
+                "why_this_potion": "Quand tu t'en veux, que tu as craque ou que tu te sens blesse, elle t'aide a te relever sans t'enfoncer.",
+                "immediate_step": null,
+                "preserve": [],
+                "avoid": [],
+                "platform_destination": "section État / Potions",
+                "platform_steps": [
+                  "va dans État / Potions",
+                  "choisis Potion de guérison"
+                ],
+                "platform_inputs": {
+                  "potion_type": "guerison",
+                  "potion_title": "Potion de guérison",
+                  "answers": [
+                    {
+                      "question_id": "recent_hurt",
+                      "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?",
+                      "value": "discussion où je me suis senti jugé",
+                      "option_value": null,
+                      "option_label": null
+                    },
+                    {
+                      "question_id": "dominant_feeling",
+                      "question_label": "Tu ressens surtout quoi ?",
+                      "value": "De la honte",
+                      "option_value": "honte",
+                      "option_label": "De la honte"
+                    }
+                  ],
+                  "optional_free_text": null
+                }
+              },
+              "missing_decisions": []
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-guerison-t03:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion.guerison",
+              "status": "delivered",
+              "reason_code": "guerison_handoff_delivered",
+              "source": "tool_skill",
+              "payload_summary": {
+                "status": "handoff_delivered",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

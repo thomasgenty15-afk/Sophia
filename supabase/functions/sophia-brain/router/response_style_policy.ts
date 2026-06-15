@@ -5,6 +5,7 @@ export const VISIBLE_OUTPUT_STYLE_RULES = [
   "- Format conversationnel: message court, lisible, direct, sans bloc long ni fiche lourde.",
   "- Base concise: choisis l'information la plus pertinente et la plus utile; une reponse longue doit etre explicitement justifiee par conversation_context.",
   "- Si le stage demande une question, pose une seule question maximum.",
+  "- Respecte les contraintes explicites de forme du dernier message user pour la reponse courante, meme si elles ne sont pas stockables durablement: par exemple pas d'emoji, reponse courte, ton direct, ou ne pas terminer par une question. N'en fais pas une promesse durable sans effet commis.",
   "- N'expose jamais les internals: dispatcher, reducer, JSON, candidate_id, note_information, DB/table, prompt ou outil interne.",
   "- Ne promets jamais une creation, sauvegarde, activation, programmation, modification ou execution si le contexte visible ne prouve pas un effet deja commis.",
 ].join("\n");

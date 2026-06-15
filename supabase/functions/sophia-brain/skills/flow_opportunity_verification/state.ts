@@ -137,17 +137,25 @@ export function readFlowOpportunityState(
   if (!stringValue(raw.opportunity_id) || !stringValue(raw.target_flow)) {
     return null;
   }
-  if (!isRecord(raw.confirmation_anchor)) return null;
   const targetFlow = stringValue(raw.target_flow) as FlowOpportunityTargetFlow;
+  const targetKind = stringValue(raw.target_kind) ||
+    targetKindForFlow(targetFlow);
+  const targetContext = isRecord(raw.target_context) ? raw.target_context : {};
+  const confirmationAnchor = isRecord(raw.confirmation_anchor)
+    ? raw.confirmation_anchor
+    : createConfirmationAnchor({
+      targetKind: targetKind as FlowOpportunityTargetKind,
+      targetFlow,
+      targetContext,
+    });
   return {
     ...raw,
-    target_kind: stringValue(raw.target_kind) ||
-      targetKindForFlow(targetFlow),
+    target_kind: targetKind,
+    target_context: targetContext,
     confirmation_anchor: {
-      ...raw.confirmation_anchor,
-      target_kind: stringValue((raw.confirmation_anchor as any).target_kind) ||
-        stringValue(raw.target_kind) ||
-        targetKindForFlow(targetFlow),
+      ...confirmationAnchor,
+      target_kind: stringValue((confirmationAnchor as any).target_kind) ||
+        targetKind,
     },
   } as FlowOpportunityLocalState;
 }

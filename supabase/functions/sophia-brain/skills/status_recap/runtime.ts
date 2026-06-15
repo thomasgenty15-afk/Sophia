@@ -336,11 +336,14 @@ export async function maybeRunStatusRecapRuntime(args: {
         allowed_effects: [],
         committed_effects: [],
         blocked_effects: reduced.blocked_effects,
+        state_mutation_audit: reduced.state_mutation_audit,
         exit_memo: exitMemo,
         note_information: exitMemo.note_information,
         flow_action: decision.flow_action,
         status_intent: decision.status_intent.kind,
         target_objects: decision.target_objects,
+        pending_state_present: Boolean(previousState),
+        direct_handoff_flag: decision.flow_action === "handoff_to_local_flow",
         visible_task: {
           kind: reduced.visible_task,
           conversation_context: reduced.conversation_context,
@@ -353,7 +356,7 @@ export async function maybeRunStatusRecapRuntime(args: {
       },
     };
   }
-  if (reduced.exit_to_global_dispatcher) {
+  if (reduced.exit_to_global_dispatcher || reduced.handoff_to_local_flow) {
     const exitMemo = exitMemoForTempMemory({
       reduced,
       decision,
@@ -378,18 +381,23 @@ export async function maybeRunStatusRecapRuntime(args: {
       executedTools: [],
       toolSkillRun: {
         selected_handler: "status_recap",
-        status: "topic_change",
+        status: reduced.handoff_to_local_flow
+          ? "handoff_to_local_flow"
+          : "topic_change",
         reason_code: reduced.reason_code,
         operation_suggestions: [],
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
-        blocked_effects: [],
+        blocked_effects: reduced.blocked_effects,
+        state_mutation_audit: reduced.state_mutation_audit,
         exit_memo: exitMemo,
         note_information: exitMemo.note_information,
         flow_action: decision.flow_action,
         status_intent: decision.status_intent.kind,
         target_objects: decision.target_objects,
+        pending_state_present: Boolean(previousState),
+        direct_handoff_flag: decision.flow_action === "handoff_to_local_flow",
         visible_task: {
           kind: reduced.visible_task,
           conversation_context: reduced.conversation_context,
@@ -452,7 +460,7 @@ export async function maybeRunStatusRecapRuntime(args: {
     executedTools: [],
     toolSkillRun: {
       selected_handler: "status_recap",
-      status: "answered",
+      status: reduced.status === "blocked" ? "blocked" : "answered",
       reason_code: reduced.reason_code,
       flow_action: decision.flow_action,
       projection_used: decision.status_intent.requires_db_projection,
@@ -471,6 +479,7 @@ export async function maybeRunStatusRecapRuntime(args: {
       allowed_effects: [],
       committed_effects: [],
       blocked_effects: reduced.blocked_effects,
+      state_mutation_audit: reduced.state_mutation_audit,
       attack_card_found: projection.attack_cards.length > 0,
       defense_card_found: projection.defense_cards.length > 0,
       reminder_found: projection.one_shot_reminders.pending.length > 0,
@@ -478,6 +487,8 @@ export async function maybeRunStatusRecapRuntime(args: {
       recent_effect_history_count: projection.recent_effect_history.length,
       projection_summary: projectionSummary,
       local_flow_state: reduced.local_state,
+      pending_state_present: Boolean(previousState),
+      direct_handoff_flag: decision.flow_action === "handoff_to_local_flow",
       evidence: reduced.evidence,
       toolExecution: "none",
       executedTools: [],

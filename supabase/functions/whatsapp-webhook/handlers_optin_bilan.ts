@@ -7,6 +7,14 @@ import {
 import { buildAdaptiveOnboardingContext } from "./onboarding_context.ts";
 
 declare const Deno: any;
+
+type AdaptiveFlowResult = {
+  flow: string;
+  deferredSteps: string[];
+  detectedTopic?: string;
+  forceMode?: string;
+};
+
 export async function computeOptInAndBilanContext(params: any) {
   async function getLatestRecentAssistantPurpose(admin: any, userId: string) {
     const since = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() // 30h window
@@ -63,11 +71,14 @@ export async function computeOptInAndBilanContext(params: any) {
     recentBilanPurpose,
   };
 }
-async function detectAdaptiveFlow(inboundText: string, requestId: string) {
+async function detectAdaptiveFlow(
+  inboundText: string,
+  requestId: string,
+): Promise<AdaptiveFlowResult> {
   void requestId;
   // Legacy adaptive signal analysis used analyzeSignalsV2, which no longer exists
   // in the current dispatcher contract. V1 fails closed to the normal flow.
-  const defaultResult = {
+  const defaultResult: AdaptiveFlowResult = {
     flow: "normal",
     deferredSteps: [],
     detectedTopic: undefined,
@@ -293,10 +304,13 @@ export async function handleOptInAndDailyBilanActions(params: any) {
     const nextState = determineNextState(adaptiveFlow.flow, Boolean(planTitle));
     const deferPlanOnboardingState = adaptiveFlow.flow === "normal" &&
       Boolean(planTitle);
+    const onboardingStartedAt = nextState ? new Date().toISOString() : null;
     if (!deferPlanOnboardingState) {
       await params.admin.from("profiles").update({
         whatsapp_state: nextState,
-        whatsapp_state_updated_at: new Date().toISOString(),
+        whatsapp_state_updated_at: onboardingStartedAt ??
+          new Date().toISOString(),
+        whatsapp_onboarding_started_at: onboardingStartedAt,
       }).eq("id", params.userId);
     }
     await params.replyWithBrain({
@@ -314,7 +328,9 @@ export async function handleOptInAndDailyBilanActions(params: any) {
     if (deferPlanOnboardingState) {
       await params.admin.from("profiles").update({
         whatsapp_state: nextState,
-        whatsapp_state_updated_at: new Date().toISOString(),
+        whatsapp_state_updated_at: onboardingStartedAt ??
+          new Date().toISOString(),
+        whatsapp_onboarding_started_at: onboardingStartedAt,
       }).eq("id", params.userId);
     }
     return true;

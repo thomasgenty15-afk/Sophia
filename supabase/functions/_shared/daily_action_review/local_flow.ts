@@ -16,6 +16,7 @@ import type {
   DailyReviewIntent,
   DailyReviewItemUpdate,
   DailyReviewMissingSlot,
+  DailyReviewStateMutationAudit,
   DailyReviewStatus,
 } from "./contract.ts";
 import { DAILY_REVIEW_DEFAULT_CONSTRAINTS } from "./contract.ts";
@@ -199,12 +200,33 @@ export type DailyActionReviewLocalDispatcherOutput = {
   };
   note_information: DailyActionReviewNoteInformation | null;
   exit_memo: DailyActionReviewExitMemo;
+  state_change_intent: {
+    modified_fields: string[];
+    clear_fields: string[];
+  };
   evidence: string[];
 };
 
 export type DailyActionReviewLocalFlowResult = DailyActionReviewSkillResult & {
   dispatcherOutput: DailyActionReviewLocalDispatcherOutput;
   exitToGlobalDispatcher: boolean;
+  stateMutationAudit?: DailyReviewStateMutationAudit;
+  diagnosis: {
+    flow_action: DailyActionReviewLocalFlowAction;
+    visible_task: DailyActionReviewVisibleTaskKind;
+    selected_targets: string[];
+    pending_state_present: boolean;
+    direct_handoff_flag: boolean;
+    candidate_summary: Array<{
+      occurrence_id: string;
+      plan_item_id: string;
+      title: string;
+    }>;
+    constraints: string[];
+    stabilization_ready: boolean;
+    blocked_effects: unknown[];
+    state_mutation_audit?: DailyReviewStateMutationAudit;
+  };
 };
 
 function cleanText(value: unknown): string {
@@ -356,6 +378,17 @@ function missingSlots(value: unknown): DailyReviewMissingSlot[] {
   return stringArray(value).filter((slot) =>
     allowed.has(slot)
   ) as DailyReviewMissingSlot[];
+}
+
+function declaredStateChangeIntent(value: unknown): {
+  modified_fields: string[];
+  clear_fields: string[];
+} {
+  const raw = recordOrEmpty(value);
+  return {
+    modified_fields: stringArray(raw.modified_fields).slice(0, 16),
+    clear_fields: stringArray(raw.clear_fields).slice(0, 16),
+  };
 }
 
 function statusFromHint(
@@ -863,6 +896,7 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
     },
     note_information: exitMemo.note_information ?? null,
     exit_memo: exitMemo,
+    state_change_intent: declaredStateChangeIntent(root.state_change_intent),
     evidence: stringArray(root.evidence).slice(0, 8),
   };
   return normalized;
@@ -908,6 +942,9 @@ export function dailyReviewDecisionFromLocalDispatcher(params: {
     params.targets.map((target) => target.occurrence_id),
   );
   const item_updates: Record<string, DailyReviewItemUpdate> = {};
+  const item_update_modes: NonNullable<
+    DailyReviewDecision["item_update_modes"]
+  > = {};
   for (
     const [occurrenceId, update] of Object.entries(
       params.output.item_updates,
@@ -915,6 +952,7 @@ export function dailyReviewDecisionFromLocalDispatcher(params: {
   ) {
     if (!targetIds.has(occurrenceId) || update.update_mode === "none") continue;
     item_updates[occurrenceId] = updateFromDispatcherItem(update);
+    item_update_modes[occurrenceId] = update.update_mode;
   }
   const target_occurrence_ids =
     params.output.target_resolution.resolved_occurrence_ids.length > 0
@@ -930,6 +968,8 @@ export function dailyReviewDecisionFromLocalDispatcher(params: {
     status,
     target_occurrence_ids,
     item_updates,
+    item_update_modes,
+    state_change_intent: params.output.state_change_intent,
     constraints: DAILY_REVIEW_DEFAULT_CONSTRAINTS,
     next_question: null,
     next_question_targets: target_occurrence_ids,
@@ -966,6 +1006,33 @@ function resultFromState(
     nextQuestion: state.next_question,
     generatedUserMessage: state.generated_user_message,
     shouldApplyEffects: state.should_apply_effects,
+    stateMutationAudit: state.state_mutation_audit,
+  };
+}
+
+function buildDailyActionReviewDiagnosis(params: {
+  dispatcherOutput: DailyActionReviewLocalDispatcherOutput;
+  decision: DailyReviewDecision;
+  state: DailyActionReviewState;
+  targets: DailyActionReviewTarget[];
+  previousStatePresent: boolean;
+  transfersOwnership: boolean;
+}): DailyActionReviewLocalFlowResult["diagnosis"] {
+  return {
+    flow_action: params.dispatcherOutput.flow_action,
+    visible_task: params.dispatcherOutput.visible_task.kind,
+    selected_targets: params.decision.target_occurrence_ids,
+    pending_state_present: params.previousStatePresent,
+    direct_handoff_flag: params.transfersOwnership,
+    candidate_summary: params.targets.slice(0, 6).map((target) => ({
+      occurrence_id: target.occurrence_id,
+      plan_item_id: target.plan_item_id,
+      title: target.title,
+    })),
+    constraints: params.state.constraints,
+    stabilization_ready: params.state.effect_plan.allowed,
+    blocked_effects: params.state.blocked_effects ?? [],
+    state_mutation_audit: params.state.state_mutation_audit,
   };
 }
 
@@ -1375,6 +1442,15 @@ export async function runDailyActionReviewLocalFlow(params: {
     dispatcherOutput.flow_action === "inline_product_help" ||
     dispatcherOutput.flow_action === "inline_status_recap" ||
     dispatcherOutput.flow_action === "safety_preempt";
+  const diagnosis = buildDailyActionReviewDiagnosis({
+    dispatcherOutput,
+    decision,
+    state: nextState,
+    targets: params.targets,
+    previousStatePresent: params.previousState !== undefined &&
+      params.previousState !== null,
+    transfersOwnership,
+  });
   const localStop = dispatcherOutput.flow_action === "user_stopped" ||
     dispatcherOutput.flow_action === "cancel_flow" ||
     dispatcherOutput.flow_action === "defer_flow";
@@ -1408,6 +1484,8 @@ export async function runDailyActionReviewLocalFlow(params: {
       dispatcherOutput.flow_action === "inline_product_help" ||
       dispatcherOutput.flow_action === "inline_status_recap" ||
       dispatcherOutput.flow_action === "safety_preempt",
+    stateMutationAudit: nextState.state_mutation_audit,
+    diagnosis,
   };
 }
 

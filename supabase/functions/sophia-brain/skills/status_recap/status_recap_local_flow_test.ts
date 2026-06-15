@@ -3,11 +3,17 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import type { StatusRecapLocalDispatcherOutput } from "./contract.ts";
+import type {
+  StatusRecapLocalDispatcherOutput,
+  StatusRecapProjection,
+} from "./contract.ts";
 import {
   dispatcherSystemPrompt,
   hasActiveStatusRecapFlow,
+  mergeStatusRecapLocalState,
   normalizeStatusRecapLocalDispatcherOutput,
+  readStatusRecapFlowState,
+  reduceStatusRecapLocalDispatcherOutput,
   STATUS_RECAP_EXIT_MEMO_KEY,
   STATUS_RECAP_FLOW_STATE_KEY,
 } from "./local_flow.ts";
@@ -161,6 +167,18 @@ function baseDecision(
     },
     evidence: ["test"],
     ...overrides,
+  };
+}
+
+function emptyProjection(): StatusRecapProjection {
+  return {
+    attack_cards: [],
+    defense_cards: [],
+    one_shot_reminders: { pending: [], cancelled_recent: [] },
+    recurring_reminders: [],
+    potion_sessions: [],
+    coach_preferences: [],
+    recent_effect_history: [],
   };
 }
 
@@ -721,4 +739,448 @@ Deno.test("status_recap handoff_to_local_flow normalizes note_information for lo
     "status_recap",
   );
   assertEquals(output.exit_memo.needed, true);
+});
+
+Deno.test("status_recap merge preserves server-owned fields on repeat continuation", () => {
+  const previous = activeStatusTempMemory()[STATUS_RECAP_FLOW_STATE_KEY] as any;
+  const merge = mergeStatusRecapLocalState({
+    previous,
+    output: baseDecision({
+      flow_action: "repeat_last_status",
+      status_intent: {
+        kind: "durable_status",
+        summary: "",
+        requires_db_projection: true,
+        requires_effect_history: false,
+      },
+      target_objects: ["unknown"],
+      state_updates: {
+        status: "closed",
+        turn_count_increment: 0,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "repeat_status",
+        instruction: "repeat previous answer",
+      },
+    }),
+    transition: "answer",
+    now: "2026-06-15T08:00:00.000Z",
+    projectionSummary: previous.last_projection_summary,
+    answerSummary: "repeat_last_status:repeat_status",
+  });
+
+  assertEquals(merge.local_state.status, "active");
+  assertEquals(merge.local_state.last_answer_summary, "rappel actif");
+  assertEquals(merge.local_state.last_target_objects, ["unknown"]);
+  assertEquals(merge.local_state.turn_count, 2);
+  assertEquals(
+    merge.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "flow_state.status" &&
+      change.reason_code === "invalid_status_transition"
+    ),
+    true,
+  );
+  assertEquals(
+    merge.state_mutation_audit.preserved_fields.includes(
+      "flow_state.last_answer_summary",
+    ),
+    true,
+  );
+});
+
+Deno.test("status_recap reducer keeps previous state when confirmation-like exit lacks memo", () => {
+  const previous = activeStatusTempMemory()[STATUS_RECAP_FLOW_STATE_KEY] as any;
+  const reduced = reduceStatusRecapLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "exit_to_global_dispatcher",
+      status_intent: {
+        kind: "not_status",
+        summary: "User says ok but no handoff context is provided.",
+        requires_db_projection: false,
+        requires_effect_history: false,
+      },
+      state_updates: {
+        status: "closed",
+        turn_count_increment: 0,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "exit_ack",
+        instruction: "exit",
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        user_intent_summary: null,
+        local_flow_context: {
+          skill_id: "status_recap",
+          last_intent: null,
+          last_target_objects: [],
+          last_answer_summary: null,
+          last_projection_summary: null,
+        },
+        handoff_hint_for_global_dispatcher: {
+          likely_intent: "unknown",
+          why: null,
+          constraints: [],
+        },
+      },
+    }),
+    projection: emptyProjection(),
+    currentUserMessage: "ok vas-y",
+  });
+
+  assertEquals(reduced.status, "blocked");
+  assertEquals(reduced.reason_code, "status_recap_missing_exit_memo");
+  assertEquals(reduced.local_state?.status, "active");
+  assertEquals(reduced.local_state?.last_answer_summary, "rappel actif");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(
+    reduced.blocked_effects[0].reason_code,
+    "missing_exit_memo",
+  );
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes("exit_memo"),
+    true,
+  );
+});
+
+Deno.test("status_recap reducer valid handoff exits without visible answer and audits transition", async () => {
+  const runtime = await maybeRunStatusRecapRuntime({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    userMessage: "ok crée un rappel avec ça",
+    userTimezone: "Europe/Paris",
+    tempMemory: activeStatusTempMemory(),
+    turnFrame: null,
+    routeDecision: null,
+    activeOperationIntake: null,
+    runLocalDispatcher: async () =>
+      baseDecision({
+        flow_action: "handoff_to_local_flow",
+        status_intent: {
+          kind: "not_status",
+          summary: "User asks reminder creation from status context.",
+          requires_db_projection: false,
+          requires_effect_history: false,
+        },
+        target_objects: ["one_shot_reminder"],
+        state_updates: {
+          status: "exit_to_global",
+          turn_count_increment: 1,
+          close_after_visible: true,
+        },
+        visible_task: {
+          kind: "exit_ack",
+          instruction: "handoff",
+        },
+        note_information: {
+          source_flow_id: "status_recap",
+          handoff_reason: "explicit_user_request",
+          target_dispatcher: "create_one_shot_reminder",
+          handoff_context_for_next_dispatcher:
+            "The user moved from status reading to reminder creation.",
+          user_words: ["ok crée un rappel avec ça"],
+          structured_context: {
+            source_flow: "status_recap",
+            target_dispatcher: "create_one_shot_reminder",
+            handoff_reason: "explicit_user_request",
+            user_message_summary: "create reminder from status context",
+            active_flow_summary: "status recap read-only",
+            collected_state: { target_objects: ["one_shot_reminder"] },
+            unresolved_questions: [],
+            confidence: "high",
+            evidence: ["current message asks to create"],
+            recommended_next_focus: "reminder creation",
+          },
+          confidence: "high",
+        },
+        exit_memo: {
+          needed: true,
+          reason: "explicit_tool_request",
+          user_intent_summary: "create reminder from status context",
+          local_flow_context: {
+            skill_id: "status_recap",
+            last_intent: "durable_status",
+            last_target_objects: ["one_shot_reminder"],
+            last_answer_summary: "rappel actif",
+            last_projection_summary: "one reminder",
+          },
+          handoff_hint_for_global_dispatcher: {
+            likely_intent: "one_shot_reminder",
+            why: "current message asks to create",
+            constraints: [
+              "Status recap was read-only and did not mutate anything.",
+            ],
+          },
+        },
+      }),
+    runVisibleAgent: async () => {
+      throw new Error("visible_agent_should_not_run_on_handoff");
+    },
+  });
+
+  assert(runtime);
+  assertEquals(runtime.content, "");
+  assertEquals((runtime.toolSkillRun as any).status, "handoff_to_local_flow");
+  assertEquals((runtime.toolSkillRun as any).direct_handoff_flag, true);
+  assertEquals(
+    (runtime.toolSkillRun as any).note_information.target_dispatcher,
+    "create_one_shot_reminder",
+  );
+  assertEquals(
+    (runtime.toolSkillRun as any).state_mutation_audit.applied_fields.includes(
+      "flow_state.status",
+    ),
+    true,
+  );
+});
+
+Deno.test("status_recap non-actionable mention does not trigger handoff", async () => {
+  const runtime = await maybeRunStatusRecapRuntime({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    userMessage: "je mentionne juste les rappels, sans rien créer",
+    userTimezone: "Europe/Paris",
+    tempMemory: activeStatusTempMemory(),
+    turnFrame: null,
+    routeDecision: null,
+    activeOperationIntake: null,
+    runLocalDispatcher: async () =>
+      baseDecision({
+        flow_action: "answer_object_status",
+        target_objects: ["one_shot_reminder"],
+        read_scope: {
+          requested_categories: ["one_shot_reminders"],
+          include_cancelled: false,
+          include_recent_failed_or_blocked_effects: false,
+          format: "object_answer",
+        },
+        visible_task: {
+          kind: "object_status",
+          instruction: "answer reminders only",
+        },
+      }),
+    runVisibleAgent: async () => "rappel lu sans action",
+  });
+
+  assert(runtime);
+  assertEquals(runtime.content, "rappel lu sans action");
+  assertEquals((runtime.toolSkillRun as any).direct_handoff_flag, false);
+  assertEquals((runtime.toolSkillRun as any).status, "answered");
+});
+
+Deno.test("status_recap explicit constraint blocks exit mutation without clearing state", () => {
+  const previous = activeStatusTempMemory()[STATUS_RECAP_FLOW_STATE_KEY] as any;
+  const reduced = reduceStatusRecapLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "handoff_to_local_flow",
+      status_intent: {
+        kind: "not_status",
+        summary: "Model tries to handoff without a usable transition memo.",
+        requires_db_projection: false,
+        requires_effect_history: false,
+      },
+      state_updates: {
+        status: "closed",
+        turn_count_increment: 0,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "exit_ack",
+        instruction: "handoff",
+      },
+      exit_memo: {
+        needed: false,
+        reason: "none",
+        user_intent_summary: null,
+        local_flow_context: {
+          skill_id: "status_recap",
+          last_intent: null,
+          last_target_objects: [],
+          last_answer_summary: null,
+          last_projection_summary: null,
+        },
+        handoff_hint_for_global_dispatcher: {
+          likely_intent: "one_shot_reminder",
+          why: "missing required memo",
+          constraints: ["read_only"],
+        },
+      },
+      note_information: null,
+    } as Partial<StatusRecapLocalDispatcherOutput>),
+    projection: emptyProjection(),
+    currentUserMessage: "contrainte: ne change rien",
+  });
+
+  assertEquals(reduced.status, "blocked");
+  assertEquals(reduced.handoff_to_local_flow, false);
+  assertEquals(reduced.local_state?.status, "active");
+  assertEquals(reduced.local_state?.last_answer_summary, "rappel actif");
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "missing_exit_memo"
+    ),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes("flow_state"),
+    true,
+  );
+});
+
+Deno.test("status_recap cancel_flow is the authorized local clear transition", () => {
+  const previous = activeStatusTempMemory()[STATUS_RECAP_FLOW_STATE_KEY] as any;
+  const reduced = reduceStatusRecapLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "cancel_flow",
+      status_intent: {
+        kind: "unclear",
+        summary: "User stops the local status recap.",
+        requires_db_projection: false,
+        requires_effect_history: false,
+      },
+      state_updates: {
+        status: "closed",
+        turn_count_increment: 1,
+        close_after_visible: true,
+      },
+      visible_task: {
+        kind: "stop_or_cancel",
+        instruction: "ack local stop",
+      },
+    }),
+    projection: emptyProjection(),
+    currentUserMessage: "stop",
+  });
+
+  assertEquals(reduced.status, "closed");
+  assertEquals(reduced.local_state?.status, "closed");
+  assertEquals(reduced.state_mutation_audit.cleared_fields, ["flow_state"]);
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "flow_state"
+    ),
+    false,
+  );
+});
+
+Deno.test("status_recap explicit correction replaces only current status scope", () => {
+  const previous = {
+    ...(activeStatusTempMemory()[STATUS_RECAP_FLOW_STATE_KEY] as any),
+    last_intent: "object_status",
+    last_target_objects: ["one_shot_reminder"],
+    last_answer_summary: "rappels actifs",
+  };
+  const reduced = reduceStatusRecapLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "answer_coach_preferences_status",
+      status_intent: {
+        kind: "coach_preferences_status",
+        summary: "Correction: user wants coach preferences, not reminders.",
+        requires_db_projection: true,
+        requires_effect_history: false,
+      },
+      target_objects: ["coach_preference"],
+      read_scope: {
+        requested_categories: ["coach_preferences"],
+        include_cancelled: false,
+        include_recent_failed_or_blocked_effects: false,
+        format: "object_answer",
+      },
+      visible_task: {
+        kind: "coach_preferences_status",
+        instruction: "answer coach preferences only",
+      },
+    }),
+    projection: emptyProjection(),
+    currentUserMessage: "non, je parlais plutôt de mes préférences coach",
+  });
+
+  assertEquals(reduced.status, "answered");
+  assertEquals(reduced.local_state?.status, "active");
+  assertEquals(reduced.local_state?.last_intent, "coach_preferences_status");
+  assertEquals(reduced.local_state?.last_target_objects, ["coach_preference"]);
+  assertEquals(reduced.local_state?.created_at, previous.created_at);
+  assertEquals(
+    reduced.state_mutation_audit.applied_fields.includes(
+      "flow_state.last_intent",
+    ),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "flow_state.created_at",
+    ),
+    true,
+  );
+});
+
+Deno.test("status_recap reads legacy active state with missing new fields", () => {
+  const state = readStatusRecapFlowState({
+    [STATUS_RECAP_FLOW_STATE_KEY]: {
+      skill_id: "status_recap",
+      mode: "local_readonly_flow",
+      status: "active",
+      last_intent: "object_status",
+    },
+  });
+
+  assert(state);
+  assertEquals(state.last_intent, "object_status");
+  assertEquals(state.last_target_objects, ["unknown"]);
+  assertEquals(state.last_projection_summary.one_shot_pending_count, 0);
+  assertEquals(state.turn_count, 0);
+  assertEquals(state.max_turns, 3);
+  assertEquals(
+    hasActiveStatusRecapFlow({
+      [STATUS_RECAP_FLOW_STATE_KEY]: {
+        skill_id: "status_recap",
+        mode: "local_readonly_flow",
+        status: "active",
+        last_intent: "object_status",
+      },
+    }),
+    true,
+  );
+});
+
+Deno.test("status_recap invalid legacy state does not capture a new explicit tool intent", async () => {
+  const runtime = await maybeRunStatusRecapRuntime({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    userMessage: "crée un rappel demain matin",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      [STATUS_RECAP_FLOW_STATE_KEY]: {
+        skill_id: "status_recap",
+        mode: "local_readonly_flow",
+        status: "waiting_for_confirmation",
+        last_intent: "object_status",
+      },
+    },
+    turnFrame: null,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "create_recurring_reminder",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "explicit_tool_command",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    } as any,
+    activeOperationIntake: null,
+    runLocalDispatcher: async () => {
+      throw new Error("status_recap_should_not_capture_invalid_legacy_state");
+    },
+  });
+
+  assertEquals(runtime, null);
 });

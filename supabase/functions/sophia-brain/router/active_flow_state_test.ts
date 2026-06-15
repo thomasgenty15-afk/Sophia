@@ -182,6 +182,35 @@ Deno.test("active_flow_state resolves canonical local tool ownership for all loc
   }
 });
 
+Deno.test("active_flow_state keeps canonical tool owner even when temp memory was later cleared", () => {
+  const active = {
+    operation_type: "prepare_defense_card",
+    skill_id: "prepare_defense_card",
+    mode: "platform_handoff",
+    status: "handoff_delivered",
+    executable_from_chat: false,
+  };
+
+  const ownership = resolveActiveLocalToolFlowOwnership({
+    tempMemory: {
+      __conversation_risk_history: [0],
+      __conversation_risk_last: {
+        score: 0,
+        should_exit_flows: false,
+      },
+    },
+    activeOperationIntake: active,
+    pendingOperationConfirmation: null,
+  });
+
+  assertEquals(ownership?.operation_type, "prepare_defense_card");
+  assertEquals(
+    ownership?.source,
+    "readActiveFlowState.activeToolSkillIntake",
+  );
+  assertEquals(ownership?.active_state, active);
+});
+
 Deno.test("active_flow_state resolves canonical conversation local ownership for local dispatchers", () => {
   const cases: Array<{
     name: string;

@@ -1,0 +1,879 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-2026-06-15-update-coach-preferences-stateful-r1-t01",
+    "user": "Pour les prochaines fois, challenge-moi un peu plus franchement et évite de me noyer sous les questions.",
+    "assistant": "C'est entendu. Je monterai d'un cran le niveau de challenge et je ferai attention à ne pas t'envahir de questions lors de nos prochains échanges. Est-ce que tu veux continuer sur notre sujet actuel ?",
+    "short_trace": {
+      "http_status": 200,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "reason_code": "update_coach_preferences_write_ready",
+      "flow_action": "write_preferences",
+      "visible_task_kind": "preference_saved",
+      "executed_tools": [
+        "update_coach_preferences"
+      ],
+      "durable_effect": [
+        {
+          "type": "update_coach_preferences",
+          "operation_id": "qa-2026-06-15-update-coach-preferences-stateful-r1-t01",
+          "preference_keys": [
+            "coach.challenge_level",
+            "coach.question_tendency"
+          ],
+          "preferences_update_ids": []
+        }
+      ],
+      "diagnosis": {
+        "flow_action": "write_preferences",
+        "visible_task": "preference_saved",
+        "selected_option": {
+          "key": "coach.challenge_level",
+          "value": "high",
+          "status": "locked",
+          "needs_user_confirmation": false
+        },
+        "pending_state_present": false,
+        "direct_handoff_flag": false,
+        "candidate_list": [
+          {
+            "key": "coach.challenge_level",
+            "value": "high",
+            "status": "locked",
+            "needs_user_confirmation": false
+          },
+          {
+            "key": "coach.question_tendency",
+            "value": "low",
+            "status": "locked",
+            "needs_user_confirmation": false
+          }
+        ],
+        "constraints": [],
+        "readiness": true,
+        "blocked_effects": [],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "status",
+            "current_stage",
+            "proposed_updates",
+            "last_committed_updates",
+            "unsupported_parts",
+            "subskill_history",
+            "turn_count",
+            "created_at",
+            "updated_at"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "status",
+            "current_stage",
+            "turn_count",
+            "updated_at"
+          ],
+          "preserved_fields": [
+            "proposed_updates",
+            "unsupported_parts",
+            "last_committed_updates",
+            "subskill_history",
+            "created_at"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [],
+          "rejected_changes": []
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "status",
+          "current_stage",
+          "proposed_updates",
+          "last_committed_updates",
+          "unsupported_parts",
+          "subskill_history",
+          "turn_count",
+          "created_at",
+          "updated_at"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "status",
+          "current_stage",
+          "turn_count",
+          "updated_at"
+        ],
+        "preserved_fields": [
+          "proposed_updates",
+          "unsupported_parts",
+          "last_committed_updates",
+          "subskill_history",
+          "created_at"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [],
+        "rejected_changes": []
+      }
+    },
+    "db_after_turn": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Élevé",
+          "value": "high"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+        "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+        "updated_at": "2026-06-15T20:04:27.633+00:00",
+        "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+      },
+      {
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Peu de questions",
+          "value": "low"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+        "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+        "updated_at": "2026-06-15T20:04:27.633+00:00",
+        "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+      },
+      {
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      }
+    ]
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-2026-06-15-update-coach-preferences-stateful-r1-t02",
+    "user": "Tu peux me rappeler quelles préférences coach sont actives maintenant ?",
+    "assistant": "Voici tes préférences actuelles. Tu as configuré un niveau de challenge **Élevé** et **Peu de questions**. Pour le reste, j'applique les réglages par défaut : un ton **Bienveillant ferme**, un focus **Discipline / action** et des messages **Courts**.",
+    "short_trace": {
+      "http_status": 200,
+      "response_owner": "tool_skill",
+      "selected_handler": "status_recap",
+      "route_reason": "skill_entry_signal",
+      "reason_code": "status_recap_local_answer_coach_preferences_status",
+      "flow_action": "answer_coach_preferences_status",
+      "visible_task_kind": "coach_preferences_status",
+      "executed_tools": [],
+      "durable_effect": [],
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "flow_state.status",
+          "flow_state.last_intent",
+          "flow_state.last_target_objects",
+          "flow_state.last_projection_summary",
+          "flow_state.last_answer_summary",
+          "flow_state.turn_count",
+          "flow_state.max_turns",
+          "flow_state.created_at",
+          "flow_state.updated_at",
+          "exit_memo",
+          "note_information"
+        ],
+        "modified_fields_declared": [
+          "flow_state.status",
+          "flow_state.turn_count",
+          "flow_state.last_intent",
+          "flow_state.last_target_objects",
+          "flow_state.last_answer_summary",
+          "flow_state.last_projection_summary"
+        ],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "flow_state.status",
+          "flow_state.turn_count",
+          "flow_state.last_intent",
+          "flow_state.last_target_objects",
+          "flow_state.last_answer_summary",
+          "flow_state.last_projection_summary",
+          "flow_state.updated_at"
+        ],
+        "preserved_fields": [
+          "flow_state.max_turns",
+          "flow_state.created_at"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [],
+        "rejected_changes": []
+      }
+    },
+    "db_after_turn": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Élevé",
+          "value": "high"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+        "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+        "updated_at": "2026-06-15T20:04:27.633+00:00",
+        "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+      },
+      {
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Peu de questions",
+          "value": "low"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+        "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+        "updated_at": "2026-06-15T20:04:27.633+00:00",
+        "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+      },
+      {
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      }
+    ]
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-2026-06-15-update-coach-preferences-stateful-r1-t03",
+    "user": "En fait, j'aimerais que tu ne termines jamais tes réponses par une question, si tu peux garder ça pour toujours.",
+    "assistant": "Je comprends que tu aimerais que je ne termine plus jamais mes messages par une question. Malheureusement, je n'ai pas de réglage spécifique pour bannir totalement ce format de manière durable. Ma tendance à poser des questions est déjà réglée au minimum, mais je ne peux pas te garantir une absence totale à chaque fois. Est-ce que cela te convient quand même ?",
+    "short_trace": {
+      "http_status": 200,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "reason_code": "update_coach_preferences_unsupported_preference",
+      "flow_action": "unsupported_preference",
+      "visible_task_kind": "unsupported_preference",
+      "executed_tools": [],
+      "durable_effect": [],
+      "diagnosis": {
+        "flow_action": "unsupported_preference",
+        "visible_task": "unsupported_preference",
+        "selected_option": null,
+        "pending_state_present": false,
+        "direct_handoff_flag": false,
+        "candidate_list": [],
+        "constraints": [
+          "ne jamais terminer ses réponses par une question"
+        ],
+        "readiness": false,
+        "blocked_effects": [],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "status",
+            "current_stage",
+            "proposed_updates",
+            "last_committed_updates",
+            "unsupported_parts",
+            "subskill_history",
+            "turn_count",
+            "created_at",
+            "updated_at"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "turn_count",
+            "updated_at"
+          ],
+          "preserved_fields": [
+            "proposed_updates",
+            "last_committed_updates",
+            "subskill_history",
+            "status",
+            "current_stage",
+            "created_at"
+          ],
+          "restored_fields": [
+            "unsupported_parts"
+          ],
+          "cleared_fields": [],
+          "rejected_changes": [
+            {
+              "field": "unsupported_parts",
+              "reason_code": "invalid_status_transition"
+            }
+          ]
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "status",
+          "current_stage",
+          "proposed_updates",
+          "last_committed_updates",
+          "unsupported_parts",
+          "subskill_history",
+          "turn_count",
+          "created_at",
+          "updated_at"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "turn_count",
+          "updated_at"
+        ],
+        "preserved_fields": [
+          "proposed_updates",
+          "last_committed_updates",
+          "subskill_history",
+          "status",
+          "current_stage",
+          "created_at"
+        ],
+        "restored_fields": [
+          "unsupported_parts"
+        ],
+        "cleared_fields": [],
+        "rejected_changes": [
+          {
+            "field": "unsupported_parts",
+            "reason_code": "invalid_status_transition"
+          }
+        ]
+      }
+    },
+    "db_after_turn": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Élevé",
+          "value": "high"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+        "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+        "updated_at": "2026-06-15T20:04:27.633+00:00",
+        "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+      },
+      {
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Peu de questions",
+          "value": "low"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+        "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+        "updated_at": "2026-06-15T20:04:27.633+00:00",
+        "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+      },
+      {
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      }
+    ]
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-2026-06-15-update-coach-preferences-stateful-r1-t04",
+    "user": "D'accord, dans ce cas garde simplement moins de questions et rends ton ton plus direct durablement.",
+    "assistant": "C'est fait ! Je suis désormais prête à être plus directe avec toi et je veillerai à limiter mes questions, comme tu me l'as demandé. Est-ce que cela te convient pour la suite ?",
+    "short_trace": {
+      "http_status": 200,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_reason": "active_update_coach_preferences_local_dispatcher",
+      "reason_code": "update_coach_preferences_write_ready",
+      "flow_action": "write_preferences",
+      "visible_task_kind": "preference_saved",
+      "executed_tools": [
+        "update_coach_preferences"
+      ],
+      "durable_effect": [
+        {
+          "type": "update_coach_preferences",
+          "operation_id": "qa-2026-06-15-update-coach-preferences-stateful-r1-t04",
+          "preference_keys": [
+            "coach.tone",
+            "coach.question_tendency"
+          ],
+          "preferences_update_ids": []
+        }
+      ],
+      "diagnosis": {
+        "flow_action": "write_preferences",
+        "visible_task": "preference_saved",
+        "selected_option": {
+          "key": "coach.tone",
+          "value": "direct",
+          "status": "locked",
+          "needs_user_confirmation": false
+        },
+        "pending_state_present": false,
+        "direct_handoff_flag": false,
+        "candidate_list": [
+          {
+            "key": "coach.tone",
+            "value": "direct",
+            "status": "locked",
+            "needs_user_confirmation": false
+          },
+          {
+            "key": "coach.question_tendency",
+            "value": "low",
+            "status": "locked",
+            "needs_user_confirmation": false
+          }
+        ],
+        "constraints": [],
+        "readiness": true,
+        "blocked_effects": [],
+        "state_mutation_audit": {
+          "server_owned_fields": [
+            "status",
+            "current_stage",
+            "proposed_updates",
+            "last_committed_updates",
+            "unsupported_parts",
+            "subskill_history",
+            "turn_count",
+            "created_at",
+            "updated_at"
+          ],
+          "modified_fields_declared": [],
+          "clear_fields_declared": [],
+          "applied_fields": [
+            "status",
+            "current_stage",
+            "turn_count",
+            "updated_at"
+          ],
+          "preserved_fields": [
+            "proposed_updates",
+            "unsupported_parts",
+            "last_committed_updates",
+            "subskill_history",
+            "created_at"
+          ],
+          "restored_fields": [],
+          "cleared_fields": [],
+          "rejected_changes": []
+        }
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "status",
+          "current_stage",
+          "proposed_updates",
+          "last_committed_updates",
+          "unsupported_parts",
+          "subskill_history",
+          "turn_count",
+          "created_at",
+          "updated_at"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "status",
+          "current_stage",
+          "turn_count",
+          "updated_at"
+        ],
+        "preserved_fields": [
+          "proposed_updates",
+          "unsupported_parts",
+          "last_committed_updates",
+          "subskill_history",
+          "created_at"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [],
+        "rejected_changes": []
+      }
+    },
+    "db_after_turn": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Élevé",
+          "value": "high"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "4e3f9c22-f688-485c-a558-f78d0d58cd36",
+        "reason": "Le user souhaite augmenter le niveau de challenge et réduire la fréquence des questions pour les prochaines fois.",
+        "updated_at": "2026-06-15T20:04:27.633+00:00",
+        "last_confirmed_at": "2026-06-15T20:04:27.633+00:00"
+      },
+      {
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Peu de questions",
+          "value": "low"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "52873b42-cf47-4bc3-ab5e-c299e30a5aa6",
+        "reason": "Le user confirme 'Peu de questions' et demande un ton 'Direct' durablement, abandonnant la contrainte de format non supportée.",
+        "updated_at": "2026-06-15T20:06:17.281+00:00",
+        "last_confirmed_at": "2026-06-15T20:06:17.281+00:00"
+      },
+      {
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-06-15T20:03:58.640713+00:00",
+        "last_confirmed_at": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Très direct",
+          "value": "direct"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "last_source_message_id": "52873b42-cf47-4bc3-ab5e-c299e30a5aa6",
+        "reason": "Le user confirme 'Peu de questions' et demande un ton 'Direct' durablement, abandonnant la contrainte de format non supportée.",
+        "updated_at": "2026-06-15T20:06:17.281+00:00",
+        "last_confirmed_at": "2026-06-15T20:06:17.281+00:00"
+      }
+    ]
+  }
+]

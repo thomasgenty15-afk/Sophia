@@ -78,7 +78,7 @@ Deno.test("create payload cleans punctuation and avoids first-person helper inst
   );
 });
 
-Deno.test("cancel_targeted_reminder_commits", async () => {
+Deno.test("cancel_targeted_reminder_is_not_committed", async () => {
   const result = await executeOneShotReminderEffects({
     supabase: fakeSupabase(),
     userId: "user-1",
@@ -93,7 +93,11 @@ Deno.test("cancel_targeted_reminder_commits", async () => {
       reason_code: "ready",
     },
   });
-  assertEquals(result.committed_effects[0].target_reminder_ids, ["reminder-1"]);
+  assertEquals(result.committed_effects, []);
+  assertEquals(result.failed_effects, [{
+    type: "cancel_one_shot_reminder",
+    reason_code: "one_shot_reminder_cancel_unsupported",
+  }]);
 });
 
 Deno.test("no_done_language_without_commit", async () => {

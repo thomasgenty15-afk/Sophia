@@ -40,14 +40,20 @@ export function resolveAgentChatModel(args: {
     };
   }
 
-  const defaultModel = String(getGlobalAiModel("gemini-2.5-flash")).trim();
+  const globalDefaultModel = String(getGlobalAiModel("gemini-2.5-flash"))
+    .trim();
   if (args.effectiveMode !== "companion") {
     return {
-      model: defaultModel,
+      model: globalDefaultModel,
       source: "non_companion_default",
       tier: "default",
     };
   }
+
+  const companionDefaultModel = envString(
+    "SOPHIA_COMPANION_MODEL_DEFAULT",
+    "gpt-5.4-mini",
+  );
 
   const plan = args.memoryPlan ?? null;
   const confidence = Number(plan?.plan_confidence ?? 0);
@@ -57,7 +63,7 @@ export function resolveAgentChatModel(args: {
     (hint !== "lite" && hint !== "standard" && hint !== "deep")
   ) {
     return {
-      model: defaultModel,
+      model: companionDefaultModel,
       source: "companion_default",
       tier: "default",
     };
@@ -70,7 +76,7 @@ export function resolveAgentChatModel(args: {
     ),
     standard: envString(
       "SOPHIA_COMPANION_MODEL_STANDARD",
-      "gemini-3-flash-preview",
+      "gpt-5.4-mini",
     ),
     deep: envString(
       "SOPHIA_COMPANION_MODEL_DEEP",

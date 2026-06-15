@@ -3,12 +3,14 @@ import { createNoteInformation } from "../../sophia-brain/contracts/note_informa
 import type {
   WhatsAppOnboardingConversationContext,
   WhatsAppOnboardingLocalDecision,
+  WhatsAppOnboardingLocalState,
   WhatsAppOnboardingPlanProjection,
   WhatsAppOnboardingReducerInput,
   WhatsAppOnboardingState,
 } from "./contract.ts";
 import {
   isWhatsAppOnboardingLocalState,
+  readWhatsAppOnboardingLocalState,
   reduceWhatsAppOnboardingDecision,
 } from "./state.ts";
 import {
@@ -130,6 +132,7 @@ function reduce(args: {
   state: WhatsAppOnboardingState;
   plan: WhatsAppOnboardingPlanProjection;
   decision: Partial<WhatsAppOnboardingLocalDecision>;
+  previousLocalState?: WhatsAppOnboardingLocalState | null;
 }) {
   const input: WhatsAppOnboardingReducerInput = {
     whatsappState: args.state,
@@ -137,9 +140,34 @@ function reduce(args: {
     whatsappPreferencesDone: false,
     planProjection: args.plan,
     decision: decision(args.decision),
+    previousLocalState: args.previousLocalState,
     nowIso: "2026-06-08T12:00:00.000Z",
   };
   return reduceWhatsAppOnboardingDecision(input);
+}
+
+function previousState(
+  patch: Partial<WhatsAppOnboardingLocalState> = {},
+): WhatsAppOnboardingLocalState {
+  return {
+    version: 1,
+    reason_code: "previous_reason",
+    visible_task: "ask_tone",
+    flow_action: "answer_tone",
+    current_whatsapp_state: "onboarding_pref_tone",
+    next_whatsapp_state: "onboarding_pref_challenge",
+    current_preference_key: "coach.tone",
+    plan_status: "active",
+    plan_ready: true,
+    active_subflow_context: null,
+    note_information: null,
+    activation_note_information: null,
+    exit_memo: null,
+    local_state_summary: "previous summary",
+    previous_flow_summary: "previous flow summary",
+    updated_at: "2026-06-08T11:00:00.000Z",
+    ...patch,
+  };
 }
 
 Deno.test("whatsapp_onboarding local states are explicit", () => {
@@ -380,6 +408,183 @@ Deno.test("plan ready resumes preference onboarding and blocks progress item", (
   );
 });
 
+Deno.test("onboarding reducer reads legacy local state without new fields", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    structured_context: { active_flow_summary: "legacy active flow" },
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher: "Legacy note.",
+  });
+  const legacy = readWhatsAppOnboardingLocalState({
+    reason_code: "legacy_reason",
+    visible_task: "ask_tone",
+    note_information: note,
+  });
+
+  assert(legacy);
+  assertEquals(legacy.reason_code, "legacy_reason");
+  assertEquals(legacy.visible_task, "ask_tone");
+  assertEquals(legacy.note_information?.target_dispatcher, "global");
+  assertEquals(legacy.plan_status, "unknown");
+});
+
+Deno.test("onboarding continuation preserves server-owned local state", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    structured_context: { active_flow_summary: "previous handoff context" },
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher: "Previous note.",
+  });
+  const result = reduce({
+    state: "onboarding_pref_challenge",
+    plan: readyPlan,
+    previousLocalState: previousState({ note_information: note }),
+    decision: {
+      flow_action: "answer_challenge",
+      preference_updates: [{
+        key: "coach.challenge_level",
+        status: "locked",
+        candidate_value: null,
+        locked_value: "balanced",
+        label: "Equilibre",
+        notes: null,
+        needs_user_confirmation: false,
+        why_status: "user gave a valid challenge preference",
+      }],
+    },
+  });
+
+  assertEquals(result.status, "owned");
+  assertEquals(
+    result.local_state.note_information?.target_dispatcher,
+    "global",
+  );
+  assert(
+    result.state_mutation_audit.preserved_fields.includes("note_information"),
+  );
+});
+
+Deno.test("onboarding invalid confirmation preserves server-owned local state", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    structured_context: { active_flow_summary: "previous context" },
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher: "Previous note.",
+  });
+  const result = reduce({
+    state: "onboarding_pref_challenge",
+    plan: readyPlan,
+    previousLocalState: previousState({ note_information: note }),
+    decision: {
+      flow_action: "answer_challenge",
+      preference_updates: [{
+        key: "coach.challenge_level",
+        status: "locked",
+        candidate_value: null,
+        locked_value: "extreme",
+        label: "Extreme",
+        notes: null,
+        needs_user_confirmation: false,
+        why_status: "invalid value",
+      }],
+    },
+  });
+
+  assertEquals(result.visible_task, "repeat_question");
+  assertEquals(
+    result.local_state.note_information?.target_dispatcher,
+    "global",
+  );
+  assert(
+    result.state_mutation_audit.preserved_fields.includes("note_information"),
+  );
+});
+
+Deno.test("onboarding rejects dispatcher clear of server-owned fields on continuation", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    structured_context: { active_flow_summary: "previous context" },
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher: "Previous note.",
+  });
+  const result = reduce({
+    state: "onboarding_pref_challenge",
+    plan: readyPlan,
+    previousLocalState: previousState({ note_information: note }),
+    decision: {
+      flow_action: "answer_challenge",
+      state_mutation_request: {
+        modified_fields: [],
+        clear_fields: ["note_information"],
+      },
+      preference_updates: [{
+        key: "coach.challenge_level",
+        status: "locked",
+        candidate_value: null,
+        locked_value: "balanced",
+        label: "Equilibre",
+        notes: null,
+        needs_user_confirmation: false,
+        why_status: "user gave a valid challenge preference",
+      }],
+    },
+  });
+
+  assertEquals(
+    result.local_state.note_information?.target_dispatcher,
+    "global",
+  );
+  assert(
+    result.state_mutation_audit.restored_fields.includes("note_information"),
+  );
+  assertEquals(
+    result.state_mutation_audit.rejected_changes[0]?.reason_code,
+    "server_owned_field_clear_not_allowed",
+  );
+});
+
+Deno.test("onboarding valid local completion clears previous handoff state", () => {
+  const note = createNoteInformation({
+    source_flow_id: "whatsapp_onboarding",
+    structured_context: { active_flow_summary: "previous context" },
+    handoff_reason: "topic_change",
+    target_dispatcher: "global",
+    handoff_context_for_next_dispatcher: "Previous note.",
+  });
+  const result = reduce({
+    state: "onboarding_topic_choice",
+    plan: readyPlan,
+    previousLocalState: previousState({
+      note_information: note,
+      active_subflow_context: {
+        target_dispatcher: "global",
+        status: "exit_to_global_dispatcher",
+        reason_code: "previous_exit",
+      },
+    }),
+    decision: {
+      flow_action: "answer_topic_choice",
+      topic_choice: {
+        status: "plan",
+        handoff_hint_for_global_dispatcher: null,
+        handoff_justification_for_global_dispatcher: null,
+      },
+    },
+  });
+
+  assertEquals(result.status, "owned");
+  assertEquals(result.mark_done, true);
+  assertEquals(result.local_state.note_information, null);
+  assertEquals(result.local_state.active_subflow_context, null);
+  assert(
+    result.state_mutation_audit.cleared_fields.includes("note_information"),
+  );
+});
+
 Deno.test("whatsapp_onboarding trace captures local dispatcher decision and blocked effects", () => {
   const localDecision = decision({
     flow_action: "plan_ready_resume_preferences",
@@ -441,18 +646,27 @@ Deno.test("whatsapp_onboarding trace captures local dispatcher decision and bloc
     ),
     true,
   );
+  assert(
+    (trace.skill_run as any).local_flow.state_mutation_audit
+      .server_owned_fields.includes("note_information"),
+  );
+  assert(
+    (trace.tool_skill_run as any).state_mutation_audit.server_owned_fields
+      .includes("note_information"),
+  );
 });
 
 Deno.test("plan ready frustration exits through global note", () => {
   const note = createNoteInformation({
     source_flow_id: "whatsapp_onboarding",
-    source_flow_state_summary: "preferences active; plan ready",
+    structured_context: {
+      active_flow_summary: "preferences active; plan ready",
+    },
     handoff_reason: "topic_change",
     target_dispatcher: "global",
     handoff_context_for_next_dispatcher:
       "User refuses onboarding questions after plan ready.",
     user_words: ["tes questions me saoulent"],
-    risk_score: 0,
   });
   const result = reduce({
     state: "onboarding_pref_tone",
@@ -484,13 +698,14 @@ Deno.test("plan ready frustration exits through global note", () => {
 Deno.test("clear topic change after plan ready exits with note_information", () => {
   const note = createNoteInformation({
     source_flow_id: "whatsapp_onboarding",
-    source_flow_state_summary: "preferences active; plan ready",
+    structured_context: {
+      active_flow_summary: "preferences active; plan ready",
+    },
     handoff_reason: "topic_change",
     target_dispatcher: "global",
     handoff_context_for_next_dispatcher:
       "User wants to prioritize a different topic after onboarding plan is ready.",
     user_words: ["laisse ca aide-moi a prioriser"],
-    risk_score: 0,
   });
   const result = reduce({
     state: "onboarding_pref_tone",
@@ -518,12 +733,13 @@ Deno.test("clear topic change after plan ready exits with note_information", () 
 Deno.test("handoff to another local flow requires note and blocks global normal", () => {
   const note = createNoteInformation({
     source_flow_id: "whatsapp_onboarding",
-    source_flow_state_summary: "preferences active; plan ready",
+    structured_context: {
+      active_flow_summary: "preferences active; plan ready",
+    },
     handoff_reason: "bridge",
     target_dispatcher: "product_help",
     handoff_context_for_next_dispatcher:
       "User asks a product help question after onboarding plan is ready.",
-    risk_score: 0,
   });
   const result = reduce({
     state: "onboarding_pref_tone",
@@ -553,6 +769,35 @@ Deno.test("handoff to another local flow requires note and blocks global normal"
   );
 });
 
+Deno.test("handoff without note_information is refused with precise reason", () => {
+  const result = reduce({
+    state: "onboarding_pref_tone",
+    plan: readyPlan,
+    decision: {
+      flow_action: "handoff_to_local_flow",
+      note_information: null,
+      exit_memo_request: {
+        needed: true,
+        exit_reason: "topic_change",
+        flow_summary: "User asks for another local flow.",
+        handoff_hint_for_global_dispatcher: "product_help",
+        handoff_justification_for_global_dispatcher:
+          "The user asks a product question.",
+        plan_required_exit_blocked: false,
+      },
+    },
+  });
+
+  assertEquals(result.status, "owned");
+  assertEquals(result.reason_code, "direct_handoff_note_information_missing");
+  assertEquals(result.allow_global_dispatcher, false);
+  assert(
+    result.blocked_effects.some((effect) =>
+      effect.reason_code === "note_information_missing"
+    ),
+  );
+});
+
 Deno.test("progress attempt during onboarding exits for direct track progress", () => {
   const result = reduce({
     state: "onboarding_pref_tone",
@@ -577,12 +822,11 @@ Deno.test("progress attempt during onboarding exits for direct track progress", 
 Deno.test("safety preempt routes with note and blocks global normal effects", () => {
   const note = createNoteInformation({
     source_flow_id: "whatsapp_onboarding",
-    source_flow_state_summary: "onboarding active",
+    structured_context: { active_flow_summary: "onboarding active" },
     handoff_reason: "safety",
     target_dispatcher: "safety_crisis",
     handoff_context_for_next_dispatcher:
       "User message contains safety content during onboarding.",
-    risk_score: 8,
   });
   const result = reduce({
     state: "onboarding_pref_tone",
@@ -633,6 +877,67 @@ Deno.test("tone preference write advances to challenge without global effects", 
   assertEquals(result.preference_writes[0]?.key, "coach.tone");
   assertEquals(result.preference_writes[0]?.locked_value, "warm_direct");
   assertEquals(result.allow_global_dispatcher, false);
+});
+
+Deno.test("explicit preference correction replaces only current field", () => {
+  const previous = previousState({
+    current_preference_key: "coach.challenge_level",
+    local_state_summary: "tone already collected",
+  });
+  const result = reduce({
+    state: "onboarding_pref_challenge",
+    plan: readyPlan,
+    previousLocalState: previous,
+    decision: {
+      flow_action: "answer_challenge",
+      preference_updates: [{
+        key: "coach.challenge_level",
+        status: "locked",
+        candidate_value: null,
+        locked_value: "high",
+        label: "Élevé",
+        notes: "Correction explicite: finalement challenge assez direct.",
+        needs_user_confirmation: false,
+        why_status: "user corrected the current challenge preference",
+      }],
+    },
+  });
+
+  assertEquals(result.status, "owned");
+  assertEquals(result.preference_writes.length, 1);
+  assertEquals(result.preference_writes[0]?.key, "coach.challenge_level");
+  assertEquals(result.preference_writes[0]?.locked_value, "high");
+  assertEquals(
+    result.local_state.current_preference_key,
+    "coach.challenge_level",
+  );
+  assertEquals(result.local_state.note_information, previous.note_information);
+  assertEquals(result.allow_global_dispatcher, false);
+});
+
+Deno.test("explicit preference refusal skips current preference without handoff", () => {
+  const result = reduce({
+    state: "onboarding_pref_questions",
+    plan: readyPlan,
+    previousLocalState: previousState({
+      current_preference_key: "coach.question_tendency",
+    }),
+    decision: {
+      flow_action: "skip_optional_preference",
+    },
+  });
+
+  assertEquals(result.status, "owned");
+  assertEquals(result.reason_code, "whatsapp_onboarding_preference_skipped");
+  assertEquals(result.next_whatsapp_state, "onboarding_plan_creation_feedback");
+  assertEquals(result.preference_writes.length, 0);
+  assertEquals(result.allow_global_dispatcher, false);
+  assertEquals(
+    result.blocked_effects.some((effect) =>
+      effect.type === "global_dispatcher"
+    ),
+    true,
+  );
 });
 
 Deno.test("clear continuation does not false-positive exit or stop", () => {

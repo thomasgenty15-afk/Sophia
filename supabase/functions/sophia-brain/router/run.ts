@@ -360,6 +360,7 @@ import {
   pendingConfirmationOwnedByToolSkill,
   pendingOperationType,
   readActiveFlowState,
+  readLocalToolFlowOperationType,
   resolveActiveLocalConversationFlowOwnership,
   resolveActiveLocalToolFlowOwnership,
 } from "./active_flow_state.ts";
@@ -1898,12 +1899,42 @@ export async function processMessage(
   }
   const activeStatePotionHandoffForLocalFlow =
     loadStatePotionHandoffStateFromTempMemory(tempMemory);
-  const activeLocalToolFlowOwnership = resolveActiveLocalToolFlowOwnership({
-    tempMemory,
+  const resolvedActiveLocalToolFlowOwnership =
+    resolveActiveLocalToolFlowOwnership({
+      tempMemory,
+      activeOperationIntake,
+      pendingOperationConfirmation:
+        activeFlowStateForTurn.pendingToolSkillConfirmation,
+    });
+  const canonicalActiveLocalToolOperationType = readLocalToolFlowOperationType(
     activeOperationIntake,
-    pendingOperationConfirmation:
-      activeFlowStateForTurn.pendingToolSkillConfirmation,
-  });
+  );
+  const activeLocalToolFlowOwnership = resolvedActiveLocalToolFlowOwnership ??
+    (canonicalActiveLocalToolOperationType
+      ? {
+        owner: "tool_skill" as const,
+        operation_type: canonicalActiveLocalToolOperationType,
+        source: "readActiveFlowState.activeToolSkillIntake.canonical_fallback",
+        active_state: activeOperationIntake,
+      }
+      : null);
+  if (
+    canonicalActiveLocalToolOperationType &&
+    !resolvedActiveLocalToolFlowOwnership
+  ) {
+    await trace(
+      "brain:active_local_tool_flow_ownership_restored_from_canonical_state",
+      "routing",
+      {
+        operation_type: canonicalActiveLocalToolOperationType,
+        source: "readActiveFlowState.activeToolSkillIntake",
+        reason_code:
+          "active_tool_flow_ownership_resolver_missed_canonical_state",
+        active_flow_debug: activeFlowDebugSnapshots.slice(-3),
+      },
+      "warn",
+    );
+  }
   const activeLocalFlowOperationType =
     activeLocalToolFlowOwnership?.operation_type ?? "";
   const activeSubskillId = String(
@@ -3415,6 +3446,8 @@ export async function processMessage(
         });
       }
       const content = String(skillOutput?.reply ?? "").trim();
+      const emotionalRepairDiagnosis =
+        (skillOutput?.diagnosis as Record<string, unknown> | null) ?? {};
       const operationRuntime: OperationRuntimeResult = {
         content,
         nextTempMemory,
@@ -3427,6 +3460,20 @@ export async function processMessage(
           response_intent: skillOutput?.response_intent ?? null,
           flow_action: (skillOutput?.diagnosis as any)?.flow_action ?? null,
           visible_task: (skillOutput?.diagnosis as any)?.visible_task ?? null,
+          potion_bridge_direct_handoff:
+            emotionalRepairDiagnosis.potion_bridge_direct_handoff ?? null,
+          potion_bridge_selected_potion:
+            emotionalRepairDiagnosis.potion_bridge_selected_potion ?? null,
+          potion_bridge_durable_need_kind:
+            emotionalRepairDiagnosis.potion_bridge_durable_need_kind ?? null,
+          potion_bridge_candidate_potions:
+            emotionalRepairDiagnosis.potion_bridge_candidate_potions ?? [],
+          repair_emotional_dominance:
+            emotionalRepairDiagnosis.repair_emotional_dominance ?? null,
+          repair_stabilized_enough_for_tool:
+            emotionalRepairDiagnosis.repair_stabilized_enough_for_tool ?? null,
+          state_mutation_audit: emotionalRepairDiagnosis.state_mutation_audit ??
+            null,
           reason_code: (skillOutput?.diagnosis as any)?.reason_code ??
             (safetyHandoff
               ? "emotional_repair_safety_preempt"

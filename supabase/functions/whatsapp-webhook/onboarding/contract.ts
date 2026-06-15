@@ -195,6 +195,10 @@ export type WhatsAppOnboardingLocalDecision = {
     pending_confirmation_created: boolean;
     confirmation_token_created: boolean;
   };
+  state_mutation_request?: {
+    modified_fields: string[];
+    clear_fields: string[];
+  };
   risk_assessment: {
     risk_score: number;
     risk_band: "none" | "low" | "medium" | "high" | "critical";
@@ -210,7 +214,46 @@ export type WhatsAppOnboardingReducerInput = {
   whatsappPreferencesDone: boolean;
   planProjection: WhatsAppOnboardingPlanProjection;
   decision: WhatsAppOnboardingLocalDecision;
+  previousLocalState?: WhatsAppOnboardingLocalState | null;
   nowIso?: string;
+};
+
+export type WhatsAppOnboardingLocalState = {
+  version: 1;
+  reason_code: string | null;
+  visible_task: WhatsAppOnboardingVisibleTaskKind | null;
+  flow_action: WhatsAppOnboardingFlowAction | null;
+  current_whatsapp_state: WhatsAppOnboardingState | null;
+  next_whatsapp_state: WhatsAppOnboardingState | null;
+  current_preference_key: WhatsAppOnboardingPreferenceKey | null;
+  plan_status: WhatsAppOnboardingPlanStatus;
+  plan_ready: boolean;
+  active_subflow_context: {
+    target_dispatcher: string | null;
+    status: WhatsAppOnboardingReducerResult["status"] | null;
+    reason_code: string | null;
+  } | null;
+  note_information: NoteInformation | null;
+  activation_note_information: NoteInformation | null;
+  exit_memo: WhatsAppOnboardingExitMemo | null;
+  local_state_summary: string | null;
+  previous_flow_summary: string | null;
+  updated_at: string | null;
+};
+
+export type WhatsAppOnboardingStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    operation: "modify" | "clear";
+    reason_code: string;
+  }>;
 };
 
 export type WhatsAppOnboardingReducerResult = {
@@ -239,4 +282,6 @@ export type WhatsAppOnboardingReducerResult = {
   allow_track_progress_plan_item: boolean;
   blocked_effects: Array<{ type: string; reason_code: string }>;
   risk_assessment: WhatsAppOnboardingLocalDecision["risk_assessment"];
+  local_state: WhatsAppOnboardingLocalState;
+  state_mutation_audit: WhatsAppOnboardingStateMutationAudit;
 };

@@ -1,6 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { buildCreateRecurringReminderLocalDispatcherSystemPrompt } from "./local_flow.ts";
+import {
+  buildCreateRecurringReminderLocalDispatcherSystemPrompt,
+  reduceCreateRecurringReminderLocalDispatcherOutput,
+} from "./local_flow.ts";
 import { maybeRunCreateRecurringReminderOperation } from "./router.ts";
+import { loadRecurringReminderFrameFromTempMemory } from "./state.ts";
 import type {
   CreateRecurringReminderLocalDispatcherOutput,
   CreateRecurringReminderLocalFlowAction,
@@ -267,6 +271,10 @@ Deno.test("create_recurring_reminder dispatcher prompt documents field completio
   assertEquals(prompt.includes("fields.destination:"), true);
   assertEquals(prompt.includes("visible_task.conversation_context:"), true);
   assertEquals(prompt.includes("note_information:"), true);
+  assertEquals(
+    prompt.includes("Ne sérialise jamais active_flow_context"),
+    true,
+  );
   assertEquals(prompt.includes("## Transition Rules"), true);
   assertEquals(prompt.includes("exit_to_global_dispatcher/cancel_flow"), true);
   assertEquals(prompt.includes("exit_to_global_dispatcher"), true);
@@ -893,5 +901,374 @@ Deno.test("create_recurring_reminder exit carries note_information", async () =>
     (runtime?.toolSkillRun.local_reducer as any)?.note_information
       ?.target_dispatcher,
     "global",
+  );
+});
+
+Deno.test("create_recurring_reminder server-owned continuation preserves draft despite invalid clear", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const continued = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: initial.local_state,
+    output: {
+      ...localDispatcherOutput({
+        flow_action: "answer_or_update_slots",
+        frequency: null,
+        time: null,
+        message: null,
+      }),
+      clear_fields: ["draft"],
+    },
+  });
+
+  assertEquals(
+    continued.local_state?.draft?.reminder_summary,
+    "rappel récurrent pour préparer ma semaine",
+  );
+  assertEquals(
+    continued.state_mutation_audit.restored_fields.includes("draft"),
+    true,
+  );
+  assertEquals(
+    continued.state_mutation_audit.rejected_changes[0]?.reason_code,
+    "server_owned_clear_not_allowed_for_transition",
+  );
+});
+
+Deno.test("create_recurring_reminder invalid confirmation preserves previous offer", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const confirmed = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: initial.local_state,
+    output: localDispatcherOutput({
+      flow_action: "apply_attempt",
+      frequency: null,
+      time: null,
+      message: null,
+    }),
+  });
+
+  assertEquals(
+    confirmed.local_state?.draft?.reminder_summary,
+    "rappel récurrent pour préparer ma semaine",
+  );
+  assertEquals(
+    confirmed.state_mutation_audit.preserved_fields.includes("draft"),
+    true,
+  );
+});
+
+Deno.test("create_recurring_reminder valid revise transition replaces draft", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const revised = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: initial.local_state,
+    output: localDispatcherOutput({
+      flow_action: "revise_handoff",
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "08:30",
+      message: "faire le point prioritaire",
+    }),
+  });
+
+  assertEquals(revised.local_state?.draft?.time_summary, "08:30, Europe/Paris");
+  assertEquals(
+    revised.state_mutation_audit.applied_fields.includes("draft"),
+    true,
+  );
+});
+
+Deno.test("create_recurring_reminder explicit time correction only changes corrected slot", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const corrected = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: initial.local_state,
+    output: localDispatcherOutput({
+      flow_action: "revise_handoff",
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "08:30",
+      message: "préparer ma semaine",
+    }),
+  });
+
+  assertEquals(corrected.local_state?.fields?.recurrence.time, "08:30");
+  assertEquals(
+    corrected.local_state?.fields?.reminder_content.message,
+    "préparer ma semaine",
+  );
+  assertEquals(
+    corrected.local_state?.draft?.time_summary,
+    "08:30, Europe/Paris",
+  );
+});
+
+Deno.test("create_recurring_reminder legacy handoff state without executable flag stays readable", () => {
+  const frame = loadRecurringReminderFrameFromTempMemory({
+    __recurring_reminder_handoff_state: {
+      skill_id: "create_recurring_reminder",
+      operation_type: "create_recurring_reminder",
+      mode: "platform_handoff",
+      no_chat_mutation: true,
+      status: "collecting",
+      turn_count: 2,
+      updated_at: "2026-06-15T10:00:00.000Z",
+    },
+  });
+
+  assertEquals(frame.handoff_state?.executable_from_chat, false);
+  assertEquals(frame.handoff_state?.turn_count, 2);
+  assertEquals(frame.handoff_state?.max_turns, 6);
+});
+
+Deno.test("create_recurring_reminder legacy partial state with absent fields stays readable", () => {
+  const frame = loadRecurringReminderFrameFromTempMemory({
+    __recurring_reminder_handoff_state: {
+      skill_id: "create_recurring_reminder",
+      operation_type: "create_recurring_reminder",
+      mode: "platform_handoff",
+      no_chat_mutation: true,
+      status: "legacy_collecting",
+      pending_confirmation: { kind: "legacy_pending" },
+      active_subflow_context: { parent: "legacy_parent" },
+      updated_at: "2026-06-15T10:00:00.000Z",
+    },
+  });
+
+  assertEquals(frame.handoff_state?.executable_from_chat, false);
+  assertEquals(
+    frame.handoff_state?.pending_confirmation?.kind,
+    "legacy_pending",
+  );
+  assertEquals(
+    frame.handoff_state?.active_subflow_context?.parent,
+    "legacy_parent",
+  );
+});
+
+Deno.test("create_recurring_reminder direct one-shot handoff clears local state with audit", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const handoff = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: initial.local_state,
+    output: localDispatcherOutput({
+      flow_action: "handoff_to_one_shot",
+      frequency: null,
+      time: null,
+      message: null,
+    }),
+  });
+
+  assertEquals(handoff.status, "handoff_to_one_shot");
+  assertEquals(handoff.local_state, null);
+  assertEquals(
+    handoff.state_mutation_audit.cleared_fields.includes("draft"),
+    true,
+  );
+});
+
+Deno.test("create_recurring_reminder explicit refusal clears pending offer and active context", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const previous = {
+    ...initial.local_state!,
+    pending_confirmation: { kind: "legacy_confirmation" },
+    active_subflow_context: { parent: "inline_product_help" },
+  };
+  const cancelled = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous,
+    output: localDispatcherOutput({
+      flow_action: "cancel_flow",
+      frequency: null,
+      time: null,
+      message: null,
+    }),
+  });
+
+  assertEquals(cancelled.status, "cancelled");
+  assertEquals(cancelled.local_state, null);
+  assertEquals(
+    cancelled.state_mutation_audit.cleared_fields.includes(
+      "pending_confirmation",
+    ),
+    true,
+  );
+  assertEquals(
+    cancelled.state_mutation_audit.cleared_fields.includes(
+      "active_subflow_context",
+    ),
+    true,
+  );
+});
+
+Deno.test("create_recurring_reminder invalid confirmation preserves pending and parent context", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const previous = {
+    ...initial.local_state!,
+    pending_confirmation: { kind: "legacy_confirmation" },
+    active_subflow_context: { parent: "status_inline" },
+  };
+  const invalid = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous,
+    output: localDispatcherOutput({
+      flow_action: "apply_attempt",
+      frequency: null,
+      time: null,
+      message: null,
+    }),
+  });
+
+  assertEquals(
+    invalid.local_state?.pending_confirmation?.kind,
+    "legacy_confirmation",
+  );
+  assertEquals(
+    invalid.local_state?.active_subflow_context?.parent,
+    "status_inline",
+  );
+  assertEquals(
+    invalid.state_mutation_audit.preserved_fields.includes(
+      "pending_confirmation",
+    ),
+    true,
+  );
+});
+
+Deno.test("create_recurring_reminder non-actionable mention stays local and does not hand off", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const continued = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: initial.local_state,
+    output: localDispatcherOutput({
+      flow_action: "answer_or_update_slots",
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+
+  assertEquals(continued.exit_to_global_dispatcher, false);
+  assertEquals(Boolean(continued.local_state), true);
+  assertEquals(continued.status, "collecting");
+});
+
+Deno.test("create_recurring_reminder explicit forbidden clear preserves critical state and audits rejection", () => {
+  const initial = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: null,
+    output: localDispatcherOutput({
+      frequency: "weekly",
+      days: ["lundi"],
+      time: "09:00",
+      message: "préparer ma semaine",
+    }),
+  });
+  const blocked = reduceCreateRecurringReminderLocalDispatcherOutput({
+    previous: initial.local_state,
+    output: {
+      ...localDispatcherOutput({
+        flow_action: "answer_or_update_slots",
+        frequency: "daily",
+        time: "18:00",
+        message: "respirer",
+      }),
+      clear_fields: ["fields", "draft"],
+      modified_fields: ["pending_confirmation"],
+    },
+  });
+
+  assertEquals(
+    blocked.local_state?.fields?.reminder_content.message,
+    "préparer ma semaine",
+  );
+  assertEquals(
+    blocked.local_state?.draft?.reminder_summary,
+    "rappel récurrent pour préparer ma semaine",
+  );
+  assertEquals(
+    blocked.state_mutation_audit.rejected_changes.map((item) =>
+      item.reason_code
+    ).includes("server_owned_modify_not_allowed_for_transition"),
+    true,
+  );
+  assertEquals(
+    blocked.state_mutation_audit.rejected_changes.map((item) =>
+      item.reason_code
+    ).includes("server_owned_clear_not_allowed_for_transition"),
+    true,
+  );
+});
+
+Deno.test("create_recurring_reminder runtime exposes state mutation audit in local reducer trace", async () => {
+  const runtime = await maybeRunCreateRecurringReminderOperation(baseRuntime());
+  const audit = (runtime?.toolSkillRun.local_reducer as any)
+    ?.state_mutation_audit;
+
+  assertEquals(Array.isArray(audit?.server_owned_fields), true);
+  assertEquals(audit.server_owned_fields.includes("draft"), true);
+  assertEquals(
+    (runtime?.toolSkillRun.local_reducer as any)?.pending_state_present,
+    false,
+  );
+  assertEquals(
+    (runtime?.toolSkillRun.local_reducer as any)?.stabilization_ready,
+    true,
   );
 });

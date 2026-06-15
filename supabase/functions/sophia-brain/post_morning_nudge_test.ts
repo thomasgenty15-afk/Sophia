@@ -8,6 +8,7 @@ import {
   emotionalPresenceDispatcherSystemPrompt,
   LAST_POST_MORNING_NUDGE_NOTE_INFORMATION_KEY,
   normalizePostMorningNudgeActionDispatcherOutput,
+  normalizePostMorningNudgeEmotionalPresenceDispatcherOutput,
   normalizePostMorningNudgeSuppressedActionDispatcherOutput,
   POST_MORNING_NUDGE_TEMP_MEMORY_KEY,
   readPostMorningNudgeActiveState,
@@ -212,6 +213,136 @@ Deno.test("post morning nudge resolver reads state, not user message text", asyn
   );
 });
 
+Deno.test("post morning nudge reader tolerates old active state without activation note", () => {
+  const state = createPostMorningNudgeActiveState({
+    sourceNudge: BASE_NUDGE,
+    nowIso: "2026-03-24T07:01:00.000Z",
+  })!;
+  const legacyState = { ...state } as Record<string, unknown>;
+  delete legacyState.activation_note_information;
+  const readBack = readPostMorningNudgeActiveState({
+    [POST_MORNING_NUDGE_TEMP_MEMORY_KEY]: legacyState,
+  });
+
+  assertEquals(readBack?.flow_kind, "action");
+  assertEquals(
+    readBack?.activation_note_information.target_dispatcher,
+    "post_morning_nudge.action",
+  );
+  assertEquals(readBack?.source_nudge, BASE_NUDGE);
+});
+
+Deno.test("post morning nudge reducer preserves server-owned fields on continuation", () => {
+  const state = createPostMorningNudgeActiveState({
+    sourceNudge: BASE_NUDGE,
+    nowIso: "2026-03-24T07:01:00.000Z",
+  })!;
+  const output = normalizePostMorningNudgeActionDispatcherOutput({
+    flow_action: "choose_first_step",
+    confidence: "high",
+    risk_score: 0,
+    local_assessment: {
+      action_readiness: "hesitant",
+      motivation_need: "light",
+      emotional_load: "low",
+      user_wants_conversation: true,
+      target_action_reference: "Marcher 10 min",
+      main_friction: "demarrage",
+      next_step_candidate: "mettre les chaussures",
+      scope_reduction_candidate: null,
+    },
+    state_updates: {
+      status: "active",
+      turn_count_increment: 1,
+      close_after_visible: false,
+      modified_fields: ["source_nudge"],
+      clear_fields: ["activation_note_information"],
+    },
+    visible_task: {
+      kind: "choose_first_step",
+      conversation_context: { known_values: {} },
+    },
+    note_information: null,
+    evidence: ["test"],
+  }, state);
+
+  const reduced = reducePostMorningNudgeActionTurn({
+    state,
+    output,
+    nowIso: "2026-03-24T07:02:00.000Z",
+  });
+
+  assertEquals(reduced.nextState?.source_nudge, state.source_nudge);
+  assertEquals(
+    reduced.nextState?.activation_note_information,
+    state.activation_note_information,
+  );
+  assertEquals(reduced.nextState?.turn_count, 1);
+  assertEquals(reduced.nextState?.status, "active");
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes("source_nudge"),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "activation_note_information",
+    ),
+    true,
+  );
+  assertEquals(reduced.state_mutation_audit.rejected_changes.length, 2);
+});
+
+Deno.test("post morning nudge invalid confirmation-like status does not clear active state", () => {
+  const state = createPostMorningNudgeActiveState({
+    sourceNudge: BASE_NUDGE,
+  })!;
+  const output = normalizePostMorningNudgeActionDispatcherOutput({
+    flow_action: "choose_first_step",
+    confidence: "medium",
+    risk_score: 0,
+    local_assessment: {
+      action_readiness: "hesitant",
+      motivation_need: "light",
+      emotional_load: "low",
+      user_wants_conversation: true,
+      target_action_reference: "Marcher 10 min",
+      main_friction: "pas clair",
+      next_step_candidate: null,
+      scope_reduction_candidate: null,
+    },
+    state_updates: {
+      status: "closed",
+      turn_count_increment: 1,
+      close_after_visible: true,
+      clear_fields: ["active_state"],
+    },
+    visible_task: {
+      kind: "choose_first_step",
+      conversation_context: { known_values: {} },
+    },
+    note_information: null,
+    evidence: ["test"],
+  }, state);
+
+  const reduced = reducePostMorningNudgeActionTurn({ state, output });
+
+  assertEquals(reduced.nextState?.status, "active");
+  assertEquals(reduced.closeAfterVisible, false);
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "invalid_status_transition"
+    ),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "active_state" &&
+      change.reason_code === "server_owned_field_clear_not_allowed"
+    ),
+    true,
+  );
+});
+
 Deno.test("post morning nudge visible task carries conversation context", async () => {
   const state = createPostMorningNudgeActiveState({
     sourceNudge: BASE_NUDGE,
@@ -347,6 +478,15 @@ Deno.test("post morning nudge exit_to_global writes mandatory note information",
       ?.target_dispatcher,
     "prepare_defense_card",
   );
+  assertEquals(
+    ((runtime?.toolSkillRun as any)?.state_mutation_audit as any)
+      ?.cleared_fields.includes("active_state"),
+    true,
+  );
+  assertEquals(
+    ((runtime?.toolSkillRun as any)?.diagnosis as any)?.direct_handoff_flag,
+    true,
+  );
 });
 
 Deno.test("post morning nudge local close keeps no side effects", async () => {
@@ -405,6 +545,79 @@ Deno.test("post morning nudge local close keeps no side effects", async () => {
     true,
   );
   assertEquals((runtime?.toolSkillRun as any)?.local_handoff_note, null);
+  assertEquals(
+    ((runtime?.toolSkillRun as any)?.state_mutation_audit as any)
+      ?.cleared_fields,
+    ["active_state"],
+  );
+});
+
+Deno.test("post morning nudge non-actionable emotional mention stays local with audit in diagnosis", async () => {
+  const state = createPostMorningNudgeActiveState({
+    sourceNudge: {
+      ...BASE_NUDGE,
+      nudge_kind: "emotional_presence_nudge",
+      opens_local_flow: true,
+      intended_followup_flow: "emotional_presence",
+      coach_intent: "support_emotion",
+      target_action_ids: [],
+      target_action_titles: [],
+      target_item_ids: [],
+      target_item_titles: [],
+    },
+  })!;
+  const runtime = await runPostMorningNudgeLocalRuntime({
+    tempMemory: writePostMorningNudgeActiveState({}, state),
+    userMessage: "merci, c'etait juste doux ce matin",
+    emotionalPresenceDispatcher: async ({ active_state }) =>
+      normalizePostMorningNudgeEmotionalPresenceDispatcherOutput({
+        flow_action: "hold_space_support",
+        confidence: "high",
+        risk_score: 0,
+        local_assessment: {
+          emotional_load: "low",
+          support_need: "listen",
+          user_wants_conversation: true,
+          action_readiness: "not_applicable",
+          main_emotion_or_context: "reception douce",
+          soft_next_step_candidate: null,
+          reactivation_candidate: null,
+        },
+        state_updates: {
+          status: "active",
+          turn_count_increment: 1,
+          close_after_visible: false,
+        },
+        visible_task: {
+          kind: "hold_space",
+          conversation_context: {
+            known_values: { support_need: "listen" },
+          },
+        },
+        note_information: null,
+        evidence: ["user reacts softly without asking another tool"],
+      }, active_state),
+    emotionalPresenceVisibleAgent: async ({ decision }) =>
+      `visible:${decision.visible_task.kind}`,
+  });
+
+  assertEquals(runtime?.content, "visible:hold_space");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.flow_action,
+    "hold_space_support",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.local_handoff_note,
+    null,
+  );
+  assertEquals(
+    ((runtime?.toolSkillRun as any)?.diagnosis as any)?.direct_handoff_flag,
+    false,
+  );
+  assertEquals(
+    Boolean((runtime?.toolSkillRun as any)?.diagnosis?.state_mutation_audit),
+    true,
+  );
 });
 
 Deno.test("post morning nudge max turns closes action flow", () => {

@@ -423,6 +423,23 @@ Deno.test("status_recap coverage follows requested targets instead of every filt
       },
       recurring_reminders: [],
       potion_sessions: [],
+      plan_items: [{
+        id: "plan-item-1",
+        title: "Envoyer un message simple à une personne",
+        status: "active",
+        current_reps: 1,
+        target_reps: 1,
+        created_at: "2026-06-13T14:00:00.000Z",
+      }],
+      plan_progress_entries: [{
+        id: "entry-1",
+        plan_item_id: "plan-item-1",
+        plan_item_title: "Envoyer un message simple à une personne",
+        entry_kind: "checkin",
+        value_text: null,
+        effective_at: "2026-06-13T15:04:00.000Z",
+        created_at: "2026-06-13T15:04:00.000Z",
+      }],
       coach_preferences: [{
         key: "coach.tone",
         value: { value: "warm_direct" },
@@ -482,6 +499,23 @@ Deno.test("status_recap visible context filters existing preferences out of rece
       },
       recurring_reminders: [],
       potion_sessions: [],
+      plan_items: [{
+        id: "plan-item-1",
+        title: "Envoyer un message simple à une personne",
+        status: "active",
+        current_reps: 1,
+        target_reps: 1,
+        created_at: "2026-06-13T14:00:00.000Z",
+      }],
+      plan_progress_entries: [{
+        id: "entry-1",
+        plan_item_id: "plan-item-1",
+        plan_item_title: "Envoyer un message simple à une personne",
+        entry_kind: "checkin",
+        value_text: null,
+        effective_at: "2026-06-13T15:04:00.000Z",
+        created_at: "2026-06-13T15:04:00.000Z",
+      }],
       coach_preferences: [{
         key: "coach.tone",
         value: { value: "warm_direct" },
@@ -494,6 +528,11 @@ Deno.test("status_recap visible context filters existing preferences out of rece
         effect_type: "create_one_shot_reminder",
         created_at: "2026-06-13T15:05:00.000Z",
         reason_code: "created",
+      }, {
+        status: "committed",
+        effect_type: "track_progress_plan_item",
+        created_at: "2026-06-13T15:04:00.000Z",
+        reason_code: "logged",
       }, {
         status: "blocked",
         effect_type: "prepare_attack_card",
@@ -508,8 +547,10 @@ Deno.test("status_recap visible context filters existing preferences out of rece
       one_shot_cancelled_recent_count: 0,
       recurring_reminder_count: 0,
       potion_session_count: 0,
+      plan_item_count: 1,
+      plan_progress_entry_count: 1,
       coach_preference_count: 1,
-      recent_effect_history_count: 2,
+      recent_effect_history_count: 3,
     },
     previous: null,
     visibleTask: "recent_effects",
@@ -523,5 +564,19 @@ Deno.test("status_recap visible context filters existing preferences out of rece
     effect_type: "create_one_shot_reminder",
     created_at: "2026-06-13T15:05:00.000Z",
     reason_code: "created",
+  }, {
+    status: "committed",
+    effect_type: "track_progress_plan_item",
+    created_at: "2026-06-13T15:04:00.000Z",
+    reason_code: "logged",
   }]);
+  assertEquals(context.user_facing_inventory.coach_preferences.length, 1);
+  assertEquals(
+    context.user_facing_inventory.one_shot_reminders.pending[0].instruction,
+    "ouvrir le dossier administratif",
+  );
+  assertEquals(
+    context.user_facing_inventory.plan_progress_entries?.[0].plan_item_title,
+    "Envoyer un message simple à une personne",
+  );
 });

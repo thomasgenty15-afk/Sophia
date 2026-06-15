@@ -20,6 +20,7 @@ import {
   type EmotionalRepairPotionBridgeContext,
   type EmotionalRepairPotionLabel,
   type EmotionalRepairResponseTone,
+  type EmotionalRepairStateMutationAudit,
   type EmotionalRepairVisibleTask,
   type EmotionalRepairVisibleTaskKind,
   normalizeEmotionalRepairConstraints,
@@ -68,6 +69,7 @@ export type EmotionalRepairReducerResult = {
   constraints: EmotionalRepairConstraint[];
   blocked_effects: Array<{ type: string; reason_code: string }>;
   evidence: string[];
+  state_mutation_audit: EmotionalRepairStateMutationAudit;
 };
 
 const FLOW_ACTIONS: readonly EmotionalRepairLocalFlowAction[] = [
@@ -97,6 +99,7 @@ const INTENTS: readonly EmotionalRepairIntent[] = [
   "emotion_lowered_action_blocked",
   "asks_concrete_phrase",
   "asks_regulation_without_potion",
+  "asks_potion_bridge",
   "asks_recurring_support",
   "status_or_meta_question",
   "action_card_ready",
@@ -362,6 +365,17 @@ function normalizePrefillCandidates(
   };
 }
 
+function normalizeStateChangeIntent(
+  raw: unknown,
+): EmotionalRepairLocalDispatcherOutput["state_change_intent"] {
+  const root = isRecord(raw) ? raw : {};
+  return {
+    modified_fields: stringArray(root.modified_fields),
+    clear_fields: stringArray(root.clear_fields),
+    reason: stringValue(root.reason),
+  };
+}
+
 export function normalizeEmotionalRepairLocalDispatcherOutput(
   raw: unknown,
 ): EmotionalRepairLocalDispatcherOutput | null {
@@ -431,6 +445,8 @@ export function normalizeEmotionalRepairLocalDispatcherOutput(
       missing_before_handoff: stringArray(bridge.missing_before_handoff),
       why_ready_or_blocked: stringValue(bridge.why_ready_or_blocked) ??
         "Non précisé.",
+      user_requested_direct_handoff:
+        bridge.user_requested_direct_handoff === true,
     },
     visible_task: visibleTask,
     exit_memo: {
@@ -455,6 +471,7 @@ export function normalizeEmotionalRepairLocalDispatcherOutput(
         ? exitMemo.potion_bridge_context
         : null,
     },
+    state_change_intent: normalizeStateChangeIntent(root.state_change_intent),
     evidence: stringArray(root.evidence),
   };
 }
@@ -511,6 +528,8 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES = {
     "status=candidate est interne: ne demande pas consentement visible.",
     "status=offered_waiting_consent seulement si l'emotion est assez redescendue et que le user est ouvert.",
     "status=confirmed_handoff seulement si le user confirme une offre deja faite.",
+    "Si le message courant demande directement de passer/utiliser une potion compatible (amour, guerison, apaisement), ce n'est pas regulation_without_potion: utilise confirm_potion_bridge, status=confirmed_handoff, selected_potion, candidate_potions, durable_need, user_requested_direct_handoff=true.",
+    "Si la demande directe de potion est ambigue, refusee, hypothetique, ou contredite par no_potion/no_tool/safety/emotion dominante, garde user_requested_direct_handoff=false et ne handoff pas.",
     "Ne propose jamais de potion quand honte, culpabilite, panique ou auto-attaque dominent encore.",
   ],
   visible_task: [
@@ -528,6 +547,11 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES = {
     "handoff_hint_for_global_dispatcher doit resumer le nouveau besoin et le contexte utile.",
     "Le downstream creera la note_information depuis exit_memo; remplis donc exit_memo avec soin.",
     "Si tu fournis une note_information de bridge/safety, garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct, non vide, sans DB brute, memoire brute, diagnostic, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint ni risk_score.",
+  ],
+  state_change_intent: [
+    "Declare les champs que ta decision pense modifier, par exemple repair_state.phase, repair_state.summary, last_visible_task.",
+    "Declare dans clear_fields seulement les champs que le message courant demande explicitement d'effacer.",
+    "Les champs runtime critiques restent server-owned: le reducer peut refuser ou restaurer une mutation meme si tu la declares.",
   ],
   effects: [
     "Le dispatcher ne cree rien, n'active rien, ne programme rien et ne confirme aucun write.",
@@ -556,6 +580,7 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES = {
   ],
   confirm_potion_bridge: [
     "Seulement si le user consent a une offre potion deja faite et compatible.",
+    "Ou si le message courant demande directement une potion compatible: potion_bridge.user_requested_direct_handoff=true, status=confirmed_handoff, selected_potion non-null.",
     "C'est le bridge local autorise vers select_state_potion.",
     "Ne l'utilise pas pour une simple emotion encore dominante.",
   ],
@@ -637,6 +662,7 @@ export function localDispatcherSystemPrompt(): string {
     "Utilise potion_bridge_offer seulement si status=offered_waiting_consent, selected_potion non-null, candidat exploitable, besoin durable clair, et l'emotion est deja stabilisee.",
     "Un bridge potion exige stabilisation et consentement; confirm_potion_bridge signifie que le user consent a une offre deja faite.",
     "Si le user confirme une offre precedente, utilise confirm_potion_bridge uniquement si previous_potion_bridge_offer existe et correspond.",
+    "Si le user demande directement une potion compatible, utilise confirm_potion_bridge avec user_requested_direct_handoff=true meme sans previous_potion_bridge_offer, sauf safety/contrainte explicite/no_potion/emotion dominante.",
     "La note d'information pour le flow suivant doit contenir un resume succinct du flow quitte et le contexte utile au dispatcher potion.",
     ...directEffectLocalDispatcherPromptLines(),
     "Aucune session potion, aucun rappel, aucun scheduled_checkin, aucune confirmation executable, aucun write DB.",
@@ -665,7 +691,7 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
         risk_score: "number 0..10",
         repair_state: {
           intent:
-            "acute_self_attack|shame_or_guilt|anxiety_or_panic|relational_repair|emotion_lowered_action_blocked|asks_concrete_phrase|asks_regulation_without_potion|status_or_meta_question|unclear",
+            "acute_self_attack|shame_or_guilt|anxiety_or_panic|relational_repair|emotion_lowered_action_blocked|asks_concrete_phrase|asks_regulation_without_potion|asks_potion_bridge|status_or_meta_question|unclear",
           phase:
             "stabilize|de_shame|separate_fact_from_identity|repair_relationship|action_card_ready|exit",
           emotional_dominance: "high|medium|low",
@@ -709,6 +735,7 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
           },
           missing_before_handoff: ["string"],
           why_ready_or_blocked: "string",
+          user_requested_direct_handoff: false,
         },
         visible_task: {
           kind:
@@ -719,7 +746,7 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
             field_or_stage: "string|null",
             known_values: {
               intent:
-                "acute_self_attack|shame_or_guilt|anxiety_or_panic|relational_repair|emotion_lowered_action_blocked|asks_concrete_phrase|asks_regulation_without_potion|status_or_meta_question|unclear",
+                "acute_self_attack|shame_or_guilt|anxiety_or_panic|relational_repair|emotion_lowered_action_blocked|asks_concrete_phrase|asks_regulation_without_potion|asks_potion_bridge|status_or_meta_question|unclear",
               phase:
                 "stabilize|de_shame|separate_fact_from_identity|repair_relationship|action_card_ready|exit",
               emotional_dominance: "high|medium|low",
@@ -755,6 +782,11 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
           flow_summary: "string|null",
           handoff_hint_for_global_dispatcher: "string|null",
           potion_bridge_context: "object|null",
+        },
+        state_change_intent: {
+          modified_fields: ["string"],
+          clear_fields: ["string"],
+          reason: "string|null",
         },
         evidence: ["string"],
       },
@@ -887,12 +919,76 @@ function isConfirmablePotionBridge(args: {
   selectedPotion: EmotionalRepairBridgePotion | null;
   bridgeIsBlocked: boolean;
 }): boolean {
+  const hasPreviousMatchingOffer =
+    args.previous?.last_potion_bridge_offer?.selected_potion ===
+      args.selectedPotion;
+  const hasDirectUserRequest =
+    args.output.potion_bridge.user_requested_direct_handoff === true &&
+    args.output.potion_bridge.selected_potion === args.selectedPotion &&
+    Boolean(args.output.potion_bridge.durable_need.kind) &&
+    args.output.potion_bridge.candidate_potions.some((candidate) =>
+      candidate.potion_type === args.selectedPotion &&
+      candidate.confidence !== "low"
+    );
   return args.output.flow_action === "confirm_potion_bridge" &&
     args.output.potion_bridge.status === "confirmed_handoff" &&
     Boolean(args.selectedPotion) &&
     !args.bridgeIsBlocked &&
+    (hasPreviousMatchingOffer || hasDirectUserRequest);
+}
+
+function confirmPotionBridgeBlockedReason(args: {
+  output: EmotionalRepairLocalDispatcherOutput;
+  constraints: EmotionalRepairConstraint[];
+  previous: EmotionalRepairLocalState | null;
+  selectedPotion: EmotionalRepairBridgePotion | null;
+  bridgeIsBlocked: boolean;
+}): string {
+  if (
+    args.constraints.some((constraint) =>
+      constraint === "no_potion" ||
+      constraint === "no_tool" ||
+      constraint === "no_protocol" ||
+      constraint === "no_technique" ||
+      constraint === "soft_support_only"
+    )
+  ) {
+    return "bridge_blocked_by_constraint";
+  }
+  if (
+    args.bridgeIsBlocked ||
+    args.output.repair_state.emotional_dominance === "high" ||
+    args.output.repair_state.emotion_stabilized_enough_for_tool !== true
+  ) {
+    return "bridge_not_stabilized";
+  }
+  if (
+    !args.selectedPotion ||
+    args.output.potion_bridge.selected_potion !== args.selectedPotion
+  ) {
+    return "direct_handoff_selected_potion_missing";
+  }
+  if (
     args.previous?.last_potion_bridge_offer?.selected_potion ===
-      args.selectedPotion;
+      args.selectedPotion
+  ) {
+    return "missing_previous_potion_offer";
+  }
+  if (args.output.potion_bridge.user_requested_direct_handoff !== true) {
+    return "direct_handoff_flag_missing";
+  }
+  if (!args.output.potion_bridge.durable_need.kind) {
+    return "direct_handoff_durable_need_missing";
+  }
+  if (
+    !args.output.potion_bridge.candidate_potions.some((candidate) =>
+      candidate.potion_type === args.selectedPotion &&
+      candidate.confidence !== "low"
+    )
+  ) {
+    return "direct_handoff_candidate_missing";
+  }
+  return "missing_previous_potion_offer";
 }
 
 function fieldConfidence(
@@ -1201,6 +1297,132 @@ export function readEmotionalRepairLocalState(
   return state as EmotionalRepairLocalState;
 }
 
+const SERVER_OWNED_STATE_FIELDS = [
+  "last_potion_bridge_offer",
+] as const;
+
+function declaredFieldIncludes(fields: string[], field: string): boolean {
+  return fields.some((candidate) =>
+    candidate === field || candidate.startsWith(`${field}.`)
+  );
+}
+
+function createStateMutationAudit(
+  output: EmotionalRepairLocalDispatcherOutput,
+): EmotionalRepairStateMutationAudit {
+  return {
+    server_owned_fields: [...SERVER_OWNED_STATE_FIELDS],
+    modified_fields_declared: output.state_change_intent.modified_fields.slice(
+      0,
+      12,
+    ),
+    clear_fields_declared: output.state_change_intent.clear_fields.slice(0, 12),
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function pushUnique(target: string[], field: string) {
+  if (!target.includes(field)) target.push(field);
+}
+
+function terminalStateAudit(args: {
+  output: EmotionalRepairLocalDispatcherOutput;
+  previous: EmotionalRepairLocalState | null;
+  clearedFields?: string[];
+}): EmotionalRepairStateMutationAudit {
+  const audit = createStateMutationAudit(args.output);
+  for (const field of args.clearedFields ?? []) {
+    if (
+      field === "last_potion_bridge_offer" &&
+      !args.previous?.last_potion_bridge_offer
+    ) {
+      continue;
+    }
+    pushUnique(audit.cleared_fields, field);
+  }
+  return audit;
+}
+
+function mergeEmotionalRepairLocalState(args: {
+  previous: EmotionalRepairLocalState | null;
+  output: EmotionalRepairLocalDispatcherOutput;
+  status: EmotionalRepairLocalState["status"];
+  visibleTaskKind: EmotionalRepairVisibleTaskKind;
+  turnCount: number;
+  now: string;
+  selectedPotion: EmotionalRepairBridgePotion | null;
+  shouldOffer: boolean;
+  offerContext: EmotionalRepairPotionBridgeContext | null;
+  confirmIsValid: boolean;
+  constraints: EmotionalRepairConstraint[];
+}): {
+  local_state: EmotionalRepairLocalState;
+  state_mutation_audit: EmotionalRepairStateMutationAudit;
+} {
+  const audit = createStateMutationAudit(args.output);
+  const declaredOfferModify = declaredFieldIncludes(
+    args.output.state_change_intent.modified_fields,
+    "last_potion_bridge_offer",
+  );
+  const declaredOfferClear = declaredFieldIncludes(
+    args.output.state_change_intent.clear_fields,
+    "last_potion_bridge_offer",
+  );
+
+  let lastOffer = args.previous?.last_potion_bridge_offer ?? null;
+  const canClearOffer = args.confirmIsValid || args.constraints.includes(
+    "no_potion",
+  );
+
+  if (args.shouldOffer && args.selectedPotion && args.offerContext) {
+    lastOffer = {
+      selected_potion: args.selectedPotion,
+      durable_need: args.offerContext.durable_need,
+      prefill_candidates: args.output.potion_bridge.prefill_candidates,
+      selection_reason: args.output.potion_bridge.why_ready_or_blocked,
+      offered_at_turn: args.turnCount,
+      information_note: args.offerContext.information_note,
+    };
+    pushUnique(audit.applied_fields, "last_potion_bridge_offer");
+  } else if (canClearOffer) {
+    if (lastOffer) pushUnique(audit.cleared_fields, "last_potion_bridge_offer");
+    lastOffer = null;
+  } else if (lastOffer) {
+    if (declaredOfferClear || declaredOfferModify) {
+      pushUnique(audit.restored_fields, "last_potion_bridge_offer");
+      audit.rejected_changes.push({
+        field: "last_potion_bridge_offer",
+        reason_code: declaredOfferClear
+          ? "server_owned_clear_requires_authorized_transition"
+          : "server_owned_modify_requires_persistable_offer",
+      });
+    } else {
+      pushUnique(audit.preserved_fields, "last_potion_bridge_offer");
+    }
+  }
+
+  return {
+    local_state: {
+      skill_id: "emotional_repair",
+      mode: "local_repair_flow",
+      status: args.status,
+      repair_state: args.output.repair_state,
+      last_visible_task: args.visibleTaskKind,
+      last_potion_bridge_offer: lastOffer,
+      previous_repair_summary: args.output.repair_state.summary,
+      turn_count: args.turnCount,
+      max_turns: Number(args.previous?.max_turns ?? 6) || 6,
+      created_at: args.previous?.created_at ?? args.now,
+      updated_at: args.now,
+    },
+    state_mutation_audit: audit,
+  };
+}
+
 export function reduceEmotionalRepairLocalDispatcherOutput(args: {
   previous: EmotionalRepairLocalState | null;
   output: EmotionalRepairLocalDispatcherOutput;
@@ -1244,6 +1466,11 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
         reason_code: "safety_preempt",
       }],
       evidence: args.output.evidence,
+      state_mutation_audit: terminalStateAudit({
+        output: args.output,
+        previous: args.previous,
+        clearedFields: ["last_potion_bridge_offer"],
+      }),
     };
   }
   const blocked = bridgeBlocked({ output: args.output, constraints });
@@ -1291,6 +1518,13 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
   const turnCount = Number(args.previous?.turn_count ?? 0) + 1;
 
   if (args.output.flow_action === "confirm_potion_bridge" && !confirmIsValid) {
+    const blockedReason = confirmPotionBridgeBlockedReason({
+      output: args.output,
+      constraints,
+      previous: args.previous,
+      selectedPotion,
+      bridgeIsBlocked: blocked,
+    });
     const fallbackVisibleTask: EmotionalRepairVisibleTask = {
       ...visibleTask,
       kind: visibleTaskKind,
@@ -1304,23 +1538,23 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
         evidence: args.output.evidence,
       }),
     };
+    const merged = mergeEmotionalRepairLocalState({
+      previous: args.previous,
+      output: args.output,
+      status: "active",
+      visibleTaskKind: fallbackVisibleTask.kind,
+      turnCount,
+      now,
+      selectedPotion,
+      shouldOffer: false,
+      offerContext: null,
+      confirmIsValid: false,
+      constraints,
+    });
     return {
       status: "continue",
       response_intent: args.output.repair_state.phase,
-      local_state: {
-        skill_id: "emotional_repair",
-        mode: "local_repair_flow",
-        status: "active",
-        repair_state: args.output.repair_state,
-        last_visible_task: fallbackVisibleTask.kind,
-        last_potion_bridge_offer: args.previous?.last_potion_bridge_offer ??
-          null,
-        previous_repair_summary: args.output.repair_state.summary,
-        turn_count: turnCount,
-        max_turns: Number(args.previous?.max_turns ?? 6) || 6,
-        created_at: args.previous?.created_at ?? now,
-        updated_at: now,
-      },
+      local_state: merged.local_state,
       visible_task: fallbackVisibleTask,
       potion_bridge_context: null,
       exit_to_global_dispatcher: false,
@@ -1328,9 +1562,10 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [{
         type: "select_state_potion",
-        reason_code: "missing_previous_potion_offer",
+        reason_code: blockedReason,
       }],
       evidence: args.output.evidence,
+      state_mutation_audit: merged.state_mutation_audit,
     };
   }
 
@@ -1346,6 +1581,11 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,
+      state_mutation_audit: terminalStateAudit({
+        output: args.output,
+        previous: args.previous,
+        clearedFields: ["last_potion_bridge_offer"],
+      }),
     };
   }
   if (
@@ -1368,6 +1608,11 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,
+      state_mutation_audit: terminalStateAudit({
+        output: args.output,
+        previous: args.previous,
+        clearedFields: ["last_potion_bridge_offer"],
+      }),
     };
   }
 
@@ -1377,23 +1622,23 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
       selectedPotion,
       confidence: fieldConfidence("handoff"),
     });
+    const merged = mergeEmotionalRepairLocalState({
+      previous: args.previous,
+      output: args.output,
+      status: "handoff_to_potion",
+      visibleTaskKind: visibleTask.kind,
+      turnCount,
+      now,
+      selectedPotion,
+      shouldOffer: false,
+      offerContext: null,
+      confirmIsValid: true,
+      constraints,
+    });
     return {
       status: "handoff",
       response_intent: "handoff_to_select_state_potion",
-      local_state: {
-        ...(args.previous ?? {
-          skill_id: "emotional_repair",
-          mode: "local_repair_flow",
-          turn_count: 0,
-          max_turns: 6,
-          created_at: now,
-        } as EmotionalRepairLocalState),
-        status: "handoff_to_potion",
-        repair_state: args.output.repair_state,
-        last_visible_task: visibleTask.kind,
-        previous_repair_summary: args.output.repair_state.summary,
-        updated_at: now,
-      },
+      local_state: merged.local_state,
       visible_task: visibleTask,
       potion_bridge_context: context,
       exit_to_global_dispatcher: false,
@@ -1401,6 +1646,7 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
       constraints,
       blocked_effects: [],
       evidence: args.output.evidence,
+      state_mutation_audit: merged.state_mutation_audit,
     };
   }
 
@@ -1412,34 +1658,23 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
       confidence: fieldConfidence("offer"),
     })
     : null;
-  const lastOffer = shouldOffer
-    ? {
-      selected_potion: selectedPotion,
-      durable_need: offerContext!.durable_need,
-      prefill_candidates: args.output.potion_bridge.prefill_candidates,
-      selection_reason: args.output.potion_bridge.why_ready_or_blocked,
-      offered_at_turn: turnCount,
-      information_note: offerContext!.information_note,
-    }
-    : constraints.includes("no_potion")
-    ? null
-    : args.previous?.last_potion_bridge_offer ?? null;
+  const merged = mergeEmotionalRepairLocalState({
+    previous: args.previous,
+    output: args.output,
+    status: "active",
+    visibleTaskKind: visibleTask.kind,
+    turnCount,
+    now,
+    selectedPotion,
+    shouldOffer,
+    offerContext,
+    confirmIsValid: false,
+    constraints,
+  });
   return {
     status: "continue",
     response_intent: args.output.repair_state.phase,
-    local_state: {
-      skill_id: "emotional_repair",
-      mode: "local_repair_flow",
-      status: "active",
-      repair_state: args.output.repair_state,
-      last_visible_task: visibleTask.kind,
-      last_potion_bridge_offer: lastOffer,
-      previous_repair_summary: args.output.repair_state.summary,
-      turn_count: turnCount,
-      max_turns: Number(args.previous?.max_turns ?? 6) || 6,
-      created_at: args.previous?.created_at ?? now,
-      updated_at: now,
-    },
+    local_state: merged.local_state,
     visible_task: visibleTask,
     potion_bridge_context: null,
     exit_to_global_dispatcher: false,
@@ -1451,5 +1686,6 @@ export function reduceEmotionalRepairLocalDispatcherOutput(args: {
       ? [{ type: "select_state_potion", reason_code: "bridge_not_mature" }]
       : [],
     evidence: args.output.evidence,
+    state_mutation_audit: merged.state_mutation_audit,
   };
 }

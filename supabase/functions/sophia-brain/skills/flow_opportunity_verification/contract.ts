@@ -141,6 +141,8 @@ export type FlowOpportunityDispatcherOutput = {
   flow_action: FlowOpportunityFlowAction;
   confidence: "low" | "medium" | "high";
   risk_score: number;
+  modified_fields?: string[];
+  clear_fields?: string[];
   opportunity: {
     opportunity_id: string;
     target_kind: FlowOpportunityTargetKind;
@@ -193,6 +195,21 @@ export type FlowOpportunityDispatcherOutput = {
   evidence: string[];
 };
 
+export type FlowOpportunityStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    reason_code: string;
+    transition: FlowOpportunityFlowAction;
+  }>;
+};
+
 export type FlowOpportunityReducerResult = {
   status: FlowOpportunityStatus;
   reason_code: string;
@@ -211,5 +228,6 @@ export type FlowOpportunityReducerResult = {
   exit_memo: FlowOpportunityDispatcherOutput["exit_memo"];
   note_information: NoteInformation | null;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: FlowOpportunityStateMutationAudit;
   evidence: string[];
 };

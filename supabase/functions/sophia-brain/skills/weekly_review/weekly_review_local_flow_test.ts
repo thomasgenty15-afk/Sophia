@@ -268,6 +268,305 @@ Deno.test("weekly local reducer continues normally with visible-safe context", (
   );
 });
 
+Deno.test("weekly local reducer preserves server-owned pending detour when IA clears it", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_flow_state: {
+      ...weeklyState().weekly_flow_state,
+      detour_candidate: {
+        kind: "defense_card",
+        source_stage: "solution_fit",
+        target_action_or_plan: "Rangement du soir",
+        fit_hypothesis: "Proteger la fenetre de fatigue du soir.",
+        readiness: "offer",
+        user_consent: false,
+        scope: { plan_item_ids: ["item-rangement"] },
+        return_focus: "Revenir a la synthese weekly.",
+      },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      clear_fields: ["detour_candidate"],
+      detour_candidate: {
+        kind: "none",
+        source_stage: null,
+        target_action_or_plan: null,
+        fit_hypothesis: null,
+        readiness: "none",
+        user_consent: false,
+        scope: {},
+        return_focus: null,
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).detour_candidate.kind,
+    "defense_card",
+  );
+  assert(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "detour_candidate",
+    ),
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((entry) =>
+      entry.field === "detour_candidate" &&
+      entry.reason_code === "blocked_by_constraint"
+    ),
+    true,
+  );
+});
+
+Deno.test("weekly local reducer clears pending detour on explicit user refusal", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_flow_state: {
+      ...weeklyState().weekly_flow_state,
+      detour_candidate: {
+        kind: "defense_card",
+        source_stage: "solution_fit",
+        target_action_or_plan: "Rangement du soir",
+        fit_hypothesis: "Proteger la fenetre de fatigue du soir.",
+        readiness: "offer",
+        user_consent: false,
+        scope: { plan_item_ids: ["item-rangement"] },
+        return_focus: "Revenir a la synthese weekly.",
+      },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "reject_weekly_diagnostic",
+      clear_fields: ["detour_candidate"],
+      weekly_intent: {
+        kind: "weekly_rejection",
+        summary: "User refuses the defense card detour.",
+      },
+      handoff_updates: {
+        status: "cancelled",
+        requested_adjustment_summary: null,
+        revision_summary: null,
+        platform_destination: null,
+        scope: {
+          kind: "none",
+          plan_id: null,
+          plan_title: null,
+          plan_item_ids: [],
+          scope_summary: null,
+          needs_scope_clarification: false,
+        },
+      },
+      detour_candidate: {
+        kind: "none",
+        source_stage: null,
+        target_action_or_plan: null,
+        fit_hypothesis: null,
+        readiness: "none",
+        user_consent: false,
+        scope: {},
+        return_focus: null,
+      },
+      visible_task: {
+        kind: "ask_global_progress_feeling",
+        instruction: "Continue weekly without the refused detour.",
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).detour_candidate.kind,
+    "none",
+  );
+  assert(
+    reduced.state_mutation_audit.cleared_fields.includes("detour_candidate"),
+  );
+});
+
+Deno.test("weekly local reducer preserves proposed plan patch with server confirmation required", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_adaptive_review: {
+      ...weeklyState().weekly_adaptive_review,
+      plan_patch: {
+        operations: [{ op: "carry_over_item", plan_item_id: "item-1" }],
+        requires_confirmation: false,
+        source: "weekly_projection",
+      },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(baseOutput());
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    (reduced.weekly_state?.weekly_adaptive_review as any).plan_patch
+      .requires_confirmation,
+    true,
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_adaptive_review as any).plan_patch
+      .operations[0].op,
+    "carry_over_item",
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_adaptive_review as any)
+      .pending_confirmation.kind,
+    "plan_patch",
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_adaptive_review as any).plan_patch.applied,
+    undefined,
+  );
+});
+
+Deno.test("weekly local reducer keeps plan patch and locked validation on invalid confirmation", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_adaptive_review: {
+      ...weeklyState().weekly_adaptive_review,
+      plan_patch: {
+        operations: [{ op: "carry_over_item", plan_item_id: "item-1" }],
+        requires_confirmation: true,
+      },
+      pending_confirmation: {
+        kind: "plan_patch",
+        status: "pending",
+      },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      flow_action: "confirm_weekly_diagnostic",
+      clear_fields: ["weekly_adaptive_review.plan_patch"],
+      state_updates: {
+        status: "open",
+        weekly_stage: "strategy_ready",
+        validation_unlock_status: "available",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    (reduced.weekly_state?.weekly_adaptive_review as any).plan_patch
+      .operations[0].plan_item_id,
+    "item-1",
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).validation_unlock_status,
+    "locked_until_weekly_complete",
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((entry) =>
+      entry.field === "weekly_adaptive_review.plan_patch" &&
+      entry.reason_code === "blocked_by_constraint"
+    ),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((entry) =>
+      entry.field === "validation_unlock_status" &&
+      entry.reason_code === "invalid_status_transition"
+    ),
+    true,
+  );
+});
+
+Deno.test("weekly local reducer preserves completed gates when IA omits them", () => {
+  const state = {
+    ...weeklyState(),
+    weekly_flow_state: {
+      ...weeklyState().weekly_flow_state,
+      weekly_gates: {
+        week_experience_status: "complete",
+        action_review_status: "complete",
+        global_progress_status: "complete",
+        felt_progress_status: "complete",
+        solution_fit_status: "captured",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(
+    baseOutput({
+      weekly_gates: {
+        week_experience_status: "missing",
+        action_review_status: "missing",
+        global_progress_status: "missing",
+        felt_progress_status: "missing",
+        solution_fit_status: "missing",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+    }),
+  );
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: state,
+    output,
+  });
+
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).weekly_gates
+      .week_experience_status,
+    "complete",
+  );
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).weekly_gates
+      .action_review_status,
+    "complete",
+  );
+});
+
+Deno.test("weekly local reducer tolerates legacy state without new runtime fields", () => {
+  const legacyState = {
+    skill_id: "weekly_adaptive_review_v1",
+    status: "open",
+    weekly_adaptive_review: {
+      question: { text: "Comment tu ressors de la semaine ?" },
+    },
+  };
+  const output = normalizeWeeklyReviewLocalDispatcherOutput(baseOutput());
+
+  const reduced = reduceWeeklyReviewLocalDispatcherOutput({
+    previousWeeklyState: legacyState,
+    output,
+  });
+
+  assertEquals(reduced.status, "answered");
+  assertEquals(
+    (reduced.weekly_state?.weekly_flow_state as any).validation_unlock_status,
+    "locked_until_weekly_complete",
+  );
+  assert(
+    reduced.state_mutation_audit.server_owned_fields.includes(
+      "weekly_adaptive_review.plan_patch",
+    ),
+  );
+});
+
 Deno.test("weekly local reducer preserves user constraints in conversation context", () => {
   const output = normalizeWeeklyReviewLocalDispatcherOutput(
     baseOutput({
@@ -307,6 +606,10 @@ Deno.test("weekly local reducer preserves user constraints in conversation conte
   );
   assertEquals(
     reduced.conversation_context?.handoff_data.executable_from_chat,
+    false,
+  );
+  assertEquals(
+    reduced.conversation_context?.handoff_data.requires_platform_confirmation,
     true,
   );
   assert(

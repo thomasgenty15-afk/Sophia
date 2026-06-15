@@ -90,12 +90,6 @@ function decision(
       flow_summary: null,
       handoff_hint_for_global_dispatcher: null,
     },
-    executable_from_chat: {
-      attack_card_created: false,
-      chat_side_effect_committed: false,
-      platform_write_committed: false,
-      db_write_committed: false,
-    },
     note_information: null,
     risk_assessment: {
       risk_score: 0,
@@ -145,7 +139,6 @@ Deno.test("prepare_attack_card local dispatcher prompt documents real output fie
       "subskill_call",
       "exit_memo",
       "note_information",
-      "executable_from_chat",
       "risk_assessment",
       "evidence",
     ]
@@ -217,6 +210,25 @@ function lockedBase() {
       kind: "ask_platform_field",
     },
   });
+}
+
+function lockedPlatformField(
+  technique: "ancre_visuelle",
+  index: number,
+  value: string,
+) {
+  const definition = ATTACK_CARD_PLATFORM_FIELD_DEFINITIONS[technique][index];
+  return {
+    field_id: definition.field_id,
+    technique_key: technique,
+    field_label: definition.field_label,
+    status: "locked" as const,
+    candidate_value: null,
+    locked_value: value,
+    previous_value: null,
+    needs_user_confirmation: false,
+    why_status: "clear",
+  };
 }
 
 Deno.test("prepare_attack_card local reducer does not lock vague target", () => {
@@ -596,10 +608,23 @@ Deno.test("prepare_attack_card correction replaces value after handoff", () => {
 });
 
 Deno.test("prepare_attack_card apply_attempt is non-mutant", () => {
-  const result = reducePrepareAttackCardLocalDispatcherOutput({
+  const previous = reducePrepareAttackCardLocalDispatcherOutput({
     previous: createInitialPrepareAttackCardLocalState(),
+    output: lockedBase(),
+  }).local_state;
+  const result = reducePrepareAttackCardLocalDispatcherOutput({
+    previous,
     output: decision({
       flow_action: "apply_attempt",
+      target_state: {
+        status: "locked",
+        kind: "personal_action",
+        plan_item_id: null,
+        candidate_value: null,
+        locked_value: "nouvelle cible interdite",
+        needs_user_confirmation: false,
+        why_status: "should not mutate",
+      },
       visible_task: {
         kind: "apply_attempt",
       },
@@ -609,6 +634,187 @@ Deno.test("prepare_attack_card apply_attempt is non-mutant", () => {
   assertEquals(
     result.blocked_effects[0].reason_code,
     "chat_creation_disabled_platform_handoff",
+  );
+  assertEquals(
+    result.local_state?.target_state.locked_value,
+    "écrire mes mails",
+  );
+  assert(
+    result.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "target_state" &&
+      change.reason_code === "blocked_by_constraint"
+    ),
+  );
+});
+
+Deno.test("prepare_attack_card continuation preserves server-owned target", () => {
+  const previous = reducePrepareAttackCardLocalDispatcherOutput({
+    previous: createInitialPrepareAttackCardLocalState(),
+    output: lockedBase(),
+  }).local_state;
+  const result = reducePrepareAttackCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "answer_current_field",
+      blocker_state: {
+        status: "locked",
+        blocker_type: "procrastination",
+        candidate_value: null,
+        locked_value: "je repousse quand ça semble long",
+        needs_user_confirmation: false,
+        why_status: "clear",
+      },
+      visible_task: { kind: "ask_platform_field" },
+    }),
+  });
+  assertEquals(
+    result.local_state?.target_state.locked_value,
+    "écrire mes mails",
+  );
+  assert(result.state_mutation_audit.preserved_fields.includes("target_state"));
+});
+
+Deno.test("prepare_attack_card invalid technique confirmation preserves pending offer", () => {
+  const previous = reducePrepareAttackCardLocalDispatcherOutput({
+    previous: createInitialPrepareAttackCardLocalState(),
+    output: decision({
+      flow_action: "choose_technique",
+      target_state: {
+        status: "locked",
+        kind: "personal_action",
+        plan_item_id: null,
+        candidate_value: null,
+        locked_value: "ouvrir le dossier administratif",
+        needs_user_confirmation: false,
+        why_status: "clear",
+      },
+      blocker_state: {
+        status: "locked",
+        blocker_type: "unclear_first_step",
+        candidate_value: null,
+        locked_value: "je ne sais pas par où commencer",
+        needs_user_confirmation: false,
+        why_status: "clear",
+      },
+      technique_state: {
+        status: "ambiguous",
+        technique_key: null,
+        technique_label: null,
+        explicitly_requested: false,
+        candidate_options: [{
+          technique_key: "preparer_terrain",
+          technique_label: "Preparer le terrain",
+          reason: "reduire la friction",
+          recommended: true,
+        }],
+        fit_warning: null,
+        needs_user_confirmation: true,
+        why_status: "offer",
+      },
+      visible_task: { kind: "ask_or_confirm_technique" },
+    }),
+  }).local_state;
+  const result = reducePrepareAttackCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "confirm_technique_proposal",
+      visible_task: { kind: "ask_or_confirm_technique" },
+    }),
+  });
+  assertEquals(
+    result.local_state?.technique_state.candidate_options[0]?.technique_key,
+    "preparer_terrain",
+  );
+  assert(
+    result.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "technique_state" &&
+      change.reason_code === "selected_option_missing"
+    ),
+  );
+});
+
+Deno.test("prepare_attack_card valid technique revision replaces and clears fields", () => {
+  const previous = reducePrepareAttackCardLocalDispatcherOutput({
+    previous: createInitialPrepareAttackCardLocalState(),
+    output: {
+      ...lockedBase(),
+      platform_field_states: [
+        lockedPlatformField("ancre_visuelle", 0, "garder mes mails visibles"),
+      ],
+    },
+  }).local_state;
+  const result = reducePrepareAttackCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "revise_technique",
+      technique_state: {
+        status: "locked",
+        technique_key: "texte_recadrage",
+        technique_label: "Le texte magique",
+        explicitly_requested: true,
+        candidate_options: [],
+        fit_warning: null,
+        needs_user_confirmation: false,
+        why_status: "revision",
+      },
+      visible_task: { kind: "ask_platform_field" },
+    }),
+  });
+  assertEquals(
+    result.local_state?.technique_state.technique_key,
+    "texte_recadrage",
+  );
+  assertEquals(
+    result.local_state?.platform_field_states.commitment_to_keep_alive,
+    undefined,
+  );
+  assert(
+    result.state_mutation_audit.cleared_fields.includes(
+      "platform_field_states",
+    ),
+  );
+});
+
+Deno.test("prepare_attack_card legacy active local state stays readable", () => {
+  const previous = reducePrepareAttackCardLocalDispatcherOutput({
+    previous: createInitialPrepareAttackCardLocalState(),
+    output: lockedBase(),
+  }).local_state as any;
+  delete previous.subskill_history;
+  delete previous.last_handoff_delivered;
+  delete previous.current_field_id;
+  const result = reducePrepareAttackCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "answer_current_field",
+      visible_task: { kind: "ask_platform_field" },
+    }),
+  });
+  assertEquals(result.local_state?.subskill_history, []);
+  assertEquals(result.local_state?.flow_id, "prepare_attack_card");
+  assert(
+    result.state_mutation_audit.server_owned_fields.includes(
+      "current_field_id",
+    ),
+  );
+});
+
+Deno.test("prepare_attack_card non-actionable handoff mention does not deliver draft", () => {
+  const result = reducePrepareAttackCardLocalDispatcherOutput({
+    previous: createInitialPrepareAttackCardLocalState(),
+    output: {
+      ...lockedBase(),
+      flow_action: "handoff_ready",
+      platform_field_states: [],
+      visible_task: { kind: "handoff_ready" },
+    },
+  });
+  assertEquals(result.draft, null);
+  assertEquals(result.status, "clarifying");
+  assert(
+    result.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "not_stabilized_enough"
+    ),
   );
 });
 
@@ -1169,8 +1375,8 @@ Deno.test("prepare_attack_card reducer emits visible conversation_context", () =
     "je repousse quand ça semble trop long",
   );
   assertEquals(
-    result.visible_task_context.handoff_data.executable_from_chat,
-    true,
+    (result.visible_task_context.handoff_data as any).executable_from_chat,
+    undefined,
   );
   assertEquals(
     result.visible_task_context.handoff_data.platform_destination,

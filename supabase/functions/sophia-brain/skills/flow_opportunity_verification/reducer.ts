@@ -4,6 +4,7 @@ import type {
   FlowOpportunityFlowAction,
   FlowOpportunityLocalState,
   FlowOpportunityReducerResult,
+  FlowOpportunityStateMutationAudit,
   FlowOpportunityStatus,
   FlowOpportunityTargetFlow,
   FlowOpportunityTargetKind,
@@ -16,10 +17,7 @@ import {
   type NoteInformationHandoffReason,
   type NoteInformationTargetDispatcher,
 } from "../../contracts/note_information.v1.ts";
-import {
-  createConfirmationAnchor,
-  createFlowOpportunityState,
-} from "./state.ts";
+import { createConfirmationAnchor } from "./state.ts";
 
 const FLOW_ACTIONS = new Set([
   "offer_opportunity",
@@ -116,6 +114,23 @@ const LAUNCHABLE_TARGET_FLOWS = new Set([
   "adjust_plan_item",
 ]);
 
+const SERVER_OWNED_STATE_FIELDS = [
+  "opportunity_id",
+  "target_kind",
+  "target_flow",
+  "target_action",
+  "target_context",
+  "origin",
+  "confirmation_anchor",
+  "subskill_history",
+  "recent_user_messages",
+  "status",
+  "turn_count",
+  "max_turns",
+  "created_at",
+  "updated_at",
+];
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -128,6 +143,24 @@ function stringArray(value: unknown, max = 10): string[] {
   return Array.isArray(value)
     ? value.map((item) => stringValue(item)).filter(Boolean).slice(0, max)
     : [];
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function sortedJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(sortedJson).join(",")}]`;
+  if (!isRecord(value)) return JSON.stringify(value);
+  return `{${
+    Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${sortedJson(value[key])}`
+    ).join(",")
+  }}`;
+}
+
+function sameValue(left: unknown, right: unknown): boolean {
+  return sortedJson(left) === sortedJson(right);
 }
 
 function recordValue(value: unknown): Record<string, unknown> {
@@ -596,6 +629,8 @@ export function normalizeFlowOpportunityDispatcherOutput(
     flow_action: flowAction,
     confidence: confidence(root.confidence),
     risk_score: riskScore(root.risk_score),
+    modified_fields: stringArray(root.modified_fields, 24),
+    clear_fields: stringArray(root.clear_fields, 24),
     opportunity: {
       opportunity_id: stringValue(opportunityRoot.opportunity_id),
       target_kind: targetKind,
@@ -820,6 +855,345 @@ export function buildInitialOfferDispatcherOutput(args: {
   };
 }
 
+function auditBase(output: FlowOpportunityDispatcherOutput) {
+  return {
+    server_owned_fields: [...SERVER_OWNED_STATE_FIELDS],
+    modified_fields_declared: stringArray(output.modified_fields, 24),
+    clear_fields_declared: stringArray(output.clear_fields, 24),
+    applied_fields: [] as string[],
+    preserved_fields: [] as string[],
+    restored_fields: [] as string[],
+    cleared_fields: [] as string[],
+    rejected_changes: [] as FlowOpportunityStateMutationAudit[
+      "rejected_changes"
+    ],
+  };
+}
+
+function statusForTransition(args: {
+  previous: FlowOpportunityLocalState | null;
+  output: FlowOpportunityDispatcherOutput;
+  transition: FlowOpportunityFlowAction;
+}): FlowOpportunityStatus {
+  switch (args.transition) {
+    case "get_info_product":
+    case "get_info_db":
+      return "explaining";
+    case "handoff_to_local_flow":
+      return "accepted";
+    case "blocked_or_unsupported":
+      return "blocked";
+    case "correct_target_flow":
+    case "revise_focus":
+    case "repeat_current_state":
+    case "insufficient_response":
+    case "offer_opportunity":
+      return "waiting_confirmation";
+    default:
+      return args.previous?.status ?? args.output.state_patch.status;
+  }
+}
+
+function transitionMayReplaceField(
+  transition: FlowOpportunityFlowAction,
+  field: string,
+  previous: FlowOpportunityLocalState | null,
+): boolean {
+  if (!previous && transition === "offer_opportunity") return true;
+  if (transition === "correct_target_flow") {
+    return [
+      "opportunity_id",
+      "target_kind",
+      "target_flow",
+      "target_action",
+      "target_context",
+      "confirmation_anchor",
+      "status",
+    ].includes(field);
+  }
+  if (transition === "revise_focus") {
+    return ["target_context", "status"].includes(field);
+  }
+  return field === "status";
+}
+
+function transitionMayClearState(
+  transition: FlowOpportunityFlowAction,
+): boolean {
+  return transition === "handoff_to_local_flow" ||
+    transition === "exit_to_global_dispatcher" ||
+    transition === "safety_preempt" ||
+    transition === "cancel_flow" ||
+    transition === "defer_flow" ||
+    transition === "complete_flow";
+}
+
+function addRejectedChange(args: {
+  audit: FlowOpportunityStateMutationAudit;
+  field: string;
+  reasonCode: string;
+  transition: FlowOpportunityFlowAction;
+}) {
+  args.audit.restored_fields = uniqueStrings([
+    ...args.audit.restored_fields,
+    args.field,
+  ]);
+  args.audit.rejected_changes.push({
+    field: args.field,
+    reason_code: args.reasonCode,
+    transition: args.transition,
+  });
+}
+
+function appendRecentMessage(
+  previous: FlowOpportunityLocalState | null,
+  userMessage: string,
+): string[] {
+  const recent = previous?.recent_user_messages ?? [];
+  if (recent[recent.length - 1] === userMessage) return recent;
+  return [...recent, userMessage].filter(Boolean).slice(-5);
+}
+
+export function mergeFlowOpportunityLocalState(args: {
+  previous: FlowOpportunityLocalState | null;
+  output: FlowOpportunityDispatcherOutput;
+  transition: FlowOpportunityFlowAction;
+  userMessage: string;
+  now: string;
+  constraints?: string[];
+}): {
+  local_state: FlowOpportunityLocalState | null;
+  resolved: {
+    opportunity_id: string;
+    target_kind: FlowOpportunityTargetKind;
+    target_flow: FlowOpportunityTargetFlow;
+    target_action: string;
+    target_context: Record<string, unknown>;
+  };
+  state_mutation_audit: FlowOpportunityStateMutationAudit;
+} {
+  const audit = auditBase(args.output);
+  const previous = args.previous;
+  const outputContext = {
+    ...args.output.target_flow_input.seed_context,
+    ...args.output.state_patch.target_context,
+  };
+  const outputHasContext = Object.keys(outputContext).length > 0;
+  const outputHasAnchor = Object.keys(
+    recordValue(args.output.state_patch.confirmation_anchor),
+  ).length > 0;
+
+  const resolved = {
+    opportunity_id: previous?.opportunity_id ||
+      args.output.opportunity.opportunity_id,
+    target_kind: previous?.target_kind ||
+      (args.output.opportunity.target_kind !== "unknown"
+        ? args.output.opportunity.target_kind
+        : targetKindForFlow(args.output.opportunity.target_flow)),
+    target_flow: previous?.target_flow ||
+      args.output.opportunity.target_flow,
+    target_action: previous?.target_action ||
+      args.output.opportunity.target_action,
+    target_context: previous?.target_context ??
+      outputContext,
+  };
+
+  const proposed: Record<string, unknown> = {
+    opportunity_id: args.output.opportunity.opportunity_id,
+    target_kind: args.output.opportunity.target_kind,
+    target_flow: args.output.opportunity.target_flow,
+    target_action: args.output.opportunity.target_action,
+    target_context: outputHasContext ? outputContext : undefined,
+    confirmation_anchor: outputHasAnchor
+      ? args.output.state_patch.confirmation_anchor
+      : undefined,
+    status: args.output.state_patch.status,
+  };
+
+  if (previous) {
+    for (
+      const field of [
+        "opportunity_id",
+        "target_kind",
+        "target_flow",
+        "target_action",
+        "target_context",
+        "confirmation_anchor",
+        "status",
+      ]
+    ) {
+      if (proposed[field] === undefined) continue;
+      const current = (previous as any)[field];
+      if (sameValue(current, proposed[field])) {
+        audit.preserved_fields.push(field);
+        continue;
+      }
+      if (transitionMayReplaceField(args.transition, field, previous)) {
+        audit.applied_fields.push(field);
+      } else {
+        addRejectedChange({
+          audit,
+          field,
+          reasonCode: "server_owned_field_change_not_allowed",
+          transition: args.transition,
+        });
+      }
+    }
+  }
+
+  for (const field of audit.clear_fields_declared) {
+    if (
+      SERVER_OWNED_STATE_FIELDS.includes(field) &&
+      !transitionMayClearState(args.transition)
+    ) {
+      addRejectedChange({
+        audit,
+        field,
+        reasonCode: "server_owned_field_clear_not_allowed",
+        transition: args.transition,
+      });
+    }
+  }
+
+  if (transitionMayClearState(args.transition)) {
+    audit.cleared_fields = [...SERVER_OWNED_STATE_FIELDS];
+    return {
+      local_state: null,
+      resolved,
+      state_mutation_audit: {
+        ...audit,
+        applied_fields: uniqueStrings(audit.applied_fields),
+        preserved_fields: uniqueStrings(audit.preserved_fields),
+        restored_fields: uniqueStrings(audit.restored_fields),
+        cleared_fields: uniqueStrings(audit.cleared_fields),
+      },
+    };
+  }
+
+  const canReplaceTarget = args.transition === "correct_target_flow";
+  const canReviseContext = args.transition === "revise_focus" ||
+    canReplaceTarget ||
+    !previous;
+  const targetFlow = canReplaceTarget
+    ? args.output.opportunity.target_flow
+    : resolved.target_flow;
+  const targetKind = canReplaceTarget
+    ? args.output.opportunity.target_kind
+    : resolved.target_kind;
+  const targetContext = canReviseContext && outputHasContext
+    ? outputContext
+    : resolved.target_context;
+  const confirmationAnchor = canReplaceTarget
+    ? createConfirmationAnchor({
+      targetKind,
+      targetFlow,
+      targetContext,
+    })
+    : previous?.confirmation_anchor ??
+      createConfirmationAnchor({
+        targetKind,
+        targetFlow,
+        targetContext,
+      });
+  const localState: FlowOpportunityLocalState = {
+    skill_id: "flow_opportunity_verification",
+    mode: "local_verification_flow",
+    status: statusForTransition({
+      previous,
+      output: args.output,
+      transition: args.transition,
+    }),
+    opportunity_id: canReplaceTarget
+      ? args.output.opportunity.opportunity_id || resolved.opportunity_id
+      : resolved.opportunity_id,
+    target_kind: targetKind,
+    target_flow: targetFlow,
+    target_action: canReplaceTarget
+      ? args.output.opportunity.target_action || `run_${targetFlow}`
+      : resolved.target_action || `run_${targetFlow}`,
+    target_context: targetContext,
+    origin: previous?.origin ?? {
+      user_message: args.userMessage,
+      evidence: args.output.target_flow_input.origin_evidence.length
+        ? args.output.target_flow_input.origin_evidence
+        : args.output.evidence,
+      created_at: args.now,
+    },
+    confirmation_anchor: confirmationAnchor,
+    subskill_history: previous?.subskill_history ?? [],
+    recent_user_messages: appendRecentMessage(previous, args.userMessage),
+    turn_count: Math.max(1, Number(previous?.turn_count ?? 0) + 1),
+    max_turns: Number(previous?.max_turns ?? 6) || 6,
+    created_at: previous?.created_at ?? args.now,
+    updated_at: args.now,
+  };
+
+  for (const field of SERVER_OWNED_STATE_FIELDS) {
+    if (
+      !audit.applied_fields.includes(field) &&
+      !audit.restored_fields.includes(field) &&
+      previous
+    ) {
+      audit.preserved_fields.push(field);
+    }
+  }
+
+  return {
+    local_state: localState,
+    resolved: {
+      opportunity_id: localState.opportunity_id,
+      target_kind: localState.target_kind,
+      target_flow: localState.target_flow,
+      target_action: localState.target_action,
+      target_context: localState.target_context,
+    },
+    state_mutation_audit: {
+      ...audit,
+      applied_fields: uniqueStrings(audit.applied_fields),
+      preserved_fields: uniqueStrings(audit.preserved_fields),
+      restored_fields: uniqueStrings(audit.restored_fields),
+      cleared_fields: uniqueStrings(audit.cleared_fields),
+    },
+  };
+}
+
+function auditForBlockedTransition(args: {
+  audit: FlowOpportunityStateMutationAudit;
+  previous: FlowOpportunityLocalState | null;
+  transition: FlowOpportunityFlowAction;
+  reasonCode: string;
+}): FlowOpportunityStateMutationAudit {
+  if (!args.previous) {
+    return {
+      ...args.audit,
+      rejected_changes: [
+        ...args.audit.rejected_changes,
+        {
+          field: "local_state",
+          reason_code: args.reasonCode,
+          transition: args.transition,
+        },
+      ],
+    };
+  }
+  return {
+    ...args.audit,
+    restored_fields: uniqueStrings([
+      ...args.audit.restored_fields,
+      ...SERVER_OWNED_STATE_FIELDS,
+    ]),
+    cleared_fields: [],
+    rejected_changes: [
+      ...args.audit.rejected_changes,
+      {
+        field: "transition",
+        reason_code: args.reasonCode,
+        transition: args.transition,
+      },
+    ],
+  };
+}
+
 export function reduceFlowOpportunityDispatcherOutput(args: {
   previous: FlowOpportunityLocalState | null;
   output: FlowOpportunityDispatcherOutput;
@@ -829,18 +1203,19 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   const action: FlowOpportunityFlowAction = output.risk_score >= 8
     ? "safety_preempt"
     : output.flow_action;
-  const targetFlow = output.opportunity.target_flow ||
-    args.previous?.target_flow || "unknown";
-  const targetKind = output.opportunity.target_kind !== "unknown"
-    ? output.opportunity.target_kind
-    : args.previous?.target_kind ?? targetKindForFlow(targetFlow);
-  const opportunityId = output.opportunity.opportunity_id ||
-    args.previous?.opportunity_id || "";
-  const seedContext = {
-    ...(args.previous?.target_context ?? {}),
-    ...output.target_flow_input.seed_context,
-    ...output.state_patch.target_context,
-  };
+  const mergedState = mergeFlowOpportunityLocalState({
+    previous: args.previous,
+    output,
+    transition: action,
+    userMessage: args.userMessage,
+    now: new Date().toISOString(),
+  });
+  const targetFlow = mergedState.resolved.target_flow || "unknown";
+  const targetKind = mergedState.resolved.target_kind !== "unknown"
+    ? mergedState.resolved.target_kind
+    : targetKindForFlow(targetFlow);
+  const opportunityId = mergedState.resolved.opportunity_id;
+  const seedContext = mergedState.resolved.target_context;
   const blocked: Array<{ type: string; reason_code: string }> = [];
   const contextEvidence = output.target_flow_input.origin_evidence.length
     ? output.target_flow_input.origin_evidence
@@ -876,13 +1251,36 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   if (!opportunityId || targetFlow === "unknown") {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "missing_opportunity_or_target_flow",
+      reason_code: !opportunityId
+        ? "selected_option_missing"
+        : "candidate_missing",
+    });
+  }
+  if (
+    (action === "handoff_to_local_flow" ||
+      action === "get_info_product" ||
+      action === "get_info_db") &&
+    !args.previous
+  ) {
+    blocked.push({
+      type: "flow_opportunity_verification",
+      reason_code: "missing_previous_offer",
+    });
+  }
+  if (
+    action === "handoff_to_local_flow" &&
+    (!args.previous?.confirmation_anchor ||
+      output.opportunity.confirmation_anchor_still_valid === false)
+  ) {
+    blocked.push({
+      type: "flow_opportunity_verification",
+      reason_code: "pending_confirmation_missing",
     });
   }
   if (!targetKindMatchesFlow(targetKind, targetFlow)) {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "target_kind_mismatch_blocks_flow",
+      reason_code: "candidate_missing",
     });
   }
   if (action === "safety_preempt") {
@@ -922,13 +1320,14 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
         type: "flow_opportunity_verification",
         reason_code: "risk_score_blocks_flow",
       }],
+      state_mutation_audit: mergedState.state_mutation_audit,
       evidence: output.evidence,
     };
   }
   if (action === "handoff_to_local_flow" && output.confidence === "low") {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "low_confidence_blocks_handoff",
+      reason_code: "not_stabilized_enough",
     });
   }
   if (
@@ -937,7 +1336,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   ) {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "unsupported_target_flow_blocks_handoff",
+      reason_code: "candidate_missing",
     });
   }
   if (
@@ -949,7 +1348,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   ) {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "keep_plan_constraint_blocks_adjust_plan_handoff",
+      reason_code: "blocked_by_constraint",
     });
   }
   if (
@@ -961,7 +1360,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   ) {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "one_shot_reminder_requires_explicit_time_and_request",
+      reason_code: "durable_need_missing",
     });
   }
   if (
@@ -971,7 +1370,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   ) {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "product_help_subskill_required",
+      reason_code: "direct_handoff_flag_missing",
     });
   }
   if (
@@ -981,7 +1380,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
   ) {
     blocked.push({
       type: "flow_opportunity_verification",
-      reason_code: "status_recap_subskill_required",
+      reason_code: "direct_handoff_flag_missing",
     });
   }
   if (action === "exit_to_global_dispatcher" && !noteInformation) {
@@ -1031,6 +1430,12 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
       exit_memo: output.exit_memo,
       note_information: noteInformation,
       blocked_effects: blocked,
+      state_mutation_audit: auditForBlockedTransition({
+        audit: mergedState.state_mutation_audit,
+        previous: args.previous,
+        transition: action,
+        reasonCode: blocked[0].reason_code,
+      }),
       evidence: output.evidence,
     };
   }
@@ -1054,6 +1459,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
       exit_memo: output.exit_memo,
       note_information: noteInformation,
       blocked_effects: [],
+      state_mutation_audit: mergedState.state_mutation_audit,
       evidence: output.evidence,
     };
   }
@@ -1066,7 +1472,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
     return {
       status: "cancelled",
       reason_code: `flow_opportunity_verification_${action}`,
-      flow_action: "exit_to_global_dispatcher",
+      flow_action: action,
       local_state: null,
       visible_task: mergedVisibleTask,
       exit_to_global_dispatcher: false,
@@ -1081,42 +1487,67 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
       exit_memo: output.exit_memo,
       note_information: null,
       blocked_effects: [],
+      state_mutation_audit: mergedState.state_mutation_audit,
       evidence: output.evidence,
     };
   }
 
-  const localState = createFlowOpportunityState({
-    previous: args.previous,
-    opportunity: {
-      opportunity_id: opportunityId,
+  if (action === "handoff_to_local_flow") {
+    return {
+      status: "accepted",
+      reason_code: "flow_opportunity_verification_handoff_to_local_flow",
+      flow_action: "handoff_to_local_flow",
+      local_state: null,
+      visible_task: mergedVisibleTask,
+      exit_to_global_dispatcher: false,
+      safety_preempt: false,
+      handoff_to_local_flow: true,
+      get_info_product: false,
+      get_info_db: false,
       target_kind: targetKind,
       target_flow: targetFlow,
-      target_action: output.opportunity.target_action,
-      confidence: output.confidence,
-      priority: 0,
-      reason: output.opportunity.reason,
-      evidence: output.target_flow_input.origin_evidence.length
-        ? output.target_flow_input.origin_evidence
-        : output.evidence,
-      seed_context: seedContext,
-    },
-    userMessage: args.userMessage,
-    status: action === "get_info_product" ||
-        action === "get_info_db"
-      ? "explaining"
-      : action === "handoff_to_local_flow"
-      ? "accepted"
-      : output.state_patch.status,
-  });
-  const anchoredState: FlowOpportunityLocalState = {
-    ...localState,
-    confirmation_anchor: args.previous?.confirmation_anchor ??
-      createConfirmationAnchor({
-        targetKind,
-        targetFlow,
-        targetContext: seedContext,
+      target_flow_input: output.target_flow_input,
+      subskill_context: null,
+      exit_memo: output.exit_memo,
+      note_information: noteInformation,
+      blocked_effects: [],
+      state_mutation_audit: mergedState.state_mutation_audit,
+      evidence: output.evidence,
+    };
+  }
+
+  const anchoredState = mergedState.local_state;
+  if (!anchoredState) {
+    return {
+      status: "blocked",
+      reason_code: "invalid_status_transition",
+      flow_action: action,
+      local_state: args.previous,
+      visible_task: mergedVisibleTask,
+      exit_to_global_dispatcher: false,
+      safety_preempt: false,
+      handoff_to_local_flow: false,
+      get_info_product: false,
+      get_info_db: false,
+      target_kind: targetKind,
+      target_flow: targetFlow,
+      target_flow_input: output.target_flow_input,
+      subskill_context: null,
+      exit_memo: output.exit_memo,
+      note_information: noteInformation,
+      blocked_effects: [{
+        type: "flow_opportunity_verification",
+        reason_code: "invalid_status_transition",
+      }],
+      state_mutation_audit: auditForBlockedTransition({
+        audit: mergedState.state_mutation_audit,
+        previous: args.previous,
+        transition: action,
+        reasonCode: "invalid_status_transition",
       }),
-  };
+      evidence: output.evidence,
+    };
+  }
   if (anchoredState.turn_count > anchoredState.max_turns) {
     return {
       status: "exit",
@@ -1166,6 +1597,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
         confidence: output.confidence,
       }),
       blocked_effects: [],
+      state_mutation_audit: mergedState.state_mutation_audit,
       evidence: output.evidence,
     };
   }
@@ -1173,11 +1605,11 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
     status: anchoredState.status,
     reason_code: `flow_opportunity_verification_${action}`,
     flow_action: action,
-    local_state: action === "handoff_to_local_flow" ? null : anchoredState,
+    local_state: anchoredState,
     visible_task: mergedVisibleTask,
     exit_to_global_dispatcher: false,
     safety_preempt: false,
-    handoff_to_local_flow: action === "handoff_to_local_flow",
+    handoff_to_local_flow: false,
     get_info_product: action === "get_info_product",
     get_info_db: action === "get_info_db",
     target_kind: targetKind,
@@ -1190,6 +1622,7 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
     exit_memo: output.exit_memo,
     note_information: noteInformation,
     blocked_effects: [],
+    state_mutation_audit: mergedState.state_mutation_audit,
     evidence: output.evidence,
   };
 }

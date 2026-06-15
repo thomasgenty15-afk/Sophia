@@ -13,6 +13,7 @@ import type {
   ClarteVisibleTaskKind,
   SelectStatePotionRiskAssessment,
   StatePotionHandoffDraft,
+  StatePotionStateMutationAudit,
 } from "../contract.ts";
 import type { SelectStatePotionIntakeState } from "../intake.ts";
 import type { StatePotionHandoffState } from "../state.ts";
@@ -57,7 +58,58 @@ export type ClarteReducerResult = {
   get_info_db: boolean;
   subskill_context: Record<string, unknown> | null;
   risk_assessment: SelectStatePotionRiskAssessment;
+  state_mutation_audit: StatePotionStateMutationAudit;
 };
+
+const CLARTE_SERVER_OWNED_FIELDS = [
+  "flow_id",
+  "selected_potion",
+  "field_id",
+  "field_label",
+  "potion_name",
+  "platform_destination",
+  "origin_bridge_context",
+  "field_state",
+  "last_visible_task",
+  "last_handoff_delivered",
+  "subskill_history",
+] as const;
+
+function emptyClarteStateMutationAudit(
+  previous: ClarteHandoffState | null,
+): StatePotionStateMutationAudit {
+  return {
+    server_owned_fields: [...CLARTE_SERVER_OWNED_FIELDS],
+    modified_fields_declared: [],
+    clear_fields_declared: [],
+    applied_fields: [],
+    preserved_fields: previous
+      ? [
+        "flow_id",
+        "selected_potion",
+        "field_id",
+        "field_label",
+        "potion_name",
+        "platform_destination",
+        "origin_bridge_context",
+        "subskill_history",
+      ]
+      : [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function withAudit<T extends Omit<ClarteReducerResult, "state_mutation_audit">>(
+  result: T,
+  audit: StatePotionStateMutationAudit,
+): ClarteReducerResult {
+  return {
+    ...result,
+    state_mutation_audit: audit,
+  };
+}
 
 function stringValue(value: unknown): string | null {
   const text = String(value ?? "").trim();
@@ -204,6 +256,8 @@ export function normalizeClarteDispatcherOutput(
     confidence: confidence(root.confidence),
     selected_potion: "clarte",
     field_id: CLARTE_FIELD_ID,
+    modified_fields: stringArray(root.modified_fields),
+    clear_fields: stringArray(root.clear_fields),
     field_state: normalizedField,
     revision: normalizedRevision,
     visible_task: {
@@ -428,6 +482,179 @@ function lockedDraft(value: string): StatePotionHandoffDraft {
   };
 }
 
+function cloneClarteAudit(
+  audit: StatePotionStateMutationAudit,
+): StatePotionStateMutationAudit {
+  return {
+    server_owned_fields: [...audit.server_owned_fields],
+    modified_fields_declared: [...audit.modified_fields_declared],
+    clear_fields_declared: [...audit.clear_fields_declared],
+    applied_fields: [...audit.applied_fields],
+    preserved_fields: [...audit.preserved_fields],
+    restored_fields: [...audit.restored_fields],
+    cleared_fields: [...audit.cleared_fields],
+    rejected_changes: [...audit.rejected_changes],
+  };
+}
+
+function addUnique(target: string[], value: string): void {
+  if (!target.includes(value)) target.push(value);
+}
+
+function initialClarteReducerAudit(
+  previous: ClarteHandoffState,
+  decision: ClarteDispatcherOutput,
+): StatePotionStateMutationAudit {
+  const audit = emptyClarteStateMutationAudit(previous);
+  audit.modified_fields_declared = stringArray(decision.modified_fields);
+  audit.clear_fields_declared = stringArray(decision.clear_fields);
+  for (const field of audit.clear_fields_declared) {
+    if (audit.server_owned_fields.includes(field)) {
+      addUnique(audit.restored_fields, field);
+      audit.rejected_changes.push({
+        field,
+        reason_code: "blocked_by_constraint",
+      });
+    }
+  }
+  return audit;
+}
+
+function auditWithApplied(
+  base: StatePotionStateMutationAudit,
+  ...fields: string[]
+): StatePotionStateMutationAudit {
+  const audit = cloneClarteAudit(base);
+  for (const field of fields) addUnique(audit.applied_fields, field);
+  return audit;
+}
+
+function auditWithCleared(
+  base: StatePotionStateMutationAudit,
+  ...fields: string[]
+): StatePotionStateMutationAudit {
+  const audit = cloneClarteAudit(base);
+  for (const field of fields) addUnique(audit.cleared_fields, field);
+  return audit;
+}
+
+function auditWithRestored(
+  base: StatePotionStateMutationAudit,
+  reasonCode: string,
+  ...fields: string[]
+): StatePotionStateMutationAudit {
+  const audit = cloneClarteAudit(base);
+  for (const field of fields) {
+    addUnique(audit.restored_fields, field);
+    audit.rejected_changes.push({
+      field,
+      reason_code: reasonCode,
+    });
+  }
+  return audit;
+}
+
+export function mergeClarteLocalState(args: {
+  previous: ClarteHandoffState;
+  decision: ClarteDispatcherOutput;
+  transition?: ClarteFlowAction;
+  now?: string;
+  constraints?: Array<Record<string, unknown>>;
+}): {
+  state: ClarteHandoffState;
+  audit: StatePotionStateMutationAudit;
+} {
+  const transition = args.transition ?? args.decision.flow_action;
+  let audit = initialClarteReducerAudit(args.previous, args.decision);
+  const selectedPotion = (args.decision as any).selected_potion;
+  if (selectedPotion && selectedPotion !== "clarte") {
+    audit = auditWithRestored(
+      audit,
+      "selected_option_missing",
+      "selected_potion",
+    );
+  }
+  const canApplyFieldState = [
+    "answer_current_field",
+    "platform_destination_followup",
+  ].includes(transition);
+  if (!canApplyFieldState) {
+    if (
+      args.decision.field_state.locked_value ||
+      args.decision.field_state.candidate_value
+    ) {
+      audit = auditWithRestored(
+        audit,
+        transition === "confirm_proposed_field"
+          ? "pending_confirmation_missing"
+          : "invalid_status_transition",
+        "field_state",
+      );
+    }
+    return {
+      state: args.previous,
+      audit,
+    };
+  }
+
+  const current = args.previous.field_state;
+  const incoming = args.decision.field_state;
+  if (
+    incoming.status === "missing" &&
+    (current.locked_value || current.candidate_value)
+  ) {
+    return {
+      state: args.previous,
+      audit: auditWithRestored(
+        audit,
+        "invalid_status_transition",
+        "field_state",
+      ),
+    };
+  }
+  if (incoming.status === "locked" && incoming.locked_value) {
+    return {
+      state: {
+        ...args.previous,
+        field_state: {
+          ...incoming,
+          candidate_value: null,
+          previous_value: current.locked_value,
+          needs_user_confirmation: false,
+        },
+      },
+      audit: auditWithApplied(audit, "field_state"),
+    };
+  }
+  if (incoming.status === "proposed" && incoming.candidate_value) {
+    return {
+      state: {
+        ...args.previous,
+        field_state: {
+          ...incoming,
+          locked_value: current.locked_value,
+          needs_user_confirmation: true,
+        },
+      },
+      audit: auditWithApplied(audit, "field_state"),
+    };
+  }
+  return {
+    state: {
+      ...args.previous,
+      field_state: {
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: current.previous_value,
+        needs_user_confirmation: false,
+        why_status: incoming.why_status,
+      },
+    },
+    audit: auditWithApplied(audit, "field_state"),
+  };
+}
+
 export function reduceClarteDispatcherOutput(args: {
   previous: ClarteHandoffState;
   decision: ClarteDispatcherOutput;
@@ -435,6 +662,7 @@ export function reduceClarteDispatcherOutput(args: {
   const previous = args.previous;
   const decision = args.decision;
   const current = previous.field_state;
+  const baseAudit = initialClarteReducerAudit(previous, decision);
   const toolFlags = {
     get_info_product: false,
     get_info_db: false,
@@ -442,7 +670,7 @@ export function reduceClarteDispatcherOutput(args: {
   };
 
   if (decision.flow_action === "safety_preempt") {
-    return {
+    return withAudit({
       status: "blocked",
       reason_code: "clarte_flow_safety_preempt",
       clarte_state: withVisibleTask(previous, "safety"),
@@ -451,11 +679,11 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "cancel_flow") {
-    return {
+    return withAudit({
       status: "cancelled",
       reason_code: "clarte_flow_cancelled",
       clarte_state: null,
@@ -464,14 +692,14 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, auditWithCleared(baseAudit, ...CLARTE_SERVER_OWNED_FIELDS));
   }
 
   if (
     decision.flow_action === "exit_to_global_dispatcher" ||
     decision.flow_action === "handoff_to_local_flow"
   ) {
-    return {
+    return withAudit({
       status: "topic_change",
       reason_code: decision.flow_action === "handoff_to_local_flow"
         ? "clarte_flow_handoff_to_local_flow"
@@ -482,11 +710,11 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: true,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "get_info_product") {
-    return {
+    return withAudit({
       status: "collecting",
       reason_code: "clarte_get_info_product",
       clarte_state: withVisibleTask(previous, "none"),
@@ -497,11 +725,11 @@ export function reduceClarteDispatcherOutput(args: {
       get_info_db: false,
       subskill_context: decision.subskill_call?.context_for_subskill ?? {},
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "get_info_db") {
-    return {
+    return withAudit({
       status: "collecting",
       reason_code: "clarte_get_info_db",
       clarte_state: withVisibleTask(previous, "none"),
@@ -512,11 +740,11 @@ export function reduceClarteDispatcherOutput(args: {
       get_info_db: true,
       subskill_context: decision.subskill_call?.context_for_subskill ?? {},
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "apply_attempt") {
-    return {
+    return withAudit({
       status: "apply_attempt",
       reason_code: "clarte_apply_attempt_no_chat_execution",
       clarte_state: withVisibleTask(previous, "apply_attempt"),
@@ -525,11 +753,11 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "platform_destination_followup") {
-    return {
+    return withAudit({
       status: "repeat_handoff",
       reason_code: "clarte_platform_destination_followup",
       clarte_state: withVisibleTask(previous, "destination_short"),
@@ -538,11 +766,11 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "repeat_handoff") {
-    return {
+    return withAudit({
       status: "repeat_handoff",
       reason_code: "clarte_repeat_handoff",
       clarte_state: withVisibleTask(previous, "repeat_handoff"),
@@ -551,7 +779,7 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "confirm_proposed_field") {
@@ -559,26 +787,33 @@ export function reduceClarteDispatcherOutput(args: {
       decision.field_state.locked_value ??
       decision.field_state.candidate_value;
     if (!lockedValue) {
-      const next = withVisibleTask({
-        ...previous,
-        field_state: {
-          ...current,
-          status: "missing",
-          needs_user_confirmation: false,
-          why_status:
-            "Confirmation reçue, mais aucune proposition précédente n'est disponible.",
+      const next = withVisibleTask(
+        previous,
+        current.locked_value
+          ? "handoff_ready"
+          : current.status === "proposed"
+          ? "confirm_proposal"
+          : "ask_deeper",
+      );
+      return withAudit(
+        {
+          status: "clarifying",
+          reason_code: "clarte_pending_confirmation_missing",
+          clarte_state: next,
+          draft: current.locked_value
+            ? lockedDraft(current.locked_value)
+            : null,
+          visible_task: next.last_visible_task ?? "ask_deeper",
+          exit_to_global_dispatcher: false,
+          ...toolFlags,
+          risk_assessment: decision.risk_assessment,
         },
-      }, "ask_deeper");
-      return {
-        status: "clarifying",
-        reason_code: "clarte_confirm_without_candidate",
-        clarte_state: next,
-        draft: null,
-        visible_task: "ask_deeper",
-        exit_to_global_dispatcher: false,
-        ...toolFlags,
-        risk_assessment: decision.risk_assessment,
-      };
+        auditWithRestored(
+          baseAudit,
+          "pending_confirmation_missing",
+          "field_state",
+        ),
+      );
     }
     const next = withVisibleTask({
       ...previous,
@@ -591,7 +826,7 @@ export function reduceClarteDispatcherOutput(args: {
         why_status: "Le user a confirmé la formulation proposée.",
       },
     }, "handoff_ready");
-    return {
+    return withAudit({
       status: "handoff_delivered",
       reason_code: "clarte_confirmed_handoff_delivered",
       clarte_state: next,
@@ -600,7 +835,7 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, auditWithApplied(baseAudit, "field_state", "last_handoff_delivered"));
   }
 
   if (decision.flow_action === "revise_current_field") {
@@ -608,25 +843,24 @@ export function reduceClarteDispatcherOutput(args: {
       decision.field_state.locked_value ??
       decision.field_state.candidate_value;
     if (!replacement) {
-      const next = withVisibleTask({
-        ...previous,
-        field_state: {
-          ...current,
-          status: "missing",
-          why_status:
-            "La révision est détectée, mais la nouvelle formulation n'est pas exploitable.",
-        },
-      }, "ask_deeper");
-      return {
+      const next = withVisibleTask(
+        previous,
+        current.locked_value
+          ? "handoff_ready"
+          : current.status === "proposed"
+          ? "confirm_proposal"
+          : "ask_deeper",
+      );
+      return withAudit({
         status: "clarifying",
-        reason_code: "clarte_revision_missing_replacement",
+        reason_code: "clarte_candidate_missing",
         clarte_state: next,
-        draft: null,
-        visible_task: "ask_deeper",
+        draft: current.locked_value ? lockedDraft(current.locked_value) : null,
+        visible_task: next.last_visible_task ?? "ask_deeper",
         exit_to_global_dispatcher: false,
         ...toolFlags,
         risk_assessment: decision.risk_assessment,
-      };
+      }, auditWithRestored(baseAudit, "candidate_missing", "field_state"));
     }
     const next = withVisibleTask({
       ...previous,
@@ -639,7 +873,7 @@ export function reduceClarteDispatcherOutput(args: {
         why_status: "Le user a remplacé la valeur plateforme clarté.",
       },
     }, "revision_done");
-    return {
+    return withAudit({
       status: "handoff_delivered",
       reason_code: "clarte_revision_applied",
       clarte_state: next,
@@ -648,13 +882,18 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, auditWithApplied(baseAudit, "field_state", "last_handoff_delivered"));
   }
 
-  const field = decision.field_state;
+  const merged = mergeClarteLocalState({
+    previous,
+    decision,
+    transition: decision.flow_action,
+  });
+  const field = merged.state.field_state;
   if (field.status === "locked" && field.locked_value) {
     const next = withVisibleTask({
-      ...previous,
+      ...merged.state,
       field_state: {
         ...field,
         candidate_value: null,
@@ -662,7 +901,7 @@ export function reduceClarteDispatcherOutput(args: {
         needs_user_confirmation: false,
       },
     }, "handoff_ready");
-    return {
+    return withAudit({
       status: "handoff_delivered",
       reason_code: "clarte_handoff_delivered",
       clarte_state: next,
@@ -671,19 +910,19 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, auditWithApplied(merged.audit, "last_handoff_delivered"));
   }
 
   if (field.status === "proposed" && field.candidate_value) {
     const next = withVisibleTask({
-      ...previous,
+      ...merged.state,
       field_state: {
         ...field,
         locked_value: current.locked_value,
         needs_user_confirmation: true,
       },
     }, "confirm_proposal");
-    return {
+    return withAudit({
       status: "clarifying",
       reason_code: "clarte_field_proposed",
       clarte_state: next,
@@ -692,21 +931,33 @@ export function reduceClarteDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, merged.audit);
   }
 
-  const next = withVisibleTask({
-    ...previous,
-    field_state: {
-      status: "missing",
-      candidate_value: null,
-      locked_value: current.locked_value,
-      previous_value: current.previous_value,
-      needs_user_confirmation: false,
-      why_status: field.why_status,
-    },
-  }, "ask_deeper");
-  return {
+  if (current.locked_value || current.candidate_value) {
+    const next = withVisibleTask(
+      merged.state,
+      current.locked_value ? "handoff_ready" : "confirm_proposal",
+    );
+    return withAudit(
+      {
+        status: current.locked_value ? "handoff_delivered" : "clarifying",
+        reason_code: current.locked_value
+          ? "clarte_field_already_locked_preserved"
+          : "clarte_field_candidate_preserved",
+        clarte_state: next,
+        draft: current.locked_value ? lockedDraft(current.locked_value) : null,
+        visible_task: next.last_visible_task ?? "ask_deeper",
+        exit_to_global_dispatcher: false,
+        ...toolFlags,
+        risk_assessment: decision.risk_assessment,
+      },
+      merged.audit,
+    );
+  }
+
+  const next = withVisibleTask(merged.state, "ask_deeper");
+  return withAudit({
     status: "clarifying",
     reason_code: "clarte_field_missing",
     clarte_state: next,
@@ -715,7 +966,7 @@ export function reduceClarteDispatcherOutput(args: {
     exit_to_global_dispatcher: false,
     ...toolFlags,
     risk_assessment: decision.risk_assessment,
-  };
+  }, merged.audit);
 }
 
 function actionFromStructuredSignal(value: unknown): ClarteFlowAction | null {

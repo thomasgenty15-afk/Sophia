@@ -12,6 +12,8 @@ export function emptyStatusRecapProjection(): StatusRecapProjection {
     one_shot_reminders: { pending: [], cancelled_recent: [] },
     recurring_reminders: [],
     potion_sessions: [],
+    plan_items: [],
+    plan_progress_entries: [],
     coach_preferences: [],
     recent_effect_history: [],
   };
@@ -116,6 +118,8 @@ export async function loadStatusRecapProjection(args: {
     cancelledRows,
     recurringRows,
     potionRows,
+    planRows,
+    progressEntryRows,
     preferenceRows,
     recentEffectHistory,
   ] = await Promise.all([
@@ -177,6 +181,26 @@ export async function loadStatusRecapProjection(args: {
         .eq("user_id", args.userId)
         .order("created_at", { ascending: false })
         .limit(3) as any,
+    ),
+    safeRows<Record<string, unknown>>(
+      args.supabase
+        .from("user_plan_items")
+        .select(
+          "id,title,status,current_reps,target_reps,created_at,activation_order",
+        )
+        .eq("user_id", args.userId)
+        .order("activation_order", { ascending: true })
+        .limit(12) as any,
+    ),
+    safeRows<Record<string, unknown>>(
+      args.supabase
+        .from("user_plan_item_entries")
+        .select(
+          "id,plan_item_id,entry_kind,value_text,effective_at,created_at",
+        )
+        .eq("user_id", args.userId)
+        .order("created_at", { ascending: false })
+        .limit(12) as any,
     ),
     safeRows<Record<string, unknown>>(
       args.supabase
@@ -249,6 +273,33 @@ export async function loadStatusRecapProjection(args: {
       status: String(row.status ?? ""),
       created_at: row.created_at ? String(row.created_at) : null,
     })).filter((row) => row.id),
+    plan_items: planRows.map((row) => ({
+      id: String(row.id ?? ""),
+      title: String(row.title ?? "").trim() || "action du plan",
+      status: String(row.status ?? ""),
+      current_reps: Number.isFinite(Number(row.current_reps))
+        ? Number(row.current_reps)
+        : null,
+      target_reps: Number.isFinite(Number(row.target_reps))
+        ? Number(row.target_reps)
+        : null,
+      created_at: row.created_at ? String(row.created_at) : null,
+    })).filter((row) => row.id),
+    plan_progress_entries: progressEntryRows.map((row) => {
+      const planItemId = String(row.plan_item_id ?? "");
+      const item = planRows.find((candidate) =>
+        String(candidate.id ?? "") === planItemId
+      );
+      return {
+        id: String(row.id ?? ""),
+        plan_item_id: planItemId,
+        plan_item_title: item ? String(item.title ?? "").trim() || null : null,
+        entry_kind: String(row.entry_kind ?? ""),
+        value_text: row.value_text ? String(row.value_text) : null,
+        effective_at: row.effective_at ? String(row.effective_at) : null,
+        created_at: row.created_at ? String(row.created_at) : null,
+      };
+    }).filter((row) => row.id),
     coach_preferences: preferenceRows.map((row) => ({
       key: String(row.key ?? ""),
       value: row.value,
@@ -261,6 +312,10 @@ export async function loadStatusRecapProjection(args: {
       effect_type: entry.effect_type,
       created_at: entry.created_at,
       reason_code: entry.reason_code,
+      operation_type: entry.operation_type,
+      committed_id: entry.committed_id,
+      payload_summary: entry.payload_summary,
+      db_ref: entry.db_ref,
     })),
   };
 }

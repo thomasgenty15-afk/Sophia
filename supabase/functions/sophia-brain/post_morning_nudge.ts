@@ -191,6 +191,32 @@ export type PostMorningNudgeRuntimeResult = {
   toolSkillRun: Record<string, unknown>;
 };
 
+export type PostMorningNudgeStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    operation: "modify" | "clear";
+    reason_code:
+      | "server_owned_field_change_not_allowed"
+      | "server_owned_field_clear_not_allowed"
+      | "invalid_status_transition";
+  }>;
+};
+
+type PostMorningNudgeStateUpdates = {
+  status: PostMorningNudgeStatus;
+  turn_count_increment: number;
+  close_after_visible: boolean;
+  modified_fields?: string[];
+  clear_fields?: string[];
+};
+
 export type PostMorningNudgeActionFlowAction =
   | "quick_close_ready"
   | "motivate_light"
@@ -225,11 +251,7 @@ export type PostMorningNudgeActionDispatcherOutput = {
   confidence: "low" | "medium" | "high";
   risk_score: number;
   local_assessment: PostMorningNudgeLocalAssessment;
-  state_updates: {
-    status: PostMorningNudgeStatus;
-    turn_count_increment: number;
-    close_after_visible: boolean;
-  };
+  state_updates: PostMorningNudgeStateUpdates;
   visible_task: {
     kind: PostMorningNudgeActionVisibleTaskKind;
     instruction: string;
@@ -302,11 +324,7 @@ export type PostMorningNudgeSuppressedActionDispatcherOutput = {
   confidence: "low" | "medium" | "high";
   risk_score: number;
   local_assessment: PostMorningNudgeLocalAssessment;
-  state_updates: {
-    status: PostMorningNudgeStatus;
-    turn_count_increment: number;
-    close_after_visible: boolean;
-  };
+  state_updates: PostMorningNudgeStateUpdates;
   visible_task: {
     kind: PostMorningNudgeSuppressedActionVisibleTaskKind;
     instruction: string;
@@ -379,11 +397,7 @@ export type PostMorningNudgeEmotionalPresenceDispatcherOutput = {
   confidence: "low" | "medium" | "high";
   risk_score: number;
   local_assessment: PostMorningNudgeLocalAssessment;
-  state_updates: {
-    status: PostMorningNudgeStatus;
-    turn_count_increment: number;
-    close_after_visible: boolean;
-  };
+  state_updates: PostMorningNudgeStateUpdates;
   visible_task: {
     kind: PostMorningNudgeEmotionalPresenceVisibleTaskKind;
     instruction: string;
@@ -529,6 +543,24 @@ function postMorningStatus(value: unknown): PostMorningNudgeStatus {
     ].includes(raw)
     ? raw as PostMorningNudgeStatus
     : "active";
+}
+
+function postMorningStateUpdates(
+  raw: unknown,
+): PostMorningNudgeStateUpdates {
+  const root = raw && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as Record<string, unknown>
+    : {};
+  return {
+    status: postMorningStatus(root.status),
+    turn_count_increment: Math.max(
+      1,
+      Math.floor(Number(root.turn_count_increment ?? 1) || 1),
+    ),
+    close_after_visible: root.close_after_visible === true,
+    modified_fields: stringArray(root.modified_fields),
+    clear_fields: stringArray(root.clear_fields),
+  };
 }
 
 function actionReadiness(
@@ -766,14 +798,7 @@ export function normalizePostMorningNudgeEmotionalPresenceDispatcherOutput(
     confidence: confidence(root.confidence),
     risk_score: riskScore,
     local_assessment: assessment,
-    state_updates: {
-      status: postMorningStatus(stateUpdates.status),
-      turn_count_increment: Math.max(
-        1,
-        Math.floor(Number(stateUpdates.turn_count_increment ?? 1) || 1),
-      ),
-      close_after_visible: stateUpdates.close_after_visible === true,
-    },
+    state_updates: postMorningStateUpdates(stateUpdates),
     visible_task: {
       kind: emotionalPresenceVisibleTaskKind(visibleTask.kind),
       instruction: cleanText(visibleTask.instruction),
@@ -824,14 +849,7 @@ export function normalizePostMorningNudgeSuppressedActionDispatcherOutput(
     confidence: confidence(root.confidence),
     risk_score: riskScore,
     local_assessment: assessment,
-    state_updates: {
-      status: postMorningStatus(stateUpdates.status),
-      turn_count_increment: Math.max(
-        1,
-        Math.floor(Number(stateUpdates.turn_count_increment ?? 1) || 1),
-      ),
-      close_after_visible: stateUpdates.close_after_visible === true,
-    },
+    state_updates: postMorningStateUpdates(stateUpdates),
     visible_task: {
       kind: suppressedActionVisibleTaskKind(visibleTask.kind),
       instruction: cleanText(visibleTask.instruction),
@@ -882,14 +900,7 @@ export function normalizePostMorningNudgeActionDispatcherOutput(
     confidence: confidence(root.confidence),
     risk_score: riskScore,
     local_assessment: assessment,
-    state_updates: {
-      status: postMorningStatus(stateUpdates.status),
-      turn_count_increment: Math.max(
-        1,
-        Math.floor(Number(stateUpdates.turn_count_increment ?? 1) || 1),
-      ),
-      close_after_visible: stateUpdates.close_after_visible === true,
-    },
+    state_updates: postMorningStateUpdates(stateUpdates),
     visible_task: {
       kind: actionVisibleTaskKind(visibleTask.kind),
       instruction: cleanText(visibleTask.instruction),
@@ -1632,7 +1643,7 @@ export function actionDispatcherSystemPrompt(): string {
     "- visible_task.kind: stage visible exact, jamais generique. Aligne-le avec flow_action: choose_first_step -> choose_first_step, reduce_scope -> reduce_scope, handle_blocker -> blocker_help, cancel_flow/exit local -> exit_or_cancel, safety_preempt -> safety.",
     "- visible_task.instruction: consigne courte pour le visible agent. Laisse vide seulement si kind+conversation_context suffisent. Ne mets jamais un message visible complet.",
     "- visible_task.conversation_context: seul contexte donne au prompt visible. Inclure source_nudge_summary, flow_kind, user_words utiles, known_values, missing_or_weak_values, tone_constraints, do_not_say, evidence_used. Ne jamais inclure DB brute, micro_memory brute, note_information brute ni secrets.",
-    "- note_information: null quand le flow reste local. Obligatoire pour exit_to_global_dispatcher et safety_preempt. Structure canonique: source_flow_id, handoff_reason, target_dispatcher, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. Mets user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence et recommended_next_focus dans structured_context si utiles. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note. Elle est consommee par le dispatcher cible, jamais par le prompt visible.",
+    "- note_information: null quand le flow reste local. Obligatoire pour exit_to_global_dispatcher et safety_preempt. Structure canonique: source_flow_id, handoff_reason, target_dispatcher, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. Mets user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence et recommended_next_focus dans structured_context si utiles, pas comme champs top-level inventes. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, executable_from_chat, risk_score ou committed_effects dans la note. Elle est consommee par le dispatcher cible, jamais par le prompt visible.",
     "- evidence: indices semantiques reellement utilises: mots du user, nudge/action cible, friction explicite, demande d'outil, signal safety. Pas de pseudo-preuves ni de citations inventees.",
     "",
     "Transition Rules:",
@@ -1835,7 +1846,7 @@ export function suppressedActionDispatcherSystemPrompt(): string {
     "- visible_task.kind: stage exact: support_emotion -> soft_support; offer_minimal_save -> offer_minimal_save; reopen_action_gently -> reopen_action_gently; confirm_no_action_today -> confirm_no_action_today; cancel_flow -> exit_or_cancel; safety_preempt -> safety.",
     "- visible_task.instruction: consigne courte pour visible agent, pas un message visible.",
     "- visible_task.conversation_context: seul contexte visible-safe. Inclure raison de suppression, action supprimee si utile, besoin actuel, limites de ton, incertitudes et do_not_say. Ne jamais inclure DB brute, micro_memory brute ni note_information brute.",
-    "- note_information: null pour continuation locale. Obligatoire pour exit_to_global_dispatcher et safety_preempt. Structure canonique: source_flow_id, handoff_reason, target_dispatcher, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. Mets les details comme user_message_summary, collected_state, unresolved_questions, evidence et recommended_next_focus dans structured_context, pas comme champs top-level inventes. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note. Elle cible global/capacite ou safety_crisis et n'est jamais transmise brute au visible prompt.",
+    "- note_information: null pour continuation locale. Obligatoire pour exit_to_global_dispatcher et safety_preempt. Structure canonique: source_flow_id, handoff_reason, target_dispatcher, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. Mets les details comme user_message_summary, collected_state, unresolved_questions, evidence et recommended_next_focus dans structured_context, pas comme champs top-level inventes. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, executable_from_chat, risk_score ou committed_effects dans la note. Elle cible global/capacite ou safety_crisis et n'est jamais transmise brute au visible prompt.",
     "- evidence: mots du user et signaux semantiques utilises: refus d'agir, besoin de repos, demande de micro-version, demande d'outil, safety. Pas de pseudo-preuves.",
     "",
     "Transition Rules:",
@@ -2041,7 +2052,7 @@ export function emotionalPresenceDispatcherSystemPrompt(): string {
     "- visible_task.kind: stage exact: hold_space_support -> hold_space; ask_support_preference -> ask_support_preference; offer_soft_next_step -> offer_soft_next_step; reactivate_gently -> reactivate_gently; cancel_flow -> exit_or_cancel; safety_preempt -> safety.",
     "- visible_task.instruction: consigne courte au visible agent, jamais message visible complet.",
     "- visible_task.conversation_context: seul contexte visible-safe. Inclure qu'il n'y avait pas d'action cachee si pertinent, user_words, besoin emotionnel, incertitudes, limites de ton et do_not_say. Pas de DB brute, micro_memory brute ni note_information brute.",
-    "- note_information: null pour presence ou soutien local. Obligatoire pour exit_to_global_dispatcher et safety_preempt. Structure canonique: source_flow_id, handoff_reason, target_dispatcher, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. Mets no_hidden_action, user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence et recommended_next_focus dans structured_context si utiles, pas comme champs top-level inventes. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note. La note est pour le dispatcher cible et ne doit jamais etre exposee brute au prompt visible.",
+    "- note_information: null pour presence ou soutien local. Obligatoire pour exit_to_global_dispatcher et safety_preempt. Structure canonique: source_flow_id, handoff_reason, target_dispatcher, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. Mets no_hidden_action, user_message_summary, active_flow_summary, collected_state, unresolved_questions, confidence, evidence et recommended_next_focus dans structured_context si utiles, pas comme champs top-level inventes. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, executable_from_chat, risk_score ou committed_effects dans la note. La note est pour le dispatcher cible et ne doit jamais etre exposee brute au prompt visible.",
     "- evidence: indices semantiques reellement utilises: besoin d'ecoute, demande de point d'appui, refus de mission, demande de potion/carte/status, safety. Pas de pseudo-preuves.",
     "",
     "Transition Rules:",
@@ -2226,6 +2237,180 @@ function mergeAssessment(
   };
 }
 
+const POST_MORNING_SERVER_OWNED_FIELDS = [
+  "skill_id",
+  "flow_kind",
+  "source_nudge",
+  "activation_note_information",
+  "status",
+  "turn_count",
+  "max_turns",
+  "created_at",
+  "updated_at",
+  "local_assessment",
+  "active_state",
+] as const;
+
+const POST_MORNING_IMMUTABLE_FIELDS = new Set<string>([
+  "skill_id",
+  "flow_kind",
+  "source_nudge",
+  "activation_note_information",
+  "max_turns",
+  "created_at",
+]);
+
+type PostMorningStateTransition = "continue" | "close" | "handoff" | "safety";
+
+type PostMorningAnyDispatcherOutput =
+  | PostMorningNudgeActionDispatcherOutput
+  | PostMorningNudgeSuppressedActionDispatcherOutput
+  | PostMorningNudgeEmotionalPresenceDispatcherOutput;
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.map((value) => cleanText(value)).filter(Boolean))];
+}
+
+function isValidRequestedStatusForTransition(args: {
+  transition: PostMorningStateTransition;
+  status: PostMorningNudgeStatus;
+}): boolean {
+  if (args.transition === "handoff") return args.status === "exit_to_global";
+  if (args.transition === "safety") return args.status === "safety";
+  if (args.transition === "close") {
+    return args.status === "closed" || args.status === "closing";
+  }
+  return args.status === "active" || args.status === "closing";
+}
+
+export function mergePostMorningNudgeLocalState(args: {
+  previous: PostMorningNudgeActiveState;
+  output: PostMorningAnyDispatcherOutput;
+  transition: PostMorningStateTransition;
+  now: string;
+  constraints?: string[];
+}): {
+  mergedState: PostMorningNudgeActiveState;
+  nextState: PostMorningNudgeActiveState | null;
+  state_mutation_audit: PostMorningNudgeStateMutationAudit;
+} {
+  const modifiedDeclared = uniqueStrings(
+    args.output.state_updates.modified_fields ?? [],
+  );
+  const clearDeclared = uniqueStrings(
+    args.output.state_updates.clear_fields ?? [],
+  );
+  const transition = args.transition;
+  const requestedStatus = args.output.state_updates.status;
+  const requestedStatusValid = isValidRequestedStatusForTransition({
+    transition,
+    status: requestedStatus,
+  });
+  const turnIncrement = Math.max(
+    1,
+    Math.floor(
+      Number(args.output.state_updates.turn_count_increment ?? 1) || 1,
+    ),
+  );
+  const nextStatus: PostMorningNudgeStatus = transition === "handoff"
+    ? "exit_to_global"
+    : transition === "safety"
+    ? "safety"
+    : transition === "close"
+    ? "closed"
+    : requestedStatus === "closing"
+    ? "closing"
+    : "active";
+  const mergedState: PostMorningNudgeActiveState = {
+    ...args.previous,
+    skill_id: "post_morning_nudge",
+    flow_kind: args.previous.flow_kind,
+    source_nudge: args.previous.source_nudge,
+    activation_note_information: args.previous.activation_note_information,
+    local_assessment: mergeAssessment(
+      args.previous.local_assessment,
+      args.output.local_assessment,
+    ),
+    turn_count: args.previous.turn_count + turnIncrement,
+    max_turns: args.previous.max_turns,
+    created_at: args.previous.created_at,
+    updated_at: args.now,
+    status: nextStatus,
+  };
+  const nextState = transition === "continue" || transition === "close"
+    ? mergedState
+    : null;
+  const rejectedChanges: PostMorningNudgeStateMutationAudit[
+    "rejected_changes"
+  ] = [];
+  const restoredFields: string[] = [];
+  const preservedFields = [
+    "skill_id",
+    "flow_kind",
+    "source_nudge",
+    "activation_note_information",
+    "max_turns",
+    "created_at",
+  ];
+  for (const field of modifiedDeclared) {
+    if (
+      POST_MORNING_IMMUTABLE_FIELDS.has(field) ||
+      field === "active_state"
+    ) {
+      rejectedChanges.push({
+        field,
+        operation: "modify",
+        reason_code: "server_owned_field_change_not_allowed",
+      });
+      restoredFields.push(field);
+    }
+  }
+  for (const field of clearDeclared) {
+    const canClearActiveState = field === "active_state" &&
+      (transition === "close" || transition === "handoff" ||
+        transition === "safety");
+    if (!canClearActiveState) {
+      rejectedChanges.push({
+        field,
+        operation: "clear",
+        reason_code: "server_owned_field_clear_not_allowed",
+      });
+      restoredFields.push(field);
+    }
+  }
+  if (!requestedStatusValid) {
+    rejectedChanges.push({
+      field: "status",
+      operation: "modify",
+      reason_code: "invalid_status_transition",
+    });
+    restoredFields.push("status");
+  }
+  const clearedFields = transition === "close" || transition === "handoff" ||
+      transition === "safety"
+    ? ["active_state"]
+    : [];
+  return {
+    mergedState,
+    nextState,
+    state_mutation_audit: {
+      server_owned_fields: [...POST_MORNING_SERVER_OWNED_FIELDS],
+      modified_fields_declared: modifiedDeclared,
+      clear_fields_declared: clearDeclared,
+      applied_fields: [
+        "local_assessment",
+        "turn_count",
+        "updated_at",
+        "status",
+      ],
+      preserved_fields: uniqueStrings(preservedFields),
+      restored_fields: uniqueStrings(restoredFields),
+      cleared_fields: clearedFields,
+      rejected_changes: rejectedChanges,
+    },
+  };
+}
+
 function handoffNoteFromActionOutput(args: {
   state: PostMorningNudgeActiveState;
   output: PostMorningNudgeActionDispatcherOutput;
@@ -2256,68 +2441,62 @@ export function reducePostMorningNudgeActionTurn(args: {
   nextState: PostMorningNudgeActiveState | null;
   handoffNote: PostMorningNudgeLocalHandoffNote | null;
   closeAfterVisible: boolean;
+  state_mutation_audit: PostMorningNudgeStateMutationAudit;
 } {
   if (args.state.flow_kind !== "action") {
     throw new Error("post_morning_nudge_action_reducer_requires_action_flow");
   }
   const nowIso = cleanText(args.nowIso) || new Date().toISOString();
-  const turnIncrement = Math.max(
-    1,
-    Math.floor(
-      Number(args.output.state_updates.turn_count_increment ?? 1) || 1,
-    ),
-  );
-  const turnCount = args.state.turn_count + turnIncrement;
-  const baseState: PostMorningNudgeActiveState = {
-    ...args.state,
-    local_assessment: mergeAssessment(
-      args.state.local_assessment,
-      args.output.local_assessment,
-    ),
-    turn_count: turnCount,
-    updated_at: nowIso,
-  };
-
-  if (
-    args.output.flow_action === "exit_to_global_dispatcher" ||
-    args.output.flow_action === "safety_preempt"
-  ) {
-    return {
-      nextState: null,
-      handoffNote: handoffNoteFromActionOutput({
-        state: baseState,
-        output: args.output,
-      }),
-      closeAfterVisible: true,
-    };
-  }
-
-  const closeAfterVisible = args.output.state_updates.close_after_visible ||
-    args.output.state_updates.status === "closed" ||
-    args.output.state_updates.status === "closing" ||
+  const isHandoff = args.output.flow_action === "exit_to_global_dispatcher";
+  const isSafety = args.output.flow_action === "safety_preempt";
+  const turnIncrement = args.output.state_updates.turn_count_increment;
+  const projectedTurnCount = args.state.turn_count + turnIncrement;
+  const shouldCloseByServerRule =
     args.output.flow_action === "quick_close_ready" ||
     args.output.flow_action === "support_not_today" ||
     args.output.flow_action === "negative_nudge_feedback" ||
     args.output.flow_action === "cancel_flow" ||
-    turnCount >= args.state.max_turns;
+    projectedTurnCount >= args.state.max_turns;
+  const transition: PostMorningStateTransition = isSafety
+    ? "safety"
+    : isHandoff
+    ? "handoff"
+    : shouldCloseByServerRule
+    ? "close"
+    : "continue";
+  const merged = mergePostMorningNudgeLocalState({
+    previous: args.state,
+    output: args.output,
+    transition,
+    now: nowIso,
+  });
 
-  if (closeAfterVisible) {
+  if (isHandoff || isSafety) {
     return {
-      nextState: { ...baseState, status: "closed" },
+      nextState: null,
+      handoffNote: handoffNoteFromActionOutput({
+        state: merged.mergedState,
+        output: args.output,
+      }),
+      closeAfterVisible: true,
+      state_mutation_audit: merged.state_mutation_audit,
+    };
+  }
+
+  if (shouldCloseByServerRule) {
+    return {
+      nextState: merged.nextState,
       handoffNote: null,
       closeAfterVisible: true,
+      state_mutation_audit: merged.state_mutation_audit,
     };
   }
 
   return {
-    nextState: {
-      ...baseState,
-      status: args.output.state_updates.status === "active"
-        ? "active"
-        : "closing",
-    },
+    nextState: merged.nextState,
     handoffNote: null,
     closeAfterVisible: false,
+    state_mutation_audit: merged.state_mutation_audit,
   };
 }
 
@@ -2355,6 +2534,7 @@ export function reducePostMorningNudgeSuppressedActionTurn(args: {
   nextState: PostMorningNudgeActiveState | null;
   handoffNote: PostMorningNudgeLocalHandoffNote | null;
   closeAfterVisible: boolean;
+  state_mutation_audit: PostMorningNudgeStateMutationAudit;
 } {
   if (args.state.flow_kind !== "suppressed_action") {
     throw new Error(
@@ -2362,63 +2542,56 @@ export function reducePostMorningNudgeSuppressedActionTurn(args: {
     );
   }
   const nowIso = cleanText(args.nowIso) || new Date().toISOString();
-  const turnIncrement = Math.max(
-    1,
-    Math.floor(
-      Number(args.output.state_updates.turn_count_increment ?? 1) || 1,
-    ),
-  );
-  const turnCount = args.state.turn_count + turnIncrement;
-  const baseState: PostMorningNudgeActiveState = {
-    ...args.state,
-    local_assessment: mergeAssessment(
-      args.state.local_assessment,
-      args.output.local_assessment,
-    ),
-    turn_count: turnCount,
-    updated_at: nowIso,
-  };
-
-  if (
-    args.output.flow_action === "exit_to_global_dispatcher" ||
-    args.output.flow_action === "safety_preempt"
-  ) {
-    return {
-      nextState: null,
-      handoffNote: handoffNoteFromSuppressedActionOutput({
-        state: baseState,
-        output: args.output,
-      }),
-      closeAfterVisible: true,
-    };
-  }
-
-  const closeAfterVisible = args.output.state_updates.close_after_visible ||
-    args.output.state_updates.status === "closed" ||
-    args.output.state_updates.status === "closing" ||
+  const isHandoff = args.output.flow_action === "exit_to_global_dispatcher";
+  const isSafety = args.output.flow_action === "safety_preempt";
+  const projectedTurnCount = args.state.turn_count +
+    args.output.state_updates.turn_count_increment;
+  const shouldCloseByServerRule =
     args.output.flow_action === "protective_close" ||
     args.output.flow_action === "confirm_no_action_today" ||
     args.output.flow_action === "negative_nudge_feedback" ||
     args.output.flow_action === "cancel_flow" ||
-    turnCount >= args.state.max_turns;
+    projectedTurnCount >= args.state.max_turns;
+  const transition: PostMorningStateTransition = isSafety
+    ? "safety"
+    : isHandoff
+    ? "handoff"
+    : shouldCloseByServerRule
+    ? "close"
+    : "continue";
+  const merged = mergePostMorningNudgeLocalState({
+    previous: args.state,
+    output: args.output,
+    transition,
+    now: nowIso,
+  });
 
-  if (closeAfterVisible) {
+  if (isHandoff || isSafety) {
     return {
-      nextState: { ...baseState, status: "closed" },
+      nextState: null,
+      handoffNote: handoffNoteFromSuppressedActionOutput({
+        state: merged.mergedState,
+        output: args.output,
+      }),
+      closeAfterVisible: true,
+      state_mutation_audit: merged.state_mutation_audit,
+    };
+  }
+
+  if (shouldCloseByServerRule) {
+    return {
+      nextState: merged.nextState,
       handoffNote: null,
       closeAfterVisible: true,
+      state_mutation_audit: merged.state_mutation_audit,
     };
   }
 
   return {
-    nextState: {
-      ...baseState,
-      status: args.output.state_updates.status === "active"
-        ? "active"
-        : "closing",
-    },
+    nextState: merged.nextState,
     handoffNote: null,
     closeAfterVisible: false,
+    state_mutation_audit: merged.state_mutation_audit,
   };
 }
 
@@ -2456,6 +2629,7 @@ export function reducePostMorningNudgeEmotionalPresenceTurn(args: {
   nextState: PostMorningNudgeActiveState | null;
   handoffNote: PostMorningNudgeLocalHandoffNote | null;
   closeAfterVisible: boolean;
+  state_mutation_audit: PostMorningNudgeStateMutationAudit;
 } {
   if (args.state.flow_kind !== "emotional_presence") {
     throw new Error(
@@ -2463,62 +2637,55 @@ export function reducePostMorningNudgeEmotionalPresenceTurn(args: {
     );
   }
   const nowIso = cleanText(args.nowIso) || new Date().toISOString();
-  const turnIncrement = Math.max(
-    1,
-    Math.floor(
-      Number(args.output.state_updates.turn_count_increment ?? 1) || 1,
-    ),
-  );
-  const turnCount = args.state.turn_count + turnIncrement;
-  const baseState: PostMorningNudgeActiveState = {
-    ...args.state,
-    local_assessment: mergeAssessment(
-      args.state.local_assessment,
-      args.output.local_assessment,
-    ),
-    turn_count: turnCount,
-    updated_at: nowIso,
-  };
-
-  if (
-    args.output.flow_action === "exit_to_global_dispatcher" ||
-    args.output.flow_action === "safety_preempt"
-  ) {
-    return {
-      nextState: null,
-      handoffNote: handoffNoteFromEmotionalPresenceOutput({
-        state: baseState,
-        output: args.output,
-      }),
-      closeAfterVisible: true,
-    };
-  }
-
-  const closeAfterVisible = args.output.state_updates.close_after_visible ||
-    args.output.state_updates.status === "closed" ||
-    args.output.state_updates.status === "closing" ||
+  const isHandoff = args.output.flow_action === "exit_to_global_dispatcher";
+  const isSafety = args.output.flow_action === "safety_preempt";
+  const projectedTurnCount = args.state.turn_count +
+    args.output.state_updates.turn_count_increment;
+  const shouldCloseByServerRule =
     args.output.flow_action === "presence_ack_close" ||
     args.output.flow_action === "negative_nudge_feedback" ||
     args.output.flow_action === "cancel_flow" ||
-    turnCount >= args.state.max_turns;
+    projectedTurnCount >= args.state.max_turns;
+  const transition: PostMorningStateTransition = isSafety
+    ? "safety"
+    : isHandoff
+    ? "handoff"
+    : shouldCloseByServerRule
+    ? "close"
+    : "continue";
+  const merged = mergePostMorningNudgeLocalState({
+    previous: args.state,
+    output: args.output,
+    transition,
+    now: nowIso,
+  });
 
-  if (closeAfterVisible) {
+  if (isHandoff || isSafety) {
     return {
-      nextState: { ...baseState, status: "closed" },
+      nextState: null,
+      handoffNote: handoffNoteFromEmotionalPresenceOutput({
+        state: merged.mergedState,
+        output: args.output,
+      }),
+      closeAfterVisible: true,
+      state_mutation_audit: merged.state_mutation_audit,
+    };
+  }
+
+  if (shouldCloseByServerRule) {
+    return {
+      nextState: merged.nextState,
       handoffNote: null,
       closeAfterVisible: true,
+      state_mutation_audit: merged.state_mutation_audit,
     };
   }
 
   return {
-    nextState: {
-      ...baseState,
-      status: args.output.state_updates.status === "active"
-        ? "active"
-        : "closing",
-    },
+    nextState: merged.nextState,
     handoffNote: null,
     closeAfterVisible: false,
+    state_mutation_audit: merged.state_mutation_audit,
   };
 }
 
@@ -2649,6 +2816,7 @@ export async function runPostMorningNudgeLocalRuntime(args: {
         micro_memory_context: microMemoryContext,
         local_assessment: actionOutput.local_assessment,
         state_updates: actionOutput.state_updates,
+        state_mutation_audit: reduced.state_mutation_audit,
         close_after_visible: reduced.closeAfterVisible,
         note_information: reduced.handoffNote?.note_information ?? null,
         local_handoff_note: reduced.handoffNote,
@@ -2665,6 +2833,20 @@ export async function runPostMorningNudgeLocalRuntime(args: {
         allowed_effects: [],
         committed_effects: [],
         blocked_effects: [],
+        diagnosis: {
+          flow_action: actionOutput.flow_action,
+          visible_task_kind: actionOutput.visible_task.kind,
+          pending_state_present: true,
+          source_nudge_present: Boolean(state.source_nudge),
+          direct_handoff_flag: transitionToAnotherDispatcher,
+          target_dispatcher: reduced.handoffNote?.note_information
+            ?.target_dispatcher ?? null,
+          selected_target: actionOutput.local_assessment
+            .target_action_reference ?? null,
+          constraints: [],
+          blocked_effects: [],
+          state_mutation_audit: reduced.state_mutation_audit,
+        },
         ai_call_count: transitionToAnotherDispatcher ? 1 : 2,
         runtime_trace: [{
           component: "post_morning_nudge.action_dispatcher",
@@ -2693,6 +2875,7 @@ export async function runPostMorningNudgeLocalRuntime(args: {
           activation_note_information_consumed: true,
           db_context_pack_loaded: true,
           micro_memory_items: microMemoryContext.items.length,
+          state_mutation_audit: reduced.state_mutation_audit,
         }],
       },
     };
@@ -2808,6 +2991,7 @@ export async function runPostMorningNudgeLocalRuntime(args: {
         micro_memory_context: microMemoryContext,
         local_assessment: suppressedOutput.local_assessment,
         state_updates: suppressedOutput.state_updates,
+        state_mutation_audit: reduced.state_mutation_audit,
         close_after_visible: reduced.closeAfterVisible,
         note_information: reduced.handoffNote?.note_information ?? null,
         local_handoff_note: reduced.handoffNote,
@@ -2824,6 +3008,22 @@ export async function runPostMorningNudgeLocalRuntime(args: {
         allowed_effects: [],
         committed_effects: [],
         blocked_effects: [],
+        diagnosis: {
+          flow_action: suppressedOutput.flow_action,
+          visible_task_kind: suppressedOutput.visible_task.kind,
+          pending_state_present: true,
+          source_nudge_present: Boolean(state.source_nudge),
+          direct_handoff_flag: transitionToAnotherDispatcher,
+          target_dispatcher: reduced.handoffNote?.note_information
+            ?.target_dispatcher ?? null,
+          selected_target: suppressedOutput.local_assessment
+            .target_action_reference ?? null,
+          constraints: [
+            "source nudge suppressed action; do not claim plan mutation",
+          ],
+          blocked_effects: [],
+          state_mutation_audit: reduced.state_mutation_audit,
+        },
         ai_call_count: transitionToAnotherDispatcher ? 1 : 2,
         runtime_trace: [{
           component: "post_morning_nudge.suppressed_action_dispatcher",
@@ -2854,6 +3054,7 @@ export async function runPostMorningNudgeLocalRuntime(args: {
           activation_note_information_consumed: true,
           db_context_pack_loaded: true,
           micro_memory_items: microMemoryContext.items.length,
+          state_mutation_audit: reduced.state_mutation_audit,
         }],
       },
     };
@@ -2969,6 +3170,7 @@ export async function runPostMorningNudgeLocalRuntime(args: {
         micro_memory_context: microMemoryContext,
         local_assessment: emotionalOutput.local_assessment,
         state_updates: emotionalOutput.state_updates,
+        state_mutation_audit: reduced.state_mutation_audit,
         close_after_visible: reduced.closeAfterVisible,
         note_information: reduced.handoffNote?.note_information ?? null,
         local_handoff_note: reduced.handoffNote,
@@ -2985,6 +3187,21 @@ export async function runPostMorningNudgeLocalRuntime(args: {
         allowed_effects: [],
         committed_effects: [],
         blocked_effects: [],
+        diagnosis: {
+          flow_action: emotionalOutput.flow_action,
+          visible_task_kind: emotionalOutput.visible_task.kind,
+          pending_state_present: true,
+          source_nudge_present: Boolean(state.source_nudge),
+          direct_handoff_flag: transitionToAnotherDispatcher,
+          target_dispatcher: reduced.handoffNote?.note_information
+            ?.target_dispatcher ?? null,
+          selected_target: emotionalOutput.local_assessment
+            .reactivation_candidate ??
+            emotionalOutput.local_assessment.soft_next_step_candidate ?? null,
+          constraints: ["source nudge has no hidden action"],
+          blocked_effects: [],
+          state_mutation_audit: reduced.state_mutation_audit,
+        },
         ai_call_count: transitionToAnotherDispatcher ? 1 : 2,
         runtime_trace: [{
           component: "post_morning_nudge.emotional_presence_dispatcher",
@@ -3015,6 +3232,7 @@ export async function runPostMorningNudgeLocalRuntime(args: {
           activation_note_information_consumed: true,
           db_context_pack_loaded: true,
           micro_memory_items: microMemoryContext.items.length,
+          state_mutation_audit: reduced.state_mutation_audit,
         }],
       },
     };

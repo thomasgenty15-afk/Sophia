@@ -249,6 +249,17 @@ export type PrepareAttackCardLocalDispatcherOutput = {
   evidence: string[];
 };
 
+export type PrepareAttackCardStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{ field: string; reason_code: string }>;
+};
+
 export type PrepareAttackCardLocalDispatcherInput = {
   user_id: string;
   request_id?: string | null;
@@ -297,6 +308,7 @@ export type PrepareAttackCardReducerResult = {
   subskill_context: Record<string, unknown> | null;
   risk_assessment: PrepareAttackCardRiskAssessment;
   blocked_effects: Array<{ type: string; reason_code: string }>;
+  state_mutation_audit: PrepareAttackCardStateMutationAudit;
 };
 
 export const ATTACK_CARD_TECHNIQUE_LABELS: Record<
@@ -1229,6 +1241,481 @@ function mergeFields(args: {
   return base;
 }
 
+const SERVER_OWNED_LOCAL_STATE_FIELDS = [
+  "flow_id",
+  "platform_destination",
+  "platform_field_order",
+  "current_field_id",
+  "last_visible_task",
+  "last_handoff_delivered",
+  "subskill_history",
+  "target_state",
+  "blocker_state",
+  "technique_state",
+  "platform_field_states",
+  "activation_keyword_state",
+  "note_information",
+  "exit_memo",
+  "local_state_summary",
+  "previous_flow_summary",
+];
+
+const DIRECT_SERVER_COMPUTED_FIELDS = [
+  "flow_id",
+  "platform_destination",
+  "platform_field_order",
+  "current_field_id",
+  "last_visible_task",
+  "last_handoff_delivered",
+  "subskill_history",
+  "note_information",
+  "exit_memo",
+  "local_state_summary",
+  "previous_flow_summary",
+];
+
+function createStateMutationAudit(
+  output: PrepareAttackCardLocalDispatcherOutput,
+): PrepareAttackCardStateMutationAudit {
+  const raw = output as unknown as Record<string, unknown>;
+  return {
+    server_owned_fields: [...SERVER_OWNED_LOCAL_STATE_FIELDS],
+    modified_fields_declared: stringArray(raw.modified_fields, 24),
+    clear_fields_declared: stringArray(raw.clear_fields, 24),
+    applied_fields: [],
+    preserved_fields: [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function addUnique(target: string[], value: string): void {
+  if (!target.includes(value)) target.push(value);
+}
+
+function rejectMutation(
+  audit: PrepareAttackCardStateMutationAudit,
+  field: string,
+  reason_code: string,
+): void {
+  addUnique(audit.restored_fields, field);
+  audit.rejected_changes.push({ field, reason_code });
+}
+
+function changedValue(before: unknown, after: unknown): boolean {
+  return JSON.stringify(before) !== JSON.stringify(after);
+}
+
+function hasTargetValue(state: PrepareAttackCardTargetState): boolean {
+  return Boolean(state.locked_value || state.candidate_value) ||
+    state.status !== "missing";
+}
+
+function hasBlockerValue(state: PrepareAttackCardBlockerState): boolean {
+  return Boolean(state.locked_value || state.candidate_value) ||
+    state.status !== "missing";
+}
+
+function hasTechniqueValue(state: PrepareAttackCardTechniqueState): boolean {
+  return Boolean(state.technique_key || state.candidate_options.length) ||
+    state.status !== "missing";
+}
+
+function actionAllowsBusinessMutation(
+  action: PrepareAttackCardLocalFlowAction,
+): boolean {
+  return ![
+    "apply_attempt",
+    "repeat_handoff",
+    "platform_destination_followup",
+    "destination_followup",
+    "get_info_product",
+    "get_info_db",
+    "inline_product",
+    "inline_status",
+    "handoff_to_local_flow",
+    "safety_preempt",
+  ].includes(action);
+}
+
+function actionAllowsTargetReplacement(
+  action: PrepareAttackCardLocalFlowAction,
+): boolean {
+  return [
+    "revise_target",
+    "revise",
+    "confirm_candidate",
+    "answer_current_field",
+    "continue_local",
+    "missing_info",
+  ].includes(action);
+}
+
+function actionAllowsTechniqueReplacement(
+  action: PrepareAttackCardLocalFlowAction,
+): boolean {
+  return [
+    "choose_technique",
+    "confirm_technique_proposal",
+    "revise_technique",
+    "revise",
+  ].includes(action);
+}
+
+function normalizePrepareAttackCardLocalState(
+  raw: PrepareAttackCardLocalState | null,
+): PrepareAttackCardLocalState {
+  const initial = createInitialPrepareAttackCardLocalState();
+  if (!raw || typeof raw !== "object") return initial;
+  const root = raw as unknown as Record<string, unknown>;
+  const technique = techniqueState(root.technique_state);
+  const selectedTechnique = technique.technique_key;
+  const baseFields = initialFieldStates(selectedTechnique);
+  const rawFields = recordValue(root.platform_field_states);
+  for (const value of Object.values(rawFields)) {
+    const normalized = fieldState(value, selectedTechnique);
+    if (normalized) baseFields[normalized.field_id] = normalized;
+  }
+  const fieldOrder = selectedTechnique
+    ? requiredFieldOrder(selectedTechnique)
+    : [];
+  const normalized: PrepareAttackCardLocalState = {
+    flow_id: "prepare_attack_card",
+    flow_kind: flowKind(root.flow_kind) ?? initial.flow_kind,
+    platform_destination: stringValue(root.platform_destination) ??
+      PLATFORM_DESTINATION,
+    target_state: targetState(root.target_state),
+    blocker_state: blockerState(root.blocker_state),
+    technique_state: technique,
+    platform_field_order: fieldOrder,
+    platform_field_states: baseFields,
+    activation_keyword_state: activationKeywordState(
+      root.activation_keyword_state,
+      selectedTechnique,
+    ),
+    current_field_id: platformFieldId(root.current_field_id, selectedTechnique),
+    last_visible_task: [
+        "ask_target",
+        "confirm_target_candidate",
+        "ask_blocker",
+        "ask_or_confirm_technique",
+        "ask_platform_field",
+        "confirm_platform_field_proposal",
+        "handoff_ready",
+        "revision_done",
+        "destination_short",
+        "apply_attempt",
+        "repeat_handoff",
+        "inline_tool_return",
+        "stop_or_cancel",
+        "exit_ack",
+        "exit_or_cancel",
+        "safety",
+        "safety_transition",
+        "none",
+      ].includes(String(root.last_visible_task ?? ""))
+      ? root.last_visible_task as PrepareAttackCardVisibleTaskKind
+      : null,
+    last_handoff_delivered: root.last_handoff_delivered === true,
+    subskill_history: Array.isArray(root.subskill_history)
+      ? root.subskill_history.filter((item) =>
+        item && typeof item === "object" && !Array.isArray(item)
+      ).slice(-RECENT_MESSAGE_LIMITS.subskillHistory) as Array<
+        Record<string, unknown>
+      >
+      : [],
+  };
+  return {
+    ...normalized,
+    current_field_id: normalized.current_field_id ?? nextFieldId(normalized),
+  };
+}
+
+function mergeTargetServerOwned(args: {
+  previous: PrepareAttackCardTargetState;
+  incoming: PrepareAttackCardTargetState;
+  transition: PrepareAttackCardLocalFlowAction;
+  audit: PrepareAttackCardStateMutationAudit;
+}): PrepareAttackCardTargetState {
+  if (args.incoming.status === "missing" && hasTargetValue(args.previous)) {
+    addUnique(args.audit.preserved_fields, "target_state");
+    return args.previous;
+  }
+  if (
+    args.previous.status === "locked" &&
+    args.incoming.status === "locked" &&
+    args.previous.locked_value !== args.incoming.locked_value &&
+    !actionAllowsTargetReplacement(args.transition)
+  ) {
+    rejectMutation(args.audit, "target_state", "invalid_status_transition");
+    return args.previous;
+  }
+  const merged = mergeTarget(args.previous, args.incoming);
+  addUnique(
+    changedValue(args.previous, merged)
+      ? args.audit.applied_fields
+      : args.audit.preserved_fields,
+    "target_state",
+  );
+  return merged;
+}
+
+function mergeBlockerServerOwned(args: {
+  previous: PrepareAttackCardBlockerState;
+  incoming: PrepareAttackCardBlockerState;
+  transition: PrepareAttackCardLocalFlowAction;
+  audit: PrepareAttackCardStateMutationAudit;
+}): PrepareAttackCardBlockerState {
+  if (args.incoming.status === "missing" && hasBlockerValue(args.previous)) {
+    addUnique(args.audit.preserved_fields, "blocker_state");
+    return args.previous;
+  }
+  if (
+    args.previous.status === "locked" &&
+    args.incoming.status === "locked" &&
+    args.previous.locked_value !== args.incoming.locked_value &&
+    !["revise", "answer_current_field", "continue_local", "missing_info"]
+      .includes(args.transition)
+  ) {
+    rejectMutation(args.audit, "blocker_state", "invalid_status_transition");
+    return args.previous;
+  }
+  const merged = mergeBlocker(args.previous, args.incoming);
+  addUnique(
+    changedValue(args.previous, merged)
+      ? args.audit.applied_fields
+      : args.audit.preserved_fields,
+    "blocker_state",
+  );
+  return merged;
+}
+
+function mergeTechniqueServerOwned(args: {
+  previous: PrepareAttackCardTechniqueState;
+  incoming: PrepareAttackCardTechniqueState;
+  transition: PrepareAttackCardLocalFlowAction;
+  audit: PrepareAttackCardStateMutationAudit;
+}): PrepareAttackCardTechniqueState {
+  if (args.incoming.status === "missing" && hasTechniqueValue(args.previous)) {
+    addUnique(args.audit.preserved_fields, "technique_state");
+    if (args.transition === "confirm_technique_proposal") {
+      rejectMutation(args.audit, "technique_state", "selected_option_missing");
+    }
+    return args.previous;
+  }
+  if (
+    args.previous.technique_key &&
+    args.incoming.technique_key &&
+    args.previous.technique_key !== args.incoming.technique_key &&
+    !actionAllowsTechniqueReplacement(args.transition)
+  ) {
+    rejectMutation(args.audit, "technique_state", "invalid_status_transition");
+    return args.previous;
+  }
+  const merged = mergeTechnique(args.previous, args.incoming);
+  addUnique(
+    changedValue(args.previous, merged)
+      ? args.audit.applied_fields
+      : args.audit.preserved_fields,
+    "technique_state",
+  );
+  return merged;
+}
+
+function mergeActivationKeywordServerOwned(args: {
+  previous: PrepareAttackCardActivationKeywordState;
+  incoming: PrepareAttackCardActivationKeywordState;
+  technique: AttackCardTechniqueKey | null;
+  transition: PrepareAttackCardLocalFlowAction;
+  audit: PrepareAttackCardStateMutationAudit;
+}): PrepareAttackCardActivationKeywordState {
+  const normalized = activationKeywordState(args.incoming, args.technique);
+  if (args.technique !== "pre_engagement") {
+    addUnique(args.audit.cleared_fields, "activation_keyword_state");
+    return normalized;
+  }
+  if (
+    normalized.status === "missing" &&
+    args.previous.status !== "missing" &&
+    args.previous.status !== "not_applicable"
+  ) {
+    addUnique(args.audit.preserved_fields, "activation_keyword_state");
+    return args.previous;
+  }
+  if (
+    args.previous.status === "locked" &&
+    normalized.status === "locked" &&
+    args.previous.locked_value !== normalized.locked_value &&
+    !["revise", "revise_current_field", "answer_current_field"].includes(
+      args.transition,
+    )
+  ) {
+    rejectMutation(
+      args.audit,
+      "activation_keyword_state",
+      "invalid_status_transition",
+    );
+    return args.previous;
+  }
+  addUnique(
+    changedValue(args.previous, normalized)
+      ? args.audit.applied_fields
+      : args.audit.preserved_fields,
+    "activation_keyword_state",
+  );
+  return normalized;
+}
+
+export function mergePrepareAttackCardLocalState(args: {
+  previous: PrepareAttackCardLocalState | null;
+  output: PrepareAttackCardLocalDispatcherOutput;
+  transition: PrepareAttackCardLocalFlowAction;
+  now?: string;
+  constraints?: Record<string, unknown> | null;
+}): {
+  state: PrepareAttackCardLocalState;
+  audit: PrepareAttackCardStateMutationAudit;
+} {
+  const previous = normalizePrepareAttackCardLocalState(args.previous);
+  const audit = createStateMutationAudit(args.output);
+  for (const field of audit.modified_fields_declared) {
+    if (DIRECT_SERVER_COMPUTED_FIELDS.includes(field)) {
+      rejectMutation(audit, field, "blocked_by_constraint");
+    }
+  }
+  for (const field of audit.clear_fields_declared) {
+    if (SERVER_OWNED_LOCAL_STATE_FIELDS.includes(field)) {
+      rejectMutation(audit, field, "invalid_status_transition");
+    }
+  }
+  if (!actionAllowsBusinessMutation(args.transition)) {
+    if (
+      args.output.target_state.status !== "missing" &&
+      changedValue(args.output.target_state, previous.target_state)
+    ) {
+      rejectMutation(audit, "target_state", "blocked_by_constraint");
+    }
+    if (
+      args.output.blocker_state.status !== "missing" &&
+      changedValue(args.output.blocker_state, previous.blocker_state)
+    ) {
+      rejectMutation(audit, "blocker_state", "blocked_by_constraint");
+    }
+    if (
+      args.output.technique_state.status !== "missing" &&
+      changedValue(args.output.technique_state, previous.technique_state)
+    ) {
+      rejectMutation(audit, "technique_state", "blocked_by_constraint");
+    }
+    if (args.output.platform_field_states.length) {
+      rejectMutation(
+        audit,
+        "platform_field_states",
+        "blocked_by_constraint",
+      );
+    }
+    for (
+      const field of [
+        "target_state",
+        "blocker_state",
+        "technique_state",
+        "platform_field_states",
+        "activation_keyword_state",
+      ]
+    ) {
+      addUnique(audit.preserved_fields, field);
+    }
+    return {
+      state: {
+        ...previous,
+        flow_kind: previous.flow_kind ?? "free_attack_card",
+      },
+      audit,
+    };
+  }
+  const nextTechnique = mergeTechniqueServerOwned({
+    previous: previous.technique_state,
+    incoming: args.output.technique_state,
+    transition: args.transition,
+    audit,
+  });
+  const techniqueChanged = nextTechnique.technique_key !==
+    previous.technique_state.technique_key;
+  const fieldOrder = requiredFieldOrder(nextTechnique.technique_key);
+  const fieldStates = mergeFields({
+    previous: techniqueChanged ? {} : previous.platform_field_states,
+    incoming: args.output.platform_field_states,
+    technique: nextTechnique.technique_key,
+  });
+  addUnique(
+    changedValue(previous.platform_field_states, fieldStates)
+      ? audit.applied_fields
+      : audit.preserved_fields,
+    "platform_field_states",
+  );
+  if (techniqueChanged) {
+    addUnique(audit.cleared_fields, "platform_field_states");
+    addUnique(audit.applied_fields, "platform_field_order");
+  }
+  const nextActivationKeyword = mergeActivationKeywordServerOwned({
+    previous: previous.activation_keyword_state,
+    incoming: args.output.activation_keyword_state,
+    technique: nextTechnique.technique_key,
+    transition: args.transition,
+    audit,
+  });
+  const next: PrepareAttackCardLocalState = {
+    ...previous,
+    flow_kind: args.output.flow_kind ?? previous.flow_kind ??
+      "free_attack_card",
+    target_state: mergeTargetServerOwned({
+      previous: previous.target_state,
+      incoming: args.output.target_state,
+      transition: args.transition,
+      audit,
+    }),
+    blocker_state: mergeBlockerServerOwned({
+      previous: previous.blocker_state,
+      incoming: args.output.blocker_state,
+      transition: args.transition,
+      audit,
+    }),
+    technique_state: nextTechnique,
+    platform_field_order: fieldOrder,
+    platform_field_states: fieldStates,
+    activation_keyword_state: nextActivationKeyword,
+  };
+  if (
+    args.transition === "confirm_candidate" &&
+    !hasTargetValue(next.target_state)
+  ) {
+    rejectMutation(audit, "target_state", "candidate_missing");
+  }
+  if (args.transition === "confirm_proposed_field") {
+    const selectedField = previous.current_field_id
+      ? previous.platform_field_states[previous.current_field_id]
+      : null;
+    const hasPendingField = Boolean(
+      selectedField?.status === "proposed" ||
+        Object.values(previous.platform_field_states).some((field) =>
+          field.status === "proposed"
+        ),
+    );
+    if (!hasPendingField && !args.output.platform_field_states.length) {
+      rejectMutation(
+        audit,
+        "platform_field_states",
+        "pending_confirmation_missing",
+      );
+    }
+  }
+  if (args.transition === "handoff_ready" && !allReady(next)) {
+    rejectMutation(audit, "platform_field_states", "not_stabilized_enough");
+  }
+  return { state: next, audit };
+}
+
 function allReady(state: PrepareAttackCardLocalState): boolean {
   return state.target_state.status === "locked" &&
     Boolean(state.target_state.locked_value) &&
@@ -1620,8 +2107,9 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
   previous: PrepareAttackCardLocalState | null;
   output: PrepareAttackCardLocalDispatcherOutput;
 }): PrepareAttackCardReducerResult {
-  const previous = args.previous ?? createInitialPrepareAttackCardLocalState();
+  const previous = normalizePrepareAttackCardLocalState(args.previous);
   const output = args.output;
+  const transitionAudit = createStateMutationAudit(output);
   const toolFlags = {
     get_info_product: false,
     get_info_db: false,
@@ -1652,6 +2140,25 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: {
+        ...transitionAudit,
+        cleared_fields: [
+          ...transitionAudit.cleared_fields,
+          "local_state",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+          "exit_memo",
+          "note_information",
+        ],
+        applied_fields: [
+          ...transitionAudit.applied_fields,
+          "exit_memo",
+          "note_information",
+        ],
+      },
     };
   }
   if (
@@ -1679,33 +2186,27 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: {
+        ...transitionAudit,
+        cleared_fields: [
+          ...transitionAudit.cleared_fields,
+          "local_state",
+          "target_state",
+          "blocker_state",
+          "technique_state",
+          "platform_field_states",
+          "activation_keyword_state",
+        ],
+      },
     };
   }
-  const nextTechnique = mergeTechnique(
-    previous.technique_state,
-    output.technique_state,
-  );
-  const techniqueChanged = nextTechnique.technique_key !==
-    previous.technique_state.technique_key;
-  const fieldOrder = requiredFieldOrder(nextTechnique.technique_key);
-  const fieldStates = mergeFields({
-    previous: techniqueChanged ? {} : previous.platform_field_states,
-    incoming: output.platform_field_states,
-    technique: nextTechnique.technique_key,
+  const merged = mergePrepareAttackCardLocalState({
+    previous,
+    output,
+    transition: output.flow_action,
   });
-  const reduced: PrepareAttackCardLocalState = {
-    ...previous,
-    flow_kind: output.flow_kind ?? previous.flow_kind ?? "free_attack_card",
-    target_state: mergeTarget(previous.target_state, output.target_state),
-    blocker_state: mergeBlocker(previous.blocker_state, output.blocker_state),
-    technique_state: nextTechnique,
-    platform_field_order: fieldOrder,
-    platform_field_states: fieldStates,
-    activation_keyword_state: activationKeywordState(
-      output.activation_keyword_state,
-      nextTechnique.technique_key,
-    ),
-  };
+  const reduced = merged.state;
+  const mutationAudit = merged.audit;
   const currentFieldId = nextFieldId(reduced);
   const visibleTask = normalizeVisibleTaskForState({
     state: reduced,
@@ -1716,6 +2217,19 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
     { ...reduced, current_field_id: currentFieldId },
     visibleTask,
   );
+  if (currentFieldId !== reduced.current_field_id) {
+    addUnique(mutationAudit.applied_fields, "current_field_id");
+  } else {
+    addUnique(mutationAudit.preserved_fields, "current_field_id");
+  }
+  if (state.last_visible_task !== previous.last_visible_task) {
+    addUnique(mutationAudit.applied_fields, "last_visible_task");
+  }
+  if (state.last_handoff_delivered !== previous.last_handoff_delivered) {
+    addUnique(mutationAudit.applied_fields, "last_handoff_delivered");
+  } else {
+    addUnique(mutationAudit.preserved_fields, "last_handoff_delivered");
+  }
   const draft = draftFromState(state);
   const context = buildPrepareAttackCardConversationContext({
     state,
@@ -1749,6 +2263,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       subskill_context: output.subskill_call.context_for_subskill,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (
@@ -1771,6 +2286,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       subskill_context: output.subskill_call.context_for_subskill,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "handoff_to_local_flow") {
@@ -1788,6 +2304,17 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: {
+        ...mutationAudit,
+        cleared_fields: [
+          ...mutationAudit.cleared_fields,
+          "local_state",
+        ],
+        applied_fields: [
+          ...mutationAudit.applied_fields,
+          "note_information",
+        ],
+      },
     };
   }
   if (output.flow_action === "safety_preempt") {
@@ -1805,6 +2332,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "apply_attempt") {
@@ -1831,6 +2359,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
         type: "create_attack_card",
         reason_code: "chat_creation_disabled_platform_handoff",
       }],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (output.flow_action === "repeat_handoff") {
@@ -1854,6 +2383,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (
@@ -1880,6 +2410,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   if (draft && (allReady(state) || output.flow_action === "handoff_ready")) {
@@ -1897,6 +2428,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
       ...toolFlags,
       risk_assessment: output.risk_assessment,
       blocked_effects: [],
+      state_mutation_audit: mutationAudit,
     };
   }
   return {
@@ -1918,6 +2450,7 @@ export function reducePrepareAttackCardLocalDispatcherOutput(args: {
     ...toolFlags,
     risk_assessment: output.risk_assessment,
     blocked_effects: [],
+    state_mutation_audit: mutationAudit,
   };
 }
 

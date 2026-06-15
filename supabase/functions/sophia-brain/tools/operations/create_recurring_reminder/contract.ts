@@ -65,7 +65,6 @@ export type CreateRecurringReminderLocalFlowAction =
   | "get_info_db"
   | "exit_to_global_dispatcher"
   | "cancel_flow"
-  | "exit_to_global_dispatcher"
   | "safety_preempt";
 
 export type CreateRecurringReminderVisibleTaskKind =
@@ -200,6 +199,8 @@ export type CreateRecurringReminderLocalDispatcherOutput = {
   flow_action: CreateRecurringReminderLocalFlowAction;
   confidence: "low" | "medium" | "high";
   risk_score: number;
+  modified_fields?: string[];
+  clear_fields?: string[];
   recurring_state: {
     phase:
       | "intake"
@@ -259,6 +260,22 @@ export type RecurringReminderHandoffDraft = {
   missing_decisions: string[];
 };
 
+export type CreateRecurringReminderStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    reason_code: string;
+    requested?: string | null;
+    transition?: string | null;
+  }>;
+};
+
 export type RecurringReminderHandoffState = {
   skill_id: "create_recurring_reminder";
   mode: "platform_handoff";
@@ -267,11 +284,20 @@ export type RecurringReminderHandoffState = {
   fields?: CreateRecurringReminderLocalFields | null;
   last_visible_task?: CreateRecurringReminderVisibleTask | null;
   note_information?: CreateRecurringReminderNoteInformation | null;
+  pending_offer?: Record<string, unknown> | null;
+  pending_confirmation?: Record<string, unknown> | null;
+  last_selected_option?: Record<string, unknown> | string | null;
+  active_subflow_context?: Record<string, unknown> | null;
+  exit_memo?: Record<string, unknown> | null;
+  local_state_summary?: string | null;
+  previous_flow_summary?: string | null;
+  state_mutation_audit?: CreateRecurringReminderStateMutationAudit | null;
   turn_count: number;
   max_turns: number;
   created_at: string;
   updated_at: string;
   executable_from_chat: false;
+  no_chat_mutation?: true;
 };
 
 export type CreateRecurringReminderEffect = {

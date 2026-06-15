@@ -8,6 +8,7 @@ import type { TurnFrame } from "../../../../contracts/turn_frame.v1.ts";
 import type {
   SelectStatePotionRiskAssessment,
   StatePotionHandoffDraft,
+  StatePotionStateMutationAudit,
   StatePotionSubskillDispatcherOutput,
   StatePotionSubskillFieldDetailSufficiency,
   StatePotionSubskillFieldState,
@@ -68,7 +69,59 @@ export type StatePotionSubskillReducerResult = {
   get_info_db: boolean;
   subskill_context: Record<string, unknown> | null;
   risk_assessment: SelectStatePotionRiskAssessment;
+  state_mutation_audit: StatePotionStateMutationAudit;
 };
+
+const STATE_POTION_SERVER_OWNED_FIELDS = [
+  "flow_id",
+  "selected_potion",
+  "potion_name",
+  "platform_destination",
+  "origin_bridge_context",
+  "field_order",
+  "field_states",
+  "current_field_id",
+  "last_visible_task",
+  "last_handoff_delivered",
+  "subskill_history",
+] as const;
+
+function emptyStateMutationAudit(
+  previous: StatePotionSubskillHandoffState | null,
+): StatePotionStateMutationAudit {
+  return {
+    server_owned_fields: [...STATE_POTION_SERVER_OWNED_FIELDS],
+    modified_fields_declared: [],
+    clear_fields_declared: [],
+    applied_fields: [],
+    preserved_fields: previous
+      ? [
+        "flow_id",
+        "selected_potion",
+        "potion_name",
+        "platform_destination",
+        "origin_bridge_context",
+        "field_order",
+        "subskill_history",
+      ]
+      : [],
+    restored_fields: [],
+    cleared_fields: [],
+    rejected_changes: [],
+  };
+}
+
+function withAudit<
+  T extends Omit<StatePotionSubskillReducerResult, "state_mutation_audit">,
+>(
+  result: T,
+  audit: StatePotionStateMutationAudit,
+): StatePotionSubskillReducerResult {
+  return {
+    ...result,
+    state_mutation_audit: audit,
+  };
+}
 
 function stringValue(value: unknown): string | null {
   const text = String(value ?? "").trim();
@@ -528,6 +581,16 @@ export function normalizeStatePotionSubskillDispatcherOutput(
     selected_potion: potionType,
     current_field_id: stringValue(root.current_field_id),
     field_states: normalizedFields,
+    modified_fields: stringArray(root.modified_fields).filter((fieldId) =>
+      STATE_POTION_LOCAL_SUBSKILLS[potionType].required_question_ids.includes(
+        fieldId,
+      )
+    ),
+    clear_fields: stringArray(root.clear_fields).filter((fieldId) =>
+      STATE_POTION_LOCAL_SUBSKILLS[potionType].required_question_ids.includes(
+        fieldId,
+      )
+    ),
     revision: revisionState(root.revision),
     visible_task: {
       kind: visibleTaskKind((root.visible_task as any)?.kind),
@@ -608,6 +671,51 @@ function freeTextNeedsMoreDetail(
   );
 }
 
+function comparableText(value: string | null | undefined): string {
+  return String(value ?? "").trim().toLocaleLowerCase().split(/\s+/).join(" ");
+}
+
+function mergeContinuationFreeTextValue(args: {
+  previous: StatePotionSubskillFieldState | null | undefined;
+  incoming: StatePotionSubskillFieldState;
+  transition: StatePotionSubskillFlowAction;
+}): StatePotionSubskillFieldState {
+  if (
+    args.incoming.input_type !== "free_text" ||
+    !["answer_current_field", "platform_destination_followup"].includes(
+      args.transition,
+    )
+  ) {
+    return args.incoming;
+  }
+  const previousValue = args.previous?.locked_value ??
+    args.previous?.candidate_value ??
+    null;
+  const incomingValue = args.incoming.locked_value ??
+    args.incoming.candidate_value ??
+    null;
+  if (!previousValue || !incomingValue) return args.incoming;
+
+  const previousComparable = comparableText(previousValue);
+  const incomingComparable = comparableText(incomingValue);
+  if (!previousComparable || !incomingComparable) return args.incoming;
+  if (incomingComparable.includes(previousComparable)) return args.incoming;
+  if (previousComparable.includes(incomingComparable)) {
+    return {
+      ...args.incoming,
+      locked_value: args.incoming.locked_value ? previousValue : null,
+      candidate_value: args.incoming.candidate_value ? previousValue : null,
+    };
+  }
+
+  const mergedValue = `${incomingValue}; contexte deja donne: ${previousValue}`;
+  return {
+    ...args.incoming,
+    locked_value: args.incoming.locked_value ? mergedValue : null,
+    candidate_value: args.incoming.candidate_value ? mergedValue : null,
+  };
+}
+
 function freeTextNeedsFirstDetailQuestion(
   field: StatePotionSubskillFieldState | null | undefined,
 ): boolean {
@@ -669,10 +777,11 @@ function detailQuestionResult(args: {
   state: StatePotionSubskillHandoffState;
   fieldId: string;
   riskAssessment: SelectStatePotionRiskAssessment;
+  audit?: StatePotionStateMutationAudit;
 }): StatePotionSubskillReducerResult {
   const withAsked = markDetailFollowupAsked(args.state, args.fieldId);
   const next = withVisibleTask(withAsked, "ask_deeper");
-  return {
+  return withAudit({
     status: "clarifying",
     reason_code: `${args.state.selected_potion}_field_needs_more_detail`,
     potion_subskill_state: next,
@@ -681,12 +790,13 @@ function detailQuestionResult(args: {
     exit_to_global_dispatcher: false,
     ...noSubskillToolFlags(),
     risk_assessment: args.riskAssessment,
-  };
+  }, args.audit ?? emptyStateMutationAudit(args.state));
 }
 
 function maybeDetailQuestionResult(args: {
   state: StatePotionSubskillHandoffState;
   riskAssessment: SelectStatePotionRiskAssessment;
+  audit?: StatePotionStateMutationAudit;
 }): StatePotionSubskillReducerResult | null {
   const fieldId = firstFreeTextNeedingDetail(args.state);
   if (!fieldId) return null;
@@ -696,6 +806,7 @@ function maybeDetailQuestionResult(args: {
     state: args.state,
     fieldId,
     riskAssessment: args.riskAssessment,
+    audit: args.audit,
   });
 }
 
@@ -704,9 +815,10 @@ function completedHandoffResult(args: {
   reasonCode: string;
   visibleTask?: StatePotionSubskillVisibleTaskKind;
   riskAssessment: SelectStatePotionRiskAssessment;
+  audit?: StatePotionStateMutationAudit;
 }): StatePotionSubskillReducerResult {
   const next = withVisibleTask(args.state, args.visibleTask ?? "handoff_ready");
-  return {
+  return withAudit({
     status: "handoff_delivered",
     reason_code: args.reasonCode,
     potion_subskill_state: next,
@@ -715,7 +827,7 @@ function completedHandoffResult(args: {
     exit_to_global_dispatcher: false,
     ...noSubskillToolFlags(),
     risk_assessment: args.riskAssessment,
-  };
+  }, args.audit ?? emptyStateMutationAudit(args.state));
 }
 
 function draftFromState(
@@ -765,13 +877,80 @@ function draftFromState(
   };
 }
 
-function mergeDecisionFields(args: {
+export function mergeStatePotionSubskillLocalState(args: {
   previous: StatePotionSubskillHandoffState;
   decision: StatePotionSubskillDispatcherOutput;
-}): StatePotionSubskillHandoffState {
+  transition?: StatePotionSubskillFlowAction;
+  now?: string;
+  constraints?: Array<Record<string, unknown>>;
+}): {
+  state: StatePotionSubskillHandoffState;
+  audit: StatePotionStateMutationAudit;
+} {
+  const transition = args.transition ?? args.decision.flow_action;
+  const audit = emptyStateMutationAudit(args.previous);
+  audit.modified_fields_declared = [
+    ...new Set([
+      ...(args.decision.modified_fields ?? []),
+      ...args.decision.field_states.map((field) =>
+        `field_states.${field.field_id}`
+      ),
+    ]),
+  ];
+  audit.clear_fields_declared = [...new Set(args.decision.clear_fields ?? [])];
+  if (args.decision.selected_potion !== args.previous.selected_potion) {
+    audit.restored_fields.push("selected_potion");
+    audit.rejected_changes.push({
+      field: "selected_potion",
+      reason_code: "selected_option_missing",
+      attempted_action: transition,
+    });
+  } else {
+    audit.preserved_fields.push("selected_potion");
+  }
+  for (const fieldId of args.decision.clear_fields ?? []) {
+    audit.restored_fields.push(`field_states.${fieldId}`);
+    audit.rejected_changes.push({
+      field: `field_states.${fieldId}`,
+      reason_code: transition === "revise_current_field"
+        ? "invalid_status_transition"
+        : "blocked_by_constraint",
+      attempted_action: transition,
+    });
+  }
+  const canApplyIncomingFields = [
+    "answer_current_field",
+    "platform_destination_followup",
+  ].includes(transition);
+  if (!canApplyIncomingFields && args.decision.field_states.length > 0) {
+    for (const field of args.decision.field_states) {
+      audit.restored_fields.push(`field_states.${field.field_id}`);
+      audit.rejected_changes.push({
+        field: `field_states.${field.field_id}`,
+        reason_code: transition === "confirm_proposed_field"
+          ? "pending_confirmation_missing"
+          : "invalid_status_transition",
+        attempted_action: transition,
+      });
+    }
+    return {
+      state: {
+        ...args.previous,
+        current_field_id: nextCurrentFieldId(args.previous),
+      },
+      audit,
+    };
+  }
   const nextFields = { ...args.previous.field_states };
   for (const field of args.decision.field_states) {
-    if (!args.previous.field_order.includes(field.field_id)) continue;
+    if (!args.previous.field_order.includes(field.field_id)) {
+      audit.rejected_changes.push({
+        field: `field_states.${field.field_id}`,
+        reason_code: "candidate_missing",
+        attempted_action: transition,
+      });
+      continue;
+    }
     const previousField = nextFields[field.field_id];
     const previousDetail = detailSufficiency(
       previousField?.detail_sufficiency,
@@ -787,10 +966,16 @@ function mergeDecisionFields(args: {
         field.input_type === "free_text" &&
         (field.locked_value || field.candidate_value),
     );
+    const mergedField = mergeContinuationFreeTextValue({
+      previous: previousField,
+      incoming: field,
+      transition,
+    });
     nextFields[field.field_id] = {
       ...previousField,
-      ...field,
-      previous_value: field.previous_value ?? previousField?.locked_value ??
+      ...mergedField,
+      previous_value: mergedField.previous_value ??
+        previousField?.locked_value ??
         previousField?.candidate_value ?? null,
       detail_sufficiency: {
         ...previousDetail,
@@ -804,16 +989,43 @@ function mergeDecisionFields(args: {
           isFollowupAnswer,
       },
     };
+    audit.applied_fields.push(`field_states.${field.field_id}`);
+  }
+  for (const fieldId of args.previous.field_order) {
+    if (!audit.applied_fields.includes(`field_states.${fieldId}`)) {
+      audit.preserved_fields.push(`field_states.${fieldId}`);
+    }
   }
   const next = {
     ...args.previous,
     field_states: nextFields,
-    current_field_id: args.decision.current_field_id ??
-      args.previous.current_field_id,
+    current_field_id: args.previous.field_order.includes(
+        args.decision.current_field_id ?? "",
+      )
+      ? args.decision.current_field_id
+      : args.previous.current_field_id,
   };
+  if (
+    args.decision.current_field_id &&
+    !args.previous.field_order.includes(args.decision.current_field_id)
+  ) {
+    audit.restored_fields.push("current_field_id");
+    audit.rejected_changes.push({
+      field: "current_field_id",
+      reason_code: "candidate_missing",
+      attempted_action: transition,
+    });
+  } else if (args.decision.current_field_id) {
+    audit.applied_fields.push("current_field_id");
+  } else {
+    audit.preserved_fields.push("current_field_id");
+  }
   return {
-    ...next,
-    current_field_id: nextCurrentFieldId(next),
+    state: {
+      ...next,
+      current_field_id: nextCurrentFieldId(next),
+    },
+    audit,
   };
 }
 
@@ -901,6 +1113,7 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
 }): StatePotionSubskillReducerResult {
   const previous = args.previous;
   const decision = args.decision;
+  const baseAudit = emptyStateMutationAudit(previous);
   const toolFlags = {
     get_info_product: false,
     get_info_db: false,
@@ -909,7 +1122,7 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
 
   if (decision.flow_action === "safety_preempt") {
     const next = withVisibleTask(previous, "safety");
-    return {
+    return withAudit({
       status: "blocked",
       reason_code: `${previous.selected_potion}_flow_safety_preempt`,
       potion_subskill_state: next,
@@ -918,11 +1131,11 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "cancel_flow") {
-    return {
+    return withAudit({
       status: "cancelled",
       reason_code: `${previous.selected_potion}_flow_cancelled`,
       potion_subskill_state: null,
@@ -931,7 +1144,10 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, {
+      ...baseAudit,
+      cleared_fields: ["potion_subskill_state"],
+    });
   }
 
   if (
@@ -939,7 +1155,7 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
     decision.flow_action === "handoff_to_local_flow"
   ) {
     const next = withVisibleTask(previous, "exit");
-    return {
+    return withAudit({
       status: "topic_change",
       reason_code: decision.flow_action === "handoff_to_local_flow"
         ? `${previous.selected_potion}_flow_handoff_to_local_flow`
@@ -950,12 +1166,12 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: true,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "get_info_product") {
     const next = withVisibleTask(previous, "none");
-    return {
+    return withAudit({
       status: "collecting",
       reason_code: `${previous.selected_potion}_get_info_product`,
       potion_subskill_state: next,
@@ -966,12 +1182,12 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       get_info_db: false,
       subskill_context: decision.subskill_call?.context_for_subskill ?? {},
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "get_info_db") {
     const next = withVisibleTask(previous, "none");
-    return {
+    return withAudit({
       status: "collecting",
       reason_code: `${previous.selected_potion}_get_info_db`,
       potion_subskill_state: next,
@@ -982,12 +1198,12 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       get_info_db: true,
       subskill_context: decision.subskill_call?.context_for_subskill ?? {},
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "apply_attempt") {
     const next = withVisibleTask(previous, "apply_attempt");
-    return {
+    return withAudit({
       status: "apply_attempt",
       reason_code:
         `${previous.selected_potion}_apply_attempt_no_chat_execution`,
@@ -997,20 +1213,25 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, baseAudit);
   }
 
   if (decision.flow_action === "platform_destination_followup") {
-    const merged = mergeDecisionFields({ previous, decision });
-    const next = withVisibleTask(merged, "destination_short");
+    const merged = mergeStatePotionSubskillLocalState({
+      previous,
+      decision,
+      transition: "platform_destination_followup",
+    });
+    const next = withVisibleTask(merged.state, "destination_short");
     const detailQuestion = maybeDetailQuestionResult({
       state: next,
       riskAssessment: decision.risk_assessment,
+      audit: merged.audit,
     });
     if (detailQuestion) return detailQuestion;
     if (allRequiredReady(next)) {
       if (previous.last_handoff_delivered) {
-        return {
+        return withAudit({
           status: "repeat_handoff",
           reason_code:
             `${previous.selected_potion}_platform_destination_followup`,
@@ -1020,7 +1241,7 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
           exit_to_global_dispatcher: false,
           ...toolFlags,
           risk_assessment: decision.risk_assessment,
-        };
+        }, merged.audit);
       }
       return completedHandoffResult({
         state: next,
@@ -1028,9 +1249,10 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
           `${previous.selected_potion}_handoff_delivered_from_destination_followup`,
         visibleTask: "handoff_ready",
         riskAssessment: decision.risk_assessment,
+        audit: merged.audit,
       });
     }
-    return {
+    return withAudit({
       status: "repeat_handoff",
       reason_code: `${previous.selected_potion}_platform_destination_followup`,
       potion_subskill_state: next,
@@ -1039,15 +1261,20 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, merged.audit);
   }
 
   if (decision.flow_action === "repeat_handoff") {
-    const merged = mergeDecisionFields({ previous, decision });
-    const next = withVisibleTask(merged, "repeat_handoff");
+    const merged = mergeStatePotionSubskillLocalState({
+      previous,
+      decision,
+      transition: "repeat_handoff",
+    });
+    const next = withVisibleTask(merged.state, "repeat_handoff");
     const detailQuestion = maybeDetailQuestionResult({
       state: next,
       riskAssessment: decision.risk_assessment,
+      audit: merged.audit,
     });
     if (detailQuestion) return detailQuestion;
     if (allRequiredReady(next) && !previous.last_handoff_delivered) {
@@ -1056,9 +1283,10 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
         reasonCode: `${previous.selected_potion}_handoff_delivered_from_repeat`,
         visibleTask: "handoff_ready",
         riskAssessment: decision.risk_assessment,
+        audit: merged.audit,
       });
     }
-    return {
+    return withAudit({
       status: "repeat_handoff",
       reason_code: `${previous.selected_potion}_repeat_handoff`,
       potion_subskill_state: next,
@@ -1067,7 +1295,7 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, merged.audit);
   }
 
   if (decision.flow_action === "confirm_proposed_field") {
@@ -1076,6 +1304,31 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
         previous.field_states[id]?.status === "proposed"
       ) ??
       "";
+    const pendingField = fieldId ? previous.field_states[fieldId] : null;
+    if (!pendingField?.candidate_value) {
+      const next = withVisibleTask(previous, "ask_deeper");
+      return withAudit({
+        status: "clarifying",
+        reason_code: `${previous.selected_potion}_pending_confirmation_missing`,
+        potion_subskill_state: next,
+        draft: draftFromState(next),
+        visible_task: "ask_deeper",
+        exit_to_global_dispatcher: false,
+        ...toolFlags,
+        risk_assessment: decision.risk_assessment,
+      }, {
+        ...baseAudit,
+        restored_fields: [
+          "field_states",
+          "current_field_id",
+        ],
+        rejected_changes: [{
+          field: "field_states",
+          reason_code: "pending_confirmation_missing",
+          attempted_action: "confirm_proposed_field",
+        }],
+      });
+    }
     const locked = lockFieldFromProposal({
       previous,
       fieldId,
@@ -1084,11 +1337,12 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
     const detailQuestion = maybeDetailQuestionResult({
       state: locked,
       riskAssessment: decision.risk_assessment,
+      audit: baseAudit,
     });
     if (detailQuestion) return detailQuestion;
     if (!allRequiredReady(locked)) {
       const next = withVisibleTask(locked, "ask_deeper");
-      return {
+      return withAudit({
         status: "clarifying",
         reason_code: `${previous.selected_potion}_field_confirmed_next_field`,
         potion_subskill_state: next,
@@ -1097,12 +1351,13 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
         exit_to_global_dispatcher: false,
         ...toolFlags,
         risk_assessment: decision.risk_assessment,
-      };
+      }, baseAudit);
     }
     return completedHandoffResult({
       state: locked,
       reasonCode: `${previous.selected_potion}_confirmed_handoff_delivered`,
       riskAssessment: decision.risk_assessment,
+      audit: baseAudit,
     });
   }
 
@@ -1110,7 +1365,7 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
     const revised = applyRevision({ previous, decision });
     if (!revised) {
       const next = withVisibleTask(previous, "ask_deeper");
-      return {
+      return withAudit({
         status: "clarifying",
         reason_code: `${previous.selected_potion}_revision_missing_replacement`,
         potion_subskill_state: next,
@@ -1119,11 +1374,27 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
         exit_to_global_dispatcher: false,
         ...toolFlags,
         risk_assessment: decision.risk_assessment,
-      };
+      }, {
+        ...baseAudit,
+        rejected_changes: [{
+          field: decision.revision.field_id ?? decision.current_field_id ??
+            "field_states",
+          reason_code: "candidate_missing",
+          attempted_action: "revise_current_field",
+        }],
+      });
     }
     const detailQuestion = maybeDetailQuestionResult({
       state: revised,
       riskAssessment: decision.risk_assessment,
+      audit: {
+        ...baseAudit,
+        applied_fields: [
+          `field_states.${
+            decision.revision.field_id ?? revised.current_field_id ?? "unknown"
+          }`,
+        ],
+      },
     });
     if (detailQuestion) return detailQuestion;
     const next = withVisibleTask(
@@ -1136,9 +1407,17 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
         reasonCode: `${previous.selected_potion}_revision_applied`,
         visibleTask: "revision_done",
         riskAssessment: decision.risk_assessment,
+        audit: {
+          ...baseAudit,
+          applied_fields: [
+            `field_states.${
+              decision.revision.field_id ?? next.current_field_id ?? "unknown"
+            }`,
+          ],
+        },
       });
     }
-    return {
+    return withAudit({
       status: "clarifying",
       reason_code: `${previous.selected_potion}_revision_applied`,
       potion_subskill_state: next,
@@ -1147,32 +1426,45 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
-  }
-
-  const merged = mergeDecisionFields({ previous, decision });
-  const detailQuestion = maybeDetailQuestionResult({
-    state: merged,
-    riskAssessment: decision.risk_assessment,
-  });
-  if (detailQuestion) return detailQuestion;
-  if (allRequiredReady(merged)) {
-    return completedHandoffResult({
-      state: merged,
-      reasonCode: `${previous.selected_potion}_handoff_delivered`,
-      riskAssessment: decision.risk_assessment,
+    }, {
+      ...baseAudit,
+      applied_fields: [
+        `field_states.${
+          decision.revision.field_id ?? next.current_field_id ?? "unknown"
+        }`,
+      ],
     });
   }
-  const proposedField = merged.field_order.find((id) =>
-    merged.field_states[id]?.status === "proposed" &&
-    merged.field_states[id]?.candidate_value
+
+  const merged = mergeStatePotionSubskillLocalState({
+    previous,
+    decision,
+    transition: decision.flow_action,
+  });
+  const detailQuestion = maybeDetailQuestionResult({
+    state: merged.state,
+    riskAssessment: decision.risk_assessment,
+    audit: merged.audit,
+  });
+  if (detailQuestion) return detailQuestion;
+  if (allRequiredReady(merged.state)) {
+    return completedHandoffResult({
+      state: merged.state,
+      reasonCode: `${previous.selected_potion}_handoff_delivered`,
+      riskAssessment: decision.risk_assessment,
+      audit: merged.audit,
+    });
+  }
+  const proposedField = merged.state.field_order.find((id) =>
+    merged.state.field_states[id]?.status === "proposed" &&
+    merged.state.field_states[id]?.candidate_value
   );
   if (proposedField) {
     const next = withVisibleTask({
-      ...merged,
+      ...merged.state,
       current_field_id: proposedField,
     }, "confirm_proposal");
-    return {
+    return withAudit({
       status: "clarifying",
       reason_code: `${previous.selected_potion}_field_proposed`,
       potion_subskill_state: next,
@@ -1181,10 +1473,10 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
       exit_to_global_dispatcher: false,
       ...toolFlags,
       risk_assessment: decision.risk_assessment,
-    };
+    }, merged.audit);
   }
-  const next = withVisibleTask(merged, "ask_deeper");
-  return {
+  const next = withVisibleTask(merged.state, "ask_deeper");
+  return withAudit({
     status: "clarifying",
     reason_code: `${previous.selected_potion}_field_missing`,
     potion_subskill_state: next,
@@ -1193,7 +1485,7 @@ export function reduceStatePotionSubskillDispatcherOutput(args: {
     exit_to_global_dispatcher: false,
     ...toolFlags,
     risk_assessment: decision.risk_assessment,
-  };
+  }, merged.audit);
 }
 
 function dispatcherSystemPrompt(

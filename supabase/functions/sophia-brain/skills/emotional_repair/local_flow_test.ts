@@ -59,6 +59,7 @@ function dispatcherOutput(
       prefill_candidates: {},
       missing_before_handoff: [],
       why_ready_or_blocked: "reparation d'abord",
+      user_requested_direct_handoff: false,
     },
     visible_task: {
       kind: "de_shame",
@@ -98,6 +99,11 @@ function dispatcherOutput(
       flow_summary: null,
       handoff_hint_for_global_dispatcher: null,
       potion_bridge_context: null,
+    },
+    state_change_intent: {
+      modified_fields: [],
+      clear_fields: [],
+      reason: null,
     },
     evidence: ["test"],
     ...patch,
@@ -163,6 +169,7 @@ function stabilizedOffer(
         },
       missing_before_handoff: [],
       why_ready_or_blocked: "La potion soutient le besoin durable nomme.",
+      user_requested_direct_handoff: false,
     },
     visible_task: {
       kind: "potion_bridge_offer",
@@ -232,6 +239,12 @@ Deno.test("emotional_repair dispatcher prompt teaches field completion and trans
     EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.exit_to_global_dispatcher
       .some((rule) => rule.includes("exit_memo.needed=true")),
   );
+  assert(prompt.includes("user_requested_direct_handoff"));
+  assert(
+    EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.confirm_potion_bridge.some((
+      rule,
+    ) => rule.includes("user_requested_direct_handoff=true")),
+  );
 });
 
 Deno.test("emotional_repair dispatcher prompt keeps exactly two decision examples", () => {
@@ -276,6 +289,7 @@ Deno.test("emotional_repair local reducer blocks potion while shame dominates", 
         },
         missing_before_handoff: [],
         why_ready_or_blocked: "honte encore dominante",
+        user_requested_direct_handoff: false,
       },
     }),
     turn_frame: turnFrame(),
@@ -360,8 +374,179 @@ Deno.test("emotional_repair confirmation without persisted offer does not handof
   assertEquals(reduced.local_state?.last_potion_bridge_offer, null);
   assertEquals(
     reduced.blocked_effects[0]?.reason_code,
-    "missing_previous_potion_offer",
+    "direct_handoff_flag_missing",
   );
+});
+
+Deno.test("emotional_repair invalid direct handoff reports missing durable need", () => {
+  const reduced = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("amour"),
+      flow_action: "confirm_potion_bridge",
+      repair_state: {
+        ...stabilizedOffer("amour").repair_state,
+        intent: "asks_potion_bridge",
+      },
+      potion_bridge: {
+        ...stabilizedOffer("amour").potion_bridge,
+        status: "confirmed_handoff",
+        durable_need: { kind: null, summary: null },
+        user_requested_direct_handoff: true,
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(reduced.status, "continue");
+  assertEquals(
+    reduced.blocked_effects[0]?.reason_code,
+    "direct_handoff_durable_need_missing",
+  );
+});
+
+Deno.test("emotional_repair invalid direct handoff reports missing candidate", () => {
+  const reduced = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("amour"),
+      flow_action: "confirm_potion_bridge",
+      repair_state: {
+        ...stabilizedOffer("amour").repair_state,
+        intent: "asks_potion_bridge",
+      },
+      potion_bridge: {
+        ...stabilizedOffer("amour").potion_bridge,
+        status: "confirmed_handoff",
+        candidate_potions: [],
+        user_requested_direct_handoff: true,
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(reduced.status, "continue");
+  assertEquals(
+    reduced.blocked_effects[0]?.reason_code,
+    "direct_handoff_candidate_missing",
+  );
+});
+
+Deno.test("emotional_repair invalid direct handoff reports stabilization block", () => {
+  const reduced = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("amour"),
+      flow_action: "confirm_potion_bridge",
+      repair_state: {
+        ...stabilizedOffer("amour").repair_state,
+        intent: "asks_potion_bridge",
+        emotional_dominance: "high",
+        emotion_stabilized_enough_for_tool: false,
+      },
+      potion_bridge: {
+        ...stabilizedOffer("amour").potion_bridge,
+        status: "confirmed_handoff",
+        user_requested_direct_handoff: true,
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(reduced.status, "continue");
+  assertEquals(
+    reduced.blocked_effects[0]?.reason_code,
+    "bridge_not_stabilized",
+  );
+});
+
+Deno.test("emotional_repair direct explicit guerison request bridges without previous offer", () => {
+  const direct = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("guerison"),
+      flow_action: "confirm_potion_bridge",
+      repair_state: {
+        ...stabilizedOffer("guerison").repair_state,
+        intent: "asks_potion_bridge",
+        summary:
+          "Le user demande directement de passer sur la potion de guerison.",
+      },
+      potion_bridge: {
+        ...stabilizedOffer("guerison").potion_bridge,
+        status: "confirmed_handoff",
+        user_requested_direct_handoff: true,
+      },
+      state_change_intent: {
+        modified_fields: ["potion_bridge.user_requested_direct_handoff"],
+        clear_fields: [],
+        reason: "demande directe de potion compatible",
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(direct.status, "handoff");
+  assertEquals(
+    direct.reason_code,
+    "emotional_repair_handoff_to_select_state_potion",
+  );
+  assertEquals(direct.potion_bridge_context?.selected_potion, "guerison");
+  assertEquals(
+    direct.visible_task.conversation_context.handoff_data.target_dispatcher,
+    "select_state_potion",
+  );
+});
+
+Deno.test("emotional_repair direct explicit apaisement paraphrase bridges without previous offer", () => {
+  const direct = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("apaisement"),
+      flow_action: "confirm_potion_bridge",
+      repair_state: {
+        ...stabilizedOffer("apaisement").repair_state,
+        intent: "asks_potion_bridge",
+        summary:
+          "Le user choisit directement d'utiliser apaisement maintenant.",
+      },
+      potion_bridge: {
+        ...stabilizedOffer("apaisement").potion_bridge,
+        status: "confirmed_handoff",
+        user_requested_direct_handoff: true,
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(direct.status, "handoff");
+  assertEquals(direct.potion_bridge_context?.selected_potion, "apaisement");
+});
+
+Deno.test("emotional_repair potion mention without direct request does not bridge", () => {
+  const mentionOnly = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...dispatcherOutput({
+        flow_action: "regulation_without_potion",
+        repair_state: {
+          ...stabilizedOffer("guerison").repair_state,
+          intent: "asks_regulation_without_potion",
+          summary: "Le user parle de potion mais demande juste a comprendre.",
+        },
+        potion_bridge: {
+          ...stabilizedOffer("guerison").potion_bridge,
+          status: "candidate",
+          user_requested_direct_handoff: false,
+        },
+      }),
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(mentionOnly.status, "continue");
+  assertEquals(mentionOnly.potion_bridge_context, null);
+  assertEquals(mentionOnly.local_state?.last_potion_bridge_offer, null);
 });
 
 Deno.test("emotional_repair invalid confirmation cannot keep potion handoff visible task", () => {
@@ -483,6 +668,89 @@ Deno.test("emotional_repair stabilized self-kindness offers amour with informati
     "amour",
   );
   assertEquals(reduced.visible_task.kind, "potion_bridge_offer");
+  assert(
+    reduced.state_mutation_audit.applied_fields.includes(
+      "last_potion_bridge_offer",
+    ),
+  );
+});
+
+Deno.test("emotional_repair preserves previous potion offer across non-bridge continuation", () => {
+  const offered = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: stabilizedOffer("apaisement"),
+    turn_frame: turnFrame(),
+  });
+  const continued = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: offered.local_state,
+    output: dispatcherOutput({
+      flow_action: "soft_presence",
+      repair_state: {
+        ...stabilizedOffer("apaisement").repair_state,
+        phase: "stabilize",
+        summary: "Le user veut juste rester pose avant la suite.",
+      },
+      potion_bridge: {
+        status: "not_applicable",
+        selected_potion: null,
+        candidate_potions: [],
+        durable_need: { kind: null, summary: null },
+        prefill_candidates: {},
+        missing_before_handoff: [],
+        why_ready_or_blocked: "pas de nouvelle offre ce tour",
+        user_requested_direct_handoff: false,
+      },
+    }),
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(
+    continued.local_state?.last_potion_bridge_offer?.selected_potion,
+    "apaisement",
+  );
+  assert(
+    continued.state_mutation_audit.preserved_fields.includes(
+      "last_potion_bridge_offer",
+    ),
+  );
+});
+
+Deno.test("emotional_repair rejects unapproved mutation of server-owned offer", () => {
+  const offered = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: stabilizedOffer("amour"),
+    turn_frame: turnFrame(),
+  });
+  const continued = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: offered.local_state,
+    output: dispatcherOutput({
+      flow_action: "soft_presence",
+      repair_state: {
+        ...stabilizedOffer("amour").repair_state,
+        summary: "Le user demande une presence simple.",
+      },
+      state_change_intent: {
+        modified_fields: [],
+        clear_fields: ["last_potion_bridge_offer"],
+        reason: "modele pense repartir sans bridge",
+      },
+    }),
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(
+    continued.local_state?.last_potion_bridge_offer?.selected_potion,
+    "amour",
+  );
+  assert(
+    continued.state_mutation_audit.restored_fields.includes(
+      "last_potion_bridge_offer",
+    ),
+  );
+  assertEquals(
+    continued.state_mutation_audit.rejected_changes[0]?.reason_code,
+    "server_owned_clear_requires_authorized_transition",
+  );
 });
 
 Deno.test("emotional_repair confirmed bridge emits potion context without mutation", () => {
@@ -529,6 +797,12 @@ Deno.test("emotional_repair confirmed bridge emits potion context without mutati
     confirmed.potion_bridge_context?.prefill_candidates.recent_hurt
       ?.candidate_value,
     "le craquage d'hier",
+  );
+  assertEquals(confirmed.local_state?.last_potion_bridge_offer, null);
+  assert(
+    confirmed.state_mutation_audit.cleared_fields.includes(
+      "last_potion_bridge_offer",
+    ),
   );
 });
 
@@ -655,6 +929,11 @@ Deno.test("emotional_repair visible agent receives only conversation_context tas
   });
 
   assertEquals(output.status, "continue");
+  assert(
+    Array.isArray(
+      (output.diagnosis as any)?.state_mutation_audit?.server_owned_fields,
+    ),
+  );
   assertEquals(
     Object.keys(seenInput ?? {}).sort(),
     ["request_id", "stage", "user_id", "visible_task"].sort(),

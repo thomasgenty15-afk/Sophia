@@ -131,40 +131,34 @@ export function reduceOneShotReminderIntake(args: {
     reason_code = args.globalBlockedReason;
     constraints.push("do_not_mutate");
     blocked_effects = blockAll(requested_effects, args.globalBlockedReason);
+  } else if (
+    args.intake.intent === "cancel" || args.intake.intent === "replace"
+  ) {
+    status = "blocked";
+    reason_code = "one_shot_reminder_cancel_unsupported";
+    constraints.push("do_not_mutate");
+    blocked_effects = blockAll(requested_effects, reason_code);
   } else if (args.intake.intent === "modify_request") {
     status = "blocked";
     reason_code = "modify_requires_replace";
     blocked_effects = blockAll(requested_effects, reason_code);
   } else {
-    if (
-      (args.intake.intent === "create" || args.intake.intent === "replace") &&
-      !args.intake.scheduled_for
-    ) {
+    if (args.intake.intent === "create" && !args.intake.scheduled_for) {
       missing_slots.push("scheduled_for");
       constraints.push("requires_explicit_time");
     }
     if (
-      (args.intake.intent === "create" || args.intake.intent === "replace") &&
+      args.intake.intent === "create" &&
       (!args.intake.instruction ||
         isDegenerateReminderInstruction(args.intake.instruction))
     ) {
       missing_slots.push("reminder_instruction");
       constraints.push("requires_instruction");
     }
-    if (
-      (args.intake.intent === "cancel" || args.intake.intent === "replace") &&
-      args.intake.target_reminder_ids.length === 0
-    ) {
-      missing_slots.push("target_reminder");
-    }
 
     if (missing_slots.length > 0) {
-      status = missing_slots.includes("target_reminder")
-        ? "no_reminder_found"
-        : "collecting";
-      reason_code = missing_slots.includes("target_reminder")
-        ? "no_reminder_found"
-        : missing_slots[0] === "scheduled_for"
+      status = "collecting";
+      reason_code = missing_slots[0] === "scheduled_for"
         ? "missing_time"
         : "missing_instruction";
       blocked_effects = blockAll(requested_effects, reason_code);

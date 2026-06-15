@@ -313,6 +313,8 @@ export function normalizeSafetyCrisisLocalDispatcherOutput(
       ),
     },
     no_tooling: normalizeNoTooling(root.no_tooling),
+    modified_fields: stringArray(root.modified_fields, 12),
+    clear_fields: stringArray(root.clear_fields, 12),
     evidence: stringArray(root.evidence, 12),
   };
 }

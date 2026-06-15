@@ -5,6 +5,7 @@ import {
 import {
   createInitialAdjustPlanLocalState,
   dispatcherSystemPrompt,
+  normalizeAdjustPlanLocalState,
   normalizeAdjustPlanLocalDispatcherOutput,
   reduceAdjustPlanLocalDispatcherOutput,
 } from "./local_flow.ts";
@@ -244,6 +245,351 @@ Deno.test("adjust_plan_item local reducer blocks apply attempts", () => {
     type: "adjust_plan_item",
     reason_code: "chat_plan_mutation_disabled_platform_handoff",
   }]);
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "platform_handoff",
+    ),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item continuation preserves server-owned pending handoff", () => {
+  const previous = createInitialAdjustPlanLocalState();
+  previous.scope = {
+    kind: "specific_plan_item",
+    confidence: "high",
+    plan_id: "plan-1",
+    plan_title: "Plan principal",
+    level_id: null,
+    level_title: null,
+    plan_item_ids: ["item-1"],
+    target_summary: "Signal de pause",
+    needs_scope_clarification: false,
+  };
+  previous.adjustment_need = {
+    reason_change: "trop lourd",
+    requested_change: "alleger",
+    change_kind: "reduce",
+    constraints: [],
+    preserve: [],
+    avoid: [],
+    missing: [],
+  };
+  previous.platform_handoff = {
+    status: "delivered",
+    destination: "Plan",
+    suggested_platform_input: "Alleger Signal de pause.",
+    grouped_by_plan: [],
+    previous_value: null,
+    revised_value: null,
+  };
+
+  const reduced = reduceAdjustPlanLocalDispatcherOutput({
+    previous,
+    output: dispatcherOutput({
+      flow_action: "answer_current_field",
+      platform_handoff: {
+        status: "none",
+        destination: null,
+        suggested_platform_input: null,
+        grouped_by_plan: [],
+        previous_value: null,
+        revised_value: null,
+      },
+      state_updates: {
+        status: "collecting",
+        stage: "constraints",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "clarify_constraints",
+        instruction: "Ask constraints.",
+      },
+    }),
+  });
+
+  assertEquals(
+    reduced.local_state?.platform_handoff.suggested_platform_input,
+    "Alleger Signal de pause.",
+  );
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "platform_handoff",
+    ),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item valid revision replaces pending handoff", () => {
+  const previous = createInitialAdjustPlanLocalState();
+  previous.scope = {
+    kind: "specific_plan_item",
+    confidence: "high",
+    plan_id: "plan-1",
+    plan_title: "Plan principal",
+    level_id: null,
+    level_title: null,
+    plan_item_ids: ["item-1"],
+    target_summary: "Signal de pause",
+    needs_scope_clarification: false,
+  };
+  previous.adjustment_need = {
+    reason_change: "trop lourd",
+    requested_change: "alleger",
+    change_kind: "reduce",
+    constraints: [],
+    preserve: [],
+    avoid: [],
+    missing: [],
+  };
+  previous.platform_handoff = {
+    status: "delivered",
+    destination: "Plan",
+    suggested_platform_input: "Alleger Signal de pause.",
+    grouped_by_plan: [],
+    previous_value: null,
+    revised_value: null,
+  };
+
+  const reduced = reduceAdjustPlanLocalDispatcherOutput({
+    previous,
+    output: dispatcherOutput({
+      flow_action: "revise_plan_handoff",
+      platform_handoff: {
+        status: "revised",
+        destination: "Plan",
+        suggested_platform_input: null,
+        grouped_by_plan: [],
+        previous_value: "Alleger Signal de pause.",
+        revised_value: "Alleger Signal de pause en version 5 minutes.",
+      },
+      state_updates: {
+        status: "revising",
+        stage: "handoff",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "revise_plan_handoff",
+        instruction: "Revise handoff.",
+      },
+    }),
+  });
+
+  assertEquals(
+    reduced.local_state?.platform_handoff.revised_value,
+    "Alleger Signal de pause en version 5 minutes.",
+  );
+  assertEquals(
+    reduced.state_mutation_audit.applied_fields.includes("platform_handoff"),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item revision preserves unrelated target and need", () => {
+  const previous = createInitialAdjustPlanLocalState();
+  previous.scope = {
+    kind: "specific_plan_item",
+    confidence: "high",
+    plan_id: "plan-1",
+    plan_title: "Plan principal",
+    level_id: null,
+    level_title: null,
+    plan_item_ids: ["item-1"],
+    target_summary: "Signal de pause",
+    needs_scope_clarification: false,
+  };
+  previous.adjustment_need = {
+    reason_change: "trop lourd",
+    requested_change: "alleger",
+    change_kind: "reduce",
+    constraints: ["cette semaine"],
+    preserve: ["objectif"],
+    avoid: ["abandonner"],
+    missing: [],
+  };
+  previous.platform_handoff = {
+    status: "delivered",
+    destination: "Plan",
+    suggested_platform_input: "Alleger Signal de pause.",
+    grouped_by_plan: [],
+    previous_value: null,
+    revised_value: null,
+  };
+
+  const reduced = reduceAdjustPlanLocalDispatcherOutput({
+    previous,
+    output: dispatcherOutput({
+      flow_action: "revise_plan_handoff",
+      scope: {
+        kind: "unknown",
+        confidence: "low",
+        plan_id: null,
+        plan_title: null,
+        level_id: null,
+        level_title: null,
+        plan_item_ids: [],
+        target_summary: null,
+        needs_scope_clarification: true,
+      },
+      adjustment_need: {
+        reason_change: null,
+        requested_change: null,
+        change_kind: null,
+        constraints: [],
+        preserve: [],
+        avoid: [],
+        missing: [],
+      },
+      platform_handoff: {
+        status: "revised",
+        destination: "Plan",
+        suggested_platform_input: null,
+        grouped_by_plan: [],
+        previous_value: "Alleger Signal de pause.",
+        revised_value: "Alleger Signal de pause, plus court.",
+      },
+      state_updates: {
+        status: "revising",
+        stage: "handoff",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "revise_plan_handoff",
+        instruction: "Revise wording only.",
+      },
+    }),
+  });
+
+  assertEquals(reduced.local_state?.scope.target_summary, "Signal de pause");
+  assertEquals(reduced.local_state?.adjustment_need.reason_change, "trop lourd");
+  assertEquals(
+    reduced.local_state?.platform_handoff.revised_value,
+    "Alleger Signal de pause, plus court.",
+  );
+});
+
+Deno.test("adjust_plan_item non-actionable mention does not trigger handoff", () => {
+  const reduced = reduceAdjustPlanLocalDispatcherOutput({
+    previous: createInitialAdjustPlanLocalState(),
+    output: dispatcherOutput({
+      flow_action: "answer_current_field",
+      scope: {
+        kind: "specific_plan_item",
+        confidence: "medium",
+        plan_id: "plan-1",
+        plan_title: "Plan principal",
+        level_id: null,
+        level_title: null,
+        plan_item_ids: ["item-1"],
+        target_summary: "Signal de pause",
+        needs_scope_clarification: false,
+      },
+      adjustment_need: {
+        reason_change: null,
+        requested_change: null,
+        change_kind: null,
+        constraints: [],
+        preserve: [],
+        avoid: [],
+        missing: ["reason_change", "requested_change", "change_kind"],
+      },
+      state_updates: {
+        status: "collecting",
+        stage: "adjustment_need",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "clarify_adjustment_need",
+        instruction: "Ask what should change and why.",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "clarifying");
+  assertEquals(reduced.visible_task, "clarify_adjustment_need");
+  assertEquals(reduced.draft, null);
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+});
+
+Deno.test("adjust_plan_item exit clears server-owned state audit", () => {
+  const previous = createInitialAdjustPlanLocalState();
+  previous.platform_handoff = {
+    status: "delivered",
+    destination: "Plan",
+    suggested_platform_input: "Alleger Signal de pause.",
+    grouped_by_plan: [],
+    previous_value: null,
+    revised_value: null,
+  };
+  const reduced = reduceAdjustPlanLocalDispatcherOutput({
+    previous,
+    output: dispatcherOutput({
+      flow_action: "exit_to_global_dispatcher",
+      state_updates: {
+        status: "exit_to_global",
+        stage: "closing",
+        turn_count_increment: 1,
+        close_after_visible: true,
+      },
+      note_information: {
+        needed: true,
+        value: null,
+      },
+    }),
+  });
+
+  assertEquals(reduced.local_state, null);
+  assertEquals(
+    reduced.state_mutation_audit.cleared_fields.includes("platform_handoff"),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item old active local state remains readable", () => {
+  const normalized = normalizeAdjustPlanLocalState({
+    skill_id: "adjust_plan_item",
+    operation_type: "adjust_plan_item",
+    mode: "platform_handoff",
+    status: "handoff_delivered",
+    stage: "handoff",
+    platform_handoff: {
+      status: "delivered",
+      destination: "Plan",
+      suggested_platform_input: "Ancienne proposition.",
+      grouped_by_plan: [],
+    },
+  });
+
+  assertEquals(normalized?.local_state_summary, null);
+  assertEquals(normalized?.previous_flow_summary, null);
+  assertEquals(
+    normalized?.platform_handoff.suggested_platform_input,
+    "Ancienne proposition.",
+  );
+});
+
+Deno.test("adjust_plan_item partial old state with unknown enum normalizes safely", () => {
+  const normalized = normalizeAdjustPlanLocalState({
+    skill_id: "adjust_plan_item",
+    operation_type: "adjust_plan_item",
+    mode: "platform_handoff",
+    status: "legacy_status",
+    stage: "legacy_stage",
+    scope: {
+      kind: "legacy_scope",
+      target_summary: "Ancienne cible",
+    },
+  });
+
+  assertEquals(normalized?.status, "collecting");
+  assertEquals(normalized?.stage, "scope");
+  assertEquals(normalized?.scope.kind, "unknown");
+  assertEquals(normalized?.scope.target_summary, "Ancienne cible");
+  assertEquals(normalized?.platform_handoff.status, "none");
 });
 
 Deno.test("adjust_plan_item handoff requires target, reason and change kind before Plan handoff", () => {
@@ -293,6 +639,7 @@ Deno.test("adjust_plan_item handoff requires target, reason and change kind befo
   });
 
   assertEquals(reduced.status, "clarifying");
+  assertEquals(reduced.reason_code, "adjust_plan_item_durable_need_missing");
   assertEquals(reduced.visible_task, "clarify_adjustment_need");
   assertEquals(reduced.draft, null);
   assertEquals(

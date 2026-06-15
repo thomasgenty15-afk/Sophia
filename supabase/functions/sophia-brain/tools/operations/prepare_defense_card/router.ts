@@ -21,6 +21,7 @@ import {
 } from "./contract.ts";
 import {
   createInitialPrepareDefenseCardLocalState,
+  normalizePrepareDefenseCardLocalState,
   type PrepareDefenseCardLocalDispatcher,
   type PrepareDefenseCardLocalState,
   reducePrepareDefenseCardLocalDispatcherOutput,
@@ -301,6 +302,7 @@ function defenseCardLocalRuntimeTraceBase(args: {
   exitToGlobalDispatcher?: boolean;
   aiCallCount?: number;
   riskAssessment?: Record<string, unknown> | null;
+  stateMutationAudit?: Record<string, unknown> | null;
 }) {
   return {
     component: "prepare_defense_card.local_flow",
@@ -314,6 +316,7 @@ function defenseCardLocalRuntimeTraceBase(args: {
     exit_to_global_dispatcher: args.exitToGlobalDispatcher ?? false,
     ai_call_count: args.aiCallCount ?? null,
     risk_assessment: args.riskAssessment ?? null,
+    state_mutation_audit: args.stateMutationAudit ?? null,
     selected_handler: "prepare_defense_card",
   };
 }
@@ -535,11 +538,14 @@ async function runPrepareDefenseCardLocalRuntime(args: {
 }): Promise<OperationRuntimeResult> {
   const runtimeTrace: Array<Record<string, unknown>> = [];
   let aiCallCount = 0;
-  const previousLocalState = (args.activeHandoff as any)?.local_state ??
-    createInitialPrepareDefenseCardLocalState({
-      activeState: args.activeHandoff,
-      operationInput: args.operationInput,
-    });
+  const initialLocalState = createInitialPrepareDefenseCardLocalState({
+    activeState: args.activeHandoff,
+    operationInput: args.operationInput,
+  });
+  const previousLocalState = normalizePrepareDefenseCardLocalState(
+    (args.activeHandoff as any)?.local_state,
+    initialLocalState,
+  );
   runtimeTrace.push(defenseCardLocalRuntimeTraceBase({
     event: "active flow entry",
     toolFit: previousLocalState.tool_fit_state.status,
@@ -647,6 +653,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
     exitToGlobalDispatcher: reduced.exit_to_global_dispatcher,
     aiCallCount,
     riskAssessment: reduced.risk_assessment as any,
+    stateMutationAudit: reduced.state_mutation_audit as any,
   }));
   if (reduced.exit_to_global_dispatcher) {
     const exitReason = decision.exit_memo?.reason &&
@@ -690,6 +697,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         pending_confirmation: null,
         exit_memo: exitMemo,
         note_information: reduced.note_information,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
         ai_call_count: aiCallCount,
       },
@@ -737,6 +745,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         exit_memo: exitMemo,
         note_information: reduced.note_information,
         target_dispatcher: reduced.target_dispatcher,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
         ai_call_count: aiCallCount,
       },
@@ -813,6 +822,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         local_flow_state: nextLocalState,
         subskill_run: info.subskillRun,
         risk_assessment: reduced.risk_assessment,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
         ai_call_count: aiCallCount,
       },
@@ -871,6 +881,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         }],
         pending_confirmation: null,
         risk_assessment: reduced.risk_assessment,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
         ai_call_count: aiCallCount,
       },
@@ -936,6 +947,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
       pending_confirmation: null,
       handoff_state: nextHandoff,
       risk_assessment: reduced.risk_assessment,
+      state_mutation_audit: reduced.state_mutation_audit,
       runtime_trace: runtimeTrace,
       ai_call_count: aiCallCount,
       ...(deliversPlatformHandoff

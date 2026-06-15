@@ -9,6 +9,8 @@ import {
   DEFENSE_CARD_SUPPORT_NEED_LABEL,
   defenseCardPlatformDestinationForRoute,
   localDispatcherSystemPrompt,
+  mergePrepareDefenseCardLocalState,
+  normalizePrepareDefenseCardLocalState,
   type PrepareDefenseCardLocalDispatcherOutput,
   reducePrepareDefenseCardLocalDispatcherOutput,
 } from "./local_flow.ts";
@@ -131,12 +133,6 @@ function decision(
       handoff_hint_for_global_dispatcher: null,
     },
     note_information: null,
-    executable_from_chat: {
-      defense_card_created: false,
-      pending_confirmation_created: false,
-      confirmation_token_created: false,
-      db_write_committed: false,
-    },
     risk_assessment: {
       risk_score: 0,
       risk_band: "none",
@@ -145,6 +141,23 @@ function decision(
     },
     evidence: [],
     ...patch,
+  };
+}
+
+function supportNeedStateForTest(
+  patch: Partial<
+    ReturnType<
+      typeof createInitialPrepareDefenseCardLocalState
+    >["support_need_state"]
+  >,
+): ReturnType<typeof createInitialPrepareDefenseCardLocalState>[
+  "support_need_state"
+] {
+  return {
+    ...createInitialPrepareDefenseCardLocalState().support_need_state,
+    ...patch,
+    field_id: "support_need",
+    question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
   };
 }
 
@@ -197,7 +210,6 @@ Deno.test("prepare_defense_card dispatcher prompt documents real output fields",
       "handoff_state",
       "exit_memo",
       "note_information",
-      "executable_from_chat",
       "risk_assessment",
       "evidence",
     ]
@@ -306,6 +318,358 @@ Deno.test("prepare_defense_card preserves dispatcher constraints in visible cont
   assertEquals(result.visible_task_context.user_words, ["automatisme du soir"]);
 });
 
+Deno.test("prepare_defense_card continuation preserves server-owned proposed support_need", () => {
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    support_need_state: supportNeedStateForTest({
+      status: "proposed" as const,
+      candidate_value: "les soirs où je rentre vidé et que je commande",
+      locked_value: null,
+      previous_value: null,
+      needs_user_confirmation: true,
+      why_status: "pending offer",
+    }),
+  };
+
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "answer_current_field",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "dispatcher omitted pending offer",
+      },
+      visible_task: { kind: "ask_trigger_or_signal" },
+    }),
+  });
+
+  assertEquals(result.local_state?.support_need_state.status, "proposed");
+  assertEquals(
+    result.local_state?.support_need_state.candidate_value,
+    "les soirs où je rentre vidé et que je commande",
+  );
+  assertEquals(
+    result.state_mutation_audit.preserved_fields.includes(
+      "support_need_state",
+    ),
+    true,
+  );
+});
+
+Deno.test("prepare_defense_card invalid confirmation preserves pending state and audits missing offer", () => {
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    last_visible_task: "ask_support_need" as const,
+  };
+
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "confirm_proposed_field",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "confirmation without candidate",
+      },
+      visible_task: { kind: "ask_support_need" },
+    }),
+  });
+
+  assertEquals(result.local_state?.support_need_state.status, "missing");
+  assertEquals(result.draft, null);
+  assertEquals(
+    result.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "support_need_state" &&
+      change.reason_code === "missing_previous_offer"
+    ),
+    true,
+  );
+});
+
+Deno.test("prepare_defense_card valid confirmation locks previous candidate even if dispatcher omits it", () => {
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    last_visible_task: "confirm_support_need_proposal" as const,
+    support_need_state: supportNeedStateForTest({
+      status: "proposed" as const,
+      candidate_value:
+        "quand je rentre stressé et que je commande compulsivement",
+      locked_value: null,
+      previous_value: null,
+      needs_user_confirmation: true,
+      why_status: "candidate offered",
+    }),
+  };
+
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "confirm_proposed_field",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "omitted on confirmation",
+      },
+      visible_task: { kind: "handoff_ready" },
+    }),
+  });
+
+  assertEquals(result.local_state?.support_need_state.status, "locked");
+  assertEquals(
+    result.local_state?.support_need_state.locked_value,
+    "quand je rentre stressé et que je commande compulsivement",
+  );
+  assertEquals(result.status, "handoff_delivered");
+  assertEquals(
+    result.state_mutation_audit.applied_fields.includes("support_need_state"),
+    true,
+  );
+});
+
+Deno.test("prepare_defense_card non-actionable followup cannot mutate locked support_need", () => {
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    last_visible_task: "handoff_ready" as const,
+    last_handoff_delivered: true,
+    support_need_state: supportNeedStateForTest({
+      status: "locked" as const,
+      candidate_value: null,
+      locked_value: "les soirs où je rentre vidé et que je commande",
+      previous_value: null,
+      needs_user_confirmation: false,
+      why_status: "locked",
+    }),
+  };
+
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "platform_destination_followup",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "locked",
+        candidate_value: null,
+        locked_value: "mutation implicite inventée",
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "bad mutation",
+      },
+      visible_task: { kind: "destination_short" },
+    }),
+  });
+
+  assertEquals(
+    result.local_state?.support_need_state.locked_value,
+    "les soirs où je rentre vidé et que je commande",
+  );
+  assertEquals(result.visible_task, "destination_short");
+  assertEquals(
+    result.state_mutation_audit.restored_fields.includes(
+      "support_need_state",
+    ),
+    true,
+  );
+  assertEquals(
+    result.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "blocked_by_constraint"
+    ),
+    true,
+  );
+});
+
+Deno.test("prepare_defense_card legacy active state remains readable with missing new fields", () => {
+  const fallback = createInitialPrepareDefenseCardLocalState();
+  const legacyState = {
+    flow_id: "prepare_defense_card",
+    support_need_state: {
+      field_id: "support_need",
+      question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+      status: "locked",
+      locked_value: "quand je rentre tard et que je scrolle",
+    },
+  };
+
+  const normalized = normalizePrepareDefenseCardLocalState(
+    legacyState,
+    fallback,
+  );
+
+  assertEquals(normalized.flow_id, "prepare_defense_card");
+  assertEquals(normalized.route_kind, fallback.route_kind);
+  assertEquals(normalized.support_need_state.status, "locked");
+  assertEquals(
+    normalized.support_need_state.locked_value,
+    "quand je rentre tard et que je scrolle",
+  );
+  assertEquals(Array.isArray(normalized.subskill_history), true);
+});
+
+Deno.test("prepare_defense_card direct handoff without durable need is blocked with precise reason", () => {
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    last_visible_task: "ask_support_need" as const,
+  };
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "handoff_ready",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "missing support need",
+      },
+      visible_task: { kind: "handoff_ready" },
+    }),
+  });
+
+  assertEquals(result.status, "collecting");
+  assertEquals(result.reason_code, "durable_need_missing");
+  assertEquals(result.draft, null);
+});
+
+Deno.test("prepare_defense_card apply attempt is non-mutant and preserves locked state", () => {
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    last_visible_task: "handoff_ready" as const,
+    last_handoff_delivered: true,
+    support_need_state: supportNeedStateForTest({
+      status: "locked" as const,
+      candidate_value: null,
+      locked_value: "quand je rentre rincé et que je commande",
+      previous_value: null,
+      needs_user_confirmation: false,
+      why_status: "locked",
+    }),
+  };
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "apply_attempt",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "dispatcher omitted locked value",
+      },
+      visible_task: { kind: "apply_attempt" },
+    }),
+  });
+
+  assertEquals(result.status, "apply_attempt");
+  assertEquals(
+    result.local_state?.support_need_state.locked_value,
+    "quand je rentre rincé et que je commande",
+  );
+  assertEquals(
+    result.blocked_effects[0]?.reason_code,
+    "chat_creation_disabled_platform_handoff",
+  );
+  assertEquals(
+    result.state_mutation_audit.preserved_fields.includes(
+      "support_need_state",
+    ),
+    true,
+  );
+});
+
+Deno.test("prepare_defense_card explicit cancel clears active local flow without draft", () => {
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    last_visible_task: "confirm_support_need_proposal" as const,
+    support_need_state: supportNeedStateForTest({
+      status: "proposed",
+      candidate_value: "quand je rentre vidé et que je commande",
+      locked_value: null,
+      previous_value: null,
+      needs_user_confirmation: true,
+      why_status: "candidate pending",
+    }),
+  };
+
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "cancel_flow",
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "missing",
+        candidate_value: null,
+        locked_value: null,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "user cancelled flow",
+      },
+      visible_task: { kind: "exit_or_cancel" },
+    }),
+  });
+
+  assertEquals(result.status, "cancelled");
+  assertEquals(result.local_state, null);
+  assertEquals(result.draft, null);
+  assertEquals(result.exit_to_global_dispatcher, false);
+  assertEquals(
+    result.state_mutation_audit.server_owned_fields.includes(
+      "support_need_state",
+    ),
+    true,
+  );
+});
+
+Deno.test("prepare_defense_card merge exposes audit for declared modifications", () => {
+  const previous = createInitialPrepareDefenseCardLocalState();
+  const merged = mergePrepareDefenseCardLocalState({
+    previous,
+    output: decision({
+      slot_updates: {
+        attachment: {
+          status: "proposed",
+          candidate_value: "retour maison",
+        },
+      },
+      attachment_state: {
+        ...previous.attachment_state,
+        status: "proposed",
+        kind: "free_risk_context",
+        candidate_value: "retour maison",
+        needs_user_confirmation: true,
+      },
+    }),
+  });
+
+  assertEquals(
+    merged.audit.modified_fields_declared.includes("attachment"),
+    true,
+  );
+  assertEquals(merged.audit.applied_fields.includes("attachment_state"), true);
+});
+
 Deno.test("prepare_defense_card clear answer locks support_need and prepares handoff", () => {
   const value =
     "Quand je rentre fatigué et que j'ai l'impulsion de commander n'importe quoi.";
@@ -400,6 +764,69 @@ Deno.test("prepare_defense_card handoff preserves concrete defense response", ()
   assertStringIncludes(
     result.draft?.recommendation.card_draft_summary ?? "",
     defenseAction,
+  );
+});
+
+Deno.test("prepare_defense_card confirmation can preserve newly provided defense response hint", () => {
+  const supportNeed =
+    "les soirs ou je rentre vide et que j'ouvre Deliveroo sans reflechir";
+  const defenseAction =
+    "poser mon sac, boire un verre d'eau, puis sortir un truc simple du frigo avant de regarder mon telephone";
+  const previous = {
+    ...createInitialPrepareDefenseCardLocalState(),
+    support_need_state: {
+      field_id: "support_need" as const,
+      question_label:
+        DEFENSE_CARD_SUPPORT_NEED_LABEL as typeof DEFENSE_CARD_SUPPORT_NEED_LABEL,
+      status: "proposed" as const,
+      candidate_value: supportNeed,
+      locked_value: null,
+      previous_value: null,
+      needs_user_confirmation: true,
+      why_status: "proposition initiale",
+    },
+    last_visible_task: "ask_defense_goal_or_response" as const,
+  };
+
+  const result = reducePrepareDefenseCardLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "confirm_proposed_field",
+      defense_response_hint_state: {
+        status: "locked",
+        strategy_hint: "replace_action",
+        candidate_value: null,
+        locked_value: defenseAction,
+        needs_user_confirmation: false,
+        why_status: "parade concrete fournie par le user",
+      },
+      support_need_state: {
+        field_id: "support_need",
+        question_label: DEFENSE_CARD_SUPPORT_NEED_LABEL,
+        status: "locked",
+        candidate_value: null,
+        locked_value: supportNeed,
+        previous_value: null,
+        needs_user_confirmation: false,
+        why_status: "confirmed",
+      },
+      visible_task: {
+        kind: "handoff_ready",
+      },
+    }),
+  });
+
+  assertEquals(result.status, "handoff_delivered");
+  assertEquals(
+    result.local_state?.defense_response_hint_state.locked_value,
+    defenseAction,
+  );
+  assertEquals(result.draft?.prepared_fields?.defense_action, defenseAction);
+  assertEquals(
+    result.state_mutation_audit.restored_fields.includes(
+      "defense_response_hint_state",
+    ),
+    false,
   );
 });
 

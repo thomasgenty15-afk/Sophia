@@ -164,6 +164,26 @@ export type DemotivationRepairPotionBridgeContext = {
   handoff_instruction_for_potion_subskill: string;
 };
 
+export type DemotivationRepairStateChangeIntent = {
+  modified_fields: string[];
+  clear_fields: string[];
+  reason: string | null;
+};
+
+export type DemotivationRepairStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{
+    field: string;
+    reason_code: string;
+  }>;
+};
+
 export type DemotivationRepairLocalState = {
   skill_id: "demotivation_repair";
   mode: "local_repair_flow";
@@ -191,6 +211,7 @@ export type DemotivationRepairLocalState = {
     offered_at_turn: number;
     note_information: DemotivationRepairNoteInformation;
   } | null;
+  active_potion_handoff_context?: DemotivationRepairPotionBridgeContext | null;
   previous_repair_summary: string | null;
   turn_count: number;
   max_turns: number;
@@ -271,6 +292,7 @@ export type DemotivationRepairLocalDispatcherOutput = {
     note_information: DemotivationRepairNoteInformation | null;
   };
   visible_task: DemotivationRepairVisibleTask;
+  state_change_intent: DemotivationRepairStateChangeIntent;
   exit_memo: {
     needed: boolean;
     reason:

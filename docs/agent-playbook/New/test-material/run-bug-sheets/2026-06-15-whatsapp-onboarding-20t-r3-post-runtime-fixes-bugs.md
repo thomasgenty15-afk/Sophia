@@ -66,8 +66,8 @@ Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-15-wha
 - Symptome visible: T18 est acceptable, T19 aussi, mais l'ownership passe par `flow_opportunity_verification` puis `emotional_repair` alors que les demandes sont conversationnelles.
 - Preuve systeme: T18 `route_decision.response_owner=normal_reply`, `reason_code=normal_reply_fit_dominates`, mais metadata finale `response_owner=tool_skill`, `selected_handler=flow_opportunity_verification`, `tool_skill_run.status=waiting_confirmation`; T19 `route_reason=active_flow_opportunity_verification_local_dispatcher`.
 - Correction attendue: une opportunity bloquee par normal reply ne doit pas creer de `tool_skill_run`, pas d'active local ownership, pas de `selected_handler` final; seulement `blocked_paths`.
-- Statut: `open`
-- Fix reference: none
+- Statut: `fixed`
+- Fix reference: `supabase/functions/sophia-brain/skills/flow_opportunity_verification/runtime.ts` traite maintenant `response_owner=normal_reply` comme une route finale bloquante pour la selection d'opportunites; `flow_opportunity_verification_test.ts` ajoute l'invariant runtime `normal_reply_fit_dominates -> runtime null`.
 - Tests requis:
   - Positif: emotion legere + `normal_reply_fit_score` haut -> normal reply, `tool_skill_run=null`.
   - Paraphrase: demande de soutien simple -> pas d'active opportunity.

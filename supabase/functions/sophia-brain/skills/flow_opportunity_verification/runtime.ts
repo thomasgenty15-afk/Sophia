@@ -423,6 +423,7 @@ function syntheticLocalTurnFrame(args: {
 
 function routeIsDirect(routeDecision: RouteDecision | null): boolean {
   if (!routeDecision) return false;
+  if (routeDecision.response_owner === "normal_reply") return true;
   if (routeDecision.response_owner === "safety") return true;
   if (routeDecision.response_owner === "product_help") return true;
   if (routeDecision.response_owner === "tool_skill") return true;
@@ -1294,6 +1295,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
         flow_action: "exit_to_global_dispatcher",
         exit_memo: exitMemo,
         note_information: reduced.note_information,
+        state_mutation_audit: reduced.state_mutation_audit,
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
@@ -1332,6 +1334,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
         exit_memo: safetyMemo,
         note_information: reduced.note_information,
         visible_task: reduced.visible_task,
+        state_mutation_audit: reduced.state_mutation_audit,
         requested_effects: [],
         allowed_effects: [],
         committed_effects: [],
@@ -1346,7 +1349,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       opportunity_id: reduced.local_state.opportunity_id,
       target_flow: reduced.local_state.target_flow,
     });
-    return await runInlineGetInfoProduct({
+    const inlineResult = await runInlineGetInfoProduct({
       userId: args.userId,
       userMessage: args.userMessage,
       history: args.history,
@@ -1356,13 +1359,20 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       noteInformation: reduced.note_information,
       tempMemory: args.tempMemory,
     });
+    return {
+      ...inlineResult,
+      toolSkillRun: {
+        ...inlineResult.toolSkillRun,
+        state_mutation_audit: reduced.state_mutation_audit,
+      },
+    };
   }
   if (reduced.get_info_db && reduced.local_state) {
     console.info("[FlowOpportunityVerification] get_info_db_called", {
       opportunity_id: reduced.local_state.opportunity_id,
       target_flow: reduced.local_state.target_flow,
     });
-    return await runInlineGetInfoDb({
+    const inlineResult = await runInlineGetInfoDb({
       supabase: args.supabase,
       userId: args.userId,
       userMessage: args.userMessage,
@@ -1376,13 +1386,20 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       tempMemory: args.tempMemory,
       requestId: args.requestId ?? null,
     });
+    return {
+      ...inlineResult,
+      toolSkillRun: {
+        ...inlineResult.toolSkillRun,
+        state_mutation_audit: reduced.state_mutation_audit,
+      },
+    };
   }
   if (reduced.handoff_to_local_flow && previous) {
     console.info("[FlowOpportunityVerification] handoff_to_local_flow", {
       opportunity_id: previous.opportunity_id,
       target_flow: previous.target_flow,
     });
-    return await handoffToTargetFlow({
+    const handoffResult = await handoffToTargetFlow({
       supabase: args.supabase,
       userId: args.userId,
       userMessage: args.userMessage,
@@ -1402,6 +1419,13 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
         args.runCreateRecurringReminderOperation,
       runConversationTargetFlow: args.runConversationTargetFlow,
     });
+    return {
+      ...handoffResult,
+      toolSkillRun: {
+        ...handoffResult.toolSkillRun,
+        state_mutation_audit: reduced.state_mutation_audit,
+      },
+    };
   }
 
   const content = await renderVisible({
@@ -1444,6 +1468,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
       target_flow: reduced.target_flow,
       target_flow_input: reduced.target_flow_input,
       local_flow_state: reduced.local_state,
+      state_mutation_audit: reduced.state_mutation_audit,
       operation_suggestions: [],
       requested_effects: [],
       allowed_effects: [],
@@ -1468,6 +1493,7 @@ export async function maybeRunFlowOpportunityVerificationRuntime(args: {
         note_information_created: noteInformationForTrace(
           reduced.note_information,
         ),
+        state_mutation_audit: reduced.state_mutation_audit,
       }, {
         component: "flow_opportunity_verification",
         event: "write_blocked_no_mutation_owner",

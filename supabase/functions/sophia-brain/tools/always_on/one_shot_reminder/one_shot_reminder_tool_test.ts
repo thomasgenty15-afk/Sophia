@@ -1198,7 +1198,7 @@ function makeFakeSupabaseForCancel(opts: {
   } as any;
 }
 
-Deno.test("G3: 'annule le rappel de 16h10' annule réellement le checkin pending (edgecases-r3 T9)", async () => {
+Deno.test("G3: 'annule le rappel de 16h10' ne mute plus le checkin pending", async () => {
   let updatedIds: string[] = [];
   let updatedVals: any = null;
   const supabase = makeFakeSupabaseForCancel({
@@ -1227,12 +1227,12 @@ Deno.test("G3: 'annule le rappel de 16h10' annule réellement le checkin pending
     now: new Date("2026-05-29T08:00:00.000Z"),
   });
   assertEquals(outcome.detected, true);
-  if (!outcome.detected || outcome.status !== "cancelled") {
-    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
+  if (!outcome.detected || outcome.status !== "failed") {
+    throw new Error(`expected failed, got ${JSON.stringify(outcome)}`);
   }
-  assertEquals(outcome.cancelled_count, 1);
-  assertEquals(updatedIds, ["checkin-1"]);
-  assertEquals((updatedVals as any)?.status, "cancelled");
+  assertEquals(outcome.reason, "one_shot_reminder_cancel_unsupported");
+  assertEquals(updatedIds, []);
+  assertEquals(updatedVals, null);
 });
 
 Deno.test("G3: annulation sans rappel pending -> dit clairement que rien n'est annulé", async () => {
@@ -1251,7 +1251,7 @@ Deno.test("G3: annulation sans rappel pending -> dit clairement que rien n'est a
   assertEquals(outcome.status, "no_reminder");
 });
 
-Deno.test("G3: une heure ciblée ne coupe que le rappel correspondant", async () => {
+Deno.test("G3: une heure ciblée ne coupe plus aucun rappel", async () => {
   let updatedIds: string[] = [];
   const supabase = makeFakeSupabaseForCancel({
     profile: { timezone: "Europe/Paris", locale: "fr-FR" },
@@ -1281,11 +1281,11 @@ Deno.test("G3: une heure ciblée ne coupe que le rappel correspondant", async ()
     message: "coupe le rappel de 16h10",
     now: new Date("2026-05-29T08:00:00.000Z"),
   });
-  if (!outcome.detected || outcome.status !== "cancelled") {
-    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
+  if (!outcome.detected || outcome.status !== "failed") {
+    throw new Error(`expected failed, got ${JSON.stringify(outcome)}`);
   }
-  assertEquals(updatedIds, ["checkin-a"]);
-  assertEquals(outcome.cancelled_count, 1);
+  assertEquals(outcome.reason, "one_shot_reminder_cancel_unsupported");
+  assertEquals(updatedIds, []);
 });
 
 Deno.test("G3: une heure ciblée sans match n'annule aucun rappel", async () => {
@@ -1381,7 +1381,9 @@ Deno.test("router: recurring wording is a one-shot handoff, not a create", async
   assertEquals(createCalls, 0);
 });
 
-Deno.test("router: replace cancel+create returns both committed effects", async () => {
+Deno.test("router: replace cancel+create is blocked without side effect", async () => {
+  let cancelCalls = 0;
+  let createCalls = 0;
   const outcome = await maybeRunOneShotReminderDirectEffect({
     supabase: {} as any,
     userId: "u1",
@@ -1391,35 +1393,37 @@ Deno.test("router: replace cancel+create returns both committed effects", async 
       "cancel_one_shot_reminder",
       "create_one_shot_reminder",
     ]),
-    cancelReminder: async () => ({
-      detected: true,
-      status: "cancelled",
-      cancelled_count: 1,
-      cancelled_local_labels: ["16:10"],
-      user_message: "",
-    }),
-    createReminder: async () => ({
-      detected: true,
-      status: "success",
-      user_message: "",
-      scheduled_for: "2026-05-29T14:30:00.000Z",
-      scheduled_for_local_label: "16:30",
-      reminder_instruction: "relire X",
-      event_context: "one_shot_reminder:relire_x",
-      inserted_checkin_id: "checkin-new",
-      parse_source: "local_parser",
-    }),
+    cancelReminder: async () => {
+      cancelCalls++;
+      return { detected: false } as any;
+    },
+    createReminder: async () => {
+      createCalls++;
+      return { detected: false } as any;
+    },
   });
   assertEquals(outcome.intent, "replace");
-  assertEquals(outcome.status, "replaced");
-  assertEquals(outcome.executed_tools, [
-    "cancel_one_shot_reminder",
-    "create_one_shot_reminder",
+  assertEquals(outcome.status, "blocked");
+  assertEquals(outcome.executed_tools, []);
+  assertEquals(outcome.attempted_effects, []);
+  assertEquals(outcome.committed_effects, []);
+  assertEquals(outcome.blocked_effects, [
+    {
+      type: "cancel_one_shot_reminder",
+      reason_code: "one_shot_reminder_cancel_unsupported",
+    },
+    {
+      type: "create_one_shot_reminder",
+      reason_code: "one_shot_reminder_cancel_unsupported",
+    },
   ]);
-  assertEquals(outcome.committed_effects.length, 2);
+  assertEquals(cancelCalls, 0);
+  assertEquals(createCalls, 0);
 });
 
-Deno.test("router: replace partial failure reports the half-effect", async () => {
+Deno.test("router: replace with missing new time is still fully blocked", async () => {
+  let cancelCalls = 0;
+  let createCalls = 0;
   const outcome = await maybeRunOneShotReminderDirectEffect({
     supabase: {} as any,
     userId: "u1",
@@ -1429,30 +1433,24 @@ Deno.test("router: replace partial failure reports the half-effect", async () =>
       "cancel_one_shot_reminder",
       "create_one_shot_reminder",
     ]),
-    cancelReminder: async () => ({
-      detected: true,
-      status: "cancelled",
-      cancelled_count: 1,
-      cancelled_local_labels: ["16:10"],
-      user_message: "",
-    }),
-    createReminder: async () => ({
-      detected: true,
-      status: "needs_clarify",
-      reason: "missing_time",
-      user_message: "",
-    }),
+    cancelReminder: async () => {
+      cancelCalls++;
+      return { detected: false } as any;
+    },
+    createReminder: async () => {
+      createCalls++;
+      return { detected: false } as any;
+    },
   });
   assertEquals(outcome.intent, "replace");
-  assertEquals(outcome.status, "failed");
-  assertEquals(outcome.committed_effects, [{
-    type: "cancel_one_shot_reminder",
-    local_label: "16:10",
-  }]);
+  assertEquals(outcome.status, "blocked");
+  assertEquals(outcome.committed_effects, []);
   assertEquals(
-    outcome.reply?.includes("Je n'ai pas réussi à créer le nouveau rappel"),
+    outcome.reply?.includes("Je ne peux pas modifier ou annuler"),
     true,
   );
+  assertEquals(cancelCalls, 0);
+  assertEquals(createCalls, 0);
 });
 
 Deno.test("router: create success exposes requested allowed attempted and committed effects", async () => {

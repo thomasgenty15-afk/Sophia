@@ -143,9 +143,95 @@ function normalizeQuestionTendency(value: unknown): QuestionTendency {
   return raw === "low" || raw === "high" ? raw : "normal";
 }
 
-function parseQuestionTendencyFromContext(context: string): QuestionTendency {
-  void context;
-  return normalizeQuestionTendency(null);
+function normalizeForPreferenceParsing(value: unknown): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+function questionTendencyValueFromText(
+  value: unknown,
+): QuestionTendency | null {
+  const raw = normalizeForPreferenceParsing(value);
+  if (
+    /\blow\b/.test(raw) ||
+    raw.includes("peu_de_questions") ||
+    raw.includes("peu de questions") ||
+    raw.includes("moins de questions") ||
+    raw.includes("poser moins de questions")
+  ) {
+    return "low";
+  }
+  if (
+    /\bhigh\b/.test(raw) ||
+    raw.includes("tres_questionnant") ||
+    raw.includes("tres questionnant") ||
+    raw.includes("plus de questions") ||
+    raw.includes("poser davantage de questions")
+  ) {
+    return "high";
+  }
+  if (
+    /\bnormal\b/.test(raw) ||
+    raw.includes("equilibre") ||
+    raw.includes("equilibree") ||
+    raw.includes("normale") ||
+    raw.includes("niveau equilibre de questions") ||
+    raw.includes("questions equilibrees")
+  ) {
+    return "normal";
+  }
+  return null;
+}
+
+function extractContextBlock(
+  context: string,
+  startMarker: string,
+  endMarker?: string,
+): string | null {
+  const start = context.indexOf(startMarker);
+  if (start < 0) return null;
+  const fromStart = context.slice(start);
+  if (!endMarker) {
+    const nextSection = fromStart.indexOf("\n===", startMarker.length);
+    return nextSection >= 0 ? fromStart.slice(0, nextSection) : fromStart;
+  }
+  const end = fromStart.indexOf(endMarker);
+  return end >= 0 ? fromStart.slice(0, end + endMarker.length) : fromStart;
+}
+
+function parseQuestionTendencyFromContext(
+  context: string,
+): QuestionTendency | null {
+  const rawContext = String(context ?? "");
+  const runtimePreferenceBlock = extractContextBlock(
+    rawContext,
+    "=== PREFERENCES COACH UTILISATEUR",
+    "=== FIN PREFERENCES COACH UTILISATEUR ===",
+  );
+  const runtimeQuestionLines = runtimePreferenceBlock
+    ?.split("\n")
+    .filter((line) => {
+      const normalized = normalizeForPreferenceParsing(line);
+      return normalized.includes("question") ||
+        normalized.includes("interrogative");
+    })
+    .join("\n") ?? null;
+  const runtimePreference = runtimeQuestionLines
+    ? questionTendencyValueFromText(runtimeQuestionLines)
+    : null;
+  if (runtimePreference) return runtimePreference;
+
+  const userFactsBlock = extractContextBlock(
+    rawContext,
+    "=== USER MODEL (FACTS) ===",
+  );
+  if (!userFactsBlock) return null;
+  const questionTendencyLine = userFactsBlock
+    .split("\n")
+    .find((line) => line.includes("coach.question_tendency"));
+  return questionTendencyValueFromText(questionTendencyLine);
 }
 
 function readQuestionRhythmState(userState: any): CompanionQuestionRhythmState {
@@ -178,8 +264,8 @@ function buildQuestionRhythmGuide(
   userState: any,
 ): CompanionQuestionRhythmGuide {
   const stored = readQuestionRhythmState(userState);
-  const preference = stored.preference ??
-    parseQuestionTendencyFromContext(context);
+  const preference = parseQuestionTendencyFromContext(context) ??
+    stored.preference ?? "normal";
   const recentTurns = Array.isArray(stored.recent_turns)
     ? stored.recent_turns.slice(-QUESTION_RHYTHM_WINDOW_SIZE)
     : [];
@@ -262,8 +348,8 @@ function buildNextQuestionRhythmState(args: {
   responseText: string;
 }): CompanionQuestionRhythmState {
   const previous = readQuestionRhythmState(args.userState);
-  const preference = previous.preference ??
-    parseQuestionTendencyFromContext(args.context);
+  const preference = parseQuestionTendencyFromContext(args.context) ??
+    previous.preference ?? "normal";
   const hadQuestion = responseHasQuestion(args.responseText);
   const prevTurns = Array.isArray(previous.recent_turns)
     ? previous.recent_turns
@@ -467,6 +553,7 @@ function buildCompanionStablePrompt(opts: {
     - Avant de répondre, reconstruis le fil depuis le FIL ROUGE, le contexte disponible et surtout les 5 derniers messages.
     - Garde un hyperfocus sur le dernier message utilisateur: c'est lui qui détermine la posture visible du tour.
     - Réponds d'abord au dernier message utilisateur, puis garde la continuité.
+    - Si le dernier message demande de raccourcir, reformuler, simplifier, rendre plus doux/direct, ou "en une phrase", applique cette demande au dernier contenu actif de la conversation. Garde le sujet/référent actif sauf changement clair de sujet; ne réponds pas par une phrase générique déconnectée.
     - Le dernier message utilisateur est prioritaire sur ton réflexe de relance. Avant d'ajouter une question ou une nouvelle proposition, vérifie s'il contient une limite explicite ou implicite: "juste ça", "pas maintenant", "sans ajouter", "je m'en occupe", "après j'arrête", "on s'arrête là", "pas de solution", "ne propose pas", ou équivalent.
     - Si le dernier message contient une clôture, une limite de scope, ou une intention de faire puis d'arrêter, réponds en clôture courte. Ne rajoute pas de question finale, de nouveau micro-engagement, de rappel à faire maintenant, ni de proposition supplémentaire.
     - Si un contexte de reprise/handoff est présent, lis-le comme contexte prioritaire de continuité, mais vérifie toujours le dernier message utilisateur pour inférer les contraintes conversationnelles qui ne sont pas forcément listées explicitement.

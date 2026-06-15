@@ -1,0 +1,997 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "77e6dcdc-41f4-4098-93f0-ce033e2bca18",
+        "role": "user",
+        "content": "Je veux une potion d'apaisement pour la reunion de cet apres-midi, je suis a cran mais ne lance rien depuis le chat.",
+        "scope": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T18:18:22.136378+00:00"
+      },
+      {
+        "id": "48cbc522-de1d-43da-8327-817d282ff5ae",
+        "role": "assistant",
+        "content": "C'est noté pour la Potion d'apaisement. Pour que je puisse t'aider au mieux, qu'est-ce qui t'inquiète le plus ou te met la pression par rapport à cette réunion de cet après-midi ?",
+        "scope": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "apaisement_field_needs_more_detail",
+              "runtime_trace": [
+                {
+                  "event": "active_apaisement_turn_start",
+                  "component": "select_state_potion.apaisement",
+                  "previous_status": null,
+                  "global_dispatcher_available": false
+                },
+                {
+                  "event": "note_information_created",
+                  "component": "local_dispatcher",
+                  "source_flow": "select_state_potion",
+                  "handoff_reason": "clarification_resolved",
+                  "target_dispatcher": "other_local",
+                  "target_subdispatcher": "select_state_potion.apaisement"
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "answer_current_field",
+                  "visible_task": "ask_deeper",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "apaisement",
+                  "current_field_id": "pressure_source"
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "reduced",
+                  "status": "clarifying",
+                  "component": "local_reducer",
+                  "readiness": "not_ready",
+                  "candidates": [
+                    {
+                      "status": "locked",
+                      "field_id": "pressure_source",
+                      "has_candidate": false,
+                      "has_locked_value": true
+                    },
+                    {
+                      "status": "locked",
+                      "field_id": "pressure_state",
+                      "has_candidate": false,
+                      "has_locked_value": true
+                    }
+                  ],
+                  "constraints": [],
+                  "flow_action": "answer_current_field",
+                  "reason_code": "apaisement_field_needs_more_detail",
+                  "visible_task": "ask_deeper",
+                  "blocked_effects": [],
+                  "selected_option": "apaisement",
+                  "selected_target": "pressure_source",
+                  "current_field_id": "pressure_source",
+                  "direct_handoff_flag": true,
+                  "state_mutation_audit": {
+                    "applied_fields": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state",
+                      "current_field_id"
+                    ],
+                    "cleared_fields": [],
+                    "restored_fields": [],
+                    "preserved_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "subskill_history",
+                      "selected_potion"
+                    ],
+                    "rejected_changes": [],
+                    "server_owned_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "field_states",
+                      "current_field_id",
+                      "last_visible_task",
+                      "last_handoff_delivered",
+                      "subskill_history"
+                    ],
+                    "clear_fields_declared": [],
+                    "modified_fields_declared": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state"
+                    ]
+                  },
+                  "pending_state_present": false,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "conversation_context_built",
+                  "component": "local_reducer",
+                  "visible_task": "ask_deeper",
+                  "field_or_stage": "pressure_source"
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "clarifying",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "ask_deeper",
+                  "conversation_context_provided": true
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "state_mutation_audit",
+                  "component": "local_reducer",
+                  "state_mutation_audit": {
+                    "applied_fields": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state",
+                      "current_field_id"
+                    ],
+                    "cleared_fields": [],
+                    "restored_fields": [],
+                    "preserved_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "subskill_history",
+                      "selected_potion"
+                    ],
+                    "rejected_changes": [],
+                    "server_owned_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "field_states",
+                      "current_field_id",
+                      "last_visible_task",
+                      "last_handoff_delivered",
+                      "subskill_history"
+                    ],
+                    "clear_fields_declared": [],
+                    "modified_fields_declared": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state"
+                    ]
+                  }
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "note_information": {
+                "user_words": [
+                  "Je veux une potion d'apaisement pour la reunion de cet apres-midi, je suis a cran mais ne lance rien depuis le chat."
+                ],
+                "handoff_reason": "clarification_resolved",
+                "source_flow_id": "select_state_potion",
+                "target_dispatcher": "other_local",
+                "structured_context": {
+                  "source_flow": "select_state_potion",
+                  "handoff_data": {
+                    "fields": [
+                      {
+                        "value": null,
+                        "status": "missing",
+                        "field_id": "pressure_source",
+                        "field_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                        "locked_value": null,
+                        "option_label": null,
+                        "option_value": null,
+                        "candidate_value": null,
+                        "detail_sufficiency": {
+                          "reason": null,
+                          "status": "unknown",
+                          "evidence": [],
+                          "followup_asked": false,
+                          "followup_answered": false,
+                          "followup_question": null
+                        },
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "value": null,
+                        "status": "missing",
+                        "field_id": "pressure_state",
+                        "field_label": "Tu te sens plutot comment ?",
+                        "locked_value": null,
+                        "option_label": null,
+                        "option_value": null,
+                        "candidate_value": null,
+                        "detail_sufficiency": {
+                          "reason": null,
+                          "status": "sufficient",
+                          "evidence": [],
+                          "followup_asked": false,
+                          "followup_answered": true,
+                          "followup_question": null
+                        },
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "potion_name": "Potion d'apaisement",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "evidence_used": [
+                    "local_dispatcher_activation"
+                  ],
+                  "selected_potion": {
+                    "potion_name": "Potion d'apaisement",
+                    "potion_type": "apaisement"
+                  },
+                  "collected_fields": {},
+                  "active_flow_summary": "Potion d'apaisement | tache visible=ask_deeper | aucun champ verrouillé",
+                  "unresolved_questions": [
+                    {
+                      "reason": "champ plateforme pas encore verrouillé",
+                      "field_id": "pressure_source",
+                      "field_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                      "followup_question": null
+                    },
+                    {
+                      "reason": "champ plateforme pas encore verrouillé",
+                      "field_id": "pressure_state",
+                      "field_label": "Tu te sens plutot comment ?",
+                      "followup_question": null
+                    }
+                  ],
+                  "user_message_summary": "Je veux une potion d'apaisement pour la reunion de cet apres-midi, je suis a cran mais ne lance rien depuis le chat.",
+                  "recommended_next_focus": "select_state_potion.apaisement"
+                },
+                "handoff_context_for_next_dispatcher": "Potion d'apaisement | tache visible=ask_deeper | aucun champ verrouillé"
+              },
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "apaisement_field_needs_more_detail",
+                "operation_type": "select_state_potion",
+                "executable_from_chat": false
+              },
+              "selected_handler": "select_state_potion.apaisement",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "state_mutation_audit": {
+                "applied_fields": [
+                  "field_states.pressure_source",
+                  "field_states.pressure_state",
+                  "current_field_id"
+                ],
+                "cleared_fields": [],
+                "restored_fields": [],
+                "preserved_fields": [
+                  "flow_id",
+                  "selected_potion",
+                  "potion_name",
+                  "platform_destination",
+                  "origin_bridge_context",
+                  "field_order",
+                  "subskill_history",
+                  "selected_potion"
+                ],
+                "rejected_changes": [],
+                "server_owned_fields": [
+                  "flow_id",
+                  "selected_potion",
+                  "potion_name",
+                  "platform_destination",
+                  "origin_bridge_context",
+                  "field_order",
+                  "field_states",
+                  "current_field_id",
+                  "last_visible_task",
+                  "last_handoff_delivered",
+                  "subskill_history"
+                ],
+                "clear_fields_declared": [],
+                "modified_fields_declared": [
+                  "field_states.pressure_source",
+                  "field_states.pressure_state"
+                ]
+              }
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T18:18:50.202232+00:00"
+      },
+      {
+        "id": "34e301d9-f6da-4aac-ad38-dcc8ae6dd6d7",
+        "role": "user",
+        "content": "C'est surtout que j'ai peur qu'on me tombe dessus sur mes chiffres, et je me sens submerge.",
+        "scope": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T18:19:07.094687+00:00"
+      },
+      {
+        "id": "05b37e65-76a2-437e-b82e-6b2fbd3e529e",
+        "role": "assistant",
+        "content": "Je suis de tout cœur avec toi pour cette réunion qui approche. La Potion d'apaisement est tout indiquée pour t'aider à gérer ce sentiment de submersion. Tu peux maintenant l'utiliser dans la section État / Potions en reportant ces éléments :\n\nQu'est-ce qui te met le plus sous pression la ? : la reunion de cet apres-midi (peur qu'on me tombe dessus sur mes chiffres)\nTu te sens plutot comment ? : Submerge",
+        "scope": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "apaisement_handoff_delivered",
+              "runtime_trace": [
+                {
+                  "event": "active_apaisement_turn_start",
+                  "component": "select_state_potion.apaisement",
+                  "previous_status": "clarifying",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "answer_current_field",
+                  "visible_task": "handoff_ready",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "apaisement",
+                  "current_field_id": null
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "reduced",
+                  "status": "handoff_delivered",
+                  "component": "local_reducer",
+                  "readiness": "ready",
+                  "candidates": [
+                    {
+                      "status": "locked",
+                      "field_id": "pressure_source",
+                      "has_candidate": false,
+                      "has_locked_value": true
+                    },
+                    {
+                      "status": "locked",
+                      "field_id": "pressure_state",
+                      "has_candidate": false,
+                      "has_locked_value": true
+                    }
+                  ],
+                  "constraints": [],
+                  "flow_action": "answer_current_field",
+                  "reason_code": "apaisement_handoff_delivered",
+                  "visible_task": "handoff_ready",
+                  "blocked_effects": [],
+                  "selected_option": "apaisement",
+                  "selected_target": null,
+                  "current_field_id": null,
+                  "direct_handoff_flag": true,
+                  "state_mutation_audit": {
+                    "applied_fields": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state"
+                    ],
+                    "cleared_fields": [],
+                    "restored_fields": [],
+                    "preserved_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "subskill_history",
+                      "selected_potion",
+                      "current_field_id"
+                    ],
+                    "rejected_changes": [],
+                    "server_owned_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "field_states",
+                      "current_field_id",
+                      "last_visible_task",
+                      "last_handoff_delivered",
+                      "subskill_history"
+                    ],
+                    "clear_fields_declared": [],
+                    "modified_fields_declared": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state"
+                    ]
+                  },
+                  "pending_state_present": false,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "conversation_context_built",
+                  "component": "local_reducer",
+                  "visible_task": "handoff_ready",
+                  "field_or_stage": "handoff_ready"
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "handoff_delivered",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "handoff_ready",
+                  "conversation_context_provided": true
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "state_mutation_audit",
+                  "component": "local_reducer",
+                  "state_mutation_audit": {
+                    "applied_fields": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state"
+                    ],
+                    "cleared_fields": [],
+                    "restored_fields": [],
+                    "preserved_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "subskill_history",
+                      "selected_potion",
+                      "current_field_id"
+                    ],
+                    "rejected_changes": [],
+                    "server_owned_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "field_states",
+                      "current_field_id",
+                      "last_visible_task",
+                      "last_handoff_delivered",
+                      "subskill_history"
+                    ],
+                    "clear_fields_declared": [],
+                    "modified_fields_declared": [
+                      "field_states.pressure_source",
+                      "field_states.pressure_state"
+                    ]
+                  }
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "note_information": null,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion d'apaisement",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'apaisement"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "la reunion de cet apres-midi (peur qu'on me tombe dessus sur mes chiffres)",
+                          "question_id": "pressure_source",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                        },
+                        {
+                          "value": "Submerge",
+                          "question_id": "pressure_state",
+                          "option_label": "Submerge",
+                          "option_value": "submerge",
+                          "question_label": "Tu te sens plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "apaisement",
+                      "potion_title": "Potion d'apaisement",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu montes en pression, que tu es a cran ou trop stresse, elle t'aide a redescendre.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "missing_decisions": [],
+                  "user_state_summary": "la reunion de cet apres-midi (peur qu'on me tombe dessus sur mes chiffres) ; Submerge",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "redescendre, desserrer la pression, retrouver un peu d'espace interieur"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "apaisement_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "executable_from_chat": false
+              },
+              "selected_handler": "select_state_potion.apaisement",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "state_mutation_audit": {
+                "applied_fields": [
+                  "field_states.pressure_source",
+                  "field_states.pressure_state"
+                ],
+                "cleared_fields": [],
+                "restored_fields": [],
+                "preserved_fields": [
+                  "flow_id",
+                  "selected_potion",
+                  "potion_name",
+                  "platform_destination",
+                  "origin_bridge_context",
+                  "field_order",
+                  "subskill_history",
+                  "selected_potion",
+                  "current_field_id"
+                ],
+                "rejected_changes": [],
+                "server_owned_fields": [
+                  "flow_id",
+                  "selected_potion",
+                  "potion_name",
+                  "platform_destination",
+                  "origin_bridge_context",
+                  "field_order",
+                  "field_states",
+                  "current_field_id",
+                  "last_visible_task",
+                  "last_handoff_delivered",
+                  "subskill_history"
+                ],
+                "clear_fields_declared": [],
+                "modified_fields_declared": [
+                  "field_states.pressure_source",
+                  "field_states.pressure_state"
+                ]
+              }
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T18:19:23.504171+00:00"
+      },
+      {
+        "id": "20071256-5705-47f6-820f-d9840dcd0f07",
+        "role": "user",
+        "content": "Petite correction : je ne suis pas submerge, je suis plutot a cran. Et je mentionne la potion de courage juste comme idee, mais je veux rester sur apaisement.",
+        "scope": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T18:19:35.238852+00:00"
+      },
+      {
+        "id": "44628498-b78a-4002-a9a9-8cd0bdcdfdaf",
+        "role": "assistant",
+        "content": "C'est entendu, j'ai bien pris en compte que tu te sens à cran. J'ai mis à jour ta Potion d'apaisement avec cette nouvelle précision. Tu peux retrouver ta synthèse dans la section État / Potions :\n\nQu'est-ce qui te met le plus sous pression la ? : la reunion de cet apres-midi (peur qu'on me tombe dessus sur mes chiffres)\nTu te sens plutot comment ? : A cran",
+        "scope": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-select-state-potion-server-owned-mini-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "apaisement_revision_applied",
+              "runtime_trace": [
+                {
+                  "event": "active_apaisement_turn_start",
+                  "component": "select_state_potion.apaisement",
+                  "previous_status": "handoff_delivered",
+                  "global_dispatcher_available": false
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "revise_current_field",
+                  "visible_task": "revision_done",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "apaisement",
+                  "current_field_id": null
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "reduced",
+                  "status": "handoff_delivered",
+                  "component": "local_reducer",
+                  "readiness": "ready",
+                  "candidates": [
+                    {
+                      "status": "locked",
+                      "field_id": "pressure_source",
+                      "has_candidate": false,
+                      "has_locked_value": true
+                    },
+                    {
+                      "status": "locked",
+                      "field_id": "pressure_state",
+                      "has_candidate": false,
+                      "has_locked_value": true
+                    }
+                  ],
+                  "constraints": [],
+                  "flow_action": "revise_current_field",
+                  "reason_code": "apaisement_revision_applied",
+                  "visible_task": "revision_done",
+                  "blocked_effects": [],
+                  "selected_option": "apaisement",
+                  "selected_target": null,
+                  "current_field_id": null,
+                  "direct_handoff_flag": true,
+                  "state_mutation_audit": {
+                    "applied_fields": [
+                      "field_states.pressure_state"
+                    ],
+                    "cleared_fields": [],
+                    "restored_fields": [],
+                    "preserved_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "subskill_history"
+                    ],
+                    "rejected_changes": [],
+                    "server_owned_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "field_states",
+                      "current_field_id",
+                      "last_visible_task",
+                      "last_handoff_delivered",
+                      "subskill_history"
+                    ],
+                    "clear_fields_declared": [],
+                    "modified_fields_declared": []
+                  },
+                  "pending_state_present": false,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "conversation_context_built",
+                  "component": "local_reducer",
+                  "visible_task": "revision_done",
+                  "field_or_stage": "revision_done"
+                },
+                {
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage",
+                  "handoff_status": "handoff_delivered",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "revision_done",
+                  "conversation_context_provided": true
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [
+                    "potion_subskill_missing_field_label:pressure_source",
+                    "potion_subskill_missing_field_value:pressure_source"
+                  ],
+                  "attempt": 1,
+                  "accepted": false,
+                  "component": "visible_agent"
+                },
+                {
+                  "stage": "potion_subskill_task",
+                  "issues": [],
+                  "attempt": 2,
+                  "accepted": true,
+                  "component": "visible_agent",
+                  "retry_triggered_by": [
+                    "potion_subskill_missing_field_label:pressure_source",
+                    "potion_subskill_missing_field_value:pressure_source"
+                  ]
+                },
+                {
+                  "event": "complete",
+                  "stage": "potion_subskill_task",
+                  "component": "visible_stage"
+                },
+                {
+                  "flow": "select_state_potion.apaisement",
+                  "event": "state_mutation_audit",
+                  "component": "local_reducer",
+                  "state_mutation_audit": {
+                    "applied_fields": [
+                      "field_states.pressure_state"
+                    ],
+                    "cleared_fields": [],
+                    "restored_fields": [],
+                    "preserved_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "subskill_history"
+                    ],
+                    "rejected_changes": [],
+                    "server_owned_fields": [
+                      "flow_id",
+                      "selected_potion",
+                      "potion_name",
+                      "platform_destination",
+                      "origin_bridge_context",
+                      "field_order",
+                      "field_states",
+                      "current_field_id",
+                      "last_visible_task",
+                      "last_handoff_delivered",
+                      "subskill_history"
+                    ],
+                    "clear_fields_declared": [],
+                    "modified_fields_declared": []
+                  }
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "note_information": null,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion d'apaisement",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion d'apaisement"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "la reunion de cet apres-midi (peur qu'on me tombe dessus sur mes chiffres)",
+                          "question_id": "pressure_source",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te met le plus sous pression la ?"
+                        },
+                        {
+                          "value": "A cran",
+                          "question_id": "pressure_state",
+                          "option_label": "A cran",
+                          "option_value": "a_cran",
+                          "question_label": "Tu te sens plutot comment ?"
+                        }
+                      ],
+                      "potion_type": "apaisement",
+                      "potion_title": "Potion d'apaisement",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Quand tu montes en pression, que tu es a cran ou trop stresse, elle t'aide a redescendre.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "missing_decisions": [],
+                  "user_state_summary": "la reunion de cet apres-midi (peur qu'on me tombe dessus sur mes chiffres) ; A cran",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "redescendre, desserrer la pression, retrouver un peu d'espace interieur"
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "apaisement_revision_applied",
+                "operation_type": "select_state_potion",
+                "executable_from_chat": false
+              },
+              "selected_handler": "select_state_potion.apaisement",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false,
+              "state_mutation_audit": {
+                "applied_fields": [
+                  "field_states.pressure_state"
+                ],
+                "cleared_fields": [],
+                "restored_fields": [],
+                "preserved_fields": [
+                  "flow_id",
+                  "selected_potion",
+                  "potion_name",
+                  "platform_destination",
+                  "origin_bridge_context",
+                  "field_order",
+                  "subskill_history"
+                ],
+                "rejected_changes": [],
+                "server_owned_fields": [
+                  "flow_id",
+                  "selected_potion",
+                  "potion_name",
+                  "platform_destination",
+                  "origin_bridge_context",
+                  "field_order",
+                  "field_states",
+                  "current_field_id",
+                  "last_visible_task",
+                  "last_handoff_delivered",
+                  "subskill_history"
+                ],
+                "clear_fields_declared": [],
+                "modified_fields_declared": []
+              }
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T18:19:54.323114+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

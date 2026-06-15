@@ -393,6 +393,7 @@ function runtimeResult(args: {
   riskAssessment?: SelectStatePotionRiskAssessment | null;
   noteInformation?: Record<string, unknown> | null;
   runtimeTrace?: SelectStatePotionRuntimeTraceEvent[];
+  stateMutationAudit?: Record<string, unknown> | null;
 }): StatePotionHandoffRuntimeResult {
   return {
     content: args.content,
@@ -414,6 +415,7 @@ function runtimeResult(args: {
       blocked_effects: [],
       constraints: args.constraints ?? [],
       risk_assessment: args.riskAssessment ?? null,
+      state_mutation_audit: args.stateMutationAudit ?? null,
       runtime_trace: args.runtimeTrace ?? [],
       note_information: args.noteInformation ?? null,
       handoff: args.handoffTarget ? { target: args.handoffTarget } : null,
@@ -740,9 +742,37 @@ async function runClarteHandoffTurn(args: {
     flow: "select_state_potion.clarte",
     status: reduced.status,
     reason_code: reduced.reason_code,
+    flow_action: decision.flow_action,
     visible_task: reduced.visible_task,
+    selected_option: reduced.clarte_state?.selected_potion ?? "clarte",
+    selected_target: reduced.clarte_state?.platform_destination ?? null,
+    pending_state_present:
+      reduced.clarte_state?.field_state.status === "proposed",
+    direct_handoff_flag: true,
+    candidates: reduced.clarte_state
+      ? [{
+        field_id: reduced.clarte_state.field_id,
+        status: reduced.clarte_state.field_state.status,
+        has_candidate: Boolean(
+          reduced.clarte_state.field_state.candidate_value,
+        ),
+        has_locked_value: Boolean(
+          reduced.clarte_state.field_state.locked_value,
+        ),
+      }]
+      : [],
+    constraints: [],
+    readiness: reduced.status === "handoff_delivered",
+    blocked_effects: [],
+    state_mutation_audit: reduced.state_mutation_audit,
     field_status: reduced.clarte_state?.field_state.status ?? null,
     exit_to_global_dispatcher: reduced.exit_to_global_dispatcher,
+  });
+  runtimeTrace.push({
+    component: "local_reducer",
+    event: "state_mutation_audit",
+    flow: "select_state_potion.clarte",
+    state_mutation_audit: reduced.state_mutation_audit,
   });
   const conversationContext = buildClarteConversationContext({
     state: reduced.clarte_state,
@@ -821,6 +851,7 @@ async function runClarteHandoffTurn(args: {
           same_user_message_should_be_rerouted_globally: true,
         },
       ],
+      stateMutationAudit: reduced.state_mutation_audit,
     });
   }
   if (
@@ -904,6 +935,7 @@ async function runClarteHandoffTurn(args: {
         committed_effects: [],
         blocked_effects: [],
         risk_assessment: reduced.risk_assessment,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
         subskill_run: info.subskillRun,
       },
@@ -952,6 +984,7 @@ async function runClarteHandoffTurn(args: {
     riskAssessment: reduced.risk_assessment,
     noteInformation: safetyNoteInformation ?? activationNoteInformation,
     runtimeTrace,
+    stateMutationAudit: reduced.state_mutation_audit,
   });
 }
 
@@ -1077,6 +1110,31 @@ async function runPotionSubskillHandoffTurn(args: {
     status: reduced.status,
     reason_code: reduced.reason_code,
     visible_task: reduced.visible_task,
+    flow_action: decision.flow_action,
+    selected_option: reduced.potion_subskill_state?.selected_potion ?? null,
+    selected_target: reduced.potion_subskill_state?.current_field_id ?? null,
+    pending_state_present: Boolean(
+      reduced.potion_subskill_state?.field_order.some((fieldId) =>
+        reduced.potion_subskill_state?.field_states[fieldId]?.status ===
+          "proposed"
+      ),
+    ),
+    direct_handoff_flag: true,
+    candidates: reduced.potion_subskill_state
+      ? reduced.potion_subskill_state.field_order.map((fieldId) => {
+        const field = reduced.potion_subskill_state!.field_states[fieldId];
+        return {
+          field_id: fieldId,
+          status: field?.status ?? "missing",
+          has_candidate: Boolean(field?.candidate_value),
+          has_locked_value: Boolean(field?.locked_value),
+        };
+      })
+      : [],
+    constraints: [],
+    readiness: reduced.draft ? "ready" : "not_ready",
+    blocked_effects: [],
+    state_mutation_audit: reduced.state_mutation_audit,
     current_field_id: reduced.potion_subskill_state?.current_field_id ?? null,
     exit_to_global_dispatcher: reduced.exit_to_global_dispatcher,
   });
@@ -1242,6 +1300,7 @@ async function runPotionSubskillHandoffTurn(args: {
         committed_effects: [],
         blocked_effects: [],
         risk_assessment: reduced.risk_assessment,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
         subskill_run: info.subskillRun,
       },
@@ -1289,7 +1348,16 @@ async function runPotionSubskillHandoffTurn(args: {
     handoffTarget: STATE_POTION_HANDOFF_TARGET?.surface_id ?? "state_potions",
     riskAssessment: reduced.risk_assessment,
     noteInformation: safetyNoteInformation ?? activationNoteInformation,
-    runtimeTrace,
+    stateMutationAudit: reduced.state_mutation_audit,
+    runtimeTrace: [
+      ...runtimeTrace,
+      {
+        component: "local_reducer",
+        event: "state_mutation_audit",
+        flow: `select_state_potion.${args.potionType}`,
+        state_mutation_audit: reduced.state_mutation_audit,
+      },
+    ],
   });
 }
 

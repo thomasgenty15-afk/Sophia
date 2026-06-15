@@ -186,6 +186,23 @@ export type StatePotionSubskillRevisionState = {
   replaces_previous_value: boolean;
 };
 
+export type StatePotionStateMutationRejectedChange = {
+  field: string;
+  reason_code: string;
+  attempted_action?: string | null;
+};
+
+export type StatePotionStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: StatePotionStateMutationRejectedChange[];
+};
+
 export type ClarteFieldState = {
   status: ClarteFieldStatus;
   candidate_value: string | null;
@@ -251,6 +268,8 @@ export type StatePotionSubskillDispatcherOutput = {
   selected_potion: StatePotionSubskillPotionType;
   current_field_id: string | null;
   field_states: StatePotionSubskillFieldState[];
+  modified_fields?: string[];
+  clear_fields?: string[];
   revision: StatePotionSubskillRevisionState;
   visible_task: {
     kind: StatePotionSubskillVisibleTaskKind;
@@ -296,6 +315,8 @@ export type ClarteDispatcherOutput = {
   confidence: "low" | "medium" | "high";
   selected_potion: "clarte";
   field_id: "plan_meaning_loss_reason";
+  modified_fields?: string[];
+  clear_fields?: string[];
   field_state: ClarteFieldState;
   revision: ClarteRevisionState;
   visible_task: {

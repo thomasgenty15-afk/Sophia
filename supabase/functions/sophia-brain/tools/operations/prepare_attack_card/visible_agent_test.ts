@@ -36,6 +36,16 @@ Deno.test("prepare_attack_card visible prompt injects shared visible style rules
   assertStringIncludes(prompt, "Format conversationnel");
 });
 
+Deno.test("prepare_attack_card visible prompt asks to adapt raw user slots before speaking", () => {
+  const prompt = visibleSystemPrompt(input);
+
+  assertStringIncludes(prompt, "ne recopie pas betement les slots bruts");
+  assertStringIncludes(prompt, "transforme les possessifs");
+  assertStringIncludes(prompt, "ranger mes papiers demain matin");
+  assertStringIncludes(prompt, "pour ton rangement de papiers demain matin");
+  assertStringIncludes(prompt, "le piege du tri parfait");
+});
+
 Deno.test("prepare_attack_card visible contract does not block style wording by regex", () => {
   const issues = prepareAttackCardVisibleContractIssues(
     "Ton rendez-vous peut rester le repère de la carte.",

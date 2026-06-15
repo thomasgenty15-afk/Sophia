@@ -151,7 +151,7 @@ function readHandoffOperationType(value: unknown): string {
   return String(record.operation_type ?? record.skill_id ?? "").trim();
 }
 
-function readLocalToolFlowOperationType(value: unknown): string {
+export function readLocalToolFlowOperationType(value: unknown): string {
   const record = value as any;
   if (!record || typeof record !== "object" || Array.isArray(record)) {
     return "";

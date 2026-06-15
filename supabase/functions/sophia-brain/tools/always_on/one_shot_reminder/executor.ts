@@ -220,35 +220,11 @@ async function cancelReminderFromEffect(args: {
   supabase: SupabaseClient;
   requestId?: string | null;
 }): Promise<OneShotReminderCommittedEffect | OneShotReminderFailedEffect> {
-  const ids = [...new Set(args.effect.target_reminder_ids ?? [])].filter(
-    Boolean,
-  );
-  if (ids.length === 0) {
-    return {
-      type: "cancel_one_shot_reminder",
-      reason_code: "no_reminder_found",
-    };
-  }
-  try {
-    const writeClient = await getReminderWriteClient(args.supabase);
-    const { error } = await writeClient
-      .from("scheduled_checkins")
-      .update({ status: "cancelled" } as any)
-      .in("id", ids);
-    if (error) throw error;
-    return {
-      type: "cancel_one_shot_reminder",
-      ids,
-      target_reminder_ids: ids,
-      target_local_labels: args.effect.target_local_labels ?? [],
-    };
-  } catch (error) {
-    return {
-      type: "cancel_one_shot_reminder",
-      reason_code: "update_failed",
-      error_message: compactText(errorText(error), 180) || "update_failed",
-    };
-  }
+  void args;
+  return {
+    type: "cancel_one_shot_reminder",
+    reason_code: "one_shot_reminder_cancel_unsupported",
+  };
 }
 
 export type OneShotReminderExecutionEffectsResult = {

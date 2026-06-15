@@ -8,7 +8,7 @@ import {
   normalizeSafetyCrisisLocalDispatcherOutput,
   setSafetyCrisisLocalDispatcherForTest,
 } from "./local_dispatcher.ts";
-import { reduceSafetyCrisis } from "./reducer.ts";
+import { mergeSafetyCrisisLocalState, reduceSafetyCrisis } from "./reducer.ts";
 import { runSafetyCrisisSkill } from "./skill.ts";
 import {
   setSafetyCrisisVisibleAgentForTest,
@@ -238,6 +238,75 @@ Deno.test("safety_crisis visible prompt enforces strict safety wording quality",
     });
     assertEquals(result.visible_agent_ok, true);
     assertEquals(result.message?.includes("Respiration 4/6"), true);
+  } finally {
+    setSafetyCrisisVisibleAgentForTest(null);
+  }
+});
+
+Deno.test("safety_crisis visible product boundary rejects product artifact content", async () => {
+  const { runSafetyCrisisVisibleAgentResult } = await import(
+    "./visible_agent.ts"
+  );
+  const visibleTask: SafetyCrisisVisibleTask = {
+    kind: "product_tool_boundary",
+    conversation_context: {
+      state_summary: "Safety support active.",
+      context_summary: "Demande de carte differee pendant safety.",
+      next_focus: "defer product or tool work and return to immediate safety",
+      field_or_stage: "product_tool_boundary",
+      known_values: {
+        phase: "stabilizing",
+        risk_band: "medium",
+        immediate_danger: false,
+        has_means_nearby: false,
+        user_not_alone: false,
+        human_support_available: true,
+        emergency_help_contacted: false,
+      },
+      missing_or_weak_values: [],
+      evidence_used: ["user asks for a card while safety is active"],
+      user_words: ["Tu peux aussi me préparer une carte pour demain matin ?"],
+      selected_candidate: {},
+      tone_constraints: ["short", "calm", "concrete", "one_next_step"],
+      max_questions: 1,
+      safety_resources: {
+        emergency_numbers: "15 ou 112",
+        suicide_prevention_number: "3114",
+        must_prioritize_human_support: true,
+        must_include_emergency_numbers: false,
+      },
+      handoff_data: {
+        inbound_note_summary: null,
+        current_step: "safety_step=stabilizing",
+        deferred_product_or_tool_request:
+          "demande de carte differee pendant safety",
+      },
+      do_not_say: [
+        "do not claim a product action was launched, created, scheduled, saved, or activated",
+      ],
+    },
+  };
+  const prompt = visibleSystemPromptForSafetyCrisisTest({
+    user_id: "user-safety",
+    request_id: "req-safety",
+    visible_task: visibleTask,
+  });
+  assert(prompt.includes("Ne redige pas le contenu demande"));
+  assert(prompt.includes("aucun texte pret a copier-coller"));
+  assert(prompt.includes("aucun rappel ne doit etre confirme"));
+
+  setSafetyCrisisVisibleAgentForTest(async () =>
+    "Je te propose une carte courte.\n\nCARTE - DEMAIN MATIN\nRespirer, appeler ta cousine."
+  );
+  try {
+    const result = await runSafetyCrisisVisibleAgentResult({
+      user_id: "user-safety",
+      request_id: "req-safety",
+      visible_task: visibleTask,
+    });
+    assertEquals(result.visible_agent_ok, false);
+    assertEquals(result.failure_reason, "product_artifact_generated");
+    assertEquals(result.message, null);
   } finally {
     setSafetyCrisisVisibleAgentForTest(null);
   }
@@ -539,6 +608,285 @@ Deno.test("safety_crisis reducer provides visible-agent-safe conversation_contex
   assertEquals(context.selected_candidate, {});
 });
 
+Deno.test("safety_crisis reducer preserves server-owned runtime fields on continuation", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "support_contact",
+      trigger_summary: "previous trigger",
+      pending_offer: { kind: "call_support" },
+      pending_confirmation: { kind: "safety_check" },
+      last_selected_option: { option_id: "brother_sms" },
+      active_subflow_context: { source: "previous" },
+      previous_flow_summary: "handoff from emotional repair",
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      has_means_nearby: false,
+      uncertainty: "medium",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_means_status",
+      state_hints: {
+        suggested_trigger_summary: "malicious replacement",
+        suggested_last_user_safety_signal: "means away",
+      },
+      modified_fields: [
+        "trigger_summary",
+        "pending_offer",
+        "pending_confirmation",
+      ],
+      clear_fields: ["active_subflow_context"],
+    }),
+  });
+
+  assertEquals((reduced.statePatch as any).trigger_summary, "previous trigger");
+  assertEquals((reduced.statePatch as any).pending_offer, {
+    kind: "call_support",
+  });
+  assertEquals((reduced.statePatch as any).pending_confirmation, {
+    kind: "safety_check",
+  });
+  assertEquals((reduced.statePatch as any).last_selected_option, {
+    option_id: "brother_sms",
+  });
+  assertEquals((reduced.statePatch as any).active_subflow_context, {
+    source: "previous",
+  });
+  assert(
+    reduced.stateMutationAudit.preserved_fields.includes("pending_offer"),
+  );
+  assert(
+    reduced.stateMutationAudit.restored_fields.includes(
+      "active_subflow_context",
+    ),
+  );
+  assertEquals(
+    reduced.stateMutationAudit.rejected_changes.some((change) =>
+      change.field === "active_subflow_context" &&
+      change.reason_code === "transition_not_authorized"
+    ),
+    true,
+  );
+});
+
+Deno.test("safety_crisis reducer keeps pending confirmation on invalid confirmation or exit", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "support_contact",
+      consecutive_deescalated_turns: 0,
+      pending_confirmation: { kind: "confirm_safe_exit" },
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      deescalation_evidence: true,
+      uncertainty: "high",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "exit_to_global_dispatcher",
+      exit_request: {
+        requested: true,
+        why_user_thinks_safe: "ca va",
+        missing_resolution_facts: [
+          "immediate_danger_absent",
+          "means_safe",
+          "human_support_available",
+        ],
+      },
+      clear_fields: ["pending_confirmation"],
+    }),
+  });
+
+  assertEquals(reduced.visibleTask.kind, "exit_check");
+  assertEquals(reduced.reasonCode, "safety_crisis.missing_previous_exit_check");
+  assertEquals((reduced.statePatch as any).pending_confirmation, {
+    kind: "confirm_safe_exit",
+  });
+  assert(
+    reduced.stateMutationAudit.restored_fields.includes(
+      "pending_confirmation",
+    ),
+  );
+});
+
+Deno.test("safety_crisis reducer clears pending runtime fields only on valid resolved transition", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      consecutive_deescalated_turns: 1,
+      pending_offer: { kind: "support_check" },
+      pending_confirmation: { kind: "confirm_safe_exit" },
+      last_selected_option: { option_id: "with_cousin" },
+      active_subflow_context: { source: "safety" },
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      has_means_nearby: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_deescalation_evidence",
+      clear_fields: ["pending_offer", "pending_confirmation"],
+    }),
+  });
+
+  assertEquals(reduced.phase, "resolved");
+  assertEquals((reduced.statePatch as any).pending_offer, null);
+  assertEquals((reduced.statePatch as any).pending_confirmation, null);
+  assertEquals((reduced.statePatch as any).last_selected_option, null);
+  assertEquals((reduced.statePatch as any).active_subflow_context, null);
+  assert(
+    reduced.stateMutationAudit.cleared_fields.includes("pending_confirmation"),
+  );
+});
+
+Deno.test("safety_crisis reducer accepts explicit user correction for the corrected safety fact only", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "acute_grounding",
+      has_means_nearby: true,
+      immediate_danger: true,
+      pending_offer: { kind: "call_support" },
+      last_selected_option: { option_id: "move_meds" },
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      means_moved_away: true,
+      has_means_nearby: false,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_means_status",
+      safety_signals: {
+        immediate_danger: false,
+        means_moved_away: true,
+        has_means_nearby: false,
+        uncertainty: "low",
+      },
+      evidence: ["user says the meds are now away"],
+    }),
+  });
+
+  assertEquals(reduced.statePatch.has_means_nearby, false);
+  assertEquals(reduced.statePatch.immediate_danger, false);
+  assertEquals((reduced.statePatch as any).pending_offer, {
+    kind: "call_support",
+  });
+  assertEquals((reduced.statePatch as any).last_selected_option, {
+    option_id: "move_meds",
+  });
+});
+
+Deno.test("safety_crisis reducer lets clear happen on valid explicit exit but not before", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      consecutive_deescalated_turns: 1,
+      pending_confirmation: { kind: "confirm_safe_exit" },
+      active_subflow_context: { source: "previous_safety_check" },
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      has_means_nearby: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "exit_to_global_dispatcher",
+      exit_request: {
+        requested: true,
+        why_user_thinks_safe:
+          "pas de danger immediat, moyens eloignes, frere disponible",
+        missing_resolution_facts: [],
+      },
+      clear_fields: ["pending_confirmation", "active_subflow_context"],
+    }),
+  });
+
+  assertEquals(reduced.phase, "resolved");
+  assertEquals(reduced.visibleTask.kind, "resolved_exit");
+  assertEquals((reduced.statePatch as any).pending_confirmation, null);
+  assertEquals((reduced.statePatch as any).active_subflow_context, null);
+  assert(
+    reduced.stateMutationAudit.cleared_fields.includes(
+      "active_subflow_context",
+    ),
+  );
+});
+
+Deno.test("safety_crisis reducer tolerates old enum or partial state without default durable action", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "old_unknown_phase" as any,
+      risk_band: "legacy_risk" as any,
+      pending_confirmation: { kind: "legacy_pending" },
+    },
+    sourceRiskBand: "low",
+    signals: emptySafetySignal({
+      uncertainty: "high",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "answer_safety_check",
+      evidence: ["unclear legacy continuation"],
+    }),
+  });
+
+  assertEquals(reduced.phase, "stabilizing");
+  assertEquals((reduced.statePatch as any).pending_confirmation, {
+    kind: "legacy_pending",
+  });
+  assertEquals(reduced.visibleTask.kind, "stabilizing");
+  assertEquals(reduced.stateMutationAudit.rejected_changes.length, 0);
+});
+
+Deno.test("safety_crisis merge audit rejects server-owned mutation declarations as non-authoritative", () => {
+  const merged = mergeSafetyCrisisLocalState({
+    previous: {
+      phase: "support_contact",
+      pending_offer: { id: "offer-1" },
+    },
+    output: dispatcherOutput({
+      modified_fields: ["pending_offer"],
+      clear_fields: ["pending_offer"],
+    }),
+    transition: {
+      phase: "support_contact",
+      reason_code: "safety_crisis.support_contact",
+      resolved: false,
+    },
+    computed: {
+      phase: "support_contact",
+      risk_band: "medium",
+      immediate_danger: null,
+      has_means_nearby: false,
+      user_not_alone: null,
+      emergency_help_mentioned: false,
+      human_support_mentioned: false,
+      consecutive_deescalated_turns: 0,
+      last_user_safety_signal: "support needed",
+      last_assistant_safety_step: "safety_step=support_contact",
+      trigger_summary: null,
+      exit_memo: null,
+      summary: "Safety support active.",
+    },
+    now: "2026-06-15T00:00:00.000Z",
+  });
+
+  assertEquals((merged.statePatch as any).pending_offer, { id: "offer-1" });
+  assertEquals(merged.audit.restored_fields.includes("pending_offer"), true);
+  assertEquals(merged.audit.rejected_changes.length, 2);
+});
+
 Deno.test("safety_crisis skill defers product or tool attempts with no effects", async () => {
   try {
     setSafetyCrisisLocalDispatcherForTest(async () =>
@@ -606,6 +954,139 @@ Deno.test("safety_crisis skill defers product or tool attempts with no effects",
     assertEquals(output.effects?.allowed.length, 0);
     assertEquals(output.effects?.committed.length, 0);
     assertEquals(output.recommendation_need?.needed, false);
+  } finally {
+    setSafetyCrisisLocalDispatcherForTest(null);
+    setSafetyCrisisVisibleAgentForTest(null);
+  }
+});
+
+Deno.test("safety_crisis skill reads legacy active state and exposes mutation audit", async () => {
+  try {
+    setSafetyCrisisLocalDispatcherForTest(async () =>
+      dispatcherOutput({
+        flow_action: "provide_support_status",
+        safety_signals: {
+          immediate_danger: false,
+          has_means_nearby: false,
+          user_currently_alone: false,
+          human_support_available: true,
+          clarified_non_immediate: true,
+          deescalation_evidence: true,
+          uncertainty: "low",
+        },
+      })
+    );
+    setSafetyCrisisVisibleAgentForTest(async (input) => {
+      assertEquals(input.visible_task.kind, "exit_check");
+      return "Reste avec ton frere. Est-ce que tu confirmes que le danger immediat est absent ?";
+    });
+    const context = await loadSafetyCrisisContext(contextInput({
+      active_skill_working_state: {
+        version: 1,
+        skill_id: "safety_crisis",
+        status: "active",
+        user_id: "user-safety-local",
+        scope: "whatsapp",
+        turn_count: 2,
+        started_at: "2026-06-15T00:00:00.000Z",
+        updated_at: "2026-06-15T00:05:00.000Z",
+        working_state: {
+          phase: "support_contact",
+          has_means_nearby: false,
+          user_not_alone: false,
+        },
+      },
+      turn_frame: turnFrame({
+        safety: { risk_band: "medium", reason_codes: [], evidence: [] },
+      }),
+    }));
+    const output = await runSafetyCrisisSkill({
+      user_message: "mon frere est avec moi maintenant",
+      context,
+    });
+
+    assertEquals(output.status, "continue");
+    assertEquals((output.diagnosis as any)?.state_mutation_audit != null, true);
+    assertEquals(
+      Array.isArray(
+        (output.diagnosis as any)?.state_mutation_audit?.server_owned_fields,
+      ),
+      true,
+    );
+  } finally {
+    setSafetyCrisisLocalDispatcherForTest(null);
+    setSafetyCrisisVisibleAgentForTest(null);
+  }
+});
+
+Deno.test("safety_crisis skill exposes direct handoff flag only for actionable one-shot reminder", async () => {
+  try {
+    setSafetyCrisisLocalDispatcherForTest(async () =>
+      dispatcherOutput({
+        flow_action: "provide_deescalation_evidence",
+        safety_signals: {
+          immediate_danger: false,
+          has_means_nearby: false,
+          user_currently_alone: false,
+          human_support_available: true,
+          clarified_non_immediate: true,
+          deescalation_evidence: true,
+          uncertainty: "low",
+        },
+        direct_effect_request: {
+          requested: true,
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text:
+              "rappelle-moi dans 30 minutes de verifier que je suis en securite",
+          },
+          reason: "explicit reminder",
+        },
+      })
+    );
+    setSafetyCrisisVisibleAgentForTest(async () =>
+      "On garde la securite en premier."
+    );
+    const context = await loadSafetyCrisisContext(contextInput());
+    const output = await runSafetyCrisisSkill({
+      user_message:
+        "rappelle-moi dans 30 minutes de verifier que je suis en securite",
+      context,
+    });
+    assertEquals(
+      (output.diagnosis as any)?.local_flow_trace?.direct_handoff_flag,
+      true,
+    );
+    assertEquals(
+      (output.diagnosis as any)?.local_flow_trace?.selected_target,
+      "rappelle-moi dans 30 minutes de verifier que je suis en securite",
+    );
+
+    setSafetyCrisisLocalDispatcherForTest(async () =>
+      dispatcherOutput({
+        flow_action: "answer_safety_check",
+        direct_effect_request: {
+          requested: false,
+          effect_type: null,
+          explicitness: "none",
+          target_status: "none",
+          confidence_band: "low",
+          payload_hint: { raw_text: null },
+          reason: null,
+        },
+      })
+    );
+    const nonActionable = await runSafetyCrisisSkill({
+      user_message: "je vais essayer de me rappeler de respirer",
+      context,
+    });
+    assertEquals(
+      (nonActionable.diagnosis as any)?.local_flow_trace?.direct_handoff_flag,
+      false,
+    );
   } finally {
     setSafetyCrisisLocalDispatcherForTest(null);
     setSafetyCrisisVisibleAgentForTest(null);

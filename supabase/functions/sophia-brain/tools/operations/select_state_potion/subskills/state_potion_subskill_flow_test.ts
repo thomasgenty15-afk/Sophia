@@ -1,6 +1,7 @@
 import {
   assert,
   assertEquals,
+  assertStringIncludes,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import type {
   StatePotionSubskillDispatcherOutput,
@@ -8,8 +9,10 @@ import type {
 } from "../contract.ts";
 import {
   createInitialStatePotionSubskillState,
+  mergeStatePotionSubskillLocalState,
   reduceStatePotionSubskillDispatcherOutput,
 } from "./state_potion_subskill_flow.ts";
+import { loadStatePotionHandoffStateFromTempMemory } from "../state.ts";
 
 function risk() {
   return {
@@ -52,12 +55,6 @@ function baseDecision(
       flow_summary: null,
       collected_value: null,
       handoff_hint_for_global_dispatcher: null,
-    },
-    executable_from_chat: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
     },
     risk_assessment: risk(),
     evidence: ["test"],
@@ -153,6 +150,539 @@ Deno.test("state potion subskill reducer locks all fields and builds platform ha
     reduced.draft?.recommendation.platform_inputs?.answers.length,
     2,
   );
+});
+
+Deno.test("state potion deterministic merge preserves server-owned fields on continuation", () => {
+  const previous = createInitialStatePotionSubskillState("apaisement", null);
+  const merged = mergeStatePotionSubskillLocalState({
+    previous,
+    transition: "repeat_handoff",
+    decision: baseDecision({
+      selected_potion: "courage" as any,
+      flow_action: "repeat_handoff",
+      current_field_id: "unknown-field",
+      modified_fields: ["selected_potion", "field_states.pressure_source"],
+      clear_fields: ["pressure_state"],
+      field_states: [{
+        ...previous.field_states.pressure_source,
+        status: "locked",
+        locked_value: "valeur qui ne doit pas passer",
+      }],
+    }),
+  });
+
+  assertEquals(merged.state.selected_potion, "apaisement");
+  assertEquals(
+    merged.state.field_states.pressure_source.locked_value,
+    previous.field_states.pressure_source.locked_value,
+  );
+  assert(merged.audit.restored_fields.includes("selected_potion"));
+  assert(
+    merged.audit.restored_fields.includes("field_states.pressure_source"),
+  );
+  assert(
+    merged.audit.rejected_changes.some((change) =>
+      change.reason_code === "invalid_status_transition"
+    ),
+  );
+});
+
+Deno.test("state potion invalid confirmation preserves pending state and audits refusal", () => {
+  const previous = createInitialStatePotionSubskillState("amour", null);
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "amour",
+      flow_action: "confirm_proposed_field",
+      current_field_id: "love_lack_context",
+      field_states: [{
+        ...previous.field_states.love_lack_context,
+        status: "locked",
+        locked_value: "valeur indue",
+      }],
+    }),
+  });
+
+  assertEquals(reduced.status, "clarifying");
+  assertEquals(reduced.reason_code, "amour_pending_confirmation_missing");
+  assertEquals(
+    reduced.potion_subskill_state?.field_states.love_lack_context.status,
+    "missing",
+  );
+  assert(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "pending_confirmation_missing"
+    ),
+  );
+});
+
+Deno.test("state potion valid transition replaces field through revision", () => {
+  const previous = fullyLockedState("amour");
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "amour",
+      flow_action: "revise_current_field",
+      current_field_id: "love_lack_context",
+      revision: {
+        is_revision: true,
+        field_id: "love_lack_context",
+        replacement_value: "le retard de ce matin, sans en faire une identite",
+        option_value: null,
+        option_label: null,
+        replaces_previous_value: true,
+      },
+      visible_task: {
+        kind: "revision_done",
+      },
+    }),
+  });
+
+  assertEquals(
+    reduced.potion_subskill_state?.field_states.love_lack_context.locked_value,
+    "le retard de ce matin, sans en faire une identite",
+  );
+  assert(
+    reduced.state_mutation_audit.applied_fields.includes(
+      "field_states.love_lack_context",
+    ),
+  );
+});
+
+Deno.test("state potion valid cancel clears local state with audit", () => {
+  const previous = createInitialStatePotionSubskillState("rappel", null);
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "rappel",
+      flow_action: "cancel_flow",
+    }),
+  });
+
+  assertEquals(reduced.status, "cancelled");
+  assertEquals(reduced.potion_subskill_state, null);
+  assert(
+    reduced.state_mutation_audit.cleared_fields.includes(
+      "potion_subskill_state",
+    ),
+  );
+});
+
+Deno.test("state potion direct valid destination request triggers platform handoff when ready", () => {
+  const previous = fullyLockedState("apaisement");
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "apaisement",
+      flow_action: "platform_destination_followup",
+      current_field_id: null,
+      visible_task: {
+        kind: "destination_short",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "handoff_delivered");
+  assert(reduced.draft);
+  assertEquals(
+    reduced.draft?.recommendation.platform_inputs?.potion_type,
+    "apaisement",
+  );
+  assert(reduced.state_mutation_audit);
+});
+
+Deno.test("state potion non actionable mention does not trigger handoff", () => {
+  const previous = createInitialStatePotionSubskillState("rappel", null);
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "rappel",
+      flow_action: "answer_current_field",
+      current_field_id: "rappel_target",
+      field_states: [],
+      visible_task: {
+        kind: "ask_deeper",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "clarifying");
+  assertEquals(reduced.draft, null);
+  assertEquals(reduced.visible_task, "ask_deeper");
+});
+
+Deno.test("state potion legacy active state without audit fields remains readable", () => {
+  const legacy = {
+    skill_id: "select_state_potion",
+    active_subskill_id: "select_state_potion.amour",
+    mode: "platform_handoff",
+    status: "clarifying",
+    phase: "detail_intake",
+    potion_subskill_state: createInitialStatePotionSubskillState(
+      "amour",
+      null,
+    ),
+    turn_count: 1,
+    max_turns: 6,
+    created_at: "2026-06-01T00:00:00.000Z",
+    updated_at: "2026-06-01T00:00:00.000Z",
+    executable_from_chat: false,
+  };
+  const loaded = loadStatePotionHandoffStateFromTempMemory({
+    __active_tool_skill_intake: legacy,
+  });
+
+  assertEquals(loaded?.active_subskill_id, "select_state_potion.amour");
+  assertEquals(loaded?.potion_subskill_state?.selected_potion, "amour");
+});
+
+Deno.test("state potion legacy partial state with missing field remains clarifiable", () => {
+  const previous = createInitialStatePotionSubskillState("apaisement", null);
+  const legacyPartial = {
+    ...previous,
+    field_states: {
+      pressure_source: {
+        ...previous.field_states.pressure_source,
+        status: "locked" as const,
+        locked_value: "la reunion de cet apres-midi",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      },
+    } as typeof previous.field_states,
+    current_field_id: "pressure_state",
+  };
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous: legacyPartial,
+    decision: baseDecision({
+      selected_potion: "apaisement",
+      flow_action: "answer_current_field",
+      current_field_id: "pressure_state",
+      field_states: [],
+      visible_task: {
+        kind: "ask_deeper",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "clarifying");
+  assertEquals(reduced.draft, null);
+  assertEquals(
+    reduced.potion_subskill_state?.field_states.pressure_source.locked_value,
+    "la reunion de cet apres-midi",
+  );
+  assertEquals(
+    reduced.potion_subskill_state?.current_field_id,
+    "pressure_state",
+  );
+});
+
+Deno.test("state potion explicit new intention exits without mutating partial slot", () => {
+  const previous = createInitialStatePotionSubskillState("apaisement", null);
+  const partial = {
+    ...previous,
+    field_states: {
+      ...previous.field_states,
+      pressure_source: {
+        ...previous.field_states.pressure_source,
+        status: "locked" as const,
+        locked_value: "la reunion de cet apres-midi",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      },
+    },
+    current_field_id: "pressure_state",
+  };
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous: partial,
+    decision: baseDecision({
+      selected_potion: "apaisement",
+      flow_action: "exit_to_global_dispatcher",
+      current_field_id: "pressure_state",
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        flow_summary: "Potion interrompue par une nouvelle intention.",
+        collected_value: "la reunion de cet apres-midi",
+        handoff_hint_for_global_dispatcher:
+          "Le user demande maintenant une action hors potion.",
+      },
+      visible_task: {
+        kind: "exit",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "topic_change");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(
+    reduced.potion_subskill_state?.field_states.pressure_source.locked_value,
+    "la reunion de cet apres-midi",
+  );
+  assertEquals(reduced.state_mutation_audit.applied_fields.length, 0);
+});
+
+Deno.test("state potion bridge context is preserved on next reducer turn", () => {
+  const bridgeContext = originBridgeContext("amour", {
+    love_lack_context: {
+      candidate_value: "le retard de ce matin",
+      confidence: "medium",
+      source: "emotional_repair",
+    },
+  });
+  const previous = createInitialStatePotionSubskillState(
+    "amour",
+    null,
+    bridgeContext,
+  );
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "amour",
+      flow_action: "answer_current_field",
+      current_field_id: "love_lack_context",
+      field_states: [{
+        ...previous.field_states.love_lack_context,
+        status: "locked",
+        locked_value: "le retard de ce matin qui me revient comme une preuve",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      }],
+    }),
+  });
+
+  assertEquals(
+    reduced.potion_subskill_state?.origin_bridge_context?.origin_flow,
+    "emotional_repair",
+  );
+  assert(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "origin_bridge_context",
+    ),
+  );
+});
+
+Deno.test("state potion filled slot is preserved and not asked again on next turn", () => {
+  const previous = createInitialStatePotionSubskillState("apaisement", null);
+  const withFilledSlot: typeof previous = {
+    ...previous,
+    field_states: {
+      ...previous.field_states,
+      pressure_source: {
+        ...previous.field_states.pressure_source,
+        status: "locked" as const,
+        locked_value: "la reunion de cet apres-midi",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      },
+    },
+    current_field_id: "pressure_state",
+  };
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous: withFilledSlot,
+    decision: baseDecision({
+      selected_potion: "apaisement",
+      flow_action: "answer_current_field",
+      current_field_id: "pressure_state",
+      field_states: [],
+    }),
+  });
+
+  assertEquals(
+    reduced.potion_subskill_state?.field_states.pressure_source.locked_value,
+    "la reunion de cet apres-midi",
+  );
+  assertEquals(
+    reduced.potion_subskill_state?.current_field_id,
+    "pressure_state",
+  );
+  assert(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "field_states.pressure_source",
+    ),
+  );
+});
+
+Deno.test("state potion rappel continuation keeps concrete drift details in handoff", () => {
+  const previous = createInitialStatePotionSubskillState("rappel", null);
+  const withRichTarget: typeof previous = {
+    ...previous,
+    field_states: {
+      ...previous.field_states,
+      drift_target: {
+        ...previous.field_states.drift_target,
+        status: "locked" as const,
+        locked_value:
+          "le moment ou je ferme l'ordinateur vers 18h45: ranger cinq minutes ou sortir marcher",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      },
+    },
+    current_field_id: "drift_style",
+  };
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous: withRichTarget,
+    decision: baseDecision({
+      selected_potion: "rappel",
+      flow_action: "answer_current_field",
+      current_field_id: "drift_style",
+      field_states: [{
+        ...withRichTarget.field_states.drift_target,
+        status: "locked",
+        locked_value: "mon petit rangement apres avoir ferme l'ordinateur",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      }, {
+        ...withRichTarget.field_states.drift_style,
+        status: "locked",
+        locked_value: "J'oublie",
+        option_value: "oubli",
+        option_label: "J'oublie",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      }],
+    }),
+  });
+
+  const value = reduced.potion_subskill_state?.field_states.drift_target
+    .locked_value ?? "";
+  assertStringIncludes(value, "18h45");
+  assertStringIncludes(value, "ranger cinq minutes");
+  assertStringIncludes(value, "sortir marcher");
+  assertStringIncludes(
+    reduced.draft?.recommendation.platform_inputs?.answers.find((answer) =>
+      answer.question_id === "drift_target"
+    )?.value ?? "",
+    "sortir marcher",
+  );
+});
+
+Deno.test("state potion apaisement continuation keeps body signals and new constraint", () => {
+  const previous = createInitialStatePotionSubskillState("apaisement", null);
+  const withBodySignals: typeof previous = {
+    ...previous,
+    field_states: {
+      ...previous.field_states,
+      pressure_source: {
+        ...previous.field_states.pressure_source,
+        status: "locked" as const,
+        locked_value: "ma reunion avec la machoire serree et le souffle court",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      },
+    },
+    current_field_id: "pressure_state",
+  };
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous: withBodySignals,
+    decision: baseDecision({
+      selected_potion: "apaisement",
+      flow_action: "answer_current_field",
+      current_field_id: "pressure_state",
+      field_states: [{
+        ...withBodySignals.field_states.pressure_source,
+        status: "locked",
+        locked_value: "ma reunion, avec besoin de ralentir sans culpabiliser",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      }, {
+        ...withBodySignals.field_states.pressure_state,
+        status: "locked",
+        locked_value: "Submerge",
+        option_value: "submerge",
+        option_label: "Submerge",
+        candidate_value: null,
+        needs_user_confirmation: false,
+      }],
+    }),
+  });
+
+  const value = reduced.potion_subskill_state?.field_states.pressure_source
+    .locked_value ?? "";
+  assertStringIncludes(value, "machoire serree");
+  assertStringIncludes(value, "souffle court");
+  assertStringIncludes(value, "ralentir sans culpabiliser");
+  assertStringIncludes(
+    reduced.draft?.recommendation.platform_inputs?.answers.find((answer) =>
+      answer.question_id === "pressure_source"
+    )?.value ?? "",
+    "souffle court",
+  );
+});
+
+Deno.test("state potion explicit slot correction replaces only that slot", () => {
+  const previous = fullyLockedState("apaisement");
+  const sourceBefore = previous.field_states.pressure_source.locked_value;
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "apaisement",
+      flow_action: "revise_current_field",
+      current_field_id: "pressure_state",
+      revision: {
+        is_revision: true,
+        field_id: "pressure_state",
+        replacement_value: "A cran",
+        option_value: "a_cran",
+        option_label: "A cran",
+        replaces_previous_value: true,
+      },
+    }),
+  });
+
+  assertEquals(
+    reduced.potion_subskill_state?.field_states.pressure_source.locked_value,
+    sourceBefore,
+  );
+  assertEquals(
+    reduced.potion_subskill_state?.field_states.pressure_state.option_value,
+    "a_cran",
+  );
+});
+
+Deno.test("state potion mention of another potion without explicit correction does not change selected potion", () => {
+  const previous = createInitialStatePotionSubskillState("amour", null);
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "apaisement" as any,
+      flow_action: "answer_current_field",
+      current_field_id: "love_lack_context",
+      field_states: [{
+        ...previous.field_states.love_lack_context,
+        status: "locked",
+        locked_value: "je veux garder ce travail sur mon auto-jugement",
+        candidate_value: null,
+      }],
+    }),
+  });
+
+  assertEquals(reduced.potion_subskill_state?.selected_potion, "amour");
+  assert(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "selected_potion" &&
+      change.reason_code === "selected_option_missing"
+    ),
+  );
+});
+
+Deno.test("state potion delivered handoff closes local stage cleanly", () => {
+  const previous = fullyLockedState("courage");
+  const reduced = reduceStatePotionSubskillDispatcherOutput({
+    previous,
+    decision: baseDecision({
+      selected_potion: "courage",
+      flow_action: "platform_destination_followup",
+      current_field_id: null,
+      visible_task: {
+        kind: "destination_short",
+      },
+    }),
+  });
+
+  assertEquals(reduced.status, "handoff_delivered");
+  assertEquals(reduced.potion_subskill_state?.last_handoff_delivered, true);
+  assertEquals(reduced.potion_subskill_state?.current_field_id, null);
+  assert(reduced.draft);
 });
 
 Deno.test("state potion subskill consumes high confidence emotional repair bridge as locked", () => {

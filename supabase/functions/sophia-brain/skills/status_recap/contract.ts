@@ -96,6 +96,23 @@ export type StatusRecapProjection = {
     status: string;
     created_at: string | null;
   }>;
+  plan_items?: Array<{
+    id: string;
+    title: string;
+    status: string;
+    current_reps: number | null;
+    target_reps: number | null;
+    created_at: string | null;
+  }>;
+  plan_progress_entries?: Array<{
+    id: string;
+    plan_item_id: string;
+    plan_item_title: string | null;
+    entry_kind: string;
+    value_text: string | null;
+    effective_at: string | null;
+    created_at: string | null;
+  }>;
   coach_preferences: Array<{
     key: string;
     value: unknown;
@@ -120,6 +137,14 @@ export type StatusRecapProjection = {
     effect_type: string;
     created_at: string;
     reason_code: string | null;
+    operation_type?: string | null;
+    committed_id?: string | null;
+    payload_summary?: Record<string, unknown>;
+    db_ref?: {
+      table?: string | null;
+      id?: string | null;
+      key?: string | null;
+    } | null;
   }>;
 };
 
@@ -130,6 +155,8 @@ export type StatusRecapProjectionSummary = {
   one_shot_cancelled_recent_count: number;
   recurring_reminder_count: number;
   potion_session_count: number;
+  plan_item_count?: number;
+  plan_progress_entry_count?: number;
   coach_preference_count: number;
   recent_effect_history_count: number;
 };
@@ -143,6 +170,8 @@ export type StatusRecapDbContextPack = {
     | "one_shot_reminders"
     | "recurring_reminders"
     | "potions"
+    | "plan_items"
+    | "plan_progress"
     | "coach_preferences"
     | "recent_effects"
   >;
@@ -168,6 +197,7 @@ export type StatusRecapConversationContext = {
   include_recent_failed_or_blocked_effects: boolean;
   format: "compact" | "object_answer" | "recap" | "fait_prevu_fragile";
   projection_summary: StatusRecapProjectionSummary;
+  user_facing_inventory: StatusRecapProjection;
   filtered_facts: Pick<
     StatusRecapProjection,
     | "attack_cards"
@@ -175,6 +205,8 @@ export type StatusRecapConversationContext = {
     | "one_shot_reminders"
     | "recurring_reminders"
     | "potion_sessions"
+    | "plan_items"
+    | "plan_progress_entries"
     | "coach_preferences"
     | "recent_effect_history"
   >;
@@ -233,6 +265,8 @@ export type StatusRecapLocalDispatcherOutput = {
       | "one_shot_reminders"
       | "recurring_reminders"
       | "potions"
+      | "plan_items"
+      | "plan_progress"
       | "coach_preferences"
       | "recent_effects"
       | "all"

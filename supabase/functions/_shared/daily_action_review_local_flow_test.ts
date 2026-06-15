@@ -5,6 +5,7 @@ import {
 import {
   buildInitialDailyActionReviewState,
   type DailyActionReviewTarget,
+  stateFromUnknown,
 } from "./daily_action_review.ts";
 import {
   buildDailyActionReviewLastExitMemo,
@@ -14,6 +15,7 @@ import {
   sanitizeDailyActionReviewLocalDispatcherOutput,
   sanitizeDailyActionReviewVisibleText,
 } from "./daily_action_review/local_flow.ts";
+import { mergeDailyActionReviewLocalState } from "./daily_action_review/reducer.ts";
 
 function target(id: string, title: string): DailyActionReviewTarget {
   return {
@@ -418,7 +420,10 @@ Deno.test("daily action review stop exits through local dispatcher with note", a
 
   assertEquals(result.exitToGlobalDispatcher, true);
   assertEquals(result.state.status, "stopped");
-  assertEquals(result.dispatcherOutput.note_information?.target_dispatcher, "global");
+  assertEquals(
+    result.dispatcherOutput.note_information?.target_dispatcher,
+    "global",
+  );
   assertEquals(result.generatedUserMessage, null);
 });
 
@@ -735,5 +740,471 @@ Deno.test("daily action review visible agent receives only conversation_context 
       '{"content":"Bravo pour la respiration."}',
     ),
     "Bravo pour la respiration.",
+  );
+});
+
+Deno.test("daily action review merge preserves server-owned fields on continuation", () => {
+  const targets = [
+    target("a1", "Marcher 10 min"),
+    target("a2", "Ranger le bureau"),
+  ];
+  const previous = buildInitialDailyActionReviewState(targets);
+  previous.remaining_occurrence_ids = ["a2"];
+  previous.asked_occurrence_ids_history = [["a1"]];
+
+  const reduced = mergeDailyActionReviewLocalState({
+    previous,
+    targets,
+    decision: {
+      skill_id: "daily_action_review_v1",
+      intent: "clarify_outcome",
+      status: "needs_clarification",
+      target_occurrence_ids: ["a1"],
+      item_updates: {},
+      constraints: previous.constraints,
+      next_question: null,
+      next_question_targets: ["a1"],
+      generated_user_message: null,
+      should_apply_effects: false,
+      stop_reason: null,
+      effect_plan: { allowed: false, effects: [] },
+    },
+  });
+
+  assertEquals(reduced.state.remaining_occurrence_ids, ["a2"]);
+  assertEquals(reduced.state.asked_occurrence_ids_history, [["a1"]]);
+  assertEquals(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "remaining_occurrence_ids",
+    ),
+    true,
+  );
+});
+
+Deno.test("daily action review invalid confirmation keeps server-owned runtime state", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const previous = buildInitialDailyActionReviewState(targets);
+
+  const reduced = mergeDailyActionReviewLocalState({
+    previous,
+    targets,
+    decision: {
+      skill_id: "daily_action_review_v1",
+      intent: "answer_review",
+      status: "complete",
+      target_occurrence_ids: ["a1"],
+      item_updates: {},
+      constraints: previous.constraints,
+      next_question: null,
+      next_question_targets: ["a1"],
+      generated_user_message: null,
+      should_apply_effects: true,
+      stop_reason: null,
+      effect_plan: { allowed: true, effects: [] },
+    },
+  });
+
+  assertEquals(reduced.state.status, "collecting");
+  assertEquals(reduced.state.effect_plan.allowed, false);
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "effect_plan" &&
+      change.reason_code === "not_stabilized_enough"
+    ),
+    true,
+  );
+});
+
+Deno.test("daily action review valid correction transition can clear an item", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const previous = buildInitialDailyActionReviewState(targets);
+  previous.items.a1 = {
+    ...previous.items.a1,
+    outcome: "missed",
+    reason_category: "forgot",
+    reason_text: "oubli",
+    still_relevant: true,
+    missing_slots: [],
+  };
+
+  const reduced = mergeDailyActionReviewLocalState({
+    previous,
+    targets,
+    decision: {
+      skill_id: "daily_action_review_v1",
+      intent: "correction",
+      status: "needs_clarification",
+      target_occurrence_ids: ["a1"],
+      item_updates: {
+        a1: {
+          outcome: null,
+          reason_category: null,
+          reason_text: null,
+          still_relevant: "unknown",
+          evidence_text: null,
+          matched_user_text: null,
+          confidence: "low",
+          missing_slots: ["outcome"],
+        },
+      },
+      item_update_modes: { a1: "clear" },
+      constraints: previous.constraints,
+      next_question: null,
+      next_question_targets: ["a1"],
+      generated_user_message: null,
+      should_apply_effects: false,
+      stop_reason: null,
+      effect_plan: { allowed: false, effects: [] },
+    },
+  });
+
+  assertEquals(reduced.state.items.a1.outcome, null);
+  assertEquals(
+    reduced.state_mutation_audit.cleared_fields.includes("items.a1"),
+    true,
+  );
+});
+
+Deno.test("daily action review old active state remains readable without audit fields", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const oldState = {
+    skill_id: "daily_action_review_v1",
+    status: "collecting",
+    items: {
+      a1: {
+        outcome: "partial",
+        reason_category: "unclear",
+        missing_slots: ["completion_level"],
+      },
+    },
+  };
+
+  const parsed = stateFromUnknown(oldState, targets);
+
+  assertEquals(parsed.skill_id, "daily_action_review_v1");
+  assertEquals(parsed.items.a1.outcome, "partial");
+  assertEquals(parsed.state_mutation_audit, undefined);
+  assertEquals(parsed.blocked_effects, []);
+});
+
+Deno.test("daily action review old active state with unknown enum falls back safely", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const oldState = {
+    skill_id: "daily_action_review_v1",
+    status: "waiting_for_confirmation",
+    stop_reason: "legacy_done",
+    items: {},
+  };
+
+  const parsed = stateFromUnknown(oldState, targets);
+
+  assertEquals(parsed.status, "collecting");
+  assertEquals(parsed.stop_reason, null);
+  assertEquals(parsed.current_focus_occurrence_ids, ["a1"]);
+  assertEquals(parsed.effect_plan.allowed, false);
+});
+
+Deno.test("daily action review direct local handoff exposes diagnosis flag", async () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const state = buildInitialDailyActionReviewState(targets);
+
+  const result = await runDailyActionReviewLocalFlow({
+    text: "Fais-moi une potion pour tenir.",
+    targets,
+    previousState: state,
+    dispatcherRunner: async () => ({
+      flow_action: "handoff_to_local_flow",
+      confidence: "high",
+      risk_score: 0,
+      target_resolution: {
+        resolved_occurrence_ids: [],
+        ambiguous: false,
+        why: "Direct potion request.",
+      },
+      item_updates: {},
+      daily_intent: {
+        kind: "explicit_tool_request",
+        summary: "Potion request.",
+      },
+      state_updates: {
+        status_hint: "blocked",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "exit_or_cancel",
+        instruction: "Hand off.",
+      },
+      exit_memo: {
+        ...NO_EXIT_MEMO,
+        needed: true,
+        reason: "explicit_tool_request",
+        user_intent_summary: "Potion request.",
+        handoff_hint_for_global_dispatcher: {
+          likely_intent: "select_state_potion",
+          why: "Direct request.",
+          constraints: [],
+        },
+      },
+      evidence: ["potion"],
+    }),
+    visibleRunner: async () => {
+      throw new Error("handoff_should_not_render_daily_visible_agent");
+    },
+  });
+
+  assertEquals(result.exitToGlobalDispatcher, true);
+  assertEquals(result.diagnosis.direct_handoff_flag, true);
+  assertEquals(result.diagnosis.flow_action, "handoff_to_local_flow");
+});
+
+Deno.test("daily action review non-actionable mention does not trigger handoff and exposes audit", async () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const state = buildInitialDailyActionReviewState(targets);
+
+  const result = await runDailyActionReviewLocalFlow({
+    text: "Je pensais a une potion hier, mais pour l'action je ne sais pas.",
+    targets,
+    previousState: state,
+    dispatcherRunner: async () => ({
+      flow_action: "clarify_outcome",
+      confidence: "medium",
+      risk_score: 0,
+      target_resolution: {
+        resolved_occurrence_ids: ["a1"],
+        ambiguous: false,
+        why: "User mentions potion but continues daily.",
+      },
+      item_updates: {},
+      daily_intent: {
+        kind: "daily_clarification",
+        summary: "Daily outcome still unclear.",
+      },
+      state_updates: {
+        status_hint: "needs_clarification",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "clarify_outcome",
+        instruction: "Ask outcome.",
+      },
+      note_information: null,
+      exit_memo: NO_EXIT_MEMO,
+      evidence: ["pour l'action je ne sais pas"],
+    }),
+    visibleRunner: async () => "Pour l'action, tu veux la compter comment ?",
+  });
+
+  assertEquals(result.exitToGlobalDispatcher, false);
+  assertEquals(result.diagnosis.direct_handoff_flag, false);
+  assertEquals(
+    result.diagnosis.state_mutation_audit?.server_owned_fields.includes(
+      "effect_plan",
+    ),
+    true,
+  );
+});
+
+Deno.test("daily action review explicit constraint rejects server-owned clear", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const previous = buildInitialDailyActionReviewState(targets);
+
+  const reduced = mergeDailyActionReviewLocalState({
+    previous,
+    targets,
+    decision: {
+      skill_id: "daily_action_review_v1",
+      intent: "clarify_outcome",
+      status: "needs_clarification",
+      target_occurrence_ids: ["a1"],
+      item_updates: {},
+      state_change_intent: {
+        clear_fields: ["current_focus_occurrence_ids"],
+      },
+      constraints: previous.constraints,
+      next_question: null,
+      next_question_targets: ["a1"],
+      generated_user_message: null,
+      should_apply_effects: false,
+      stop_reason: null,
+      effect_plan: { allowed: false, effects: [] },
+    },
+  });
+
+  assertEquals(reduced.state.current_focus_occurrence_ids, ["a1"]);
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "current_focus_occurrence_ids",
+    ),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "blocked_by_constraint"
+    ),
+    true,
+  );
+});
+
+Deno.test("daily action review explicit correction only replaces the addressed item", () => {
+  const targets = [
+    target("a1", "Marcher 10 min"),
+    target("a2", "Ranger le bureau"),
+  ];
+  const previous = buildInitialDailyActionReviewState(targets);
+  previous.items.a1 = {
+    ...previous.items.a1,
+    outcome: "missed",
+    reason_category: "forgot",
+    reason_text: "j'ai oublie",
+    still_relevant: true,
+    evidence_text: "j'ai oublie",
+    confidence: "medium",
+    missing_slots: [],
+  };
+  previous.items.a2 = {
+    ...previous.items.a2,
+    outcome: "completed",
+    reason_category: "none",
+    reason_text: null,
+    still_relevant: true,
+    evidence_text: "bureau range",
+    confidence: "high",
+    missing_slots: [],
+  };
+
+  const reduced = mergeDailyActionReviewLocalState({
+    previous,
+    targets,
+    decision: {
+      skill_id: "daily_action_review_v1",
+      intent: "correction",
+      status: "collecting",
+      target_occurrence_ids: ["a1"],
+      item_updates: {
+        a1: {
+          outcome: "completed",
+          reason_category: "none",
+          reason_text: null,
+          still_relevant: true,
+          evidence_text: "en fait je l'ai fait",
+          matched_user_text: "En fait j'ai marche.",
+          confidence: "high",
+          missing_slots: [],
+        },
+      },
+      item_update_modes: { a1: "revise" },
+      constraints: previous.constraints,
+      next_question: null,
+      next_question_targets: ["a1"],
+      generated_user_message: null,
+      should_apply_effects: false,
+      stop_reason: null,
+      effect_plan: { allowed: false, effects: [] },
+    },
+  });
+
+  assertEquals(reduced.state.items.a1.outcome, "completed");
+  assertEquals(reduced.state.items.a1.evidence_text, "en fait je l'ai fait");
+  assertEquals(reduced.state.items.a2.outcome, "completed");
+  assertEquals(reduced.state.items.a2.evidence_text, "bureau range");
+  assertEquals(
+    reduced.state_mutation_audit.applied_fields.includes("items.a1"),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.applied_fields.includes("items.a2"),
+    false,
+  );
+});
+
+Deno.test("daily action review explicit refusal stops without durable effect", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const previous = buildInitialDailyActionReviewState(targets);
+  previous.items.a1 = {
+    ...previous.items.a1,
+    outcome: "completed",
+    reason_category: "none",
+    reason_text: null,
+    still_relevant: true,
+    evidence_text: "j'ai marche",
+    confidence: "high",
+    missing_slots: [],
+  };
+
+  const reduced = mergeDailyActionReviewLocalState({
+    previous,
+    targets,
+    decision: {
+      skill_id: "daily_action_review_v1",
+      intent: "stop",
+      status: "stopped",
+      target_occurrence_ids: ["a1"],
+      item_updates: {},
+      constraints: previous.constraints,
+      next_question: null,
+      next_question_targets: [],
+      generated_user_message: null,
+      should_apply_effects: false,
+      stop_reason: "user_stopped",
+      effect_plan: { allowed: false, effects: [] },
+    },
+  });
+
+  assertEquals(reduced.state.status, "stopped");
+  assertEquals(reduced.state.stop_reason, "user_stopped");
+  assertEquals(reduced.state.should_apply_effects, false);
+  assertEquals(reduced.state.effect_plan.allowed, false);
+  assertEquals(reduced.state.effect_plan.effects, []);
+});
+
+Deno.test("daily action review terminal state preserves stop reason against mutation", () => {
+  const targets = [target("a1", "Marcher 10 min")];
+  const previous = buildInitialDailyActionReviewState(targets);
+  previous.status = "complete";
+  previous.stop_reason = "all_required_slots_filled";
+  previous.items.a1 = {
+    ...previous.items.a1,
+    outcome: "completed",
+    reason_category: "none",
+    reason_text: null,
+    still_relevant: true,
+    evidence_text: "j'ai marche",
+    confidence: "high",
+    missing_slots: [],
+  };
+
+  const reduced = mergeDailyActionReviewLocalState({
+    previous,
+    targets,
+    decision: {
+      skill_id: "daily_action_review_v1",
+      intent: "clarify_outcome",
+      status: "collecting",
+      target_occurrence_ids: ["a1"],
+      item_updates: {},
+      constraints: previous.constraints,
+      next_question: null,
+      next_question_targets: ["a1"],
+      generated_user_message: null,
+      should_apply_effects: false,
+      stop_reason: null,
+      effect_plan: { allowed: false, effects: [] },
+    },
+  });
+
+  assertEquals(reduced.state.status, "complete");
+  assertEquals(reduced.state.stop_reason, "all_required_slots_filled");
+  assertEquals(
+    reduced.state_mutation_audit.restored_fields.includes("stop_reason"),
+    true,
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.field === "stop_reason" &&
+      change.reason_code === "invalid_status_transition"
+    ),
+    true,
   );
 });

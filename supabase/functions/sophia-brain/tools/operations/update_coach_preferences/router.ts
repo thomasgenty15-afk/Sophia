@@ -31,6 +31,7 @@ import type {
 } from "./contract.ts";
 import {
   type CoachPreferenceLocalDispatcher,
+  type CoachPreferenceReducerResult,
   createCoachPreferenceLocalFlowState,
   reduceCoachPreferenceLocalDispatcherOutput,
   runCoachPreferenceLocalDispatcher,
@@ -326,6 +327,49 @@ function runtimeTraceBase(args: {
   };
 }
 
+function reducerDiagnosis(args: {
+  decision: CoachPreferenceLocalDispatcherOutput;
+  reduced: CoachPreferenceReducerResult;
+  visibleTask?: CoachPreferenceVisibleTaskKind;
+}) {
+  const candidates = args.reduced.local_state?.proposed_updates?.length
+    ? args.reduced.local_state.proposed_updates
+    : args.reduced.write_updates.length
+    ? args.reduced.write_updates
+    : args.decision.preference_updates;
+  const selected = args.reduced.write_updates[0] ??
+    args.reduced.local_state?.proposed_updates?.[0] ??
+    args.decision.preference_updates[0] ??
+    null;
+  return {
+    flow_action: args.decision.flow_action,
+    visible_task: args.visibleTask ?? args.reduced.visible_task,
+    selected_option: selected
+      ? {
+        key: selected.key,
+        value: selected.value,
+        status: selected.status,
+        needs_user_confirmation: selected.needs_user_confirmation,
+      }
+      : null,
+    pending_state_present:
+      (args.reduced.local_state?.proposed_updates?.length ?? 0) > 0,
+    direct_handoff_flag: args.reduced.exit_to_global_dispatcher ||
+      args.reduced.safety_preempt ||
+      args.decision.flow_action === "handoff_to_local_flow",
+    candidate_list: candidates.map((candidate) => ({
+      key: candidate.key,
+      value: candidate.value,
+      status: candidate.status,
+      needs_user_confirmation: candidate.needs_user_confirmation,
+    })),
+    constraints: args.reduced.conversation_context.unsupported_parts,
+    readiness: args.reduced.status === "write_ready",
+    blocked_effects: args.reduced.blocked_effects,
+    state_mutation_audit: args.reduced.state_mutation_audit,
+  };
+}
+
 function buildCoachPreferenceDbContextPack(args: {
   currentPreferences: Array<{ key: string; value: string; label: string }>;
   activeState: CoachPreferenceLocalFlowState | null;
@@ -568,15 +612,26 @@ async function runCoachPreferenceLocalRuntime(args: {
     previous: previousState,
     output: decision,
   });
-  runtimeTrace.push(runtimeTraceBase({
-    event: "reducer_validated",
-    flowAction: decision.flow_action,
-    visibleTask: reduced.visible_task,
-    preferenceUpdates: reduced.write_updates.length
-      ? reduced.write_updates
-      : reduced.local_state?.proposed_updates ?? [],
-    writeBlockedReason: reduced.blocked_effects[0]?.reason_code ?? null,
-  }));
+  const diagnosis = reducerDiagnosis({ decision, reduced });
+  runtimeTrace.push({
+    ...runtimeTraceBase({
+      event: "reducer_validated",
+      flowAction: decision.flow_action,
+      visibleTask: reduced.visible_task,
+      preferenceUpdates: reduced.write_updates.length
+        ? reduced.write_updates
+        : reduced.local_state?.proposed_updates ?? [],
+      writeBlockedReason: reduced.blocked_effects[0]?.reason_code ?? null,
+    }),
+    selected_option: diagnosis.selected_option,
+    pending_state_present: diagnosis.pending_state_present,
+    direct_handoff_flag: diagnosis.direct_handoff_flag,
+    candidate_list: diagnosis.candidate_list,
+    constraints: diagnosis.constraints,
+    readiness: diagnosis.readiness,
+    blocked_effects: diagnosis.blocked_effects,
+    state_mutation_audit: diagnosis.state_mutation_audit,
+  });
   runtimeTrace.push({
     ...runtimeTraceBase({
       event: "conversation_context_created",
@@ -635,6 +690,8 @@ async function runCoachPreferenceLocalRuntime(args: {
         pending_confirmation: null,
         exit_memo: exitMemo,
         note_information: reduced.note_information,
+        diagnosis,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
       },
     };
@@ -682,6 +739,8 @@ async function runCoachPreferenceLocalRuntime(args: {
         write_attempted: false,
         write_committed: false,
         write_blocked_reason: "safety_preempt",
+        diagnosis,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
       },
     };
@@ -743,6 +802,7 @@ async function runCoachPreferenceLocalRuntime(args: {
     : reduced.visible_task === "preference_saved" && !committed
     ? "write_failed_or_blocked"
     : reduced.visible_task;
+  const runtimeDiagnosis = reducerDiagnosis({ decision, reduced, visibleTask });
   const runtimeConversationContext = mergeRuntimeConversationContext(
     reduced.conversation_context,
     {
@@ -849,6 +909,8 @@ async function runCoachPreferenceLocalRuntime(args: {
             reason_code: reduced.reason_code,
             evidence: reduced.evidence,
           },
+          diagnosis: runtimeDiagnosis,
+          state_mutation_audit: reduced.state_mutation_audit,
           runtime_trace: runtimeTrace,
         },
       };
@@ -933,6 +995,8 @@ async function runCoachPreferenceLocalRuntime(args: {
             reason_code: reduced.reason_code,
             evidence: reduced.evidence,
           },
+          diagnosis: runtimeDiagnosis,
+          state_mutation_audit: reduced.state_mutation_audit,
           runtime_trace: runtimeTrace,
         },
       };
@@ -1012,6 +1076,8 @@ async function runCoachPreferenceLocalRuntime(args: {
         reason_code: writeError ?? reduced.reason_code,
         evidence: reduced.evidence,
       },
+      diagnosis: runtimeDiagnosis,
+      state_mutation_audit: reduced.state_mutation_audit,
       runtime_trace: runtimeTrace,
     },
   };

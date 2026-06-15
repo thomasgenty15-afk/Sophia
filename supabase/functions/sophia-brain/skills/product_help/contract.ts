@@ -160,6 +160,8 @@ export type ProductHelpLocalDispatcherOutput = {
     turn_count_increment: number;
     close_after_visible: boolean;
     preserve_parent_flow: boolean;
+    modified_fields?: string[];
+    clear_fields?: string[];
   };
   visible_task: {
     kind: ProductHelpVisibleTaskKind;

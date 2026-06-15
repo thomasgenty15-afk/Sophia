@@ -125,6 +125,11 @@ function safeLocalDispatcherOutput(
         max_questions: 1,
       },
     },
+    state_change_intent: {
+      modified_fields: [],
+      clear_fields: [],
+      reason: null,
+    },
     exit_memo: {
       needed: false,
       reason: "none",
@@ -134,6 +139,44 @@ function safeLocalDispatcherOutput(
       note_information: null,
     },
     evidence: [reason],
+  };
+}
+
+function reducerTraceSummary(args: {
+  decision: DemotivationRepairLocalDispatcherOutput;
+  reduced: ReturnType<typeof reduceDemotivationRepairLocalDispatcherOutput>;
+  previous: ReturnType<typeof readDemotivationRepairLocalState>;
+}) {
+  return {
+    flow_action: args.decision.flow_action,
+    visible_task: args.reduced.visible_task.kind,
+    selected_potion: args.reduced.potion_bridge_context?.selected_potion ??
+      args.decision.potion_bridge.selected_potion,
+    selected_target: args.reduced.note_information?.target_dispatcher ??
+      args.reduced.visible_task.conversation_context.handoff_data
+        .target_dispatcher,
+    pending_potion_offer_present: Boolean(
+      args.reduced.local_state?.last_potion_bridge_offer ??
+        args.previous?.last_potion_bridge_offer,
+    ),
+    active_handoff_context_present: Boolean(
+      args.reduced.local_state?.active_potion_handoff_context ??
+        args.previous?.active_potion_handoff_context,
+    ),
+    direct_handoff_flag_present: args.decision.potion_bridge.status ===
+      "confirmed_handoff",
+    candidate_potions_summary: args.decision.potion_bridge.candidate_potions
+      .map((candidate) => ({
+        potion_type: candidate.potion_type,
+        confidence: candidate.confidence,
+      }))
+      .slice(0, 3),
+    constraints: args.reduced.constraints,
+    motivation_source_diagnosed:
+      args.decision.repair_state.motivation_source_diagnosed,
+    action_readiness: args.decision.repair_state.action_readiness,
+    blocked_effects: args.reduced.blocked_effects,
+    state_mutation_audit: args.reduced.state_mutation_audit,
   };
 }
 
@@ -229,6 +272,7 @@ export async function runDemotivationRepairSkill(
     flow_action: decision.flow_action,
     handoff_to_potion: Boolean(reduced.potion_bridge_context),
     risk_score: decision.risk_score,
+    state_mutation_audit: reduced.state_mutation_audit,
   });
 
   if (reduced.note_information) {
@@ -285,11 +329,10 @@ export async function runDemotivationRepairSkill(
       reply: "",
       diagnosis: {
         local_flow: true,
-        flow_action: decision.flow_action,
-        visible_task: "safety",
         reason_code: reduced.reason_code,
         evidence: reduced.evidence,
         note_information: reduced.note_information,
+        ...reducerTraceSummary({ decision, reduced, previous }),
       },
       recommendation_need: {
         needed: false,
@@ -321,11 +364,11 @@ export async function runDemotivationRepairSkill(
       reply: "",
       diagnosis: {
         local_flow: true,
-        flow_action: decision.flow_action,
         exit_memo: decision.exit_memo,
         reason_code: reduced.reason_code,
         evidence: reduced.evidence,
         note_information: reduced.note_information,
+        ...reducerTraceSummary({ decision, reduced, previous }),
       },
       recommendation_need: {
         needed: false,
@@ -367,7 +410,7 @@ export async function runDemotivationRepairSkill(
       diagnosis: {
         local_flow: true,
         reason_code: "visible_agent_failed",
-        visible_task: reduced.visible_task.kind,
+        ...reducerTraceSummary({ decision, reduced, previous }),
       },
       recommendation_need: {
         needed: false,
@@ -397,14 +440,11 @@ export async function runDemotivationRepairSkill(
     reply,
     diagnosis: {
       local_flow: true,
-      flow_action: decision.flow_action,
-      visible_task: reduced.visible_task.kind,
       potion_bridge_status: decision.potion_bridge.status,
-      selected_potion: reduced.potion_bridge_context?.selected_potion ??
-        decision.potion_bridge.selected_potion,
       reason_code: reduced.reason_code,
       evidence: reduced.evidence,
       note_information: reduced.note_information,
+      ...reducerTraceSummary({ decision, reduced, previous }),
     },
     recommendation_need: {
       needed: false,

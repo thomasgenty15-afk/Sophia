@@ -1,9 +1,11 @@
 import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
+import { persistConversationSkillRoute } from "../../router/conversation_route_runtime_support.ts";
 import { runConversationRouters } from "../../routers/routers.ts";
 import { runProductHelpSkill } from "./skill.ts";
 import {
   normalizeProductHelpLocalDispatcherOutput,
+  readProductHelpFlowState,
   reduceProductHelpLocalDispatcherOutput,
 } from "./local_flow.ts";
 import { PRODUCT_HELP_FEATURES } from "./knowledge.ts";
@@ -109,6 +111,38 @@ function reduce(patch: Record<string, unknown> = {}) {
   });
 }
 
+function previousProductHelpState(patch: Record<string, unknown> = {}) {
+  return readProductHelpFlowState({
+    skill_id: "product_help",
+    status: "active",
+    working_state: {
+      product_help_local_state: {
+        skill_id: "product_help",
+        status: "open",
+        mode: "standalone",
+        product_help_state: {
+          stage: "answering",
+          last_intent: "explain_feature",
+          last_target: {
+            kind: "feature_catalog",
+            feature_id: "resources.defense_card",
+            object_type: "defense_card",
+            confidence: "high",
+          },
+          last_answer_summary: "defense card explained",
+          last_catalog_feature_ids: ["resources.defense_card"],
+          last_locations: ["dashboard"],
+          parent_flow_context: null,
+          turn_count: 1,
+          max_turns: 3,
+          updated_at: "2026-06-08T10:00:00.000Z",
+        },
+        ...patch,
+      },
+    },
+  });
+}
+
 Deno.test("product_help local dispatcher prompt documents field completion rules", async () => {
   const source = await Deno.readTextFile(
     new URL("./local_flow.ts", import.meta.url),
@@ -141,6 +175,9 @@ Deno.test("product_help local dispatcher prompt documents field completion rules
   ));
   assert(source.includes(
     "Si note_information_inbound ou catalog_candidates recommandent Carte d'attaque",
+  ));
+  assert(source.includes(
+    "Ne jamais serialiser active_flow_context",
   ));
   assert(source.includes("- handoff_to_local_dispatcher:"));
   assert(source.includes("- inline_status_roundtrip:"));
@@ -218,6 +255,203 @@ Deno.test("product_help local dispatcher rejects mutation fields", () => {
     Error,
     "forbidden_operation_suggestions",
   );
+});
+
+Deno.test("product_help merge preserves server-owned state on continuation gaps", () => {
+  const previous = previousProductHelpState();
+  assert(previous);
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous,
+    output: localDecision({
+      target: {
+        kind: "unknown",
+        feature_id: null,
+        object_type: null,
+        object_ref: null,
+        confidence: "low",
+      },
+      grounding: {
+        catalog_feature_ids: [],
+        surface_ids: [],
+        db_sources_required: false,
+        db_sources_used: [],
+        active_flow_used: false,
+        missing_grounding_reason: null,
+      },
+      state_updates: {
+        status: "open",
+        stage: "answering",
+        turn_count_increment: 1,
+        close_after_visible: false,
+        preserve_parent_flow: true,
+        clear_fields: ["product_help_state.last_target"],
+      },
+    }),
+    catalogCandidates: candidates(),
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [],
+  });
+  assertEquals(
+    reduced.local_state?.product_help_state.last_target,
+    previous.product_help_state.last_target,
+  );
+  assert(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "product_help_state.last_target",
+    ),
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes.some((change) =>
+      change.reason_code === "server_owned_field_clear_not_allowed"
+    ),
+    true,
+  );
+});
+
+Deno.test("product_help invalid handoff keeps previous server-owned state", () => {
+  const previous = previousProductHelpState();
+  assert(previous);
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous,
+    output: localDecision({
+      flow_action: "handoff_to_local_dispatcher",
+      note_information: null,
+      state_updates: {
+        status: "handoff",
+        stage: "handoff",
+        turn_count_increment: 1,
+        close_after_visible: true,
+        preserve_parent_flow: true,
+        clear_fields: ["product_help_local_state"],
+      },
+    }),
+    catalogCandidates: candidates(),
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [],
+  });
+  assertEquals(
+    reduced.reason_code,
+    "product_help_direct_handoff_note_information_missing",
+  );
+  assertEquals(reduced.local_state, previous);
+  assert(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "product_help_local_state",
+    ),
+  );
+});
+
+Deno.test("product_help valid handoff replaces state through reducer merge", () => {
+  const previous = previousProductHelpState();
+  assert(previous);
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous,
+    output: localDecision({
+      flow_action: "handoff_to_local_dispatcher",
+      product_help_intent: {
+        kind: "tool_action_request",
+        summary: "prepare attack card",
+      },
+      target: {
+        kind: "tool_flow",
+        feature_id: null,
+        object_type: "attack_card",
+        object_ref: null,
+        confidence: "high",
+      },
+      bridge: {
+        needed: true,
+        operation_type: "prepare_attack_card",
+        kind: "handoff_needed",
+        executable: false,
+        why: "explicit operational request",
+      },
+      state_updates: {
+        status: "handoff",
+        stage: "handoff",
+        turn_count_increment: 1,
+        close_after_visible: true,
+        preserve_parent_flow: true,
+      },
+      visible_task: {
+        kind: "exit_ack",
+        instruction: "handoff without product visible reply",
+      },
+      note_information: {
+        source_flow_id: "product_help",
+        handoff_reason: "bridge",
+        target_dispatcher: "prepare_attack_card",
+        handoff_context_for_next_dispatcher: "Attack card flow takes over.",
+        user_words: ["prepare attack card"],
+        structured_context: {
+          user_message_summary: "prepare attack card",
+          active_flow_summary: "product_help active",
+          collected_state: {},
+          unresolved_questions: [],
+          recommended_next_focus: "prepare_attack_card",
+        },
+        confidence: "high",
+      },
+    }),
+    catalogCandidates: candidates(),
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [],
+  });
+  assertEquals(reduced.status, "handoff");
+  assertEquals(reduced.local_state?.status, "handoff");
+  assertEquals(reduced.local_state?.product_help_state.stage, "handoff");
+  assertEquals(
+    reduced.local_state?.product_help_state.last_target.object_type,
+    "attack_card",
+  );
+  assert(reduced.state_mutation_audit.applied_fields.includes("status"));
+});
+
+Deno.test("product_help reads old active state without new nested fields", () => {
+  const state = readProductHelpFlowState({
+    skill_id: "product_help",
+    status: "active",
+    working_state: {
+      product_help_local_state: {
+        skill_id: "product_help",
+        status: "open",
+        last_intent: "where_is_it",
+        last_answer_summary: "old summary",
+        turn_count: 2,
+      },
+    },
+  });
+  assert(state);
+  assertEquals(state.mode, "standalone");
+  assertEquals(state.product_help_state.stage, "answering");
+  assertEquals(state.product_help_state.last_intent, "where_is_it");
+  assertEquals(state.product_help_state.turn_count, 2);
+});
+
+Deno.test("product_help resolved standalone answer closes local state", () => {
+  const previous = previousProductHelpState();
+  assert(previous);
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous,
+    output: localDecision({
+      state_updates: {
+        status: "answered",
+        stage: "answering",
+        turn_count_increment: 1,
+        close_after_visible: false,
+        preserve_parent_flow: true,
+      },
+    }),
+    catalogCandidates: candidates(),
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [],
+  });
+  assertEquals(reduced.status, "closing");
+  assertEquals(reduced.local_state?.status, "closing");
 });
 
 Deno.test("product_help visible context preserves user constraints", () => {
@@ -785,6 +1019,195 @@ Deno.test("product_help skill nominal path uses local dispatcher and visible age
   assertEquals("user_message" in ((visibleInput as any) ?? {}), false);
   assertEquals("recent_messages" in ((visibleInput as any) ?? {}), false);
   assertEquals("local_state" in ((visibleInput as any) ?? {}), false);
+});
+
+Deno.test("product_help inline answer preserves parent flow and appends history", async () => {
+  const parentState = {
+    skill_id: "adjust_plan_item",
+    status: "active",
+    working_state: {
+      slot: "parent-kept",
+      product_help_subskill_history: [{ subskill: "product_help", old: true }],
+      active_flow_context: {
+        visible_task: { conversation_context: { raw: "must-not-leak" } },
+        note_information: {
+          handoff_context_for_next_dispatcher: "must-not-be-copied",
+        },
+      },
+      dispatcher_context: { flow_action: "get_info_product" },
+      question_to_answer: "ou est la section initiative ?",
+      preserve_active_flow: true,
+    },
+  };
+  let inboundNote: Record<string, unknown> | null = null;
+  const output = await runProductHelpSkill({
+    user_message: "c'est quoi une carte d'attaque ?",
+    context: {
+      skill_id: "product_help",
+      user_id: "user_test",
+      recent_messages: [],
+      active_skill_working_state: parentState,
+      turn_frame: frame(),
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+    } as any,
+    local_dispatcher: async (input) => {
+      inboundNote = input.note_information_inbound as unknown as
+        | Record<string, unknown>
+        | null;
+      return (
+        localDecision({
+          mode: "inline",
+          flow_action: "answer_product_question",
+          return_to_parent: {
+            needed: true,
+            parent_skill_id: "adjust_plan_item",
+            return_summary: "answered product question",
+            preserve_parent_state: true,
+          },
+          state_updates: {
+            status: "answered",
+            stage: "answering",
+            turn_count_increment: 1,
+            close_after_visible: true,
+            preserve_parent_flow: true,
+            clear_fields: ["product_help_subskill_history"],
+          },
+        })
+      );
+    },
+    visible_agent: async () => "Une carte d'attaque sert a demarrer.",
+  });
+  assertEquals(output.status, "complete");
+  assertEquals((output.state_patch as any).product_help_local_state, null);
+  assertEquals(
+    (output.state_patch as any).product_help_parent_flow_control
+      .preserve_parent_working_state,
+    true,
+  );
+  assertEquals(
+    (output.state_patch as any).product_help_subskill_trace
+      .preserve_parent_working_state,
+    true,
+  );
+  const inboundNoteJson = JSON.stringify(inboundNote);
+  assert(!inboundNoteJson.includes("active_flow_context"));
+  assert(!inboundNoteJson.includes("parent_flow_context"));
+  assert(!inboundNoteJson.includes("conversation_context"));
+  assert(!inboundNoteJson.includes("visible_task"));
+  assert(!inboundNoteJson.includes("must-not-leak"));
+  assert(inboundNoteJson.length < 1200);
+  assertEquals(
+    Boolean(
+      ((inboundNote as any)?.structured_context as any)?.parent_flow_summary,
+    ),
+    true,
+  );
+
+  const persisted = persistConversationSkillRoute(
+    { __active_skill_state: parentState },
+    {
+      route_version: "v1",
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "inline_product_help",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: {
+        decision: "inline_answer_then_resume",
+        active_owner: "conversation_skill",
+        selected_owner: "product_help",
+        resume_policy: "auto_after_answer",
+        reason_code: "product_question_inline",
+      },
+    },
+    output as any,
+  );
+  assertEquals(persisted.__active_skill_state.skill_id, "adjust_plan_item");
+  assertEquals(
+    persisted.__active_skill_state.working_state.slot,
+    "parent-kept",
+  );
+  assertEquals(persisted.__suspended_flow_v1, undefined);
+  assertEquals(
+    persisted.__active_skill_state.working_state.product_help_subskill_history
+      .length,
+    2,
+  );
+});
+
+Deno.test("product_help inline clarification keeps parent state untouched", async () => {
+  const parentState = {
+    skill_id: "prepare_defense_card",
+    status: "active",
+    working_state: {
+      durable_need: "prepare boundaries",
+      candidate: { id: "def-1" },
+    },
+  };
+  const output = await runProductHelpSkill({
+    user_message: "et cette partie c'est quoi ?",
+    context: {
+      skill_id: "product_help",
+      user_id: "user_test",
+      recent_messages: [],
+      active_skill_working_state: parentState,
+      turn_frame: frame(),
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+    } as any,
+    local_dispatcher: async () =>
+      localDecision({
+        mode: "inline",
+        flow_action: "clarify_product_question",
+        product_help_intent: {
+          kind: "unclear",
+          summary: "ambiguous product reference",
+        },
+        target: {
+          kind: "unknown",
+          feature_id: null,
+          object_type: null,
+          object_ref: null,
+          confidence: "low",
+        },
+        state_updates: {
+          status: "open",
+          stage: "clarifying",
+          turn_count_increment: 1,
+          close_after_visible: false,
+          preserve_parent_flow: true,
+        },
+        visible_task: {
+          kind: "clarify_product_question",
+          instruction: "ask which product surface",
+        },
+        return_to_parent: {
+          needed: true,
+          parent_skill_id: "prepare_defense_card",
+          return_summary: "asked product clarification",
+          preserve_parent_state: true,
+        },
+      }),
+    visible_agent: async () => "Tu parles de quelle partie exactement ?",
+  });
+  assertEquals((output.state_patch as any).product_help_local_state, null);
+  assertEquals(
+    (output.state_patch as any).product_help_parent_flow_control
+      .product_help_may_overwrite_parent_working_state,
+    false,
+  );
+  assertEquals(
+    "working_state" in ((output.state_patch as any) ?? {}),
+    false,
+  );
 });
 
 Deno.test("product_help skill direct handoff skips product visible agent", async () => {

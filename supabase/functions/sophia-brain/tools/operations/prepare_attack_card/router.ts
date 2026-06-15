@@ -154,6 +154,7 @@ function localRuntimeTraceBase(args: {
   missingFields?: string[];
   riskAssessment?: Record<string, unknown> | null;
   selectedHandler?: string | null;
+  stateMutationAudit?: Record<string, unknown> | null;
 }) {
   return {
     component: "prepare_attack_card.local_flow",
@@ -168,6 +169,7 @@ function localRuntimeTraceBase(args: {
     missing_fields: args.missingFields ?? [],
     risk_assessment: args.riskAssessment ?? null,
     selected_handler: args.selectedHandler ?? "prepare_attack_card",
+    state_mutation_audit: args.stateMutationAudit ?? null,
   };
 }
 
@@ -575,6 +577,7 @@ async function runPrepareAttackCardLocalRuntime(args: {
     missingFields,
     riskAssessment: reduced.risk_assessment as any,
     selectedHandler: "prepare_attack_card",
+    stateMutationAudit: reduced.state_mutation_audit,
   }));
 
   if (
@@ -639,6 +642,7 @@ async function runPrepareAttackCardLocalRuntime(args: {
         exit_memo: exitMemo,
         note_information: reduced.note_information,
         risk_assessment: reduced.risk_assessment,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
       },
     };
@@ -725,6 +729,7 @@ async function runPrepareAttackCardLocalRuntime(args: {
         subskill_run: info.subskillRun,
         note_information: reduced.note_information,
         risk_assessment: reduced.risk_assessment,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
       },
     };
@@ -787,6 +792,7 @@ async function runPrepareAttackCardLocalRuntime(args: {
           reason_code: "prepare_attack_card_visible_agent_failed",
         }],
         risk_assessment: reduced.risk_assessment,
+        state_mutation_audit: reduced.state_mutation_audit,
         runtime_trace: runtimeTrace,
       },
     };
@@ -899,6 +905,7 @@ async function runPrepareAttackCardLocalRuntime(args: {
       blocked_effects: reduced.blocked_effects,
       handoff_state: nextHandoff,
       risk_assessment: reduced.risk_assessment,
+      state_mutation_audit: reduced.state_mutation_audit,
       runtime_trace: runtimeTrace,
       ...(deliversPlatformHandoff
         ? {

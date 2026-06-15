@@ -13,6 +13,7 @@ import {
 } from "./local_flow.ts";
 import { loadCoachPreferenceRuntimePolicy } from "./runtime_policy.ts";
 import { maybeRunUpdateCoachPreferencesOperation } from "./router.ts";
+import { loadCoachPreferenceFrameFromTempMemory } from "./state.ts";
 import { buildCoachPreferencesStatusReply } from "./status.ts";
 
 function baseDecision(
@@ -369,6 +370,9 @@ Deno.test("confirmation of active proposal becomes write-ready without parsing t
   assertEquals(reduced.status, "write_ready");
   assertEquals(reduced.write_updates[0].status, "locked");
   assertEquals(reduced.write_updates[0].needs_user_confirmation, false);
+  assert(
+    reduced.state_mutation_audit.cleared_fields.includes("proposed_updates"),
+  );
 
   const resolvedConditionalScope = reduceCoachPreferenceLocalDispatcherOutput({
     previous,
@@ -415,6 +419,283 @@ Deno.test("confirmation of active proposal becomes write-ready without parsing t
   );
 });
 
+Deno.test("reducer deterministic merge preserves server-owned pending state on continuation", () => {
+  const previous = createCoachPreferenceLocalFlowState({
+    status: "proposed",
+    currentStage: "confirmation",
+    proposedUpdates: [{
+      ...(baseDecision().preference_updates[0]),
+      status: "proposed",
+      needs_user_confirmation: true,
+    }],
+    unsupportedParts: ["demande conditionnelle non stockable"],
+  });
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "clarify_durable_vs_punctual",
+      confidence: "medium",
+      preference_intent: {
+        kind: "ambiguous",
+        durability: "ambiguous",
+        support_status: "ambiguous",
+        summary: "Le user n'a pas encore répondu à la confirmation.",
+      },
+      preference_updates: [],
+      unsupported_parts: [],
+      missing_decisions: ["confirmation"],
+      visible_task: {
+        kind: "ask_durable_vs_punctual",
+        instruction: "Demander une clarification courte.",
+      },
+    }),
+  });
+  assertEquals(reduced.write_updates, []);
+  assertEquals(
+    reduced.local_state?.proposed_updates,
+    previous.proposed_updates,
+  );
+  assertEquals(
+    reduced.local_state?.unsupported_parts,
+    previous.unsupported_parts,
+  );
+  assert(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "proposed_updates",
+    ),
+  );
+  assert(
+    reduced.state_mutation_audit.restored_fields.includes(
+      "unsupported_parts",
+    ),
+  );
+  assertEquals(
+    reduced.state_mutation_audit.rejected_changes[0]?.reason_code,
+    "unauthorized_clear_flow_context",
+  );
+});
+
+Deno.test("invalid confirmation keeps previous offer and reports precise reason", () => {
+  const previous = createCoachPreferenceLocalFlowState({
+    status: "proposed",
+    currentStage: "confirmation",
+    proposedUpdates: [{
+      ...(baseDecision().preference_updates[0]),
+      status: "proposed",
+      needs_user_confirmation: true,
+    }],
+  });
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "confirm_proposed_mapping",
+      confidence: "low",
+      preference_updates: [],
+    }),
+  });
+  assertEquals(reduced.status, "blocked");
+  assertEquals(reduced.reason_code, "update_coach_preferences_low_confidence");
+  assertEquals(reduced.write_updates, []);
+  assertEquals(
+    reduced.local_state?.proposed_updates,
+    previous.proposed_updates,
+  );
+  assert(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "proposed_updates",
+    ),
+  );
+
+  const noPreviousOffer = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: null,
+    output: baseDecision({
+      flow_action: "confirm_proposed_mapping",
+      preference_updates: [],
+    }),
+  });
+  assertEquals(noPreviousOffer.status, "blocked");
+  assertEquals(
+    noPreviousOffer.reason_code,
+    "update_coach_preferences_missing_previous_offer",
+  );
+  assertEquals(
+    noPreviousOffer.blocked_effects[0]?.reason_code,
+    "missing_previous_offer",
+  );
+});
+
+Deno.test("legacy local active state without new fields remains readable", () => {
+  const frame = loadCoachPreferenceFrameFromTempMemory({
+    __coach_preference_flow_state_v1: {
+      skill_id: "update_coach_preferences",
+      operation_type: "update_coach_preferences",
+      mode: "local_write_flow",
+      status: "proposed",
+      current_stage: "confirmation",
+      turn_count: 2,
+      max_turns: 4,
+      created_at: "2026-06-01T00:00:00.000Z",
+      updated_at: "2026-06-01T00:00:00.000Z",
+    },
+  });
+  assert(frame.local_flow);
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous: frame.local_flow,
+    output: baseDecision({
+      flow_action: "clarify_value",
+      confidence: "medium",
+      preference_intent: {
+        kind: "ambiguous",
+        durability: "durable",
+        support_status: "ambiguous",
+        summary: "Mention non-actionnable à clarifier.",
+      },
+      preference_updates: [],
+      missing_decisions: ["value"],
+      visible_task: {
+        kind: "ask_setting_or_value",
+        instruction: "Demander la valeur manquante.",
+      },
+    }),
+  });
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.write_updates, []);
+  assertEquals(reduced.local_state?.proposed_updates, []);
+  assertEquals(reduced.local_state?.last_committed_updates, []);
+  assertEquals(reduced.local_state?.unsupported_parts, []);
+  assert(reduced.state_mutation_audit.server_owned_fields.length > 0);
+});
+
+Deno.test("explicit user correction replaces only the pending preference candidate", () => {
+  const previous = createCoachPreferenceLocalFlowState({
+    status: "proposed",
+    currentStage: "confirmation",
+    proposedUpdates: [{
+      key: "coach.question_tendency",
+      value: "low",
+      status: "proposed",
+      user_facing_label: "Questions",
+      user_facing_value: "Peu de questions",
+      reason: "Ancienne proposition.",
+      needs_user_confirmation: true,
+    }],
+    unsupportedParts: ["ancienne condition non stockable"],
+  });
+  const replacement: CoachPreferenceLocalUpdate = {
+    key: "coach.tone",
+    value: "direct",
+    status: "proposed" as const,
+    user_facing_label: "Ton",
+    user_facing_value: "Direct",
+    reason: "Correction explicite vers le ton.",
+    needs_user_confirmation: true,
+  };
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "revise_preferences",
+      confidence: "high",
+      preference_intent: {
+        kind: "durable_supported",
+        durability: "durable",
+        support_status: "supported",
+        summary: "Le user corrige la proposition vers le ton direct.",
+      },
+      preference_updates: [replacement],
+      unsupported_parts: previous.unsupported_parts,
+      missing_decisions: ["confirmation"],
+      visible_task: {
+        kind: "confirm_supported_mapping",
+        instruction: "Confirmer la proposition corrigée.",
+      },
+    }),
+  });
+  assertEquals(reduced.status, "proposed");
+  assertEquals(reduced.write_updates, []);
+  assertEquals(reduced.local_state?.proposed_updates, [replacement]);
+  assertEquals(
+    reduced.local_state?.last_committed_updates,
+    previous.last_committed_updates,
+  );
+  assert(
+    reduced.state_mutation_audit.applied_fields.includes(
+      "proposed_updates",
+    ),
+  );
+  assert(
+    reduced.state_mutation_audit.preserved_fields.includes(
+      "last_committed_updates",
+    ),
+  );
+});
+
+Deno.test("explicit local refusal clears pending offer without global handoff", () => {
+  const previous = createCoachPreferenceLocalFlowState({
+    status: "proposed",
+    currentStage: "confirmation",
+    proposedUpdates: [{
+      ...(baseDecision().preference_updates[0]),
+      status: "proposed",
+      needs_user_confirmation: true,
+    }],
+  });
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "cancel_flow",
+      preference_intent: {
+        kind: "cancel",
+        durability: "not_applicable",
+        support_status: "not_applicable",
+        summary: "Le user refuse la proposition locale.",
+      },
+      preference_updates: [],
+      visible_task: {
+        kind: "stop_or_cancel",
+        instruction: "Ack court du refus local.",
+      },
+    }),
+  });
+  assertEquals(reduced.status, "cancelled");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.write_updates, []);
+  assertEquals(reduced.local_state?.proposed_updates, []);
+  assert(
+    reduced.state_mutation_audit.cleared_fields.includes("proposed_updates"),
+  );
+});
+
+Deno.test("non-actionable mention does not trigger write or handoff", () => {
+  const previous = createCoachPreferenceLocalFlowState({
+    status: "collecting",
+    currentStage: "setting",
+  });
+  const reduced = reduceCoachPreferenceLocalDispatcherOutput({
+    previous,
+    output: baseDecision({
+      flow_action: "clarify_supported_setting",
+      confidence: "medium",
+      preference_intent: {
+        kind: "ambiguous",
+        durability: "ambiguous",
+        support_status: "ambiguous",
+        summary: "Simple mention de préférences sans action claire.",
+      },
+      preference_updates: [],
+      missing_decisions: ["setting"],
+      visible_task: {
+        kind: "ask_setting_or_value",
+        instruction: "Demander ce que le user veut changer.",
+      },
+    }),
+  });
+  assertEquals(reduced.status, "collecting");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.safety_preempt, false);
+  assertEquals(reduced.write_updates, []);
+  assertEquals(reduced.note_information, null);
+});
+
 Deno.test("direct clear write commits user_profile_facts and emits committed effect", async () => {
   const supabase = fakeCoachSupabase();
   const runtime = await maybeRunUpdateCoachPreferencesOperation({
@@ -448,6 +729,20 @@ Deno.test("direct clear write commits user_profile_facts and emits committed eff
   assertEquals(runtime?.executedTools, ["update_coach_preferences"]);
   assertEquals((runtime?.toolSkillRun as any)?.pending_confirmation, null);
   assertEquals((runtime?.toolSkillRun as any)?.platform_handoff, undefined);
+  assert(
+    Array.isArray(
+      (runtime?.toolSkillRun as any)?.state_mutation_audit
+        ?.server_owned_fields,
+    ),
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.diagnosis?.readiness,
+    true,
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.diagnosis?.pending_state_present,
+    false,
+  );
   assertEquals((runtime?.toolSkillRun as any)?.committed_effects[0], {
     type: "update_coach_preferences",
     operation_id: "op1",
@@ -567,6 +862,18 @@ Deno.test("punctual and unsupported requests do not write or claim durable succe
     assertEquals(runtime?.executedTools, []);
     assertEquals((runtime?.toolSkillRun as any)?.committed_effects, []);
     assertEquals(supabase.state.wrote, false);
+    assertEquals(
+      (runtime?.toolSkillRun as any)?.local_flow_state?.unsupported_parts,
+      ["emoji", "trois lignes"],
+    );
+    assertEquals(
+      (runtime?.toolSkillRun as any)?.state_mutation_audit?.rejected_changes,
+      [],
+    );
+    assert(
+      (runtime?.toolSkillRun as any)?.state_mutation_audit?.applied_fields
+        ?.includes("unsupported_parts"),
+    );
   }
 });
 

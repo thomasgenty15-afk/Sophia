@@ -565,7 +565,49 @@ Deno.test("resolveAgentChatModel: sentry mode keeps default flash model", () => 
   assertEquals(selected.tier, "default");
 });
 
-Deno.test("resolveAgentChatModel: companion uses memory plan tier when confidence is sufficient", () => {
+Deno.test("resolveAgentChatModel: companion low-confidence default uses mini", () => {
+  const selected = resolveAgentChatModel({
+    effectiveMode: "companion",
+    memoryPlan: {
+      response_intent: "direct_answer",
+      reasoning_complexity: "low",
+      context_need: "minimal",
+      memory_mode: "light",
+      model_tier_hint: "lite",
+      context_budget_tier: "tiny",
+      targets: [],
+      retrieval_policy: "semantic_first",
+      plan_confidence: 0.4,
+    },
+  });
+
+  assertEquals(selected.model, "gpt-5.4-mini");
+  assertEquals(selected.source, "companion_default");
+  assertEquals(selected.tier, "default");
+});
+
+Deno.test("resolveAgentChatModel: companion standard tier uses mini", () => {
+  const selected = resolveAgentChatModel({
+    effectiveMode: "companion",
+    memoryPlan: {
+      response_intent: "direct_answer",
+      reasoning_complexity: "medium",
+      context_need: "targeted",
+      memory_mode: "light",
+      model_tier_hint: "standard",
+      context_budget_tier: "small",
+      targets: [],
+      retrieval_policy: "semantic_first",
+      plan_confidence: 0.81,
+    },
+  });
+
+  assertEquals(selected.model, "gpt-5.4-mini");
+  assertEquals(selected.source, "memory_plan_standard");
+  assertEquals(selected.tier, "standard");
+});
+
+Deno.test("resolveAgentChatModel: companion lite tier uses nano", () => {
   const selected = resolveAgentChatModel({
     effectiveMode: "companion",
     memoryPlan: {
@@ -604,30 +646,6 @@ Deno.test("effectiveResponseOwnerForOperationRuntime: operation runtime owns too
     }),
     "product_help",
   );
-});
-
-Deno.test("resolveAgentChatModel: low-confidence memory plan falls back to current default", () => {
-  const selected = resolveAgentChatModel({
-    effectiveMode: "companion",
-    memoryPlan: {
-      response_intent: "direct_answer",
-      reasoning_complexity: "low",
-      context_need: "minimal",
-      memory_mode: "light",
-      model_tier_hint: "lite",
-      context_budget_tier: "tiny",
-      targets: [],
-      retrieval_policy: "semantic_first",
-      plan_confidence: 0.4,
-    },
-  });
-
-  assertEquals(
-    selected.model,
-    String(getGlobalAiModel("gemini-2.5-flash")).trim(),
-  );
-  assertEquals(selected.source, "companion_default");
-  assertEquals(selected.tier, "default");
 });
 
 Deno.test("adjust plan routing: ambivalent reflection does not start adjustment intake", async () => {

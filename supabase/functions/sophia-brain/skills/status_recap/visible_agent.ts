@@ -46,7 +46,7 @@ export const STATUS_RECAP_STAGE_PROMPTS: Record<
   status_compact: {
     prompt_id: "status_recap.visible.status_compact",
     instruction:
-      "Rends un recap court, naturel et factuel de ce qui existe vraiment, seulement depuis conversation_context.filtered_facts. Pour un scope global, couvre chaque categorie non vide dans coverage_requirements sans imposer une structure de catégories.",
+      "Rends un recap court, naturel et factuel de ce qui existe vraiment, seulement depuis conversation_context.user_facing_inventory et le périmètre demandé. Pour un scope global, couvre chaque categorie non vide dans coverage_requirements sans imposer une structure de catégories.",
     output_contract:
       "Message bref, factuel, fluide, sans question sauf si le contexte le demande explicitement. Ne laisse pas une categorie non vide hors réponse, mais choisis librement la forme la plus claire.",
   },
@@ -138,7 +138,7 @@ export const STATUS_RECAP_STAGE_PROMPTS: Record<
 export function statusRecapCoverageRequirements(
   context: StatusRecapConversationContext,
 ): string[] {
-  const facts = context.filtered_facts;
+  const facts = context.user_facing_inventory ?? context.filtered_facts;
   const hasSpecificTargets = context.target_objects.some((target) =>
     target !== "unknown"
   );
@@ -190,6 +190,18 @@ export function statusRecapCoverageRequirements(
     requirements.push("mentionner les sessions/potions présentes");
   }
   if (
+    (facts.plan_items?.length ?? 0) > 0 &&
+    categoryRequested("plan_items", "plan_item")
+  ) {
+    requirements.push("mentionner les actions du plan présentes");
+  }
+  if (
+    (facts.plan_progress_entries?.length ?? 0) > 0 &&
+    categoryRequested("plan_progress", "plan_item")
+  ) {
+    requirements.push("mentionner les progrès de plan enregistrés");
+  }
+  if (
     facts.coach_preferences.length > 0 &&
     categoryRequested("coach_preferences", "coach_preference")
   ) {
@@ -213,9 +225,13 @@ export function statusRecapRestitutionGuidance(
     "La restitution doit être conversationnelle: claire, courte, mais pas mécanique.",
     "Hors stage fait_prevu_fragile, n'utilise pas les labels imposés Fait, Prévu, Fragile; le user n'a pas forcément demandé cette grille.",
     "Ne transforme pas les coverage_requirements en titres visibles; ils servent seulement à vérifier que les faits importants ne sont pas oubliés.",
-    "Restitue les libellés complets présents dans filtered_facts quand le user demande ce qui existe ou ce qui a été créé; ne tronque pas un rappel, une carte ou une préférence en perdant une partie utile du libellé.",
-    "Ne restitue que les catégories demandées ou imposées par coverage_requirements. N'ajoute pas une catégorie voisine simplement parce qu'elle est présente dans filtered_facts.",
-    "Quand la demande porte sur ce qui a été créé/enregistré/modifié pendant l'échange, ne transforme pas des préférences ou objets déjà existants en créations du tour. Mentionne une préférence seulement si elle est demandée explicitement ou si filtered_facts.recent_effect_history montre une modification liée.",
+    "Tu as accès à tout l'inventaire user-facing dans conversation_context.user_facing_inventory. Utilise-le pour retrouver les libellés complets, horaires, titres et préférences exactes.",
+    "Restitue les libellés complets présents dans user_facing_inventory quand le user demande ce qui existe ou ce qui a été créé; ne tronque pas un rappel, une carte, une action de plan ou une préférence en perdant une partie utile du libellé.",
+    "Ne restitue que les catégories demandées ou imposées par coverage_requirements. N'ajoute pas une catégorie voisine simplement parce qu'elle est présente dans user_facing_inventory.",
+    "Quand la demande porte sur ce qui a été créé/enregistré/modifié pendant l'échange, utilise recent_effect_history pour savoir ce qui est dans le périmètre, puis complète avec user_facing_inventory pour donner les détails exacts de ces objets.",
+    "Quand recent_effect_history contient create_one_shot_reminder, croise avec one_shot_reminders pour restituer l'heure et l'instruction du rappel si disponibles.",
+    "Quand recent_effect_history contient track_progress_plan_item, croise avec plan_progress_entries et plan_items pour restituer l'action du plan marquée comme faite si disponible.",
+    "Ne transforme pas des préférences ou objets déjà existants en créations du tour. Mentionne une préférence seulement si elle est demandée explicitement ou si recent_effect_history montre une modification liée.",
     "Tu peux grouper naturellement les faits proches dans une phrase ou une liste courte.",
     "Exemples de formes possibles selon le contexte: 'Je vois surtout...', 'Dans ton espace, il y a...', 'Côté rappels, je vois...', 'Sur les préférences coach, je vois...'. Ce sont des exemples de ton, pas des templates à recopier.",
     "Si un objet est annulé, dis simplement qu'il est annulé; ne l'appelle pas fragile sauf si le contexte parle vraiment d'incertitude, blocage ou instabilité.",
@@ -234,13 +250,13 @@ function visibleSystemPrompt(input: StatusRecapVisibleAgentInput): string {
     "Tu es l'agent visible du flow status_recap.",
     "Tu écris uniquement le prochain message visible de Sophia.",
     "Tu ne routes pas, tu ne décides pas les faits, tu ne corriges pas le reducer.",
-    "Tu reçois uniquement conversation_context, déjà filtré par le reducer. Tu n'affirmes aucun objet durable absent de conversation_context.filtered_facts.",
+    "Tu reçois uniquement conversation_context. Il contient un user_facing_inventory complet et read-only, plus un périmètre demandé. Tu n'affirmes aucun objet durable absent de cet inventaire.",
     "status_recap est strictement read-only: ne promets jamais création, modification, annulation, activation, confirmation, programmation ou enregistrement.",
     "Ne mentionne jamais JSON, dispatcher, reducer, DB, table, prompt ou outil interne.",
     "Ne donne pas d'aide produit détaillée du type où cliquer ou où changer.",
     "N'écris jamais un template fixe. Le format fait/prévu/fragile n'est autorisé que pour le stage fait_prevu_fragile.",
     "Ne nomme pas une catégorie en introduction si tu ne rends pas au moins un fait ou un non-claim clair sur cette catégorie dans le message.",
-    "Si coverage_requirements contient des éléments, chaque élément doit être couvert par un fait ou un non-claim clair, sans inventer hors filtered_facts.",
+    "Si coverage_requirements contient des éléments, chaque élément doit être couvert par un fait ou un non-claim clair, sans inventer hors user_facing_inventory.",
     "Si une source manque, préfère une phrase de non-claim plutôt qu'une supposition.",
     ...statusRecapRestitutionGuidance(input.stage),
     VISIBLE_OUTPUT_STYLE_RULES,

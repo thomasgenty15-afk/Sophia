@@ -117,14 +117,10 @@ Deno.test("select_state_potion hands off to clarté subskill when clarté is ide
     (result.toolSkillRun as any).note_information?.target_dispatcher,
     "other_local",
   );
-  assertEquals(
-    (result.toolSkillRun as any).note_information?.target_local_dispatcher_hint,
-    "select_state_potion.clarte",
-  );
   assert(
     ((result.toolSkillRun as any).runtime_trace as any[]).some((event) =>
       event.event === "note_information_created" &&
-      event.target_local_dispatcher_hint === "select_state_potion.clarte"
+      event.target_subdispatcher === "select_state_potion.clarte"
     ),
   );
   assertEquals(result.executedTools, []);
@@ -191,12 +187,6 @@ Deno.test("select_state_potion hands off to every potion detail subskill when se
             collected_value: null,
             handoff_hint_for_global_dispatcher: null,
           },
-          executable_from_chat: {
-            potion_session_created: false,
-            recurring_reminder_created: false,
-            scheduled_checkin_created: false,
-            executable_confirmation_generated: false,
-          },
           risk_assessment: {
             risk_score: 0,
             risk_band: "none",
@@ -234,10 +224,11 @@ Deno.test("select_state_potion hands off to every potion detail subskill when se
       (result.toolSkillRun as any).note_information?.target_dispatcher,
       "other_local",
     );
-    assertEquals(
-      (result.toolSkillRun as any).note_information
-        ?.target_local_dispatcher_hint,
-      statePotionSubskillId(potionType),
+    assert(
+      ((result.toolSkillRun as any).runtime_trace as any[]).some((event) =>
+        event.event === "note_information_created" &&
+        event.target_subdispatcher === statePotionSubskillId(potionType)
+      ),
     );
     assertEquals(result.executedTools, []);
   }
@@ -380,6 +371,12 @@ Deno.test("active potion subskill delivers final handoff when remaining field is
 
   assert(result);
   assertEquals((result.toolSkillRun as any).status, "handoff_delivered");
+  assert((result.toolSkillRun as any).state_mutation_audit);
+  assert(
+    ((result.toolSkillRun as any).runtime_trace as any[]).some((event) =>
+      event.event === "state_mutation_audit"
+    ),
+  );
   assertEquals(
     (result.toolSkillRun as any).selected_handler,
     "select_state_potion.amour",

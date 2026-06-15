@@ -50,6 +50,45 @@ function compactActiveFlowContext(
   };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function stringValue(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function compactParentFlowForNote(
+  activeFlow: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!activeFlow) return null;
+  const workingState = isRecord(activeFlow.working_state)
+    ? activeFlow.working_state
+    : {};
+  const activeFlowContext = isRecord(workingState.active_flow_context)
+    ? workingState.active_flow_context
+    : {};
+  const handoffDraft = isRecord(activeFlowContext.handoff_draft)
+    ? activeFlowContext.handoff_draft
+    : {};
+  const dispatcherContext = isRecord(workingState.dispatcher_context)
+    ? workingState.dispatcher_context
+    : {};
+  return {
+    skill_id: stringValue(activeFlow.skill_id) ?? "parent_flow",
+    status: stringValue(activeFlow.status),
+    turn_count: typeof activeFlow.turn_count === "number"
+      ? activeFlow.turn_count
+      : null,
+    question_to_answer: stringValue(workingState.question_to_answer),
+    flow_action: stringValue(dispatcherContext.flow_action),
+    handoff_ready: handoffDraft.ready === true,
+    preserve_active_flow: workingState.preserve_active_flow === true,
+  };
+}
+
 function recentCommittedEffects(turnFrame: unknown): unknown[] {
   const frame = turnFrame as any;
   const direct = Array.isArray(frame?.direct_effects)
@@ -57,6 +96,93 @@ function recentCommittedEffects(turnFrame: unknown): unknown[] {
     : [];
   return direct.filter((effect: any) => effect?.target_status === "identified")
     .slice(0, 8);
+}
+
+function productHelpReducerTrace(args: {
+  decision: any;
+  reduced: any;
+  previous: unknown;
+  candidates: Array<{ id: string; label: string }>;
+}): Record<string, unknown> {
+  const context = args.reduced.conversation_context ?? {};
+  const knownValues = context.known_values &&
+      typeof context.known_values === "object"
+    ? context.known_values as Record<string, unknown>
+    : {};
+  return {
+    flow_action: args.decision.flow_action,
+    visible_task: args.reduced.visible_task,
+    selected_target: args.decision.target ?? null,
+    selected_option: args.decision.bridge?.operation_type ??
+      args.decision.target?.feature_id ?? null,
+    pending_state_present: Boolean(args.previous),
+    direct_handoff_flag:
+      args.decision.flow_action === "handoff_to_local_dispatcher" &&
+      Boolean(args.reduced.note_information),
+    candidate_list_summary: args.candidates.slice(0, 6).map((candidate) => ({
+      id: candidate.id,
+      label: candidate.label,
+    })),
+    constraint_list: [
+      ...((context.tone_constraints as string[] | undefined) ?? []),
+      ...((context.do_not_say as string[] | undefined) ?? []),
+      ...((knownValues.user_constraints as string[] | undefined) ?? []),
+    ].slice(0, 12),
+    readiness: {
+      bridge_needed: Boolean(args.decision.bridge?.needed),
+      bridge_operation: args.decision.bridge?.operation_type ?? null,
+      note_information_present: Boolean(args.reduced.note_information),
+    },
+    blocked_effects_reason_codes: Array.isArray(args.reduced.blocked_effects)
+      ? args.reduced.blocked_effects.map((effect: any) => effect.reason_code)
+      : [],
+    state_mutation_audit: args.reduced.state_mutation_audit,
+  };
+}
+
+function productHelpParentFlowControl(args: {
+  mode: "standalone" | "inline";
+  activeFlow: Record<string, unknown> | null;
+  reduced: any;
+}): Record<string, unknown> | null {
+  if (args.mode !== "inline") return null;
+  return {
+    transition: args.reduced.return_to_parent_flow
+      ? "inline_answer_then_resume"
+      : "inline_requires_explicit_transition",
+    parent_skill_id: args.activeFlow?.skill_id ?? null,
+    preserve_parent_working_state: true,
+    suspended_flow_snapshot_owner: "conversation_route_runtime",
+    product_help_may_append_history: true,
+    product_help_may_overwrite_parent_working_state: false,
+  };
+}
+
+function productHelpSubskillTrace(args: {
+  mode: "standalone" | "inline";
+  decision: any;
+  reduced: any;
+  activeFlow: Record<string, unknown> | null;
+  userMessage: string;
+}): Record<string, unknown> | null {
+  if (args.mode !== "inline") return null;
+  return {
+    subskill: "product_help",
+    mode: "inline",
+    answered_intent: args.decision.product_help_intent.kind,
+    product_topic: args.decision.product_help_intent.summary || null,
+    product_surface: args.decision.target?.feature_id ??
+      args.decision.target?.object_type ?? null,
+    last_answered_product_question: args.userMessage,
+    returned_to_parent: args.reduced.return_to_parent_flow,
+    parent_skill_id: args.activeFlow?.skill_id ?? null,
+    preserve_parent_working_state: true,
+    state_mutation_audit_summary: {
+      restored_fields: args.reduced.state_mutation_audit?.restored_fields ?? [],
+      rejected_changes: args.reduced.state_mutation_audit?.rejected_changes ??
+        [],
+    },
+  };
 }
 
 function inboundProductHelpNote(args: {
@@ -74,17 +200,18 @@ function inboundProductHelpNote(args: {
   const sourceFlowId = args.mode === "inline"
     ? String(args.activeFlow?.skill_id ?? "parent_flow")
     : "global";
+  const parentFlowSummary = args.mode === "inline"
+    ? compactParentFlowForNote(args.activeFlow)
+    : null;
   return createNoteInformation({
     source_flow_id: sourceFlowId,
     handoff_reason: args.mode === "inline"
       ? "inline_tool"
       : "explicit_user_request",
     target_dispatcher: "product_help",
-    handoff_context_for_next_dispatcher: JSON.stringify({
-      user_message: args.input.user_message,
-      mode: args.mode,
-      parent_flow_context: args.mode === "inline" ? args.activeFlow : null,
-    }),
+    handoff_context_for_next_dispatcher: args.mode === "inline"
+      ? `Inline product_help question from ${sourceFlowId}: ${args.input.user_message}. Parent flow must resume after the answer.`
+      : `Global selected product_help for: ${args.input.user_message}.`,
     user_words: [args.input.user_message],
     structured_context: {
       source_flow: sourceFlowId,
@@ -94,7 +221,7 @@ function inboundProductHelpNote(args: {
         ? `Parent flow ${sourceFlowId} asked product_help inline.`
         : "Global dispatcher selected product_help for a product question.",
       mode: args.mode,
-      parent_flow_context: args.mode === "inline" ? args.activeFlow : null,
+      parent_flow_summary: parentFlowSummary,
       unresolved_questions: [],
       recommended_next_focus: "product_help",
     },
@@ -243,6 +370,24 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     recentCommittedEffects: recentCommittedEffects(input.context.turn_frame),
     userMessage: input.user_message,
   });
+  const reducerTrace = productHelpReducerTrace({
+    decision,
+    reduced,
+    previous,
+    candidates,
+  });
+  const parentFlowControl = productHelpParentFlowControl({
+    mode,
+    activeFlow,
+    reduced,
+  });
+  const subskillTrace = productHelpSubskillTrace({
+    mode,
+    decision,
+    reduced,
+    activeFlow,
+    userMessage: input.user_message,
+  });
   if (reduced.note_information) {
     console.info("[ProductHelp] note_information_created", {
       ...noteInformationForTrace(reduced.note_information),
@@ -265,6 +410,8 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
         note_information: reduced.note_information,
         exit_memo: decision.exit_memo,
         reason_code: reduced.reason_code,
+        reducer_trace: reducerTrace,
+        state_mutation_audit: reduced.state_mutation_audit,
       },
       recommendation_need: {
         needed: false,
@@ -291,6 +438,8 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
           at: new Date().toISOString(),
           reducer_reason_code: reduced.reason_code,
         },
+        product_help_state_mutation_audit: reduced.state_mutation_audit,
+        product_help_parent_flow_control: parentFlowControl,
         summary: noteInformationSummary(reduced.note_information) ??
           decision.exit_memo.user_intent_summary ??
           "Product help exited to global dispatcher.",
@@ -322,6 +471,8 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
         handoff_to_local_dispatcher: true,
         note_information: reduced.note_information,
         reason_code: reduced.reason_code,
+        reducer_trace: reducerTrace,
+        state_mutation_audit: reduced.state_mutation_audit,
         evidence: reduced.evidence,
       },
       recommendation_need: {
@@ -359,6 +510,8 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
           reducer_reason_code: reduced.reason_code,
         },
         product_help_subskill_trace: null,
+        product_help_state_mutation_audit: reduced.state_mutation_audit,
+        product_help_parent_flow_control: parentFlowControl,
         summary: noteInformationSummary(reduced.note_information) ??
           decision.exit_memo.user_intent_summary ??
           "Product help handed off to a local dispatcher.",
@@ -414,6 +567,8 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       handoff_to_local_dispatcher: reduced.handoff_to_local_dispatcher,
       note_information: reduced.note_information,
       reason_code: reduced.reason_code,
+      reducer_trace: reducerTrace,
+      state_mutation_audit: reduced.state_mutation_audit,
       evidence: reduced.evidence,
     },
     recommendation_need: {
@@ -452,15 +607,9 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
           reducer_reason_code: reduced.reason_code,
         }
         : null,
-      product_help_subskill_trace: mode === "inline"
-        ? {
-          subskill: "product_help",
-          mode: "inline",
-          answered_intent: decision.product_help_intent.kind,
-          returned_to_parent: true,
-          parent_skill_id: activeFlow?.skill_id ?? null,
-        }
-        : null,
+      product_help_subskill_trace: mode === "inline" ? subskillTrace : null,
+      product_help_state_mutation_audit: reduced.state_mutation_audit,
+      product_help_parent_flow_control: parentFlowControl,
       summary: reduced.answer_summary ??
         `Product help answered: ${decision.flow_action}.`,
     },

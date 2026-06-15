@@ -123,6 +123,8 @@ export type SafetyCrisisLocalDispatcherOutput = {
     pending_confirmation_created: false;
     db_write_committed: false;
   };
+  modified_fields?: string[];
+  clear_fields?: string[];
   note_information?: NoteInformation | null;
   evidence: string[];
 };
@@ -189,6 +191,41 @@ export type SafetyCrisisWorkingState = {
   last_user_safety_signal?: string | null;
   last_assistant_safety_step?: string | null;
   exit_memo?: SafetyCrisisExitMemo | null;
+  pending_offer?: unknown;
+  pending_confirmation?: unknown;
+  last_selected_option?: unknown;
+  active_subflow_context?: unknown;
+  handoff_note?: NoteInformation | Record<string, unknown> | null;
+  note_information?: NoteInformation | Record<string, unknown> | null;
+  local_state_summary?: string | null;
+  previous_flow_summary?: string | null;
+};
+
+export type SafetyCrisisStateMutationRejectedChange = {
+  field: string;
+  requested_action: "modify" | "clear";
+  reason_code:
+    | "transition_not_authorized"
+    | "invalid_status_transition"
+    | "pending_confirmation_missing"
+    | "direct_handoff_flag_missing"
+    | "missing_previous_offer"
+    | "selected_option_missing"
+    | "blocked_by_constraint"
+    | "not_stabilized_enough"
+    | "missing_previous_exit_check"
+    | "missing_resolution_facts";
+};
+
+export type SafetyCrisisStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: SafetyCrisisStateMutationRejectedChange[];
 };
 
 export type SafetyCrisisLocalState = {
@@ -227,6 +264,14 @@ export type SafetyCrisisStatePatch = {
   visible_task?: SafetyCrisisVisibleTask;
   exit_memo?: SafetyCrisisExitMemo | null;
   summary?: string;
+  pending_offer?: unknown;
+  pending_confirmation?: unknown;
+  last_selected_option?: unknown;
+  active_subflow_context?: unknown;
+  handoff_note?: NoteInformation | Record<string, unknown> | null;
+  note_information?: NoteInformation | Record<string, unknown> | null;
+  local_state_summary?: string | null;
+  previous_flow_summary?: string | null;
 };
 
 export type SafetyCrisisDecision = {
@@ -254,6 +299,7 @@ export type SafetyCrisisReduction = {
   visibleTask: SafetyCrisisVisibleTask;
   exitMemo: SafetyCrisisExitMemo | null;
   reasonCode: string;
+  stateMutationAudit: SafetyCrisisStateMutationAudit;
 };
 
 export const SAFETY_CRISIS_INVARIANTS = [

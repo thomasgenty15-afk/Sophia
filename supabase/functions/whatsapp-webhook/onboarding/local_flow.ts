@@ -30,6 +30,7 @@ import type {
 import {
   coachPreferenceLabel,
   preferenceKeyForState,
+  readWhatsAppOnboardingLocalState,
   reduceWhatsAppOnboardingDecision,
 } from "./state.ts";
 
@@ -470,6 +471,10 @@ function emptyDecision(
       pending_confirmation_created: false,
       confirmation_token_created: false,
     },
+    state_mutation_request: {
+      modified_fields: [],
+      clear_fields: [],
+    },
     risk_assessment: {
       risk_score: 0,
       risk_band: "none",
@@ -495,6 +500,7 @@ export function normalizeWhatsAppOnboardingDecision(
   const planFeedback = parseObject(root.plan_feedback);
   const globalPolicy = parseObject(root.global_effect_policy);
   const noMutation = parseObject(root.no_chat_mutation);
+  const stateMutation = parseObject(root.state_mutation_request);
   const risk = parseObject(root.risk_assessment);
   const preferenceUpdates = Array.isArray(root.preference_updates)
     ? root.preference_updates.map(normalizePreferenceUpdate).filter(Boolean)
@@ -619,6 +625,10 @@ export function normalizeWhatsAppOnboardingDecision(
       confirmation_token_created: boolValue(
         noMutation.confirmation_token_created,
       ),
+    },
+    state_mutation_request: {
+      modified_fields: stringArray(stateMutation.modified_fields),
+      clear_fields: stringArray(stateMutation.clear_fields),
     },
     risk_assessment: {
       risk_score: riskScore,
@@ -950,10 +960,14 @@ async function patchWhatsAppState(params: {
   userId: string;
   nextState: WhatsAppOnboardingState | null;
 }) {
-  await params.admin.from("profiles").update({
+  const patch: Record<string, unknown> = {
     whatsapp_state: params.nextState,
     whatsapp_state_updated_at: new Date().toISOString(),
-  }).eq("id", params.userId);
+  };
+  if (!params.nextState) {
+    patch.whatsapp_onboarding_started_at = null;
+  }
+  await params.admin.from("profiles").update(patch).eq("id", params.userId);
 }
 
 async function patchTempMemory(params: {
@@ -970,11 +984,10 @@ async function patchTempMemory(params: {
       params.previousTempMemory.__whatsapp_onboarding_activation_note ??
         params.activationNote,
     __whatsapp_onboarding_local_flow: {
-      reason_code: params.reduced.reason_code,
-      visible_task: params.reduced.visible_task,
-      note_information: params.reduced.note_information ?? null,
+      ...params.reduced.local_state,
       activation_note_information:
-        params.previousTempMemory.__whatsapp_onboarding_activation_note ??
+        params.reduced.local_state.activation_note_information ??
+          params.previousTempMemory.__whatsapp_onboarding_activation_note ??
           params.activationNote,
       updated_at: nowIso,
     },
@@ -1243,6 +1256,25 @@ export function buildWhatsAppOnboardingConversationTrace(params: {
     has_notes: Boolean(compactString(write.notes)),
     reason: compactString(write.why_status, 160),
   }));
+  const candidateListSummary = params.planProjection
+    .active_action_candidates_for_direct_effects
+    .slice(0, 4)
+    .map((candidate) => ({
+      title: compactString(candidate.title, 80),
+      status: candidate.status,
+      has_occurrence: Boolean(candidate.occurrence_id),
+    }));
+  const constraintList = [
+    params.planProjection.status === "draft_pending_confirmation"
+      ? "web_plan_confirmation_required"
+      : null,
+    !params.planProjection.is_plan_ready_for_onboarding
+      ? "plan_not_ready_for_exit"
+      : null,
+    params.reduced.reason_code.endsWith("_note_information_missing")
+      ? "note_information_required"
+      : null,
+  ].filter((item): item is string => Boolean(item));
   const routeDecision = {
     route_version: "v1",
     response_owner: "tool_skill",
@@ -1348,17 +1380,17 @@ export function buildWhatsAppOnboardingConversationTrace(params: {
     user_id: params.userId,
     source_message_id: sourceMessageId,
     ts: new Date().toISOString(),
-    safety_pregate: {
+    safety_context: {
       detected: params.reduced.risk_assessment.safety_preempt,
       risk_band: riskBand,
       reason_codes: riskReasonCodes,
       evidence,
       layer_contributions: {
-        lexical: false,
         active_flow_caution: params.reduced.risk_assessment.safety_preempt,
         dispatcher_llm: false,
       },
       allow_side_effects: !params.reduced.risk_assessment.safety_preempt,
+      channel: "whatsapp",
     },
     dispatcher_run: {
       latency_ms: Math.max(0, Math.round(params.dispatcherLatencyMs)),
@@ -1404,6 +1436,13 @@ export function buildWhatsAppOnboardingConversationTrace(params: {
           params.reduced.allow_track_progress_plan_item,
         note_information_target:
           params.reduced.note_information?.target_dispatcher ?? null,
+        pending_state_present: Boolean(params.reduced.local_state),
+        active_subflow_target: params.reduced.local_state.active_subflow_context
+          ?.target_dispatcher ?? null,
+        candidate_list_summary: candidateListSummary,
+        constraint_list: constraintList,
+        stabilization_ready: params.planProjection.is_plan_ready_for_onboarding,
+        state_mutation_audit: params.reduced.state_mutation_audit,
         evidence,
       },
     },
@@ -1413,6 +1452,17 @@ export function buildWhatsAppOnboardingConversationTrace(params: {
       status: params.reduced.status,
       flow_action: params.decision.flow_action,
       visible_task: params.reduced.visible_task,
+      selected_target: params.reduced.note_information?.target_dispatcher ??
+        params.reduced.local_state.active_subflow_context
+          ?.target_dispatcher ??
+        null,
+      pending_state_present: Boolean(params.reduced.local_state),
+      direct_handoff_flag: params.reduced.status === "handoff_to_local_flow",
+      candidate_list_summary: candidateListSummary,
+      constraint_list: constraintList,
+      stabilization_ready: params.planProjection.is_plan_ready_for_onboarding,
+      blocked_effects: params.reduced.blocked_effects,
+      state_mutation_audit: params.reduced.state_mutation_audit,
     },
     recommendation_tool_run: null,
     confirmation_token_outcomes: [],
@@ -1477,6 +1527,22 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
 }) {
   const startedAtMs = Date.now();
   const tempMemory = await loadTempMemory(params.admin, params.userId);
+  const previousLocalStateRaw = readWhatsAppOnboardingLocalState(
+    tempMemory.__whatsapp_onboarding_local_flow,
+  );
+  const previousLocalState = previousLocalStateRaw
+    ? {
+      ...previousLocalStateRaw,
+      activation_note_information:
+        previousLocalStateRaw.activation_note_information ??
+          (tempMemory
+            .__whatsapp_onboarding_activation_note as NoteInformation) ??
+          null,
+    }
+    : readWhatsAppOnboardingLocalState({
+      activation_note_information:
+        tempMemory.__whatsapp_onboarding_activation_note ?? null,
+    });
   const [planProjection, recentMessages] = await Promise.all([
     loadWhatsAppOnboardingPlanProjection(params.admin, params.userId),
     loadHistory(params.admin, params.userId, 8, "whatsapp").catch(() => []),
@@ -1506,6 +1572,7 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
     whatsappPreferencesDone: params.whatsappPreferencesDone,
     planProjection,
     decision,
+    previousLocalState,
   });
   console.info("[WhatsAppOnboarding] reducer reduced", {
     request_id: params.requestId,
@@ -1522,6 +1589,7 @@ export async function runWhatsAppOnboardingLocalFlow(params: {
     allow_track_progress_plan_item: reduced.allow_track_progress_plan_item,
     note_information_target: reduced.note_information?.target_dispatcher ??
       null,
+    state_mutation_audit: reduced.state_mutation_audit,
   });
   await persistPreferenceWrites({
     admin: params.admin,

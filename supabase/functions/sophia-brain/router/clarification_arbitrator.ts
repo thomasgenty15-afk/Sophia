@@ -76,6 +76,8 @@ type ClarificationArbitrationOutput = {
   local_dispatcher_output?: ClarificationLocalDispatcherOutput;
   visible_task?: ClarificationVisibleTask;
   note_information?: NoteInformation | null;
+  diagnosis?: ClarificationReducerResult["diagnosis"];
+  state_mutation_audit?: ClarificationReducerResult["state_mutation_audit"];
 };
 
 export type DispatcherClarificationArbitrationResult =
@@ -327,6 +329,8 @@ function compatibilityOutput(args: {
     local_dispatcher_output: args.localOutput,
     visible_task: reducer.visible_task,
     note_information: reducer.note_information,
+    diagnosis: reducer.diagnosis,
+    state_mutation_audit: reducer.state_mutation_audit,
   };
 }
 
@@ -479,6 +483,16 @@ function arbitrationStatus(
   return "resolved";
 }
 
+function isUnsafeClarificationFallbackQuestion(question: string): boolean {
+  const lower = question.toLowerCase();
+  return lower.includes("souhaitez-vous") ||
+    lower.includes("voulez-vous") ||
+    lower.includes("préférez-vous") ||
+    lower.includes("preferez-vous") ||
+    lower.includes(" votre ") ||
+    lower.startsWith("votre ");
+}
+
 async function visibleMessage(args: {
   visibleAgent?: ClarificationVisibleAgent;
   userId: string;
@@ -502,7 +516,7 @@ async function visibleMessage(args: {
   if (fromAgent?.trim()) return fromAgent.trim();
   const context = args.reducer.visible_task.conversation_context;
   const question = context.question?.trim();
-  if (question) {
+  if (question && !isUnsafeClarificationFallbackQuestion(question)) {
     return question;
   }
   switch (args.reducer.visible_task.kind) {

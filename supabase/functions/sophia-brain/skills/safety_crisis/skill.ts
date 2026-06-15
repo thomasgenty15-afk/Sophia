@@ -172,10 +172,52 @@ export async function runSafetyCrisisSkill(
       phase: decision.phase,
       source_risk_band: snapshot.source_risk_band,
       risk_band: decision.risk_band,
+      flow_action: localDispatcherOutput?.flow_action ?? null,
+      reducer_reason_code: reduction.reasonCode,
       safety_signals: decision.safety_signals,
       response_contract: decision.response_contract,
       local_dispatcher_ok: Boolean(localDispatcherOutput),
       local_dispatcher_output: localDispatcherOutput,
+      local_flow_trace: {
+        flow_action: localDispatcherOutput?.flow_action ?? null,
+        visible_task: reduction.visibleTask.kind,
+        pending_state_present: Boolean(
+          (reduction.statePatch as any).pending_offer ||
+            (reduction.statePatch as any).pending_confirmation,
+        ),
+        direct_handoff_flag: Boolean(
+          localDispatcherOutput?.direct_effect_request.requested === true &&
+            localDispatcherOutput.direct_effect_request.effect_type ===
+              "create_one_shot_reminder" &&
+            localDispatcherOutput.direct_effect_request.explicitness ===
+              "explicit" &&
+            localDispatcherOutput.direct_effect_request.target_status ===
+              "identified",
+        ),
+        selected_option: (reduction.statePatch as any).last_selected_option ??
+          null,
+        selected_target:
+          localDispatcherOutput?.direct_effect_request.payload_hint.raw_text ??
+            null,
+        candidate_list_summary: [],
+        constraint_list: [
+          "no_product_push_during_safety",
+          "no_tool_suggestion_during_safety",
+          "no_memory_persistence_by_default",
+        ],
+        stabilization_ready: decision.phase === "resolved",
+        blocked_effects: localDispatcherOutput?.direct_effect_request
+            .requested === true &&
+            localDispatcherOutput.direct_effect_request.target_status !==
+              "identified"
+          ? [{
+            effect_type: localDispatcherOutput.direct_effect_request.effect_type,
+            reason_code: "selected_option_missing",
+          }]
+          : [],
+        state_mutation_audit: reduction.stateMutationAudit,
+      },
+      state_mutation_audit: reduction.stateMutationAudit,
       visible_task: reduction.visibleTask,
       visible_agent_ok: visibleAgentResult.visible_agent_ok,
       visible_fallback_used: false,

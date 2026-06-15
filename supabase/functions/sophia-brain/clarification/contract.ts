@@ -160,6 +160,7 @@ export type ClarificationVisibleTask = {
 export type ClarificationLocalState = {
   skill_id: "clarification";
   mode: "local_flow";
+  server_state_version?: "clarification_state_v2";
   clarification_id: string;
   status: ClarificationLocalStatus;
   turn_count: number;
@@ -175,8 +176,32 @@ export type ClarificationLocalState = {
   known_context: Record<string, unknown>;
   inbound_note_information: NoteInformation | Record<string, unknown> | null;
   outbound_note_information: NoteInformation | Record<string, unknown> | null;
+  current_question?: string | null;
+  current_ambiguity?: Record<string, unknown> | null;
+  resolved_candidate?: ClarificationCandidateSignal | null;
+  rejected_candidates?: ClarificationCandidateSignal[];
+  pending_offer?: Record<string, unknown> | null;
+  pending_confirmation?: Record<string, unknown> | null;
+  last_selected_option?: ClarificationCandidateSignal | null;
+  active_subflow_context?: Record<string, unknown> | null;
+  active_clarification_context?: Record<string, unknown> | null;
+  exit_memo?: Record<string, unknown> | null;
+  local_state_summary?: string | null;
+  previous_flow_summary?: string | null;
+  executable_from_chat?: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type ClarificationStateMutationAudit = {
+  server_owned_fields: string[];
+  modified_fields_declared: string[];
+  clear_fields_declared: string[];
+  applied_fields: string[];
+  preserved_fields: string[];
+  restored_fields: string[];
+  cleared_fields: string[];
+  rejected_changes: Array<{ field: string; reason_code: string }>;
 };
 
 export type ClarificationLocalDispatcherOutput = {
@@ -222,6 +247,10 @@ export type ClarificationLocalDispatcherOutput = {
     user_words: string[];
     structured_context: Record<string, unknown>;
     confidence?: "low" | "medium" | "high";
+  };
+  state_updates?: {
+    modified_fields?: string[];
+    clear_fields?: string[];
   };
   evidence: string[];
 };
