@@ -341,6 +341,68 @@ Deno.test("flow opportunity reducer preserves anchor through product_help", () =
   assertEquals(reduced.note_information.target_dispatcher, "product_help");
 });
 
+Deno.test("flow opportunity reducer blocks adjust_plan handoff when keep-plan constraint is structured", () => {
+  const previous = createFlowOpportunityState({
+    opportunity: {
+      opportunity_id: "adjust_plan.keep_plan_false_positive",
+      target_kind: "tool_skill",
+      target_flow: "adjust_plan_item",
+      target_action: "run_adjust_plan_item",
+      confidence: "high",
+      priority: 80,
+      reason: "LLM proposed adjust plan despite keep-plan constraint",
+      evidence: ["structured keep plan constraint"],
+      seed_context: {
+        constraints: ["keep_plan"],
+        durable_need_family: "avoidance_loop",
+        target_hint: "garder le plan et traverser l'evitement",
+      },
+    },
+    userMessage: "Je veux garder le plan, c'est juste que je repousse.",
+  });
+  const output = buildInitialOfferDispatcherOutput({
+    opportunity_id: previous.opportunity_id,
+    target_kind: previous.target_kind,
+    target_flow: previous.target_flow,
+    target_action: previous.target_action,
+    target_context: previous.target_context,
+    reason: previous.confirmation_anchor.meaning,
+    evidence: previous.origin.evidence,
+  });
+  const reduced = reduceFlowOpportunityDispatcherOutput({
+    previous,
+    output: {
+      ...output,
+      flow_action: "handoff_to_local_flow",
+      state_patch: {
+        ...output.state_patch,
+        status: "accepted",
+        target_context: previous.target_context,
+      },
+      note_information: {
+        needed: true,
+        note: {
+          source_flow_id: "flow_opportunity_verification",
+          target_dispatcher: "adjust_plan_item",
+          handoff_reason: "explicit_user_request",
+          handoff_context_for_next_dispatcher: "handoff",
+          user_words: ["je veux garder le plan"],
+          structured_context: { constraints: ["keep_plan"] },
+          confidence: "high",
+        },
+      },
+    },
+    userMessage: "Oui mais je veux garder le plan.",
+  });
+
+  assertEquals(reduced.status, "blocked");
+  assertEquals(
+    reduced.reason_code,
+    "keep_plan_constraint_blocks_adjust_plan_handoff",
+  );
+  assertEquals(reduced.handoff_to_local_flow, false);
+});
+
 Deno.test("flow opportunity reducer preserves anchor through status_recap info round-trip", () => {
   const previous = createFlowOpportunityState({
     opportunity,

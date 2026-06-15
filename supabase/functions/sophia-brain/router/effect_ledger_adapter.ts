@@ -237,7 +237,6 @@ export function recordToolSkillEffectsInLedger(args: {
         ).trim() || null,
         surface_id: String(handoff.surface_id ?? "").trim() || null,
         payload_summary: {
-          no_chat_mutation: true,
           status,
           surface_id: handoff.surface_id ?? null,
         },
@@ -282,7 +281,6 @@ export function recordToolSkillEffectsInLedger(args: {
       reason_code: "missing_platform_handoff_contract",
       surface_id: null,
       payload_summary: {
-        no_chat_mutation: true,
         status,
         rejected_effect_arrays: {
           requested_effects: Array.isArray(run.requested_effects)

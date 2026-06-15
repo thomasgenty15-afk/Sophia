@@ -70,7 +70,7 @@ Deno.test("active_flow_state reads dedicated defense handoff without generic int
       skill_id: "prepare_defense_card",
       mode: "platform_handoff",
       status: "handoff_delivered",
-      no_chat_mutation: true,
+      executable_from_chat: false,
     },
   });
 
@@ -94,7 +94,7 @@ Deno.test("active_flow_state resolves canonical local tool ownership for all loc
           skill_id: "adjust_plan_item",
           mode: "platform_handoff",
           status: "handoff_delivered",
-          no_chat_mutation: true,
+          executable_from_chat: false,
         },
       },
       expectedOperationType: "adjust_plan_item",
@@ -107,7 +107,7 @@ Deno.test("active_flow_state resolves canonical local tool ownership for all loc
           operation_type: "prepare_attack_card",
           mode: "platform_handoff",
           status: "handoff_delivered",
-          no_chat_mutation: true,
+          executable_from_chat: false,
         },
       },
       expectedOperationType: "prepare_attack_card",
@@ -120,7 +120,7 @@ Deno.test("active_flow_state resolves canonical local tool ownership for all loc
           operation_type: "prepare_defense_card",
           mode: "platform_handoff",
           status: "handoff_delivered",
-          no_chat_mutation: true,
+          executable_from_chat: false,
         },
       },
       expectedOperationType: "prepare_defense_card",
@@ -133,7 +133,7 @@ Deno.test("active_flow_state resolves canonical local tool ownership for all loc
           skill_id: "select_state_potion",
           mode: "platform_handoff",
           status: "handoff_delivered",
-          no_chat_mutation: true,
+          executable_from_chat: false,
         },
       },
       expectedOperationType: "select_state_potion",
@@ -146,7 +146,7 @@ Deno.test("active_flow_state resolves canonical local tool ownership for all loc
           skill_id: "create_recurring_reminder",
           mode: "platform_handoff",
           status: "handoff_delivered",
-          no_chat_mutation: true,
+          executable_from_chat: false,
         },
       },
       expectedOperationType: "create_recurring_reminder",
@@ -396,7 +396,7 @@ Deno.test("active_flow_state suspends and restores an interrupted defense handof
     mode: "platform_handoff",
     status: "handoff_delivered",
     draft: { title: "Soir sans scroll" },
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
   const suspended = suspendActivePlatformHandoff(
     { __active_defense_card_handoff: defenseHandoff },
@@ -432,7 +432,7 @@ Deno.test("active_flow_state restore ignores non-matching suspended handoff", ()
     operation_type: "prepare_attack_card",
     mode: "platform_handoff",
     status: "handoff_delivered",
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
   const suspended = suspendActivePlatformHandoff(
     { __active_attack_card_handoff: attackHandoff },

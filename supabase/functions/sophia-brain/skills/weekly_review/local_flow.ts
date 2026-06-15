@@ -1380,7 +1380,6 @@ function childFlowWithRevision(
     result_details: {
       ...(isRecord(childFlow.result_details) ? childFlow.result_details : {}),
       revision_summary: revisionSummary,
-      revision_no_chat_mutation: true,
     },
   };
 }
@@ -1768,7 +1767,6 @@ function buildWeeklyConversationContext(args: {
         args.output.handoff_updates.requested_adjustment_summary,
       revision_summary: args.output.handoff_updates.revision_summary ??
         childRevisionSummary,
-      no_chat_mutation: true,
     },
     forgotten_progress: {
       ...args.output.forgotten_progress,
@@ -2531,7 +2529,7 @@ function dispatcherSystemPrompt(): string {
     "- visible_task.kind: stage visible exact pour le prochain prompt local. Priorise ask_week_experience, review_action_gaps, explore_action_blocker, qualify_attack_or_defense_fit, ask_global_progress_feeling, deepen_global_progress, qualify_solution_fit, offer_child_detour, return_from_child_flow, weekly_synthesis, weekly_closure. En defer, utilise stop_or_cancel. En safety, utilise safety_transition ou safety. En transition dispatcher, le message visible source est normalement vide ou exit_or_cancel selon reducer. Si le user confirme la cloture apres une synthese complete, utilise weekly_closure avec weekly_intent.kind=weekly_confirmation.",
     "- visible_task.instruction: instruction courte au prompt visible, sans texte final utilisateur. Ne construis jamais la reponse visible ici.",
     "- visible_task.conversation_context: ce champ existe dans le contrat mais le reducer weekly reconstruit la version finale visible-agent-safe. Si tu le fournis, garde-le compact et filtre: contraintes, valeurs connues, incertitudes, ton, limites. Pas de DB brute, memoire brute, note_information brute, ids inventes, ni decision a refaire par l'agent visible.",
-    "- note_information: obligatoire pour exit_to_global_dispatcher, safety_preempt, handoff_to_local_flow et inline_tool_roundtrip. Elle est consommee par le dispatcher cible, jamais transmise brute au prompt visible. Garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. structured_context doit etre succinct et non vide avec etat weekly utile, acquis, contraintes, incertitudes et recommended_next_focus. Ne mets pas source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    "- note_information: obligatoire pour exit_to_global_dispatcher, safety_preempt, handoff_to_local_flow et inline_tool_roundtrip. Elle est consommee par le dispatcher cible, jamais transmise brute au prompt visible. Garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. structured_context doit etre succinct et non vide avec etat weekly utile, acquis, contraintes, incertitudes et recommended_next_focus. Ne mets pas source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note.",
     "- exit_memo: champ secondaire de compatibilite runtime. Ne l'utilise jamais a la place de note_information. needed false et reason none pour continuation/defer/completion. Si transition, garde-le coherent avec note_information mais ne mets pas de decision visible dedans.",
     "- evidence: indices semantiques vraiment utilises depuis le message courant ou le contexte weekly. Pas de pseudo-preuves, pas de mots-cles isoles sans interpretation.",
     "",
@@ -2906,7 +2904,6 @@ export async function runWeeklyReviewLocalRuntime(args: {
       blocked_effects: reduced.blocked_effects,
       visible_fallback_used: visibleFallbackUsed,
       qa_green_eligible: !visibleFallbackUsed,
-      no_chat_mutation: true,
       no_durable_plan_mutation: true,
       evidence: reduced.evidence,
       toolExecution,

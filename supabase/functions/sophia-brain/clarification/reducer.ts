@@ -155,7 +155,6 @@ function localState(args: {
     outbound_note_information: args.noteInformation ?? null,
     created_at: args.previous?.created_at ?? now,
     updated_at: now,
-    no_chat_mutation: true,
   };
 }
 

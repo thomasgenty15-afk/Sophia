@@ -152,7 +152,7 @@ Deno.test("clarification_arbitrator: output ask route vers orientation_clarifica
   assertEquals(result.turnFrame.direct_effects, []);
   assertEquals(result.turnFrame.tool_skill_intents, []);
   assertEquals(
-    readClarificationLocalState(result.tempMemory)?.no_chat_mutation,
+    readClarificationLocalState(result.tempMemory)?.executable_from_chat,
     true,
   );
 });
@@ -379,7 +379,7 @@ Deno.test("clarification_arbitrator: demotivation actif peut demander une clarif
     "demotivation_repair",
   );
   assertEquals(
-    readClarificationLocalState(result.tempMemory)?.no_chat_mutation,
+    readClarificationLocalState(result.tempMemory)?.executable_from_chat,
     true,
   );
 });

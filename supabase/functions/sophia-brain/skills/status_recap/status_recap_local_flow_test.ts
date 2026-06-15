@@ -197,6 +197,60 @@ Deno.test("status_recap dispatcher prompt documents field completion rules for i
   assertEquals(prompt.includes("grounded_facts_json"), false);
 });
 
+Deno.test("status_recap answer_recent_effects does not include blocked attempts by default", () => {
+  const output = normalizeStatusRecapLocalDispatcherOutput({
+    flow_action: "answer_recent_effects",
+    confidence: "high",
+    risk_score: 0,
+    status_intent: {
+      kind: "recent_effects_recap",
+      summary: "User asks what was created or noted.",
+      requires_db_projection: true,
+      requires_effect_history: true,
+    },
+    target_objects: ["unknown"],
+    read_scope: {
+      requested_categories: ["recent_effects"],
+      include_cancelled: false,
+      include_recent_failed_or_blocked_effects: false,
+      format: "compact",
+    },
+    state_updates: {
+      status: "active",
+      turn_count_increment: 1,
+      close_after_visible: false,
+    },
+    visible_task: {
+      kind: "recent_effects",
+      instruction: "Answer only from committed effects.",
+    },
+    note_information: null,
+    exit_memo: {
+      needed: false,
+      reason: "none",
+      user_intent_summary: null,
+      local_flow_context: {
+        skill_id: "status_recap",
+        last_intent: null,
+        last_target_objects: [],
+        last_answer_summary: null,
+        last_projection_summary: null,
+      },
+      handoff_hint_for_global_dispatcher: {
+        likely_intent: "unknown",
+        why: null,
+        constraints: [],
+      },
+    },
+    evidence: ["created_or_noted_scope"],
+  });
+
+  assertEquals(
+    output.read_scope.include_recent_failed_or_blocked_effects,
+    false,
+  );
+});
+
 Deno.test("status_recap active followup answers locally and keeps read-only invariants", async () => {
   let visibleStage = "";
   const runtime = await maybeRunStatusRecapRuntime({
@@ -629,7 +683,7 @@ Deno.test("status_recap handoff_to_local_flow normalizes note_information for lo
         recommended_next_focus: "reminder creation",
       },
       risk_score: 0,
-      no_chat_mutation: {
+      executable_from_chat: {
         db_write_committed: false,
         potion_session_created: false,
         scheduled_checkin_created: false,

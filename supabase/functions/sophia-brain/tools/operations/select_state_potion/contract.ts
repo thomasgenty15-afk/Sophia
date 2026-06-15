@@ -273,12 +273,6 @@ export type StatePotionSubskillDispatcherOutput = {
     needed: boolean;
     value: NoteInformation | null;
   };
-  no_chat_mutation: {
-    potion_session_created: false;
-    recurring_reminder_created: false;
-    scheduled_checkin_created: false;
-    executable_confirmation_generated: false;
-  };
   risk_assessment: SelectStatePotionRiskAssessment;
   evidence: string[];
 };
@@ -325,12 +319,6 @@ export type ClarteDispatcherOutput = {
     needed: boolean;
     value: NoteInformation | null;
   };
-  no_chat_mutation: {
-    potion_session_created: false;
-    recurring_reminder_created: false;
-    scheduled_checkin_created: false;
-    executable_confirmation_generated: false;
-  };
   risk_assessment: SelectStatePotionRiskAssessment;
   evidence: string[];
 };
@@ -353,7 +341,6 @@ export type ClarteHandoffState = {
 export type StatePotionHandoffDraft = {
   operation_type: "select_state_potion";
   mode: "platform_handoff";
-  no_chat_mutation: true;
   executable_from_chat: false;
   user_state_summary: string;
   desired_shift_summary: string;

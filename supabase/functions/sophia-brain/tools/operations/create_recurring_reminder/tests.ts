@@ -140,7 +140,7 @@ function localDispatcherOutput(input: {
           "Préparer un rappel récurrent à reprendre dans Initiatives, sans mutation chat.",
         collected_state: {
           fields,
-          no_chat_mutation: true,
+          executable_from_chat: false,
         },
         known_values: {
           recurring_summary: "rappel récurrent",
@@ -161,7 +161,6 @@ function localDispatcherOutput(input: {
           platform_destination: "Initiatives",
           preserve: [],
           avoid: [],
-          no_chat_mutation: true,
           executable_from_chat: false,
         },
         inline_tool_result: null,
@@ -199,13 +198,6 @@ function localDispatcherOutput(input: {
         : null,
       user_words: [],
       structured_context: {},
-    },
-    no_chat_mutation: {
-      recurring_reminder_created: false,
-      db_write_committed: false,
-      scheduled_checkin_created: false,
-      potion_session_created: false,
-      executable_confirmation_generated: false,
     },
     evidence: ["test_local_dispatcher"],
   };
@@ -296,8 +288,8 @@ Deno.test("create_recurring_reminder router delivers handoff and never creates e
   );
   assertEquals(
     runtime?.nextTempMemory.__recurring_reminder_handoff_state
-      ?.no_chat_mutation,
-    true,
+      ?.executable_from_chat,
+    false,
   );
   assertEquals(
     (runtime?.toolSkillRun.platform_handoff as any)?.draft

@@ -110,6 +110,21 @@ Deno.test("dispatcher prompt injects only the active stable skill description", 
   assertEquals(inactivePrompt.active_skill_stable_description, null);
 });
 
+Deno.test("dispatcher prompt documents demotivation courage and soft-support boundaries", () => {
+  assertStringIncludes(
+    DISPATCHER_V2_SYSTEM_PROMPT,
+    "avoidance_loop / besoin durable courage_through_avoidance",
+  );
+  assertStringIncludes(
+    DISPATCHER_V2_SYSTEM_PROMPT,
+    "cette contrainte bloque adjust_plan_item",
+  );
+  assertStringIncludes(
+    DISPATCHER_V2_SYSTEM_PROMPT,
+    "Un besoin d'appui, soutien, support",
+  );
+});
+
 Deno.test("dispatcher prompt injects active handoff stable description", () => {
   const prompt = JSON.parse(buildDispatcherPrompt({
     user_message: "ok vas-y",

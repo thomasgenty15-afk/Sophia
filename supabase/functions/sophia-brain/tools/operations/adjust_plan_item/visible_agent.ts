@@ -291,7 +291,7 @@ export async function runAdjustPlanVisibleAgent(
     conversation_context: input.conversation_context,
     platform_destination: "Plan",
     hard_constraints: {
-      no_chat_mutation: true,
+      executable_from_chat: false,
       forbidden_success_claims: FORBIDDEN_SUCCESS_CLAIMS,
       internal_labels_not_visible: INTERNAL_LABELS,
       validation_errors_to_fix: input.validation_errors_to_fix ?? [],

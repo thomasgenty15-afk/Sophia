@@ -2258,6 +2258,9 @@ Deno.serve(async (req) => {
         const onboardingPayload =
           ((checkin as any)?.message_payload ?? {}) as Record<string, unknown>;
         const planId = cleanText(onboardingPayload?.plan_id);
+        const targetWeekStartDate =
+          cleanText(onboardingPayload?.target_week_start_date) ||
+          cleanText(onboardingPayload?.week_start_date);
         const profile = userProfileSnapshot ?? {};
         if (!planId) {
           await markScheduledCheckinDeliveryState({
@@ -2314,6 +2317,7 @@ Deno.serve(async (req) => {
           {
             userId: String(checkin.user_id),
             planId,
+            targetWeekStartDate,
           },
         );
         if (!planning.has_planning || !planning.week_start_date) {
@@ -2350,6 +2354,7 @@ Deno.serve(async (req) => {
             {
               userId: String(checkin.user_id),
               planId,
+              targetWeekStartDate,
             },
           );
           messageBody = buildOnboardingWeek1AutoValidationMessage({
@@ -2361,6 +2366,8 @@ Deno.serve(async (req) => {
               message_payload: {
                 ...onboardingPayload,
                 auto_validated: confirmation.changed,
+                target_week_start_date: targetWeekStartDate ||
+                  confirmation.planning.week_start_date,
                 week_start_date: confirmation.planning.week_start_date,
                 week_end_date: confirmation.planning.week_end_date,
                 summary_lines: confirmation.planning.summary_lines,

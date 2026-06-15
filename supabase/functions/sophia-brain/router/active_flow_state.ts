@@ -142,7 +142,10 @@ function readHandoffOperationType(value: unknown): string {
   if (!record || typeof record !== "object" || Array.isArray(record)) {
     return "";
   }
-  if (record.mode !== "platform_handoff" || record.no_chat_mutation !== true) {
+  if (
+    record.mode !== "platform_handoff" ||
+    record.executable_from_chat !== false
+  ) {
     return "";
   }
   return String(record.operation_type ?? record.skill_id ?? "").trim();
@@ -473,7 +476,7 @@ export function suspendActivePlatformHandoff<
     interrupted_by: args.interrupted_by,
     reason_code: args.reason_code,
     suspended_at: new Date().toISOString(),
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
   return next;
 }
@@ -490,7 +493,7 @@ export function restoreSuspendedPlatformHandoffForOperation<
   if (
     !suspended ||
     typeof suspended !== "object" ||
-    suspended.no_chat_mutation !== true ||
+    suspended.executable_from_chat !== false ||
     String(suspended.operation_type ?? "").trim() !== target ||
     !suspended.state
   ) {

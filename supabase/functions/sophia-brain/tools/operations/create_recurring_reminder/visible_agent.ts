@@ -282,7 +282,6 @@ export async function runCreateRecurringReminderVisibleAgent(
       conversation_context: input.visible_task.conversation_context,
     },
     hard_constraints: {
-      no_chat_mutation: true,
       recurring_reminder_created: false,
       forbidden_success_wording: [
         "créé",

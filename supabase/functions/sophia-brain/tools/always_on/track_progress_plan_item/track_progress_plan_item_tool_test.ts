@@ -323,7 +323,8 @@ Deno.test("track_progress_plan_item direct effect router returns canonical logge
       `progress-${writes.length}`,
     );
     assertEquals(result.committed_effects[0]?.value, testCase.expectedValue);
-    assert(result.reply?.toLowerCase().includes("note"));
+    assert(result.reply?.toLowerCase().includes("noté"));
+    assert(result.reply?.toLowerCase().includes("marqué"));
   }
 });
 

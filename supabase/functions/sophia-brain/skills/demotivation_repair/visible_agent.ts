@@ -28,6 +28,7 @@ export function stagePrompt(stage: DemotivationRepairVisibleTaskKind): string {
     "Retourne uniquement le message visible, sans Markdown technique.",
     "Ne promets aucun write DB, aucune creation, aucune activation, aucun rappel.",
     "Si conversation_context.selected_candidate.potion est null, ne propose aucune potion.",
+    "Ne dis jamais que tu mets une potion en place, que tu accompagnes vers un espace dedie, ou que la transition est faite si conversation_context.handoff_data.target_dispatcher n'est pas select_state_potion.",
     "Respecte strictement conversation_context.max_questions: si max_questions=0, ne pose aucune question, n'utilise pas de point d'interrogation, et ne demande pas au user de repondre.",
     "Si max_questions=1, pose au maximum une seule question.",
     "Ne traite jamais la demotivation comme de la paresse.",
@@ -116,6 +117,7 @@ export function stagePrompt(stage: DemotivationRepairVisibleTaskKind): string {
         "Stage: potion_bridge_handoff.",
         "Message tres court de transition vers select_state_potion.",
         "Nom exact de la potion. Pour selected_potion=rappel, ecris Potion anti-décrochage.",
+        "Ecris une transition seulement si handoff_data.target_dispatcher=select_state_potion; sinon reviens a une formulation prudente de clarification.",
         "Ne dis pas activee, lancee, creee, programmee ou enregistree.",
         "Ne redemande pas tout le decrochage.",
       ].join("\n");

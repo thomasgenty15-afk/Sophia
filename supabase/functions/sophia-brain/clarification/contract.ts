@@ -40,7 +40,6 @@ export type ClarificationRequest = {
   known_context?: Record<string, unknown>;
   candidates: ClarificationCandidate[];
   constraints: {
-    no_chat_mutation: true;
     max_questions: 1;
     avoid_internal_terms: true;
   };
@@ -178,7 +177,6 @@ export type ClarificationLocalState = {
   outbound_note_information: NoteInformation | Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
-  no_chat_mutation: true;
 };
 
 export type ClarificationLocalDispatcherOutput = {
@@ -345,7 +343,6 @@ export function buildClarificationRequest(
       candidate.id && candidate.label
     ),
     constraints: {
-      no_chat_mutation: true,
       max_questions: 1,
       avoid_internal_terms: true,
     },

@@ -151,12 +151,6 @@ export type EmotionalRepairPotionBridgeContext = {
   selection_reason: string;
   prefill_candidates: Record<string, EmotionalRepairBridgeCandidateValue>;
   handoff_instruction_for_potion_subskill: string;
-  no_chat_mutation: {
-    potion_session_created: false;
-    recurring_reminder_created: false;
-    scheduled_checkin_created: false;
-    executable_confirmation_generated: false;
-  };
 };
 
 export type EmotionalRepairLocalState = {
@@ -218,7 +212,6 @@ export type EmotionalRepairConversationContext = {
       | "safety_crisis"
       | "global"
       | null;
-    no_chat_mutation: true;
   };
   tone_constraints: string[];
   do_not_say: string[];
@@ -271,13 +264,6 @@ export type EmotionalRepairLocalDispatcherOutput = {
     flow_summary: string | null;
     handoff_hint_for_global_dispatcher: string | null;
     potion_bridge_context: Record<string, unknown> | null;
-  };
-  no_chat_mutation: {
-    potion_session_created: false;
-    recurring_reminder_created: false;
-    scheduled_checkin_created: false;
-    executable_confirmation_generated: false;
-    db_write_committed: false;
   };
   evidence: string[];
 };

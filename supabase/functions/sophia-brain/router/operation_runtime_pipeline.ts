@@ -225,12 +225,6 @@ function routeOrStateRequestsToolSkill(args: {
       args.operationType,
     )
   ) return true;
-  if (
-    (args.turnFrame?.tool_skill_intents ?? []).some((intent) =>
-      intent.operation_type === args.operationType &&
-      intent.confidence_band !== "low"
-    )
-  ) return true;
   const activeOperation = String(
     (args.activeOperationIntake as any)?.operation_type ??
       ((args.activeOperationIntake as any)?.mode === "platform_handoff"
@@ -241,7 +235,12 @@ function routeOrStateRequestsToolSkill(args: {
   const pendingOperation = String(
     (args.pendingOperationConfirmation as any)?.operation_type ?? "",
   ).trim();
-  return pendingOperation === args.operationType;
+  if (pendingOperation === args.operationType) return true;
+  if (args.routeDecision?.response_owner === "normal_reply") return false;
+  return (args.turnFrame?.tool_skill_intents ?? []).some((intent) =>
+    intent.operation_type === args.operationType &&
+    intent.confidence_band !== "low"
+  );
 }
 
 function routeIsProductHelp(routeDecision: RouteDecision | null): boolean {
@@ -270,6 +269,25 @@ function routeRequestsDirectEffect(args: {
     args.routeDecision?.direct_effects_to_run.includes(args.effectType),
   ) ||
     turnFrameHasRunnableDirectEffect(args.turnFrame, args.effectType);
+}
+
+function routePermitsTrackProgressRuntime(args: {
+  routeDecision: RouteDecision | null;
+  turnFrame: TurnFrame | null;
+}): boolean {
+  if (
+    routeRequestsDirectEffect({
+      routeDecision: args.routeDecision,
+      turnFrame: args.turnFrame,
+      effectType: "track_progress_plan_item",
+    })
+  ) {
+    return true;
+  }
+  if (args.routeDecision?.selected_handler === "track_progress_plan_item") {
+    return true;
+  }
+  return false;
 }
 
 function routeWithDirectEffect(args: {
@@ -532,7 +550,7 @@ export async function runDirectEffectLane(
   const fallbackOneShotDetected = Boolean(
     classified?.detected &&
       ["create", "cancel", "replace"].includes(String(classified.intent)),
-  );
+  ) && Boolean(String(classified?.time_expression ?? "").trim());
   const shouldRunOneShotReminderDirectEffect =
     !routeIsProductHelp(routeDecision) &&
     (routeRequestsDirectEffect({
@@ -632,7 +650,7 @@ function platformHandoffRuntimeResult(args: {
         status: "delivered",
         surface_id: surfaceId,
         reason_code: "complex_operation_redirect_to_platform",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
   };
@@ -924,7 +942,8 @@ export async function runOperationRuntimePipeline(
       })
       : Promise.resolve(null);
   const trackProgressRuntime: OperationRuntimeResult | null =
-    !routeSafetyActive && !weeklyReviewBlocksToolSkillRuntime && turnFrame
+    !routeSafetyActive && !weeklyReviewBlocksToolSkillRuntime && turnFrame &&
+      routePermitsTrackProgressRuntime({ routeDecision, turnFrame })
       ? await (async () => {
         const sourceMessageId = args.sourceMessageId ??
           turnFrame.source_message_id;

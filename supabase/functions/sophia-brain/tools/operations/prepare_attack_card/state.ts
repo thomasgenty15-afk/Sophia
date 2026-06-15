@@ -17,7 +17,7 @@ export type AttackCardHandoffState = {
   max_turns: number;
   created_at: string;
   updated_at: string;
-  no_chat_mutation: true;
+  executable_from_chat: false;
 };
 
 export function isAttackCardHandoffState(
@@ -29,7 +29,7 @@ export function isAttackCardHandoffState(
       typeof record === "object" &&
       record.skill_id === "prepare_attack_card" &&
       record.mode === "platform_handoff" &&
-      record.no_chat_mutation === true,
+      record.executable_from_chat === false,
   );
 }
 
@@ -55,6 +55,6 @@ export function buildAttackCardHandoffState(args: {
     max_turns: args.previous?.max_turns ?? 8,
     created_at: args.previous?.created_at ?? now,
     updated_at: now,
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
 }

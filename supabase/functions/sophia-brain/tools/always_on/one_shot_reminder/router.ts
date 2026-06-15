@@ -53,6 +53,7 @@ export function classifyOneShotReminderDirectIntent(
 ): {
   detected: boolean;
   intent: OneShotReminderIntent | "ignore" | "product_help" | "status_question";
+  time_expression: string | null;
   constraints: Array<{ kind: string; evidence: string[] }>;
   reason_code: string;
 } {
@@ -63,6 +64,7 @@ export function classifyOneShotReminderDirectIntent(
   return {
     detected: intake.detected,
     intent: intake.intent,
+    time_expression: intake.time_expression,
     constraints: intake.constraints,
     reason_code: intake.reason_code === "create_intent"
       ? "create_intent"

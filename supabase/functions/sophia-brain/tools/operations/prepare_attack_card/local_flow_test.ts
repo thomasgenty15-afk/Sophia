@@ -90,7 +90,7 @@ function decision(
       flow_summary: null,
       handoff_hint_for_global_dispatcher: null,
     },
-    no_chat_mutation: {
+    executable_from_chat: {
       attack_card_created: false,
       chat_side_effect_committed: false,
       platform_write_committed: false,
@@ -145,7 +145,7 @@ Deno.test("prepare_attack_card local dispatcher prompt documents real output fie
       "subskill_call",
       "exit_memo",
       "note_information",
-      "no_chat_mutation",
+      "executable_from_chat",
       "risk_assessment",
       "evidence",
     ]
@@ -1169,7 +1169,7 @@ Deno.test("prepare_attack_card reducer emits visible conversation_context", () =
     "je repousse quand ça semble trop long",
   );
   assertEquals(
-    result.visible_task_context.handoff_data.no_chat_mutation,
+    result.visible_task_context.handoff_data.executable_from_chat,
     true,
   );
   assertEquals(

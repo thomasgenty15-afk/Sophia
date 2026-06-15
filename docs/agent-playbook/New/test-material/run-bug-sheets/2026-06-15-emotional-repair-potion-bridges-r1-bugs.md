@@ -18,9 +18,10 @@
 - Symptome visible: Sophia reconnait le besoin de potion/douceur mais ne rend pas une offre claire; apres consentement, elle repond vaguement "Voyons ce qui te conviendrait" sans passer au sous-flow potion.
 - Preuve systeme: A3-A4 `local_flow_action=potion_bridge_offer` mais `local_visible_task=separate_fact_from_identity`; A5 `local_flow_action=confirm_potion_bridge`, `local_visible_task=potion_bridge_handoff`, puis DB state `selected_candidate.potion=null`, `handoff_data.target_dispatcher=null`, `emotional_repair_potion_handoff=null`.
 - Correction attendue: rendre atomique l'offre bridge: si `potion_bridge_offer` est persistable, conserver `selected_potion`, `durable_need`, prefills et note; si elle ne l'est pas, ne pas afficher ni stocker un faux handoff. Interdire contractuellement `potion_bridge_handoff` sans `selected_potion` et `target_dispatcher=select_state_potion`.
-- Statut: open
-- Fix reference: a definir
+- Statut: fixed-unit-pending-qa-rerun
+- Fix reference: `supabase/functions/sophia-brain/skills/emotional_repair/local_flow.ts` + `supabase/functions/sophia-brain/skills/emotional_repair/local_flow_test.ts`
 - Tests requis: positif `amour` stabilise -> offre -> consentement -> `select_state_potion.amour`; paraphrase "soutien de douceur sur quelques jours"; anti-faux-positif emotion encore dominante/no_potion; invariant reducer `confirm_potion_bridge` sans offre precedente.
+- Validation fix: `deno test supabase/functions/sophia-brain/skills/emotional_repair/local_flow_test.ts` passe avec invariant `confirm_potion_bridge` invalide sans faux `potion_bridge_handoff` et couverture positive des bridges `amour`, `guerison`, `apaisement`.
 
 ### Bug id: R1-B02
 

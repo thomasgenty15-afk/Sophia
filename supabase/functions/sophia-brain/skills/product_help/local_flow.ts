@@ -1244,7 +1244,7 @@ function dispatcherSystemPrompt(): string {
     "Pour un abandon sans nouveau sujet clair, utilise exit_to_global_dispatcher avec note_information; ne pose pas de question finale dans product_help.",
     "Pour un changement de sujet clair, utilise exit_to_global_dispatcher avec note_information.target_dispatcher=global.",
     "Pour safety, utilise safety_preempt avec note_information.target_dispatcher=safety_crisis; ne relance pas global.",
-    "Si tu changes de dispatcher, note_information est obligatoire et garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct, non vide, sans DB brute, memoire brute, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ni no_chat_mutation.",
+    "Si tu changes de dispatcher, note_information est obligatoire et garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct, non vide, sans DB brute, memoire brute, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ni committed_effects.",
     "Si une question porte sur l'etat d'un objet reel, n'affirme rien sans source recent_committed_effects, active_flow_context ou db_projection_sources.",
     ...directEffectLocalDispatcherPromptLines(),
     "Field Completion Rules:",

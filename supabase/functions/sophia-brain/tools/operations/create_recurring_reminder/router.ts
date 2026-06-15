@@ -133,7 +133,6 @@ function contractRecoveryVisibleTask(args: {
         "Le flow local de rappel récurrent n'a pas produit un contrat exploitable; aucune mutation n'est autorisée.",
       collected_state: {
         reason_code: args.reasonCode,
-        no_chat_mutation: true,
       },
       known_values: {},
       missing_or_weak_values: ["local_contract"],
@@ -141,7 +140,7 @@ function contractRecoveryVisibleTask(args: {
         "Quel rythme, quelle heure et quel contenu veux-tu pour ce rappel récurrent ?",
       handoff: {
         ready: false,
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
       inline_tool_result: null,
       note_information_summary: null,
@@ -249,7 +248,7 @@ function handoffState(args: {
     max_turns: Number(args.previous?.max_turns ?? 6) || 6,
     created_at: args.previous?.created_at ?? now,
     updated_at: now,
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
 }
 
@@ -274,7 +273,7 @@ function platformHandoffRun(args: {
       surface_id: getHandoffTargetForOperation("create_recurring_reminder")
         ?.surface_id ?? "recurring_reminders",
       reason_code: args.reasonCode,
-      no_chat_mutation: true,
+      executable_from_chat: false,
       draft: args.draft ?? null,
     },
     ...(args.extra ?? {}),

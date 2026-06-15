@@ -18,7 +18,7 @@ export type AdjustPlanHandoffState = {
   max_turns: number;
   created_at: string;
   updated_at: string;
-  no_chat_mutation: true;
+  executable_from_chat: false;
 };
 
 export function pendingOperationType(value: unknown): string | null {
@@ -40,7 +40,7 @@ export function isAdjustPlanHandoffState(
       typeof record === "object" &&
       record.skill_id === "adjust_plan_item" &&
       record.mode === "platform_handoff" &&
-      record.no_chat_mutation === true,
+      record.executable_from_chat === false,
   );
 }
 

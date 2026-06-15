@@ -111,7 +111,6 @@ function safeLocalDispatcherOutput(
         handoff_data: {
           bridge_context_summary: null,
           target_dispatcher: null,
-          no_chat_mutation: true,
         },
         tone_constraints: ["energy_preserving", "one_question_max"],
         do_not_say: [
@@ -133,13 +132,6 @@ function safeLocalDispatcherOutput(
       handoff_hint_for_global_dispatcher: null,
       potion_bridge_context: null,
       note_information: null,
-    },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-      db_write_committed: false,
     },
     evidence: [reason],
   };
@@ -303,7 +295,7 @@ export async function runDemotivationRepairSkill(
         needed: false,
         type: "none",
         urgency: "none",
-        constraints: ["safety_preempt", "no_chat_mutation"],
+        constraints: ["safety_preempt"],
       },
       operation_suggestions: [],
       memory_write_candidates: [],
@@ -316,7 +308,6 @@ export async function runDemotivationRepairSkill(
         demotivation_repair_safety_handoff: reduced.note_information
           ? {
             note_information: reduced.note_information,
-            no_chat_mutation: true,
           }
           : null,
       },
@@ -340,7 +331,7 @@ export async function runDemotivationRepairSkill(
         needed: false,
         type: "none",
         urgency: "none",
-        constraints: ["exit_to_global_dispatcher", "no_chat_mutation"],
+        constraints: ["exit_to_global_dispatcher"],
       },
       operation_suggestions: [],
       memory_write_candidates: [],
@@ -382,7 +373,7 @@ export async function runDemotivationRepairSkill(
         needed: false,
         type: "none",
         urgency: "none",
-        constraints: ["no_chat_mutation", "visible_agent_failed"],
+        constraints: ["visible_agent_failed"],
       },
       operation_suggestions: [],
       memory_write_candidates: [],
@@ -419,7 +410,7 @@ export async function runDemotivationRepairSkill(
       needed: false,
       type: "none",
       urgency: "none",
-      constraints: ["no_chat_mutation", ...reduced.constraints],
+      constraints: reduced.constraints,
     },
     operation_suggestions: [],
     memory_write_candidates: [],
@@ -440,7 +431,6 @@ export async function runDemotivationRepairSkill(
           selected_potion: reduced.potion_bridge_context.selected_potion,
           potion_bridge_context: reduced.potion_bridge_context,
           note_information: reduced.potion_bridge_context.note_information,
-          no_chat_mutation: true,
         }
         : null,
       summary: reduced.local_state?.previous_repair_summary ??

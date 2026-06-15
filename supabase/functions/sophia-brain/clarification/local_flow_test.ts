@@ -132,7 +132,7 @@ function previous(): ClarificationLocalState {
     outbound_note_information: null,
     created_at: now,
     updated_at: now,
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
 }
 

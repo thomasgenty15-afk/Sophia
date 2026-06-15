@@ -385,7 +385,6 @@ function buildAttackCardRuntimeHandoff(args: {
     draft: args.draft ?? args.activeHandoff?.draft ?? {
       operation_type: "prepare_attack_card",
       mode: "platform_handoff",
-      no_chat_mutation: true,
       executable_from_chat: false,
       target_summary: args.state.target_state.locked_value ??
         args.state.target_state.candidate_value ?? "",
@@ -528,7 +527,6 @@ async function runPrepareAttackCardLocalRuntime(args: {
         selected_handler: "prepare_attack_card",
         operation_type: "prepare_attack_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: "blocked",
         reason_code: "prepare_attack_card_local_dispatcher_failed",
@@ -713,7 +711,6 @@ async function runPrepareAttackCardLocalRuntime(args: {
         selected_handler: "prepare_attack_card",
         operation_type: "prepare_attack_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: reduced.status,
         reason_code: reduced.reason_code,
@@ -779,7 +776,6 @@ async function runPrepareAttackCardLocalRuntime(args: {
         selected_handler: "prepare_attack_card",
         operation_type: "prepare_attack_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: "blocked",
         reason_code: "prepare_attack_card_visible_agent_failed",
@@ -828,7 +824,6 @@ async function runPrepareAttackCardLocalRuntime(args: {
       draft: reduced.draft ?? args.activeHandoff?.draft ?? {
         operation_type: "prepare_attack_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         target_summary: reduced.local_state.target_state.locked_value ??
           reduced.local_state.target_state.candidate_value ?? "",
@@ -892,7 +887,6 @@ async function runPrepareAttackCardLocalRuntime(args: {
       selected_handler: "prepare_attack_card",
       operation_type: "prepare_attack_card",
       mode: "platform_handoff",
-      no_chat_mutation: true,
       executable_from_chat: false,
       status: reduced.status,
       reason_code: reduced.reason_code,
@@ -914,7 +908,7 @@ async function runPrepareAttackCardLocalRuntime(args: {
             surface_id: getHandoffTargetForOperation("prepare_attack_card")
               ?.surface_id ?? "attack_cards",
             reason_code: reduced.reason_code,
-            no_chat_mutation: true,
+            executable_from_chat: false,
           },
         }
         : {}),

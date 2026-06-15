@@ -91,7 +91,7 @@ Deno.test("post morning nudge dispatcher prompts document real field completion 
     assertStringIncludes(prompt, "source_flow_state_summary");
     assertStringIncludes(prompt, "handoff_context_for_next_dispatcher");
     assertStringIncludes(prompt, "target_local_dispatcher_hint");
-    assertStringIncludes(prompt, "no_chat_mutation");
+    assertStringIncludes(prompt, "executable_from_chat");
     assertStringIncludes(prompt, "structured_context");
     assertStringIncludes(prompt, "champs top-level inventes");
     assertStringIncludes(prompt, "Ce contrat ne contient pas exit_memo");

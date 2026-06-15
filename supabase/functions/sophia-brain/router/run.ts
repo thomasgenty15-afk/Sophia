@@ -1347,7 +1347,6 @@ function compactHandoffStructuredContext(
   const record = localFlowExitContextRecord(value);
   if (!record || Object.keys(record).length === 0) return null;
   const blockedKeys = new Set([
-    "no_chat_mutation",
     "risk_score",
     "target_dispatcher",
   ]);
@@ -4446,7 +4445,6 @@ export async function processMessage(
             selected_handler: "adjust_plan_item",
             operation_type: "adjust_plan_item",
             mode: "platform_handoff",
-            no_chat_mutation: true,
             executable_from_chat: false,
             status: "blocked",
             reason_code: "active_adjust_plan_item_local_runtime_null",
@@ -4969,7 +4967,6 @@ export async function processMessage(
             selected_handler: "prepare_attack_card",
             operation_type: "prepare_attack_card",
             mode: "platform_handoff",
-            no_chat_mutation: true,
             executable_from_chat: false,
             status: "blocked",
             reason_code: "active_prepare_attack_card_local_runtime_null",
@@ -5314,7 +5311,6 @@ export async function processMessage(
             selected_handler: "prepare_defense_card",
             operation_type: "prepare_defense_card",
             mode: "platform_handoff",
-            no_chat_mutation: true,
             executable_from_chat: false,
             status: "blocked",
             reason_code: "active_prepare_defense_card_local_runtime_null",
@@ -5532,7 +5528,6 @@ export async function processMessage(
             selected_handler: activeLocalFlowHandler,
             operation_type: "select_state_potion",
             mode: "platform_handoff",
-            no_chat_mutation: true,
             executable_from_chat: false,
             status: "blocked",
             reason_code: "active_select_state_potion_local_runtime_null",

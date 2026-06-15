@@ -547,8 +547,7 @@ export function normalizeStatusRecapLocalDispatcherOutput(
       include_cancelled: readScopeRoot.include_cancelled === true ||
         flowAction === "answer_cancelled_objects",
       include_recent_failed_or_blocked_effects:
-        readScopeRoot.include_recent_failed_or_blocked_effects === true ||
-        flowAction === "answer_recent_effects",
+        readScopeRoot.include_recent_failed_or_blocked_effects === true,
       format: enumValue(
         readScopeRoot.format,
         new Set(["compact", "object_answer", "recap", "fait_prevu_fragile"]),
@@ -657,7 +656,6 @@ export function buildStatusRecapConversationContext(args: {
     },
     constraints: {
       read_only: true,
-      no_chat_mutation: true,
       no_tool_execution: true,
       no_product_how_to: true,
       no_claim_without_filtered_fact: true,
@@ -850,7 +848,7 @@ export function dispatcherSystemPrompt(): string {
     "status_recap est read-only et DB-grounded. Tu ne réponds jamais directement au user.",
     "Tu retournes uniquement un JSON conforme au contrat. Tu ne crées, modifies, annules, actives, confirmes ou programmes rien.",
     "Le dispatcher global ne doit pas tourner pendant ce flow actif. Tu sors vers lui seulement avec flow_action=exit_to_global_dispatcher et note_information exploitable.",
-    "Tout changement de dispatcher exige note_information avec la structure simplifiée: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 à 3 fragments du message courant. structured_context est succinct et non vide: user_message_summary, active_flow_summary, collected_state, unresolved_questions, evidence, confidence et recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    "Tout changement de dispatcher exige note_information avec la structure simplifiée: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 à 3 fragments du message courant. structured_context est succinct et non vide: user_message_summary, active_flow_summary, collected_state, unresolved_questions, evidence, confidence et recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note.",
     "Si le user demande de créer, modifier, annuler, activer, confirmer, changer une préférence, ou demande où/comment dans le produit, sors vers le dispatcher global.",
     "Si le user demande une catégorie précise, une répétition, les sources, les rappels, les préférences coach, les annulés, les effets récents, ou fait/prévu/fragile, reste dans status_recap.",
     "Critère d'ownership prioritaire: juge le message courant avant l'inertie du flow actif. Reste dans status_recap seulement si le message courant demande encore un état, un récap factuel, une source, une répétition, une projection DB ou une clarification directement liée au dernier status.",
@@ -871,7 +869,7 @@ export function dispatcherSystemPrompt(): string {
     "- target_objects: objets concernés par la lecture. Utilise unknown pour status global ou cible absente. Ne crée pas d'id, ne déduis pas une catégorie si le message ne la porte pas clairement.",
     "- read_scope.requested_categories: catégories DB à lire dans la projection. all pour status global, catégories précises quand le user les demande. Le visible agent recevra seulement les filtered_facts correspondant au contexte construit par le reducer.",
     "- read_scope.include_cancelled: true pour annulés/supprimés/abandonnés ou answer_cancelled_objects; false sinon.",
-    "- read_scope.include_recent_failed_or_blocked_effects: true pour effets récents, outils bloqués, actions tentées ou answer_recent_effects; false sinon.",
+    "- read_scope.include_recent_failed_or_blocked_effects: true seulement si le user demande explicitement les échecs, blocages ou tentatives non abouties. Pour 'ce qui a été créé/noté/enregistré', laisse false: ces blocages restent des traces système, pas des faits user-facing.",
     "- read_scope.format: compact pour état global, object_answer pour objet précis, recap pour récapitulatif structuré, fait_prevu_fragile seulement pour ce format exact.",
     "- state_updates.status: active quand status_recap continue, closing quand le tour visible doit probablement clore, closed pour cancel_flow, exit_to_global pour exit_to_global_dispatcher, safety pour safety_preempt.",
     "- state_updates.turn_count_increment: 1 pour un tour traité; 0 seulement si tu bloques sans avancer l'état. Le reducer limite ce compteur.",

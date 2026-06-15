@@ -380,7 +380,6 @@ async function generateVisibleMessage(
     stage: input.stage,
     visible_task: input.visible_task,
     hard_constraints: {
-      no_chat_mutation: true,
       platform_destination: "État / Potions",
       allowed_potion_labels: ALLOWED_POTION_LABELS,
       forbidden_visible_templates: FORBIDDEN_VISIBLE_PATTERNS,

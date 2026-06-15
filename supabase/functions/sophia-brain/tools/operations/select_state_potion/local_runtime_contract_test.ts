@@ -76,7 +76,7 @@ Deno.test("select_state_potion hands off to clarté subskill when clarté is ide
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,
@@ -191,7 +191,7 @@ Deno.test("select_state_potion hands off to every potion detail subskill when se
             collected_value: null,
             handoff_hint_for_global_dispatcher: null,
           },
-          no_chat_mutation: {
+          executable_from_chat: {
             potion_session_created: false,
             recurring_reminder_created: false,
             scheduled_checkin_created: false,
@@ -286,7 +286,7 @@ Deno.test("active potion subskill delivers final handoff when remaining field is
         max_turns: 6,
         created_at: "2026-06-01T00:00:00.000Z",
         updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     turnFrame: null,
@@ -329,7 +329,7 @@ Deno.test("active potion subskill delivers final handoff when remaining field is
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,
@@ -443,7 +443,7 @@ Deno.test("active clarté safety exits local flow and exposes local risk assessm
         max_turns: 6,
         created_at: "2026-06-01T00:00:00.000Z",
         updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     turnFrame: null,
@@ -490,7 +490,7 @@ Deno.test("active clarté safety exits local flow and exposes local risk assessm
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,
@@ -562,7 +562,7 @@ Deno.test("active parent exit_to_global_dispatcher cancels locally without globa
         max_turns: 6,
         created_at: "2026-06-01T00:00:00.000Z",
         updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     turnFrame: null,

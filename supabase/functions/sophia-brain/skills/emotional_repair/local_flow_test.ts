@@ -84,7 +84,6 @@ function dispatcherOutput(
         handoff_data: {
           bridge_context_summary: null,
           target_dispatcher: null,
-          no_chat_mutation: true,
         },
         tone_constraints: ["soft"],
         do_not_say: [],
@@ -99,13 +98,6 @@ function dispatcherOutput(
       flow_summary: null,
       handoff_hint_for_global_dispatcher: null,
       potion_bridge_context: null,
-    },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-      db_write_committed: false,
     },
     evidence: ["test"],
     ...patch,
@@ -208,7 +200,6 @@ function stabilizedOffer(
         handoff_data: {
           bridge_context_summary: "Besoin durable stabilise.",
           target_dispatcher: null,
-          no_chat_mutation: true,
         },
         tone_constraints: ["soft"],
         do_not_say: [],
@@ -373,6 +364,50 @@ Deno.test("emotional_repair confirmation without persisted offer does not handof
   );
 });
 
+Deno.test("emotional_repair invalid confirmation cannot keep potion handoff visible task", () => {
+  const reduced = reduceEmotionalRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...stabilizedOffer("amour"),
+      flow_action: "confirm_potion_bridge",
+      repair_state: {
+        ...stabilizedOffer("amour").repair_state,
+        intent: "asks_regulation_without_potion",
+        phase: "exit",
+      },
+      potion_bridge: {
+        ...stabilizedOffer("amour").potion_bridge,
+        status: "confirmed_handoff",
+        selected_potion: null,
+        candidate_potions: [],
+      },
+      visible_task: {
+        ...stabilizedOffer("amour").visible_task,
+        kind: "potion_bridge_handoff",
+      },
+    },
+    turn_frame: turnFrame(),
+  });
+
+  assertEquals(reduced.status, "continue");
+  assertEquals(reduced.reason_code, "emotional_repair_potion_bridge_blocked");
+  assertEquals(reduced.potion_bridge_context, null);
+  assertEquals(reduced.visible_task.kind, "ask_gentle_clarification");
+  assertEquals(
+    reduced.visible_task.conversation_context.selected_candidate.potion,
+    null,
+  );
+  assertEquals(
+    reduced.visible_task.conversation_context.handoff_data.target_dispatcher,
+    null,
+  );
+  assertEquals(
+    reduced.local_state?.last_visible_task,
+    "ask_gentle_clarification",
+  );
+  assertEquals(reduced.local_state?.last_potion_bridge_offer, null);
+});
+
 Deno.test("emotional_repair no_potion clears previous bridge offer", () => {
   const offered = reduceEmotionalRepairLocalDispatcherOutput({
     previous: null,
@@ -413,7 +448,6 @@ Deno.test("emotional_repair no_potion clears previous bridge offer", () => {
             handoff_data: {
               bridge_context_summary: null,
               target_dispatcher: null,
-              no_chat_mutation: true,
             },
             tone_constraints: ["soft", "no_potion"],
             do_not_say: ["Ne propose pas de potion."],
@@ -496,10 +530,56 @@ Deno.test("emotional_repair confirmed bridge emits potion context without mutati
       ?.candidate_value,
     "le craquage d'hier",
   );
-  assertEquals(
-    confirmed.potion_bridge_context?.no_chat_mutation.potion_session_created,
-    false,
-  );
+});
+
+Deno.test("emotional_repair confirmed bridge is complete for each allowed potion", () => {
+  for (
+    const potion of ["amour", "guerison", "apaisement"] as const
+  ) {
+    const offered = reduceEmotionalRepairLocalDispatcherOutput({
+      previous: null,
+      output: stabilizedOffer(potion),
+      turn_frame: turnFrame(),
+    });
+    const confirmed = reduceEmotionalRepairLocalDispatcherOutput({
+      previous: offered.local_state,
+      output: {
+        ...stabilizedOffer(potion),
+        flow_action: "confirm_potion_bridge",
+        potion_bridge: {
+          ...stabilizedOffer(potion).potion_bridge,
+          status: "confirmed_handoff",
+        },
+      },
+      turn_frame: turnFrame(),
+    });
+
+    assertEquals(confirmed.status, "handoff", potion);
+    assertEquals(
+      confirmed.visible_task.kind,
+      "potion_bridge_handoff",
+      potion,
+    );
+    assertEquals(
+      confirmed.visible_task.conversation_context.selected_candidate.potion,
+      potion,
+    );
+    assertEquals(
+      confirmed.visible_task.conversation_context.handoff_data
+        .target_dispatcher,
+      "select_state_potion",
+      potion,
+    );
+    assertEquals(
+      confirmed.potion_bridge_context?.selected_potion,
+      potion,
+    );
+    assertEquals(
+      confirmed.potion_bridge_context?.note_information.target_dispatcher,
+      "select_state_potion",
+      potion,
+    );
+  }
 });
 
 Deno.test("emotional_repair safety preempt wins over local bridge", () => {

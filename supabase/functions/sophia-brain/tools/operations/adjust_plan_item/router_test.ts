@@ -58,7 +58,7 @@ function draft(): AdjustPlanHandoffDraft {
   return {
     operation_type: "adjust_plan_item",
     mode: "platform_handoff",
-    no_chat_mutation: true,
+    executable_from_chat: false,
     executable_from_chat: false,
     user_blocker_summary: "le plan est trop dense cette semaine",
     suggested_platform_input:
@@ -180,7 +180,7 @@ function activeMemory() {
       max_turns: 6,
       created_at: "2026-06-03T10:00:00.000Z",
       updated_at: "2026-06-03T10:00:00.000Z",
-      no_chat_mutation: true,
+      executable_from_chat: false,
     },
   };
 }
@@ -418,7 +418,7 @@ Deno.test("active adjust_plan exits explicitly before concurrent global operatio
       user_intent_summary: "Le user demande un rappel.",
       local_flow_context: {
         skill_id: "adjust_plan_item",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
       handoff_hint_for_global_dispatcher: {
         likely_intent: "create_one_shot_reminder",

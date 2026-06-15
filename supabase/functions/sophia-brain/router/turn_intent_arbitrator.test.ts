@@ -270,7 +270,7 @@ Deno.test("L3 keeps active prepare_defense_card owner from dedicated handoff key
         skill_id: "prepare_defense_card",
         mode: "platform_handoff",
         status: "handoff_delivered",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
   });
@@ -360,22 +360,22 @@ Deno.test("L3 product help rewrite clears all local tool ownership keys", () => 
       __active_attack_card_handoff: {
         operation_type: "prepare_attack_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
       __active_defense_card_handoff: {
         operation_type: "prepare_defense_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
       __recurring_reminder_handoff_state: {
         operation_type: "create_recurring_reminder",
         mode: "platform_handoff",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
       __adjust_plan_handoff_state: {
         operation_type: "adjust_plan_item",
         mode: "platform_handoff",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
       __coach_preference_flow_state_v1: {
         operation_type: "update_coach_preferences",
@@ -435,7 +435,7 @@ Deno.test("L3 keeps active recurring reminder owner on exit plus new topic", () 
         skill_id: "create_recurring_reminder",
         mode: "platform_handoff",
         status: "handoff_delivered",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
   });

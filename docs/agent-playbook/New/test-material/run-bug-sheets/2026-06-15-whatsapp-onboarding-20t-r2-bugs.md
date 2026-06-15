@@ -12,8 +12,8 @@ Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-15-wha
 - Symptome visible: a "Ca compte ou pas ?", Sophia repond "Tu veux que je le note vraiment ?" au lieu d'expliquer humainement si la preparation compte.
 - Preuve systeme: aucun effet durable, mais reponse visible orientee commit/tracking.
 - Correction attendue: les questions conceptuelles sur le progres doivent rester en normal reply sauf demande explicite de noter, valider, enregistrer ou cocher.
-- Statut: `open`
-- Fix reference: none
+- Statut: `fixed`
+- Fix reference: `supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts` route finale `normal_reply` bloque maintenant le runtime de tracking implicite.
 - Tests requis:
   - Positif: "je l'ai prepare mais pas envoye, ca compte ?" -> reponse humaine sans pending/commit.
   - Paraphrase: "mentalement je l'ai fait, c'est deja un pas ?" -> normal reply.
@@ -30,8 +30,8 @@ Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-15-wha
 - Symptome visible: "Note pour Envoyer un message simple a une personne: fait."
 - Preuve systeme: `user_plan_item_entries` contient bien une entry `checkin`; la mutation est correcte mais le message sonne template.
 - Correction attendue: transmettre le commit au visible agent final comme instruction a integrer naturellement, par exemple confirmer que le message a ete marque comme envoye, sans renderer dedie ni formule fixe.
-- Statut: `open`
-- Fix reference: none
+- Statut: `in_progress`
+- Fix reference: `supabase/functions/sophia-brain/tools/always_on/track_progress_plan_item/renderer.ts` rend la confirmation moins mécanique, mais le chantier complet reste de faire confirmer le commit par le visible agent final.
 - Tests requis:
   - Positif: "je viens de l'envoyer" -> entry creee + confirmation conversationnelle.
   - Paraphrase: "c'est bon, c'est parti" -> meme comportement si l'intention est claire.
@@ -48,8 +48,8 @@ Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-15-wha
 - Symptome visible: Sophia mentionne "une autre tentative de saisie n'a pas pu aboutir" puis "un autre a ete bloque car ton intention n'etait pas assez explicite".
 - Preuve systeme: un blocked/failed opportunity semble restitue comme evenement utilisateur alors qu'il devrait rester dans les traces.
 - Correction attendue: separer strictement `blocked_paths` / attempts internes de l'historique restituable. Les recaps doivent lister seulement les effets crees, annules, modifies, ou explicitement refuses par l'utilisateur si pertinent.
-- Statut: `open`
-- Fix reference: none
+- Statut: `fixed`
+- Fix reference: `supabase/functions/sophia-brain/skills/status_recap/local_flow.ts` ne force plus l'inclusion des effets failed/blocked pour `answer_recent_effects`; ils restent inclus seulement si le user les demande explicitement.
 - Tests requis:
   - Positif: apres une opportunity bloquee puis un commit reel, recap -> seulement commit reel + preferences si scope demande.
   - Paraphrase: "qu'est-ce qui a vraiment ete cree ?" -> pas d'interne.
@@ -84,8 +84,8 @@ Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-15-wha
 - Symptome visible: au lieu de donner une phrase simple, Sophia propose "Mantra de force" vs "Le texte magique".
 - Preuve systeme: `user_chat_states.temp_memory.__active_attack_card_handoff.status=collecting`, `skill_id=prepare_attack_card`, `no_chat_mutation=true`.
 - Correction attendue: une demande directe de formulation/mantra simple doit etre satisfaite par normal reply. `prepare_attack_card` ne doit s'activer que si le user demande explicitement une carte, une preparation de carte, ou accepte une proposition de flow.
-- Statut: `open`
-- Fix reference: none
+- Statut: `fixed`
+- Fix reference: `supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts` respecte `routeDecision.response_owner=normal_reply` avant de lancer un runtime depuis `tool_skill_intents`.
 - Tests requis:
   - Positif: "donne-moi juste une phrase simple a me repeter" -> phrase directe, pas active flow.
   - Paraphrase: "une phrase courte pour demain" -> normal reply.
@@ -102,8 +102,8 @@ Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-15-wha
 - Symptome visible: les tours default brain n'exposent pas `selected_handler`, `route_reason`, ni les blocked/admitted opportunities dans `chat_messages.metadata`.
 - Preuve systeme: metadata utile presente sur T1-T7, puis mostly null sur T8-T20 alors que des effets et active flows existent.
 - Correction attendue: exposer une trace courte stable pour le chemin WhatsApp, au moins owner/route_reason/admitted_tools/admitted_flows/blocked_paths/direct_effects.
-- Statut: `open`
-- Fix reference: none
+- Statut: `fixed`
+- Fix reference: `supabase/functions/whatsapp-webhook/wa_reply.ts` persiste une trace compacte `response_owner`, `selected_handler`, `route_decision`, `turn_frame`, `tool_skill_run`, `effect_ledger` dans le premier message assistant WhatsApp.
 - Tests requis:
   - Positif: run WhatsApp post-onboarding -> metadata contient route courte.
   - Anti-faux-positif: ne pas exposer prompt interne ou donnees sensibles.

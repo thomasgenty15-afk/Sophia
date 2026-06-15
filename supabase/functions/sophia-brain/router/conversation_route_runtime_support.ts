@@ -156,7 +156,6 @@ function startSelectStatePotionFromConversationBridge(args: {
       origin_bridge_context: handoff.potion_bridge_context,
       note_information: handoff.note_information ?? null,
       information_note: handoff.note_information ?? null,
-      no_chat_mutation: true,
     },
     note_information: handoff.note_information ?? null,
     origin_bridge_context: handoff.potion_bridge_context,
@@ -167,7 +166,7 @@ function startSelectStatePotionFromConversationBridge(args: {
     max_turns: 6,
     created_at: now,
     updated_at: now,
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
   delete next.active_tool_skill_intake;
   delete next.__active_skill_state;
@@ -177,7 +176,6 @@ function startSelectStatePotionFromConversationBridge(args: {
     origin_flow: handoff.source_flow,
     note_information: handoff.note_information ?? null,
     at: now,
-    no_chat_mutation: true,
   };
   if (handoff.note_information) {
     console.info("[ConversationRoute] note_information_consumed", {
@@ -410,7 +408,6 @@ export function persistConversationSkillRoute(
               (safetyHandoff as Record<string, unknown>).note_information ??
                 null,
             source_flow: selected,
-            no_chat_mutation: true,
           },
         };
         delete next.active_skill_state;

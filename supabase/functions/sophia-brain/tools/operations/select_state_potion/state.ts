@@ -30,7 +30,7 @@ export type StatePotionHandoffState = {
   max_turns: number;
   created_at: string;
   updated_at: string;
-  no_chat_mutation: true;
+  executable_from_chat: false;
 };
 
 export function loadSelectStatePotionFrameFromTempMemory(
@@ -99,7 +99,7 @@ export function isStatePotionHandoffState(
       typeof record === "object" &&
       record.skill_id === "select_state_potion" &&
       record.mode === "platform_handoff" &&
-      record.no_chat_mutation === true,
+      record.executable_from_chat === false,
   );
 }
 

@@ -137,7 +137,6 @@ Deno.test("platform handoff proposed is a first-class ledger entry", () => {
 
   assertEquals(entry.kind, "platform_handoff");
   assertEquals(entry.status, "proposed");
-  assertEquals(entry.no_chat_mutation, true);
   assertEquals(entry.committed, false);
   assertEquals(entry.executed_tool, false);
 });
@@ -175,8 +174,8 @@ Deno.test("clarification asked is a non-mutant ledger entry", () => {
 
   assertEquals(entry.kind, "clarification");
   assertEquals(entry.status, "asked");
-  assertEquals(entry.no_chat_mutation, true);
   assertEquals(entry.committed, false);
+  assertEquals(entry.executed_tool, false);
 });
 
 Deno.test("durable effect blocked remains distinct from platform handoff", () => {

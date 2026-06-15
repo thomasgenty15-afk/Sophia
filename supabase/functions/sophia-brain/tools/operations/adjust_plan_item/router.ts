@@ -114,7 +114,6 @@ function traceForInputCoach(args: {
       status: args.status === "cancelled" ? "cancelled" : "delivered",
       surface_id: "plan",
       reason_code: args.reasonCode,
-      no_chat_mutation: true,
       executable_from_chat: false,
     },
     skill_result: adjustPlanSkillResult({
@@ -179,7 +178,7 @@ function writeState(args: {
       max_turns: Number(args.maxTurns ?? 6),
       created_at: args.createdAt ?? now,
       updated_at: now,
-      no_chat_mutation: true,
+      executable_from_chat: false,
     },
   );
 }
@@ -212,7 +211,6 @@ function buildInboundNoteInformation(args: {
       plan_item_snapshot_count: Array.isArray(args.context.planItemSnapshot)
         ? args.context.planItemSnapshot.length
         : 0,
-      no_chat_mutation: true,
     }),
     user_words: [args.context.userMessage],
     structured_context: {
@@ -227,7 +225,6 @@ function buildInboundNoteInformation(args: {
       plan_item_snapshot_count: Array.isArray(args.context.planItemSnapshot)
         ? args.context.planItemSnapshot.length
         : 0,
-      no_chat_mutation: true,
       unresolved_questions: [],
       recommended_next_focus: "adjust_plan_item",
     },
@@ -422,7 +419,6 @@ async function runAdjustPlanLocalFlow(args: {
       reasonCode: "adjust_plan_item_local_dispatcher_failed",
       extra: {
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         committed_effects: [],
         blocked_effects: [{
@@ -461,7 +457,6 @@ async function runAdjustPlanLocalFlow(args: {
       reasonCode: reduced.reason_code,
       extra: {
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         exit_memo: reduced.exit_memo,
         note_information: reduced.note_information,
@@ -495,7 +490,6 @@ async function runAdjustPlanLocalFlow(args: {
       reasonCode: reduced.reason_code,
       extra: {
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         target_dispatcher: targetDispatcher,
         flow_action: dispatcherOutput.flow_action,
@@ -533,7 +527,6 @@ async function runAdjustPlanLocalFlow(args: {
       reasonCode: reduced.reason_code,
       extra: {
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         target_dispatcher: "safety_crisis",
         flow_action: dispatcherOutput.flow_action,
@@ -568,7 +561,6 @@ async function runAdjustPlanLocalFlow(args: {
             type: "get_info_db",
             reason_code: "missing_supabase_context",
           }],
-          no_chat_mutation: true,
           executable_from_chat: false,
         },
       };
@@ -763,7 +755,6 @@ async function runAdjustPlanLocalFlow(args: {
       reasonCode: "adjust_plan_item_visible_agent_failed",
       extra: {
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         committed_effects: [],
         blocked_effects: [{
@@ -803,7 +794,6 @@ async function runAdjustPlanLocalFlow(args: {
     draft: reduced.draft ?? args.activeHandoff?.draft ?? null,
     extra: {
       mode: "platform_handoff",
-      no_chat_mutation: true,
       executable_from_chat: false,
       pending_confirmation: null,
       flow_action: dispatcherOutput.flow_action,
@@ -823,7 +813,6 @@ async function runAdjustPlanLocalFlow(args: {
           status: reduced.status === "cancelled" ? "cancelled" : "delivered",
           surface_id: "plan",
           reason_code: reduced.reason_code,
-          no_chat_mutation: true,
           executable_from_chat: false,
           draft: reduced.draft,
         }
@@ -857,7 +846,6 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     reasonCode: "adjust_plan_item_local_runtime_null_no_legacy_fallback",
     extra: {
       mode: "platform_handoff",
-      no_chat_mutation: true,
       executable_from_chat: false,
       requested_effects: [],
       allowed_effects: [],

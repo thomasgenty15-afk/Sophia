@@ -18,7 +18,7 @@ function handoffState(value: unknown): RecurringReminderHandoffState | null {
   if (
     record?.skill_id !== "create_recurring_reminder" ||
     record?.mode !== "platform_handoff" ||
-    record?.no_chat_mutation !== true
+    record?.executable_from_chat !== false
   ) return null;
   return record as RecurringReminderHandoffState;
 }
@@ -67,6 +67,7 @@ export function writeRecurringReminderHandoffState(
   tempMemory.__active_tool_skill_intake = {
     operation_type: "create_recurring_reminder",
     mode: "platform_handoff",
+    executable_from_chat: false,
     status: handoffState.status,
     turn_count: handoffState.turn_count,
     updated_at: handoffState.updated_at,

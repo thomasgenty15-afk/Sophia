@@ -186,7 +186,6 @@ export type StatusRecapConversationContext = {
   };
   constraints: {
     read_only: true;
-    no_chat_mutation: true;
     no_tool_execution: true;
     no_product_how_to: true;
     no_claim_without_filtered_fact: true;

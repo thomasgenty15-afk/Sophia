@@ -49,7 +49,7 @@ export type ActiveHandoffStateSnapshot = {
   surface_id?: string | null;
   turn_count: number;
   max_turns: number;
-  no_chat_mutation: true;
+  executable_from_chat: false;
 };
 
 export type HandoffArbitrationInput = {
@@ -70,7 +70,6 @@ export type HandoffArbitrationDecision = {
   continuation_intent?: HandoffContinuationIntent | null;
   operation_type?: ActiveHandoffOperation | null;
   reason_code: string;
-  no_chat_mutation: true;
 };
 
 export function shouldBypassOrientationClarificationForActiveHandoff(
@@ -105,7 +104,6 @@ function decision(
     continuation_intent: args.continuation_intent ?? null,
     operation_type: args.operation_type ?? null,
     reason_code: args.reason_code,
-    no_chat_mutation: true,
   };
 }
 
@@ -242,7 +240,7 @@ export function extractActiveHandoffStateSnapshot(
     : null;
   if (
     record?.mode !== "platform_handoff" ||
-    record.no_chat_mutation !== true
+    record.executable_from_chat !== false
   ) return null;
   const operationType = String(
     record.operation_type ??
@@ -264,7 +262,7 @@ export function extractActiveHandoffStateSnapshot(
       : null,
     turn_count: Number(record.turn_count ?? 0),
     max_turns: Number(record.max_turns ?? 8),
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
 }
 

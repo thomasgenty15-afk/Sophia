@@ -298,7 +298,6 @@ export async function runPrepareDefenseCardVisibleAgent(
     stage: input.stage,
     conversation_context: input.conversation_context,
     hard_constraints: {
-      no_chat_mutation: true,
       forbidden_creation_claims: FORBIDDEN_CREATION_CLAIMS,
       forbidden_revision_persistence_claims:
         FORBIDDEN_REVISION_PERSISTENCE_CLAIMS,

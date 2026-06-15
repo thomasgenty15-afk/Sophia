@@ -176,7 +176,7 @@ function noteInformation(
       recommended_next_focus: "start target local dispatcher",
     },
     risk_score: 0,
-    no_chat_mutation: {
+    executable_from_chat: {
       db_write_committed: false,
       potion_session_created: false,
       scheduled_checkin_created: false,
@@ -306,7 +306,7 @@ Deno.test("weekly local reducer preserves user constraints in conversation conte
     "Alleger la semaine prochaine, sans rien modifier depuis le chat.",
   );
   assertEquals(
-    reduced.conversation_context?.handoff_data.no_chat_mutation,
+    reduced.conversation_context?.handoff_data.executable_from_chat,
     true,
   );
   assert(
@@ -434,7 +434,7 @@ Deno.test("weekly local reducer preserves post child flow revision before synthe
         expected_return_focus: "weekly_synthesis_and_closure",
         result_summary: "platform_handoff_delivered",
         result_details: {
-          no_chat_mutation: true,
+          executable_from_chat: false,
           platform_destination:
             "dans l'action concernée du Plan, section Cartes de défense",
         },
@@ -533,7 +533,7 @@ Deno.test("weekly local reducer allows synthesis after child return acknowledged
         expected_return_focus: "weekly_synthesis_and_closure",
         result_summary: "platform_handoff_delivered",
         result_details: {
-          no_chat_mutation: true,
+          executable_from_chat: false,
           return_acknowledged: true,
           revision_summary:
             "Clés dans la salle de bain, douche cinq minutes, phrase rituelle.",

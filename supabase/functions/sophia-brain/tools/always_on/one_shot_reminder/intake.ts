@@ -159,6 +159,11 @@ export function buildOneShotReminderIntake(args: {
 
 function extractLocalTimeExpression(message: string): string | null {
   const match = String(message ?? "").match(/(\d{1,2})\s*h\s*(\d{0,2})\b/i);
-  if (!match) return null;
+  if (!match) {
+    const delay = String(message ?? "").match(
+      /\bdans\s+(\d{1,3})\s*(minutes?|mins?|mn)\b/i,
+    );
+    return delay ? `dans ${Number(delay[1])} minutes` : null;
+  }
   return `${Number(match[1])}h${match[2] ?? ""}`;
 }

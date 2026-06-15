@@ -33,7 +33,7 @@ Deno.test("demotivation_repair dispatcher prompt documents local field completio
   assert(prompt.includes("N'utilise action_card_candidate que si"));
   assert(prompt.includes("- potion_bridge.status:"));
   assert(prompt.includes("- exit_memo.needed:"));
-  assert(prompt.includes("- no_chat_mutation:"));
+  assert(prompt.includes("Aucune session potion"));
   assert(prompt.includes("Transition Rules:"));
   assert(prompt.includes("Cas de sortie observes en QA et obligatoires"));
   assert(prompt.includes("question produit/statut autonome"));
@@ -101,7 +101,6 @@ function conversationContext(
     handoff_data: {
       bridge_context_summary: null,
       target_dispatcher: null,
-      no_chat_mutation: true,
     },
     tone_constraints: ["energy_preserving"],
     do_not_say: ["ne moralise pas"],
@@ -208,13 +207,6 @@ function dispatcherOutput(
       potion_bridge_context: null,
       note_information: null,
     },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-      db_write_committed: false,
-    },
     evidence: overrides.evidence ?? ["test"],
   };
 }
@@ -269,7 +261,6 @@ function bridgeOfferOutput(
         handoff_data: {
           bridge_context_summary: "Le diagnostic est assez clair.",
           target_dispatcher: "select_state_potion",
-          no_chat_mutation: true,
         },
         context_summary: "Le diagnostic est assez clair.",
       }),
@@ -304,7 +295,6 @@ function confirmedContext(potion: DemotivationRepairBridgePotion) {
           handoff_data: {
             bridge_context_summary: "Bridge confirmé.",
             target_dispatcher: "select_state_potion",
-            no_chat_mutation: true,
           },
           context_summary: "Bridge confirmé.",
           max_questions: 0,
@@ -674,7 +664,6 @@ Deno.test("demotivation_repair clear topic change exits with note information", 
             bridge_context_summary:
               "Reanalyser la demande de priorisation hors demotivation_repair.",
             target_dispatcher: "global",
-            no_chat_mutation: true,
           },
           max_questions: 0,
         }),
@@ -784,6 +773,60 @@ Deno.test("demotivation_repair visible potion offer is persisted for confirmatio
   );
 });
 
+Deno.test("demotivation_repair potion bridge offer covers direct and paraphrased potion families", () => {
+  const cases: Array<{
+    potion: DemotivationRepairBridgePotion;
+    userWords: string[];
+  }> = [
+    {
+      potion: "clarte",
+      userWords: [
+        "je ne vois plus pourquoi je fais ces actions",
+        "le lien au sens s'est eteint",
+      ],
+    },
+    {
+      potion: "courage",
+      userWords: [
+        "je repousse parce que j'ai peur du regard",
+        "je garde le plan mais le passage inconfortable me bloque",
+      ],
+    },
+    {
+      potion: "rappel",
+      userWords: [
+        "je décroche de ma routine du soir",
+        "je laisse filer la marche quand l'elan baisse",
+      ],
+    },
+  ];
+
+  for (const item of cases) {
+    const output = bridgeOfferOutput(item.potion);
+    const result = reduceDemotivationRepairLocalDispatcherOutput({
+      previous: null,
+      output: {
+        ...output,
+        repair_state: {
+          ...output.repair_state,
+          user_words: item.userWords,
+        },
+        evidence: item.userWords,
+      },
+    });
+
+    assertEquals(result.visible_task.kind, "potion_bridge_offer");
+    assertEquals(
+      result.local_state?.last_potion_bridge_offer?.selected_potion,
+      item.potion,
+    );
+    assertEquals(
+      result.local_state?.last_potion_bridge_offer?.visible_potion_label,
+      potionLabel(item.potion),
+    );
+  }
+});
+
 Deno.test("demotivation_repair confirmation without persisted offer does not handoff", () => {
   const result = reduceDemotivationRepairLocalDispatcherOutput({
     previous: null,
@@ -827,7 +870,78 @@ Deno.test("demotivation_repair confirmed clarte bridge carries note and candidat
     context.prefill_candidates.plan_meaning_loss_reason?.confidence,
     "high",
   );
-  assertEquals(context.no_chat_mutation.potion_session_created, false);
+  assertEquals(
+    context.note_information.target_dispatcher,
+    "select_state_potion",
+  );
+});
+
+Deno.test("demotivation_repair handoff_to_local_flow produces real select_state_potion bridge", () => {
+  const offered = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: bridgeOfferOutput("courage"),
+  });
+  const output = bridgeOfferOutput("courage");
+  const reduced = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: offered.local_state,
+    output: {
+      ...output,
+      flow_action: "handoff_to_local_flow",
+      potion_bridge: {
+        ...output.potion_bridge,
+        status: "confirmed_handoff",
+      },
+      visible_task: {
+        ...output.visible_task,
+        kind: "potion_bridge_handoff",
+      },
+    },
+  });
+
+  assertEquals(reduced.status, "handoff");
+  assertEquals(reduced.response_intent, "handoff_to_select_state_potion");
+  assertEquals(reduced.potion_bridge_context?.selected_potion, "courage");
+  assertEquals(
+    reduced.note_information?.target_dispatcher,
+    "select_state_potion",
+  );
+  assertEquals(
+    reduced.visible_task.conversation_context.handoff_data.target_dispatcher,
+    "select_state_potion",
+  );
+});
+
+Deno.test("demotivation_repair blocked potion wording removes visible candidate", () => {
+  const output = bridgeOfferOutput("clarte");
+  const reduced = reduceDemotivationRepairLocalDispatcherOutput({
+    previous: null,
+    output: {
+      ...output,
+      response_contract: {
+        ...output.response_contract,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+      },
+      potion_bridge: {
+        ...output.potion_bridge,
+        status: "offered_waiting_consent",
+      },
+    },
+  });
+
+  assertEquals(
+    reduced.reason_code,
+    "demotivation_repair_potion_bridge_blocked",
+  );
+  assertEquals(
+    reduced.visible_task.conversation_context.selected_candidate.potion,
+    null,
+  );
+  assertEquals(
+    reduced.visible_task.conversation_context.handoff_data.target_dispatcher,
+    null,
+  );
+  assertEquals(reduced.local_state?.last_potion_bridge_offer, null);
 });
 
 Deno.test("demotivation_repair courage and anti-dropout bridge fields are scoped", () => {
@@ -889,7 +1003,6 @@ Deno.test("demotivation_repair handoff starts select_state_potion subskills dire
           selected_potion: potion,
           potion_bridge_context: context,
           note_information: context.note_information,
-          no_chat_mutation: true,
         },
       },
     } as any);
@@ -909,7 +1022,6 @@ Deno.test("demotivation_repair handoff starts select_state_potion subskills dire
       (active.operation_input?.note_information as any)?.source_flow_id,
       "demotivation_repair",
     );
-    assertEquals(active.operation_input?.no_chat_mutation, true);
     if (potion === "clarte") {
       assertEquals(active.clarte_state?.field_state.status, "locked");
       assertEquals(

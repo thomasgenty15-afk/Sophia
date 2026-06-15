@@ -131,7 +131,7 @@ function decision(
       handoff_hint_for_global_dispatcher: null,
     },
     note_information: null,
-    no_chat_mutation: {
+    executable_from_chat: {
       defense_card_created: false,
       pending_confirmation_created: false,
       confirmation_token_created: false,
@@ -197,7 +197,7 @@ Deno.test("prepare_defense_card dispatcher prompt documents real output fields",
       "handoff_state",
       "exit_memo",
       "note_information",
-      "no_chat_mutation",
+      "executable_from_chat",
       "risk_assessment",
       "evidence",
     ]
@@ -1248,7 +1248,7 @@ Deno.test("prepare_defense_card local runtime exits to global only on explicit l
           ...createInitialPrepareDefenseCardLocalState(),
           last_visible_task: "ask_trigger_or_signal",
         },
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     turnFrame: {} as any,
@@ -1303,7 +1303,7 @@ Deno.test("prepare_defense_card writes a dedicated post-handoff state", async ()
           ...createInitialPrepareDefenseCardLocalState(),
           last_visible_task: "ask_trigger_or_signal",
         },
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     turnFrame: {} as any,
@@ -1352,7 +1352,7 @@ Deno.test("prepare_defense_card resumes from dedicated handoff when generic inta
         max_turns: 8,
         created_at: "2026-06-12T10:00:00.000Z",
         updated_at: "2026-06-12T10:05:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     turnFrame: {
@@ -1408,7 +1408,7 @@ Deno.test("prepare_defense_card frame loader prefers dedicated handoff state", (
     max_turns: 8,
     created_at: "2026-06-12T10:00:00.000Z",
     updated_at: "2026-06-12T10:01:00.000Z",
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
   const frame = loadDefenseCardFrameFromTempMemory({
     __active_defense_card_handoff: handoff,
@@ -1435,7 +1435,7 @@ Deno.test("prepare_defense_card explicit local route is not blocked by unrelated
         skill_id: "prepare_defense_card",
         mode: "platform_handoff",
         status: "collecting",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     turnFrame: {} as any,

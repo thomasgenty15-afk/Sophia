@@ -130,7 +130,6 @@ Deno.test("adjust_plan_item local reducer prepares non-mutant Plan handoff", () 
 
   assertEquals(reduced.status, "handoff_delivered");
   assertEquals(reduced.visible_task, "plan_handoff_ready");
-  assertEquals(reduced.draft?.no_chat_mutation, true);
   assertEquals(reduced.draft?.executable_from_chat, false);
   assertEquals(reduced.draft?.destination.product_area, "Plan");
   assertEquals(
@@ -365,7 +364,7 @@ Deno.test("adjust_plan_item stop exits through global note", () => {
         user_intent_summary: "Le user veut arreter l'ajustement.",
         local_flow_context: {
           skill_id: "adjust_plan_item",
-          no_chat_mutation: true,
+          executable_from_chat: false,
           committed_effects: [],
         },
         handoff_hint_for_global_dispatcher: {
@@ -390,7 +389,7 @@ Deno.test("adjust_plan_item stop exits through global note", () => {
             recommended_next_focus: "resume global routing",
           },
           risk_score: 0,
-          no_chat_mutation: {
+          executable_from_chat: {
             db_write_committed: false,
             potion_session_created: false,
             scheduled_checkin_created: false,
@@ -481,7 +480,7 @@ Deno.test("adjust_plan_item local reducer exits to global with memo", () => {
         user_intent_summary: "Le user demande une carte d'attaque.",
         local_flow_context: {
           skill_id: "adjust_plan_item",
-          no_chat_mutation: true,
+          executable_from_chat: false,
           committed_effects: [],
         },
         handoff_hint_for_global_dispatcher: {

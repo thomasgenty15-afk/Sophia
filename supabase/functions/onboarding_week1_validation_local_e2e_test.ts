@@ -87,6 +87,7 @@ async function createQaUser(anon: any, admin: any) {
 
 async function seedActivePlan(admin: any, userId: string) {
   const nowIso = "2026-06-15T12:00:00.000Z";
+  const previousWeekStart = "2026-06-08";
   const weekStart = "2026-06-15";
 
   const { data: cycle, error: cycleError } = await admin.from("user_cycles")
@@ -164,16 +165,29 @@ async function seedActivePlan(admin: any, userId: string) {
   if (itemError) throw itemError;
 
   const { error: weekPlanError } = await admin.from("user_habit_week_plans")
-    .insert({
-      user_id: userId,
-      cycle_id: cycle.id,
-      transformation_id: transformation.id,
-      plan_id: plan.id,
-      plan_item_id: item.id,
-      week_start_date: weekStart,
-      status: "pending_confirmation",
-      updated_at: nowIso,
-    });
+    .insert([
+      {
+        user_id: userId,
+        cycle_id: cycle.id,
+        transformation_id: transformation.id,
+        plan_id: plan.id,
+        plan_item_id: item.id,
+        week_start_date: previousWeekStart,
+        status: "confirmed",
+        confirmed_at: "2026-06-14T12:00:00.000Z",
+        updated_at: nowIso,
+      },
+      {
+        user_id: userId,
+        cycle_id: cycle.id,
+        transformation_id: transformation.id,
+        plan_id: plan.id,
+        plan_item_id: item.id,
+        week_start_date: weekStart,
+        status: "pending_confirmation",
+        updated_at: nowIso,
+      },
+    ]);
   if (weekPlanError) throw weekPlanError;
 
   const { error: occurrencesError } = await admin
@@ -239,6 +253,7 @@ Deno.test("local real onboarding week1 validation checkins", async () => {
         user_id: userId,
         plan_id: planId,
         activated_at: "2026-06-15T12:00:00.000Z",
+        target_week_start_date: weekStart,
       },
     );
     assertEquals(scheduled.res.status, 200);
@@ -252,6 +267,7 @@ Deno.test("local real onboarding week1 validation checkins", async () => {
       scheduled.json?.auto_validation_scheduled_for,
       "2026-06-16T05:00:00.000Z",
     );
+    assertEquals(scheduled.json?.week_start_date, weekStart);
 
     const { data: checkins, error: checkinsError } = await admin
       .from("scheduled_checkins")

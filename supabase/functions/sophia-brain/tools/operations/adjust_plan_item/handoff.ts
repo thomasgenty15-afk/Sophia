@@ -41,7 +41,6 @@ export function buildAdjustPlanPlatformInputDraft(args: {
   return {
     operation_type: "adjust_plan_item",
     mode: "platform_handoff",
-    no_chat_mutation: true,
     executable_from_chat: false,
     user_blocker_summary: text(
       args.userBlockerSummary,

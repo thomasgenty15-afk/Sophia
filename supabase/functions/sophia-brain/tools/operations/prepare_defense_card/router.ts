@@ -452,7 +452,7 @@ function writeDefenseCardLocalHandoffState(args: {
     max_turns: Number(previous?.max_turns ?? 8),
     created_at: String(previous?.created_at ?? now),
     updated_at: now,
-    no_chat_mutation: true,
+    executable_from_chat: false,
     operation_input: recordValue(previous?.operation_input) ?? null,
   };
   return writeDefenseCardFrameToTempMemory(args.tempMemory, {
@@ -599,7 +599,6 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         selected_handler: "prepare_defense_card",
         operation_type: "prepare_defense_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: "blocked",
         reason_code: "prepare_defense_card_local_dispatcher_failed",
@@ -801,7 +800,6 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         selected_handler: "prepare_defense_card",
         operation_type: "prepare_defense_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: reduced.status,
         reason_code: reduced.reason_code,
@@ -861,7 +859,6 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         selected_handler: "prepare_defense_card",
         operation_type: "prepare_defense_card",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: "blocked",
         reason_code: "prepare_defense_card_visible_agent_failed",
@@ -900,7 +897,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
         (args.activeHandoff as any)?.created_at ?? new Date().toISOString(),
       ),
       updated_at: new Date().toISOString(),
-      no_chat_mutation: true as const,
+      executable_from_chat: false as const,
     }
     : null;
   const nextTempMemory = nextHandoff && reduced.local_state
@@ -929,7 +926,6 @@ async function runPrepareDefenseCardLocalRuntime(args: {
       selected_handler: "prepare_defense_card",
       operation_type: "prepare_defense_card",
       mode: "platform_handoff",
-      no_chat_mutation: true,
       executable_from_chat: false,
       status: reduced.status,
       reason_code: reduced.reason_code,
@@ -949,7 +945,7 @@ async function runPrepareDefenseCardLocalRuntime(args: {
             status: reduced.status === "cancelled" ? "cancelled" : "delivered",
             surface_id: "defense_cards",
             reason_code: reduced.reason_code,
-            no_chat_mutation: true,
+            executable_from_chat: false,
             draft: reduced.draft,
           },
         }

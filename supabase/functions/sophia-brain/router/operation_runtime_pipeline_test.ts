@@ -289,7 +289,7 @@ Deno.test("operation_runtime_pipeline prepare_attack_card uses specialized hando
   );
   assertEquals(
     (result.operationRuntime?.toolSkillRun.platform_handoff as any)
-      ?.no_chat_mutation,
+      ?.executable_from_chat,
     true,
   );
   assertEquals(
@@ -302,6 +302,66 @@ Deno.test("operation_runtime_pipeline prepare_attack_card uses specialized hando
       ?.reason_code === "complex_operation_redirect_to_platform",
     false,
   );
+});
+
+Deno.test("operation_runtime_pipeline does not start prepare_attack_card from raw intent when normal reply won", async () => {
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    supabase: fakeAttackSupabase(),
+    userMessage: "donne-moi juste une phrase simple a me repeter demain",
+    routeDecision: baseRouteDecision({
+      response_owner: "normal_reply",
+      reason_code: "normal_reply_fit_dominates",
+      blocked_paths: [{
+        path: "tool_skill.prepare_attack_card",
+        reason_code: "normal_reply_fit_dominates",
+      }],
+    }),
+    turnFrame: baseTurnFrame({
+      normal_reply_fit_score: 0.9,
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "implied",
+        confidence_band: "high",
+        score: 0.74,
+        ambiguity: "none",
+        user_intent: "draft_only",
+      }],
+    }),
+  }));
+
+  assertEquals(result.operationRuntime, null);
+  assertEquals(result.routeDecision?.response_owner, "normal_reply");
+});
+
+Deno.test("operation_runtime_pipeline does not ask track-progress clarification when normal reply won", async () => {
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    userMessage:
+      "je l'ai prepare dans ma tete mais pas encore envoye, ca compte ?",
+    routeDecision: baseRouteDecision({
+      response_owner: "normal_reply",
+      reason_code: "normal_reply_fit_dominates",
+      blocked_paths: [{
+        path: "track_progress_plan_item",
+        reason_code: "normal_reply_fit_dominates",
+      }],
+    }),
+    turnFrame: baseTurnFrame({
+      normal_reply_fit_score: 0.86,
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "weak",
+        target_status: "identified",
+        confidence_band: "medium",
+        payload_hint: {
+          target_item_id: "walk",
+          target_title: "marche",
+        },
+      }],
+    }),
+  }));
+
+  assertEquals(result.operationRuntime, null);
+  assertEquals(result.routeDecision?.response_owner, "normal_reply");
 });
 
 Deno.test("operation_runtime_pipeline blocks tool runtime when clarification is required", async () => {
@@ -419,6 +479,28 @@ Deno.test("direct_effect_lane can execute one-shot reminder from local dispatche
       ?.reminder_instruction,
     "relire mes notes sur ce dossier",
   );
+});
+
+Deno.test("direct_effect_lane ignores soft support without explicit one-shot time", async () => {
+  const result = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase(),
+      userMessage:
+        "J'ai besoin d'un appui pour ne pas décrocher, reste juste avec moi.",
+      routeDecision: baseRouteDecision({
+        response_owner: "conversation_handler",
+        selected_handler: "flow_opportunity_verification",
+        reason_code: "active_flow_opportunity_verification_local_dispatcher",
+        direct_effects_to_run: [],
+      }),
+      turnFrame: baseTurnFrame(),
+    }),
+    allowMessageIntakeFallback: true,
+  });
+
+  assertEquals(result.operationRuntime, null);
+  assertEquals(result.routeDecision?.direct_effects_to_run, []);
+  assertEquals(result.turnFrame?.direct_effects, []);
 });
 
 Deno.test("direct effect runtime merges into visible owner without replacing selected handler", () => {

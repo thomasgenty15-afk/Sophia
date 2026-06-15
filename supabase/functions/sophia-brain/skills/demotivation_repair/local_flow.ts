@@ -419,7 +419,6 @@ function normalizeConversationContext(args: {
           targetDispatcher === "global"
         ? targetDispatcher
         : null,
-      no_chat_mutation: true,
     },
     tone_constraints: stringArray(args.raw.tone_constraints),
     do_not_say: stringArray(args.raw.do_not_say),
@@ -533,13 +532,6 @@ export function normalizeDemotivationRepairLocalDispatcherOutput(
             repairState.summary,
         ),
     },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-      db_write_committed: false,
-    },
     evidence: stringArray(root.evidence),
   };
 }
@@ -588,15 +580,15 @@ function localDispatcherFieldCompletionRules(): string {
     "- visible_task.kind: stage visible exact. Utilise diagnose, reduce_friction, restore_meaning, stabilize_energy, smaller_step, action_card_candidate, potion_bridge_offer, potion_bridge_choice, potion_bridge_handoff, ask_gentle_clarification, inline_tool_return, apply_attempt, repeat_repair, exit_or_cancel ou safety selon la suite exacte. En cancel/defer/complete/exit, utilise exit_or_cancel. N'utilise action_card_candidate que si flow_action=action_card_candidate, repair_state.phase=action_card_ready, action_readiness=ready/already_chosen, allow_attack_card_suggestion=true et la demande de support/action est presente dans evidence.",
     "- visible_task.conversation_context: seul contexte du prompt visible. Mets state_summary, user_words, known_values, missing_or_weak_values, selected_candidate, handoff_data, tone_constraints, do_not_say, context_summary, evidence_used et max_questions. Ne transmets pas DB brute, memoire brute ou note_information brute.",
     "- visible_task.conversation_context.selected_candidate: null si aucune offre visible persistable. Ne mets une potion que si le stage visible peut la mentionner.",
-    "- visible_task.conversation_context.handoff_data: target_dispatcher seulement pour transition ou roundtrip inline; null sinon; no_chat_mutation reste true.",
+    "- visible_task.conversation_context.handoff_data: target_dispatcher seulement pour transition ou roundtrip inline; null sinon.",
     "- visible_task.conversation_context.do_not_say: contraintes visibles importantes, surtout pas de promesse de creation, activation, rappel ou DB write.",
     "- exit_memo.needed: true seulement pour exit_to_global_dispatcher, safety_preempt ou transition qui a besoin d'un memo; false sinon.",
     "- exit_memo.reason: cancelled quand le user veut arreter ce flow sans autre demande; topic_change pour nouveau sujet clair; explicit_tool_request si le user demande explicitement une capacite hors flow; inline_product/inline_status seulement pour roundtrip inline qui reste au service du repair actif; safety/potion_handoff selon le cas; none sinon.",
     "- exit_memo.flow_summary et handoff_hint_for_global_dispatcher: utiles pour le dispatcher cible; null si le flow continue localement.",
     "- exit_memo.potion_bridge_context: object seulement si le contexte bridge doit etre transmis; null sinon.",
-    "- exit_memo.note_information: obligatoire pour exit_to_global_dispatcher; null si pas de changement de dispatcher. Structure conservee: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context doit etre succinct et non vide: user_message_summary, active_flow_summary, micro-geste ou sens retrouve, contraintes explicites comme stop/no_tool/no_potion/no_questions, unresolved_questions, recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    "- exit_memo.note_information: obligatoire pour exit_to_global_dispatcher; null si pas de changement de dispatcher. Structure conservee: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context doit etre succinct et non vide: user_message_summary, active_flow_summary, micro-geste ou sens retrouve, contraintes explicites comme stop/no_tool/no_potion/no_questions, unresolved_questions, recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint ou risk_score dans la note.",
     ...directEffectLocalDispatcherPromptLines(),
-    "- no_chat_mutation: tous les champs doivent rester false. Le dispatcher ne cree rien, n'active rien, ne programme rien et ne confirme aucun write.",
+    "- Effets: le dispatcher ne cree rien, n'active rien, ne programme rien et ne confirme aucun write.",
     "- evidence: indices semantiques vraiment utilises pour la decision. Pas de pseudo-preuve, pas de chaine de pensee, pas de mots isoles sans contexte.",
   ].join("\n");
 }
@@ -680,7 +672,6 @@ export function demotivationRepairDispatcherOutputExamples() {
             handoff_data: {
               bridge_context_summary: null,
               target_dispatcher: null,
-              no_chat_mutation: true,
             },
             tone_constraints: ["energy_preserving", "one_question_max"],
             do_not_say: ["Ne propose pas de potion dans ce message."],
@@ -699,13 +690,6 @@ export function demotivationRepairDispatcherOutputExamples() {
           handoff_hint_for_global_dispatcher: null,
           potion_bridge_context: null,
           note_information: null,
-        },
-        no_chat_mutation: {
-          potion_session_created: false,
-          recurring_reminder_created: false,
-          scheduled_checkin_created: false,
-          executable_confirmation_generated: false,
-          db_write_committed: false,
         },
         evidence: ["perte de sens explicite"],
       },
@@ -771,7 +755,6 @@ export function demotivationRepairDispatcherOutputExamples() {
             handoff_data: {
               bridge_context_summary: "Safety prioritaire.",
               target_dispatcher: "safety_crisis",
-              no_chat_mutation: true,
             },
             tone_constraints: ["grounded", "short_reply"],
             do_not_say: ["Ne propose pas de potion ou d'outil."],
@@ -807,13 +790,6 @@ export function demotivationRepairDispatcherOutputExamples() {
             target_flow: "safety",
           },
         },
-        no_chat_mutation: {
-          potion_session_created: false,
-          recurring_reminder_created: false,
-          scheduled_checkin_created: false,
-          executable_confirmation_generated: false,
-          db_write_committed: false,
-        },
         evidence: ["risque de dommage a soi"],
       },
     },
@@ -832,6 +808,7 @@ export function localDispatcherSystemPrompt(): string {
     "Ne propose pas de potion si no_potion, no_tool ou asks_no_tool_support bloque les outils.",
     "potion_bridge.status=candidate signifie candidat interne seulement: ne demande pas consentement visible et n'utilise pas visible_task.kind=potion_bridge_offer.",
     "Utilise potion_bridge_offer seulement si status=offered_waiting_consent, selected_potion non-null, candidat exploitable, et le user a deja eu un vrai moment de repair conversationnel.",
+    "La mention visible d'une potion exige un bridge reducer persistable: si potion_bridge_offer n'est pas possible, garde un message prudent de clarification et ne dis pas que tu peux la mettre en place.",
     "Un bridge potion exige diagnostic et consentement; confirm_potion_bridge signifie que le user consent a une offre deja faite.",
     "Si le user confirme une offre precedente, utilise confirm_potion_bridge uniquement si previous_potion_bridge_offer existe et correspond.",
     "Quand le user confirme et ajoute une ancre utile, copie cette ancre dans prefill_candidates du champ potion cible: clarte.plan_meaning_loss_reason, courage.avoidance_target/blocker_kind, rappel.drift_target/drift_style.",
@@ -947,7 +924,6 @@ export const runDemotivationRepairLocalDispatcher:
               bridge_context_summary: "string|null",
               target_dispatcher:
                 "select_state_potion|safety_crisis|product_help|status_recap|global|null",
-              no_chat_mutation: true,
             },
             tone_constraints: ["string"],
             do_not_say: ["string"],
@@ -976,13 +952,6 @@ export const runDemotivationRepairLocalDispatcher:
             confidence: "low|medium|high|null",
             target_flow: "global|select_state_potion|safety|null",
           },
-        },
-        no_chat_mutation: {
-          potion_session_created: false,
-          recurring_reminder_created: false,
-          scheduled_checkin_created: false,
-          executable_confirmation_generated: false,
-          db_write_committed: false,
         },
         evidence: ["string"],
       },
@@ -1291,12 +1260,6 @@ function bridgeContext(args: {
     }),
     handoff_instruction_for_potion_subskill:
       "Use these as candidates, not forced locked values. Ask only for missing or low-confidence details. Do not ask the user to repeat the full demotivation episode.",
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-    },
   };
 }
 
@@ -1321,7 +1284,10 @@ function visibleKindForOutput(
   if (output.flow_action === "ask_gentle_clarification") {
     return "ask_gentle_clarification";
   }
-  if (output.flow_action === "confirm_potion_bridge" && !bridgeIsBlocked) {
+  if (
+    (output.flow_action === "confirm_potion_bridge" ||
+      output.flow_action === "handoff_to_local_flow") && !bridgeIsBlocked
+  ) {
     return "potion_bridge_handoff";
   }
   if (output.flow_action === "potion_bridge_offer" && offerIsPersistable) {
@@ -1414,7 +1380,8 @@ function conversationContextForVisibleTask(args: {
   const constraintSet = new Set(args.constraints);
   const durableNeed = args.output.potion_bridge.durable_need;
   const targetDispatcher =
-    args.output.flow_action === "confirm_potion_bridge" &&
+    (args.output.flow_action === "confirm_potion_bridge" ||
+        args.output.flow_action === "handoff_to_local_flow") &&
       args.selectedPotion
       ? "select_state_potion"
       : args.output.flow_action === "safety_preempt"
@@ -1449,7 +1416,6 @@ function conversationContextForVisibleTask(args: {
     handoff_data: {
       bridge_context_summary: args.bridgeContextSummary,
       target_dispatcher: targetDispatcher,
-      no_chat_mutation: true,
     },
     tone_constraints: [
       args.output.response_contract.tone,
@@ -1653,15 +1619,18 @@ export function reduceDemotivationRepairLocalDispatcherOutput(args: {
       output: args.output,
       visibleTaskKind,
       selectedPotion: offerIsPersistable ||
-          args.output.flow_action === "confirm_potion_bridge"
+          args.output.flow_action === "confirm_potion_bridge" ||
+          args.output.flow_action === "handoff_to_local_flow"
         ? selectedPotion
         : null,
       potionLabel: !(offerIsPersistable ||
-          args.output.flow_action === "confirm_potion_bridge")
+          args.output.flow_action === "confirm_potion_bridge" ||
+          args.output.flow_action === "handoff_to_local_flow")
         ? null
         : demotivationRepairVisiblePotionLabel(selectedPotion),
       bridgeContextSummary: offerIsPersistable ||
-          args.output.flow_action === "confirm_potion_bridge"
+          args.output.flow_action === "confirm_potion_bridge" ||
+          args.output.flow_action === "handoff_to_local_flow"
         ? dispatcherBridgeContextSummary ??
           args.output.potion_bridge.why_ready_or_blocked
         : null,

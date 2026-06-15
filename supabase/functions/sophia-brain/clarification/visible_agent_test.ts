@@ -67,7 +67,7 @@ Deno.test("clarification visible agent prompt only receives conversation_context
       outbound_note_information: null,
       created_at: "2026-06-09T00:00:00.000Z",
       updated_at: "2026-06-09T00:00:00.000Z",
-      no_chat_mutation: true,
+      executable_from_chat: false,
     },
     visible_task: visibleTask,
     dispatcher_evidence: ["raw dispatcher evidence"],

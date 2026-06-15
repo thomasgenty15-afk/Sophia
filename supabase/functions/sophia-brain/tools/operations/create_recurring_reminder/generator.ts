@@ -125,7 +125,6 @@ export function buildRecurringReminderHandoffDraft(
   return {
     operation_type: "create_recurring_reminder",
     mode: "platform_handoff",
-    no_chat_mutation: true,
     executable_from_chat: false,
     reminder_summary: `rappel récurrent pour ${draft.draft.message}`,
     cadence_summary: cadenceSummary,

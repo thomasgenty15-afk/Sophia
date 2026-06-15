@@ -257,7 +257,6 @@ async function generateVisibleMessage(
     stage: input.stage,
     conversation_context: context,
     hard_constraints: {
-      no_chat_mutation: true,
       platform_destination: "Cartes d'attaque",
       exact_technique_labels: EXACT_TECHNIQUE_LABELS,
       allowed_technique_labels_for_this_stage: allowedTechniqueLabelsForStage(

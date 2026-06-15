@@ -46,6 +46,12 @@ function cleanText(value: unknown, fallback = ""): string {
   return text || fallback;
 }
 
+function cleanYmd(value: unknown): string | null {
+  const text = cleanText(value).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return null;
+  return text;
+}
+
 function parseIsoMs(value: unknown): number | null {
   if (typeof value !== "string" || !value.trim()) return null;
   const ms = new Date(value).getTime();
@@ -129,7 +135,11 @@ export function nextAllowedAfterRecentWhatsappInteraction(profile: {
 
 export async function loadOnboardingWeek1Planning(
   admin: SupabaseClient,
-  params: { userId: string; planId: string },
+  params: {
+    userId: string;
+    planId: string;
+    targetWeekStartDate?: string | null;
+  },
 ): Promise<{
   week_start_date: string | null;
   week_end_date: string | null;
@@ -151,7 +161,9 @@ export async function loadOnboardingWeek1Planning(
 
   const allPlans = ((planRows ?? []) as unknown as WeekPlanRow[])
     .filter((row) => cleanText(row.week_start_date));
-  const firstWeekStart = cleanText(allPlans[0]?.week_start_date).slice(0, 10);
+  const targetWeekStart = cleanYmd(params.targetWeekStartDate);
+  const firstWeekStart = targetWeekStart ??
+    cleanText(allPlans[0]?.week_start_date).slice(0, 10);
   if (!firstWeekStart) {
     return {
       week_start_date: null,
@@ -214,7 +226,12 @@ export async function loadOnboardingWeek1Planning(
 
 export async function autoConfirmOnboardingWeek1Planning(
   admin: SupabaseClient,
-  params: { userId: string; planId: string; nowIso?: string },
+  params: {
+    userId: string;
+    planId: string;
+    nowIso?: string;
+    targetWeekStartDate?: string | null;
+  },
 ): Promise<{
   changed: boolean;
   planning: Awaited<ReturnType<typeof loadOnboardingWeek1Planning>>;

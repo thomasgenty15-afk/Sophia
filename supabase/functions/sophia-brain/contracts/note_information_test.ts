@@ -18,7 +18,7 @@ Deno.test("createNoteInformation keeps simplified contract shape", () => {
     user_words: ["j'arrete la", "deux objets"],
     structured_context: {
       user_message_summary: "User stops after a small step.",
-      no_chat_mutation: { db_write_committed: false },
+      executable_from_chat: { db_write_committed: false },
       risk_score: 0,
     },
   });
@@ -33,12 +33,12 @@ Deno.test("createNoteInformation keeps simplified contract shape", () => {
   ]);
   assertEquals(note.user_words, ["j'arrete la", "deux objets"]);
   assertFalse("risk_score" in note);
-  assertFalse("no_chat_mutation" in note);
+  assertFalse("executable_from_chat" in note);
   assertFalse("source_flow_presentation" in note);
   assertFalse("source_flow_state_summary" in note);
   assertFalse("target_local_dispatcher_hint" in note);
   assertFalse("risk_score" in note.structured_context);
-  assertFalse("no_chat_mutation" in note.structured_context);
+  assertFalse("executable_from_chat" in note.structured_context);
 });
 
 Deno.test("normalizeNoteInformation completes poor transition note from fallback", () => {

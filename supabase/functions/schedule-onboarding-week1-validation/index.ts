@@ -33,16 +33,26 @@ async function hasActiveCheckinForPlan(args: {
   userId: string;
   planId: string;
   eventContext: string;
+  targetWeekStartDate?: string | null;
 }): Promise<boolean> {
   const { data, error } = await args.admin
     .from("scheduled_checkins")
-    .select("id")
+    .select("id,message_payload")
     .eq("user_id", args.userId)
     .eq("event_context", args.eventContext)
     .filter("message_payload->>plan_id", "eq", args.planId)
     .in("status", ["pending", "retrying", "awaiting_user", "sent"])
-    .limit(1);
+    .limit(20);
   if (error) throw error;
+  const targetWeekStartDate = cleanText(args.targetWeekStartDate);
+  if (targetWeekStartDate) {
+    return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
+      const payload = (row as any)?.message_payload ?? {};
+      return cleanText(payload?.target_week_start_date) ===
+          targetWeekStartDate ||
+        cleanText(payload?.week_start_date) === targetWeekStartDate;
+    });
+  }
   return (data ?? []).length > 0;
 }
 
@@ -56,6 +66,7 @@ Deno.serve(async (req) => {
     const userId = cleanText(body.user_id);
     const planId = cleanText(body.plan_id);
     const activatedAtIso = cleanText(body.activated_at);
+    const targetWeekStartDate = cleanText(body.target_week_start_date);
     if (!userId || !planId) {
       return jsonResponse(req, {
         ok: false,
@@ -114,6 +125,7 @@ Deno.serve(async (req) => {
     const planning = await loadOnboardingWeek1Planning(admin as any, {
       userId,
       planId,
+      targetWeekStartDate,
     });
     if (planning.already_confirmed) {
       return jsonResponse(req, {
@@ -152,6 +164,7 @@ Deno.serve(async (req) => {
       timezone,
       week_start_date: planning.week_start_date,
       week_end_date: planning.week_end_date,
+      target_week_start_date: targetWeekStartDate || planning.week_start_date,
       summary_lines: planning.summary_lines,
       created_from: "plan_activation",
       planning_available_at_schedule_time: planning.has_planning,
@@ -164,6 +177,7 @@ Deno.serve(async (req) => {
         userId,
         planId,
         eventContext: ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT,
+        targetWeekStartDate,
       })
     ) {
       const { error } = await admin.from("scheduled_checkins").insert({
@@ -189,6 +203,7 @@ Deno.serve(async (req) => {
         userId,
         planId,
         eventContext: ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
+        targetWeekStartDate,
       })
     ) {
       const { error } = await admin.from("scheduled_checkins").insert({

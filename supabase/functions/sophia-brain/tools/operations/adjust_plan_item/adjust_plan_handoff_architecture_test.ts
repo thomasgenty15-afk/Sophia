@@ -11,7 +11,7 @@ Deno.test("adjust_plan handoff draft contract is no-mutation and not executable 
 
   assertEquals(handoff.operation_type, "adjust_plan_item");
   assertEquals(handoff.mode, "platform_handoff");
-  assertEquals(handoff.no_chat_mutation, true);
+  assertEquals(handoff.executable_from_chat, true);
   assertEquals(handoff.executable_from_chat, false);
   assertEquals((handoff as any).scope, undefined);
   assertEquals((handoff as any).patch, undefined);

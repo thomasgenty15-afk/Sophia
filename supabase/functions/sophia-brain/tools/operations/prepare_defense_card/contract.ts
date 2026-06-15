@@ -34,7 +34,6 @@ export type DefenseCardHandoffStatus =
 export type DefenseCardHandoffDraft = {
   operation_type: "prepare_defense_card";
   mode: "platform_handoff";
-  no_chat_mutation: true;
   executable_from_chat: false;
   target_summary: string;
   risk_summary: string;
@@ -77,7 +76,7 @@ export type DefenseCardHandoffState = {
   max_turns: number;
   created_at: string;
   updated_at: string;
-  no_chat_mutation: true;
+  executable_from_chat: false;
   operation_input?: Record<string, unknown> | null;
 };
 
@@ -90,6 +89,6 @@ export function isDefenseCardHandoffState(
       typeof record === "object" &&
       record.skill_id === "prepare_defense_card" &&
       record.mode === "platform_handoff" &&
-      record.no_chat_mutation === true,
+      record.executable_from_chat === false,
   );
 }

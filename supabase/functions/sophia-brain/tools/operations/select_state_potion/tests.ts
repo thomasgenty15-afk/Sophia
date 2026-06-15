@@ -117,7 +117,7 @@ Deno.test("select_state_potion clarté handoff uses strict visible_task context"
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,
@@ -216,7 +216,7 @@ Deno.test("select_state_potion routes every non-clarté potion to its local subs
             collected_value: null,
             handoff_hint_for_global_dispatcher: null,
           },
-          no_chat_mutation: {
+          executable_from_chat: {
             potion_session_created: false,
             recurring_reminder_created: false,
             scheduled_checkin_created: false,
@@ -286,7 +286,7 @@ Deno.test("select_state_potion apply_attempt remains no-chat-mutation", async ()
         max_turns: 6,
         created_at: "2026-06-01T00:00:00.000Z",
         updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     potionSubskillLocalDispatcherOverride: async () => ({
@@ -313,7 +313,7 @@ Deno.test("select_state_potion apply_attempt remains no-chat-mutation", async ()
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,
@@ -339,6 +339,6 @@ Deno.test("select_state_potion apply_attempt remains no-chat-mutation", async ()
 
   assert(result);
   assertEquals((result.toolSkillRun as any).status, "apply_attempt");
-  assertEquals((result.toolSkillRun as any).no_chat_mutation, true);
+  assertEquals((result.toolSkillRun as any).executable_from_chat, true);
   assertEquals(result.executedTools, []);
 });

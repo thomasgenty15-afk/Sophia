@@ -49,7 +49,6 @@ export type EffectLedgerEntry = {
   } | null;
   error_message?: string | null;
   surface_id?: string | null;
-  no_chat_mutation?: true;
   committed?: false;
   executed_tool?: false;
   owner?: string | null;
@@ -86,7 +85,6 @@ export type PersistedEffectLedgerEntry = {
   } | null;
   error_message?: string | null;
   surface_id?: string | null;
-  no_chat_mutation?: true;
   committed?: false;
   executed_tool?: false;
   owner?: string | null;
@@ -232,7 +230,6 @@ export function serializeEffectLedgerForPersistence(args: {
       : null,
     error_message: compactErrorMessage(entry.error_message),
     surface_id: String(entry.surface_id ?? "").trim() || null,
-    no_chat_mutation: entry.no_chat_mutation === true ? true : undefined,
     committed: entry.committed === false ? false : undefined,
     executed_tool: entry.executed_tool === false ? false : undefined,
     owner: String(entry.owner ?? "").trim() || null,
@@ -268,7 +265,6 @@ function recordEffect(
     db_ref: entry.db_ref ?? null,
     error_message: entry.error_message ?? null,
     surface_id: entry.surface_id ?? null,
-    no_chat_mutation: entry.no_chat_mutation === true ? true : undefined,
     committed: entry.committed === false ? false : undefined,
     executed_tool: entry.executed_tool === false ? false : undefined,
     owner: entry.owner ?? null,
@@ -304,7 +300,6 @@ export function recordPlatformHandoffInLedger(
     effect_type: `platform_handoff.${String(entry.operation_type).trim()}`,
     committed_id: null,
     db_ref: null,
-    no_chat_mutation: true,
     committed: false,
     executed_tool: false,
   });
@@ -330,7 +325,6 @@ export function recordClarificationInLedger(
     operation_type: entry.operation_type ?? null,
     committed_id: null,
     db_ref: null,
-    no_chat_mutation: true,
     committed: false,
     executed_tool: false,
   });
@@ -423,7 +417,6 @@ export function summarizeEffectLedgerForTrace(
         ? String(entry.error_message).slice(0, 240)
         : null,
       surface_id: entry.surface_id ?? null,
-      no_chat_mutation: entry.no_chat_mutation === true ? true : undefined,
       committed: entry.committed === false ? false : undefined,
       executed_tool: entry.executed_tool === false ? false : undefined,
       owner: entry.owner ?? null,

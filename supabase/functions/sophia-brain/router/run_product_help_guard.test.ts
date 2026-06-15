@@ -269,7 +269,7 @@ Deno.test("product_help gets parent context after local flow exit second pass", 
     user_words: [],
     structured_context: {},
     risk_score: 0,
-    no_chat_mutation: {
+    executable_from_chat: {
       db_write_committed: false,
       potion_session_created: false,
       scheduled_checkin_created: false,

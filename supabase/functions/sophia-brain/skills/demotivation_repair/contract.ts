@@ -162,12 +162,6 @@ export type DemotivationRepairPotionBridgeContext = {
   selection_reason: string;
   prefill_candidates: Record<string, DemotivationRepairBridgeCandidateValue>;
   handoff_instruction_for_potion_subskill: string;
-  no_chat_mutation: {
-    potion_session_created: false;
-    recurring_reminder_created: false;
-    scheduled_checkin_created: false;
-    executable_confirmation_generated: false;
-  };
 };
 
 export type DemotivationRepairLocalState = {
@@ -235,7 +229,6 @@ export type DemotivationRepairConversationContext = {
       | "status_recap"
       | "global"
       | null;
-    no_chat_mutation: true;
   };
   tone_constraints: string[];
   do_not_say: string[];
@@ -293,13 +286,6 @@ export type DemotivationRepairLocalDispatcherOutput = {
     handoff_hint_for_global_dispatcher: string | null;
     potion_bridge_context: Record<string, unknown> | null;
     note_information: DemotivationRepairNoteInformation | null;
-  };
-  no_chat_mutation: {
-    potion_session_created: false;
-    recurring_reminder_created: false;
-    scheduled_checkin_created: false;
-    executable_confirmation_generated: false;
-    db_write_committed: false;
   };
   evidence: string[];
 };

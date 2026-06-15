@@ -239,20 +239,12 @@ export type CreateRecurringReminderLocalDispatcherOutput = {
   };
   visible_task: CreateRecurringReminderVisibleTask;
   note_information: CreateRecurringReminderNoteInformation;
-  no_chat_mutation: {
-    recurring_reminder_created: false;
-    db_write_committed: false;
-    scheduled_checkin_created: false;
-    potion_session_created: false;
-    executable_confirmation_generated: false;
-  };
   evidence: string[];
 };
 
 export type RecurringReminderHandoffDraft = {
   operation_type: "create_recurring_reminder";
   mode: "platform_handoff";
-  no_chat_mutation: true;
   executable_from_chat: false;
   reminder_summary: string;
   cadence_summary: string;
@@ -279,7 +271,7 @@ export type RecurringReminderHandoffState = {
   max_turns: number;
   created_at: string;
   updated_at: string;
-  no_chat_mutation: true;
+  executable_from_chat: false;
 };
 
 export type CreateRecurringReminderEffect = {

@@ -134,6 +134,76 @@ function recordValue(value: unknown): Record<string, unknown> {
   return isRecord(value) ? value : {};
 }
 
+function structuredTextValues(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(structuredTextValues);
+  if (!isRecord(value)) return [];
+  return Object.values(value).flatMap(structuredTextValues);
+}
+
+function hasStructuredToken(
+  context: Record<string, unknown>,
+  tokens: string[],
+): boolean {
+  const wanted = new Set(tokens.map((token) => token.toLowerCase()));
+  return structuredTextValues(context).some((value) =>
+    wanted.has(value.trim().toLowerCase())
+  );
+}
+
+function targetContextHasAny(
+  context: Record<string, unknown>,
+  keys: string[],
+): boolean {
+  return keys.some((key) => {
+    const value = context[key];
+    if (typeof value === "string") return value.trim().length > 0;
+    if (typeof value === "number") return Number.isFinite(value);
+    if (typeof value === "boolean") return value;
+    if (Array.isArray(value)) return value.length > 0;
+    return isRecord(value) && Object.keys(value).length > 0;
+  });
+}
+
+function shouldBlockPlanAdjustmentHandoff(args: {
+  action: FlowOpportunityFlowAction;
+  targetFlow: FlowOpportunityTargetFlow;
+  targetContext: Record<string, unknown>;
+}): boolean {
+  if (args.action !== "handoff_to_local_flow") return false;
+  if (args.targetFlow !== "adjust_plan_item") return false;
+  return hasStructuredToken(args.targetContext, [
+    "keep_plan",
+    "no_plan_edit",
+    "plan_should_stay",
+    "garder_le_plan",
+    "keep_current_plan",
+  ]);
+}
+
+function shouldBlockOneShotReminderHandoff(args: {
+  action: FlowOpportunityFlowAction;
+  targetFlow: FlowOpportunityTargetFlow;
+  targetContext: Record<string, unknown>;
+}): boolean {
+  if (args.action !== "handoff_to_local_flow") return false;
+  if (args.targetFlow !== "one_shot_reminder") return false;
+  const hasExplicitReminderIntent = hasStructuredToken(args.targetContext, [
+    "explicit_one_shot_reminder",
+    "explicit_reminder",
+    "reminder_request",
+    "notification_request",
+  ]);
+  const hasUsableTime = targetContextHasAny(args.targetContext, [
+    "time_expression",
+    "when_hint",
+    "scheduled_for",
+    "local_label",
+    "delay",
+  ]);
+  return !(hasExplicitReminderIntent && hasUsableTime);
+}
+
 function enumValue<T extends string>(
   value: unknown,
   allowed: Set<string>,
@@ -585,8 +655,7 @@ export function normalizeFlowOpportunityDispatcherOutput(
               "Flow opportunity verification transition.",
             user_words: stringArray(noteRoot.user_words, 3),
             structured_context: {
-              active_flow_summary:
-                "Flow opportunity verification transition.",
+              active_flow_summary: "Flow opportunity verification transition.",
               ...recordValue(noteRoot.structured_context),
             },
             confidence: confidence(root.confidence),
@@ -869,6 +938,30 @@ export function reduceFlowOpportunityDispatcherOutput(args: {
     blocked.push({
       type: "flow_opportunity_verification",
       reason_code: "unsupported_target_flow_blocks_handoff",
+    });
+  }
+  if (
+    shouldBlockPlanAdjustmentHandoff({
+      action,
+      targetFlow,
+      targetContext: seedContext,
+    })
+  ) {
+    blocked.push({
+      type: "flow_opportunity_verification",
+      reason_code: "keep_plan_constraint_blocks_adjust_plan_handoff",
+    });
+  }
+  if (
+    shouldBlockOneShotReminderHandoff({
+      action,
+      targetFlow,
+      targetContext: seedContext,
+    })
+  ) {
+    blocked.push({
+      type: "flow_opportunity_verification",
+      reason_code: "one_shot_reminder_requires_explicit_time_and_request",
     });
   }
   if (

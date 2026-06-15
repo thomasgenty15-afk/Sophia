@@ -113,7 +113,7 @@ function compactStructuredContext(
   value: unknown,
 ): Record<string, unknown> {
   if (!isRecord(value)) return {};
-  const blockedKeys = new Set(["risk_score", "no_chat_mutation"]);
+  const blockedKeys = new Set(["risk_score"]);
   const compact: Record<string, unknown> = {};
   for (const [key, rawValue] of Object.entries(value)) {
     if (blockedKeys.has(key)) continue;

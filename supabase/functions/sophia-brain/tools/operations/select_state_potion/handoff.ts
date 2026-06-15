@@ -272,7 +272,7 @@ function createHandoffState(args: {
     max_turns: Number(args.previous?.max_turns ?? 6) || 6,
     created_at: args.previous?.created_at ?? now,
     updated_at: now,
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
 }
 
@@ -405,7 +405,6 @@ function runtimeResult(args: {
       selected_handler: args.selectedHandler ?? "select_state_potion",
       operation_type: "select_state_potion",
       mode: "platform_handoff",
-      no_chat_mutation: true,
       executable_from_chat: false,
       status: args.status,
       reason_code: args.reasonCode,
@@ -424,7 +423,7 @@ function runtimeResult(args: {
         surface_id: STATE_POTION_HANDOFF_TARGET?.surface_id ??
           "state_potions",
         reason_code: args.reasonCode,
-        no_chat_mutation: true,
+        executable_from_chat: false,
         draft: args.draft ?? null,
       },
     },
@@ -895,7 +894,6 @@ async function runClarteHandoffTurn(args: {
         selected_handler: "select_state_potion.clarte",
         operation_type: "select_state_potion",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: reduced.status,
         reason_code: reduced.reason_code,
@@ -1234,7 +1232,6 @@ async function runPotionSubskillHandoffTurn(args: {
         selected_handler: selectedHandler,
         operation_type: "select_state_potion",
         mode: "platform_handoff",
-        no_chat_mutation: true,
         executable_from_chat: false,
         status: reduced.status,
         reason_code: reduced.reason_code,

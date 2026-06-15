@@ -53,7 +53,7 @@ function baseDecision(
       collected_value: null,
       handoff_hint_for_global_dispatcher: null,
     },
-    no_chat_mutation: {
+    executable_from_chat: {
       potion_session_created: false,
       recurring_reminder_created: false,
       scheduled_checkin_created: false,

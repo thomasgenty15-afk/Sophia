@@ -125,7 +125,6 @@ export type AttackCardPlatformHandoff = {
 export type AttackCardHandoffDraft = {
   operation_type: "prepare_attack_card";
   mode: "platform_handoff";
-  no_chat_mutation: true;
   executable_from_chat: false;
   target_summary: string;
   blocker_summary: string;

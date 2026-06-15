@@ -25,8 +25,7 @@ export function isClarificationLocalState(
     Array.isArray(value.candidate_signals) &&
     value.candidate_signals.every(isLocalCandidateSignal) &&
     Number.isFinite(Number(value.turn_count)) &&
-    Number.isFinite(Number(value.max_turns)) &&
-    value.no_chat_mutation === true;
+    Number.isFinite(Number(value.max_turns));
 }
 
 export function readClarificationLocalState(
@@ -48,7 +47,6 @@ export function writeClarificationLocalState(
     mode: "local_flow",
     turn_count: Math.max(0, Number(state.turn_count ?? 0)),
     max_turns: Math.max(1, Number(state.max_turns ?? 4)),
-    no_chat_mutation: true,
   } satisfies ClarificationLocalState;
   return next;
 }

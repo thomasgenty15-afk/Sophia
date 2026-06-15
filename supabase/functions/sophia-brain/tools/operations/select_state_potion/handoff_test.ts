@@ -110,7 +110,7 @@ Deno.test("potion handoff builds platform draft without chat mutation", async ()
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,
@@ -145,7 +145,7 @@ Deno.test("potion handoff builds platform draft without chat mutation", async ()
   assertEquals(result.toolExecution, "platform_handoff");
   assertEquals(result.executedTools, []);
   assertEquals((result.toolSkillRun as any).status, "handoff_delivered");
-  assertEquals((result.toolSkillRun as any).no_chat_mutation, true);
+  assertEquals((result.toolSkillRun as any).executable_from_chat, false);
   assert((result.toolSkillRun as any).platform_handoff?.draft);
   assertStringIncludes(result.content, "État / Potions");
 });
@@ -169,7 +169,7 @@ Deno.test("apply_attempt does not execute potion writers", async () => {
         max_turns: 6,
         created_at: "2026-06-01T00:00:00.000Z",
         updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     potionSubskillLocalDispatcherOverride: async () => ({
@@ -196,7 +196,7 @@ Deno.test("apply_attempt does not execute potion writers", async () => {
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,
@@ -239,7 +239,7 @@ Deno.test("exit_to_global_dispatcher clears active handoff without global rerout
         max_turns: 6,
         created_at: "2026-06-01T00:00:00.000Z",
         updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     localFlowDispatcherOverride: async () => ({
@@ -337,7 +337,7 @@ Deno.test("local safety preempt creates note_information for safety_crisis", asy
         max_turns: 6,
         created_at: "2026-06-01T00:00:00.000Z",
         updated_at: "2026-06-01T00:00:00.000Z",
-        no_chat_mutation: true,
+        executable_from_chat: false,
       },
     },
     clarteLocalDispatcherOverride: async () => ({
@@ -368,7 +368,7 @@ Deno.test("local safety preempt creates note_information for safety_crisis", asy
         collected_value: null,
         handoff_hint_for_global_dispatcher: null,
       },
-      no_chat_mutation: {
+      executable_from_chat: {
         potion_session_created: false,
         recurring_reminder_created: false,
         scheduled_checkin_created: false,

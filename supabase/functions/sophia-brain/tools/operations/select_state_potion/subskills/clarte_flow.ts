@@ -241,12 +241,6 @@ export function normalizeClarteDispatcherOutput(
         (root.exit_memo as any)?.handoff_hint_for_global_dispatcher,
       ),
     },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-    },
     risk_assessment: action === "safety_preempt" &&
         normalizedRisk.safety_preempt !== true
       ? {
@@ -404,7 +398,6 @@ function lockedDraft(value: string): StatePotionHandoffDraft {
   return {
     operation_type: "select_state_potion",
     mode: "platform_handoff",
-    no_chat_mutation: true,
     executable_from_chat: false,
     user_state_summary: value,
     desired_shift_summary:
@@ -823,12 +816,6 @@ function outputFromState(args: {
       collected_value: field.locked_value ?? field.candidate_value,
       handoff_hint_for_global_dispatcher: null,
     },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-    },
     risk_assessment: {
       risk_score: args.action === "safety_preempt" ? 10 : 0,
       risk_band: args.action === "safety_preempt" ? "critical" : "none",
@@ -966,7 +953,7 @@ const DISPATCHER_SYSTEM_PROMPT = [
   "- subskill_call: needed=true seulement pour get_info_product/get_info_db. skill_id doit etre product_help ou status_recap, reason court, context_for_subskill limite au flow actif, question reformulee, field_state et platform_destination utiles. Sinon needed=false, skill_id=null.",
   "- exit_memo: needed=true pour exit_to_global_dispatcher, handoff_to_local_flow, cancel_flow et safety_preempt. reason=topic_change, cancelled ou safety. flow_summary resume le sous-flow quitte; collected_value contient la valeur champ si utile; handoff_hint_for_global_dispatcher explique la suite. Pour exit_to_global_dispatcher, needed=false.",
   "- note_information: champ optionnel du contrat. Ne construis pas une note complete dans le prompt; le reducer la cree depuis exit_memo pour les transitions. Laisse absent ou needed=false sauf contexte explicite.",
-  "- no_chat_mutation: toujours false pour potion_session_created, recurring_reminder_created, scheduled_checkin_created, executable_confirmation_generated. Une demande apply_attempt ne change pas ces valeurs.",
+  "- committed_effects: toujours false pour potion_session_created, recurring_reminder_created, scheduled_checkin_created, executable_confirmation_generated. Une demande apply_attempt ne change pas ces valeurs.",
   "- risk_assessment/risk_score: score 0..10 du risque du tour. N'invente pas de safety; si safety reelle, flow_action=safety_preempt, safety_preempt=true, risk_score haut et reason_codes courts.",
   "- evidence: mots ou indices semantiques reels utilises. Pas de pseudo-preuves, pas de chaines longues, pas de mot-cle isole hors contexte.",
   "",
@@ -1011,12 +998,6 @@ const DISPATCHER_SYSTEM_PROMPT = [
         "Je fais les actions, mais je ne sens plus pourquoi elles comptent.",
       handoff_hint_for_global_dispatcher: null,
     },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-    },
     risk_assessment: {
       risk_score: 0,
       risk_band: "none",
@@ -1057,12 +1038,6 @@ const DISPATCHER_SYSTEM_PROMPT = [
       collected_value: null,
       handoff_hint_for_global_dispatcher:
         "Preempter vers le dispatcher local safety.",
-    },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
     },
     risk_assessment: {
       risk_score: 9,
@@ -1119,12 +1094,6 @@ export async function runClarteLocalDispatcher(
         flow_summary: "string|null",
         collected_value: "string|null",
         handoff_hint_for_global_dispatcher: "string|null",
-      },
-      no_chat_mutation: {
-        potion_session_created: false,
-        recurring_reminder_created: false,
-        scheduled_checkin_created: false,
-        executable_confirmation_generated: false,
       },
       risk_assessment: {
         risk_score: "number 0..10",

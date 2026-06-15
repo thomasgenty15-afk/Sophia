@@ -89,6 +89,54 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     ],
   },
   {
+    id: "plan.weekly_planning_validation",
+    label: "Validation de la semaine",
+    aliases: [
+      "validation de la semaine",
+      "valider la semaine",
+      "validation semaine",
+      "validation du planning",
+      "valider le planning",
+      "planning de semaine",
+      "planning hebdo",
+      "semaine a valider",
+      "semaine à valider",
+      "premiere semaine",
+      "première semaine",
+      "semaine prochaine",
+      "pourquoi valider",
+    ],
+    explain:
+      "La validation de la semaine sert a confirmer l'organisation proposee pour la semaine a venir. Elle dit a Sophia quels jours et quelles actions sont vraiment acceptes, au lieu de laisser le planning comme une simple proposition. Elle permet ensuite aux rappels, bilans et suivis de s'appuyer sur un planning fiable.",
+    how_to:
+      "Dans le Plan, ouvre le niveau actif puis la semaine concernee. Pour la premiere semaine apres onboarding, la validation se trouve dans le niveau 2 du plan, tout en haut de la semaine 1. Pour les semaines suivantes, elle devient disponible apres le point weekly ou via le rappel prevu.",
+    benefits: [
+      "Confirme les jours et actions que le user accepte vraiment.",
+      "Evite que Sophia s'appuie sur un planning encore implicite.",
+      "Rend les rappels, bilans et suivis plus fiables.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible:
+        "Quand une semaine de plan est proposee et attend validation.",
+      user_can_do: [
+        "relire l'organisation de la semaine",
+        "confirmer le planning propose",
+        "modifier le planning depuis l'espace si necessaire",
+      ],
+    }],
+    limits: [
+      "Ce n'est pas un bilan de fin de semaine.",
+      "Ce n'est pas la validation d'une occurrence deja faite.",
+      "Sophia ne doit pas dire que la semaine est validee sans retour UI, outil ou check-in d'auto-validation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire que le planning est valide sans source explicite.",
+      "Ne pas confondre validation de semaine et validation d'une action faite.",
+      "Ne pas dire que le user peut ajouter librement des actions depuis cette validation.",
+    ],
+  },
+  {
     id: "plan.clarifications",
     label: "Clarifications",
     aliases: [

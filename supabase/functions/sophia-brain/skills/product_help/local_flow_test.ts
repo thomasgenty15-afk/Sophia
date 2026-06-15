@@ -6,7 +6,12 @@ import {
   normalizeProductHelpLocalDispatcherOutput,
   reduceProductHelpLocalDispatcherOutput,
 } from "./local_flow.ts";
-import { retrieveProductHelpCandidates } from "./retrieval.ts";
+import { PRODUCT_HELP_FEATURES } from "./knowledge.ts";
+import {
+  choosePrimaryCatalogCandidate,
+  getProductHelpFeature,
+  retrieveProductHelpCandidates,
+} from "./retrieval.ts";
 import type { ProductHelpVisibleAgentInput } from "./visible_agent.ts";
 
 type AssertNever<T extends never> = T;
@@ -174,6 +179,33 @@ Deno.test("product_help local dispatcher classifies expected visible actions", (
     assertEquals(output.flow_action, action);
     assertEquals(output.bridge.executable, false);
   }
+});
+
+Deno.test("product_help documents weekly planning validation", () => {
+  const feature = getProductHelpFeature("plan.weekly_planning_validation");
+  assert(feature, "missing weekly planning validation feature");
+  assert(feature.aliases.includes("validation de la semaine"));
+  assert(feature.aliases.includes("valider le planning"));
+  assert(feature.explain.includes("confirmer l'organisation proposee"));
+  assert(feature.explain.includes("rappels, bilans et suivis"));
+  assert(feature.how_to.includes("niveau 2 du plan"));
+  assert(feature.how_to.includes("semaine 1"));
+  assert(feature.benefits.length >= 3);
+  assert(feature.limits.includes("Ce n'est pas un bilan de fin de semaine."));
+  assert(
+    feature.sophia_must_not_claim.some((rule) =>
+      rule.includes("Ne pas confondre validation de semaine")
+    ),
+  );
+
+  const dashboardPlan = PRODUCT_HELP_FEATURES.find((entry) =>
+    entry.id === "dashboard.plan"
+  );
+  assert(dashboardPlan, "missing dashboard.plan feature");
+  assertEquals(
+    choosePrimaryCatalogCandidate([dashboardPlan, feature]).id,
+    "plan.weekly_planning_validation",
+  );
 });
 
 Deno.test("product_help local dispatcher rejects mutation fields", () => {
@@ -462,7 +494,7 @@ Deno.test("product_help exit_to_global_dispatcher creates standard note from exi
     false,
   );
   assertEquals(
-    "no_chat_mutation" in ((reduced.note_information as any) ?? {}),
+    "executable_from_chat" in ((reduced.note_information as any) ?? {}),
     false,
   );
 });
@@ -485,7 +517,7 @@ Deno.test("product_help exit_to_global_dispatcher exits to global", () => {
       user_words: ["stop"],
       structured_context: {},
       risk_score: 0,
-      no_chat_mutation: {
+      executable_from_chat: {
         db_write_committed: false,
         potion_session_created: false,
         scheduled_checkin_created: false,

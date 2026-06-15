@@ -8,12 +8,12 @@ export function renderTrackProgressLoggedReply(
 ): string | null {
   if (!effect?.logged_progress_id) return null;
   if (effect.progress_status === "missed") {
-    return `Note pour ${effect.target_title}: rate.`;
+    return `C'est noté : ${effect.target_title} est marqué comme raté.`;
   }
   if (effect.progress_status === "partial") {
-    return `Note pour ${effect.target_title}: partiel.`;
+    return `C'est noté : ${effect.target_title} est marqué comme partiel.`;
   }
-  return `Note pour ${effect.target_title}: fait.`;
+  return `C'est noté : ${effect.target_title} est marqué comme fait.`;
 }
 
 export function renderTrackProgressClarification(reasonCode: string): string {

@@ -18,7 +18,7 @@ function active(
     surface_id: null,
     turn_count: 1,
     max_turns: 8,
-    no_chat_mutation: true,
+    executable_from_chat: false,
   };
 }
 
@@ -583,7 +583,6 @@ Deno.test("active platform handoff + structured apply request becomes handoff_ap
   assertEquals(result.continuation_intent, "handoff_apply_attempt");
   assertEquals(result.operation_type, "select_state_potion");
   assertEquals(result.reason_code, "active_handoff_apply_attempt");
-  assertEquals(result.no_chat_mutation, true);
 });
 
 Deno.test("active platform handoff + field confirmation continues collection", () => {

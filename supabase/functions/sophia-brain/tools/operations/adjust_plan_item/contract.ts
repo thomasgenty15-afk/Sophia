@@ -125,7 +125,6 @@ export type AdjustPlanInputCoachStatus = AdjustPlanHandoffStatus;
 export type AdjustPlanPlatformInputDraft = {
   operation_type: "adjust_plan_item";
   mode: "platform_handoff";
-  no_chat_mutation: true;
   executable_from_chat: false;
   user_blocker_summary: string;
   suggested_platform_input: string;

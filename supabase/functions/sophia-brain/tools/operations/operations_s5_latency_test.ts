@@ -23,7 +23,7 @@ Deno.test("S5 operations latency smoke measures intake to platform handoff under
   if (recurringRuntime.status !== "handoff_ready") {
     throw new Error("recurring_not_ready");
   }
-  assertEquals(recurringRuntime.handoff_draft.no_chat_mutation, true);
+  assertEquals(recurringRuntime.handoff_draft.executable_from_chat, true);
   assertEquals(recurringRuntime.handoff_draft.executable_from_chat, false);
   completed++;
 

@@ -330,7 +330,6 @@ function normalizeConversationContext(args: {
           targetDispatcher === "global"
         ? targetDispatcher
         : null,
-      no_chat_mutation: true,
     },
     tone_constraints: stringArray(args.raw.tone_constraints),
     do_not_say: stringArray(args.raw.do_not_say),
@@ -382,9 +381,6 @@ export function normalizeEmotionalRepairLocalDispatcherOutput(
     ? root.response_contract
     : {};
   const exitMemo = isRecord(root.exit_memo) ? root.exit_memo : {};
-  const noMutation = isRecord(root.no_chat_mutation)
-    ? root.no_chat_mutation
-    : {};
   return {
     flow_action: enumValue(root.flow_action, FLOW_ACTIONS, "answer_repair"),
     confidence: confidence(root.confidence),
@@ -459,13 +455,6 @@ export function normalizeEmotionalRepairLocalDispatcherOutput(
         ? exitMemo.potion_bridge_context
         : null,
     },
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-      db_write_committed: false,
-    },
     evidence: stringArray(root.evidence),
   };
 }
@@ -538,10 +527,10 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES = {
     "reason=cancelled si le user veut arreter ce flow; reason=topic_change si le user apporte un autre sujet clair.",
     "handoff_hint_for_global_dispatcher doit resumer le nouveau besoin et le contexte utile.",
     "Le downstream creera la note_information depuis exit_memo; remplis donc exit_memo avec soin.",
-    "Si tu fournis une note_information de bridge/safety, garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct, non vide, sans DB brute, memoire brute, diagnostic, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ni no_chat_mutation.",
+    "Si tu fournis une note_information de bridge/safety, garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct, non vide, sans DB brute, memoire brute, diagnostic, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint ni risk_score.",
   ],
-  no_chat_mutation: [
-    "Tous les champs doivent rester false: le dispatcher ne cree rien et ne mute pas la DB.",
+  effects: [
+    "Le dispatcher ne cree rien, n'active rien, ne programme rien et ne confirme aucun write.",
   ],
   evidence: [
     "Cite les indices semantiques courts utilises.",
@@ -664,7 +653,6 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
         current_message_over_previous_state: true,
         no_regex_or_keyword_routing: true,
         no_visible_reply_from_dispatcher: true,
-        no_chat_mutation: true,
       },
       field_completion_rules:
         EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES,
@@ -752,7 +740,6 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
               bridge_context_summary: "string|null",
               target_dispatcher:
                 "select_state_potion|safety_crisis|global|null",
-              no_chat_mutation: true,
             },
             tone_constraints: ["string"],
             do_not_say: ["string"],
@@ -768,13 +755,6 @@ export const runEmotionalRepairLocalDispatcher: EmotionalRepairLocalDispatcher =
           flow_summary: "string|null",
           handoff_hint_for_global_dispatcher: "string|null",
           potion_bridge_context: "object|null",
-        },
-        no_chat_mutation: {
-          potion_session_created: false,
-          recurring_reminder_created: false,
-          scheduled_checkin_created: false,
-          executable_confirmation_generated: false,
-          db_write_committed: false,
         },
         evidence: ["string"],
       },
@@ -1079,12 +1059,6 @@ function bridgeContext(args: {
     }),
     handoff_instruction_for_potion_subskill:
       "Use these as candidates, not forced locked values. Ask only for missing or low-confidence details. Do not ask the user to repeat the full emotional episode.",
-    no_chat_mutation: {
-      potion_session_created: false,
-      recurring_reminder_created: false,
-      scheduled_checkin_created: false,
-      executable_confirmation_generated: false,
-    },
   };
 }
 
@@ -1109,6 +1083,15 @@ function visibleKindForOutput(
   }
   if (output.flow_action === "confirm_potion_bridge" && confirmIsValid) {
     return "potion_bridge_handoff";
+  }
+  if (output.flow_action === "confirm_potion_bridge") {
+    return output.repair_state.intent === "anxiety_or_panic"
+      ? "stabilize_anxiety"
+      : output.repair_state.intent === "acute_self_attack"
+      ? "separate_fact_from_identity"
+      : output.repair_state.intent === "shame_or_guilt"
+      ? "de_shame"
+      : "ask_gentle_clarification";
   }
   if (output.flow_action === "potion_bridge_offer" && offerIsPersistable) {
     return output.potion_bridge.candidate_potions.length > 1
@@ -1185,7 +1168,6 @@ function conversationContextForVisibleTask(args: {
     handoff_data: {
       bridge_context_summary: args.bridgeContextSummary,
       target_dispatcher: targetDispatcher,
-      no_chat_mutation: true,
     },
     tone_constraints: [
       args.output.response_contract.tone,

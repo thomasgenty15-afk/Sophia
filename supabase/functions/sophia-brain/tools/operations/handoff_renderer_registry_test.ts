@@ -52,7 +52,7 @@ Deno.test("potion renderer is disabled in favor of local visible agents", () => 
     renderSelectStatePotionHandoffDraft({
       operation_type: "select_state_potion",
       mode: "platform_handoff",
-      no_chat_mutation: true,
+      executable_from_chat: false,
       executable_from_chat: false,
       user_state_summary: "tension",
       desired_shift_summary: "vers plus calme",
@@ -79,7 +79,7 @@ Deno.test("recurring renderer includes registry Reminders destination", () => {
     handoffDraft: {
       operation_type: "create_recurring_reminder",
       mode: "platform_handoff",
-      no_chat_mutation: true,
+      executable_from_chat: false,
       executable_from_chat: false,
       reminder_summary: "rappel hebdo",
       cadence_summary: "chaque lundi",

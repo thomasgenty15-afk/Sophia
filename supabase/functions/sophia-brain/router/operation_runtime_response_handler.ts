@@ -269,7 +269,6 @@ function weeklyChildFlowResultDetails(
     created,
     available: created,
     user_must_create: !created,
-    no_chat_mutation: created ? false : true,
     route_kind: String(platformFlow.route_kind ?? "").trim() || null,
     platform_destination:
       String(recommendation.platform_destination ?? "").trim() || null,

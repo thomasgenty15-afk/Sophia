@@ -231,7 +231,7 @@ Deno.test("S7 audit 3: emotional repair does not emit memory candidates for acut
         handoff_data: {
           bridge_context_summary: null,
           target_dispatcher: null,
-          no_chat_mutation: true,
+          executable_from_chat: false,
         },
         tone_constraints: ["soft", "no_plan"],
         do_not_say: ["Ne transforme pas l'auto-insulte en fait durable."],
@@ -248,7 +248,7 @@ Deno.test("S7 audit 3: emotional repair does not emit memory candidates for acut
       handoff_hint_for_global_dispatcher: null,
       potion_bridge_context: null,
     },
-    no_chat_mutation: {
+    executable_from_chat: {
       potion_session_created: false,
       recurring_reminder_created: false,
       scheduled_checkin_created: false,

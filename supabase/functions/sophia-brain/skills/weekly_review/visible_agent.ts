@@ -60,7 +60,7 @@ function visibleTaskInstruction(stage: WeeklyReviewVisibleTaskKind): string {
     case "offer_child_detour":
       return "Propose le detour outil indique dans detour_candidate avec consentement explicite. Explique qu'il sert le weekly et que le weekly reprendra apres.";
     case "return_from_child_flow":
-      return "Reprends le weekly apres le detour. Integre le resultat disponible et toute revision_summary presente dans handoff_data ou child_flow_result_details. Dis que la revision sera a reprendre lors de la saisie plateforme si no_chat_mutation est vrai, puis oriente vers la synthese sans rouvrir un nouveau flow.";
+      return "Reprends le weekly apres le detour. Integre le resultat disponible et toute revision_summary presente dans handoff_data ou child_flow_result_details. Si le child flow a seulement prepare une saisie plateforme, dis que la revision sera a reprendre dans la plateforme, puis oriente vers la synthese sans rouvrir un nouveau flow.";
     case "weekly_synthesis":
       return [
         "Fais la synthese weekly dans cet ordre: semaine vecue; actions/gaps; ressenti d'avancee vers l'objectif global; detour ou elements prepares; question de confirmation/cloture si necessaire.",
@@ -110,7 +110,7 @@ function visibleSystemPrompt(input: WeeklyReviewVisibleAgentInput): string {
     "Le weekly est un point de fin de semaine: il peut recommander une direction, mais ne modifie jamais le plan depuis le chat.",
     "Frontiere chat/outils: Sophia ne peut pas avoir, creer, activer, rendre disponible ou finaliser une carte d'attaque, une carte de defense, un ajustement Plan, un rappel ou une potion depuis le chat weekly.",
     "Formulations interdites sans committed_effect explicite dans conversation_context: j'ai une carte, ta carte est disponible, la carte est prete, nouvel outil, j'ai modifie le plan, j'ai cree un rappel, j'ai cree une potion.",
-    "Si un child flow revient avec platform_handoff/no_chat_mutation, dis seulement que les elements ont ete prepares pour que le user les saisisse dans la plateforme; ne dis jamais que l'objet existe deja.",
+    "Si un child flow revient avec platform_handoff sans committed_effect, dis seulement que les elements ont ete prepares pour que le user les saisisse dans la plateforme; ne dis jamais que l'objet existe deja.",
     "Ne mentionne jamais JSON, dispatcher, reducer, table, prompt, labels internes ou outil interne.",
     "N'utilise pas les labels internes: bridge_week, carry_over, repeat_week, level_review, item_decision, dominant_blocker.",
     "Ne dis jamais que tu as applique, modifie, reporte, valide, enregistre ou cree un changement de plan.",

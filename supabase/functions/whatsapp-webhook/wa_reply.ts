@@ -152,6 +152,7 @@ export async function replyWithBrain(params: {
   const outId = sendResp?.messages?.[0]?.id ?? null;
   const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
   const insertAssistantStartedAtMs = Date.now();
+  const brainTraceMetadata = compactBrainTraceMetadata(brain);
   for (const [index, content] of repliesToSend.entries()) {
     const result = sendResults[index] ?? null;
     await params.admin.from("chat_messages").insert({
@@ -172,6 +173,7 @@ export async function replyWithBrain(params: {
         has_hidden_fil_rouge: index === 0 && Boolean(parsed.note),
         multi_message_index: index,
         multi_message_count: repliesToSend.length,
+        ...(index === 0 ? brainTraceMetadata : {}),
       },
     });
   }
@@ -189,6 +191,64 @@ export async function replyWithBrain(params: {
   return {
     brain,
     outId,
+  };
+}
+
+function compactArray(value: unknown, max = 8): unknown[] {
+  return Array.isArray(value) ? value.slice(0, max) : [];
+}
+
+function compactBrainTraceMetadata(brain: unknown): Record<string, unknown> {
+  const trace = (brain as any)?.conversation_turn_trace;
+  const routeDecision = trace?.route_decision ?? null;
+  const turnFrame = trace?.turn_frame ?? null;
+  const toolSkillRun = trace?.tool_skill_run ?? null;
+  const effectLedger = trace?.effect_ledger ?? null;
+  if (!routeDecision && !turnFrame && !toolSkillRun && !effectLedger) {
+    return {};
+  }
+  return {
+    response_owner: trace?.response_owner ?? routeDecision?.response_owner ??
+      null,
+    selected_handler: routeDecision?.selected_handler ??
+      toolSkillRun?.selected_handler ?? null,
+    reason_code: routeDecision?.reason_code ?? toolSkillRun?.reason_code ??
+      null,
+    trace: {
+      route_decision: routeDecision
+        ? {
+          response_owner: routeDecision.response_owner ?? null,
+          selected_handler: routeDecision.selected_handler ?? null,
+          reason_code: routeDecision.reason_code ?? null,
+          direct_effects_to_run: compactArray(
+            routeDecision.direct_effects_to_run,
+          ),
+          blocked_paths: compactArray(routeDecision.blocked_paths, 12),
+        }
+        : null,
+      turn_frame: turnFrame
+        ? {
+          normal_reply_fit_score: turnFrame.normal_reply_fit_score ?? null,
+          flow_opportunity: turnFrame.flow_opportunity ?? null,
+          direct_effects: compactArray(turnFrame.direct_effects, 8),
+          tool_skill_intents: compactArray(turnFrame.tool_skill_intents, 8),
+        }
+        : null,
+      tool_skill_run: toolSkillRun
+        ? {
+          selected_handler: toolSkillRun.selected_handler ?? null,
+          operation_type: toolSkillRun.operation_type ?? null,
+          status: toolSkillRun.status ?? null,
+          reason_code: toolSkillRun.reason_code ?? toolSkillRun.reason ??
+            null,
+          tool_execution: (brain as any)?.tool_execution ?? null,
+          executed_tools: compactArray((brain as any)?.executed_tools, 8),
+          committed_effects: compactArray(toolSkillRun.committed_effects, 8),
+          blocked_effects: compactArray(toolSkillRun.blocked_effects, 8),
+        }
+        : null,
+      effect_ledger: effectLedger ?? null,
+    },
   };
 }
 
@@ -297,7 +357,10 @@ function polishWhatsAppVisibleReply(text: string, inboundText: string): string {
   return next;
 }
 
-function sanitizeWhatsAppVisibleReply(text: string, inboundText: string): string {
+function sanitizeWhatsAppVisibleReply(
+  text: string,
+  inboundText: string,
+): string {
   const parsed = extractHiddenFilRougeNote(text);
   return polishWhatsAppVisibleReply(parsed.visibleText, inboundText);
 }

@@ -726,7 +726,7 @@ export function localDispatcherSystemPrompt(): string {
     "- note_information.target_dispatcher: dispatcher cible seulement si needed=true; global pour exit, safety_crisis pour safety, product_help/status_recap pour inline, target_dispatcher du candidat pour resolution. null sinon.",
     "- note_information.handoff_context_for_next_dispatcher: contexte exploitable par le dispatcher cible. Jamais un message visible.",
     "- note_information.user_words: 1 a 3 fragments courts du message courant qui justifient le handoff; [] seulement si aucun mot user disponible.",
-    "- note_information.structured_context: obligatoire et non vide si needed=true. Inclure candidate_signals, contexte compact utile, selected_candidate_payload_hint, evidence, questions non resolues et recommended_next_focus. Ne transmets pas de DB brute. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    "- note_information.structured_context: obligatoire et non vide si needed=true. Inclure candidate_signals, contexte compact utile, selected_candidate_payload_hint, evidence, questions non resolues et recommended_next_focus. Ne transmets pas de DB brute. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note.",
     "- evidence: indices courts et reels qui justifient la decision. Vide seulement si aucun indice fiable.",
     "",
     "Transition Rules",

@@ -81,7 +81,6 @@ export const ADJUST_PLAN_SUB_SKILLS: Array<{
       "Validate the generated platform input and block executable or mutation wording.",
     minimum_ready_slots: [
       "suggested_platform_input",
-      "no_chat_mutation",
       "platform_destination",
     ],
   },
@@ -92,7 +91,6 @@ export const ADJUST_PLAN_SUB_SKILLS: Array<{
     minimum_ready_slots: [
       "suggested_platform_input",
       "platform_destination",
-      "no_chat_mutation",
     ],
   },
 ];

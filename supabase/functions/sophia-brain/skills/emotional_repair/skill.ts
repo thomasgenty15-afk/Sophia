@@ -47,7 +47,7 @@ function localFallbackOutput(reason: string): ConversationSkillOutput {
       needed: false,
       type: "none",
       urgency: "none",
-      constraints: ["no_chat_mutation", "technical_fallback"],
+      constraints: ["technical_fallback"],
     },
     operation_suggestions: [],
     memory_write_candidates: [],
@@ -156,7 +156,6 @@ function safetyContextHandoffOutput(
       240,
     ),
     safety,
-    no_chat_mutation: true,
   };
   const noteInformation = createNoteInformation({
     source_flow_id: "emotional_repair",
@@ -188,7 +187,7 @@ function safetyContextHandoffOutput(
       needed: false,
       type: "none",
       urgency: "none",
-      constraints: ["safety_preempt", "no_chat_mutation"],
+      constraints: ["safety_preempt"],
     },
     operation_suggestions: [],
     memory_write_candidates: [],
@@ -203,7 +202,6 @@ function safetyContextHandoffOutput(
       emotional_repair_local_state: null,
       emotional_repair_safety_handoff: {
         note_information: noteInformation,
-        no_chat_mutation: true,
       },
       summary: "Safety handoff from emotional_repair.",
     },
@@ -350,7 +348,7 @@ export async function runEmotionalRepairSkill(
         needed: false,
         type: "none",
         urgency: "none",
-        constraints: ["exit_to_global_dispatcher", "no_chat_mutation"],
+        constraints: ["exit_to_global_dispatcher"],
       },
       operation_suggestions: [],
       memory_write_candidates: [],
@@ -419,7 +417,7 @@ export async function runEmotionalRepairSkill(
         needed: false,
         type: "none",
         urgency: "none",
-        constraints: ["safety_preempt", "no_chat_mutation"],
+        constraints: ["safety_preempt"],
       },
       operation_suggestions: [],
       memory_write_candidates: [],
@@ -431,7 +429,6 @@ export async function runEmotionalRepairSkill(
         emotional_repair_local_state: null,
         emotional_repair_safety_handoff: {
           note_information: safetyNoteInformation,
-          no_chat_mutation: true,
         },
         summary: decision.repair_state.summary,
       },
@@ -468,7 +465,7 @@ export async function runEmotionalRepairSkill(
       needed: false,
       type: "none",
       urgency: "none",
-      constraints: ["no_chat_mutation", ...reduced.constraints],
+      constraints: reduced.constraints,
     },
     operation_suggestions: [],
     memory_write_candidates: [],
@@ -485,7 +482,6 @@ export async function runEmotionalRepairSkill(
           potion_bridge_context: reduced.potion_bridge_context,
           note_information: reduced.potion_bridge_context.note_information,
           information_note: reduced.potion_bridge_context.information_note,
-          no_chat_mutation: true,
         }
         : null,
       summary: reduced.local_state?.previous_repair_summary ??
