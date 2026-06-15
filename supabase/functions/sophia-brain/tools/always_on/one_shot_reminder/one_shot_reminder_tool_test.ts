@@ -543,6 +543,12 @@ Deno.test("one-shot reminder addon forbids timezone confirmation after success",
     addon.includes("Blend cette confirmation dans le message"),
     true,
   );
+  assertEquals(
+    addon.includes(
+      "évite les formulations rigides comme 'je te rappellerai de ouvrir'",
+    ),
+    true,
+  );
 });
 
 Deno.test("parseOneShotReminderRequest survives burst-merged recurring context", () => {

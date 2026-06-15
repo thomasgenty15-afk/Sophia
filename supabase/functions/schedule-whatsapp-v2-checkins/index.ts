@@ -41,7 +41,6 @@ import {
   listMorningNudgeEventContexts,
 } from "../sophia-brain/momentum_morning_nudge.ts";
 import {
-  addDaysYmd,
   buildWeeklyPlanningValidationMessage,
   buildWeeklyProgressReviewFallbackMessage,
   buildWeeklyProgressReviewGrounding,
@@ -699,24 +698,6 @@ Deno.serve(async (req) => {
           },
         );
         if (!hasTargetPlanifiableWeek) {
-          continue;
-        }
-        const reviewedWeekStartDate = addDaysYmd(targetWeekStartDate, -7);
-        const currentReview = await loadWeeklyProgressReview(
-          supabaseAdmin as any,
-          {
-            userId,
-            timezone,
-            weekStartDate: reviewedWeekStartDate,
-            now,
-            dashboardUrl,
-          },
-        );
-        const activeWeeklyPlanCount = currentReview.transformations.reduce(
-          (sum, transformation) => sum + transformation.summary.planned_count,
-          0,
-        );
-        if (activeWeeklyPlanCount === 0) {
           continue;
         }
         const scheduledFor = computeScheduledForFromLocal({

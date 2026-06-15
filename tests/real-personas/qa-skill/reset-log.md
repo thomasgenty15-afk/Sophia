@@ -325,3 +325,17 @@
 - 2026-06-13T13:16:29Z reset persona=qa-skill connection=demotivation_repair_exitfix_real_20260613_r1b user_id=3d0bff00-d2cb-472c-929e-557a3feca26e
 - 2026-06-13T13:16:29Z reset persona=qa-skill connection=demotivation_repair_exitfix_real_20260613_r1 user_id=50ed31c9-91e6-41f3-9e8f-c627481e34a2
 - 2026-06-13T13:16:32Z reset persona=qa-skill connection=demotivation_repair_exitfix_real_20260613_r1c user_id=d0666548-878c-49a9-8aeb-1a1c2aaae7f3
+- 2026-06-15T13:39:37Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r1_amour user_id=a7541507-b802-493c-8aaf-52f6be4eec03
+- 2026-06-15T13:39:37Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r1_apaisement user_id=0fd3ee4e-5e6b-4aeb-9b6e-a05b4e79900c
+- 2026-06-15T13:39:38Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r1_guerison user_id=ba9b243d-73e0-4ca5-9934-9ee7243e97ea
+- 2026-06-15T13:44:37Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_clarte_20260615_r1 user_id=31e24ece-cbb6-4330-885e-7f43e0f96804
+- 2026-06-15T13:44:38Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_courage_20260615_r1 user_id=34f6fd44-27aa-4e6c-b17d-5f42c1eb70ee
+- 2026-06-15T13:44:40Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_anti_decrochage_20260615_r1 user_id=ea3074bb-2b54-4ecd-b165-9742c36106ac
+- 2026-06-15T13:46:17Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_clarte_20260615_r1 user_id=31e24ece-cbb6-4330-885e-7f43e0f96804
+- 2026-06-15T13:47:18Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r1_amour user_id=a7541507-b802-493c-8aaf-52f6be4eec03
+- 2026-06-15T13:47:20Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r1_guerison user_id=ba9b243d-73e0-4ca5-9934-9ee7243e97ea
+- 2026-06-15T13:47:22Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r1_apaisement user_id=0fd3ee4e-5e6b-4aeb-9b6e-a05b4e79900c
+- 2026-06-15T13:49:23Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_clarte_20260615_r1 user_id=31e24ece-cbb6-4330-885e-7f43e0f96804
+- 2026-06-15T13:59:58Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_clarte_20260615_r1 user_id=31e24ece-cbb6-4330-885e-7f43e0f96804
+- 2026-06-15T13:59:59Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_courage_20260615_r1 user_id=34f6fd44-27aa-4e6c-b17d-5f42c1eb70ee
+- 2026-06-15T14:00:00Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_anti_decrochage_20260615_r1 user_id=ea3074bb-2b54-4ecd-b165-9742c36106ac

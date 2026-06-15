@@ -438,7 +438,7 @@ async function generateQuestionnaireWithLlm(params: {
       source: "generate-questionnaire-v2",
       ...(params.userId ? { userId: params.userId } : {}),
       model: "gemini-3-flash-preview",
-      fallbackModel: "gpt-5.4-mini",
+      fallbackModel: "gpt-5.4",
       secondFallbackModel: "gpt-5.4-nano",
       maxRetries: 1,
       httpTimeoutMs: 45_000,

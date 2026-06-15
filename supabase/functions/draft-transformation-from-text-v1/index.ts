@@ -257,7 +257,7 @@ async function draftTransformationFromText(args: {
       source: "draft-transformation-from-text-v1",
       userId: args.userId,
       model: "gemini-3-flash-preview",
-      fallbackModel: "gpt-5.4-mini",
+      fallbackModel: "gpt-5.4",
       secondFallbackModel: "gpt-5.4-nano",
       maxRetries: 1,
       httpTimeoutMs: 45_000,

@@ -167,7 +167,7 @@ function createReminderSuccessReply(args: {
 }): string {
   const instruction = String(args.reminderInstruction ?? "").trim();
   const base = instruction
-    ? `C'est programmé pour ${args.localLabel}: je te rappellerai de ${instruction}.`
+    ? `C'est programmé pour ${args.localLabel}: je te ferai un rappel pour ${instruction}.`
     : `C'est programmé pour ${args.localLabel}.`;
   return [
     base,

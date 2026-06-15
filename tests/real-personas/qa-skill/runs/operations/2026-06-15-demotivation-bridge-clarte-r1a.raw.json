@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1a-t01",
+    "auth_method": "refresh_token",
+    "user": "Je fais encore mes actions, mais elles sonnent creux. Au départ mon plan santé devait me reconnecter à de l'énergie et à de la présence, et là je coche juste des cases sans sentir le pourquoi.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

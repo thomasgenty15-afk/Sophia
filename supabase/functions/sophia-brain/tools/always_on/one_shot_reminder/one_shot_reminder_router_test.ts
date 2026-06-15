@@ -139,7 +139,7 @@ Deno.test("create success reply keeps safety context after committed reminder", 
   assertEquals(result.reply?.includes("C'est programmé pour"), true);
   assertEquals(
     result.reply?.includes(
-      "je te rappellerai de vérifier que je reste en sécurité",
+      "je te ferai un rappel pour vérifier que je reste en sécurité",
     ),
     true,
   );

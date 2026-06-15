@@ -45,6 +45,20 @@ export type GenerateWithGeminiMeta = {
 
 export type GenerateWithGeminiResult = string | { tool: string; args: any };
 
+const OPENAI_STRONG_FALLBACK_MODEL = "gpt-5.4";
+const OPENAI_LIGHT_FALLBACK_MODEL = "gpt-5.4-nano";
+
+function isRetiredGeminiModel(model: string): boolean {
+  return /^\s*gemini-2\.0(?:-|$)/i.test(String(model ?? "").trim());
+}
+
+function replaceRetiredModel(model: string, fallback: string): string {
+  const resolved = String(model ?? "").trim() || fallback;
+  return isRetiredGeminiModel(resolved)
+    ? OPENAI_STRONG_FALLBACK_MODEL
+    : resolved;
+}
+
 type Release = () => void;
 
 class Semaphore {
@@ -120,12 +134,12 @@ export function getGlobalAiModel(fallback = "gemini-2.5-flash"): string {
     safeEnvGet("GLOBAL_AI_MODEL") ??
       ""
   ).trim();
-  return model || fallback;
+  return replaceRetiredModel(model, fallback);
 }
 
 export function getGeminiFallbackModel(fallback = "gemini-2.5-flash"): string {
   const model = (safeEnvGet("GEMINI_FALLBACK_MODEL") ?? "").trim();
-  return model || fallback;
+  return replaceRetiredModel(model, fallback);
 }
 
 export async function generateWithGemini(
@@ -481,7 +495,8 @@ export async function generateWithGemini(
 
   // Fallback policy:
   // - Standard Gemini traffic: GLOBAL_AI_MODEL (attempt 1), then GEMINI_FALLBACK_MODEL (attempt 2),
-  //   then alternate primary/fallback across attempts. OpenAI stays as tertiary safety net.
+  //   then alternate primary/fallback across attempts. OpenAI stays as safety net.
+  // - Any retired Gemini 2.0 model is replaced by gpt-5.4, then gpt-5.4-nano.
   // - Critical (gpt-5.2): keep dedicated critical chain.
   const isGpt52 = (m: string) => /^\s*gpt-5\.2\b/i.test(String(m ?? "").trim());
   const geminiPrimaryModel = getGlobalAiModel("gemini-2.5-flash");
@@ -538,9 +553,6 @@ export async function generateWithGemini(
       if (/\bgemini-2\.5-flash\b/i.test(mm)) {
         return Math.min(longToolTimeout, 220_000);
       }
-      if (/\bgemini-2\.0-flash\b/i.test(mm)) {
-        return Math.min(longToolTimeout, 180_000);
-      }
       return longToolTimeout;
     }
     if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) {
@@ -578,6 +590,11 @@ export async function generateWithGemini(
     const push = (m: string) => {
       const mm = String(m ?? "").trim();
       if (!mm) return;
+      if (isRetiredGeminiModel(mm)) {
+        push(OPENAI_STRONG_FALLBACK_MODEL);
+        push(OPENAI_LIGHT_FALLBACK_MODEL);
+        return;
+      }
       if (!chain.includes(mm)) chain.push(mm);
     };
     // If the caller asked to disable the fallback chain, only try the primary model once.
@@ -586,28 +603,26 @@ export async function generateWithGemini(
       return chain;
     }
     // Fallback chains:
-    // - Critical (gpt-5.2): gpt-5.2 → gemini fallback → gpt-5.4-mini → gpt-5.4-nano
-    // - Onboarding mini (gpt-5.4-mini): gpt-5.4-mini → configured Gemini fallback → gpt-5.4-mini
-    // - Onboarding full (gpt-5.4): gpt-5.4 → gemini-3.1-pro-preview → gpt-5.4-mini
-    // - Standard Gemini: alternating primary/fallback first, then OpenAI safety nets.
+    // - Critical (gpt-5.2): gpt-5.2 → configured fallback → gpt-5.4 → gpt-5.4-nano
+    // - OpenAI 5.4 family: selected model → gpt-5.4 → gpt-5.4-nano
+    // - Standard Gemini: alternating primary/fallback first, then gpt-5.4 → gpt-5.4-nano.
     //
     push(primary);
     const isCritical = isGpt52(startModel) || isGpt52(primary);
     if (isCritical) {
       push(geminiFallbackModel);
-      push("gpt-5.4-mini");
-      push("gpt-5.4-nano");
+      push(OPENAI_STRONG_FALLBACK_MODEL);
+      push(OPENAI_LIGHT_FALLBACK_MODEL);
       return chain;
     }
-    // Onboarding OpenAI models: Gemini-first fallback to avoid silent degradation.
+    // OpenAI 5.4 models: stay in the requested provider family on fallback.
     if (/^\s*gpt-5\.4-mini\b/i.test(primary)) {
-      push(geminiFallbackModel);
-      push("gpt-5.4-mini");
+      push(OPENAI_STRONG_FALLBACK_MODEL);
+      push(OPENAI_LIGHT_FALLBACK_MODEL);
       return chain;
     }
     if (/^\s*gpt-5\.4\b/i.test(primary)) {
-      push("gemini-3.1-pro-preview");
-      push("gpt-5.4-mini");
+      push(OPENAI_LIGHT_FALLBACK_MODEL);
       return chain;
     }
     // Standard Gemini behavior: second chance is always the other Gemini model first.
@@ -620,9 +635,9 @@ export async function generateWithGemini(
     }
     if (meta?.secondFallbackModel) push(meta.secondFallbackModel);
     if (meta?.thirdFallbackModel) push(meta.thirdFallbackModel);
-    // Then keep OpenAI as tertiary safety nets.
-    if (!meta?.secondFallbackModel) push("gpt-5.4-mini");
-    if (!meta?.thirdFallbackModel) push("gpt-5.4-nano");
+    // Then keep OpenAI as safety nets.
+    if (!meta?.secondFallbackModel) push(OPENAI_STRONG_FALLBACK_MODEL);
+    if (!meta?.thirdFallbackModel) push(OPENAI_LIGHT_FALLBACK_MODEL);
     return chain;
   };
 

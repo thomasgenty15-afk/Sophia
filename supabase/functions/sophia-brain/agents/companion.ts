@@ -678,7 +678,7 @@ export async function generateCompanionModelOutput(opts: {
     ":tools:",
   );
   // IMPORTANT: do not hardcode Gemini preview models in prod.
-  // Let `generateWithGemini` pick its default model chain (defaults to gpt-5.4-mini) unless meta.model overrides.
+  // Let `generateWithGemini` pick its configured default model chain unless meta.model overrides.
   const DEFAULT_MODEL = isToolHarnessLike
     ? getGlobalAiModel("gemini-2.5-flash")
     : undefined;

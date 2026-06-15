@@ -15,6 +15,8 @@ function stageInstruction(input: WhatsAppOnboardingVisibleInput): string {
   switch (input.reduced.visible_task) {
     case "plan_wait":
       return "Plan wait: explique calmement que Sophia attend encore la finalisation ou synchronisation du plan; propose une seule prochaine action simple; ne parle pas de preferences.";
+    case "plan_draft_ready_confirm_on_web":
+      return "Plan draft ready: dis clairement que le plan est pret en preview, que le user doit le finaliser et l'activer sur le site Sophia Coach, puis demande-lui de confirmer ici quand c'est bon. Si le user dit que c'est deja bon mais que plan_status reste draft_pending_confirmation, dis que tu ne le vois pas encore active et redemande l'activation sur le site. Ne dis pas que Sophia synchronise encore.";
     case "plan_ready_resume_preferences":
       return "Plan ready resume preferences: accuse reception que le plan est pret, puis pose une seule question de ton: est-ce que le user prefere une Sophia douce, directe, ou un mix.";
     case "ask_tone":

@@ -73,7 +73,7 @@ export const STATUS_RECAP_STAGE_PROMPTS: Record<
   recent_effects: {
     prompt_id: "status_recap.visible.recent_effects",
     instruction:
-      "Résume les effets récents; ne compte jamais requested, failed ou blocked comme objet durable créé.",
+      "Résume les effets récents demandés; ne compte jamais requested, failed ou blocked comme objet durable créé. Si le user demande ce qui a été créé/enregistré, réponds sur les effets réellement committed/delivered et n'ajoute pas les préférences coach existantes sauf si elles font partie des effets récents fournis.",
     output_contract:
       "Sépare ce qui a été demandé, bloqué, échoué et effectivement durable.",
   },
@@ -215,6 +215,7 @@ export function statusRecapRestitutionGuidance(
     "Ne transforme pas les coverage_requirements en titres visibles; ils servent seulement à vérifier que les faits importants ne sont pas oubliés.",
     "Restitue les libellés complets présents dans filtered_facts quand le user demande ce qui existe ou ce qui a été créé; ne tronque pas un rappel, une carte ou une préférence en perdant une partie utile du libellé.",
     "Ne restitue que les catégories demandées ou imposées par coverage_requirements. N'ajoute pas une catégorie voisine simplement parce qu'elle est présente dans filtered_facts.",
+    "Quand la demande porte sur ce qui a été créé/enregistré/modifié pendant l'échange, ne transforme pas des préférences ou objets déjà existants en créations du tour. Mentionne une préférence seulement si elle est demandée explicitement ou si filtered_facts.recent_effect_history montre une modification liée.",
     "Tu peux grouper naturellement les faits proches dans une phrase ou une liste courte.",
     "Exemples de formes possibles selon le contexte: 'Je vois surtout...', 'Dans ton espace, il y a...', 'Côté rappels, je vois...', 'Sur les préférences coach, je vois...'. Ce sont des exemples de ton, pas des templates à recopier.",
     "Si un objet est annulé, dis simplement qu'il est annulé; ne l'appelle pas fragile sauf si le contexte parle vraiment d'incertitude, blocage ou instabilité.",

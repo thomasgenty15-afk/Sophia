@@ -1,0 +1,295 @@
+{
+  "amour": {
+    "user_id": "a7541507-b802-493c-8aaf-52f6be4eec03",
+    "user_chat_states": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "user_id": "a7541507-b802-493c-8aaf-52f6be4eec03",
+          "current_mode": "companion",
+          "risk_level": 2,
+          "investigation_state": null,
+          "short_term_context": "",
+          "last_interaction_at": "2026-06-15T13:43:03.714+00:00",
+          "updated_at": "2026-06-15T13:43:03.716582+00:00",
+          "unprocessed_msg_count": 5,
+          "last_processed_at": "2026-06-15T13:40:13.226+00:00",
+          "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-amour",
+          "temp_memory": {
+            "__momentum_state_v2": {
+              "posture": {
+                "confidence": "high",
+                "recommended_posture": "simplify"
+              },
+              "version": 2,
+              "blockers": {
+                "blocker_kind": null,
+                "blocker_repeat_score": 0
+              },
+              "_internal": {
+                "sources": {
+                  "router_updated_at": "2026-06-15T13:40:35.121Z",
+                  "last_classified_by": "router"
+                },
+                "stability": {
+                  "stable_since_at": "2026-06-15T13:40:35.121Z"
+                },
+                "signal_log": {
+                  "consent_events": [],
+                  "emotional_turns": [],
+                  "response_quality_events": [
+                    {
+                      "at": "2026-06-15T13:40:35.121Z",
+                      "quality": "substantive"
+                    }
+                  ]
+                },
+                "metrics_cache": {
+                  "last_user_turn_at": "2026-06-15T13:40:35.121Z",
+                  "last_user_turn_quality": "substantive",
+                  "days_since_last_user_message": 0
+                }
+              },
+              "assessment": {
+                "top_risk": null,
+                "confidence": "low",
+                "top_blocker": null
+              },
+              "dimensions": {
+                "consent": {
+                  "level": "open",
+                  "reason": "no_decline_detected"
+                },
+                "plan_fit": {
+                  "level": "uncertain"
+                },
+                "engagement": {
+                  "level": "high",
+                  "reason": "substantive_recent_reply"
+                },
+                "load_balance": {
+                  "level": "balanced"
+                },
+                "emotional_load": {
+                  "level": "low",
+                  "reason": "no_emotional_marker"
+                },
+                "execution_traction": {
+                  "level": "unknown"
+                }
+              },
+              "updated_at": "2026-06-15T13:40:35.121Z",
+              "active_load": {
+                "needs_reduce": false,
+                "needs_consolidate": false,
+                "current_load_score": 0,
+                "mission_slots_used": 0,
+                "support_slots_used": 0,
+                "habit_building_slots_used": 0
+              },
+              "memory_links": {
+                "last_useful_support_ids": [],
+                "last_failed_technique_ids": []
+              },
+              "state_reason": "engaged_but_not_clearly_progressing",
+              "current_state": "friction_legere"
+            },
+            "__active_skill_state": {
+              "status": "active",
+              "version": 1,
+              "skill_id": "emotional_repair",
+              "started_at": "2026-06-15T13:40:35.121Z",
+              "turn_count": 5,
+              "updated_at": "2026-06-15T13:43:03.707Z",
+              "working_state": {
+                "summary": "L'émotion est stabilisée. Le user confirme son souhait de passer à une potion pour maintenir de la douceur envers lui-même dans son rapport au travail, précisant qu'il est trop dur avec lui-même.",
+                "emotional_repair_local_state": {
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "skill_id": "emotional_repair",
+                  "max_turns": 6,
+                  "created_at": "2026-06-15T13:40:29.597Z",
+                  "turn_count": 5,
+                  "updated_at": "2026-06-15T13:42:58.234Z",
+                  "repair_state": {
+                    "phase": "exit",
+                    "intent": "asks_regulation_without_potion",
+                    "summary": "L'émotion est stabilisée. Le user confirme son souhait de passer à une potion pour maintenir de la douceur envers lui-même dans son rapport au travail, précisant qu'il est trop dur avec lui-même.",
+                    "user_words": [
+                      "passer sur cette potion",
+                      "rapport au travail",
+                      "dur avec moi"
+                    ],
+                    "context_domain": "work",
+                    "emotional_dominance": "low",
+                    "identity_freeze_risk": false,
+                    "emotion_stabilized_enough_for_tool": true
+                  },
+                  "last_visible_task": "potion_bridge_handoff",
+                  "previous_repair_summary": "L'émotion est stabilisée. Le user confirme son souhait de passer à une potion pour maintenir de la douceur envers lui-même dans son rapport au travail, précisant qu'il est trop dur avec lui-même.",
+                  "last_potion_bridge_offer": null
+                },
+                "emotional_repair_visible_task": {
+                  "kind": "potion_bridge_handoff",
+                  "conversation_context": {
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de protocole.",
+                      "Ne propose pas de technique ou exercice."
+                    ],
+                    "user_words": [
+                      "passer sur cette potion",
+                      "rapport au travail",
+                      "dur avec moi"
+                    ],
+                    "handoff_data": {
+                      "no_chat_mutation": true,
+                      "target_dispatcher": null,
+                      "bridge_context_summary": null
+                    },
+                    "known_values": {
+                      "phase": "exit",
+                      "intent": "asks_regulation_without_potion",
+                      "context_domain": "work",
+                      "emotional_dominance": "low",
+                      "identity_freeze_risk": false,
+                      "emotion_stabilized_enough_for_tool": true
+                    },
+                    "evidence_used": [
+                      "Le user dit 'Oui, je veux bien passer sur cette potion'",
+                      "Le user précise le domaine : 'rapport au travail'",
+                      "Le user décrit son état : 'dur avec moi'"
+                    ],
+                    "max_questions": 0,
+                    "state_summary": "L'émotion est stabilisée. Le user confirme son souhait de passer à une potion pour maintenir de la douceur envers lui-même dans son rapport au travail, précisant qu'il est trop dur avec lui-même.",
+                    "field_or_stage": "potion_bridge_handoff",
+                    "context_summary": "L'émotion est stabilisée. Le user confirme son souhait de passer à une potion pour maintenir de la douceur envers lui-même dans son rapport au travail, précisant qu'il est trop dur avec lui-même.",
+                    "tone_constraints": [
+                      "soft",
+                      "no_plan",
+                      "no_technique",
+                      "no_protocol",
+                      "short_reply",
+                      "no_questions"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "self_kindness",
+                      "durable_need_summary": "Besoin de cultiver la bienveillance et la douceur envers soi-même dans le cadre professionnel pour contrer une voix intérieure dure."
+                    },
+                    "missing_or_weak_values": []
+                  }
+                },
+                "emotional_repair_potion_handoff": null
+              },
+              "previous_skill_id": null
+            },
+            "__conversation_risk_last": {
+              "at": "2026-06-15T13:40:35.121Z",
+              "score": 0,
+              "threshold": 8,
+              "reason_codes": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "__memory_payload_state_v2": {
+              "items": [],
+              "budget": {
+                "max_items": 12,
+                "max_entities": 5,
+                "tokens_target": 1800
+              },
+              "modules": {},
+              "version": 2,
+              "entities": [],
+              "last_turn_id": "134a5053-e704-4488-b942-b59ddefef906",
+              "active_topic_id": null
+            },
+            "__conversation_risk_history": [
+              0
+            ],
+            "__coaching_intervention_history": []
+          }
+        }
+      ]
+    },
+    "user_potion_sessions": {
+      "status": 200,
+      "ok": true,
+      "body": []
+    },
+    "conversation_turn_traces": {
+      "status": 200,
+      "ok": true,
+      "body": []
+    }
+  },
+  "guerison": {
+    "user_id": "ba9b243d-73e0-4ca5-9934-9ee7243e97ea",
+    "user_chat_states": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "user_id": "ba9b243d-73e0-4ca5-9934-9ee7243e97ea",
+          "current_mode": "companion",
+          "risk_level": 0,
+          "investigation_state": null,
+          "short_term_context": "",
+          "last_interaction_at": "2026-06-15T13:43:19.012+00:00",
+          "updated_at": "2026-06-15T13:43:19.013944+00:00",
+          "unprocessed_msg_count": 0,
+          "last_processed_at": "2026-06-15T13:43:19.012+00:00",
+          "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-guerison",
+          "temp_memory": {}
+        }
+      ]
+    },
+    "user_potion_sessions": {
+      "status": 200,
+      "ok": true,
+      "body": []
+    },
+    "conversation_turn_traces": {
+      "status": 200,
+      "ok": true,
+      "body": []
+    }
+  },
+  "apaisement": {
+    "user_id": "0fd3ee4e-5e6b-4aeb-9b6e-a05b4e79900c",
+    "user_chat_states": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "user_id": "0fd3ee4e-5e6b-4aeb-9b6e-a05b4e79900c",
+          "current_mode": "companion",
+          "risk_level": 2,
+          "investigation_state": null,
+          "short_term_context": "",
+          "last_interaction_at": "2026-06-15T13:44:07.986+00:00",
+          "updated_at": "2026-06-15T13:44:14.78782+00:00",
+          "unprocessed_msg_count": 0,
+          "last_processed_at": "2026-06-15T13:44:07.986+00:00",
+          "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r1-apaisement",
+          "temp_memory": {}
+        }
+      ]
+    },
+    "user_potion_sessions": {
+      "status": 200,
+      "ok": true,
+      "body": []
+    },
+    "conversation_turn_traces": {
+      "status": 200,
+      "ok": true,
+      "body": []
+    }
+  }
+}

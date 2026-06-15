@@ -28,8 +28,9 @@ values
   ('gemini', 'gemini-3-flash-preview', 0.0005, 0.003, 'USD', 'v1', true),
   ('gemini', 'text-embedding-004', 0.000025, 0, 'USD', 'v1', true),
   ('gemini', 'gemini-2.5-flash', 0.0003, 0.0025, 'USD', 'v1', true),
-  ('gemini', 'gemini-2.0-flash', 0.0003, 0.0025, 'USD', 'v1', true),
   ('gemini', 'gemini-embedding-001', 0, 0, 'USD', 'v1', true),
+  ('openai', 'gpt-5.4', 0, 0, 'USD', 'v1', true),
+  ('openai', 'gpt-5.4-nano', 0, 0, 'USD', 'v1', true),
   ('openai', 'gpt-5', 0, 0, 'USD', 'v1', true),
   ('openai', 'gpt-5-mini', 0, 0, 'USD', 'v1', true),
   ('openai', 'gpt-5-nano', 0, 0, 'USD', 'v1', true)

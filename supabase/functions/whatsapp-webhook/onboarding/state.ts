@@ -238,6 +238,28 @@ export function reduceWhatsAppOnboardingDecision(
     };
   }
 
+  if (
+    (input.whatsappState === "awaiting_plan_finalization" ||
+      input.whatsappState === "awaiting_plan_finalization_support") &&
+    input.planProjection.status === "draft_pending_confirmation"
+  ) {
+    return {
+      status: "owned",
+      reason_code: "whatsapp_onboarding_plan_draft_pending_confirmation",
+      next_whatsapp_state: input.whatsappState,
+      visible_task: "plan_draft_ready_confirm_on_web",
+      preference_writes: [],
+      mark_done: false,
+      completion_mode: "not_done",
+      exit_memo: null,
+      note_information: null,
+      allow_global_dispatcher: false,
+      allow_track_progress_plan_item: false,
+      blocked_effects: blockedEffects,
+      risk_assessment: decision.risk_assessment,
+    };
+  }
+
   const requestedExit = decision.flow_action === "exit_to_global_dispatcher";
   const requestedLocalHandoff =
     decision.flow_action === "handoff_to_local_flow";

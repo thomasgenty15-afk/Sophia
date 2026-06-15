@@ -25,6 +25,7 @@ const readyPlan: WhatsAppOnboardingPlanProjection = {
   active_plan_summary: "Plan test",
   active_plan_item_count: 1,
   active_plan_items_user_facing: ["Lister 5 contacts professionnels"],
+  active_action_candidates_for_direct_effects: [],
 };
 
 const missingPlan: WhatsAppOnboardingPlanProjection = {
@@ -35,6 +36,18 @@ const missingPlan: WhatsAppOnboardingPlanProjection = {
   active_plan_summary: null,
   active_plan_item_count: 0,
   active_plan_items_user_facing: [],
+  active_action_candidates_for_direct_effects: [],
+};
+
+const draftPlan: WhatsAppOnboardingPlanProjection = {
+  status: "draft_pending_confirmation",
+  is_plan_ready_for_onboarding: false,
+  why_status: "draft_plan_requires_web_confirmation",
+  active_plan_title: "Plan test",
+  active_plan_summary: "Plan pret en preview",
+  active_plan_item_count: 0,
+  active_plan_items_user_facing: [],
+  active_action_candidates_for_direct_effects: [],
 };
 
 const conversationContext: WhatsAppOnboardingConversationContext = {
@@ -196,6 +209,8 @@ Deno.test("whatsapp_onboarding local dispatcher prompt documents real output fie
       "exit_to_global_dispatcher",
       "safety_preempt",
       "handoff_to_local_flow",
+      "draft_pending_confirmation",
+      "plan_draft_ready_confirm_on_web",
     ]
   ) {
     assert(prompt.includes(field), `missing prompt rule for ${field}`);
@@ -285,6 +300,65 @@ Deno.test("plan missing blocks exit before plan is ready", () => {
   );
   assertEquals(result.next_whatsapp_state, "awaiting_plan_finalization");
   assertEquals(result.visible_task, "blocked_exit_before_plan_ready");
+  assertEquals(result.allow_global_dispatcher, false);
+});
+
+Deno.test("draft plan asks user to confirm activation on the site", () => {
+  const result = reduce({
+    state: "awaiting_plan_finalization",
+    plan: draftPlan,
+    decision: { flow_action: "plan_not_ready_wait" },
+  });
+  assertEquals(result.status, "owned");
+  assertEquals(
+    result.reason_code,
+    "whatsapp_onboarding_plan_draft_pending_confirmation",
+  );
+  assertEquals(result.next_whatsapp_state, "awaiting_plan_finalization");
+  assertEquals(result.visible_task, "plan_draft_ready_confirm_on_web");
+  assertEquals(result.allow_global_dispatcher, false);
+  assertEquals(result.allow_track_progress_plan_item, false);
+});
+
+Deno.test("draft plan keeps confirmation flow when user says it is done but DB is still draft", () => {
+  const result = reduce({
+    state: "awaiting_plan_finalization",
+    plan: draftPlan,
+    decision: { flow_action: "plan_ready_resume_preferences" },
+  });
+  assertEquals(result.status, "owned");
+  assertEquals(
+    result.reason_code,
+    "whatsapp_onboarding_plan_draft_pending_confirmation",
+  );
+  assertEquals(result.next_whatsapp_state, "awaiting_plan_finalization");
+  assertEquals(result.visible_task, "plan_draft_ready_confirm_on_web");
+});
+
+Deno.test("draft plan blocks unrelated topic with web activation confirmation", () => {
+  const result = reduce({
+    state: "awaiting_plan_finalization",
+    plan: draftPlan,
+    decision: {
+      flow_action: "exit_to_global_dispatcher",
+      exit_memo_request: {
+        needed: true,
+        exit_reason: "topic_change",
+        flow_summary: "User wants to discuss another topic.",
+        handoff_hint_for_global_dispatcher: "autre sujet",
+        handoff_justification_for_global_dispatcher:
+          "The user changed topic before activating the plan.",
+        plan_required_exit_blocked: false,
+      },
+    },
+  });
+  assertEquals(result.status, "owned");
+  assertEquals(
+    result.reason_code,
+    "whatsapp_onboarding_plan_draft_pending_confirmation",
+  );
+  assertEquals(result.next_whatsapp_state, "awaiting_plan_finalization");
+  assertEquals(result.visible_task, "plan_draft_ready_confirm_on_web");
   assertEquals(result.allow_global_dispatcher, false);
 });
 

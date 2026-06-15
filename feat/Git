@@ -5,6 +5,8 @@ git push origin  clean-v2-redesign       main
 
 
  supabase functions serve --env-file supabase/.env
+ npm run functions:deploy:changed -- -- --no-verify-jwt
+
  
  
   with cfg as (

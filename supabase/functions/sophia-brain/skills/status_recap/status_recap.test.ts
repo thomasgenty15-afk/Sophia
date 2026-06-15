@@ -4,6 +4,7 @@ import {
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
 import type { StatusRecapLocalDispatcherOutput } from "./contract.ts";
+import { buildStatusRecapConversationContext } from "./local_flow.ts";
 import { maybeRunStatusRecapRuntime } from "./runtime.ts";
 import {
   statusRecapCoverageRequirements,
@@ -442,4 +443,85 @@ Deno.test("status_recap coverage follows requested targets instead of every filt
     requirements.some((item) => item.includes("préférences coach")),
     false,
   );
+});
+
+Deno.test("status_recap visible context filters existing preferences out of recent created scope", () => {
+  const context = buildStatusRecapConversationContext({
+    currentUserMessage: "Qu'est-ce qui a été créé exactement jusque-là ?",
+    output: decision({
+      flow_action: "answer_recent_effects",
+      status_intent: {
+        kind: "recent_effects_recap",
+        summary: "created effects in the exchange",
+        requires_db_projection: true,
+        requires_effect_history: true,
+      },
+      target_objects: ["unknown"],
+      read_scope: {
+        requested_categories: ["recent_effects"],
+        include_cancelled: false,
+        include_recent_failed_or_blocked_effects: false,
+        format: "compact",
+      },
+      visible_task: {
+        kind: "recent_effects",
+        instruction: "answer only from recent committed effects",
+      },
+    }),
+    projection: {
+      attack_cards: [],
+      defense_cards: [],
+      one_shot_reminders: {
+        pending: [{
+          id: "reminder-1",
+          scheduled_for: "2026-06-14T07:00:00.000Z",
+          local_time: "09:00",
+          instruction: "ouvrir le dossier administratif",
+        }],
+        cancelled_recent: [],
+      },
+      recurring_reminders: [],
+      potion_sessions: [],
+      coach_preferences: [{
+        key: "coach.tone",
+        value: { value: "warm_direct" },
+        reason: "Default coach preferences",
+        source_type: "system_default",
+        updated_at: "2026-06-13T11:22:16.199Z",
+      }],
+      recent_effect_history: [{
+        status: "committed",
+        effect_type: "create_one_shot_reminder",
+        created_at: "2026-06-13T15:05:00.000Z",
+        reason_code: "created",
+      }, {
+        status: "blocked",
+        effect_type: "prepare_attack_card",
+        created_at: "2026-06-13T15:06:00.000Z",
+        reason_code: "normal_reply_fit_dominates",
+      }],
+    },
+    projectionSummary: {
+      attack_card_count: 0,
+      defense_card_count: 0,
+      one_shot_pending_count: 1,
+      one_shot_cancelled_recent_count: 0,
+      recurring_reminder_count: 0,
+      potion_session_count: 0,
+      coach_preference_count: 1,
+      recent_effect_history_count: 2,
+    },
+    previous: null,
+    visibleTask: "recent_effects",
+    noteInformationInbound: null,
+  });
+
+  assertEquals(context.filtered_facts.coach_preferences, []);
+  assertEquals(context.filtered_facts.one_shot_reminders.pending, []);
+  assertEquals(context.filtered_facts.recent_effect_history, [{
+    status: "committed",
+    effect_type: "create_one_shot_reminder",
+    created_at: "2026-06-13T15:05:00.000Z",
+    reason_code: "created",
+  }]);
 });

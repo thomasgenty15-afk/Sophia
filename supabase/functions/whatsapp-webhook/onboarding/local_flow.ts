@@ -128,6 +128,7 @@ const STAGES = [
 
 const VISIBLE_TASKS = [
   "plan_wait",
+  "plan_draft_ready_confirm_on_web",
   "plan_ready_resume_preferences",
   "ask_tone",
   "preference_saved_next_challenge",
@@ -645,6 +646,7 @@ export function buildWhatsAppOnboardingLocalDispatcherSystemPrompt(): string {
     "Si le user change clairement de sujet apres plan pret, retourne exit_to_global_dispatcher avec note_information exploitable pour le dispatcher global.",
     "Si safety est present, retourne safety_preempt avec note_information vers safety_crisis. Le dispatcher global normal ne doit pas reprendre.",
     "Si le user rapporte un progres deja fait sur une action du plan pendant l'onboarding, laisse passer track_progress_plan_item via les direct effects/dispatcher global avec une note_information exploitable; ne bloque pas par principe. Si le user exprime seulement une intention future d'avancer, reste dans l'onboarding.",
+    "Si le state est awaiting_plan_finalization et plan_status=draft_pending_confirmation, retourne plan_not_ready_wait, mais le visible doit demander au user de finaliser et activer le plan sur le site Sophia Coach puis de confirmer que c'est bon. Ne dis jamais que Sophia est encore en train de synchroniser dans ce cas.",
     "Si le state est awaiting_plan_finalization et le plan est pret, retourne plan_ready_resume_preferences.",
     "Si le state est une preference, interprete la reponse pour la preference courante uniquement.",
     "Valeurs canoniques: coach.tone=soft|warm_direct|direct; coach.challenge_level=low|balanced|high; coach.question_tendency=low|normal|high.",
@@ -658,7 +660,7 @@ export function buildWhatsAppOnboardingLocalDispatcherSystemPrompt(): string {
     "- preference_updates: uniquement pour la preference courante. Pour status=locked, locked_value doit etre une valeur canonique et label doit etre user-facing; candidate_value est null sauf proposition a confirmer; notes garde les nuances utilisateur sans en faire un fait global; needs_user_confirmation reste false en V1 sauf vraie ambiguite; why_status explique l'indice semantique. Laisse [] si aucun champ preference ne doit etre ecrit.",
     "- plan_feedback: remplis status et summary seulement au state onboarding_plan_creation_feedback. status=positive/negative/mixed/skipped/unclear selon le retour du user; needs_followup=true si le visible doit demander une precision. Ailleurs, status=missing et summary=null.",
     "- topic_choice: remplis au state onboarding_topic_choice ou pour une sortie/handoff. status=plan si le user veut revenir au plan, other_topic si un sujet clair doit passer au global, skip si elle ne veut pas choisir, unclear si trop vague. handoff_hint_for_global_dispatcher et handoff_justification_for_global_dispatcher sont obligatoires pour other_topic, exit_to_global_dispatcher ou handoff_to_local_flow, sinon null.",
-    "- visible_task.kind: choisis le stage visible exact, jamais un stage generique. exit_to_global_dispatcher -> stop_after_plan_ready; progress_attempt_during_onboarding -> progress_attempt_blocked; get_info_product -> inline_product_return; get_info_db -> inline_status_return; safety_preempt -> safety; technical_blocked -> technical_blocked. Pour une preference verrouillee, utilise le prochain stage visible attendu par le reducer.",
+    "- visible_task.kind: choisis le stage visible exact, jamais un stage generique. plan_status=draft_pending_confirmation -> plan_draft_ready_confirm_on_web; exit_to_global_dispatcher -> stop_after_plan_ready; progress_attempt_during_onboarding -> progress_attempt_blocked; get_info_product -> inline_product_return; get_info_db -> inline_status_return; safety_preempt -> safety; technical_blocked -> technical_blocked. Pour une preference verrouillee, utilise le prochain stage visible attendu par le reducer.",
     "- visible_task.conversation_context: seul contexte donne a l'agent visible. Inclure state_summary, user_words, stage, plan compact, preference courante, valeurs faibles/manquantes, feedback/topic summaries, contraintes de ton, do_not_say et evidence_used. Ne mets jamais DB brute, memoire brute, note_information brute, secrets, ids internes inutiles, ou instruction de muter la DB.",
     "- note_information: null pour continuation locale, repeat, progression bloquee et inline local. Obligatoire pour exit_to_global_dispatcher, safety_preempt et handoff_to_local_flow. Elle est consommee par le dispatcher cible, jamais par le prompt visible. Structure canonique: source_flow_id=whatsapp_onboarding, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context non vide, confidence si utile. Mets l'etat actif, collected_state, unresolved_questions, evidence et next focus dans structured_context. Ne mets jamais source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
     "- exit_memo_request: needed=false et exit_reason=none en continuation locale. Pour exit_to_global_dispatcher ou handoff_to_local_flow, needed=true avec flow_summary, hint et justification exploitables. Pour safety_preempt, exit_reason=safety. plan_required_exit_blocked=true seulement quand une sortie est demandee avant plan pret.",
@@ -866,6 +868,38 @@ export async function loadWhatsAppOnboardingPlanProjection(
   const plan = (runtime as any)?.plan ?? null;
   const title = String(plan?.title ?? "").trim() || null;
   if (!title || !plan?.id) {
+    const cycleId = (runtime as any)?.cycle?.id ?? null;
+    const transformationId = (runtime as any)?.transformation?.id ?? null;
+    let query = admin.from("user_plans_v2").select(
+      "id,title,content,status,created_at,updated_at",
+    )
+      .eq("user_id", userId)
+      .eq("status", "draft")
+      .order("updated_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (transformationId) {
+      query = query.eq("transformation_id", transformationId);
+    } else if (cycleId) {
+      query = query.eq("cycle_id", cycleId);
+    }
+    const { data: draftRows } = await query;
+    const draft = Array.isArray(draftRows) ? draftRows[0] : null;
+    const draftTitle = String(draft?.title ?? "").trim() || null;
+    if (draft?.id && draftTitle) {
+      const summary = String(draft?.content?.summary ?? "").trim() ||
+        draftTitle;
+      return {
+        status: "draft_pending_confirmation",
+        is_plan_ready_for_onboarding: false,
+        why_status: "draft_plan_requires_web_confirmation",
+        active_plan_title: draftTitle,
+        active_plan_summary: summary,
+        active_plan_item_count: 0,
+        active_plan_items_user_facing: [],
+        active_action_candidates_for_direct_effects: [],
+      };
+    }
     return {
       status: "missing",
       is_plan_ready_for_onboarding: false,
@@ -1011,6 +1045,9 @@ function buildVisibleConversationContext(args: {
   if (args.reduced.visible_task === "blocked_exit_before_plan_ready") {
     missingOrWeak.push("plan_ready");
   }
+  if (args.reduced.visible_task === "plan_draft_ready_confirm_on_web") {
+    missingOrWeak.push("web_plan_confirmation");
+  }
   if (args.reduced.visible_task === "repeat_question") {
     missingOrWeak.push(currentPreferenceKey ?? "current_onboarding_answer");
   }
@@ -1071,12 +1108,18 @@ function buildVisibleConversationContext(args: {
       args.reduced.visible_task === "progress_attempt_blocked"
         ? "Expliquer que le tour reste dans l'onboarding; ne pas logger de progression."
         : null,
+      args.reduced.visible_task === "plan_draft_ready_confirm_on_web"
+        ? "Demander au user de finaliser et activer le plan sur le site Sophia Coach, puis de confirmer ici quand c'est bon. Si le user affirme que c'est deja fait mais que le plan est encore draft_pending_confirmation, dire que Sophia ne le voit pas encore active."
+        : null,
     ]).slice(0, 8),
     do_not_say: uniqueStrings([
       ...base.do_not_say,
       "Ne dis pas que le dispatcher global a repris.",
       "Ne dis pas qu'une progression de plan a ete enregistree.",
       "Ne fabrique pas une preference non verrouillee.",
+      args.reduced.visible_task === "plan_draft_ready_confirm_on_web"
+        ? "Ne dis pas que Sophia termine de synchroniser le plan."
+        : null,
     ]).slice(0, 8),
     evidence_used: uniqueStrings([
       ...base.evidence_used,

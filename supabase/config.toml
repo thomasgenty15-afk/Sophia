@@ -390,6 +390,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.process-checkins]
 verify_jwt = false
+[functions.schedule-onboarding-week1-validation]
+verify_jwt = false
 [functions.trigger-watcher-batch]
 verify_jwt = false
 [functions.trigger-level-review-transitions-v1]

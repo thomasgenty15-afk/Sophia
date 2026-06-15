@@ -63,6 +63,7 @@ export function buildOneShotReminderAddon(
       `- Parse source: ${outcome.parse_source ?? "unknown"}.`,
       "- Tu dois confirmer clairement que le rappel est programme en intégrant l'heure et l'objet du rappel dans la réponse.",
       "- Blend cette confirmation dans le message de la façon la plus pertinente possible: ne recopie pas forcément l'objet mot pour mot si une formulation naturelle plus claire garde exactement le même sens.",
+      "- Reformule grammaticalement si besoin: évite les formulations rigides comme 'je te rappellerai de ouvrir'; préfère une tournure naturelle comme 'je te rappellerai d'ouvrir', 'je te ferai un rappel pour ouvrir', ou une autre phrase équivalente selon le contexte.",
       "- Ne demande pas au user de confirmer le fuseau ou la ville apres succes: la DB est deja programmee. Si utile, mentionne simplement l'heure locale programmee.",
       "- IMPORTANT: confirme seulement la programmation en base / dans le systeme. Ne promets rien de plus que ce succes confirme.",
       "- Si le message user contenait un autre sujet, reponds aussi a ce sujet.",

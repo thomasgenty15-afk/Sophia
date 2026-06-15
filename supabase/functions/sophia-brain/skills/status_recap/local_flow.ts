@@ -295,6 +295,82 @@ export function buildStatusRecapDbContextPack(
   };
 }
 
+function emptyStatusRecapProjection(): StatusRecapProjection {
+  return {
+    attack_cards: [],
+    defense_cards: [],
+    one_shot_reminders: { pending: [], cancelled_recent: [] },
+    recurring_reminders: [],
+    potion_sessions: [],
+    coach_preferences: [],
+    recent_effect_history: [],
+  };
+}
+
+function statusCategoryRequested(args: {
+  output: StatusRecapLocalDispatcherOutput;
+  category: StatusRecapDbContextPack["loaded_categories"][number];
+  target: StatusRecapObjectType;
+}): boolean {
+  const requested = args.output.read_scope.requested_categories;
+  const specificTargets = args.output.target_objects.filter((target) =>
+    target !== "unknown"
+  );
+  const globalScope = requested.includes("all") && specificTargets.length === 0;
+  return globalScope || requested.includes(args.category) ||
+    args.output.target_objects.includes(args.target);
+}
+
+function filterStatusRecapProjectionForVisibleContext(args: {
+  projection: StatusRecapProjection;
+  output: StatusRecapLocalDispatcherOutput;
+}): StatusRecapProjection {
+  const filtered = emptyStatusRecapProjection();
+  const include = (
+    category: StatusRecapDbContextPack["loaded_categories"][number],
+    target: StatusRecapObjectType,
+  ) =>
+    statusCategoryRequested({
+      output: args.output,
+      category,
+      target,
+    });
+
+  if (include("attack_cards", "attack_card")) {
+    filtered.attack_cards = args.projection.attack_cards;
+  }
+  if (include("defense_cards", "defense_card")) {
+    filtered.defense_cards = args.projection.defense_cards;
+  }
+  if (include("one_shot_reminders", "one_shot_reminder")) {
+    filtered.one_shot_reminders = {
+      pending: args.projection.one_shot_reminders.pending,
+      cancelled_recent: args.output.read_scope.include_cancelled
+        ? args.projection.one_shot_reminders.cancelled_recent
+        : [],
+    };
+  }
+  if (include("recurring_reminders", "recurring_reminder")) {
+    filtered.recurring_reminders = args.projection.recurring_reminders;
+  }
+  if (include("potions", "potion")) {
+    filtered.potion_sessions = args.projection.potion_sessions;
+  }
+  if (include("coach_preferences", "coach_preference")) {
+    filtered.coach_preferences = args.projection.coach_preferences;
+  }
+  if (include("recent_effects", "unknown")) {
+    filtered.recent_effect_history =
+      args.output.read_scope.include_recent_failed_or_blocked_effects
+        ? args.projection.recent_effect_history
+        : args.projection.recent_effect_history.filter((effect) =>
+          effect.status === "committed" || effect.status === "delivered" ||
+          effect.status === "cancelled" || effect.status === "superseded"
+        );
+  }
+  return filtered;
+}
+
 export function readStatusRecapFlowState(
   tempMemory: unknown,
 ): StatusRecapLocalFlowState | null {
@@ -546,6 +622,10 @@ export function buildStatusRecapConversationContext(args: {
   visibleTask: StatusRecapVisibleTaskKind;
   noteInformationInbound: NoteInformation | null;
 }): StatusRecapConversationContext {
+  const filteredFacts = filterStatusRecapProjectionForVisibleContext({
+    projection: args.projection,
+    output: args.output,
+  });
   return {
     kind: "status_recap_conversation_context",
     stage: args.visibleTask,
@@ -562,15 +642,7 @@ export function buildStatusRecapConversationContext(args: {
     include_recent_failed_or_blocked_effects:
       args.output.read_scope.include_recent_failed_or_blocked_effects,
     format: args.output.read_scope.format,
-    filtered_facts: {
-      attack_cards: args.projection.attack_cards,
-      defense_cards: args.projection.defense_cards,
-      one_shot_reminders: args.projection.one_shot_reminders,
-      recurring_reminders: args.projection.recurring_reminders,
-      potion_sessions: args.projection.potion_sessions,
-      coach_preferences: args.projection.coach_preferences,
-      recent_effect_history: args.projection.recent_effect_history,
-    },
+    filtered_facts: filteredFacts,
     previous_answer_summary: args.previous?.last_answer_summary ?? null,
     handoff_data: {
       inbound_note_summary: noteInformationSummary(
@@ -782,7 +854,8 @@ export function dispatcherSystemPrompt(): string {
     "Si le user demande de créer, modifier, annuler, activer, confirmer, changer une préférence, ou demande où/comment dans le produit, sors vers le dispatcher global.",
     "Si le user demande une catégorie précise, une répétition, les sources, les rappels, les préférences coach, les annulés, les effets récents, ou fait/prévu/fragile, reste dans status_recap.",
     "Critère d'ownership prioritaire: juge le message courant avant l'inertie du flow actif. Reste dans status_recap seulement si le message courant demande encore un état, un récap factuel, une source, une répétition, une projection DB ou une clarification directement liée au dernier status.",
-    "Si le message courant donne une consigne de posture conversationnelle, demande une réponse directe, demande un avis/aide/conseil hors état produit, ou parle d'un sujet humain qui n'est plus une lecture DB Sophia, retourne exit_to_global_dispatcher. Exemples de calibration: 'pour la suite sois plus direct', 'réponds direct sur mon rapport', 'je parle du rapport pas de mémoire Sophia'.",
+    "Si le message courant donne une consigne de posture conversationnelle, demande une réponse directe, demande un avis/aide/conseil hors état produit, ou parle d'un sujet humain qui n'est plus une lecture DB Sophia, retourne exit_to_global_dispatcher. Exemples de calibration: 'pour la suite sois plus direct', 'réponds direct sur mon rapport', 'je parle du rapport pas de mémoire Sophia', 'hors statut maintenant', 'sans récap ni préférences coach', 'réponds comme une personne'.",
+    "Scope exact: si le user demande ce qui a été créé, enregistré, modifié, fait ou pas fait pendant l'échange, traite ça comme un status d'effets récents: flow_action=answer_recent_effects, status_intent.kind=recent_effects_recap, read_scope.requested_categories=['recent_effects'], visible_task.kind=recent_effects. N'élargis pas à all et n'inclus pas les préférences coach existantes sauf si le message demande explicitement les préférences ou si un effet récent a réellement modifié une préférence.",
     ...directEffectLocalDispatcherPromptLines(),
     "Si le user veut juste arrêter le flow sans nouveau sujet clair, utilise exit_to_global_dispatcher avec note_information exploitable; le global ne peut reprendre qu'après cette note.",
     "Un recap humain de conversation n'est pas un status DB: utilise human_recap_no_db ou exit_to_global_dispatcher vers normal_coaching.",
@@ -817,6 +890,7 @@ export function dispatcherSystemPrompt(): string {
     "Transition Rules:",
     "- Continuation normale: garde status_recap owner avec une action answer_*/repeat/explain/no_source/narrow_scope/human_recap_no_db et visible_task.kind stage-specific.",
     "- Exit comportemental: si le tour courant n'est plus une demande de status malgré le status_recap actif, sors vers global avec exit_memo.reason=topic_change ou new_goal. Ne réponds pas par inertie sur le dernier thème status.",
+    "- Exit après récap: si le user dit que la suite est hors status, sans récap, sans préférences coach, ou demande une phrase humaine/personnelle, retourne exit_to_global_dispatcher. Ces signaux ne sont pas une demande de répéter le dernier status.",
     "- cancel_flow: annulation locale du récap; state_updates.status=closed, visible_task.kind=stop_or_cancel, note_information=null, exit_memo.needed=false.",
     "- exit_to_global_dispatcher: arrêt demandé du flow, nouveau sujet clair, demande de création/modification/activation/annulation, ou aide produit; state_updates.status=exit_to_global, visible_task.kind=exit_ack, exit_memo.needed=true, note_information obligatoire.",
     "- safety_preempt: risque prioritaire; state_updates.status=safety, visible_task.kind=safety, exit_memo.reason=safety, note_information.target_dispatcher=safety_crisis. Ne passe pas par le dispatcher global normal.",

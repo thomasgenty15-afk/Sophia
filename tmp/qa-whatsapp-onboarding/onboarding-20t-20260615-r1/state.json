@@ -1,0 +1,254 @@
+{
+  "run_id": "onboarding-20t-20260615-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-wa-onb-onboarding-20t-20260615-r1-1781531466113@example.com",
+  "user_id": "23f55f6d-a454-4e80-96d2-d4f5dec436df",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIyM2Y1NWY2ZC1hNDU0LTRlODAtOTZkMi1kNGY1ZGVjNDM2ZGYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxNTM1MDY2LCJpYXQiOjE3ODE1MzE0NjYsImVtYWlsIjoicWEtd2Etb25iLW9uYm9hcmRpbmctMjB0LTIwMjYwNjE1LXIxLTE3ODE1MzE0NjYxMTNAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtd2Etb25iLW9uYm9hcmRpbmctMjB0LTIwMjYwNjE1LXIxLTE3ODE1MzE0NjYxMTNAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6Im9uYm9hcmRpbmctMjB0LTIwMjYwNjE1LXIxIiwic3ViIjoiMjNmNTVmNmQtYTQ1NC00ZTgwLTk2ZDItZDRmNWRlYzQzNmRmIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE1MzE0NjZ9XSwic2Vzc2lvbl9pZCI6ImMyMmIxMDMxLWExZDItNDc5OC1hMjRiLTQ2NjVkZjIyYTI2NyIsImlzX2Fub255bW91cyI6ZmFsc2V9.7wNRv7Mqra63UmPECFWpR8K_lEAGbrbhXT3_3IgG9Eo",
+  "created_at": "2026-06-15T13:51:06.374Z",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "onboarding-20t-20260615-r1-t01",
+      "user": "Salut Sophia, je viens d'arriver sur WhatsApp, on commence ?",
+      "http_status": 503,
+      "ok": false,
+      "response_body": {
+        "code": "BOOT_ERROR",
+        "message": "Worker failed to boot (please check logs)"
+      },
+      "assistant": "",
+      "assistant_metadata": {},
+      "snapshot": {
+        "profile": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "23f55f6d-a454-4e80-96d2-d4f5dec436df",
+              "email": "qa-wa-onb-onboarding-20t-20260615-r1-1781531466113@example.com",
+              "phone_number": "+15551466381",
+              "whatsapp_state": "awaiting_plan_finalization",
+              "onboarding_completed": true,
+              "whatsapp_opted_in": true,
+              "timezone": "Europe/Paris"
+            }
+          ]
+        },
+        "messages": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "facts": {
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "key": "coach.tone",
+              "value": {
+                "label": "Bienveillant ferme",
+                "value": "warm_direct"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.challenge_level",
+              "value": {
+                "label": "Équilibré",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.feedback_style",
+              "value": {
+                "label": "Positif puis amélioration",
+                "value": "positive_then_fix"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.talk_propensity",
+              "value": {
+                "label": "Équilibrée",
+                "value": "balanced"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.message_length",
+              "value": {
+                "label": "Courte",
+                "value": "short"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.message_format",
+              "value": {
+                "label": "Mix adaptatif",
+                "value": "adaptive"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.primary_focus",
+              "value": {
+                "label": "Discipline / action",
+                "value": "discipline"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.emotional_personalization",
+              "value": {
+                "label": "Chaleureux",
+                "value": "warm"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            },
+            {
+              "key": "coach.question_tendency",
+              "value": {
+                "label": "Normale",
+                "value": "normal"
+              },
+              "source_type": "system_default",
+              "reason": "Default coach preferences (v4 canonical)",
+              "updated_at": "2026-06-15T13:51:06.234011+00:00"
+            }
+          ]
+        },
+        "plans": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "items": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "entries": {
+          "status": 400,
+          "ok": false,
+          "body": {
+            "code": "42703",
+            "details": null,
+            "hint": null,
+            "message": "column user_plan_item_entries.status does not exist"
+          }
+        },
+        "userState": {
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "sent_at": "2026-06-15T13:51:16.298Z"
+    }
+  ],
+  "touched": {
+    "cycle_ids": [],
+    "transformation_ids": [],
+    "plan_ids": [],
+    "item_ids": []
+  },
+  "updated_at": "2026-06-15T13:51:16.299Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "whatsapp_outbound_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "whatsapp_inbound_dedup",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_profile_facts",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_plan_item_entries",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_plan_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_plans_v2",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_transformations",
+      "status": 400,
+      "ok": false
+    },
+    {
+      "table": "user_cycles",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-15T13:52:53.077Z"
+}

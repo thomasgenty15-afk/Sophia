@@ -6,8 +6,10 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { extractHiddenFilRougeNote } from "../sophia-brain/chat_text.ts";
 import { processMessage } from "../sophia-brain/router/run.ts";
-import { runUpdateCoachPreferencesIntake } from "../sophia-brain/tools/operations/update_coach_preferences/intake.ts";
-import type { CoachPreferenceKey } from "../sophia-brain/tools/operations/_shared/operation_payload_builder.ts";
+import type { CoachPreferenceLocalUpdate } from "../sophia-brain/tools/operations/update_coach_preferences/contract.ts";
+import { upsertCoachPreferencesFromLockedUpdates } from "../sophia-brain/tools/operations/update_coach_preferences/status.ts";
+
+type CoachPreferenceKey = CoachPreferenceLocalUpdate["key"];
 
 type Body = {
   text?: string;
@@ -98,55 +100,52 @@ function normalizePreferenceText(raw: unknown) {
 
 function inferTonePreference(raw: unknown) {
   const s = normalizePreferenceText(raw);
-  if (/mix|melange|entre les deux|les deux|equilibre/.test(s)) return "mix";
-  if (/direct|franc|cash|secoue|challenge/.test(s)) return "tres_direct";
-  if (/doux|douce|gentil|calme|soft|rassurant/.test(s)) return "doux";
-  return "mix";
+  if (/direct|franc|cash|secoue|challenge/.test(s)) return "direct";
+  if (/doux|douce|gentil|calme|soft|rassurant/.test(s)) return "soft";
+  return "warm_direct";
 }
 
 function inferChallengePreference(raw: unknown) {
   const s = normalizePreferenceText(raw);
   if (
     /fort|eleve|challenge|pousse|boost|secoue|direct|franc|cash|exige/.test(s)
-  ) return "eleve";
-  if (/leger|doucement|peu|low|pas trop|minimum/.test(s)) return "leger";
-  return "modere";
+  ) return "high";
+  if (/leger|doucement|peu|low|pas trop|minimum/.test(s)) return "low";
+  return "balanced";
 }
 
 function inferQuestionPreference(raw: unknown) {
   const s = normalizePreferenceText(raw);
   if (/\b(peu|moins|rare|minimum)\b|pas trop/.test(s)) {
-    return "peu_de_questions";
+    return "low";
   }
   if (/beaucoup|plus|questionne|creuse|approfond/.test(s)) {
-    return "tres_questionnant";
+    return "high";
   }
   return "normal";
 }
 
-function coachPreferenceLabel(key: string, value: string): string {
+function coachPreferenceUserFacingValue(key: string, value: string): string {
   if (key === "coach.tone") {
-    return value === "warm_direct" || value === "bienveillant_ferme"
+    return value === "warm_direct"
       ? "Bienveillant ferme"
-      : value === "mix"
-      ? "Mix doux/direct"
-      : value === "soft" || value === "doux"
+      : value === "soft"
       ? "Doux"
       : "Très direct";
   }
   if (key === "coach.challenge_level") {
-    return value === "high" || value === "eleve"
+    return value === "high"
       ? "Élevé"
-      : value === "low" || value === "leger"
+      : value === "low"
       ? "Léger"
-      : "Modéré";
+      : "Équilibré";
   }
   if (key === "coach.question_tendency") {
-    return value === "low" || value === "peu_de_questions"
+    return value === "low"
       ? "Peu de questions"
-      : value === "high" || value === "tres_questionnant"
+      : value === "high"
       ? "Très questionnant"
-      : "Normal";
+      : "Équilibré";
   }
   return value;
 }
@@ -158,46 +157,28 @@ async function persistCoachPreferenceViaOperation(params: {
   value: string;
   requestId: string;
 }) {
-  const requestedPatch = { [params.key]: params.value } as Partial<
-    Record<CoachPreferenceKey, string>
-  >;
-  const operation = await runUpdateCoachPreferencesIntake({
-    user_id: params.userId,
-    channel: "whatsapp",
-    timezone: "Europe/Paris",
-    message: `Réglage onboarding WhatsApp: ${params.key}=${params.value}`,
-    source: "direct_user_request",
-    trigger_message_id: params.requestId,
-    safety_pregate_risk_band: "none",
-    operation_input: { requested_patch: requestedPatch },
-  });
-  if (operation.status !== "pending_confirmation" || !operation.draft) {
-    throw new Error(`coach_preference_operation_failed:${operation.status}`);
-  }
+  const label = coachPreferenceUserFacingValue(params.key, params.value);
+  const update: CoachPreferenceLocalUpdate = {
+    key: params.key,
+    value: params.value as CoachPreferenceLocalUpdate["value"],
+    status: "locked",
+    user_facing_label: label,
+    user_facing_value: label,
+    reason: "Réglage onboarding WhatsApp explicite.",
+    needs_user_confirmation: false,
+    source: "user_message",
+    confidence: "high",
+    evidence: [`${params.key}=${params.value}`],
+  };
 
-  const draft = operation.draft;
-  const nowIso = new Date().toISOString();
-  const rows = Object.entries(draft.draft.patch).map(([key, raw]) => {
-    const value = String(raw);
-    return {
-      user_id: params.userId,
-      scope: "global",
-      key,
-      value: { value, label: coachPreferenceLabel(key, value) },
-      status: "active",
-      confidence: 1,
-      source_type: "explicit_user",
-      last_source_message_id: null,
-      reason:
-        `operation:update_coach_preferences:${draft.draft.summary}; source=whatsapp_web_sim`,
-      updated_at: nowIso,
-      last_confirmed_at: nowIso,
-    };
+  const { error } = await upsertCoachPreferencesFromLockedUpdates({
+    supabase: params.admin,
+    userId: params.userId,
+    updates: [update],
+    sourceMessageId: params.requestId,
+    reason:
+      `operation:update_coach_preferences:Réglage onboarding WhatsApp ${params.key}=${params.value}; source=whatsapp_web_sim`,
   });
-
-  const { error } = await params.admin
-    .from("user_profile_facts")
-    .upsert(rows as never, { onConflict: "user_id,scope,key" });
   if (error) throw error;
 }
 

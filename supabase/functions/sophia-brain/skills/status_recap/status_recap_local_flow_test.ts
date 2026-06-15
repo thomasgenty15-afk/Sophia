@@ -179,6 +179,15 @@ Deno.test("status_recap dispatcher prompt documents field completion rules for i
   assertStringIncludes(prompt, "réponds direct sur mon rapport");
   assertStringIncludes(prompt, "Transition Rules:");
   assertStringIncludes(prompt, "Exit comportemental");
+  assertStringIncludes(prompt, "hors statut maintenant");
+  assertStringIncludes(prompt, "sans récap ni préférences coach");
+  assertStringIncludes(prompt, "réponds comme une personne");
+  assertStringIncludes(prompt, "Scope exact");
+  assertStringIncludes(prompt, "flow_action=answer_recent_effects");
+  assertStringIncludes(
+    prompt,
+    "read_scope.requested_categories=['recent_effects']",
+  );
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "exit_to_global_dispatcher");
   assertStringIncludes(prompt, "safety_preempt");

@@ -4,6 +4,7 @@ export type WhatsAppOnboardingPlanStatus =
   | "not_started"
   | "generating"
   | "missing"
+  | "draft_pending_confirmation"
   | "ready_pending_activation"
   | "active"
   | "unknown";
@@ -40,6 +41,7 @@ export type WhatsAppOnboardingFlowAction =
 
 export type WhatsAppOnboardingVisibleTaskKind =
   | "plan_wait"
+  | "plan_draft_ready_confirm_on_web"
   | "plan_ready_resume_preferences"
   | "ask_tone"
   | "preference_saved_next_challenge"
