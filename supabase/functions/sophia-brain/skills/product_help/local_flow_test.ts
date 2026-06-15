@@ -189,7 +189,7 @@ Deno.test("product_help documents weekly planning validation", () => {
   assert(feature.explain.includes("confirmer l'organisation proposee"));
   assert(feature.explain.includes("rappels, bilans et suivis"));
   assert(feature.how_to.includes("niveau 2 du plan"));
-  assert(feature.how_to.includes("semaine 1"));
+  assert(feature.how_to.includes("semaine actuelle"));
   assert(feature.benefits.length >= 3);
   assert(feature.limits.includes("Ce n'est pas un bilan de fin de semaine."));
   assert(

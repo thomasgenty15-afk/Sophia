@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis à cran depuis ce matin. J'ai l'impression que tout appuie sur moi, même les petits messages, et mon corps reste tendu comme si je devais encaisser encore.",
+    "assistant": "Je sens à quel point c'est pesant pour toi. C'est épuisant d'avoir cette sensation que tout appuie sur tes épaules et que ton corps reste ainsi sous tension. Je suis simplement là, à tes côtés, pour t'accompagner dans ce moment.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Merci, ça baisse un peu. J'aimerais garder un soutien pour les prochains jours, surtout pour relâcher cette pression qui revient dès que je vois une notification.",
+    "assistant": "Je suis contente que la tension commence à baisser. Pour t'aider à relâcher durablement la pression liée aux notifications ces prochains jours, je te propose la Potion d'apaisement. Est-ce que tu veux qu'on l'utilise ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "active_emotional_repair_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "emotional_repair",
+      "reason_code": "emotional_repair_local_continue",
+      "skill_id": "emotional_repair",
+      "mode": "conversation_skill_local_flow",
+      "status": "continue",
+      "response_intent": "action_card_ready",
+      "flow_action": "potion_bridge_offer",
+      "visible_task": "potion_bridge_offer",
+      "global_dispatcher_skipped": true,
+      "source_dispatcher_local": "emotional_repair.local_dispatcher",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "runtime_trace": [
+        {
+          "component": "emotional_repair",
+          "event": "local_dispatcher_turn",
+          "global_dispatcher_skipped": true,
+          "safety_handoff": false
+        }
+      ]
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, je veux qu'on l'utilise. La pression des notifications est exactement le sujet.",
+    "assistant": "Je comprends. Est-ce que cette pression te donne le sentiment d'être toujours sur le qui-vive ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "active_emotional_repair_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "emotional_repair",
+      "reason_code": "emotional_repair_potion_bridge_blocked",
+      "skill_id": "emotional_repair",
+      "mode": "conversation_skill_local_flow",
+      "status": "continue",
+      "response_intent": "exit",
+      "flow_action": "confirm_potion_bridge",
+      "visible_task": "ask_gentle_clarification",
+      "global_dispatcher_skipped": true,
+      "source_dispatcher_local": "emotional_repair.local_dispatcher",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "select_state_potion",
+          "reason_code": "missing_previous_potion_offer"
+        }
+      ],
+      "runtime_trace": [
+        {
+          "component": "emotional_repair",
+          "event": "local_dispatcher_turn",
+          "global_dispatcher_skipped": true,
+          "safety_handoff": false
+        }
+      ]
+    }
+  }
+]

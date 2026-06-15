@@ -1,0 +1,55 @@
+{
+  "completed": true,
+  "deleted": [
+    {
+      "table": "scheduled_checkins",
+      "count": 0
+    },
+    {
+      "table": "user_recurring_reminders",
+      "count": 0
+    },
+    {
+      "table": "user_potion_sessions",
+      "count": 0
+    },
+    {
+      "table": "chat_messages",
+      "count": 8
+    },
+    {
+      "table": "conversation_turn_traces",
+      "count": 0
+    },
+    {
+      "table": "user_chat_states",
+      "count": 1
+    },
+    {
+      "table": "user_plan_items",
+      "count": 1
+    },
+    {
+      "table": "user_plans_v2",
+      "count": 1
+    },
+    {
+      "table": "user_transformations",
+      "error": "DELETE /user_transformations?cycle_id=eq.acb1bcf8-0b0f-4214-becd-68774e4f9363 failed: 409 {\"code\":\"23503\",\"details\":\"Key (cycle_id, id)=(acb1bcf8-0b0f-4214-becd-68774e4f9363, f3a94731-a662-42f4-87f7-8c78a111c678) is still referenced from table \\\"user_cycles\\\".\",\"hint\":null,\"message\":\"update or delete on table \\\"user_transformations\\\" violates foreign key constraint \\\"user_cycles_active_transformation_fk\\\" on table \\\"user_cycles\\\"\"}"
+    },
+    {
+      "table": "user_cycles",
+      "count": 1
+    },
+    {
+      "table": "profiles",
+      "count": 1
+    },
+    {
+      "table": "auth.users",
+      "count": 1
+    }
+  ],
+  "cleanup_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/operations/2026-06-15-select-state-potion-manual-potion-explicit-manual-amour-r1-amour.cleanup.json",
+  "at": "2026-06-15T15:45:37.407Z"
+}

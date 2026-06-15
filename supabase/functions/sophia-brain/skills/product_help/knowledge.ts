@@ -109,7 +109,7 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     explain:
       "La validation de la semaine sert a confirmer l'organisation proposee pour la semaine a venir. Elle dit a Sophia quels jours et quelles actions sont vraiment acceptes, au lieu de laisser le planning comme une simple proposition. Elle permet ensuite aux rappels, bilans et suivis de s'appuyer sur un planning fiable.",
     how_to:
-      "Dans le Plan, ouvre le niveau actif puis la semaine concernee. Pour la premiere semaine apres onboarding, la validation se trouve dans le niveau 2 du plan, tout en haut de la semaine 1. Pour les semaines suivantes, elle devient disponible apres le point weekly ou via le rappel prevu.",
+      "Dans le Plan, ouvre le niveau actif puis la semaine concernee. Pour la premiere semaine apres onboarding, la validation se trouve dans le niveau 2 du plan, tout en haut de la semaine actuelle. Pour les semaines suivantes, elle devient disponible apres le point weekly ou via le rappel prevu.",
     benefits: [
       "Confirme les jours et actions que le user accepte vraiment.",
       "Evite que Sophia s'appuie sur un planning encore implicite.",

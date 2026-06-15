@@ -42,7 +42,7 @@ Deno.test("weekly planning confirmation detects first confirmation", () => {
   assertEquals(payload.summary.changed_action_count, 0);
   assertStringIncludes(
     buildWeeklyPlanningConfirmationMessage(payload),
-    "planning de la semaine est valide",
+    "Ta semaine est cadree",
   );
 });
 
@@ -62,6 +62,10 @@ Deno.test("weekly planning confirmation detects moved days", () => {
   assertStringIncludes(
     buildWeeklyPlanningConfirmationMessage(payload),
     "passe de mardi a jeudi",
+  );
+  assertStringIncludes(
+    buildWeeklyPlanningConfirmationMessage(payload),
+    "Ta semaine est a jour",
   );
 });
 

@@ -51,9 +51,10 @@ Deno.test("onboarding week1 validation waits after recent WhatsApp activity", ()
 
 Deno.test("onboarding week1 validation messages include platform location and summary", () => {
   const prompt = buildOnboardingWeek1ValidationPromptMessage();
-  assertStringIncludes(prompt, "valider ta premiere semaine");
+  assertStringIncludes(prompt, "valider les actions de ta semaine");
   assertStringIncludes(prompt, "niveau 2 du plan");
-  assertStringIncludes(prompt, "haut de la semaine 1");
+  assertStringIncludes(prompt, "haut de la semaine actuelle");
+  assertEquals(prompt.includes("Ton plan est pret"), false);
 
   const auto = buildOnboardingWeek1AutoValidationMessage({
     summaryLines: ["- Sport : lundi et mercredi"],

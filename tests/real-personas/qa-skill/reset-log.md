@@ -339,3 +339,6 @@
 - 2026-06-15T13:59:58Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_clarte_20260615_r1 user_id=31e24ece-cbb6-4330-885e-7f43e0f96804
 - 2026-06-15T13:59:59Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_courage_20260615_r1 user_id=34f6fd44-27aa-4e6c-b17d-5f42c1eb70ee
 - 2026-06-15T14:00:00Z reset persona=qa-skill connection=demotivation_repair_demotivation_bridge_anti_decrochage_20260615_r1 user_id=ea3074bb-2b54-4ecd-b165-9742c36106ac
+- 2026-06-15T15:31:59Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r2_apaisement user_id=156b0c93-1d94-4abd-b08b-6eb53de6fdb0
+- 2026-06-15T15:31:59Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r2_amour user_id=3ea725c5-8158-4ff2-a11a-c6686156ee75
+- 2026-06-15T15:32:00Z reset persona=qa-skill connection=emotional_repair_emotional_repair_potion_bridges_r2_guerison user_id=a7d0e054-5dd2-499c-9e6f-8b4e076f6d5b

@@ -246,17 +246,17 @@ export function buildWeeklyPlanningConfirmationMessage(
     .filter((change) => change.change_kind !== "unchanged")
     .slice(0, 3);
   if (payload.confirmation_kind === "first_confirmation") {
-    return `Ton planning de la semaine est valide. Je l'ai bien pris en compte.`;
+    return "C'est valide, je l'ai bien pris en compte ✅ Ta semaine est cadree: on peut s'appuyer dessus pour avancer.";
   }
   if (visibleChanges.length === 0) {
-    return "Ton planning est bien valide, aucun changement a signaler.";
+    return "C'est bien pris en compte ✅ Ton planning reste valide, aucun changement a signaler.";
   }
   const suffix = payload.summary.changed_action_count > visibleChanges.length
     ? ` + ${
       payload.summary.changed_action_count - visibleChanges.length
     } autre(s) changement(s).`
     : "";
-  return `C'est note: ${
+  return `C'est bien pris en compte: ${
     visibleChanges.map((change) => change.human_summary).join(" ")
-  }${suffix}`;
+  }${suffix} Ta semaine est a jour ✅`;
 }

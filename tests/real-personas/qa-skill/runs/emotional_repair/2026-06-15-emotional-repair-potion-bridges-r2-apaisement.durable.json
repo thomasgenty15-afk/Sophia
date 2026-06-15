@@ -1,0 +1,197 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "10a7ce91-d83a-4582-85ec-01e6d954c3cf",
+        "role": "user",
+        "content": "Je suis à cran depuis ce matin. J'ai l'impression que tout appuie sur moi, même les petits messages, et mon corps reste tendu comme si je devais encaisser encore.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:26:50.520717+00:00"
+      },
+      {
+        "id": "2e970f22-2b1b-4a11-b1e6-3f0eb126a436",
+        "role": "assistant",
+        "content": "Je sens à quel point c'est pesant pour toi. C'est épuisant d'avoir cette sensation que tout appuie sur tes épaules et que ton corps reste ainsi sous tension. Je suis simplement là, à tes côtés, pour t'accompagner dans ce moment.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T15:27:53.439793+00:00"
+      },
+      {
+        "id": "865fe0e6-22e6-4265-9b3b-1a26ad0fed28",
+        "role": "user",
+        "content": "Merci, ça baisse un peu. J'aimerais garder un soutien pour les prochains jours, surtout pour relâcher cette pression qui revient dès que je vois une notification.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:28:17.148251+00:00"
+      },
+      {
+        "id": "cc9ad160-5ca6-429c-b10d-6b7ab4344674",
+        "role": "assistant",
+        "content": "Je suis contente que la tension commence à baisser. Pour t'aider à relâcher durablement la pression liée aux notifications ces prochains jours, je te propose la Potion d'apaisement. Est-ce que tu veux qu'on l'utilise ?",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "potion_bridge_offer",
+              "reason_code": "emotional_repair_local_continue",
+              "visible_task": "potion_bridge_offer",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "response_intent": "action_card_ready",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T15:28:32.61264+00:00"
+      },
+      {
+        "id": "a35cc6d8-e678-4dbe-9659-2e38fc996752",
+        "role": "user",
+        "content": "Oui, je veux qu'on l'utilise. La pression des notifications est exactement le sujet.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:28:52.714741+00:00"
+      },
+      {
+        "id": "76be7c36-9bc3-4333-b77e-05f80eb8dd71",
+        "role": "assistant",
+        "content": "Je comprends. Est-ce que cette pression te donne le sentiment d'être toujours sur le qui-vive ?",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "confirm_potion_bridge",
+              "reason_code": "emotional_repair_potion_bridge_blocked",
+              "visible_task": "ask_gentle_clarification",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "select_state_potion",
+                  "reason_code": "missing_previous_potion_offer"
+                }
+              ],
+              "response_intent": "exit",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T15:29:24.574897+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

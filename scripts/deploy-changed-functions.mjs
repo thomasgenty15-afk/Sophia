@@ -9,15 +9,16 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const FUNCTIONS_ROOT = "supabase/functions";
-const SHARED_ROOT = join(FUNCTIONS_ROOT, "_shared");
 const MANIFEST_ROOT = "supabase/.temp/functions-deploy-manifests";
 const MANIFEST_VERSION = 1;
 const IGNORED_DIRS = new Set(["node_modules", ".git"]);
 const IGNORED_FILES = new Set([".DS_Store"]);
+const LOCAL_IMPORT_EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".json"];
+const LOCAL_IMPORT_INDEXES = ["index.ts", "index.tsx", "index.js", "index.mjs"];
 
 function usage() {
   return [
@@ -159,22 +160,13 @@ function emptyManifest(projectRef) {
   };
 }
 
+function normalizePath(path) {
+  return path.replace(/\\/g, "/");
+}
+
 function isIgnoredPath(path) {
   const parts = path.split("/");
   return parts.some((part) => IGNORED_DIRS.has(part)) || IGNORED_FILES.has(parts.at(-1));
-}
-
-function walkFiles(path) {
-  if (!existsSync(path)) return [];
-
-  const stat = statSync(path);
-  if (stat.isFile()) return isIgnoredPath(path) ? [] : [path];
-  if (!stat.isDirectory()) return [];
-
-  return readdirSync(path)
-    .flatMap((name) => walkFiles(join(path, name)))
-    .filter((file) => !isIgnoredPath(file))
-    .sort();
 }
 
 function localFunctionNames() {
@@ -188,10 +180,99 @@ function localFunctionNames() {
 
 function hashFile(hash, file) {
   hash.update("file\0");
-  hash.update(file);
+  hash.update(normalizePath(file));
   hash.update("\0");
   hash.update(readFileSync(file));
   hash.update("\0");
+}
+
+function isParseableSource(file) {
+  return /\.(ts|tsx|js|jsx|mjs|cjs)$/.test(file);
+}
+
+function importSpecs(source) {
+  const specs = [];
+  const pattern =
+    /(?:import|export)\s+(?:type\s+)?(?:[^"'()]*?\s+from\s*)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
+  for (const match of source.matchAll(pattern)) {
+    specs.push(match[1] ?? match[2]);
+  }
+  return specs.filter(Boolean);
+}
+
+function resolveLocalImport(fromFile, spec) {
+  if (!spec.startsWith(".") && !spec.startsWith("/")) return null;
+  const cleanSpec = spec.split(/[?#]/, 1)[0];
+  const base = spec.startsWith("/")
+    ? resolve(cleanSpec.slice(1))
+    : resolve(dirname(fromFile), cleanSpec);
+
+  const candidates = [
+    ...LOCAL_IMPORT_EXTENSIONS.map((ext) => `${base}${ext}`),
+    ...LOCAL_IMPORT_INDEXES.map((file) => join(base, file)),
+  ];
+
+  for (const candidate of candidates) {
+    if (!existsSync(candidate)) continue;
+    const stat = statSync(candidate);
+    if (stat.isFile() && !isIgnoredPath(normalizePath(candidate))) {
+      return normalizePath(candidate);
+    }
+  }
+
+  return null;
+}
+
+function localImportGraph(entryFile) {
+  const root = normalizePath(resolve("."));
+  const visited = new Set();
+  const stack = [normalizePath(resolve(entryFile))];
+
+  while (stack.length > 0) {
+    const file = stack.pop();
+    if (!file || visited.has(file) || isIgnoredPath(file) || !existsSync(file)) {
+      continue;
+    }
+
+    const stat = statSync(file);
+    if (!stat.isFile()) continue;
+
+    visited.add(file);
+    if (!isParseableSource(file)) continue;
+
+    const source = readFileSync(file, "utf8");
+    for (const spec of importSpecs(source)) {
+      const resolved = resolveLocalImport(file, spec);
+      if (resolved && resolved.startsWith(root) && !visited.has(resolved)) {
+        stack.push(resolved);
+      }
+    }
+  }
+
+  return [...visited]
+    .map((file) => normalizePath(file).slice(root.length + 1))
+    .sort();
+}
+
+function functionConfigSection(name) {
+  const configPath = "supabase/config.toml";
+  if (!existsSync(configPath)) return "";
+
+  const header = `[functions.${name}]`;
+  const lines = readFileSync(configPath, "utf8").split(/\r?\n/);
+  const section = [];
+  let inSection = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      if (inSection) break;
+      inSection = trimmed === header;
+    }
+    if (inSection) section.push(line);
+  }
+
+  return section.join("\n");
 }
 
 function hashFunction(name) {
@@ -199,21 +280,23 @@ function hashFunction(name) {
   hash.update(`supabase-function-deploy-hash-v${MANIFEST_VERSION}\0`);
 
   const inputs = [
-    "supabase/config.toml",
     "supabase/functions/import_map.json",
     "supabase/functions/deno.json",
-    "deno.lock",
+    join(FUNCTIONS_ROOT, name, "config.toml"),
   ].filter((file) => existsSync(file));
 
   for (const file of inputs) {
     hashFile(hash, file);
   }
 
-  for (const file of walkFiles(SHARED_ROOT)) {
-    hashFile(hash, file);
+  const configSection = functionConfigSection(name);
+  if (configSection) {
+    hash.update("config-section\0");
+    hash.update(configSection);
+    hash.update("\0");
   }
 
-  for (const file of walkFiles(join(FUNCTIONS_ROOT, name))) {
+  for (const file of localImportGraph(join(FUNCTIONS_ROOT, name, "index.ts"))) {
     hashFile(hash, file);
   }
 

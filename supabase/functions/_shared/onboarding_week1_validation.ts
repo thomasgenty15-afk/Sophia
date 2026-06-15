@@ -274,10 +274,10 @@ export async function autoConfirmOnboardingWeek1Planning(
 
 export function buildOnboardingWeek1ValidationPromptMessage(): string {
   return [
-    "Ton plan est pret.",
+    "Il te reste a valider les actions de ta semaine sur la plateforme 🙂",
     "",
-    "Il te reste juste a valider ta premiere semaine sur la plateforme.",
-    "Tu la trouveras dans le niveau 2 du plan, tout en haut de la semaine 1.",
+    "Tu les trouveras dans le niveau 2 du plan, tout en haut de la semaine actuelle.",
+    "Ca me permet de partir sur les bons jours et les bonnes actions avec toi ✅",
   ].join("\n");
 }
 

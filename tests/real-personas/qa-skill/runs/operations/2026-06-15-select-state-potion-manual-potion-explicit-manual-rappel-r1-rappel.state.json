@@ -1,0 +1,2854 @@
+{
+  "run_id": "potion-explicit-manual-rappel-r1",
+  "date": "2026-06-15",
+  "potion": "rappel",
+  "persona": "qa-skill",
+  "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+  "connection_name": "manual_state_potion_potion-explicit-manual-rappel-r1_rappel",
+  "connection_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/manual_state_potion_potion-explicit-manual-rappel-r1_rappel.json",
+  "auth": {
+    "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+    "email": "qa-potion-explicit-manual-rappel-r1-rappel-bf12b051@example.com",
+    "password": "Qa1!8c886772-9590-44fe-9420-1c7f6c43cb9c",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJkZWNhZTk4ZS0wZjZiLTQ4ZWUtYjg0MS1mMjM1ZmJhY2M3MWUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxNTQxNTQwLCJpYXQiOjE3ODE1Mzc5NDAsImVtYWlsIjoicWEtcG90aW9uLWV4cGxpY2l0LW1hbnVhbC1yYXBwZWwtcjEtcmFwcGVsLWJmMTJiMDUxQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsiY3JlYXRlZF9ieSI6Im1hbnVhbF9zdGF0ZV9wb3Rpb25fcWEiLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInBvdGlvbl90eXBlIjoicmFwcGVsIiwicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdLCJydW5faWQiOiJwb3Rpb24tZXhwbGljaXQtbWFudWFsLXJhcHBlbC1yMSIsInRlbXBvcmFyeV9xYV9jb25uZWN0aW9uIjp0cnVlfSwidXNlcl9tZXRhZGF0YSI6eyJjcmVhdGVkX2J5IjoibWFudWFsX3N0YXRlX3BvdGlvbl9xYSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInBvdGlvbl90eXBlIjoicmFwcGVsIiwicnVuX2lkIjoicG90aW9uLWV4cGxpY2l0LW1hbnVhbC1yYXBwZWwtcjEiLCJ0ZW1wb3JhcnlfcWFfY29ubmVjdGlvbiI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE1Mzc5NDB9XSwic2Vzc2lvbl9pZCI6IjA5ZDQ4YWVjLWQ4YjMtNDYyNy1hMDgzLTgzZTdjZTVlZjNjZCIsImlzX2Fub255bW91cyI6ZmFsc2V9.xrmgSblrpEodC2jmMGC5gTj0yzYZs4fGzkedpneqKL8",
+    "refresh_token": "f7mng4iy7swn"
+  },
+  "fixture": {
+    "cycle": {
+      "id": "891dbe3f-b6e3-4e7d-b292-972cb5a96a32",
+      "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+      "status": "active",
+      "raw_intake_text": "QA manuelle potion: contexte local temporaire pour tester le flow complet.",
+      "intake_language": "fr",
+      "duration_months": 1,
+      "birth_date_snapshot": null,
+      "gender_snapshot": null,
+      "active_transformation_id": null,
+      "version": 1,
+      "created_at": "2026-06-15T15:39:00.5087+00:00",
+      "updated_at": "2026-06-15T15:39:00.5087+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "validated_structure": null,
+      "requested_pace": null
+    },
+    "transformation": {
+      "id": "f6dd5231-a3fd-455f-a4dd-81ae11af8310",
+      "cycle_id": "891dbe3f-b6e3-4e7d-b292-972cb5a96a32",
+      "priority_order": 1,
+      "status": "active",
+      "title": "Revenir aux petits gestes du soir",
+      "internal_summary": "Fixture QA manuelle pour tester la potion rappel.",
+      "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+      "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+      "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+      "questionnaire_schema": null,
+      "questionnaire_answers": {
+        "potion_qa": "rappel",
+        "ton_prefere": "doux et direct",
+        "rythme_prefere": "matin"
+      },
+      "completion_summary": null,
+      "handoff_payload": {
+        "phase_1": {
+          "deep_why": {
+            "answers": [
+              {
+                "answer": "Je veux proteger mon energie et ma confiance.",
+                "question_id": "why_1"
+              },
+              {
+                "answer": "Je veux rester present au geste juste au lieu de me crisper.",
+                "question_id": "why_2"
+              }
+            ]
+          }
+        }
+      },
+      "created_at": "2026-06-15T15:39:00.514797+00:00",
+      "updated_at": "2026-06-15T15:39:00.514797+00:00",
+      "activated_at": "2026-06-15T15:39:00.498+00:00",
+      "completed_at": null,
+      "ordering_rationale": null,
+      "unlocked_principles": {
+        "kaizen": true
+      },
+      "base_de_vie_payload": null
+    },
+    "plan": {
+      "id": "d323548b-41b3-47d0-a6c5-516c2ceb3a10",
+      "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+      "cycle_id": "891dbe3f-b6e3-4e7d-b292-972cb5a96a32",
+      "transformation_id": "f6dd5231-a3fd-455f-a4dd-81ae11af8310",
+      "status": "active",
+      "version": 1,
+      "title": "Plan QA manuel rappel",
+      "content": {
+        "source": "manual_state_potion_qa",
+        "strategy": {
+          "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+          "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+          "main_constraint": "La surcharge transforme les petits pas en montagne.",
+          "success_definition": "Revenir a un geste simple au bon moment."
+        }
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": "2026-06-15T15:39:00.498+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-06-15T15:39:00.527405+00:00",
+      "updated_at": "2026-06-15T15:39:00.527405+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "item": {
+      "id": "c7f1752f-3264-4ecd-9eaf-8c13ea3182b0",
+      "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+      "cycle_id": "891dbe3f-b6e3-4e7d-b292-972cb5a96a32",
+      "transformation_id": "f6dd5231-a3fd-455f-a4dd-81ae11af8310",
+      "plan_id": "d323548b-41b3-47d0-a6c5-516c2ceb3a10",
+      "dimension": "habits",
+      "kind": "habit",
+      "status": "active",
+      "title": "Marcher dix minutes puis ranger le bureau",
+      "description": "Action QA active visible par le skill potion.",
+      "tracking_type": "boolean",
+      "activation_order": 1,
+      "activation_condition": null,
+      "current_habit_state": "active_building",
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": 1,
+      "current_reps": 0,
+      "cadence_label": "quotidien",
+      "scheduled_days": [
+        "mon"
+      ],
+      "time_of_day": "09:00",
+      "start_after_item_id": null,
+      "payload": {
+        "run_id": "potion-explicit-manual-rappel-r1",
+        "source": "manual_state_potion_qa",
+        "potion_type": "rappel"
+      },
+      "created_at": "2026-06-15T15:39:00.536931+00:00",
+      "updated_at": "2026-06-15T15:39:00.536931+00:00",
+      "activated_at": "2026-06-15T15:39:00.498+00:00",
+      "completed_at": null,
+      "phase_id": null,
+      "phase_order": null,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_required",
+      "cards_generated_at": null
+    }
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1",
+      "user": "Je veux une potion de rappel. Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte.",
+      "assistant": "On dirait que ce petit rangement t'échappe dès que tu fermes l'ordinateur. Pour ta Potion anti-décrochage, est-ce que l'idée d'un simple oubli correspond bien à ce que tu ressens ?",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1",
+        "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "On dirait que ce petit rangement t'échappe dès que tu fermes l'ordinateur. Pour ta Potion anti-décrochage, est-ce que l'idée d'un simple oubli correspond bien à ce que tu ressens ?",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1",
+              "source_message_id": "d7e05c9c-36b4-4f66-adc7-92aeca9aafc2",
+              "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [
+                {
+                  "operation_type": "select_state_potion",
+                  "explicitness": "explicit",
+                  "target_hint": "potion de rappel",
+                  "operation_input": {
+                    "potion_type": "rappel",
+                    "evidence": [
+                      "Je veux une potion de rappel",
+                      "Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte"
+                    ]
+                  },
+                  "confidence_band": "high",
+                  "score": 1,
+                  "ambiguity": "none",
+                  "user_intent": "create"
+                }
+              ],
+              "flow_opportunity": null,
+              "note_information": {
+                "source_flow_id": "global_dispatcher",
+                "handoff_reason": "explicit_user_request",
+                "target_dispatcher": "select_state_potion",
+                "handoff_context_for_next_dispatcher": "User explicitly asks for a 'potion de rappel' to address a recurring execution failure (forgetting to tidy up after closing the computer).",
+                "user_words": [
+                  "Je veux une potion de rappel",
+                  "Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte",
+                  "Je veux une potion de rappel. Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte."
+                ],
+                "structured_context": {
+                  "primary_signal_path": "tool_skill_intents[0]",
+                  "target_kind": "tool_skill",
+                  "target_flow": "select_state_potion",
+                  "potion_type": "rappel",
+                  "confidence_band": "high",
+                  "evidence": [
+                    "Je veux une potion de rappel"
+                  ],
+                  "recommended_next_focus": "Launch the potion selection/activation flow for 'rappel'."
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "c7f1752f-3264-4ecd-9eaf-8c13ea3182b0",
+                    "query_hint": "petit rangement soir",
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "high",
+                    "entity_type": null
+                  },
+                  {
+                    "type": "runtime_snapshot",
+                    "key": "daily_conversation_pulse:current_week",
+                    "query_hint": "échecs rangement trois derniers soirs",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "normal_reply_fit_score": 0.1,
+              "normal_reply_fit_evidence": [
+                "Demande explicite d'un outil produit (potion) pour un problème d'exécution concret."
+              ],
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "tool_skill_intent_start",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "select_state_potion.rappel",
+              "active_flow_debug": {
+                "version": "active_flow_debug_v1",
+                "snapshots": [
+                  {
+                    "phase": "user_state_loaded",
+                    "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 0,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_onboarding_and_reconcile",
+                    "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "undefined"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "read_active_flow_state",
+                    "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_pending_confirmation_reload",
+                    "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 1,
+                      "flow_keys": [],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": null
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "before_run_conversation_routers",
+                    "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": null,
+                    "route_active_flow_reason_code": null
+                  },
+                  {
+                    "phase": "after_run_conversation_routers",
+                    "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                    "temp_memory": {
+                      "temp_memory_type": "object",
+                      "has_temp_memory": true,
+                      "temp_memory_key_count": 3,
+                      "flow_keys": [
+                        "__conversation_risk_history",
+                        "__conversation_risk_last"
+                      ],
+                      "raw_active_key": null,
+                      "raw_active_skill": {
+                        "present": false,
+                        "value_type": "null"
+                      },
+                      "conversation_risk_last": {
+                        "should_exit_flows": false,
+                        "score": 0,
+                        "reason_codes": []
+                      }
+                    },
+                    "active_skill_state": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "active_tool_skill_id": null,
+                    "pending_confirmation_id": null,
+                    "route_reason_code": "tool_skill_intent_start",
+                    "route_active_flow_reason_code": "no_active_flow"
+                  }
+                ]
+              }
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.rappel",
+              "reason_code": "rappel_field_proposed",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "clarifying",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.rappel",
+                  "event": "active_rappel_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": null
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "note_information_created",
+                  "source_flow": "select_state_potion",
+                  "target_dispatcher": "other_local",
+                  "target_subdispatcher": "select_state_potion.rappel",
+                  "handoff_reason": "clarification_resolved"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.rappel",
+                  "flow_action": "answer_current_field",
+                  "confidence": "high",
+                  "selected_potion": "rappel",
+                  "current_field_id": "drift_style",
+                  "visible_task": "confirm_proposal",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.rappel",
+                  "status": "clarifying",
+                  "reason_code": "rappel_field_proposed",
+                  "visible_task": "confirm_proposal",
+                  "current_field_id": "drift_style",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.rappel",
+                  "visible_task": "confirm_proposal",
+                  "field_or_stage": "drift_style"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "confirm_proposal",
+                  "handoff_status": "clarifying",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": {
+                "source_flow_id": "select_state_potion",
+                "handoff_reason": "clarification_resolved",
+                "target_dispatcher": "other_local",
+                "handoff_context_for_next_dispatcher": "Potion anti-décrochage | tache visible=ask_deeper | aucun champ verrouillé",
+                "user_words": [
+                  "Je veux une potion de rappel. Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte."
+                ],
+                "structured_context": {
+                  "source_flow": "select_state_potion",
+                  "user_message_summary": "Je veux une potion de rappel. Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte.",
+                  "active_flow_summary": "Potion anti-décrochage | tache visible=ask_deeper | aucun champ verrouillé",
+                  "selected_potion": {
+                    "potion_type": "rappel",
+                    "potion_name": "Potion anti-décrochage"
+                  },
+                  "collected_fields": {},
+                  "unresolved_questions": [
+                    {
+                      "field_id": "drift_target",
+                      "field_label": "Par rapport a quoi tu sens que tu decroches ?",
+                      "reason": "champ plateforme pas encore verrouillé",
+                      "followup_question": null
+                    },
+                    {
+                      "field_id": "drift_style",
+                      "field_label": "Tu decroches plutot comment ?",
+                      "reason": "champ plateforme pas encore verrouillé",
+                      "followup_question": null
+                    }
+                  ],
+                  "handoff_data": {
+                    "potion_name": "Potion anti-décrochage",
+                    "platform_destination": "section État / Potions",
+                    "fields": [
+                      {
+                        "field_id": "drift_target",
+                        "field_label": "Par rapport a quoi tu sens que tu decroches ?",
+                        "status": "missing",
+                        "value": null,
+                        "candidate_value": null,
+                        "locked_value": null,
+                        "option_value": null,
+                        "option_label": null,
+                        "needs_user_confirmation": false,
+                        "detail_sufficiency": {
+                          "status": "unknown",
+                          "reason": null,
+                          "followup_question": null,
+                          "followup_asked": false,
+                          "followup_answered": false,
+                          "evidence": []
+                        }
+                      },
+                      {
+                        "field_id": "drift_style",
+                        "field_label": "Tu decroches plutot comment ?",
+                        "status": "missing",
+                        "value": null,
+                        "candidate_value": null,
+                        "locked_value": null,
+                        "option_value": null,
+                        "option_label": null,
+                        "needs_user_confirmation": false,
+                        "detail_sufficiency": {
+                          "status": "sufficient",
+                          "reason": null,
+                          "followup_question": null,
+                          "followup_asked": false,
+                          "followup_answered": true,
+                          "evidence": []
+                        }
+                      }
+                    ]
+                  },
+                  "evidence_used": [
+                    "local_dispatcher_activation"
+                  ],
+                  "recommended_next_focus": "select_state_potion.rappel"
+                }
+              },
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "rappel_field_proposed",
+                "executable_from_chat": false,
+                "draft": null
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.rappel",
+                  "status": "delivered",
+                  "reason_code": "rappel_field_proposed",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "clarifying",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1",
+            "source_message_id": "d7e05c9c-36b4-4f66-adc7-92aeca9aafc2",
+            "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [
+              {
+                "operation_type": "select_state_potion",
+                "explicitness": "explicit",
+                "target_hint": "potion de rappel",
+                "operation_input": {
+                  "potion_type": "rappel",
+                  "evidence": [
+                    "Je veux une potion de rappel",
+                    "Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte"
+                  ]
+                },
+                "confidence_band": "high",
+                "score": 1,
+                "ambiguity": "none",
+                "user_intent": "create"
+              }
+            ],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "select_state_potion",
+              "handoff_context_for_next_dispatcher": "User explicitly asks for a 'potion de rappel' to address a recurring execution failure (forgetting to tidy up after closing the computer).",
+              "user_words": [
+                "Je veux une potion de rappel",
+                "Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte",
+                "Je veux une potion de rappel. Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte."
+              ],
+              "structured_context": {
+                "primary_signal_path": "tool_skill_intents[0]",
+                "target_kind": "tool_skill",
+                "target_flow": "select_state_potion",
+                "potion_type": "rappel",
+                "confidence_band": "high",
+                "evidence": [
+                  "Je veux une potion de rappel"
+                ],
+                "recommended_next_focus": "Launch the potion selection/activation flow for 'rappel'."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "c7f1752f-3264-4ecd-9eaf-8c13ea3182b0",
+                  "query_hint": "petit rangement soir",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "runtime_snapshot",
+                  "key": "daily_conversation_pulse:current_week",
+                  "query_hint": "échecs rangement trois derniers soirs",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.1,
+            "normal_reply_fit_evidence": [
+              "Demande explicite d'un outil produit (potion) pour un problème d'exécution concret."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "tool_skill_intent_start",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "select_state_potion.rappel",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "tool_skill_intent_start",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.rappel",
+            "reason_code": "rappel_field_proposed",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "clarifying",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.rappel",
+                "event": "active_rappel_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": null
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "note_information_created",
+                "source_flow": "select_state_potion",
+                "target_dispatcher": "other_local",
+                "target_subdispatcher": "select_state_potion.rappel",
+                "handoff_reason": "clarification_resolved"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.rappel",
+                "flow_action": "answer_current_field",
+                "confidence": "high",
+                "selected_potion": "rappel",
+                "current_field_id": "drift_style",
+                "visible_task": "confirm_proposal",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.rappel",
+                "status": "clarifying",
+                "reason_code": "rappel_field_proposed",
+                "visible_task": "confirm_proposal",
+                "current_field_id": "drift_style",
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.rappel",
+                "visible_task": "confirm_proposal",
+                "field_or_stage": "drift_style"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "confirm_proposal",
+                "handoff_status": "clarifying",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": {
+              "source_flow_id": "select_state_potion",
+              "handoff_reason": "clarification_resolved",
+              "target_dispatcher": "other_local",
+              "handoff_context_for_next_dispatcher": "Potion anti-décrochage | tache visible=ask_deeper | aucun champ verrouillé",
+              "user_words": [
+                "Je veux une potion de rappel. Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte."
+              ],
+              "structured_context": {
+                "source_flow": "select_state_potion",
+                "user_message_summary": "Je veux une potion de rappel. Depuis trois soirs, je ferme l'ordinateur et je laisse tomber mon petit rangement sans m'en rendre compte.",
+                "active_flow_summary": "Potion anti-décrochage | tache visible=ask_deeper | aucun champ verrouillé",
+                "selected_potion": {
+                  "potion_type": "rappel",
+                  "potion_name": "Potion anti-décrochage"
+                },
+                "collected_fields": {},
+                "unresolved_questions": [
+                  {
+                    "field_id": "drift_target",
+                    "field_label": "Par rapport a quoi tu sens que tu decroches ?",
+                    "reason": "champ plateforme pas encore verrouillé",
+                    "followup_question": null
+                  },
+                  {
+                    "field_id": "drift_style",
+                    "field_label": "Tu decroches plutot comment ?",
+                    "reason": "champ plateforme pas encore verrouillé",
+                    "followup_question": null
+                  }
+                ],
+                "handoff_data": {
+                  "potion_name": "Potion anti-décrochage",
+                  "platform_destination": "section État / Potions",
+                  "fields": [
+                    {
+                      "field_id": "drift_target",
+                      "field_label": "Par rapport a quoi tu sens que tu decroches ?",
+                      "status": "missing",
+                      "value": null,
+                      "candidate_value": null,
+                      "locked_value": null,
+                      "option_value": null,
+                      "option_label": null,
+                      "needs_user_confirmation": false,
+                      "detail_sufficiency": {
+                        "status": "unknown",
+                        "reason": null,
+                        "followup_question": null,
+                        "followup_asked": false,
+                        "followup_answered": false,
+                        "evidence": []
+                      }
+                    },
+                    {
+                      "field_id": "drift_style",
+                      "field_label": "Tu decroches plutot comment ?",
+                      "status": "missing",
+                      "value": null,
+                      "candidate_value": null,
+                      "locked_value": null,
+                      "option_value": null,
+                      "option_label": null,
+                      "needs_user_confirmation": false,
+                      "detail_sufficiency": {
+                        "status": "sufficient",
+                        "reason": null,
+                        "followup_question": null,
+                        "followup_asked": false,
+                        "followup_answered": true,
+                        "evidence": []
+                      }
+                    }
+                  ]
+                },
+                "evidence_used": [
+                  "local_dispatcher_activation"
+                ],
+                "recommended_next_focus": "select_state_potion.rappel"
+              }
+            },
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "rappel_field_proposed",
+              "executable_from_chat": false,
+              "draft": null
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t01-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.rappel",
+                "status": "delivered",
+                "reason_code": "rappel_field_proposed",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "clarifying",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.rappel",
+        "route_reason": "tool_skill_intent_start",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 2,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1",
+      "user": "Oui, c'est surtout un oubli qui glisse en report. Le moment exact, c'est quand je ferme l'ordi vers 18h45: soit je range cinq minutes, soit je sors marcher.",
+      "assistant": "Je suis ravie qu'on ait pu mettre des mots sur ce moment de 18h45. Ta Potion anti-décrochage est prête à être configurée dans la section État / Potions de la plateforme. Voici les éléments à y reporter :\n\nPar rapport a quoi tu sens que tu decroches ? : mon petit rangement après avoir fermé l'ordinateur\nTu decroches plutot comment ? : J'oublie\n\nC'est ce qui t'aidera à ne plus laisser ce petit rangement glisser en report.",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1",
+        "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je suis ravie qu'on ait pu mettre des mots sur ce moment de 18h45. Ta Potion anti-décrochage est prête à être configurée dans la section État / Potions de la plateforme. Voici les éléments à y reporter :\n\nPar rapport a quoi tu sens que tu decroches ? : mon petit rangement après avoir fermé l'ordinateur\nTu decroches plutot comment ? : J'oublie\n\nC'est ce qui t'aidera à ne plus laisser ce petit rangement glisser en report.",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1",
+              "source_message_id": "72aeb540-16df-4ba8-915f-3f7ae9bd07e1",
+              "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "select_state_potion.rappel",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_rappel_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_rappel_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.rappel",
+              "reason_code": "rappel_confirmed_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "handoff_delivered",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.rappel",
+                  "event": "active_rappel_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": "clarifying"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.rappel",
+                  "flow_action": "confirm_proposed_field",
+                  "confidence": "high",
+                  "selected_potion": "rappel",
+                  "current_field_id": null,
+                  "visible_task": "handoff_ready",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.rappel",
+                  "status": "handoff_delivered",
+                  "reason_code": "rappel_confirmed_handoff_delivered",
+                  "visible_task": "handoff_ready",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.rappel",
+                  "visible_task": "handoff_ready",
+                  "field_or_stage": "handoff_ready"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "handoff_ready",
+                  "handoff_status": "handoff_delivered",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": null,
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "rappel_confirmed_handoff_delivered",
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "select_state_potion",
+                  "mode": "platform_handoff",
+                  "executable_from_chat": false,
+                  "user_state_summary": "mon petit rangement après avoir fermé l'ordinateur ; J'oublie",
+                  "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement",
+                  "recommendation": {
+                    "potion_label": "Potion anti-décrochage",
+                    "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                    "immediate_step": null,
+                    "preserve": [],
+                    "avoid": [],
+                    "platform_destination": "section État / Potions",
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion anti-décrochage"
+                    ],
+                    "platform_inputs": {
+                      "potion_type": "rappel",
+                      "potion_title": "Potion anti-décrochage",
+                      "answers": [
+                        {
+                          "question_id": "drift_target",
+                          "question_label": "Par rapport a quoi tu sens que tu decroches ?",
+                          "value": "mon petit rangement après avoir fermé l'ordinateur",
+                          "option_value": null,
+                          "option_label": null
+                        },
+                        {
+                          "question_id": "drift_style",
+                          "question_label": "Tu decroches plutot comment ?",
+                          "value": "J'oublie",
+                          "option_value": "oubli",
+                          "option_label": "J'oublie"
+                        }
+                      ],
+                      "optional_free_text": null
+                    }
+                  },
+                  "missing_decisions": []
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.rappel",
+                  "status": "delivered",
+                  "reason_code": "rappel_confirmed_handoff_delivered",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "handoff_delivered",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1",
+            "source_message_id": "72aeb540-16df-4ba8-915f-3f7ae9bd07e1",
+            "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.rappel",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_rappel_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_rappel_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.rappel",
+            "reason_code": "rappel_confirmed_handoff_delivered",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "handoff_delivered",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.rappel",
+                "event": "active_rappel_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "clarifying"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.rappel",
+                "flow_action": "confirm_proposed_field",
+                "confidence": "high",
+                "selected_potion": "rappel",
+                "current_field_id": null,
+                "visible_task": "handoff_ready",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.rappel",
+                "status": "handoff_delivered",
+                "reason_code": "rappel_confirmed_handoff_delivered",
+                "visible_task": "handoff_ready",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.rappel",
+                "visible_task": "handoff_ready",
+                "field_or_stage": "handoff_ready"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "handoff_ready",
+                "handoff_status": "handoff_delivered",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": null,
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "rappel_confirmed_handoff_delivered",
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "executable_from_chat": false,
+                "user_state_summary": "mon petit rangement après avoir fermé l'ordinateur ; J'oublie",
+                "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement",
+                "recommendation": {
+                  "potion_label": "Potion anti-décrochage",
+                  "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion anti-décrochage"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "rappel",
+                    "potion_title": "Potion anti-décrochage",
+                    "answers": [
+                      {
+                        "question_id": "drift_target",
+                        "question_label": "Par rapport a quoi tu sens que tu decroches ?",
+                        "value": "mon petit rangement après avoir fermé l'ordinateur",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "drift_style",
+                        "question_label": "Tu decroches plutot comment ?",
+                        "value": "J'oublie",
+                        "option_value": "oubli",
+                        "option_label": "J'oublie"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t02-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.rappel",
+                "status": "delivered",
+                "reason_code": "rappel_confirmed_handoff_delivered",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "handoff_delivered",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.rappel",
+        "route_reason": "active_rappel_local_dispatcher",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 3,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1",
+      "user": "Oui, c'est bon pour moi. Active cette potion de rappel maintenant.",
+      "assistant": "Je ne peux pas lancer la potion directement d'ici, mais tu peux le faire très simplement dans la section État / Potions. Il te suffit de choisir la Potion anti-décrochage et d'y inscrire ces informations :\n\nPar rapport a quoi tu sens que tu decroches ? : mon petit rangement après avoir fermé l'ordinateur\nTu decroches plutot comment ? : J'oublie",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1",
+        "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je ne peux pas lancer la potion directement d'ici, mais tu peux le faire très simplement dans la section État / Potions. Il te suffit de choisir la Potion anti-décrochage et d'y inscrire ces informations :\n\nPar rapport a quoi tu sens que tu decroches ? : mon petit rangement après avoir fermé l'ordinateur\nTu decroches plutot comment ? : J'oublie",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1",
+              "source_message_id": "ba6283c0-5121-4c25-91bf-580db468e941",
+              "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "select_state_potion.rappel",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_rappel_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_rappel_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.rappel",
+              "reason_code": "rappel_apply_attempt_no_chat_execution",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "apply_attempt",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.rappel",
+                  "event": "active_rappel_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": "handoff_delivered"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.rappel",
+                  "flow_action": "apply_attempt",
+                  "confidence": "high",
+                  "selected_potion": "rappel",
+                  "current_field_id": null,
+                  "visible_task": "apply_attempt",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.rappel",
+                  "status": "apply_attempt",
+                  "reason_code": "rappel_apply_attempt_no_chat_execution",
+                  "visible_task": "apply_attempt",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.rappel",
+                  "visible_task": "apply_attempt",
+                  "field_or_stage": "apply_attempt"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "apply_attempt",
+                  "handoff_status": "apply_attempt",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": null,
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "rappel_apply_attempt_no_chat_execution",
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "select_state_potion",
+                  "mode": "platform_handoff",
+                  "executable_from_chat": false,
+                  "user_state_summary": "mon petit rangement après avoir fermé l'ordinateur ; J'oublie",
+                  "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement",
+                  "recommendation": {
+                    "potion_label": "Potion anti-décrochage",
+                    "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                    "immediate_step": null,
+                    "preserve": [],
+                    "avoid": [],
+                    "platform_destination": "section État / Potions",
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion anti-décrochage"
+                    ],
+                    "platform_inputs": {
+                      "potion_type": "rappel",
+                      "potion_title": "Potion anti-décrochage",
+                      "answers": [
+                        {
+                          "question_id": "drift_target",
+                          "question_label": "Par rapport a quoi tu sens que tu decroches ?",
+                          "value": "mon petit rangement après avoir fermé l'ordinateur",
+                          "option_value": null,
+                          "option_label": null
+                        },
+                        {
+                          "question_id": "drift_style",
+                          "question_label": "Tu decroches plutot comment ?",
+                          "value": "J'oublie",
+                          "option_value": "oubli",
+                          "option_label": "J'oublie"
+                        }
+                      ],
+                      "optional_free_text": null
+                    }
+                  },
+                  "missing_decisions": []
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.rappel",
+                  "status": "delivered",
+                  "reason_code": "rappel_apply_attempt_no_chat_execution",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "apply_attempt",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1",
+            "source_message_id": "ba6283c0-5121-4c25-91bf-580db468e941",
+            "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.rappel",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_rappel_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_rappel_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.rappel",
+            "reason_code": "rappel_apply_attempt_no_chat_execution",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "apply_attempt",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.rappel",
+                "event": "active_rappel_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "handoff_delivered"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.rappel",
+                "flow_action": "apply_attempt",
+                "confidence": "high",
+                "selected_potion": "rappel",
+                "current_field_id": null,
+                "visible_task": "apply_attempt",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.rappel",
+                "status": "apply_attempt",
+                "reason_code": "rappel_apply_attempt_no_chat_execution",
+                "visible_task": "apply_attempt",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.rappel",
+                "visible_task": "apply_attempt",
+                "field_or_stage": "apply_attempt"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "apply_attempt",
+                "handoff_status": "apply_attempt",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": null,
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "rappel_apply_attempt_no_chat_execution",
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "executable_from_chat": false,
+                "user_state_summary": "mon petit rangement après avoir fermé l'ordinateur ; J'oublie",
+                "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement",
+                "recommendation": {
+                  "potion_label": "Potion anti-décrochage",
+                  "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion anti-décrochage"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "rappel",
+                    "potion_title": "Potion anti-décrochage",
+                    "answers": [
+                      {
+                        "question_id": "drift_target",
+                        "question_label": "Par rapport a quoi tu sens que tu decroches ?",
+                        "value": "mon petit rangement après avoir fermé l'ordinateur",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "drift_style",
+                        "question_label": "Tu decroches plutot comment ?",
+                        "value": "J'oublie",
+                        "option_value": "oubli",
+                        "option_label": "J'oublie"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t03-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.rappel",
+                "status": "delivered",
+                "reason_code": "rappel_apply_attempt_no_chat_execution",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "apply_attempt",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.rappel",
+        "route_reason": "active_rappel_local_dispatcher",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    },
+    {
+      "turn": 4,
+      "attempt": 1,
+      "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1",
+      "user": "D'accord, alors redis-moi seulement les deux champs a copier dans la plateforme, sans autre protocole.",
+      "assistant": "Pas de souci, voici les éléments à recopier dans la section État / Potions pour ta Potion anti-décrochage :\n\nPar rapport a quoi tu sens que tu decroches ? : mon petit rangement après avoir fermé l'ordinateur\nTu decroches plutot comment ? : J'oublie",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "request_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1",
+        "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+        "channel": "web",
+        "scope": "manual-state-potion-potion-explicit-manual-rappel-r1-rappel",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Pas de souci, voici les éléments à recopier dans la section État / Potions pour ta Potion anti-décrochage :\n\nPar rapport a quoi tu sens que tu decroches ? : mon petit rangement après avoir fermé l'ordinateur\nTu decroches plutot comment ? : J'oublie",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "platform_handoff",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1",
+              "source_message_id": "b94e9666-211c-4f1a-8170-d8d9f1ddc0a5",
+              "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [
+                  0
+                ],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "skill_signals": {},
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "selected_handler": "select_state_potion.rappel",
+              "blocked_paths": [
+                {
+                  "path": "global_dispatcher",
+                  "reason_code": "active_rappel_uses_local_dispatcher"
+                }
+              ],
+              "direct_effects_to_run": [],
+              "reason_code": "active_rappel_local_dispatcher",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none"
+            },
+            "tool_skill_run": {
+              "selected_handler": "select_state_potion.rappel",
+              "reason_code": "rappel_repeat_handoff",
+              "operation_type": "select_state_potion",
+              "mode": "platform_handoff",
+              "executable_from_chat": false,
+              "status": "repeat_handoff",
+              "requested_effects": [],
+              "allowed_effects": [],
+              "committed_effects": [],
+              "blocked_effects": [],
+              "constraints": [],
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "runtime_trace": [
+                {
+                  "component": "select_state_potion.rappel",
+                  "event": "active_rappel_turn_start",
+                  "global_dispatcher_available": false,
+                  "previous_status": "apply_attempt"
+                },
+                {
+                  "component": "local_dispatcher",
+                  "event": "decision",
+                  "flow": "select_state_potion.rappel",
+                  "flow_action": "repeat_handoff",
+                  "confidence": "high",
+                  "selected_potion": "rappel",
+                  "current_field_id": null,
+                  "visible_task": "repeat_handoff",
+                  "risk_assessment": {
+                    "risk_score": 0,
+                    "risk_band": "none",
+                    "safety_preempt": false,
+                    "reason_codes": []
+                  },
+                  "exit_reason": null
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "reduced",
+                  "flow": "select_state_potion.rappel",
+                  "status": "repeat_handoff",
+                  "reason_code": "rappel_repeat_handoff",
+                  "visible_task": "repeat_handoff",
+                  "current_field_id": null,
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "component": "local_reducer",
+                  "event": "conversation_context_built",
+                  "flow": "select_state_potion.rappel",
+                  "visible_task": "repeat_handoff",
+                  "field_or_stage": "repeat_handoff"
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "start",
+                  "stage": "potion_subskill_task",
+                  "clarte_visible_task": null,
+                  "potion_subskill_visible_task": "repeat_handoff",
+                  "handoff_status": "repeat_handoff",
+                  "conversation_context_provided": true
+                },
+                {
+                  "component": "visible_agent",
+                  "stage": "potion_subskill_task",
+                  "attempt": 1,
+                  "accepted": true,
+                  "issues": []
+                },
+                {
+                  "component": "visible_stage",
+                  "event": "complete",
+                  "stage": "potion_subskill_task"
+                }
+              ],
+              "note_information": null,
+              "handoff": {
+                "target": "state_potions"
+              },
+              "platform_handoff": {
+                "operation_type": "select_state_potion",
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "rappel_repeat_handoff",
+                "executable_from_chat": false,
+                "draft": {
+                  "operation_type": "select_state_potion",
+                  "mode": "platform_handoff",
+                  "executable_from_chat": false,
+                  "user_state_summary": "mon petit rangement après avoir fermé l'ordinateur ; J'oublie",
+                  "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement",
+                  "recommendation": {
+                    "potion_label": "Potion anti-décrochage",
+                    "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                    "immediate_step": null,
+                    "preserve": [],
+                    "avoid": [],
+                    "platform_destination": "section État / Potions",
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion anti-décrochage"
+                    ],
+                    "platform_inputs": {
+                      "potion_type": "rappel",
+                      "potion_title": "Potion anti-décrochage",
+                      "answers": [
+                        {
+                          "question_id": "drift_target",
+                          "question_label": "Par rapport a quoi tu sens que tu decroches ?",
+                          "value": "mon petit rangement après avoir fermé l'ordinateur",
+                          "option_value": null,
+                          "option_label": null
+                        },
+                        {
+                          "question_id": "drift_style",
+                          "question_label": "Tu decroches plutot comment ?",
+                          "value": "J'oublie",
+                          "option_value": "oubli",
+                          "option_label": "J'oublie"
+                        }
+                      ],
+                      "optional_free_text": null
+                    }
+                  },
+                  "missing_decisions": []
+                }
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 1,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1:platform_handoff:delivered:select_state_potion:runtime",
+                  "kind": "platform_handoff",
+                  "effect_type": "platform_handoff.select_state_potion",
+                  "operation_type": "select_state_potion",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "select_state_potion.rappel",
+                  "status": "delivered",
+                  "reason_code": "rappel_repeat_handoff",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "status": "repeat_handoff",
+                    "surface_id": "state_potions"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": "state_potions",
+                  "committed": false,
+                  "executed_tool": false,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1",
+            "source_message_id": "b94e9666-211c-4f1a-8170-d8d9f1ddc0a5",
+            "user_id": "decae98e-0f6b-48ee-b841-f235fbacc71e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "select_state_potion.rappel",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_rappel_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_rappel_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "select_state_potion.rappel",
+            "reason_code": "rappel_repeat_handoff",
+            "operation_type": "select_state_potion",
+            "mode": "platform_handoff",
+            "executable_from_chat": false,
+            "status": "repeat_handoff",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "constraints": [],
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "runtime_trace": [
+              {
+                "component": "select_state_potion.rappel",
+                "event": "active_rappel_turn_start",
+                "global_dispatcher_available": false,
+                "previous_status": "apply_attempt"
+              },
+              {
+                "component": "local_dispatcher",
+                "event": "decision",
+                "flow": "select_state_potion.rappel",
+                "flow_action": "repeat_handoff",
+                "confidence": "high",
+                "selected_potion": "rappel",
+                "current_field_id": null,
+                "visible_task": "repeat_handoff",
+                "risk_assessment": {
+                  "risk_score": 0,
+                  "risk_band": "none",
+                  "safety_preempt": false,
+                  "reason_codes": []
+                },
+                "exit_reason": null
+              },
+              {
+                "component": "local_reducer",
+                "event": "reduced",
+                "flow": "select_state_potion.rappel",
+                "status": "repeat_handoff",
+                "reason_code": "rappel_repeat_handoff",
+                "visible_task": "repeat_handoff",
+                "current_field_id": null,
+                "exit_to_global_dispatcher": false
+              },
+              {
+                "component": "local_reducer",
+                "event": "conversation_context_built",
+                "flow": "select_state_potion.rappel",
+                "visible_task": "repeat_handoff",
+                "field_or_stage": "repeat_handoff"
+              },
+              {
+                "component": "visible_stage",
+                "event": "start",
+                "stage": "potion_subskill_task",
+                "clarte_visible_task": null,
+                "potion_subskill_visible_task": "repeat_handoff",
+                "handoff_status": "repeat_handoff",
+                "conversation_context_provided": true
+              },
+              {
+                "component": "visible_agent",
+                "stage": "potion_subskill_task",
+                "attempt": 1,
+                "accepted": true,
+                "issues": []
+              },
+              {
+                "component": "visible_stage",
+                "event": "complete",
+                "stage": "potion_subskill_task"
+              }
+            ],
+            "note_information": null,
+            "handoff": {
+              "target": "state_potions"
+            },
+            "platform_handoff": {
+              "operation_type": "select_state_potion",
+              "status": "delivered",
+              "surface_id": "state_potions",
+              "reason_code": "rappel_repeat_handoff",
+              "executable_from_chat": false,
+              "draft": {
+                "operation_type": "select_state_potion",
+                "mode": "platform_handoff",
+                "executable_from_chat": false,
+                "user_state_summary": "mon petit rangement après avoir fermé l'ordinateur ; J'oublie",
+                "desired_shift_summary": "te raccrocher, couper le glissement, te remettre dans le mouvement",
+                "recommendation": {
+                  "potion_label": "Potion anti-décrochage",
+                  "why_this_potion": "Quand tu sais deja ce que tu devrais faire mais que tu sens que tu laisses filer, elle t'aide a te raccrocher.",
+                  "immediate_step": null,
+                  "preserve": [],
+                  "avoid": [],
+                  "platform_destination": "section État / Potions",
+                  "platform_steps": [
+                    "va dans État / Potions",
+                    "choisis Potion anti-décrochage"
+                  ],
+                  "platform_inputs": {
+                    "potion_type": "rappel",
+                    "potion_title": "Potion anti-décrochage",
+                    "answers": [
+                      {
+                        "question_id": "drift_target",
+                        "question_label": "Par rapport a quoi tu sens que tu decroches ?",
+                        "value": "mon petit rangement après avoir fermé l'ordinateur",
+                        "option_value": null,
+                        "option_label": null
+                      },
+                      {
+                        "question_id": "drift_style",
+                        "question_label": "Tu decroches plutot comment ?",
+                        "value": "J'oublie",
+                        "option_value": "oubli",
+                        "option_label": "J'oublie"
+                      }
+                    ],
+                    "optional_free_text": null
+                  }
+                },
+                "missing_decisions": []
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 1,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-manual-potion-potion-explicit-manual-rappel-r1-rappel-t04-a1:platform_handoff:delivered:select_state_potion:runtime",
+                "kind": "platform_handoff",
+                "effect_type": "platform_handoff.select_state_potion",
+                "operation_type": "select_state_potion",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "select_state_potion.rappel",
+                "status": "delivered",
+                "reason_code": "rappel_repeat_handoff",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "status": "repeat_handoff",
+                  "surface_id": "state_potions"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": "state_potions",
+                "committed": false,
+                "executed_tool": false,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null,
+        "__http_status": 200
+      },
+      "trace": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.rappel",
+        "route_reason": "active_rappel_local_dispatcher",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "executed_tools": [],
+        "tool_execution": "platform_handoff",
+        "trace_id": null
+      },
+      "durable_after": {
+        "sessions": [],
+        "reminders": [],
+        "checkins": []
+      }
+    }
+  ],
+  "created_at": "2026-06-15T15:39:00.544Z",
+  "cleanup": {
+    "completed": true,
+    "deleted": [
+      {
+        "table": "scheduled_checkins",
+        "count": 0
+      },
+      {
+        "table": "user_recurring_reminders",
+        "count": 0
+      },
+      {
+        "table": "user_potion_sessions",
+        "count": 0
+      },
+      {
+        "table": "chat_messages",
+        "count": 8
+      },
+      {
+        "table": "conversation_turn_traces",
+        "count": 0
+      },
+      {
+        "table": "user_chat_states",
+        "count": 1
+      },
+      {
+        "table": "user_plan_items",
+        "count": 1
+      },
+      {
+        "table": "user_plans_v2",
+        "count": 1
+      },
+      {
+        "table": "user_transformations",
+        "error": "DELETE /user_transformations?cycle_id=eq.891dbe3f-b6e3-4e7d-b292-972cb5a96a32 failed: 409 {\"code\":\"23503\",\"details\":\"Key (cycle_id, id)=(891dbe3f-b6e3-4e7d-b292-972cb5a96a32, f6dd5231-a3fd-455f-a4dd-81ae11af8310) is still referenced from table \\\"user_cycles\\\".\",\"hint\":null,\"message\":\"update or delete on table \\\"user_transformations\\\" violates foreign key constraint \\\"user_cycles_active_transformation_fk\\\" on table \\\"user_cycles\\\"\"}"
+      },
+      {
+        "table": "user_cycles",
+        "count": 1
+      },
+      {
+        "table": "profiles",
+        "count": 1
+      },
+      {
+        "table": "auth.users",
+        "count": 1
+      }
+    ],
+    "cleanup_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/operations/2026-06-15-select-state-potion-manual-potion-explicit-manual-rappel-r1-rappel.cleanup.json",
+    "at": "2026-06-15T15:45:37.897Z"
+  },
+  "updated_at": "2026-06-15T15:44:12.066Z"
+}
