@@ -299,12 +299,12 @@ export function buildOnboardingWeek1AutoValidationMessage(params: {
 
 export function onboardingWeek1AutoValidationScheduledFor(params: {
   timezone: string;
-  activatedAt: Date;
+  promptSentAt: Date;
 }): string {
   return computeScheduledForFromLocal({
     timezone: params.timezone,
     dayOffset: 1,
     localTimeHHMM: ONBOARDING_WEEK1_AUTO_VALIDATE_LOCAL_TIME,
-    now: params.activatedAt,
+    now: params.promptSentAt,
   });
 }

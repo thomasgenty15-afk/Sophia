@@ -68,7 +68,7 @@ Deno.test("onboarding week1 auto validation is scheduled at next 07:00 local", (
   assertEquals(
     onboardingWeek1AutoValidationScheduledFor({
       timezone: "Europe/Paris",
-      activatedAt: new Date("2026-06-15T12:00:00.000Z"),
+      promptSentAt: new Date("2026-06-15T12:00:00.000Z"),
     }),
     "2026-06-16T05:00:00.000Z",
   );

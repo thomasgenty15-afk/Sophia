@@ -6,13 +6,10 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
-  buildOnboardingWeek1AutoValidationMessage,
   buildOnboardingWeek1ValidationPromptMessage,
   loadOnboardingWeek1Planning,
-  ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
   ONBOARDING_WEEK1_PROMPT_DELAY_MS,
   ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT,
-  onboardingWeek1AutoValidationScheduledFor,
 } from "../_shared/onboarding_week1_validation.ts";
 
 function cleanText(value: unknown, fallback = ""): string {
@@ -148,11 +145,6 @@ Deno.serve(async (req) => {
     const validationScheduledFor = new Date(
       activatedAtSafe.getTime() + ONBOARDING_WEEK1_PROMPT_DELAY_MS,
     ).toISOString();
-    const autoValidationScheduledFor =
-      onboardingWeek1AutoValidationScheduledFor({
-        timezone,
-        activatedAt: activatedAtSafe,
-      });
 
     let scheduled = 0;
     const commonPayload = {
@@ -197,40 +189,12 @@ Deno.serve(async (req) => {
       scheduled++;
     }
 
-    if (
-      !await hasActiveCheckinForPlan({
-        admin,
-        userId,
-        planId,
-        eventContext: ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
-        targetWeekStartDate,
-      })
-    ) {
-      const { error } = await admin.from("scheduled_checkins").insert({
-        user_id: userId,
-        origin: "weekly_planning",
-        event_context: ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
-        draft_message: buildOnboardingWeek1AutoValidationMessage({
-          summaryLines: planning.summary_lines,
-        }),
-        message_mode: "static",
-        message_payload: {
-          ...commonPayload,
-          prompt_kind: "auto_validation",
-        },
-        scheduled_for: autoValidationScheduledFor,
-        status: "pending",
-      } as never);
-      if (error) throw error;
-      scheduled++;
-    }
-
     return jsonResponse(req, {
       ok: true,
       scheduled,
       week_start_date: planning.week_start_date,
       validation_scheduled_for: validationScheduledFor,
-      auto_validation_scheduled_for: autoValidationScheduledFor,
+      auto_validation_scheduled_for: null,
       request_id: requestId,
     }, { includeCors: false });
   } catch (error) {

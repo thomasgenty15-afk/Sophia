@@ -258,15 +258,12 @@ Deno.test("local real onboarding week1 validation checkins", async () => {
     );
     assertEquals(scheduled.res.status, 200);
     assertEquals(Boolean(scheduled.json?.ok), true);
-    assertEquals(scheduled.json?.scheduled, 2);
+    assertEquals(scheduled.json?.scheduled, 1);
     assertEquals(
       scheduled.json?.validation_scheduled_for,
       "2026-06-15T14:00:00.000Z",
     );
-    assertEquals(
-      scheduled.json?.auto_validation_scheduled_for,
-      "2026-06-16T05:00:00.000Z",
-    );
+    assertEquals(scheduled.json?.auto_validation_scheduled_for, null);
     assertEquals(scheduled.json?.week_start_date, weekStart);
 
     const { data: checkins, error: checkinsError } = await admin
@@ -276,16 +273,12 @@ Deno.test("local real onboarding week1 validation checkins", async () => {
       .filter("message_payload->>plan_id", "eq", planId)
       .order("event_context", { ascending: true });
     if (checkinsError) throw checkinsError;
-    assertEquals(checkins?.length, 2);
+    assertEquals(checkins?.length, 1);
 
     const promptCheckin = (checkins ?? []).find((row: any) =>
       row.event_context === ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT
     );
-    const autoCheckin = (checkins ?? []).find((row: any) =>
-      row.event_context === ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT
-    );
     assert(promptCheckin?.id, "missing validation prompt checkin");
-    assert(autoCheckin?.id, "missing auto validation checkin");
 
     const { error: recentProfileError } = await admin.from("profiles").update({
       whatsapp_last_inbound_at: minutesAgo(5),
@@ -336,7 +329,30 @@ Deno.test("local real onboarding week1 validation checkins", async () => {
     if (sentPromptError) throw sentPromptError;
     assertEquals(sentPromptRow.status, "sent");
     assertStringIncludes(sentPromptRow.draft_message, "niveau 2 du plan");
-    assertStringIncludes(sentPromptRow.draft_message, "semaine 1");
+    assertStringIncludes(sentPromptRow.draft_message, "semaine actuelle");
+
+    const { data: autoCheckin, error: autoCheckinError } = await admin
+      .from("scheduled_checkins")
+      .select("id,event_context,status,scheduled_for,message_payload")
+      .eq("user_id", userId)
+      .eq("event_context", ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT)
+      .filter("message_payload->>plan_id", "eq", planId)
+      .single();
+    if (autoCheckinError) throw autoCheckinError;
+    assert(autoCheckin?.id, "missing auto validation checkin after prompt");
+    assertEquals(autoCheckin.status, "pending");
+    assertEquals(
+      autoCheckin.message_payload?.created_from,
+      "validation_prompt_delivered",
+    );
+    assertEquals(
+      autoCheckin.message_payload?.validation_prompt_sent_at != null,
+      true,
+    );
+    assert(
+      new Date(autoCheckin.scheduled_for).getTime() > Date.now(),
+      "auto-validation must be scheduled after the prompt delivery",
+    );
 
     const { error: quietBeforeAutoError } = await admin.from("profiles").update(
       {
@@ -350,6 +366,36 @@ Deno.test("local real onboarding week1 validation checkins", async () => {
       .update({ scheduled_for: minutesAgo(120), status: "pending" })
       .eq("id", autoCheckin.id);
     if (dueAutoError) throw dueAutoError;
+
+    const prematureAuto = await postInternal("process-checkins", {});
+    assertEquals(prematureAuto.res.status, 200);
+
+    const { data: rescheduledAutoRow, error: rescheduledAutoError } =
+      await admin
+        .from("scheduled_checkins")
+        .select("status,delivery_last_error,scheduled_for")
+        .eq("id", autoCheckin.id)
+        .single();
+    if (rescheduledAutoError) throw rescheduledAutoError;
+    assertEquals(rescheduledAutoRow.status, "retrying");
+    assertEquals(
+      rescheduledAutoRow.delivery_last_error,
+      "onboarding_week1_auto_validation_waits_after_prompt",
+    );
+    assert(
+      new Date(rescheduledAutoRow.scheduled_for).getTime() > Date.now(),
+      "premature auto-validation must be pushed to a future 07:00",
+    );
+
+    const { error: oldPromptError } = await admin.from("scheduled_checkins")
+      .update({ processed_at: minutesAgo(48 * 60) })
+      .eq("id", promptCheckin.id);
+    if (oldPromptError) throw oldPromptError;
+
+    const { error: dueAutoAgainError } = await admin.from("scheduled_checkins")
+      .update({ scheduled_for: minutesAgo(120), status: "pending" })
+      .eq("id", autoCheckin.id);
+    if (dueAutoAgainError) throw dueAutoAgainError;
 
     const sentAuto = await postInternal("process-checkins", {});
     assertEquals(sentAuto.res.status, 200);
