@@ -73,11 +73,105 @@ Deno.test("dispatcher prompt requires two card intents for attack defense creati
   );
 });
 
+Deno.test("dispatcher prompt reserves lite model tier for trivial interactions only", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "model_tier_hint=lite est reserve aux interactions vraiment triviales",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("salutations"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("quoi de beau ?"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Par defaut, utilise model_tier_hint=standard pour tout le reste",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "N'utilise pas lite simplement parce que reasoning_complexity semble low",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt keeps plan status questions out of lite reflection", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Questions planning/actions:"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "ce n'est pas une simple normal_reply/reflection",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Route status_recap quand la reponse depend de donnees Sophia",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("ne mets jamais model_tier_hint=lite"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Utilise model_tier_hint=standard"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("j'ai quoi a faire aujourd'hui ?"),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt documents flow_opportunity as implicit opportunities", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "flow_opportunity signale une occasion implicite a verifier",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Ce champ ne lance rien"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("J'oublie tous les matins de boire de l'eau"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Je tourne autour du dossier depuis trois jours"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("create_recurring_reminder"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("prepare_attack_card"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "select_state_potion: pas d'opportunite implicite par defaut",
+    ),
+    true,
+  );
+});
+
 Deno.test("dispatcher prompt examples keep Plan refinement product_help focused on plan.adjustment", () => {
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{
@@ -142,7 +236,6 @@ Deno.test("dispatcher prompt examples keep natural attack defense card ambiguity
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{
@@ -172,9 +265,7 @@ Deno.test("dispatcher prompt examples keep natural attack defense card ambiguity
 
   assertEquals(example.expected.direct_effects?.length ?? 0, 0);
   assertEquals(
-    example.expected.tool_skill_intents?.map((intent) =>
-      intent.operation_type
-    ),
+    example.expected.tool_skill_intents?.map((intent) => intent.operation_type),
     ["prepare_attack_card", "prepare_defense_card"],
   );
   assertEquals(

@@ -79,35 +79,42 @@ Deno.test("dispatcher v2 returns valid TurnFrames for varied messages", async ()
   }
 });
 
-Deno.test("dispatcher prompt injects only the active stable skill description", () => {
-  const activePrompt = JSON.parse(buildDispatcherPrompt({
+Deno.test("dispatcher prompt excludes local runtime state from global input", () => {
+  const prompt = JSON.parse(buildDispatcherPrompt({
     user_message: "support dans Sophia pour garder cette douceur",
     recent_messages: [],
-    safety_risk_band: "none",
-    active_skill_state: { skill_id: "emotional_repair" },
+    active_topic_state: { topic: "support" },
+    flow_state_context: {
+      channel: "whatsapp",
+      scope: "whatsapp",
+      user_time: null,
+      last_local_flow_exit: {
+        operation_type: "prepare_attack_card",
+        reason: "exit_to_global_dispatcher",
+        note_information: {
+          source_flow_id: "prepare_attack_card",
+          target_dispatcher: "global",
+          handoff_reason: "topic_change",
+          handoff_context_for_next_dispatcher: "User moved away from card.",
+          user_words: ["rester dans la conversation"],
+          structured_context: { recommended_next_focus: "normal_reply" },
+        },
+      },
+    },
     plan_snapshot: { items: [] },
   }));
 
+  assertEquals("safety_risk_band" in prompt, false);
+  assertEquals("active_skill_state" in prompt, false);
+  assertEquals("active_skill_stable_description" in prompt, false);
+  assertEquals("active_tool_skill_intake" in prompt, false);
+  assertEquals("pending_tool_skill_confirmation" in prompt, false);
+  assertEquals("active_runtime_context" in prompt.flow_state_context, false);
   assertEquals(
-    activePrompt.active_skill_stable_description.skill_id,
-    "emotional_repair",
+    prompt.flow_state_context.last_local_flow_exit.note_information
+      .source_flow_id,
+    "prepare_attack_card",
   );
-  assertStringIncludes(
-    activePrompt.active_skill_stable_description.instruction,
-    "Cette description ne crée pas une intention à elle seule",
-  );
-  assertStringIncludes(
-    activePrompt.active_skill_stable_description.description,
-    "“support”, “aide dans Sophia”, “un truc pour m’aider” peut signaler une potion, pas product_help",
-  );
-
-  const inactivePrompt = JSON.parse(buildDispatcherPrompt({
-    user_message: "c'est quoi les potions dans Sophia ?",
-    recent_messages: [],
-    safety_risk_band: "none",
-    plan_snapshot: { items: [] },
-  }));
-  assertEquals(inactivePrompt.active_skill_stable_description, null);
 });
 
 Deno.test("dispatcher prompt documents demotivation courage and soft-support boundaries", () => {
@@ -125,22 +132,18 @@ Deno.test("dispatcher prompt documents demotivation courage and soft-support bou
   );
 });
 
-Deno.test("dispatcher prompt injects active handoff stable description", () => {
+Deno.test("dispatcher prompt documents local ownership boundary", () => {
   const prompt = JSON.parse(buildDispatcherPrompt({
     user_message: "ok vas-y",
     recent_messages: [],
-    safety_risk_band: "none",
-    active_tool_skill_intake: { operation_type: "select_state_potion" },
     plan_snapshot: { items: [] },
   }));
 
-  assertEquals(
-    prompt.active_skill_stable_description.skill_id,
-    "select_state_potion",
-  );
+  assertEquals("active_tool_skill_intake" in prompt, false);
+  assertEquals("active_skill_stable_description" in prompt, false);
   assertStringIncludes(
-    prompt.active_skill_stable_description.description,
-    "il ne lance pas la potion depuis le chat",
+    DISPATCHER_V2_SYSTEM_PROMPT,
+    "si un dispatcher local possede le tour, le global n'est pas appele",
   );
 });
 
@@ -329,7 +332,7 @@ Deno.test("dispatcher v2 keeps product questions out of tool skill intents", asy
   }
 });
 
-Deno.test("active emotional repair stable description keeps ambiguous support out of generic product_help", async () => {
+Deno.test("global prompt hides active emotional repair state from injected LLM", async () => {
   const { frame } = await dispatch(
     "support dans Sophia pour garder cette douceur",
     {
@@ -337,10 +340,8 @@ Deno.test("active emotional repair stable description keeps ambiguous support ou
       llm_runner: async (input: { user_prompt: string }) => {
         const { user_prompt } = input;
         const prompt = JSON.parse(user_prompt);
-        assertEquals(
-          prompt.active_skill_stable_description.skill_id,
-          "emotional_repair",
-        );
+        assertEquals("active_skill_stable_description" in prompt, false);
+        assertEquals("active_skill_state" in prompt, false);
         return {
           skill_signals: {
             lifecycle: {
@@ -366,16 +367,14 @@ Deno.test("active emotional repair stable description keeps ambiguous support ou
   assertEquals(frame.tool_skill_intents.length, 0);
 });
 
-Deno.test("active demotivation repair stable description keeps ambiguous cap support out of generic product_help", async () => {
+Deno.test("global prompt hides active demotivation repair state from injected LLM", async () => {
   const { frame } = await dispatch("support pour garder ce cap clair", {
     active_skill_state: { skill_id: "demotivation_repair" },
     llm_runner: async (input: { user_prompt: string }) => {
       const { user_prompt } = input;
       const prompt = JSON.parse(user_prompt);
-      assertEquals(
-        prompt.active_skill_stable_description.skill_id,
-        "demotivation_repair",
-      );
+      assertEquals("active_skill_stable_description" in prompt, false);
+      assertEquals("active_skill_state" in prompt, false);
       return {
         skill_signals: {
           lifecycle: {
@@ -408,7 +407,7 @@ Deno.test("without active skill potion explanation remains product_help", async 
     llm_runner: async (input: { user_prompt: string }) => {
       const { user_prompt } = input;
       const prompt = JSON.parse(user_prompt);
-      assertEquals(prompt.active_skill_stable_description, null);
+      assertEquals("active_skill_stable_description" in prompt, false);
       return {
         skill_signals: {
           entry: {
@@ -428,7 +427,7 @@ Deno.test("without active skill potion explanation remains product_help", async 
   assertEquals(frame.tool_skill_intents.length, 0);
 });
 
-Deno.test("active skill still allows a true app location question to product_help", async () => {
+Deno.test("active skill state is not exposed when global handles app location question", async () => {
   const { frame } = await dispatch(
     "où est-ce que je trouve les potions dans l'app ?",
     {
@@ -436,10 +435,8 @@ Deno.test("active skill still allows a true app location question to product_hel
       llm_runner: async (input: { user_prompt: string }) => {
         const { user_prompt } = input;
         const prompt = JSON.parse(user_prompt);
-        assertEquals(
-          prompt.active_skill_stable_description.skill_id,
-          "emotional_repair",
-        );
+        assertEquals("active_skill_stable_description" in prompt, false);
+        assertEquals("active_skill_state" in prompt, false);
         return {
           skill_signals: {
             entry: {
@@ -460,7 +457,7 @@ Deno.test("active skill still allows a true app location question to product_hel
   assertEquals(frame.tool_skill_intents.length, 0);
 });
 
-Deno.test("safety still preempts active skill stable description", async () => {
+Deno.test("safety output still preempts concurrent non-safety signals", async () => {
   const { frame } = await dispatch(
     "je veux me faire du mal, est-ce qu'il y a un support Sophia ?",
     {
@@ -468,10 +465,8 @@ Deno.test("safety still preempts active skill stable description", async () => {
       llm_runner: async (input: { user_prompt: string }) => {
         const { user_prompt } = input;
         const prompt = JSON.parse(user_prompt);
-        assertEquals(
-          prompt.active_skill_stable_description.skill_id,
-          "demotivation_repair",
-        );
+        assertEquals("active_skill_stable_description" in prompt, false);
+        assertEquals("active_skill_state" in prompt, false);
         return {
           safety: {
             risk_band: "critical",
@@ -624,16 +619,30 @@ Deno.test("dispatcher v2 suppresses sticky LLM emotional entry after stabilizati
   );
 });
 
-Deno.test("dispatcher v2 detects confirmation after option prefix", async () => {
+Deno.test("dispatcher v2 does not classify confirmations globally", async () => {
   const { frame } = await dispatch(
     "A, tous les jours. Oui, valide-le pour 21h : noter une idée.",
     {
       pending_tool_skill_confirmation: {
         operation_type: "create_recurring_reminder",
       },
+      llm_runner: async (input: { user_prompt: string }) => {
+        const prompt = JSON.parse(input.user_prompt);
+        assertEquals("pending_tool_skill_confirmation" in prompt, false);
+        return {
+          safety: { risk_band: "low", reason_codes: [], evidence: [] },
+          direct_effects: [],
+          tool_skill_intents: [],
+          skill_signals: {},
+          confirmation_response: {
+            kind: "yes",
+            confidence_band: "high",
+          },
+        };
+      },
     },
   );
-  assertEquals(frame.confirmation_response?.kind, "yes");
+  assertEquals(frame.confirmation_response, null);
 });
 
 Deno.test("dispatcher v2 supports injectable LLM runner with sanitization", async () => {
@@ -849,7 +858,7 @@ Deno.test("route replay passes all 25 fixtures with S2 runtime", async () => {
 Deno.test("dispatcher prompt version reflects card pair clarification contract", () => {
   assertEquals(
     DISPATCHER_V2_PROMPT_VERSION,
-    "dispatcher_v2_prompt_2026_06_s32_card_pair_clarification",
+    "dispatcher_v2_prompt_2026_06_s34_nano_trivial_only",
   );
 });
 
@@ -857,7 +866,6 @@ Deno.test("dispatcher prompt embeds the 5 L3-migration few-shots in critical_rou
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{
@@ -935,7 +943,6 @@ Deno.test("C7: dispatcher embeds 3 precision few-shots with the right expected i
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{
@@ -1001,7 +1008,6 @@ Deno.test("dispatcher prompt one_shot_reminder few-shot includes raw_text in pay
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{
@@ -1034,7 +1040,6 @@ Deno.test("dispatcher prompt keeps explicit composite reminder plus attack-card 
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{
@@ -1097,7 +1102,6 @@ Deno.test("dispatcher prompt keeps attack and defense card pair as two tool inte
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{
@@ -1138,7 +1142,6 @@ Deno.test("dispatcher prompt cancellation few-shot uses skill_signals_exit, not 
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{

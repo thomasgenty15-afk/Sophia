@@ -518,45 +518,6 @@ function sanitizeToolSkillIntent(
   };
 }
 
-function sanitizeActiveHandoffAction(
-  raw: unknown,
-): TurnFrame["active_handoff_action"] {
-  const record = raw && typeof raw === "object" && !Array.isArray(raw)
-    ? raw as Record<string, unknown>
-    : null;
-  if (!record) return null;
-  const type = String(record.type ?? "").trim();
-  if (
-    type !== "handoff_apply_attempt" &&
-    type !== "repeat_handoff" &&
-    type !== "platform_destination_followup" &&
-    type !== "revise_handoff" &&
-    type !== "field_confirmation" &&
-    type !== "cancel_handoff" &&
-    type !== "clarify_handoff" &&
-    type !== "topic_change"
-  ) return null;
-  const confidenceRaw = String(record.confidence ?? "low").trim();
-  const confidence = confidenceRaw === "high" || confidenceRaw === "medium"
-    ? confidenceRaw
-    : "low";
-  const evidence = Array.isArray(record.evidence)
-    ? record.evidence.map((item) => String(item).trim()).filter(Boolean).slice(
-      0,
-      4,
-    )
-    : [];
-  const targetSkillId = typeof record.target_skill_id === "string"
-    ? record.target_skill_id.trim()
-    : null;
-  return {
-    type,
-    confidence,
-    evidence,
-    target_skill_id: targetSkillId || null,
-  };
-}
-
 function addBlockedCode(turnFrame: TurnFrame, code: string): void {
   const withHints = turnFrame as TurnFrameWithRouteHints;
   withHints.route_blocked_codes = [
@@ -969,6 +930,7 @@ function sanitizeLlmTurnFrame(
     : null;
   const safeRaw = { ...raw };
   delete safeRaw[["tool", "skill", "opportunity"].join("_")];
+  delete safeRaw.confirmation_response;
   const normalReplyFitScore = optionalScore(raw?.normal_reply_fit_score);
   const normalReplyFitEvidence = Array.isArray(raw?.normal_reply_fit_evidence)
     ? raw.normal_reply_fit_evidence.map(String).slice(0, 8)
@@ -1005,9 +967,8 @@ function sanitizeLlmTurnFrame(
       : sanitizeFlowOpportunity(raw?.flow_opportunity),
     note_information: normalizedNoteInformation,
     skill_signals: safetyBlocksToolSkills ? {} : skillSignals,
-    active_handoff_action: safetyBlocksToolSkills
-      ? null
-      : sanitizeActiveHandoffAction(raw?.active_handoff_action),
+    active_handoff_action: null,
+    confirmation_response: null,
     needs_research: needsResearch,
     action_reference: baseline.action_reference,
     level_reference: baseline.level_reference,
@@ -1175,10 +1136,6 @@ export async function runDispatcher(
   const prompt = buildDispatcherPrompt({
     user_message: input.user_message,
     recent_messages: input.recent_messages,
-    safety_risk_band: input.safety_context_output.risk_band,
-    active_skill_state: input.active_skill_state,
-    active_tool_skill_intake: input.active_tool_skill_intake,
-    pending_tool_skill_confirmation: input.pending_tool_skill_confirmation,
     active_topic_state: input.active_topic_state,
     flow_state_context: input.flow_state_context,
     plan_snapshot: input.plan_snapshot,

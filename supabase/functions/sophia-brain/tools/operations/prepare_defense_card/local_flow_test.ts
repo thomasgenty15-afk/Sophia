@@ -234,6 +234,12 @@ Deno.test("prepare_defense_card dispatcher prompt documents real output fields",
     assertStringIncludes(prompt, tool);
   }
   assertStringIncludes(prompt, "Rythme conversationnel V1");
+  assertStringIncludes(prompt, "Exception compact intake");
+  assertStringIncludes(prompt, "carte courte/simple/avec ce que tu sais");
+  assertStringIncludes(
+    prompt,
+    "confirm_support_need_proposal ou handoff_ready",
+  );
   assertStringIncludes(prompt, "aucune restitution plateforme");
   assertStringIncludes(prompt, "au plus tôt au tour suivant");
   assertStringIncludes(

@@ -92,6 +92,10 @@ type GeneratePlanResponse = {
   journey_context?: JourneyContextTransition | null;
 };
 
+const PLAN_SAVED_DASHBOARD_STATE = {
+  planSavedConfirmation: true,
+} as const;
+
 type GeneratePlanRequest = {
   transformation_id: string;
   mode: "generate_and_activate" | "preview" | "confirm";
@@ -2855,7 +2859,7 @@ export default function OnboardingV2() {
             // best-effort
           }
           clearOnboardingV2Draft();
-          navigate("/dashboard", { replace: true });
+          navigate("/dashboard", { replace: true, state: PLAN_SAVED_DASHBOARD_STATE });
           return;
         }
 
@@ -3003,7 +3007,7 @@ export default function OnboardingV2() {
       if (!isOnboardingActionCurrent(actionToken)) return;
 
       clearOnboardingV2Draft();
-      navigate("/dashboard", { replace: true });
+      navigate("/dashboard", { replace: true, state: PLAN_SAVED_DASHBOARD_STATE });
     } catch (submitError) {
       if (!isOnboardingActionCurrent(actionToken)) return;
       console.error("[onboarding][plan_confirm][failed]", {
@@ -3047,7 +3051,7 @@ export default function OnboardingV2() {
               // best-effort
             }
             clearOnboardingV2Draft();
-            navigate("/dashboard", { replace: true });
+            navigate("/dashboard", { replace: true, state: PLAN_SAVED_DASHBOARD_STATE });
             return;
           }
         } catch {
@@ -3121,7 +3125,7 @@ export default function OnboardingV2() {
             // best-effort
           }
           clearOnboardingV2Draft();
-          navigate("/dashboard", { replace: true });
+          navigate("/dashboard", { replace: true, state: PLAN_SAVED_DASHBOARD_STATE });
           return;
         }
       }

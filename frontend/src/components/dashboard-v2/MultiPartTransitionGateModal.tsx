@@ -34,7 +34,7 @@ function buildTargetSummary(targetLabel: string | null, targetValue: string | nu
   if (targetLabel && targetValue) return `${targetLabel} : ${targetValue}`;
   if (targetValue) return targetValue;
   if (targetLabel) return targetLabel;
-  return "l'objectif de cette 1re partie";
+  return "l'objectif de cette 1ère transformation";
 }
 
 export function MultiPartTransitionGateModal({
@@ -77,7 +77,7 @@ export function MultiPartTransitionGateModal({
               </p>
               <h3 className="mt-2 text-2xl font-semibold text-stone-950">
                 {mode === "multi_part"
-                  ? "Avant de passer à l'étape 2 de la transformation"
+                  ? "Avant de passer à la 2ème transformation"
                   : "Avant de passer à la prochaine transformation"}
               </h3>
               <p className="mt-2 max-w-xl text-sm leading-6 text-stone-600">
@@ -105,12 +105,12 @@ export function MultiPartTransitionGateModal({
                   <div>
                     <p className="text-sm font-semibold text-amber-950">
                       {mode === "multi_part"
-                        ? "L'étape 2 s'ouvre dès que l'objectif de cette 1re partie est atteint."
+                        ? "La 2ème transformation s'ouvre dès que l'objectif de la 1ère transformation est atteint."
                         : "Ce n'est pas encore le bon moment pour passer à la suite."}
                     </p>
                     <p className="mt-2 text-sm leading-6 text-amber-900">
                       {mode === "multi_part"
-                        ? "Si tu as vraiment atteint ce cap, tu peux confirmer et passer à la suite. Sinon, le plus juste est de continuer cette 1re partie ou d'ajuster la fin du plan pour qu'elle colle mieux à ta réalité."
+                        ? "Si tu as vraiment atteint ce cap, tu peux confirmer et passer à la suite. Sinon, le plus juste est de continuer cette 1ère transformation ou d'ajuster la fin du plan pour qu'elle colle mieux à ta réalité."
                         : "Vérifie d'abord si cette transformation a vraiment atteint son objectif global. Sinon, le plus utile est d'ajuster le plan ou de choisir consciemment de passer à autre chose."}
                     </p>
                   </div>
@@ -119,7 +119,7 @@ export function MultiPartTransitionGateModal({
 
               <div className="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Cap attendu avant la suite
+                  Objectif attendu avant la suite
                 </p>
                 <p className="mt-2 text-sm font-semibold text-stone-950">{targetSummary}</p>
                 {globalObjective ? (
@@ -139,12 +139,12 @@ export function MultiPartTransitionGateModal({
                   <div>
                     <p className="text-sm font-semibold text-emerald-950">
                       {mode === "multi_part"
-                        ? "L'étape 2 se débloque seulement si la target de la 1re partie est atteinte."
+                        ? "La 2ème transformation se débloque seulement si l'objectif de la 1ère transformation est atteint."
                         : "Tu peux passer à la prochaine transformation seulement si l'objectif global de celle-ci est vraiment atteint."}
                     </p>
                     <p className="mt-2 text-sm leading-6 text-emerald-900">
                       {mode === "multi_part"
-                        ? "Vérifie d'abord que ce cap est vraiment acquis avant d'ouvrir la suite."
+                        ? "Vérifie d'abord que cet objectif est vraiment acquis avant d'ouvrir la suite."
                         : "Si oui, tu peux ouvrir la suite. Sinon, choisis soit d'ajuster le plan, soit de laisser tomber ce chantier pour avancer."}
                     </p>
                   </div>
@@ -153,7 +153,7 @@ export function MultiPartTransitionGateModal({
 
               <div className="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Target à valider
+                  Objectif à valider
                 </p>
                 <p className="mt-2 text-sm font-semibold text-stone-950">{targetSummary}</p>
                 {globalObjective ? (
@@ -166,7 +166,7 @@ export function MultiPartTransitionGateModal({
               {nextTransformationTitle ? (
                 <div className="rounded-[24px] border border-blue-100 bg-blue-50 px-5 py-4">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">
-                    {mode === "multi_part" ? "Étape suivante" : "Transformation suivante proposée"}
+                    {mode === "multi_part" ? "Transformation suivante" : "Transformation suivante proposée"}
                   </p>
                   <p className="mt-2 text-sm font-semibold text-stone-950">
                     {nextTransformationTitle}
@@ -181,7 +181,7 @@ export function MultiPartTransitionGateModal({
               <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4">
                 <p className="text-sm font-semibold text-amber-950">
                   {mode === "multi_part"
-                    ? "Le plus utile maintenant est d'ajuster la fin de la 1re partie."
+                    ? "Le plus utile maintenant est d'ajuster la fin de la 1ère transformation."
                     : simpleBlockedMode === "adjust"
                       ? "On va ajuster le plan actuel pour t'aider à atteindre l'objectif avant de passer à la suite."
                       : simpleBlockedMode === "let_go"
@@ -275,7 +275,7 @@ export function MultiPartTransitionGateModal({
                     {busy
                       ? "Préparation..."
                       : mode === "multi_part"
-                      ? "Oui, passer à l'étape 2"
+                      ? "Oui, passer à la 2ème transformation"
                       : "Oui, passer à la prochaine transformation"}
                 </button>
               </>

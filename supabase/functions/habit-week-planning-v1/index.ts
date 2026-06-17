@@ -24,6 +24,7 @@ import {
   WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
   weeklyPlanningDashboardUrl,
 } from "../_shared/weekly_progress_review.ts";
+import { loadRecommendedWeekPlanning } from "../_shared/plan_week_recommendations.ts";
 
 const DAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type DayCode = typeof DAY_CODES[number];
@@ -507,6 +508,59 @@ async function loadHabitItem(
   return data as UserPlanItemRow;
 }
 
+async function loadRuntimePreferredDaysForItemWeek(args: {
+  admin: SupabaseClient;
+  item: UserPlanItemRow;
+  weekStartDate: string;
+}): Promise<{
+  preferredDays: DayCode[];
+  targetRepsOverride?: number;
+}> {
+  const recommendations = await loadRecommendedWeekPlanning({
+    admin: args.admin,
+    planId: args.item.plan_id,
+    targetWeekStartDate: args.weekStartDate,
+  });
+  const recommendation = recommendations.find((entry) =>
+    entry.plan_item_id === args.item.id
+  );
+  return {
+    preferredDays: normalizeDayCodes(recommendation?.recommended_days),
+    targetRepsOverride: recommendation?.target_reps_override ?? undefined,
+  };
+}
+
+async function effectivePlanningDefaults(args: {
+  admin: SupabaseClient;
+  item: UserPlanItemRow;
+  weekStartDate: string;
+  preferredDays?: DayCode[];
+  targetRepsOverride?: number;
+}): Promise<{
+  preferredDays?: DayCode[];
+  targetRepsOverride?: number;
+}> {
+  const explicitPreferredDays = normalizeDayCodes(args.preferredDays);
+  if (explicitPreferredDays.length > 0) {
+    return {
+      preferredDays: explicitPreferredDays,
+      targetRepsOverride: args.targetRepsOverride,
+    };
+  }
+  const runtimeDefaults = await loadRuntimePreferredDaysForItemWeek({
+    admin: args.admin,
+    item: args.item,
+    weekStartDate: args.weekStartDate,
+  });
+  return {
+    preferredDays: runtimeDefaults.preferredDays.length > 0
+      ? runtimeDefaults.preferredDays
+      : undefined,
+    targetRepsOverride: args.targetRepsOverride ??
+      runtimeDefaults.targetRepsOverride,
+  };
+}
+
 async function loadWeekState(
   admin: SupabaseClient,
   userId: string,
@@ -867,27 +921,43 @@ async function getState(args: {
   preferredDays?: DayCode[];
   targetRepsOverride?: number;
 }) {
+  const currentDefaults = await effectivePlanningDefaults({
+    admin: args.admin,
+    item: args.item,
+    weekStartDate: args.currentWeekStart,
+    preferredDays: args.preferredDays,
+    targetRepsOverride: args.targetRepsOverride,
+  });
   const currentWeek = await seedWeekIfMissing(
     args.admin,
     args.userId,
     args.item,
     args.currentWeekStart,
     {
-      preferredDays: args.preferredDays,
-      targetRepsOverride: args.targetRepsOverride,
+      preferredDays: currentDefaults.preferredDays,
+      targetRepsOverride: currentDefaults.targetRepsOverride,
     },
   );
   const nextWeek = args.nextWeekStart
-    ? await seedWeekIfMissing(
-      args.admin,
-      args.userId,
-      args.item,
-      args.nextWeekStart,
-      {
+    ? await (async () => {
+      const nextDefaults = await effectivePlanningDefaults({
+        admin: args.admin,
+        item: args.item,
+        weekStartDate: args.nextWeekStart!,
         preferredDays: args.preferredDays,
         targetRepsOverride: args.targetRepsOverride,
-      },
-    )
+      });
+      return await seedWeekIfMissing(
+        args.admin,
+        args.userId,
+        args.item,
+        args.nextWeekStart!,
+        {
+          preferredDays: nextDefaults.preferredDays,
+          targetRepsOverride: nextDefaults.targetRepsOverride,
+        },
+      );
+    })()
     : null;
 
   return {
@@ -895,7 +965,10 @@ async function getState(args: {
       id: args.item.id,
       title: args.item.title,
       dimension: args.item.dimension,
-      target_reps: effectiveWeeklyTarget(args.item, args.targetRepsOverride),
+      target_reps: effectiveWeeklyTarget(
+        args.item,
+        currentDefaults.targetRepsOverride,
+      ),
       scheduled_days: normalizeDayCodes(args.item.scheduled_days),
       status: args.item.status,
     },
@@ -915,20 +988,27 @@ async function getBundleState(args: {
   }>;
 }) {
   const weekItems = await Promise.all(args.items.map(async (entry) => {
+    const defaults = await effectivePlanningDefaults({
+      admin: args.admin,
+      item: entry.item,
+      weekStartDate: args.weekStartDate,
+      preferredDays: entry.preferredDays,
+      targetRepsOverride: entry.targetRepsOverride,
+    });
     let week = await seedWeekIfMissing(
       args.admin,
       args.userId,
       entry.item,
       args.weekStartDate,
       {
-        preferredDays: entry.preferredDays,
-        targetRepsOverride: entry.targetRepsOverride,
+        preferredDays: defaults.preferredDays,
+        targetRepsOverride: defaults.targetRepsOverride,
       },
     );
     const expectedDays = buildDefaultDays({
       item: entry.item,
-      preferredDays: entry.preferredDays,
-      targetRepsOverride: entry.targetRepsOverride,
+      preferredDays: defaults.preferredDays,
+      targetRepsOverride: defaults.targetRepsOverride,
     });
     const currentDefaultDays = occurrenceDefaultDays(week.occurrences);
     const currentPlannedDays = occurrencePlannedDays(week.occurrences);
@@ -946,7 +1026,7 @@ async function getBundleState(args: {
         plannedDays: expectedDays,
         defaultDaysOverride: expectedDays,
         status: "pending_confirmation",
-        targetRepsOverride: entry.targetRepsOverride,
+        targetRepsOverride: defaults.targetRepsOverride,
       });
     }
 
@@ -957,12 +1037,12 @@ async function getBundleState(args: {
         dimension: entry.item.dimension,
         target_reps: effectiveWeeklyTarget(
           entry.item,
-          entry.targetRepsOverride,
+          defaults.targetRepsOverride,
         ),
         scheduled_days: normalizeDayCodes(entry.item.scheduled_days),
         status: entry.item.status,
       },
-      preferred_days: normalizeDayCodes(entry.preferredDays),
+      preferred_days: normalizeDayCodes(defaults.preferredDays),
       week,
     };
   }));

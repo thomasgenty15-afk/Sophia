@@ -541,7 +541,7 @@ Deno.test("resolveAgentChatModel: explicit override wins", () => {
   assertEquals(selected.tier, "explicit");
 });
 
-Deno.test("resolveAgentChatModel: sentry mode keeps default flash model", () => {
+Deno.test("resolveAgentChatModel: sentry mode keeps global default model", () => {
   const selected = resolveAgentChatModel({
     effectiveMode: "sentry",
     memoryPlan: {
@@ -559,7 +559,7 @@ Deno.test("resolveAgentChatModel: sentry mode keeps default flash model", () => 
 
   assertEquals(
     selected.model,
-    String(getGlobalAiModel("gemini-2.5-flash")).trim(),
+    String(getGlobalAiModel()).trim(),
   );
   assertEquals(selected.source, "non_companion_default");
   assertEquals(selected.tier, "default");
@@ -607,7 +607,7 @@ Deno.test("resolveAgentChatModel: companion standard tier uses mini", () => {
   assertEquals(selected.tier, "standard");
 });
 
-Deno.test("resolveAgentChatModel: companion lite tier uses nano", () => {
+Deno.test("resolveAgentChatModel: companion lite tier uses mini", () => {
   const selected = resolveAgentChatModel({
     effectiveMode: "companion",
     memoryPlan: {
@@ -623,7 +623,7 @@ Deno.test("resolveAgentChatModel: companion lite tier uses nano", () => {
     },
   });
 
-  assertEquals(selected.model, "gpt-5.4-nano");
+  assertEquals(selected.model, "gpt-5.4-mini");
   assertEquals(selected.source, "memory_plan_lite");
   assertEquals(selected.tier, "lite");
 });

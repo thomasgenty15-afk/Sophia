@@ -4,7 +4,10 @@ import {
   getUserState,
   updateUserState,
 } from "../sophia-brain/state-manager.ts";
-import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts";
+import {
+  sendWhatsAppReactionTracked,
+  sendWhatsAppTextTracked,
+} from "./wa_whatsapp_api.ts";
 import { loadHistory } from "./wa_db.ts";
 export async function replyWithBrain(params: {
   admin: any;
@@ -119,6 +122,67 @@ export async function replyWithBrain(params: {
           sanitizeWhatsAppVisibleReply(content, params.inboundText)
         )
       : [];
+  const delivery = normalizeBrainDelivery((brain as any).delivery);
+  if (
+    delivery.mode === "reaction_only" &&
+    params.replyToWaMessageId &&
+    !visibleReply &&
+    additionalVisibleReplies.length === 0
+  ) {
+    const sendResp = await sendWhatsAppReactionTracked({
+      admin: params.admin,
+      requestId: params.requestId,
+      userId: params.userId,
+      toE164: params.fromE164,
+      targetWaMessageId: params.replyToWaMessageId,
+      emoji: delivery.emoji,
+      purpose: params.purpose ?? "whatsapp_state_soft_brain_reaction",
+      metadata: {
+        reason: delivery.reason,
+        brain_mode: brain.mode ?? null,
+      },
+    });
+    const outId = sendResp?.messages?.[0]?.id ?? null;
+    console.log(`[whatsapp-webhook] trace ${
+      JSON.stringify({
+        request_id: params.requestId,
+        phase: "reply_with_brain_after_send_whatsapp_reaction",
+        elapsed_ms: Date.now() - startedAtMs,
+        stage_elapsed_ms: Date.now() - sendStartedAtMs,
+        user_id: params.userId,
+        wa_outbound_message_id: outId,
+        outbound_tracking_id: sendResp?.outbound_tracking_id ?? null,
+        emoji: delivery.emoji,
+        reason: delivery.reason,
+      })
+    }`);
+    return {
+      brain,
+      outId,
+      delivery_mode: "reaction_only",
+    };
+  }
+  if (
+    delivery.mode === "no_response" &&
+    !visibleReply &&
+    additionalVisibleReplies.length === 0
+  ) {
+    console.log(`[whatsapp-webhook] trace ${
+      JSON.stringify({
+        request_id: params.requestId,
+        phase: "reply_with_brain_no_response",
+        elapsed_ms: Date.now() - startedAtMs,
+        stage_elapsed_ms: Date.now() - sendStartedAtMs,
+        user_id: params.userId,
+        reason: delivery.reason,
+      })
+    }`);
+    return {
+      brain,
+      outId: null,
+      delivery_mode: "no_response",
+    };
+  }
   const repliesToSend = [visibleReply, ...additionalVisibleReplies].filter(
     Boolean,
   );
@@ -192,6 +256,31 @@ export async function replyWithBrain(params: {
     brain,
     outId,
   };
+}
+
+function normalizeBrainDelivery(value: unknown):
+  | { mode: "text_reply" }
+  | { mode: "reaction_only"; emoji: string; reason: string | null }
+  | { mode: "no_response"; reason: string | null } {
+  const record = value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+  const mode = String(record.mode ?? "").trim();
+  if (mode === "reaction_only") {
+    const emoji = String(record.emoji ?? "").trim();
+    return {
+      mode,
+      emoji: emoji || "✅",
+      reason: String(record.reason ?? "").trim() || null,
+    };
+  }
+  if (mode === "no_response") {
+    return {
+      mode,
+      reason: String(record.reason ?? "").trim() || null,
+    };
+  }
+  return { mode: "text_reply" };
 }
 
 function compactArray(value: unknown, max = 8): unknown[] {

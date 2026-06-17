@@ -5,6 +5,7 @@ import {
   Book,
   ChevronDown,
   ChevronUp,
+  CheckCircle2,
   Compass,
   Hammer,
   Layout,
@@ -22,7 +23,7 @@ import {
   Plus,
   Zap,
 } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
@@ -276,6 +277,9 @@ type DashboardTab = "plan" | "lab" | "inspiration" | "reminders" | "preferences"
 type ArchitectTab = "atelier" | "wishlist" | "stories" | "reflections" | "quotes";
 type DashboardScopeId = string | "out_of_plan";
 type Phase1InspirationFocusTarget = "deep_why" | "story";
+type DashboardLocationState = {
+  planSavedConfirmation?: boolean;
+};
 
 type ReviewPlanResponse = {
   request_id: string;
@@ -464,6 +468,7 @@ function mergeTransitionDebriefIntoHandoffPayload(args: {
 
 export default function DashboardV2() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { startSession } = useOnboardingAmbientAudio();
   const { subscription, accessTier } = useAuth();
   const [selectedScopeId, setSelectedScopeId] = useState<DashboardScopeId | null>(null);
@@ -606,6 +611,20 @@ export default function DashboardV2() {
   const [reactivationError, setReactivationError] = useState<string | null>(null);
   const [phase1InspirationFocus, setPhase1InspirationFocus] =
     useState<Phase1InspirationFocusTarget | null>(null);
+  const [isPlanSavedModalOpen, setIsPlanSavedModalOpen] = useState(false);
+
+  useEffect(() => {
+    const locationState = location.state as DashboardLocationState | null;
+    if (!locationState?.planSavedConfirmation) return;
+
+    setMode("action");
+    setActiveTab("plan");
+    setIsPlanSavedModalOpen(true);
+    navigate(
+      { pathname: location.pathname, search: location.search },
+      { replace: true, state: null },
+    );
+  }, [location.pathname, location.search, location.state, navigate]);
 
   const isOutOfPlanScope = selectedScopeId === "out_of_plan";
   const activeTransformations = transformations.filter((item) => item.status === "active");
@@ -957,6 +976,9 @@ export default function DashboardV2() {
   const transitionCheckpointReached = Boolean(
     hasSequencedNextTransformation &&
       (allPhasesCompleted || transformation?.status === "completed" || isTransformationReadyForClosure),
+  );
+  const shouldWarnBeforeNextTransformation = Boolean(
+    hasSequencedNextTransformation && !transitionCheckpointReached,
   );
   const hasSimpleNextTransformation = Boolean(
     !hasSequencedNextTransformation &&
@@ -2076,19 +2098,19 @@ export default function DashboardV2() {
 
     const targetSummary = transitionTargetLabel && transitionTargetValue
       ? `${transitionTargetLabel}: ${transitionTargetValue}`
-      : transitionTargetValue || transitionTargetLabel || "l'objectif de cette 1re partie";
+      : transitionTargetValue || transitionTargetLabel || "l'objectif de cette 1ère transformation";
 
     const transitionComment = hasSequencedNextTransformation
       ? transitionCheckpointReached
         ? [
-            `Je suis à la fin de cette première partie mais je n'ai pas encore atteint ${targetSummary}.`,
+            `Je suis à la fin de cette 1ère transformation mais je n'ai pas encore atteint ${targetSummary}.`,
             reason ? `Pourquoi je voulais quand même passer à la suite : ${reason}` : null,
-            "Aide-moi à ajuster la fin du plan pour atteindre ce cap avant de débloquer la 2e partie.",
+            "Aide-moi à ajuster la fin du plan pour atteindre ce cap avant de débloquer la 2ème transformation.",
           ].filter(Boolean).join("\n\n")
         : [
-            "Je ne suis pas encore au point de passage vers la 2e partie.",
+            "Je ne suis pas encore au point de passage vers la 2ème transformation.",
             `Cap à atteindre avant la suite : ${targetSummary}.`,
-            "Aide-moi à ajuster le plan actuel pour rendre cette première partie atteignable et réaliste avant de débloquer la suite.",
+            "Aide-moi à ajuster le plan actuel pour rendre cette 1ère transformation atteignable et réaliste avant de débloquer la suite.",
           ].join("\n\n")
       : [
           `Je n'ai pas encore atteint l'objectif global de cette transformation : ${targetSummary}.`,
@@ -2118,7 +2140,7 @@ export default function DashboardV2() {
       setDashboardActionError(
         actionError instanceof Error
           ? actionError.message
-          : "Impossible de préparer la 2e partie pour le moment.",
+          : "Impossible de préparer la 2ème transformation pour le moment.",
       );
     }
   };
@@ -2265,7 +2287,7 @@ export default function DashboardV2() {
       setTransitionQuestionnaireError(
         actionError instanceof Error
           ? actionError.message
-          : "Impossible de préparer la 2e partie pour le moment.",
+          : "Impossible de préparer la 2ème transformation pour le moment.",
       );
     } finally {
       setTransitionQuestionnaireBusy(false);
@@ -2823,7 +2845,7 @@ export default function DashboardV2() {
                     </div>
                     {hasSequencedNextTransformation ? (
                       <p className="mt-2 text-sm leading-5 text-amber-800">
-                        La 2e partie de ce parcours se débloque depuis la page du plan.
+                        La 2ème transformation de ce parcours se débloque depuis la page du plan.
                       </p>
                     ) : null}
                   </div>
@@ -3094,7 +3116,7 @@ export default function DashboardV2() {
                                 <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-700">
                                   Tous les éléments du plan sont terminés. Il ne reste plus qu'à
                                   valider ta Ligne Rouge et tes Déclics avant de faire entrer cette
-                                  étape dans ta Base de vie.
+                                  transformation dans ta Base de vie.
                                 </p>
                               </div>
                               <button
@@ -3230,8 +3252,8 @@ export default function DashboardV2() {
                               completionActionHint={
                                 hasSequencedNextTransformation
                                   ? transitionCheckpointReached
-                                    ? "Avant d'ouvrir la suite, confirme que l'objectif de cette 1re partie est réellement atteint."
-                                    : "La 2e partie restera verrouillée tant que cette 1re partie n'est pas vraiment bouclée."
+                                    ? "Avant d'ouvrir la suite, confirme que l'objectif de cette 1ère transformation est réellement atteint."
+                                    : "La 2ème transformation restera verrouillée tant que cette 1ère transformation n'est pas vraiment bouclée."
                                   : hasSimpleNextTransformation
                                     ? "Avant d'ouvrir la transformation suivante, confirme que l'objectif global de ta transformation actuelle est vraiment atteint."
                                   : hasCycleRelaunchAction
@@ -3326,18 +3348,42 @@ export default function DashboardV2() {
                           </>
                         )}
 
-                        <section className="rounded-[30px] border border-stone-200 bg-white px-5 py-5 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)]">
+                        <section
+                          className={`rounded-[30px] border px-5 py-5 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] ${
+                            shouldWarnBeforeNextTransformation
+                              ? "border-rose-200 bg-rose-50/90"
+                              : "border-stone-200 bg-white"
+                          }`}
+                        >
                           <div className="flex flex-wrap items-start justify-between gap-4">
                             <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+                              <p
+                                className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${
+                                  shouldWarnBeforeNextTransformation
+                                    ? "text-rose-700"
+                                    : "text-stone-500"
+                                }`}
+                              >
                                 Suite du parcours
                               </p>
-                              <h3 className="mt-3 text-2xl font-semibold text-stone-950">
-                                Choisir la bonne prochaine étape
+                              <h3
+                                className={`mt-3 text-2xl font-semibold ${
+                                  shouldWarnBeforeNextTransformation
+                                    ? "text-rose-950"
+                                    : "text-stone-950"
+                                }`}
+                              >
+                                Choisir la bonne prochaine transformation
                               </h3>
-                              <p className="mt-2 text-sm leading-6 text-stone-600">
+                              <p
+                                className={`mt-2 text-sm leading-6 ${
+                                  shouldWarnBeforeNextTransformation
+                                    ? "text-rose-900"
+                                    : "text-stone-600"
+                                }`}
+                              >
                                 {hasSequencedNextTransformation
-                                  ? "Ici, la suite n'est pas un choix libre: l'étape 2 se débloque seulement quand l'étape 1 a vraiment atteint son cap."
+                                  ? "Tu dois passer à la 2ème transformation lorsque tu as atteint l'objectif de la 1ère transformation, c'est-à-dire l'objectif du plan ci-dessus."
                                   : hasSimpleNextTransformation
                                     ? "Ici, tu peux passer à la prochaine transformation. Pour ajouter une nouvelle transformation en parallèle (max 2), passe par le menu."
                                     : hasCycleRelaunchAction
@@ -3346,22 +3392,46 @@ export default function DashboardV2() {
                               </p>
                             </div>
                             {hasSequencedNextTransformation && nextSequencedTransformation ? (
-                              <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-950">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
-                                  Étape 2 verrouillée
+                              <div
+                                className={`rounded-2xl border px-4 py-3 text-sm ${
+                                  shouldWarnBeforeNextTransformation
+                                    ? "border-rose-200 bg-white text-rose-950"
+                                    : "border-blue-100 bg-blue-50 text-blue-950"
+                                }`}
+                              >
+                                <p
+                                  className={`text-xs font-semibold uppercase tracking-[0.18em] ${
+                                    shouldWarnBeforeNextTransformation
+                                      ? "text-rose-700"
+                                      : "text-blue-700"
+                                  }`}
+                                >
+                                  2ème transformation verrouillée
                                 </p>
                                 <p className="mt-2 font-semibold">
                                   {nextSequencedTransformationTitle}
                                 </p>
                                 {transitionGlobalObjective ? (
-                                  <p className="mt-1 text-blue-900/80">
+                                  <p
+                                    className={`mt-1 ${
+                                      shouldWarnBeforeNextTransformation
+                                        ? "text-rose-900/80"
+                                        : "text-blue-900/80"
+                                    }`}
+                                  >
                                     {hasSequencedNextTransformation
                                       ? `Objectif de la 2ème transformation : ${transitionGlobalObjective}`
                                       : `Objectif global : ${transitionGlobalObjective}`}
                                   </p>
                                 ) : null}
                                 {nextSequencedTransformation.user_summary ? (
-                                  <p className="mt-2 text-blue-900/80">
+                                  <p
+                                    className={`mt-2 ${
+                                      shouldWarnBeforeNextTransformation
+                                        ? "text-rose-900/80"
+                                        : "text-blue-900/80"
+                                    }`}
+                                  >
                                     {nextSequencedTransformation.user_summary}
                                   </p>
                                 ) : null}
@@ -3380,7 +3450,11 @@ export default function DashboardV2() {
                               <button
                                 type="button"
                                 onClick={handleOpenMultiPartTransitionGate}
-                                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700"
+                                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md transition ${
+                                  shouldWarnBeforeNextTransformation
+                                    ? "bg-rose-700 shadow-rose-200 hover:bg-rose-800"
+                                    : "bg-blue-600 shadow-blue-200 hover:bg-blue-700"
+                                }`}
                               >
                                 Passer à la 2ème transformation
                               </button>
@@ -3623,6 +3697,39 @@ export default function DashboardV2() {
         mode={mode}
         initialTab={profileInitialTab}
       />
+
+      {isPlanSavedModalOpen ? (
+        <div className="fixed inset-0 z-[96] flex items-center justify-center bg-stone-950/45 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-[28px] border border-emerald-200 bg-white p-6 shadow-[0_28px_90px_-36px_rgba(15,23,42,0.5)]">
+            <div className="flex items-start gap-4">
+              <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[var(--action-green)]">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--action-green)]">
+                  Plan enregistré
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold text-stone-950">
+                  Ton plan est prêt
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-stone-600">
+                  Le plan est enregistré. Sophia va t'accompagner pour le réaliser.
+                  Passe à la prochaine transformation lorsque celle-ci est terminée.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsPlanSavedModalOpen(false)}
+                className="inline-flex items-center rounded-xl bg-[var(--action-green)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#014232]"
+              >
+                Ok
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isTransformationLimitModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/45 px-4">

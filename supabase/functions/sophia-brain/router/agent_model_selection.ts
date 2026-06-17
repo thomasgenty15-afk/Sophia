@@ -40,8 +40,7 @@ export function resolveAgentChatModel(args: {
     };
   }
 
-  const globalDefaultModel = String(getGlobalAiModel("gemini-2.5-flash"))
-    .trim();
+  const globalDefaultModel = String(getGlobalAiModel()).trim();
   if (args.effectiveMode !== "companion") {
     return {
       model: globalDefaultModel,
@@ -72,7 +71,7 @@ export function resolveAgentChatModel(args: {
   const tierModelMap: Record<DispatcherModelTierHint, string> = {
     lite: envString(
       "SOPHIA_COMPANION_MODEL_LITE",
-      "gpt-5.4-nano",
+      "gpt-5.4-mini",
     ),
     standard: envString(
       "SOPHIA_COMPANION_MODEL_STANDARD",

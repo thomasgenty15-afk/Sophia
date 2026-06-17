@@ -39,6 +39,7 @@ import {
   runInlineGetInfoDbTool,
   runInlineGetInfoProductTool,
 } from "../inline_info_tools.ts";
+import { withDirectEffectLocalContext } from "../../../router/direct_effect_local_context.ts";
 
 export type OperationRuntimeResult = {
   content: string;
@@ -499,24 +500,23 @@ async function runPrepareAttackCardLocalRuntime(args: {
     recent_messages: recentMessagesFromHistory(args.history),
     active_state: args.activeHandoff,
     local_state: previousLocalState,
-    route_decision: args.routeDecision,
-    turn_frame: args.turnFrame,
     note_information_inbound: inboundNoteInformation,
     db_context_pack: dbContextPack,
     micro_memory_context: microMemoryContext,
-    platform_context: {
-      destination: previousLocalState.platform_destination,
-      operation_type: "prepare_attack_card",
-      surface_id: getHandoffTargetForOperation("prepare_attack_card")
-        ?.surface_id ?? "attack_cards",
-    },
+    platform_context: withDirectEffectLocalContext(
+      {
+        destination: previousLocalState.platform_destination,
+        operation_type: "prepare_attack_card",
+        surface_id: getHandoffTargetForOperation("prepare_attack_card")
+          ?.surface_id ?? "attack_cards",
+      },
+      args.planSnapshot ?? null,
+    ),
     risk_context: {
       safety_risk_band: args.turnFrame?.safety?.risk_band ?? null,
       safety_reason_codes: args.turnFrame?.safety?.reason_codes ?? [],
     },
     available_inline_tools: ["product_help", "status_recap"],
-    plan_snapshot: args.planSnapshot ?? null,
-    last_handoff: args.activeHandoff?.draft ?? null,
   });
   if (!decision) {
     return {

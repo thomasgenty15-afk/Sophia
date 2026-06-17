@@ -1,5 +1,6 @@
 import {
   buildContextString,
+  formatCurrentWeekPlanContextBlock,
   formatDashboardCapabilitiesAddon,
   formatDashboardCapabilitiesLiteAddon,
   formatPlanItemIndicatorsBlock,
@@ -95,6 +96,82 @@ Deno.test("formatPlanItemIndicatorsBlock: renders V2 plan item indicators", () =
   assert(block.includes("tendance=en hausse"));
 });
 
+Deno.test("formatCurrentWeekPlanContextBlock: renders current week actions, validation and execution details", () => {
+  const block = formatCurrentWeekPlanContextBlock({
+    timezone: "Europe/Paris",
+    weekStart: "2026-06-15",
+    items: [
+      {
+        id: "pi-focus",
+        dimension: "habits",
+        kind: "habit",
+        status: "active",
+        title: "Session focus courte",
+        description: "Faire une session focus sans viser parfait.",
+        tracking_type: "boolean",
+        activation_order: 1,
+        current_habit_state: "active_building",
+        target_reps: 4,
+        current_reps: 1,
+        cadence_label: "4 fois cette semaine",
+        scheduled_days: ["mon", "wed", "fri", "sun"],
+        time_of_day: "evening",
+        payload: { recommended_day: "fri", note: "priorité douce" },
+        updated_at: "2026-06-16T09:00:00.000Z",
+        activated_at: "2026-06-15T07:00:00.000Z",
+      },
+    ],
+    weekPlans: [
+      {
+        plan_item_id: "pi-focus",
+        week_start_date: "2026-06-15",
+        status: "confirmed",
+        confirmed_at: "2026-06-16T05:00:00.000Z",
+        updated_at: "2026-06-16T05:00:00.000Z",
+      },
+    ],
+    occurrences: [
+      {
+        plan_item_id: "pi-focus",
+        week_start_date: "2026-06-15",
+        ordinal: 1,
+        planned_day: "fri",
+        original_planned_day: "sun",
+        actual_day: "fri",
+        default_day: "sun",
+        status: "planned",
+        source: "weekly_confirmed",
+        validated_at: "2026-06-16T05:00:00.000Z",
+      },
+    ],
+    entries: [
+      {
+        plan_item_id: "pi-focus",
+        entry_kind: "progress",
+        outcome: "done",
+        value_text: "Session faite hier",
+        difficulty_level: "low",
+        blocker_hint: null,
+        created_at: "2026-06-16T08:00:00.000Z",
+        effective_at: "2026-06-15T19:00:00.000Z",
+      },
+    ],
+  });
+
+  assert(block.includes("=== SEMAINE COURANTE PLAN / ACTIONS (SOURCE DB) ==="));
+  assert(block.includes("Semaine locale: 2026-06-15 -> 2026-06-21"));
+  assert(block.includes("Session focus courte"));
+  assert(block.includes("jours_planifies=vendredi"));
+  assert(!block.includes("jours_conseilles="));
+  assert(block.includes("validation_semaine: status=confirmed"));
+  assert(block.includes("confirmed_at=2026-06-16T05:00:00.000Z"));
+  assert(block.includes("vendredi: status=planned"));
+  assert(!block.includes("original_day=dimanche"));
+  assert(!block.includes("default_day=dimanche"));
+  assert(block.includes("entry_kind=progress"));
+  assert(block.includes("value_text=Session faite hier"));
+});
+
 Deno.test("formatWeeklyRecapSnapshot: extracts summary from V2 runtime snapshot", () => {
   const snapshot: Pick<
     SystemRuntimeSnapshotRow,
@@ -130,7 +207,9 @@ Deno.test("formatWeeklyRecapSnapshot: extracts summary from V2 runtime snapshot"
 
 Deno.test("dashboard capability addons: describe V2 surfaces instead of old V1 sections", () => {
   const lite = formatDashboardCapabilitiesLiteAddon();
-  const full = formatDashboardCapabilitiesAddon({ intents: ["plan_item_discussion"] });
+  const full = formatDashboardCapabilitiesAddon({
+    intents: ["plan_item_discussion"],
+  });
 
   assert(lite.includes("Sections dimensions: Soutien, Missions, Habitudes"));
   assert(!lite.includes("Construction du Temple"));
@@ -146,4 +225,18 @@ Deno.test("buildContextString: plan item indicators block is injected", () => {
 
   assert(ctx.includes("=== INDICATEURS PLAN ITEMS (V2) ==="));
   assert(ctx.includes("BLOCK"));
+});
+
+Deno.test("buildContextString: current week plan context is injected before indicators", () => {
+  const ctx = buildContextString({
+    currentWeekPlanContext:
+      "=== SEMAINE COURANTE PLAN / ACTIONS (SOURCE DB) ===\nWEEK\n",
+    planItemIndicators: "=== INDICATEURS PLAN ITEMS (V2) ===\nINDICATORS\n",
+  });
+
+  const weekIndex = ctx.indexOf("WEEK");
+  const indicatorsIndex = ctx.indexOf("INDICATORS");
+  assert(weekIndex >= 0);
+  assert(indicatorsIndex >= 0);
+  assert(weekIndex < indicatorsIndex);
 });

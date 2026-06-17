@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
+import { loadRecommendedWeekPlanning } from "./plan_week_recommendations.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
 
 export const ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT =
@@ -38,6 +39,7 @@ type OccurrenceRow = {
   id: string;
   plan_item_id: string;
   planned_day: DayCode | string;
+  ordinal?: number | null;
   status: string;
 };
 
@@ -182,7 +184,7 @@ export async function loadOnboardingWeek1Planning(
   const planItemIds = [...new Set(plans.map((row) => row.plan_item_id))];
   const { data: occurrenceRows, error: occurrenceError } = await admin
     .from("user_habit_week_occurrences")
-    .select("id,plan_item_id,planned_day,status")
+    .select("id,plan_item_id,planned_day,ordinal,status")
     .eq("user_id", params.userId)
     .eq("plan_id", params.planId)
     .eq("week_start_date", firstWeekStart)
@@ -224,6 +226,106 @@ export async function loadOnboardingWeek1Planning(
   };
 }
 
+async function applyRecommendedWeekPlanningDays(
+  admin: SupabaseClient,
+  params: {
+    userId: string;
+    planId: string;
+    weekStartDate: string;
+    nowIso: string;
+    plans: WeekPlanRow[];
+  },
+): Promise<void> {
+  const recommendations = await loadRecommendedWeekPlanning({
+    admin,
+    planId: params.planId,
+    targetWeekStartDate: params.weekStartDate,
+  });
+  if (recommendations.length === 0) return;
+
+  const plansByItemId = new Map(
+    params.plans.map((plan) => [plan.plan_item_id, plan]),
+  );
+  const editableStatuses = ["planned", "missed", "rescheduled"];
+
+  for (const recommendation of recommendations) {
+    const plan = plansByItemId.get(recommendation.plan_item_id);
+    if (!plan || recommendation.recommended_days.length === 0) continue;
+
+    const { data: occurrenceRows, error: occurrenceError } = await admin
+      .from("user_habit_week_occurrences")
+      .select("*")
+      .eq("user_id", params.userId)
+      .eq("plan_id", params.planId)
+      .eq("plan_item_id", recommendation.plan_item_id)
+      .eq("week_start_date", params.weekStartDate)
+      .order("ordinal", { ascending: true });
+    if (occurrenceError) throw occurrenceError;
+
+    const occurrences = ((occurrenceRows ?? []) as Array<
+      Record<string, unknown>
+    >)
+      .map((row) => ({
+        id: cleanText(row.id),
+        ordinal: Number(row.ordinal ?? 0),
+        status: cleanText(row.status),
+      }))
+      .filter((row) => row.id && Number.isInteger(row.ordinal));
+    const editable = occurrences.filter((row) =>
+      editableStatuses.includes(row.status)
+    );
+    const locked = occurrences.filter((row) =>
+      row.status === "done" || row.status === "partial"
+    );
+    const desiredOrdinals = recommendation.recommended_days.map((_, index) =>
+      index + 1
+    );
+    const toDelete = editable.filter((row) =>
+      !desiredOrdinals.includes(row.ordinal)
+    );
+    if (toDelete.length > 0) {
+      const { error: deleteError } = await admin
+        .from("user_habit_week_occurrences")
+        .delete()
+        .eq("user_id", params.userId)
+        .in("id", toDelete.map((row) => row.id));
+      if (deleteError) throw deleteError;
+    }
+
+    const rowsToUpsert: Array<Record<string, unknown>> = [];
+    for (const [index, day] of recommendation.recommended_days.entries()) {
+      const ordinal = index + 1;
+      const lockedOccurrence = locked.find((row) => row.ordinal === ordinal);
+      if (lockedOccurrence) continue;
+      const existing = editable.find((row) => row.ordinal === ordinal);
+      rowsToUpsert.push({
+        id: existing?.id || undefined,
+        user_id: params.userId,
+        cycle_id: plan.cycle_id,
+        transformation_id: plan.transformation_id,
+        plan_id: params.planId,
+        plan_item_id: recommendation.plan_item_id,
+        week_start_date: params.weekStartDate,
+        ordinal,
+        default_day: day,
+        planned_day: day,
+        status: "planned",
+        source: "weekly_confirmed",
+        updated_at: params.nowIso,
+      });
+    }
+
+    if (rowsToUpsert.length > 0) {
+      const { error: upsertError } = await admin
+        .from("user_habit_week_occurrences")
+        .upsert(rowsToUpsert as any, {
+          onConflict: "user_id,plan_item_id,week_start_date,ordinal",
+        });
+      if (upsertError) throw upsertError;
+    }
+  }
+}
+
 export async function autoConfirmOnboardingWeek1Planning(
   admin: SupabaseClient,
   params: {
@@ -243,6 +345,14 @@ export async function autoConfirmOnboardingWeek1Planning(
   ) {
     return { changed: false, planning: before };
   }
+
+  await applyRecommendedWeekPlanningDays(admin, {
+    userId: params.userId,
+    planId: params.planId,
+    weekStartDate: before.week_start_date,
+    nowIso,
+    plans: before.plans,
+  });
 
   const { error: planError } = await admin
     .from("user_habit_week_plans")

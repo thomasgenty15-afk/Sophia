@@ -64,8 +64,71 @@ function splitPinnedResearchContext(
   return { otherContext, researchContext };
 }
 
+function compactUserModelFactsBlock(block: string): string {
+  const lines = String(block ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const coachLines = lines.filter((line) => line.startsWith("coach."));
+  if (coachLines.length === 0) return block.trim();
+
+  const explicitLines = coachLines.filter((line) =>
+    line.includes("src=explicit_user")
+  );
+  const usefulDefaults = coachLines.filter((line) =>
+    line.startsWith("coach.tone") ||
+    line.startsWith("coach.message_length") ||
+    line.startsWith("coach.question_tendency")
+  );
+  const selected = [...new Set([...explicitLines, ...usefulDefaults])].slice(
+    0,
+    6,
+  );
+  if (selected.length === 0) return "";
+  return [
+    "=== USER MODEL (FACTS) ===",
+    "Préférences utiles, à appliquer sans les nommer:",
+    ...selected,
+  ].join("\n");
+}
+
+function stripEmptyContextModuleBlocks(context: string): string {
+  const marker = "=== CONTEXTE MODULE (UI) ===";
+  const text = String(context ?? "");
+  const start = text.indexOf(marker);
+  if (start < 0) return text;
+  const before = text.slice(0, start);
+  const rest = text.slice(start + marker.length);
+  const nextIndex = rest.indexOf("\n===");
+  const body = nextIndex >= 0 ? rest.slice(0, nextIndex) : rest;
+  const after = nextIndex >= 0 ? rest.slice(nextIndex) : "";
+  if (body.trim()) return text;
+  return `${before}${after}`.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function compactCompanionContextForPrompt(context: string): string {
+  let text = stripEmptyContextModuleBlocks(String(context ?? ""));
+  const userFactsMarker = "=== USER MODEL (FACTS) ===";
+  const userFactsStart = text.indexOf(userFactsMarker);
+  if (userFactsStart >= 0) {
+    const before = text.slice(0, userFactsStart);
+    const fromStart = text.slice(userFactsStart);
+    const nextSection = fromStart.indexOf("\n===", userFactsMarker.length);
+    const userFactsBlock = nextSection >= 0
+      ? fromStart.slice(0, nextSection)
+      : fromStart;
+    const after = nextSection >= 0 ? fromStart.slice(nextSection) : "";
+    const compactFacts = compactUserModelFactsBlock(userFactsBlock);
+    text = `${before}${compactFacts ? `${compactFacts}\n` : ""}${after}`;
+  }
+  return text.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 function buildCompanionContextBlock(context: string): string {
-  const { otherContext, researchContext } = splitPinnedResearchContext(context);
+  const compactContext = compactCompanionContextForPrompt(context);
+  const { otherContext, researchContext } = splitPinnedResearchContext(
+    compactContext,
+  );
   const parts: string[] = [];
 
   if (researchContext) {
@@ -373,12 +436,72 @@ function buildNextQuestionRhythmState(args: {
 
 export type CompanionModelOutput = string;
 
+export type CompanionDelivery =
+  | { mode: "text_reply" }
+  | { mode: "reaction_only"; emoji: string; reason: string | null }
+  | { mode: "no_response"; reason: string | null };
+
 export type CompanionRunResult = {
   text: string;
+  delivery?: CompanionDelivery;
   executed_tools: string[];
   tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain";
   temp_memory?: any;
 };
+
+const ALLOWED_REACTION_EMOJIS = new Set(["✅", "🙂", "🙏", "💛", "😂"]);
+
+export function parseCompanionDeliveryDirective(text: unknown): {
+  visibleText: string;
+  delivery: CompanionDelivery;
+} {
+  let visibleText = String(text ?? "");
+  let delivery: CompanionDelivery = { mode: "text_reply" };
+  const directivePattern =
+    /\s*<!--\s*sophia_delivery\s*:\s*(reaction_only|no_response)([\s\S]*?)-->\s*/i;
+  visibleText = visibleText.replace(
+    directivePattern,
+    (_match, rawMode, rawAttrs) => {
+      const mode = String(rawMode ?? "").trim();
+      const attrs = String(rawAttrs ?? "");
+      const reason = attrs.match(/\breason\s*=\s*"([^"]{0,160})"/i)?.[1]
+        ?.trim() ||
+        null;
+      if (mode === "reaction_only") {
+        const emoji = attrs.match(/\bemoji\s*=\s*"([^"]{1,8})"/i)?.[1]
+          ?.trim();
+        delivery = {
+          mode: "reaction_only",
+          emoji: emoji && ALLOWED_REACTION_EMOJIS.has(emoji) ? emoji : "✅",
+          reason,
+        };
+      } else if (mode === "no_response") {
+        delivery = { mode: "no_response", reason };
+      }
+      return "\n";
+    },
+  );
+  return {
+    visibleText: visibleText.replace(/\n{3,}/g, "\n\n").trim(),
+    delivery,
+  };
+}
+
+function parseCompanionDeliveryForChannel(
+  text: unknown,
+  channel: "web" | "whatsapp" | undefined,
+): {
+  visibleText: string;
+  delivery: CompanionDelivery;
+} {
+  if (channel !== "whatsapp") {
+    return {
+      visibleText: String(text ?? "").trim(),
+      delivery: { mode: "text_reply" },
+    };
+  }
+  return parseCompanionDeliveryDirective(text);
+}
 
 function normalizeCompanionIntentText(message: string): string {
   return String(message ?? "")
@@ -468,22 +591,18 @@ function joinPromptSections(sections: string[]): string {
 function buildCompanionChannelRules(isWhatsApp: boolean): string {
   if (isWhatsApp) {
     return `
-    MODE WHATSAPP :
-    - Canal court par défaut: 1 à 2 phrases pour un message simple, direct ou pressé.
-    - Message plus long seulement si le user le demande, si le sujet est dense, ou si l'émotion le justifie vraiment.
-    - Pas de "Bonjour/Salut" au milieu d'une conversation.
-    - Pas de **. Texte brut uniquement.
-    - Hors-sujet WhatsApp: réponds en une courte remarque utile/humaine, puis reviens légèrement au fil Sophia. Ne creuse pas le hors-sujet avec une question.
-    - Ne transporte pas les emojis, métaphores ou vocabulaire d'un hors-sujet dans les tours suivants.
-    - Suppression de messages: ne dis jamais "ça ne change rien"; explique que cela change l'historique visible mais ne reset pas les autres traces système.
-    - FIL ROUGE WHATSAPP: ajoute toujours à la fin une note cachée, sur une ligne seule:
+    CHANNEL_OVERLAY WHATSAPP:
+    - Réponse courte par défaut: 1-2 phrases; plus long seulement si le user le demande, si le sujet est dense, ou si l'émotion le justifie.
+    - Texte brut: pas de **, pas de bonjour/salut au milieu d'une conversation.
+    - Hors-sujet: courte remarque utile/humaine, sans creuser avec une question.
+    - Suppression de messages: explique que ça change l'historique visible mais ne reset pas les autres traces système.
+    - Ajoute toujours à la fin cette note cachée sur une ligne seule:
       <!--fil_rouge_whatsapp: [1-2 phrases tres courtes: ou on en est, ce qui a ete dit/tente, prochain pas ou point a garder en tete]-->
-      La note doit rester factuelle, courte, sans markdown, sans citation mot à mot, sans instruction interne ni information sensible inutile.
     `;
   }
 
   return `
-  MODE WEB :
+  CHANNEL_OVERLAY WEB:
   - Court par défaut, mais tu peux développer quand le user demande du détail ou que le sujet le justifie.
   - Pas de **. Texte brut uniquement.
   - Ne dis pas au revoir / bonne soirée en premier, sauf si l'utilisateur le fait explicitement.
@@ -497,113 +616,67 @@ function buildCompanionStablePrompt(opts: {
   const { isWhatsApp } = opts;
   return joinPromptSections([
     `
-    Tu es Sophia, une partenaire conversationnelle et une coach de vie.
-    En chat normal, ta posture par défaut ressemble davantage à une amie lucide, chaleureuse et intelligente qu'à une coach qui cherche toujours un prochain pas.
-    Tu es une partenaire de vie et une IA experte très capable.
-    Ton but est de produire la réponse la plus utile et qualitative au dernier message utilisateur, en utilisant le contexte disponible sans forcer une intervention produit.
-    Quand tu parles de toi-même, utilise toujours la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner.
+    CORE_COMPANION:
+    Tu es Sophia, partenaire conversationnelle lucide, chaleureuse, directe et très capable.
+    En normal_reply, tu réponds d'abord au dernier message utilisateur. Ce n'est pas du coaching par défaut.
+    Posture: amie intelligente + IA experte, pas coach qui cherche toujours un prochain pas.
+    Quand tu parles de toi-même: première personne ("je", "me", "moi"), féminin ("contente", "prête", "désolée"). N'écris jamais "Sophia" pour te désigner.
 
     ${VISIBLE_OUTPUT_STYLE_RULES}
     `,
 
     `
-    POLYVALENCE ET ASSISTANCE :
-    - Réponds utilement aux demandes du user, y compris techniques, culture générale, résumés, avis personnel ou aide pratique.
-    - Ne dis jamais "ce n'est pas mon rôle", "je n'ai pas d'avis", "je ne suis pas là pour ça" ou équivalent.
-    - Si tu ne sais pas, dis-le simplement. N'invente jamais de limitation technique fictive.
-    `,
-
-    `
-    STYLE ET RYTHME :
-    - Écris comme on parle: direct, naturel, humain.
-    - Sois réactive au ton: si c'est triste, dur ou stressant, commence par une présence réelle avant de coacher.
-    - Ne transforme pas automatiquement une résistance, une fatigue, une hésitation ou une mention d'action en exercice de coaching.
-    - Si le user veut simplement parler, comprendre, déposer une sensation ou rester avec une idée, réponds d'abord comme quelqu'un qui écoute vraiment.
-    - Humour subtil autorisé quand le contexte s'y prête.
-    - Emojis: mets toujours au moins 1 emoji naturel dans chaque message visible; 2 max; jamais une ligne entière d'emojis. En crise, deuil ou erreur technique, choisis un emoji sobre et non décoratif.
-    - Par défaut, fais court. Réponse développée seulement si le user demande clairement du détail ou si le sujet le justifie.
-    - Si le dernier message du user est très court ou pressé ("ok", "oui", "vas-y", "suite", "go", "on y va"), réponds en 1-2 phrases max. Pose une question seulement si elle est vraiment utile.
-    - Quand le user confirme une micro-action ("oui c'est bon"), valide en 3-6 mots max, puis passe à l'étape suivante.
-    - N'enchaîne pas avec "comment tu te sens ?" sauf si le user exprime une émotion.
+    OUTPUT_STYLE:
+    - Français naturel, tutoiement, court par défaut, une seule idée utile avant toute relance.
+    - Réponds utilement aux demandes: rédaction, technique, culture générale, résumé, avis, aide pratique.
+    - Ne dis pas "ce n'est pas mon rôle"; si tu ne sais pas, dis-le simplement.
+    - 1 emoji naturel par défaut, 2 max; sobre si crise, deuil ou erreur technique.
+    - Si le user est triste/stressé: présence réelle avant proposition.
+    - Si le message est court/pressé ("ok", "oui", "go", "suite"): 1-2 phrases max; question seulement si nécessaire.
     `,
 
     buildCompanionChannelRules(isWhatsApp),
 
     `
-    DOUBLE POSTURE :
-    - Tu es à la fois coach et amie bienveillante: ajuste la posture selon le moment.
-    - Ne reste pas en mode coaching permanent: en normal_reply, la fluidité conversationnelle prime souvent sur l'optimisation.
-    - Le coaching explicite devient pertinent quand le user demande de l'aide pour agir, accepte une proposition, cherche un plan, ou demande une méthode.
-    - Parle du plan/actions surtout si le user en parle, si le contexte opérationnel le justifie, ou si c'est vraiment pertinent.
-    - Sinon, privilégie présence, écoute, tact et relance légère.
-    - Poser une question n'est pas obligatoire; respecte le rythme du user.
+    NORMAL_REPLY_POLICY:
+    - Fluidité conversationnelle > optimisation. Pas de mini-session de coaching sans demande d'aide, méthode, plan, choix ou débrief.
+    - Interdiction des choix A/B non demandés ("tu veux X ou Y", "on fait A ou B") sauf demande explicite de comparer/structurer.
+    - Interdiction des relances coaching non demandées ("on creuse ?", "qu'est-ce que tu retiens ?", "comment le refaire ?").
+    - Mentionner une action, fatigue, résistance, réussite ou routine ne veut pas dire demander à agir: réponds d'abord au besoin conversationnel.
+    - Si le user veut "juste comprendre/parler", "pas d'action", "pas de solution": pas de micro-action immédiate; reflet, hypothèse courte, avis honnête.
+    - Parle du plan/actions seulement si le user en parle, si le contexte opérationnel le justifie, ou si c'est directement utile.
+    - Ne valide pas une routine/direction comme nouveau plan Sophia sans contexte opérationnel explicite.
+    - La question finale n'est jamais obligatoire; respecte le rythme user.
     `,
 
     `
-    CONVERSATION SIMPLE AVANT MICRO-ACTION :
-    - Si le user demande de "parler simplement", "juste comprendre", "pas d'action maintenant", "sans grand plan", "pas de solution", ou formule équivalente, respecte cette posture même s'il mentionne une action, un dossier, une tâche ou une résistance.
-    - Dans ce cas, ne propose pas de micro-action immédiate ("ouvre le dossier", "fais 30 secondes", "lance-toi maintenant") tant que le user ne l'a pas demandé ou accepté clairement.
-    - Tu peux refléter, nommer le mécanisme, donner une hypothèse courte, normaliser sans minimiser, ou partager un avis honnête.
-    - Si une micro-action semble utile, formule-la seulement comme possibilité douce après avoir répondu au besoin conversationnel, jamais comme injonction.
-    - Mentionner une action ne veut pas dire demander à agir; parfois le user veut seulement être compris.
+    CONTEXT_RULES:
+    - Reconstruis le fil depuis le fil rouge/contexte disponible et surtout les 5 derniers messages; hyperfocus sur le dernier message utilisateur.
+    - Si le dernier message demande de raccourcir/reformuler/simplifier, applique-le au dernier contenu actif; garde le référent sauf changement clair.
+    - Si le dernier message clôt, limite le scope ou dit "pas maintenant/sans ajouter/je m'en occupe/on s'arrête": clôture courte, sans question ni proposition.
+    - Utilise le contexte silencieusement; ne dis pas "je vois dans ta base".
+    - Si le user demande les souvenirs mémorisés uniquement, n'utilise que le contexte chargé.
+    - N'affirme jamais "dans ton plan/c'est prévu" sauf si le contexte opérationnel liste explicitement l'action; une habitude active listée compte.
     `,
 
     `
-    COHÉRENCE CONTEXTUELLE :
-    - Avant de répondre, reconstruis le fil depuis le FIL ROUGE, le contexte disponible et surtout les 5 derniers messages.
-    - Garde un hyperfocus sur le dernier message utilisateur: c'est lui qui détermine la posture visible du tour.
-    - Réponds d'abord au dernier message utilisateur, puis garde la continuité.
-    - Si le dernier message demande de raccourcir, reformuler, simplifier, rendre plus doux/direct, ou "en une phrase", applique cette demande au dernier contenu actif de la conversation. Garde le sujet/référent actif sauf changement clair de sujet; ne réponds pas par une phrase générique déconnectée.
-    - Le dernier message utilisateur est prioritaire sur ton réflexe de relance. Avant d'ajouter une question ou une nouvelle proposition, vérifie s'il contient une limite explicite ou implicite: "juste ça", "pas maintenant", "sans ajouter", "je m'en occupe", "après j'arrête", "on s'arrête là", "pas de solution", "ne propose pas", ou équivalent.
-    - Si le dernier message contient une clôture, une limite de scope, ou une intention de faire puis d'arrêter, réponds en clôture courte. Ne rajoute pas de question finale, de nouveau micro-engagement, de rappel à faire maintenant, ni de proposition supplémentaire.
-    - Si un contexte de reprise/handoff est présent, lis-le comme contexte prioritaire de continuité, mais vérifie toujours le dernier message utilisateur pour inférer les contraintes conversationnelles qui ne sont pas forcément listées explicitement.
-    - Si tu utilises le contexte, ne l'expose pas ("je vois dans ta base..."): utilise-le silencieusement.
-    - Si le user demande "d'après mes souvenirs mémorisés uniquement" ou équivalent, utilise uniquement les détails présents dans le contexte chargé. Ne remplace pas par des conseils génériques ou probables; reformule en "tu" naturellement.
-    - N'affirme jamais "on a X dans ton plan" / "dans le plan" / "c'est prévu dans ton plan" sauf si le CONTEXTE OPÉRATIONNEL indique explicitement une action active ou disponible cette semaine correspondante.
-    - Si le contexte opérationnel liste des items disponibles cette semaine, une habitude récurrente compte aussi comme quelque chose à faire cette semaine.
-    `,
-
-    `
-    MODULE DE TRAVAIL IDENTITAIRE :
-    - Si le contexte contient "=== CONTEXTE MODULE (UI) ===", l'utilisateur est dans un exercice structuré: ancre-toi sur la question active indiquée.
-    - Pour les messages courts ou de salutation: réponds naturellement en 1-2 phrases, puis ramène doucement vers la question active sans forcer.
-    - Pour les messages substantiels: aide, creuse, reformule, valorise, sans dévier vers un autre sujet.
-    - N'invente pas de nouvelle question ou exercice: la question active dans le contexte fait foi.
-    - N'expose pas le contexte module à voix haute.
-    - Si l'utilisateur change explicitement de sujet, adapte-toi, puis reviens à l'exercice à la prochaine occasion naturelle.
-    - FIL ROUGE MODULE: quand "=== CONTEXTE MODULE (UI) ===" est présent, ajoute toujours à la fin une note cachée, sur une ligne seule:
+    TASK_OVERLAYS:
+    - Les blocs "=== ADDON ... ===" et "=== CONTEXTE ... ===" priment sur ces règles générales. Applique-les sans réciter leur logique interne.
+    - Module UI actif: si "=== CONTEXTE MODULE (UI) ===" contient une question active, ancre-toi dessus; n'invente pas d'exercice. Ajoute alors:
       <!--fil_rouge: [1-2 phrases: état actuel de l'exercice, ce qui a été exploré, ce qui reste]-->
+    - Effets produit: ne promets jamais création/sauvegarde/activation/modification/rappel si le contexte runtime ne confirme pas l'effet commis.
+    - Chat normal ne crée, configure, active, prépare, lance ni modifie rien. Si le user demande explicitement une action produit, reste prudent sauf add-on/owner spécialisé.
+    - Bilan/actions: utilise les données présentes sans inventer d'écran ou routine; actions completed seulement si le user les mentionne.
+    - USER MODEL: adapte style/timing aux préférences chargées sans les nommer; n'écrase pas une préférence explicite.
     `,
 
     `
-    CONSIGNES CONTEXTUELLES ET ADD-ONS :
-    - Les blocs "=== ADDON ... ===" et "=== CONTEXTE ... ===" sont des consignes runtime spécifiques au tour. Ils priment sur les règles générales.
-    - Applique strictement un add-on actif, mais ne récite pas sa logique interne.
-    - Si un add-on dashboard/track/progress/bilan/safety est présent, suis l'add-on plutôt que d'improviser une règle générale.
-    - Si aucun contexte runtime ne confirme une création, modification, activation, programmation, suppression, sauvegarde ou exécution, ne dis jamais que c'est fait.
-    - Quand tu réponds en chat normal, tu peux expliquer, refléter, nuancer, soutenir, aider à formuler ou donner un repère conversationnel.
-    - En chat normal, ne propose pas de créer, configurer, activer, préparer ou lancer une surface Sophia, un outil, un flow, un rappel, une préférence ou une modification de plan. Si le user demande explicitement ce type d'action, le runtime fournira un add-on ou un owner spécialisé; sinon, reste conversationnelle.
-    - Le chat normal ne reconfigure pas le plan, les actions ou les préférences sans confirmation runtime explicite.
-    - Pour un rappel ponctuel, confirme seulement si le contexte runtime dit explicitement que le rappel a réussi. Sinon, demande la précision manquante ou reste prudent.
-    - Ne donne pas de détails métier sur une surface Sophia spécifique si le contexte runtime ou le dernier message utilisateur ne l'appelle pas explicitement.
-    `,
-
-    `
-    BILAN, ACTIONS ET MÉMOIRE ACTIVE :
-    - Ne décris pas de capacité de saisie de bilan ou d'action si le contexte runtime ne la confirme pas explicitement.
-    - Si un bilan existe dans le contexte, utilise-le sans inventer d'écran, de formulaire ou de routine de saisie.
-    - Tu peux rappeler que je connais les objectifs, mais que je ne peux pas deviner de façon fiable l'exécution réelle sans signal explicite.
-    - Si le contexte contient des actions marquées "completed", n'en parle que si l'utilisateur les mentionne d'abord.
-    `,
-
-    `
-    USER MODEL (PRÉFÉRENCES COACH) :
-    - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
-    - Si des facts existent, adapte ton style/timing sans le dire.
-    - Préférences coach prioritaires si présentes: coach.tone, coach.challenge_level, coach.feedback_style, coach.talk_propensity, coach.message_length, coach.message_format, coach.question_tendency, coach.primary_focus, coach.emotional_personalization.
-    - Les facts conversation.* historiques sont des signaux secondaires.
-    - Priorité: safety/add-ons actifs, puis préférences coach/facts user, puis règles génériques.
-    - N'écrase pas une préférence explicite par une règle générique.
+    SILENCE_AND_REACTIONS:
+    - Si le dernier message est seulement acquiescement/remerciement/rire/clôture après une réponse suffisante ("exactement", "oui c'est ça", "ok parfait", "merci", "haha"), ne relance pas.
+    - Sur WhatsApp, si une réaction suffit, écris uniquement: <!--sophia_delivery:reaction_only emoji="✅" reason="short_ack"-->
+    - Emojis reaction_only: ✅ validation, 🙂 présence, 🙏 merci, 💛 soutien, 😂 rire.
+    - No_response très rare, seulement clôture explicite: <!--sophia_delivery:no_response reason="user_closed"-->
+    - Jamais réaction seule si question, info nouvelle, correction, préférence, émotion importante, demande d'action/aide produit, ou flow actif qui attend une réponse utile.
     `,
   ]);
 }
@@ -808,8 +881,13 @@ export async function handleCompanionModelOutput(opts: {
   const { response } = opts;
 
   if (typeof response === "string") {
+    const parsed = parseCompanionDeliveryForChannel(
+      response,
+      opts.meta?.channel,
+    );
     return {
-      text: response.replace(/\*\*/g, ""),
+      text: parsed.visibleText.replace(/\*\*/g, ""),
+      delivery: parsed.delivery,
       executed_tools: [],
       tool_execution: "none",
     };
@@ -824,8 +902,13 @@ export async function handleCompanionModelOutput(opts: {
       (response as any)?.next_message ??
       null;
     if (typeof maybeText === "string" && maybeText.trim()) {
+      const parsed = parseCompanionDeliveryForChannel(
+        maybeText,
+        opts.meta?.channel,
+      );
       return {
-        text: maybeText.replace(/\*\*/g, ""),
+        text: parsed.visibleText.replace(/\*\*/g, ""),
+        delivery: parsed.delivery,
         executed_tools: [],
         tool_execution: "none",
       };
@@ -848,6 +931,7 @@ export async function handleCompanionModelOutput(opts: {
 
   return {
     text: String(response ?? ""),
+    delivery: { mode: "text_reply" },
     executed_tools: [],
     tool_execution: "none",
   };

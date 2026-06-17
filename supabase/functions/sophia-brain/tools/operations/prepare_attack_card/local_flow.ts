@@ -2,8 +2,6 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
-import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
-import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import {
   createNoteInformation,
   type NoteInformation,
@@ -13,7 +11,6 @@ import { RECENT_MESSAGE_LIMITS } from "../../../context/recent_messages_policy.t
 import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 import {
   directEffectLocalDispatcherPromptLines,
-  withDirectEffectLocalContext,
 } from "../../../router/direct_effect_local_context.ts";
 import type {
   AttackCardHandoffDraft,
@@ -267,8 +264,6 @@ export type PrepareAttackCardLocalDispatcherInput = {
   recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
   active_state: AttackCardHandoffState | null;
   local_state: PrepareAttackCardLocalState | null;
-  route_decision: RouteDecision | null;
-  turn_frame: TurnFrame | null;
   note_information_inbound?: Record<string, unknown> | null;
   db_context_pack?: Record<string, unknown> | null;
   micro_memory_context?: Record<string, unknown> | null;
@@ -276,8 +271,6 @@ export type PrepareAttackCardLocalDispatcherInput = {
   parent_flow_context?: Record<string, unknown> | null;
   risk_context?: Record<string, unknown> | null;
   available_inline_tools?: string[];
-  plan_snapshot?: unknown;
-  last_handoff?: AttackCardHandoffDraft | null;
 };
 
 export type PrepareAttackCardLocalDispatcher = (
@@ -2472,6 +2465,20 @@ export function dispatcherSystemPrompt(): string {
     "- target_state: cible/action de la carte. status=missing si aucune action; ambiguous si plusieurs cibles ou reference vague; proposed si cible probable a confirmer; locked seulement si le user l'a donnee/validee clairement. kind=plan_item uniquement avec id fiable; personal_action sinon; unknown si domaine incertain. candidate_value pour une proposition; locked_value uniquement pour une valeur stabilisee. needs_user_confirmation=true avec proposed/ambiguous. Influence: target non locked -> ask_target ou confirm_target_candidate.",
     "- blocker_state: piege, excuse, friction ou moment ou l'action deraille. missing si absent; proposed si inference plausible; locked si user l'a donne/valide. blocker_type decrit la nature, sans forcer. Ne transforme pas un contexte vague en fait. Influence: target locked + blocker non locked -> ask_blocker.",
     "- technique_state: technique choisie ou a proposer. status=missing si aucune technique ni option; ambiguous si plusieurs techniques pertinentes ou demande incoherente; proposed si tu proposes une technique; locked si label exact demande/valide ou proposition confirmee. technique_key doit etre une cle exacte; technique_label le label exact. candidate_options max 3 options utiles. Si target_state et blocker_state sont locked et qu'une technique est clairement la plus utile, prefere status=proposed avec une candidate recommended=true plutot qu'une liste large. explicitly_requested=true seulement si le user demande vraiment la technique. fit_warning si la technique forcee semble incoherente. Ne choisis pas pre_engagement/Mot de bascule pour un simple demarrage d'action sauf demande explicite de mot de bascule, craquage, rupture, esquive ou validation user. Influence: technique non locked -> ask_or_confirm_technique.",
+    "Technique fit doctrine:",
+    "- Choisis la technique la moins couteuse conversationnellement qui couvre correctement le besoin. Si le user demande court/simple/pas profond/juste une phrase, evite les techniques qui exigent une introspection sauf necessite forte.",
+    "- Le texte magique / texte_recadrage: meilleur fit pour negociation mentale, excuse recurrente, pensee du type 'plus tard', 'pas maintenant', 'je vais le faire demain'. Mauvais fit pour compulsion immediate ou setup materiel pur. Cout moyen: action negociee + excuse + etat voulu.",
+    "- Preparer le terrain / preparer_terrain: meilleur fit pour friction materielle, setup, dossier/fichier a ouvrir, environnement pas pret, besoin de rendre le premier geste plus simple. Mauvais fit pour fenetre de craquage emotionnel immediate. Cout concret: action + preparation en avance + environnement pret.",
+    "- Mot de bascule / pre_engagement: meilleur fit pour moment de rupture, craquage, rechute, impulsion, perte de controle, risque de repartir dans un vieux pattern, ou demande explicite d'un mot de bascule. Mauvais fit pour simple demarrage d'action ou demande 'juste une phrase courte'. Cout emotionnel eleve: situation de risque + valeur protegee.",
+    "Compact intake attack card:",
+    "- Si le user demande une carte courte/simple/avec ce que tu sais/pas trois questions et donne deja une cible ou situation + un piege/moment + une phrase/action exploitable, n'ouvre pas une nouvelle clarification de slot.",
+    "- Dans ce mode compact, verrouille les valeurs explicitement donnees, mets les valeurs deduites en proposed, puis choisis confirm_platform_field_proposal si une seule valeur utile doit etre validee, ou handoff_ready si tous les champs requis sont locked.",
+    "- Pour Mot de bascule, si le user donne la situation de risque et une phrase/action de rupture mais pas la valeur protegee abstraite, transforme la valeur protegee en proposition courte a confirmer au lieu de demander 'qu'est-ce que tu proteges ?'. Exemple: proposer 'ne pas repartir dans le grignotage automatique ce soir' a partir d'une parade comme the, quitter la cuisine, revenir au canape.",
+    "- Le mode compact ne doit pas inventer un fait durable: valeurs proposees = needs_user_confirmation true; valeurs dites explicitement par le user = locked.",
+    "- Mantra de force / mantra_force: meilleur fit pour effort difficile, besoin de courage, tenir face a une action exigeante ou inconfortable. Mauvais fit pour un simple probleme de friction ou de rappel.",
+    "- Ancre visuelle / ancre_visuelle: meilleur fit pour rappel environnemental stable, lieu ou objet visible qui doit reconnecter le user a un engagement. Mauvais fit si aucun support visuel/lieu/objet n'est present.",
+    "- Meditation de 5 minutes / visualisation_matinale: meilleur fit pour projection calme avant une action ou habitude recurrente, surtout le matin. Mauvais fit pour besoin immediat ultra court.",
+    "- Ne laisse pas un seul mot comme 'esquiver' forcer Mot de bascule si le reste du message indique surtout un demarrage de dossier/fichier. Dans ce cas, compare Preparer le terrain et Le texte magique avant pre_engagement.",
     "- platform_field_states: champs specifiques a la technique. Ne remplis que les field_id autorises pour technique_key. status=missing si absent; proposed si deduit mais pas valide; locked si donne/valide clairement. candidate_value pour proposition; locked_value pour valeur finale; previous_value pour revision. Un champ vague reste proposed/missing. Influence: le reducer calcule current_field_id et demande ask_platform_field ou confirm_platform_field_proposal.",
     "- activation_keyword_state: seulement pour pre_engagement. not_applicable pour toutes les autres techniques. Pour pre_engagement, missing/proposed/locked seulement si le user donne, demande ou valide un mot d'activation. Ne rends jamais activation_keyword obligatoire hors demande explicite.",
     "- revision: is_revision=true si le user corrige/remplace cible, piege, technique, champ plateforme ou activation keyword. revision_target exact; field_id seulement pour platform_field; replacement_value avec la nouvelle valeur; replaces_previous_value=true si elle remplace une valeur locked/proposed. Laisser false/null hors correction. Influence: le reducer remplace la valeur principale et visible_task.kind peut devenir revision_done.",
@@ -2498,6 +2505,7 @@ export function dispatcherSystemPrompt(): string {
     "",
     "Stage coherence:",
     "target non locked -> ask_target ou confirm_target_candidate; target locked + blocker non locked -> ask_blocker; target+blocker locked + technique non locked -> ask_or_confirm_technique; target+blocker+technique locked + champ courant manquant/proposed -> ask_platform_field ou confirm_platform_field_proposal; n'utilise jamais ask_target quand target et blocker sont deja locked.",
+    "Exception compact intake: si le user demande explicitement une carte courte/simple et fournit deja les informations substantielles, ne suis pas mecaniquement la premiere transition manquante; propose ou verrouille les champs disponibles et avance vers confirm_platform_field_proposal ou handoff_ready.",
     "Si tous les champs requis sont locked, retourne visible_task.kind=handoff_ready.",
     "Si une valeur est plausible mais non donnee explicitement, mets status=proposed et needs_user_confirmation=true.",
     "Si le user demande de creer/lancer/ajouter depuis le chat, retourne apply_attempt seulement si la demande porte sur une creation maintenant, pas sur une verification de ce qui a deja ete cree ou non.",
@@ -2524,20 +2532,13 @@ export async function runPrepareAttackCardLocalDispatcher(
     note_information_inbound: input.note_information_inbound ?? null,
     db_context_pack: input.db_context_pack ?? null,
     micro_memory_context: input.micro_memory_context ?? null,
-    platform_context: withDirectEffectLocalContext(
-      input.platform_context ?? null,
-      input.plan_snapshot ?? null,
-    ),
+    platform_context: input.platform_context ?? null,
     parent_flow_context: input.parent_flow_context ?? null,
     risk_context: input.risk_context ?? null,
     available_inline_tools: input.available_inline_tools ?? [
       "product_help",
       "status_recap",
     ],
-    route_decision_context_only: input.route_decision,
-    turn_frame_context_only: input.turn_frame,
-    plan_snapshot: input.plan_snapshot ?? null,
-    last_handoff: input.last_handoff ?? null,
     platform_destination: PLATFORM_DESTINATION,
     technique_labels: ATTACK_CARD_TECHNIQUE_LABELS,
     platform_fields_by_technique: ATTACK_CARD_PLATFORM_FIELD_DEFINITIONS,

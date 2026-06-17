@@ -7,13 +7,12 @@ import {
 Deno.test("dispatcher prompt includes status_recap factual-state entry examples", () => {
   assertEquals(
     DISPATCHER_V2_PROMPT_VERSION,
-    "dispatcher_v2_prompt_2026_06_s29_status_recap_entry",
+    "dispatcher_v2_prompt_2026_06_s34_nano_trivial_only",
   );
 
   const promptJson = buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-    safety_risk_band: "low",
   });
   const parsed = JSON.parse(promptJson) as {
     critical_routing_examples: Array<{

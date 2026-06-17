@@ -8,6 +8,7 @@ import {
   ATTACK_CARD_TECHNIQUE_LABELS,
   createInitialPrepareAttackCardLocalState,
   dispatcherSystemPrompt,
+  type PrepareAttackCardLocalDispatcherInput,
   type PrepareAttackCardLocalDispatcherOutput,
   type PrepareAttackCardVisibleTaskKind,
   reducePrepareAttackCardLocalDispatcherOutput,
@@ -150,6 +151,17 @@ Deno.test("prepare_attack_card local dispatcher prompt documents real output fie
   assert(prompt.includes("preserve_active_flow=true"));
   assert(prompt.includes("question d'etat/ledger read-only"));
   assert(prompt.includes("ce qui est seulement prepare a recopier"));
+  assert(prompt.includes("Technique fit doctrine:"));
+  assert(prompt.includes("Compact intake attack card:"));
+  assert(prompt.includes("carte courte/simple/avec ce que tu sais"));
+  assert(prompt.includes("confirm_platform_field_proposal ou handoff_ready"));
+  assert(prompt.includes("la moins couteuse conversationnellement"));
+  assert(prompt.includes("Mauvais fit pour simple demarrage d'action"));
+  assert(
+    prompt.includes(
+      "compare Preparer le terrain et Le texte magique avant pre_engagement",
+    ),
+  );
 });
 
 Deno.test("prepare_attack_card local dispatcher prompt documents transition rules without extra examples", () => {
@@ -1516,6 +1528,103 @@ Deno.test("prepare_attack_card local runtime passes only conversation_context to
   assertEquals(dispatcherSawInboundNote, true);
   assertEquals(visibleSawConversationContext, true);
   assertEquals(runtime?.toolSkillRun.selected_handler, "prepare_attack_card");
+});
+
+Deno.test("prepare_attack_card local dispatcher input excludes raw global routing context", async () => {
+  let dispatcherInput: PrepareAttackCardLocalDispatcherInput | null = null;
+  const planSnapshot = {
+    items: [{
+      id: "item-1",
+      title: "Clarifier le dossier",
+      status: "active",
+      item_type: "task",
+      payload: { should_not_be_needed_by_local_dispatcher: true },
+    }],
+  };
+
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage: "Je veux une carte d'attaque courte pour le dossier.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    planSnapshot,
+    turnFrame: {
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      note_information: {
+        source_flow_id: "global",
+        target_dispatcher: "prepare_attack_card",
+        handoff_reason: "explicit_user_request",
+        handoff_context_for_next_dispatcher: "start attack card",
+        user_words: ["carte d'attaque courte"],
+        structured_context: { recommended_next_focus: "prepare_attack_card" },
+        confidence: "high",
+      },
+    } as any,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "tool_skill_intent_start",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    safetyContextOutput: {
+      detected: false,
+      risk_band: "none",
+      reason_codes: [],
+      evidence: [],
+      allow_side_effects: true,
+      layer_contributions: {},
+    } as any,
+    sourceMessageId: "m1",
+    runLocalDispatcher: async (input) => {
+      dispatcherInput = input;
+      return decision({
+        target_state: {
+          status: "locked",
+          kind: "personal_action",
+          plan_item_id: null,
+          candidate_value: null,
+          locked_value: "le dossier",
+          needs_user_confirmation: false,
+          why_status: "clear",
+        },
+        visible_task: { kind: "ask_blocker" },
+      });
+    },
+    runVisibleAgent: async () =>
+      "Qu'est-ce qui te bloque juste avant de t'y mettre ?",
+  });
+
+  assertEquals(runtime?.toolSkillRun.selected_handler, "prepare_attack_card");
+  assertEquals(Boolean(dispatcherInput), true);
+  const capturedInput =
+    dispatcherInput as unknown as PrepareAttackCardLocalDispatcherInput;
+  assertEquals("route_decision" in capturedInput, false);
+  assertEquals("turn_frame" in capturedInput, false);
+  assertEquals("plan_snapshot" in capturedInput, false);
+  assertEquals("last_handoff" in capturedInput, false);
+  assertEquals(
+    Array.isArray(
+      (capturedInput.platform_context as any)
+        ?.active_action_candidates_for_direct_effects,
+    ),
+    true,
+  );
+  assertEquals(
+    (capturedInput.platform_context as any)
+      .active_action_candidates_for_direct_effects[0].plan_item_id,
+    "item-1",
+  );
+  assertEquals(
+    capturedInput.note_information_inbound?.source_flow_id,
+    "global",
+  );
 });
 
 Deno.test("prepare_attack_card router nominal path uses local dispatcher reducer and visible agent", async () => {

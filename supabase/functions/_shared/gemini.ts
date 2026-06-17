@@ -45,7 +45,8 @@ export type GenerateWithGeminiMeta = {
 
 export type GenerateWithGeminiResult = string | { tool: string; args: any };
 
-const OPENAI_STRONG_FALLBACK_MODEL = "gpt-5.4";
+const PRIMARY_AI_MODEL = "gpt-5.4-mini";
+const GEMINI_FLASH_FALLBACK_MODEL = "gemini-3-flash-preview";
 const OPENAI_LIGHT_FALLBACK_MODEL = "gpt-5.4-nano";
 
 function isRetiredGeminiModel(model: string): boolean {
@@ -54,9 +55,7 @@ function isRetiredGeminiModel(model: string): boolean {
 
 function replaceRetiredModel(model: string, fallback: string): string {
   const resolved = String(model ?? "").trim() || fallback;
-  return isRetiredGeminiModel(resolved)
-    ? OPENAI_STRONG_FALLBACK_MODEL
-    : resolved;
+  return isRetiredGeminiModel(resolved) ? PRIMARY_AI_MODEL : resolved;
 }
 
 type Release = () => void;
@@ -129,17 +128,19 @@ function makeTimeoutSignal(
   return { signal: controller.signal, cancel: () => clearTimeout(id) };
 }
 
-export function getGlobalAiModel(fallback = "gemini-2.5-flash"): string {
+export function getGlobalAiModel(_fallback = PRIMARY_AI_MODEL): string {
   const model = (
     safeEnvGet("GLOBAL_AI_MODEL") ??
       ""
   ).trim();
-  return replaceRetiredModel(model, fallback);
+  return replaceRetiredModel(model, PRIMARY_AI_MODEL);
 }
 
-export function getGeminiFallbackModel(fallback = "gemini-2.5-flash"): string {
+export function getGeminiFallbackModel(
+  _fallback = GEMINI_FLASH_FALLBACK_MODEL,
+): string {
   const model = (safeEnvGet("GEMINI_FALLBACK_MODEL") ?? "").trim();
-  return replaceRetiredModel(model, fallback);
+  return replaceRetiredModel(model, GEMINI_FLASH_FALLBACK_MODEL);
 }
 
 export async function generateWithGemini(
@@ -356,7 +357,17 @@ export async function generateWithGemini(
   const OPENAI_BASE_URL =
     (Deno.env.get("OPENAI_BASE_URL") ?? "https://api.openai.com").trim()
       .replace(/\/+$/g, "");
+  const openAiResponsesApiEnabled = !["0", "false", "no", "off"].includes(
+    String(Deno.env.get("OPENAI_USE_RESPONSES_API") ?? "1").trim()
+      .toLowerCase(),
+  );
+  const openAiStoreResponses = !["0", "false", "no", "off"].includes(
+    String(Deno.env.get("OPENAI_STORE_RESPONSES") ?? "1").trim()
+      .toLowerCase(),
+  );
   const isOpenAiModel = (m: string) => /^\s*gpt-/i.test(String(m ?? "").trim());
+  const isGeminiModel = (m: string) =>
+    /^\s*gemini-/i.test(String(m ?? "").trim());
   const isOpenAiGpt5Family = (m: string) =>
     /^\s*gpt-5/i.test(String(m ?? "").trim());
 
@@ -398,7 +409,144 @@ export async function generateWithGemini(
     return out;
   };
 
-  const callOpenAI = async (
+  const openAiMetadata = () => {
+    const metadata: Record<string, string> = {};
+    if (requestId) metadata.request_id = requestId.slice(0, 500);
+    if (source) metadata.source = source.slice(0, 500);
+    const userId = String(meta?.userId ?? "").trim();
+    if (userId) metadata.user_id = userId.slice(0, 500);
+    return metadata;
+  };
+
+  const normalizeOpenAIUsage = (usage: any) => {
+    const promptTokens =
+      Number(usage?.prompt_tokens ?? usage?.input_tokens ?? 0) || 0;
+    const outputTokens =
+      Number(usage?.completion_tokens ?? usage?.output_tokens ?? 0) || 0;
+    return {
+      prompt_tokens: promptTokens,
+      completion_tokens: outputTokens,
+      total_tokens: Number(
+        usage?.total_tokens ?? (promptTokens + outputTokens),
+      ) || 0,
+    };
+  };
+
+  const normalizeOpenAIReasoningEffort = (
+    effort: GeminiReasoningEffort | undefined,
+  ): "minimal" | "low" | "medium" | "high" | null => {
+    if (effort === "minimal" || effort === "low" || effort === "medium") {
+      return effort;
+    }
+    if (effort === "high" || effort === "xhigh") return "high";
+    return null;
+  };
+
+  const outputTextFromOpenAIResponse = (json: any): string => {
+    const direct = String(json?.output_text ?? "").trim();
+    if (direct) return direct;
+    const output = Array.isArray(json?.output) ? json.output : [];
+    const chunks: string[] = [];
+    for (const item of output) {
+      const content = Array.isArray(item?.content) ? item.content : [];
+      for (const part of content) {
+        const text = String(part?.text ?? part?.content ?? "").trim();
+        if (text) chunks.push(text);
+      }
+    }
+    return chunks.join("\n").trim();
+  };
+
+  const functionCallFromOpenAIResponse = (json: any): {
+    id?: string | null;
+    name: string;
+    arguments: unknown;
+  } | null => {
+    const output = Array.isArray(json?.output) ? json.output : [];
+    const item = output.find((candidate: any) =>
+      String(candidate?.type ?? "") === "function_call"
+    );
+    const name = String(item?.name ?? "").trim();
+    if (!item || !name) return null;
+    let argsObj: unknown = item.arguments ?? {};
+    if (typeof argsObj === "string") {
+      try {
+        argsObj = JSON.parse(argsObj);
+      } catch { /* keep string */ }
+    }
+    return {
+      id: item.call_id ?? item.id ?? null,
+      name,
+      arguments: argsObj,
+    };
+  };
+
+  const normalizeResponsesApiToChatCompletion = (json: any) => {
+    const usage = normalizeOpenAIUsage(json?.usage);
+    const toolCall = functionCallFromOpenAIResponse(json);
+    const content = outputTextFromOpenAIResponse(json);
+    return {
+      id: json?.id ?? null,
+      object: "chat.completion",
+      created: json?.created_at ?? Math.floor(Date.now() / 1000),
+      model: json?.model ?? null,
+      choices: [{
+        index: 0,
+        message: {
+          role: "assistant",
+          content: toolCall ? null : content,
+          tool_calls: toolCall
+            ? [{
+              id: toolCall.id ?? "call_0",
+              type: "function",
+              function: {
+                name: toolCall.name,
+                arguments: typeof toolCall.arguments === "string"
+                  ? toolCall.arguments
+                  : JSON.stringify(toolCall.arguments ?? {}),
+              },
+            }]
+            : undefined,
+        },
+        finish_reason: toolCall ? "tool_calls" : "stop",
+      }],
+      usage,
+      sophia_openai_api: "responses",
+      sophia_openai_raw_response: json,
+    };
+  };
+
+  const openAIRequestHeaders = () => ({
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${OPENAI_API_KEY}`,
+  });
+
+  const OPENAI_JSON_MODE_INSTRUCTION = "Return valid JSON only.";
+
+  const containsJsonWord = (value: unknown): boolean =>
+    /\bjson\b/i.test(String(value ?? ""));
+
+  const ensureOpenAIJsonModeInstruction = (
+    systemPrompt: string,
+    userMessage: string,
+    jsonMode: boolean,
+  ): { systemPrompt: string; userMessage: string } => {
+    if (!jsonMode) {
+      return { systemPrompt, userMessage };
+    }
+    return {
+      systemPrompt: containsJsonWord(systemPrompt)
+        ? systemPrompt
+        : systemPrompt
+        ? `${systemPrompt}\n\n${OPENAI_JSON_MODE_INSTRUCTION}`
+        : OPENAI_JSON_MODE_INSTRUCTION,
+      userMessage: containsJsonWord(userMessage)
+        ? userMessage
+        : `${OPENAI_JSON_MODE_INSTRUCTION}\n\n${userMessage}`,
+    };
+  };
+
+  const callOpenAIResponses = async (
     args: {
       model: string;
       systemPrompt: string;
@@ -413,15 +561,99 @@ export async function generateWithGemini(
     },
   ) => {
     if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY missing");
-    const url = `${OPENAI_BASE_URL}/v1/chat/completions`;
+    const url = `${OPENAI_BASE_URL}/v1/responses`;
     const toolDefs = Array.isArray(args.tools) ? args.tools : [];
+    const prompt = ensureOpenAIJsonModeInstruction(
+      String(args.systemPrompt ?? ""),
+      String(args.userMessage ?? ""),
+      args.jsonMode,
+    );
     const payload: any = {
       model: String(args.model),
+      input: prompt.userMessage,
+      store: openAiStoreResponses,
+      metadata: openAiMetadata(),
+    };
+    if (prompt.systemPrompt) {
+      payload.instructions = prompt.systemPrompt;
+    }
+    if (!isOpenAiGpt5Family(args.model)) {
+      payload.temperature = args.temperature;
+    }
+    const openAiReasoningEffort = normalizeOpenAIReasoningEffort(
+      args.reasoningEffort,
+    );
+    if (openAiReasoningEffort && isOpenAiGpt5Family(args.model)) {
+      payload.reasoning = { effort: openAiReasoningEffort };
+    }
+    if (args.jsonMode) {
+      payload.text = { format: { type: "json_object" } };
+    }
+    if (toolDefs.length > 0) {
+      payload.tools = toolDefs.map((t: any) => ({
+        type: "function",
+        name: String(t?.name ?? "").trim(),
+        description: String(t?.description ?? "").trim(),
+        parameters: (t?.parameters && typeof t.parameters === "object")
+          ? normalizeToolSchemaForOpenAI(t.parameters)
+          : { type: "object", properties: {} },
+      })).filter((t: any) => t?.name);
+      if (args.toolChoice !== "auto") {
+        payload.tool_choice = args.toolChoice === "any" ? "required" : "auto";
+      }
+    }
+    const { signal, cancel } = makeTimeoutSignal(args.timeoutMs);
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: openAIRequestHeaders(),
+        body: JSON.stringify(payload),
+        signal,
+      });
+      const rawJson = await resp.json().catch(() => ({}));
+      const json = resp.ok
+        ? normalizeResponsesApiToChatCompletion(rawJson)
+        : rawJson;
+      return { resp, json, rawJson, api: "responses" as const };
+    } finally {
+      cancel();
+    }
+  };
+
+  const callOpenAI = async (
+    args: {
+      model: string;
+      systemPrompt: string;
+      userMessage: string;
+      temperature: number;
+      jsonMode: boolean;
+      tools: any[];
+      toolChoice: string;
+      requestId: string;
+      timeoutMs: number;
+      reasoningEffort?: GeminiReasoningEffort;
+    },
+  ) => {
+    if (openAiResponsesApiEnabled) {
+      return await callOpenAIResponses(args);
+    }
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY missing");
+    const url = `${OPENAI_BASE_URL}/v1/chat/completions`;
+    const toolDefs = Array.isArray(args.tools) ? args.tools : [];
+    const prompt = ensureOpenAIJsonModeInstruction(
+      String(args.systemPrompt ?? ""),
+      String(args.userMessage ?? ""),
+      args.jsonMode,
+    );
+    const payload: any = {
+      model: String(args.model),
+      store: openAiStoreResponses,
+      metadata: openAiMetadata(),
       messages: [
-        ...(args.systemPrompt
-          ? [{ role: "system", content: String(args.systemPrompt) }]
+        ...(prompt.systemPrompt
+          ? [{ role: "system", content: prompt.systemPrompt }]
           : []),
-        { role: "user", content: String(args.userMessage ?? "") },
+        { role: "user", content: prompt.userMessage },
       ],
     };
     // gpt-5-* models may reject non-default temperature values.
@@ -429,8 +661,11 @@ export async function generateWithGemini(
     if (!isOpenAiGpt5Family(args.model)) {
       payload.temperature = args.temperature;
     }
-    if (args.reasoningEffort && isOpenAiGpt5Family(args.model)) {
-      payload.reasoning_effort = args.reasoningEffort;
+    const openAiReasoningEffort = normalizeOpenAIReasoningEffort(
+      args.reasoningEffort,
+    );
+    if (openAiReasoningEffort && isOpenAiGpt5Family(args.model)) {
+      payload.reasoning_effort = openAiReasoningEffort;
     }
     if (args.jsonMode) {
       payload.response_format = { type: "json_object" };
@@ -454,15 +689,12 @@ export async function generateWithGemini(
     try {
       const resp = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        },
+        headers: openAIRequestHeaders(),
         body: JSON.stringify(payload),
         signal,
       });
       const json = await resp.json().catch(() => ({}));
-      return { resp, json };
+      return { resp, json, rawJson: json, api: "chat_completions" as const };
     } finally {
       cancel();
     }
@@ -485,33 +717,40 @@ export async function generateWithGemini(
   }
 
   // Default model selection:
-  // - If caller provides meta.model, respect it.
-  // - Otherwise, use GLOBAL_AI_MODEL.
-  const defaultModel = getGlobalAiModel("gemini-2.5-flash");
+  // - If caller provides meta.model, use it as the requested model.
+  // - The retry policy below still promotes legacy Gemini defaults to the
+  //   common primary model so dispatchers/local flows share the same rollout.
+  // - Otherwise, use GLOBAL_AI_MODEL, defaulting to gpt-5.4-mini.
+  const defaultModel = getGlobalAiModel();
   let baseModel = (meta?.model ?? defaultModel).trim();
   let model = baseModel;
   // If we detect rate limiting/overload during this call, stick to a stable model (reduces warning spam + thrash).
   let stickyModel: string | null = null;
 
   // Fallback policy:
-  // - Standard Gemini traffic: GLOBAL_AI_MODEL (attempt 1), then GEMINI_FALLBACK_MODEL (attempt 2),
-  //   then alternate primary/fallback across attempts. OpenAI stays as safety net.
-  // - Any retired Gemini 2.0 model is replaced by gpt-5.4, then gpt-5.4-nano.
-  // - Critical (gpt-5.2): keep dedicated critical chain.
+  // - Common rollout: gpt-5.4-mini -> gemini-3-flash-preview -> gpt-5.4-nano.
+  // - Legacy Gemini defaults supplied by callers are treated as the configured
+  //   Gemini fallback, not as the first attempt.
+  // - Critical (gpt-5.2): keep dedicated critical chain unless explicitly selected.
   const isGpt52 = (m: string) => /^\s*gpt-5\.2\b/i.test(String(m ?? "").trim());
-  const geminiPrimaryModel = getGlobalAiModel("gemini-2.5-flash");
-  const geminiFallbackModel = getGeminiFallbackModel("gemini-2.5-flash");
+  const primaryModel = getGlobalAiModel();
+  const geminiFallbackModel = getGeminiFallbackModel();
   const hasDistinctGeminiFallback = geminiFallbackModel &&
-    geminiFallbackModel.toLowerCase() !== geminiPrimaryModel.toLowerCase();
+    geminiFallbackModel.toLowerCase() !== primaryModel.toLowerCase();
+  const shouldPromoteToPrimary = (m: string) => isGeminiModel(m);
 
   const pickModelForAttempt = (startModel: string, attempt: number): string => {
-    // For Gemini primary traffic, alternate primary/fallback across retries.
     const start = String(startModel ?? "").trim();
+    if (shouldPromoteToPrimary(start)) {
+      return attempt % 2 === 1 || !hasDistinctGeminiFallback
+        ? primaryModel
+        : geminiFallbackModel;
+    }
     if (Boolean(meta?.forceInitialModel) && attempt === 1 && start) {
       return start;
     }
     if (!isOpenAiModel(start) && !isGpt52(start) && hasDistinctGeminiFallback) {
-      return attempt % 2 === 1 ? geminiPrimaryModel : geminiFallbackModel;
+      return attempt % 2 === 1 ? primaryModel : geminiFallbackModel;
     }
     // Otherwise keep caller-selected model.
     return startModel;
@@ -591,7 +830,8 @@ export async function generateWithGemini(
       const mm = String(m ?? "").trim();
       if (!mm) return;
       if (isRetiredGeminiModel(mm)) {
-        push(OPENAI_STRONG_FALLBACK_MODEL);
+        push(PRIMARY_AI_MODEL);
+        push(GEMINI_FLASH_FALLBACK_MODEL);
         push(OPENAI_LIGHT_FALLBACK_MODEL);
         return;
       }
@@ -602,41 +842,36 @@ export async function generateWithGemini(
       push(primary);
       return chain;
     }
-    // Fallback chains:
-    // - Critical (gpt-5.2): gpt-5.2 → configured fallback → gpt-5.4 → gpt-5.4-nano
-    // - OpenAI 5.4 family: selected model → gpt-5.4 → gpt-5.4-nano
-    // - Standard Gemini: alternating primary/fallback first, then gpt-5.4 → gpt-5.4-nano.
-    //
     push(primary);
     const isCritical = isGpt52(startModel) || isGpt52(primary);
     if (isCritical) {
       push(geminiFallbackModel);
-      push(OPENAI_STRONG_FALLBACK_MODEL);
+      push(PRIMARY_AI_MODEL);
       push(OPENAI_LIGHT_FALLBACK_MODEL);
       return chain;
     }
-    // OpenAI 5.4 models: stay in the requested provider family on fallback.
+    // Common primary path: mini first, Gemini Flash preview second, nano last.
     if (/^\s*gpt-5\.4-mini\b/i.test(primary)) {
-      push(OPENAI_STRONG_FALLBACK_MODEL);
+      push(geminiFallbackModel);
       push(OPENAI_LIGHT_FALLBACK_MODEL);
       return chain;
     }
     if (/^\s*gpt-5\.4\b/i.test(primary)) {
+      push(geminiFallbackModel);
       push(OPENAI_LIGHT_FALLBACK_MODEL);
       return chain;
     }
-    // Standard Gemini behavior: second chance is always the other Gemini model first.
+    // Non-OpenAI behavior: use the configured Gemini fallback, then nano.
     if (!isOpenAiModel(primary) && hasDistinctGeminiFallback) {
       const other = preferredFallbackModel ||
-        (primary.toLowerCase() === geminiPrimaryModel.toLowerCase()
+        (primary.toLowerCase() === primaryModel.toLowerCase()
           ? geminiFallbackModel
-          : geminiPrimaryModel);
+          : primaryModel);
       push(other);
     }
     if (meta?.secondFallbackModel) push(meta.secondFallbackModel);
     if (meta?.thirdFallbackModel) push(meta.thirdFallbackModel);
-    // Then keep OpenAI as safety nets.
-    if (!meta?.secondFallbackModel) push(OPENAI_STRONG_FALLBACK_MODEL);
+    if (!meta?.secondFallbackModel) push(PRIMARY_AI_MODEL);
     if (!meta?.thirdFallbackModel) push(OPENAI_LIGHT_FALLBACK_MODEL);
     return chain;
   };
@@ -894,7 +1129,7 @@ export async function generateWithGemini(
             metadata: { timeout_ms: timeoutMs },
           });
           try {
-            const { resp, json } = await callOpenAI({
+            const { resp, json, rawJson, api } = await callOpenAI({
               model,
               systemPrompt,
               userMessage,
@@ -912,6 +1147,9 @@ export async function generateWithGemini(
               request_id: meta?.requestId ?? null,
               source: meta?.source ?? null,
               model,
+              openai_api: api,
+              openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
+                null,
               status: resp.status,
               ok: resp.ok,
               duration_ms: durationMs,
@@ -937,7 +1175,7 @@ export async function generateWithGemini(
                 tool_choice: toolChoice,
                 has_tools: Array.isArray(tools) && tools.length > 0,
                 outcome: "error",
-                raw_response: json,
+                raw_response: rawJson ?? json,
                 error_message: msg,
               });
               __dbg(
@@ -997,7 +1235,7 @@ export async function generateWithGemini(
                 tool_choice: toolChoice,
                 has_tools: Array.isArray(tools) && tools.length > 0,
                 outcome: "error",
-                raw_response: json,
+                raw_response: rawJson ?? json,
                 error_message: msg,
               });
               await traceInsert({
@@ -1058,6 +1296,9 @@ export async function generateWithGemini(
                     jsonMode,
                     toolChoice,
                     hasTools: Array.isArray(tools) && tools.length > 0,
+                    openai_api: api,
+                    openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
+                      null,
                   },
                 });
               }
@@ -1105,7 +1346,12 @@ export async function generateWithGemini(
                 outcome: "tool_call",
                 output_tool_name: toolName || null,
                 output_tool_args: argsObj,
-                raw_response: json,
+                raw_response: rawJson ?? json,
+                metadata: {
+                  openai_api: api,
+                  openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
+                    null,
+                },
               });
               return { tool: toolName, args: argsObj };
             }
@@ -1125,7 +1371,12 @@ export async function generateWithGemini(
                 tool_choice: toolChoice,
                 has_tools: Array.isArray(tools) && tools.length > 0,
                 outcome: "empty",
-                raw_response: json,
+                raw_response: rawJson ?? json,
+                metadata: {
+                  openai_api: api,
+                  openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
+                    null,
+                },
                 error_message: "Empty OpenAI response",
               });
               lastInnerErr = new Error("Empty OpenAI response");
@@ -1158,7 +1409,12 @@ export async function generateWithGemini(
               has_tools: Array.isArray(tools) && tools.length > 0,
               outcome: "text",
               output_text: text,
-              raw_response: json,
+              raw_response: rawJson ?? json,
+              metadata: {
+                openai_api: api,
+                openai_response_id: String(rawJson?.id ?? json?.id ?? "") ||
+                  null,
+              },
             });
             return jsonMode ? text.replace(/```json\n?|```/g, "").trim() : text;
           } catch (e) {
@@ -1502,7 +1758,7 @@ export async function generateWithGemini(
           if (response.status === 429 || response.status === 503) {
             // After rate limiting / overload, prefer configured Gemini fallback.
             if (isLongToolTraceRequest) {
-              stickyModel = getGeminiFallbackModel("gemini-2.5-flash");
+              stickyModel = getGeminiFallbackModel();
             }
             openBreaker("gemini", model, 20_000, msg);
           }
@@ -1868,7 +2124,7 @@ export async function searchWithGeminiGrounding(
   query: string,
   meta?: { requestId?: string; model?: string; timeoutMs?: number },
 ): Promise<{ text: string; snippets: string[]; sources: string[]; raw?: any }> {
-  const model = (meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim();
+  const model = (meta?.model ?? getGeminiFallbackModel()).trim();
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) {
     await logLlmRawResponseEvent({
@@ -2141,7 +2397,7 @@ export async function searchWithGeminiGrounding(
       request_id: meta?.requestId ?? null,
       source: "sophia-brain:research_grounding",
       provider: "gemini",
-      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
+      model: meta?.model ?? getGeminiFallbackModel(),
       status: isTimeoutLike ? "timeout_or_abort" : "network_error",
       json_mode: false,
       tool_choice: "google_search",

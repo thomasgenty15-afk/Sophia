@@ -6,7 +6,7 @@ import type { AgentMode } from "../state-manager.ts";
 import { updateUserState } from "../state-manager.ts";
 import { runSentry, type SentryFlowContext } from "../agents/sentry.ts";
 import { getActiveSafetySentryFlow } from "../supervisor.ts";
-import { runCompanion } from "../agents/companion.ts";
+import { type CompanionDelivery, runCompanion } from "../agents/companion.ts";
 import {
   buildToolAckContract,
   type ToolAckContract,
@@ -78,6 +78,7 @@ export async function runAgentAndVerify(opts: {
   outageFallback: boolean;
   outageFailedMode: AgentMode | null;
   outageErrorMessage: string | null;
+  delivery?: CompanionDelivery;
 }> {
   const {
     supabase,
@@ -105,6 +106,7 @@ export async function runAgentAndVerify(opts: {
   let outageFallback = false;
   let outageFailedMode: AgentMode | null = null;
   let outageErrorMessage: string | null = null;
+  let delivery: CompanionDelivery | undefined;
 
   const computeToolAck = (): ToolAckContract =>
     buildToolAckContract({ status: toolExecution, executedTools });
@@ -188,6 +190,7 @@ export async function runAgentAndVerify(opts: {
           { ...(meta ?? {}), userId, model: sophiaChatModel },
         );
         responseContent = out.text;
+        delivery = out.delivery;
         tempMemory = out.temp_memory ?? tempMemory;
         executedTools = out.executed_tools ?? [];
         toolExecution = out.tool_execution ?? "none";
@@ -222,5 +225,6 @@ export async function runAgentAndVerify(opts: {
     outageFallback,
     outageFailedMode,
     outageErrorMessage,
+    delivery,
   };
 }

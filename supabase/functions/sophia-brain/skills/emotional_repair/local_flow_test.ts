@@ -230,6 +230,15 @@ Deno.test("emotional_repair dispatcher prompt teaches field completion and trans
     ) => rule.includes("message courant")),
   );
   assert(
+    EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES.flow_action.some((
+      rule,
+    ) => rule.includes("prochain geste")),
+  );
+  assert(
+    EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.exit_to_global_dispatcher
+      .some((rule) => rule.includes("action concrete")),
+  );
+  assert(
     EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES.exit_to_global_dispatcher
       .some((
         rule,
@@ -247,8 +256,8 @@ Deno.test("emotional_repair dispatcher prompt teaches field completion and trans
   );
 });
 
-Deno.test("emotional_repair dispatcher prompt keeps exactly two decision examples", () => {
-  assertEquals(EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES.length, 2);
+Deno.test("emotional_repair dispatcher prompt covers continuation and exit examples", () => {
+  assertEquals(EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES.length, 4);
   assertEquals(
     EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[0].expected_decision
       .flow_action,
@@ -263,6 +272,21 @@ Deno.test("emotional_repair dispatcher prompt keeps exactly two decision example
     EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[1].expected_decision
       .exit_memo.needed,
     false,
+  );
+  assertEquals(
+    EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[2].expected_decision
+      .flow_action,
+    "exit_to_global_dispatcher",
+  );
+  assertEquals(
+    EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[2].expected_decision
+      .exit_memo.needed,
+    true,
+  );
+  assertEquals(
+    EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES[3].expected_decision
+      .flow_action,
+    "exit_to_global_dispatcher",
   );
 });
 

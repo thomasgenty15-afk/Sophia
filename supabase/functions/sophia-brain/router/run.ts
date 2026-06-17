@@ -1410,6 +1410,37 @@ function buildNormalReplyHandoffContextAddon(args: {
   ].filter(Boolean).join("\n");
 }
 
+function compactDispatcherPlannedDays(item: V2PlanItemSnapshotItem): string[] {
+  const weekMissionDays = Array.isArray(item.week_scope?.mission_days)
+    ? item.week_scope.mission_days
+    : [];
+  const scheduledDays = Array.isArray(item.scheduled_days)
+    ? item.scheduled_days
+    : [];
+  return [...new Set([...weekMissionDays, ...scheduledDays])]
+    .map((day) => String(day).trim())
+    .filter(Boolean);
+}
+
+function buildGlobalDispatcherPlanSnapshot(
+  planItemSnapshot: V2PlanItemSnapshotItem[] | null | undefined,
+): { items: Array<Record<string, unknown>> } {
+  return {
+    items: (planItemSnapshot ?? [])
+      .filter((item) => item.available_this_week === true)
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.week_scope?.weekly_description_override ??
+          item.description ??
+          null,
+        planned_days: compactDispatcherPlannedDays(item),
+        current_reps: item.current_reps ?? null,
+        target_reps: item.week_scope?.weekly_reps ?? item.target_reps ?? null,
+      })),
+  };
+}
+
 export async function processMessage(
   supabase: SupabaseClient,
   userId: string,
@@ -5819,14 +5850,6 @@ export async function processMessage(
       trace,
     });
   }
-  const activeRuntimeContextForDispatcher = buildDispatcherActiveRuntimeContext(
-    {
-      tempMemory,
-      activeSkillState,
-      activeOperationIntake: activeOperationIntakeForDispatcher,
-      pendingOperationConfirmation,
-    },
-  );
   const lastLocalFlowExitContextForDispatcher = buildLastLocalFlowExitContext(
     tempMemory,
   );
@@ -5963,10 +5986,6 @@ export async function processMessage(
         recent_messages: recentMessagesForTurnFrame,
         user_id: userId,
         channel,
-        active_skill_state: activeSkillState,
-        active_tool_skill_intake: activeOperationIntakeForDispatcher,
-        pending_tool_skill_confirmation:
-          pendingOperationConfirmationForGlobalRouting,
         active_topic_state: (tempMemory as any)?.memory_v2_active_topic ?? null,
         flow_state_context: {
           channel,
@@ -5984,29 +6003,9 @@ export async function processMessage(
           force_onboarding_flow: Boolean(opts?.forceOnboardingFlow),
           onboarding_active: meta?.whatsappMode === "onboarding" ||
             Boolean(opts?.forceOnboardingFlow),
-          active_runtime_context: activeRuntimeContextForDispatcher,
           last_local_flow_exit: lastLocalFlowExitContextForDispatcher,
         },
-        plan_snapshot: {
-          items: (planItemSnapshot ?? []).map((item: any) => ({
-            id: item?.id,
-            title: item?.title,
-            status: item?.status,
-            kind: item?.item_type,
-            dimension: item?.dimension,
-            cadence_label: item?.cadence_label ?? null,
-            target_reps: item?.target_reps ?? null,
-            current_reps: item?.current_reps ?? null,
-            item_nature: item?.item_nature ?? null,
-            available_this_week: item?.available_this_week ?? false,
-            availability_status: item?.availability_status ?? null,
-            week_scope: item?.week_scope ?? null,
-            source_kind: item?.source_kind ?? null,
-            payload: item?.payload && typeof item.payload === "object"
-              ? item.payload
-              : null,
-          })),
-        },
+        plan_snapshot: buildGlobalDispatcherPlanSnapshot(planItemSnapshot),
         safety_context_output: safetyContextOutput,
         conversation_risk_history: conversationRiskHistoryForPersist,
         source_message_id: loggedMessageId ?? undefined,
@@ -8152,9 +8151,6 @@ export async function processMessage(
       recent_messages: recentMessagesForTurnFrame,
       user_id: userId,
       channel,
-      active_skill_state: null,
-      active_tool_skill_intake: null,
-      pending_tool_skill_confirmation: null,
       active_topic_state: (tempMemory as any)?.memory_v2_active_topic ?? null,
       flow_state_context: {
         channel,
@@ -8172,34 +8168,9 @@ export async function processMessage(
         force_onboarding_flow: Boolean(opts?.forceOnboardingFlow),
         onboarding_active: meta?.whatsappMode === "onboarding" ||
           Boolean(opts?.forceOnboardingFlow),
-        active_runtime_context: buildDispatcherActiveRuntimeContext({
-          tempMemory,
-          activeSkillState: null,
-          activeOperationIntake: null,
-          pendingOperationConfirmation: null,
-        }),
         last_local_flow_exit: localExitContextForSecondPass,
       },
-      plan_snapshot: {
-        items: (planItemSnapshot ?? []).map((item: any) => ({
-          id: item?.id,
-          title: item?.title,
-          status: item?.status,
-          kind: item?.item_type,
-          dimension: item?.dimension,
-          cadence_label: item?.cadence_label ?? null,
-          target_reps: item?.target_reps ?? null,
-          current_reps: item?.current_reps ?? null,
-          item_nature: item?.item_nature ?? null,
-          available_this_week: item?.available_this_week ?? false,
-          availability_status: item?.availability_status ?? null,
-          week_scope: item?.week_scope ?? null,
-          source_kind: item?.source_kind ?? null,
-          payload: item?.payload && typeof item.payload === "object"
-            ? item.payload
-            : null,
-        })),
-      },
+      plan_snapshot: buildGlobalDispatcherPlanSnapshot(planItemSnapshot),
       safety_context_output: safetyContextOutput,
       conversation_risk_history: conversationRiskHistoryForPersist,
       source_message_id: loggedMessageId ?? undefined,
@@ -8799,6 +8770,7 @@ export async function processMessage(
     tempMemory,
     agentOut,
     responseContent,
+    delivery: (agentOut as any)?.delivery,
     targetMode,
     riskScore,
     routeDecision,

@@ -103,6 +103,7 @@ export async function persistNormalReplyTurn(args: {
   tempMemory: any;
   agentOut: any;
   responseContent: string;
+  delivery?: unknown;
   targetMode: string;
   riskScore: number;
   routeDecision: any;
@@ -712,6 +713,7 @@ export async function persistNormalReplyTurn(args: {
   return {
     content: responseContent,
     mode: nextMode,
+    delivery: args.delivery ?? null,
     tool_execution: combinedToolExecution,
     executed_tools: combinedExecutedTools,
     conversation_turn_trace: normalConversationTurnTrace,

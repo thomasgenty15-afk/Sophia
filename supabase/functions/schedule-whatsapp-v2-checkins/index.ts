@@ -58,6 +58,12 @@ const MORNING_ENCOURAGEMENT_START_LOCAL_TIME = "08:00";
 const WEEKLY_PLANNING_PROMPT_LOCAL_TIME = "10:30";
 const WEEKLY_PROGRESS_REVIEW_LOCAL_TIME = "18:30";
 const MORNING_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
+const EVENING_REVIEW_SUPPRESSES_MORNING_FOLLOWUP_STATUSES = [
+  "pending",
+  "retrying",
+  "awaiting_user",
+  "sent",
+];
 
 function cleanText(value: unknown, fallback = ""): string {
   const text = String(value ?? "").trim();
@@ -100,6 +106,40 @@ function occurrenceCount(schedule: TodayActionOccurrenceSchedule): number {
     (total, transformation) => total + transformation.occurrences.length,
     0,
   );
+}
+
+async function loadOccurrenceIdsCoveredByEveningReview(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  reviewedLocalDate: string;
+}): Promise<Set<string>> {
+  const { data, error } = await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .select("message_payload")
+    .eq("user_id", params.userId)
+    .eq("event_context", ACTION_EVENING_REVIEW_EVENT_CONTEXT)
+    .contains("message_payload", {
+      reviewed_local_date: params.reviewedLocalDate,
+    })
+    .in("status", EVENING_REVIEW_SUPPRESSES_MORNING_FOLLOWUP_STATUSES)
+    .limit(50);
+
+  if (error) throw error;
+
+  const occurrenceIds = new Set<string>();
+  for (const row of data ?? []) {
+    const payload = (row as { message_payload?: Record<string, unknown> })
+      .message_payload ?? {};
+    const ids = Array.isArray(payload.occurrence_ids)
+      ? payload.occurrence_ids
+      : [];
+    for (const id of ids) {
+      const occurrenceId = cleanText(id);
+      if (occurrenceId) occurrenceIds.add(occurrenceId);
+    }
+  }
+
+  return occurrenceIds;
 }
 
 function errorToMessage(error: unknown): string {
@@ -360,10 +400,23 @@ Deno.serve(async (req) => {
           now: new Date(now.getTime() - 24 * 60 * 60 * 1000),
         },
       );
-      const yesterdaySchedule = {
+      let yesterdaySchedule = {
         ...yesterdayScheduleRaw,
         scheduled_for: todaySchedule.scheduled_for,
       };
+      const eveningReviewedOccurrenceIds =
+        await loadOccurrenceIdsCoveredByEveningReview({
+          supabaseAdmin,
+          userId,
+          reviewedLocalDate: yesterdaySchedule.local_date,
+        });
+      if (eveningReviewedOccurrenceIds.size > 0) {
+        yesterdaySchedule = filterScheduleOccurrences(
+          yesterdaySchedule,
+          (occurrence) =>
+            !eveningReviewedOccurrenceIds.has(occurrence.occurrence_id),
+        );
+      }
 
       const hasActionsToday = todaySchedule.transformations.some((entry) =>
         entry.occurrences.length > 0
@@ -479,56 +532,61 @@ Deno.serve(async (req) => {
           nowIso,
         });
 
-        const eventContext = hasOpenActionsFromYesterday
-          ? ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT
-          : hasActionsToday
+        const eventContext = hasActionsToday
           ? ACTION_MORNING_EVENT_CONTEXT
+          : hasOpenActionsFromYesterday
+          ? ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT
           : MORNING_LIGHT_GREETING_EVENT_CONTEXT;
-        const draftMessage = hasOpenActionsFromYesterday
-          ? buildActionMorningFollowupFallbackMessage(yesterdaySchedule)
-          : hasActionsToday
+        const draftMessage = hasActionsToday
           ? buildActionMorningFallbackMessage(todaySchedule)
+          : hasOpenActionsFromYesterday
+          ? buildActionMorningFollowupFallbackMessage(yesterdaySchedule)
           : buildLightMorningFallbackMessage();
-        const instruction = hasOpenActionsFromYesterday
-          ? buildActionMorningFollowupInstruction(yesterdaySchedule)
-          : hasActionsToday
+        const instruction = hasActionsToday
           ? buildActionMorningInstruction(todaySchedule)
+          : hasOpenActionsFromYesterday
+          ? buildActionMorningFollowupInstruction(yesterdaySchedule)
           : buildLightMorningInstruction();
-        const eventGrounding = hasOpenActionsFromYesterday
-          ? buildActionMorningFollowupGrounding(yesterdaySchedule)
-          : hasActionsToday
+        const eventGrounding = hasActionsToday
           ? buildActionMorningGrounding(todaySchedule)
+          : hasOpenActionsFromYesterday
+          ? buildActionMorningFollowupGrounding(yesterdaySchedule)
           : `local_date=${todaySchedule.local_date}\nweekday=${todaySchedule.weekday}\nno_confirmed_action_occurrence=true`;
-        const selectedSchedule = hasOpenActionsFromYesterday
-          ? yesterdaySchedule
-          : todaySchedule;
+        const selectedSchedule = hasActionsToday
+          ? todaySchedule
+          : yesterdaySchedule;
 
         const { error: upsertErr } = await supabaseAdmin
           .from("scheduled_checkins")
           .upsert(
             {
               user_id: userId,
-              origin: hasOpenActionsFromYesterday
+              origin: hasActionsToday
+                ? "action_morning"
+                : hasOpenActionsFromYesterday
                 ? "action_followup"
                 : "action_morning",
               event_context: eventContext,
               draft_message: draftMessage,
               message_mode: "dynamic",
               message_payload: {
-                source: hasOpenActionsFromYesterday
+                source: hasActionsToday
+                  ? "schedule_action_morning_v2"
+                  : hasOpenActionsFromYesterday
                   ? "schedule_action_morning_followup_v2"
                   : "schedule_action_morning_v2",
                 version: 1,
-                checkin_kind: hasOpenActionsFromYesterday
-                  ? "action_morning_followup"
-                  : hasActionsToday
+                checkin_kind: hasActionsToday
                   ? "action_morning_encouragement"
+                  : hasOpenActionsFromYesterday
+                  ? "action_morning_followup"
                   : "morning_light_greeting",
                 timezone,
                 local_date: selectedSchedule.local_date,
                 week_start_date: selectedSchedule.week_start_date,
                 weekday: selectedSchedule.weekday,
-                reviewed_local_date: hasOpenActionsFromYesterday
+                reviewed_local_date: !hasActionsToday &&
+                    hasOpenActionsFromYesterday
                   ? yesterdaySchedule.local_date
                   : null,
                 morning_encouragement_local_time: morningEncouragementLocalTime,
@@ -562,10 +620,10 @@ Deno.serve(async (req) => {
           );
         } else {
           scheduled++;
-          if (hasOpenActionsFromYesterday) {
-            actionMorningFollowupScheduled++;
-          } else if (hasActionsToday) {
+          if (hasActionsToday) {
             actionMorningScheduled++;
+          } else if (hasOpenActionsFromYesterday) {
+            actionMorningFollowupScheduled++;
           } else {
             lightGreetingScheduled++;
           }

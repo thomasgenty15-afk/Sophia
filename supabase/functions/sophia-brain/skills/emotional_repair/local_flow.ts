@@ -491,6 +491,8 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FIELD_COMPLETION_RULES = {
   flow_action: [
     "Choisis l'action qui sert le message courant, pas seulement l'etat precedent.",
     "Ne continue pas emotional_repair si le user demande clairement d'arreter ou change de sujet.",
+    "Si le user demande explicitement le prochain geste, l'action concrete, quoi faire maintenant, ou refuse de continuer l'analyse emotionnelle, ne repete pas la reparation: utilise exit_to_global_dispatcher pour rendre la main au global, sauf safety.",
+    "Si le user demande une action concrete tout en restant dans le soutien emotionnel, tu peux fournir une phrase courte seulement si la demande porte sur une formulation; sinon exit_to_global_dispatcher.",
     "Utilise provide_concrete_phrase quand le user demande une phrase, une formulation courte ou une aide verbale precise.",
     "Utilise exit_to_global_dispatcher quand le user veut arreter emotional_repair ou apporte un nouveau sujet clair hors emotional_repair.",
     "Utilise cancel_flow/defer_flow/complete_flow seulement pour une issue metier locale deja prevue par le flow.",
@@ -566,6 +568,8 @@ export const EMOTIONAL_REPAIR_DISPATCHER_FLOW_ACTION_RULES = {
   exit_to_global_dispatcher: [
     "Le user veut arreter ce sujet, ce flow ou les questions sans nouveau sujet clair.",
     "Le user change clairement de sujet ou demande une aide hors emotional_repair.",
+    "Le user demande un prochain geste, une action concrete, une priorisation, un rappel, une carte, un status recap ou une aide produit: ce sont des intentions concurrentes a reanalyser par global.",
+    "Le user dit qu'il ne veut plus analyser l'emotion ou qu'il veut passer au concret: sors, meme si l'etat precedent etait emotional_repair.",
     "Ne reponds pas au nouveau sujet dans emotional_repair.",
     "visible_task.kind=exit_or_cancel.",
     "exit_memo.needed=true avec reason=topic_change ou explicit_tool_request.",
@@ -642,6 +646,68 @@ export const EMOTIONAL_REPAIR_DISPATCHER_DECISION_EXAMPLES = [
         ],
       },
       exit_memo: { needed: false, reason: "cancelled" },
+    },
+  },
+  {
+    name: "explicit_concrete_action_after_repair",
+    current_user_message:
+      "Ok. Là, dis-moi juste le prochain geste raisonnable à faire.",
+    expected_decision: {
+      flow_action: "exit_to_global_dispatcher",
+      constraints: ["concrete_before_question", "short_reply", "no_questions"],
+      response_contract: {
+        max_questions: 0,
+        allow_plan: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_concrete_action: false,
+        tone: "direct_soft",
+      },
+      visible_task: {
+        kind: "exit_or_cancel",
+        conversation_context_must_include: [
+          "demande action concrete",
+          "ne pas repeter la reparation emotionnelle",
+          "laisser global reanalyser le meme message",
+        ],
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        handoff_hint_for_global_dispatcher:
+          "Le user veut maintenant une action concrete courte, pas une continuation emotional_repair.",
+      },
+    },
+  },
+  {
+    name: "explicit_stop_emotion_analysis",
+    current_user_message:
+      "Je comprends, mais je ne veux plus analyser l'emotion: dis-moi juste l'action.",
+    expected_decision: {
+      flow_action: "exit_to_global_dispatcher",
+      constraints: ["concrete_before_question", "short_reply", "no_questions"],
+      response_contract: {
+        max_questions: 0,
+        allow_plan: false,
+        allow_tool_suggestion: false,
+        allow_potion_suggestion: false,
+        allow_concrete_action: false,
+        tone: "direct_soft",
+      },
+      visible_task: {
+        kind: "exit_or_cancel",
+        conversation_context_must_include: [
+          "refus analyse emotionnelle",
+          "demande action",
+          "sortie vers global",
+        ],
+      },
+      exit_memo: {
+        needed: true,
+        reason: "topic_change",
+        handoff_hint_for_global_dispatcher:
+          "Le user refuse de continuer emotional_repair et demande une action.",
+      },
     },
   },
 ] as const;
