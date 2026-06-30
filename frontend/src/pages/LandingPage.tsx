@@ -1,9 +1,11 @@
-import { Link } from "react-router-dom";
+import type { MouseEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import SEO from "../components/SEO";
 import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  Download,
   Heart,
   Leaf,
   MessageCircle,
@@ -16,12 +18,28 @@ import {
 } from "lucide-react";
 
 import Footer from "../components/Footer";
+import { useAppInstall } from "../hooks/useAppInstall";
 import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
 
 const LandingPage = () => {
   const seoDescription =
     "Sophia est un coach IA sur WhatsApp qui transforme ce que tu veux changer en plan clair, puis te soutient au quotidien pour t'aider à avancer sans pression inutile.";
+  const navigate = useNavigate();
+  const { canInstallDirectly, isInstalled, promptInstall } = useAppInstall();
   const { startSession } = useOnboardingAmbientAudio();
+  const showInstallCta = !isInstalled;
+
+  const handleInstallCtaClick = async (
+    event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>,
+  ) => {
+    if (!canInstallDirectly) return;
+
+    event.preventDefault();
+    const outcome = await promptInstall();
+    if (outcome === "unavailable") {
+      navigate("/installer-app");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fbf7ef] text-[#17211d] font-sans selection:bg-[#cfe8d7] selection:text-[#17211d]">
@@ -162,6 +180,16 @@ const LandingPage = () => {
                 Légal
               </Link>
             </div>
+            {showInstallCta ? (
+              <Link
+                to="/installer-app"
+                onClick={handleInstallCtaClick}
+                className="hidden items-center gap-2 rounded-full border border-[#d4e4d8] bg-white/58 px-4 py-2.5 text-sm font-bold text-[#002d21] shadow-sm transition-colors hover:bg-white md:inline-flex"
+              >
+                <Download className="h-4 w-4" />
+                Installer l'app
+              </Link>
+            ) : null}
             <Link
               to="/auth"
               className="rounded-full bg-[#17211d] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-[#31453b]/18 transition-colors hover:bg-[#002d21] md:px-5 md:py-2.5 md:text-sm"
@@ -183,6 +211,16 @@ const LandingPage = () => {
           <Link to="/legal" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
             Légal
           </Link>
+          {showInstallCta ? (
+            <Link
+              to="/installer-app"
+              onClick={handleInstallCtaClick}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white/72 px-4 py-2 text-[#002d21]"
+            >
+              <Download className="h-4 w-4" />
+              Installer
+            </Link>
+          ) : null}
         </div>
       </nav>
 
@@ -211,22 +249,34 @@ const LandingPage = () => {
               <strong className="font-semibold text-[#17211d]">Sophia transforme ce que tu veux changer en plan clair</strong>, puis revient vers toi sur WhatsApp pour t'aider à avancer, te recentrer et ne pas abandonner quand le quotidien t'éparpille.
             </p>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row md:mt-11">
-              <Link
-                to="/onboarding-v2"
-                onClick={startSession}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#002d21] px-6 py-4 text-base font-bold text-white shadow-2xl shadow-[#002d21]/24 transition-colors hover:bg-[#17211d] md:px-8"
-              >
-                <span className="whitespace-nowrap">Créer mon plan gratuit</span>
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-              <a
-                href="#systeme-sophia"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/60 bg-white/34 px-6 py-4 text-base font-bold text-[#17211d] shadow-sm backdrop-blur-md transition-colors hover:bg-white/64 md:px-8"
-              >
-                <Play className="h-5 w-5 fill-current text-[#002d21]" />
-                <span className="whitespace-nowrap">Comment ça marche ?</span>
-              </a>
+            <div className="mt-9 inline-flex flex-col items-stretch gap-3 sm:items-center md:mt-11">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  to="/onboarding-v2"
+                  onClick={startSession}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#002d21] px-6 py-4 text-base font-bold text-white shadow-2xl shadow-[#002d21]/24 transition-colors hover:bg-[#17211d] md:px-8"
+                >
+                  <span className="whitespace-nowrap">Créer mon plan gratuit</span>
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+                <a
+                  href="#systeme-sophia"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/60 bg-white/34 px-6 py-4 text-base font-bold text-[#17211d] shadow-sm backdrop-blur-md transition-colors hover:bg-white/64 md:px-8"
+                >
+                  <Play className="h-5 w-5 fill-current text-[#002d21]" />
+                  <span className="whitespace-nowrap">Comment ça marche ?</span>
+                </a>
+              </div>
+              {showInstallCta ? (
+                <Link
+                  to="/installer-app"
+                  onClick={handleInstallCtaClick}
+                  className="inline-flex items-center justify-center gap-2 self-center rounded-full border border-[#d4e4d8] bg-white/52 px-6 py-3 text-sm font-bold text-[#002d21] shadow-sm backdrop-blur-md transition-colors hover:bg-white md:px-7"
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="whitespace-nowrap">Installer l'application</span>
+                </Link>
+              ) : null}
             </div>
           </div>
 
