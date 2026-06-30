@@ -17,22 +17,87 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 
+type BillingInterval = 'monthly' | 'yearly';
+type PaidTier = 'system' | 'alliance' | 'architecte';
+type DowngradeTier = 'system' | 'alliance';
+
+type PendingAction =
+  | { kind: 'checkout'; tier: PaidTier; interval: BillingInterval }
+  | { kind: 'portal'; tier: DowngradeTier }
+  | null;
+
+type SubscriptionWithInterval = {
+  interval?: BillingInterval | null;
+};
+
+const AUTH_SESSION_TIMEOUT_MS = 10_000;
+const CHECKOUT_TIMEOUT_MS = 30_000;
+
+const withTimeout = async <T,>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> => {
+  let timeoutId: ReturnType<typeof window.setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(() => {
+          const err = new Error(message) as Error & { status?: number };
+          err.name = "FunctionInvokeTimeoutError";
+          err.status = 408;
+          reject(err);
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId != null) window.clearTimeout(timeoutId);
+  }
+};
+
+const getSupabaseHostForDebug = () => {
+  const rawUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+  if (!rawUrl.trim()) return "missing VITE_SUPABASE_URL";
+  try {
+    return new URL(rawUrl).host;
+  } catch {
+    return "invalid VITE_SUPABASE_URL";
+  }
+};
+
+const readRedirectUrl = (data: unknown): string | undefined => {
+  if (!data || typeof data !== 'object' || !('url' in data)) return undefined;
+  const url = (data as { url?: unknown }).url;
+  return typeof url === 'string' ? url : undefined;
+};
+
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (err instanceof Error && err.message) return err.message;
+  if (err && typeof err === 'object' && 'message' in err) {
+    const message = (err as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  return fallback;
+};
+
 const UpgradePlan = () => {
   const navigate = useNavigate();
   const { user, subscription, accessTier } = useAuth();
-  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
-  const [loading, setLoading] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const currentTier = accessTier; // single source of truth from profiles.access_tier
-  const currentInterval = (subscription as any)?.interval as ('monthly' | 'yearly' | null | undefined) ?? null;
+  const currentInterval = (subscription as SubscriptionWithInterval | null)?.interval ?? null;
   const rank = (t: string) => (t === "system" ? 1 : t === "alliance" ? 2 : t === "architecte" ? 3 : 0);
   const currentPaidTier = (currentTier === "system" || currentTier === "alliance" || currentTier === "architecte") ? currentTier : "none";
-  // NOTE: Inclusion is tier-based only; interval switching is handled per-card using currentInterval.
-  const includesSystem = currentTier === "system" || currentTier === "alliance" || currentTier === "architecte";
-  const includesAlliance = currentTier === "alliance" || currentTier === "architecte";
-  const includesArchitecte = currentTier === "architecte";
+  const isBusy = pendingAction !== null;
+  const isCheckoutPending = (tier: PaidTier, interval: BillingInterval) =>
+    pendingAction?.kind === 'checkout' && pendingAction.tier === tier && pendingAction.interval === interval;
+  const isPortalPending = (tier: DowngradeTier) =>
+    pendingAction?.kind === 'portal' && pendingAction.tier === tier;
 
   // Best-effort: if billing data is stale (common right after checkout), force a one-time sync then reload.
   useEffect(() => {
@@ -61,14 +126,19 @@ const UpgradePlan = () => {
   }, [user, currentTier]);
 
   const startCheckout = async (
-    tier: 'system' | 'alliance' | 'architecte',
-    interval: 'monthly' | 'yearly',
+    tier: PaidTier,
+    interval: BillingInterval,
   ) => {
     setError(null);
     setSuccess(null);
-    setLoading(true);
+    setPendingAction({ kind: 'checkout', tier, interval });
+    const requestId = newRequestId();
     try {
-      const { data: sessData } = await supabase.auth.getSession();
+      const { data: sessData } = await withTimeout(
+        supabase.auth.getSession(),
+        AUTH_SESSION_TIMEOUT_MS,
+        "Impossible de lire la session Supabase après 10 secondes.",
+      );
       if (!sessData?.session?.access_token) {
         throw new Error("Session expirée. Recharge la page et reconnecte-toi.");
       }
@@ -76,57 +146,81 @@ const UpgradePlan = () => {
       // - no local popups
       // - Stripe Checkout for new subscriptions
       // - Stripe Portal redirection when an active subscription already exists
-      const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
-        body: { tier, interval },
-        headers: requestHeaders(newRequestId()),
-      });
-      if (error) throw error;
-      const url = (data as any)?.url as string | undefined;
+      const result = await withTimeout(
+        supabase.functions.invoke('stripe-create-checkout-session', {
+          body: { tier, interval },
+          headers: requestHeaders(requestId),
+        }),
+        CHECKOUT_TIMEOUT_MS,
+        "La redirection vers Stripe ne répond pas après 30 secondes.",
+      );
+      if (result.error) throw result.error;
+      const url = readRedirectUrl(result.data);
       if (!url) throw new Error("Checkout URL manquante");
       window.location.href = url;
-    } catch (err: any) {
-      setError(err?.message ?? "Erreur lors de la redirection vers le paiement");
+    } catch (err: unknown) {
+      console.warn("[UpgradePlan] checkout redirect failed", {
+        requestId,
+        tier,
+        interval,
+        supabaseHost: getSupabaseHostForDebug(),
+        error: getErrorMessage(err, "Erreur inconnue"),
+      });
+      setError(getErrorMessage(err, "Erreur lors de la redirection vers le paiement"));
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
-  const formatDateFr = (iso: string | null | undefined) => {
-    const s = String(iso ?? "").trim();
-    if (!s) return null;
-    const d = new Date(s);
-    if (Number.isNaN(d.getTime())) return null;
-    return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
-  };
-
-  const scheduleDowngrade = async (_tier: 'system' | 'alliance') => {
+  const scheduleDowngrade = async (tier: DowngradeTier) => {
     setError(null);
     setSuccess(null);
-    setLoading(true);
+    setPendingAction({ kind: 'portal', tier });
+    const requestId = newRequestId();
     try {
-      const { data: sessData } = await supabase.auth.getSession();
+      const { data: sessData } = await withTimeout(
+        supabase.auth.getSession(),
+        AUTH_SESSION_TIMEOUT_MS,
+        "Impossible de lire la session Supabase après 10 secondes.",
+      );
       if (!sessData?.session?.access_token) {
         throw new Error("Session expirée. Recharge la page et reconnecte-toi.");
       }
 
-      const { data, error } = await supabase.functions.invoke("stripe-create-portal-session", {
-        body: {},
-        headers: requestHeaders(newRequestId()),
-      });
-      if (error) throw error;
-      const url = (data as any)?.url as string | undefined;
+      const result = await withTimeout(
+        supabase.functions.invoke("stripe-create-portal-session", {
+          body: {},
+          headers: requestHeaders(requestId),
+        }),
+        CHECKOUT_TIMEOUT_MS,
+        "La redirection vers la facturation ne répond pas après 30 secondes.",
+      );
+      if (result.error) throw result.error;
+      const url = readRedirectUrl(result.data);
       if (!url) throw new Error("Portal URL manquante");
       window.location.href = url;
-    } catch (err: any) {
-      setError(err?.message ?? "Erreur lors de la redirection vers la facturation");
+    } catch (err: unknown) {
+      console.warn("[UpgradePlan] billing portal redirect failed", {
+        requestId,
+        tier,
+        supabaseHost: getSupabaseHostForDebug(),
+        error: getErrorMessage(err, "Erreur inconnue"),
+      });
+      setError(getErrorMessage(err, "Erreur lors de la redirection vers la facturation"));
     } finally {
-      setLoading(false);
+      setPendingAction(null);
     }
   };
 
   const handleBack = () => {
     navigate('/dashboard'); // Ou précédent
   };
+
+  const systemCheckoutPending = isCheckoutPending('system', billingInterval);
+  const allianceCheckoutPending = isCheckoutPending('alliance', billingInterval);
+  const architecteCheckoutPending = isCheckoutPending('architecte', billingInterval);
+  const systemPortalPending = isPortalPending('system');
+  const alliancePortalPending = isPortalPending('alliance');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
@@ -219,14 +313,14 @@ const UpgradePlan = () => {
             
             <button 
                 onClick={() => startCheckout('system', billingInterval)}
-                disabled={loading || (rank(currentPaidTier) > rank("system")) || (currentPaidTier === "system" && currentInterval === billingInterval)}
+                disabled={isBusy || (rank(currentPaidTier) > rank("system")) || (currentPaidTier === "system" && currentInterval === billingInterval)}
                 className={`w-full py-3 rounded-xl font-bold transition-all mb-8 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
                   (rank(currentPaidTier) > rank("system")) || (currentPaidTier === "system" && currentInterval === billingInterval)
                     ? "bg-violet-50 text-violet-700 border-2 border-violet-200"
                     : "border-2 border-slate-100 text-slate-700 hover:border-violet-600 hover:text-violet-600"
-                } ${loading ? "opacity-50" : ""}`}
+                } ${systemCheckoutPending ? "opacity-50" : ""}`}
             >
-              {loading ? (
+              {systemCheckoutPending ? (
                 "Chargement..."
               ) : (rank(currentPaidTier) > rank("system")) ? (
                 <>
@@ -254,10 +348,10 @@ const UpgradePlan = () => {
               <button
                 type="button"
                 onClick={() => scheduleDowngrade("system")}
-                disabled={loading}
+                disabled={isBusy}
                 className="w-full -mt-4 mb-6 text-xs text-slate-500 hover:text-red-600 underline decoration-slate-300 hover:decoration-red-500 transition-colors disabled:opacity-60 disabled:hover:text-slate-500"
               >
-                Repasser sur cet abonnement
+                {systemPortalPending ? "Ouverture..." : "Repasser sur cet abonnement"}
               </button>
             )}
 
@@ -307,14 +401,14 @@ const UpgradePlan = () => {
             
             <button 
                 onClick={() => startCheckout('alliance', billingInterval)}
-                disabled={loading || (rank(currentPaidTier) > rank("alliance")) || (currentPaidTier === "alliance" && currentInterval === billingInterval)}
+                disabled={isBusy || (rank(currentPaidTier) > rank("alliance")) || (currentPaidTier === "alliance" && currentInterval === billingInterval)}
                 className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg shadow-violet-900/50 mb-8 flex items-center justify-center gap-2 disabled:cursor-not-allowed ${
                   (rank(currentPaidTier) > rank("alliance")) || (currentPaidTier === "alliance" && currentInterval === billingInterval)
                     ? "bg-violet-500/20 text-violet-200 border border-violet-500/30"
                     : "bg-violet-600 text-white hover:bg-violet-500"
-                } ${loading ? "opacity-50" : ""}`}
+                } ${allianceCheckoutPending ? "opacity-50" : ""}`}
             >
-              {loading ? (
+              {allianceCheckoutPending ? (
                 "Chargement..."
               ) : (rank(currentPaidTier) > rank("alliance")) ? (
                 <>
@@ -345,10 +439,10 @@ const UpgradePlan = () => {
               <button
                 type="button"
                 onClick={() => scheduleDowngrade("alliance")}
-                disabled={loading}
+                disabled={isBusy}
                 className="w-full -mt-4 mb-6 text-xs text-slate-300 hover:text-red-400 underline decoration-slate-600 hover:decoration-red-400 transition-colors disabled:opacity-60 disabled:hover:text-slate-300"
               >
-                Repasser sur cet abonnement
+                {alliancePortalPending ? "Ouverture..." : "Repasser sur cet abonnement"}
               </button>
             )}
 
@@ -396,14 +490,14 @@ const UpgradePlan = () => {
             
             <button 
                 onClick={() => startCheckout('architecte', billingInterval)}
-                disabled={loading || (currentPaidTier === "architecte" && currentInterval === billingInterval)}
+                disabled={isBusy || (currentPaidTier === "architecte" && currentInterval === billingInterval)}
                 className={`w-full py-3 rounded-xl font-bold transition-all mb-8 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
                   currentPaidTier === "architecte" && currentInterval === billingInterval
                     ? "bg-violet-50 text-violet-700 border-2 border-violet-200"
                     : "border-2 border-slate-100 text-slate-700 hover:border-emerald-600 hover:text-emerald-600"
-                } ${loading ? "opacity-50" : ""}`}
+                } ${architecteCheckoutPending ? "opacity-50" : ""}`}
             >
-              {loading ? (
+              {architecteCheckoutPending ? (
                 "Chargement..."
               ) : (currentPaidTier === "architecte" && currentInterval === billingInterval) ? (
                 <>
