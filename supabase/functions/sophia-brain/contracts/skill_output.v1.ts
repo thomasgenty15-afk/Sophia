@@ -1,23 +1,5 @@
-import type { ConfidenceBand } from "./turn_frame.v1.ts";
 import type { MemoryWriteCandidate } from "./memory_write_candidate.v1.ts";
-
-export type OperationSuggestionType =
-  | "adjust_plan_item"
-  | "prepare_attack_card"
-  | "prepare_defense_card"
-  | "create_recurring_reminder"
-  | "select_state_potion"
-  | "update_coach_preferences";
-
-export type ConversationSkillOperationSuggestion = {
-  operation_type: OperationSuggestionType;
-  reason: string;
-  confidence_band: ConfidenceBand;
-  urgency: "low" | "medium" | "high";
-  source_skill_id: string;
-  operation_input_hint?: Record<string, unknown>;
-  requires_user_consent: boolean;
-};
+import type { ConfidenceBand } from "./turn_frame.v1.ts";
 
 export type ConversationSkillStatus =
   | "continue"
@@ -41,6 +23,7 @@ export type ConversationSkillOutput = {
   generated_user_message?: string;
   diagnosis?: Record<string, unknown>;
   state_patch?: Record<string, unknown>;
+  operation_suggestions?: unknown[];
   effects?: ConversationSkillEffectLedger;
   recommendation_need?: {
     needed: boolean;
@@ -53,7 +36,6 @@ export type ConversationSkillOutput = {
     urgency: "none" | "low" | "medium" | "high";
     constraints: string[];
   };
-  operation_suggestions?: ConversationSkillOperationSuggestion[];
   handoff_request?: {
     target_skill_id: string;
     reason: string;

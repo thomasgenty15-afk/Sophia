@@ -2033,7 +2033,7 @@
                         "visible_task": "answer_product_question",
                         "note_information": null,
                         "return_to_parent_flow": false,
-                        "handoff_to_local_dispatcher": false
+                        "exit_to_global_dispatcher": false
                       },
                       "state_patch": {
                         "summary": "User wants to confirm that the offered recap is read-only and won't mutate data.",
@@ -2279,7 +2279,7 @@
                     },
                     "visible_task": "answer_product_question",
                     "return_to_parent_flow": false,
-                    "handoff_to_local_dispatcher": false,
+                    "exit_to_global_dispatcher": false,
                     "note_information": null,
                     "reason_code": "product_help_local_answer_product_question",
                     "evidence": [
@@ -2523,7 +2523,7 @@
                   },
                   "visible_task": "answer_product_question",
                   "return_to_parent_flow": false,
-                  "handoff_to_local_dispatcher": false,
+                  "exit_to_global_dispatcher": false,
                   "note_information": null,
                   "reason_code": "product_help_local_answer_product_question",
                   "evidence": [
@@ -3056,7 +3056,7 @@
                         "visible_task": "answer_product_question",
                         "note_information": null,
                         "return_to_parent_flow": false,
-                        "handoff_to_local_dispatcher": false
+                        "exit_to_global_dispatcher": false
                       },
                       "state_patch": {
                         "summary": "User wants to confirm that the offered recap is read-only and won't mutate data.",

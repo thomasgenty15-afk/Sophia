@@ -334,7 +334,7 @@
               },
               "visible_task": "answer_product_question",
               "return_to_parent_flow": true,
-              "handoff_to_local_dispatcher": false,
+              "exit_to_global_dispatcher": false,
               "note_information": null,
               "reason_code": "product_help_local_answer_product_question",
               "reducer_trace": {
@@ -1401,7 +1401,7 @@
             },
             "visible_task": "answer_product_question",
             "return_to_parent_flow": true,
-            "handoff_to_local_dispatcher": false,
+            "exit_to_global_dispatcher": false,
             "note_information": null,
             "reason_code": "product_help_local_answer_product_question",
             "reducer_trace": {

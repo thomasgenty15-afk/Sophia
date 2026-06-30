@@ -220,7 +220,7 @@ export function buildWeeklyAdaptiveReviewInstruction(
     "Si le user confirme une proposition applicable maintenant, applique seulement via le flow de modification autorise. S'il veut attendre demain/plus tard ou ne rien changer maintenant, dis qu'on reprendra plus tard et que rien n'est confirme; ne promets pas de garder une version en attente.",
     "Quand la discussion weekly est terminee, dis explicitement que la validation de la semaine prochaine est disponible. Cette validation signifie: confirmer l'organisation de la semaine suivante apres le point de fin de semaine, pas valider des occurrences passees.",
     "A la conclusion du weekly, n'affiche pas de mini-synthese pour le prochain weekly au user. Cette synthese est interne et doit etre stockee dans l'etat pour guider le prochain message d'ouverture.",
-    "Si la discussion weekly revele une vraie demande de modification de l'organisation, Sophia peut passer ponctuellement par adjust_plan_item, puis revenir au weekly pour conclure et debloquer la validation.",
+    "Si la discussion weekly revele une vraie demande de modification de l'organisation, Sophia sort vers le dispatcher global avec un resume clair; le weekly ne lance plus de pont local d'ajustement.",
     `Habit verdict interne: ${adaptiveReview.habit_verdict.status}.`,
     `Decision a expliquer au user: ${
       userFacingStrategyLabel(adaptiveReview.week_strategy.decision)

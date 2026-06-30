@@ -1,0 +1,47 @@
+{
+  "run_id": "product_help_retest_20260622_r1",
+  "turn": 6,
+  "user_message": "Et si je veux juste consulter mes cartes existantes sans rien créer, c'est une vue ou ça lance une nouvelle carte ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "Tu la retrouves dans Dashboard > Ressources. C’est l’endroit pour consulter tes cartes existantes, pas pour en lancer une nouvelle. Certaines cartes ne sont visibles que si elles ont déjà été générées.",
+  "response_owner": "product_help",
+  "selected_handler": "product_help",
+  "reason_code": "product_help_signal",
+  "direct_effects": [],
+  "direct_effects_to_run": [],
+  "skill_signals": {
+    "product_help": {
+      "detected": true,
+      "confidence_band": "high",
+      "reason": "product_help_question"
+    }
+  },
+  "skill_run": {
+    "selected_skill_id": "product_help",
+    "reason_code": "product_help_signal",
+    "status": "complete",
+    "latency_ms": 4839
+  },
+  "tool_skill_run": null,
+  "effect_ledger": {
+    "turn_id": "223dfc8a-6f07-4ccc-bc38-fbb4f8d3a503",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "tool_execution": "none",
+  "executed_tools": []
+}

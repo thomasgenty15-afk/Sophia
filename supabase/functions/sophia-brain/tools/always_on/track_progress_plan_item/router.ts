@@ -19,7 +19,6 @@ export type TrackProgressPlanItemRouterInput = {
   turn_frame: TurnFrame;
   message: string;
   plan_snapshot: unknown;
-  pending_tool_skill_confirmation?: unknown;
   recent_writes_idempotency?: { source_message_ids: string[] };
   db_idempotency_check?: (key: string) => Promise<boolean>;
   no_mutation_requested?: boolean;
@@ -218,7 +217,6 @@ export async function runTrackProgressPlanItemDirectEffect(
   const gate = await runDirectEffectGate({
     effect_type: "track_progress_plan_item",
     turn_frame: input.turn_frame,
-    pending_tool_skill_confirmation: input.pending_tool_skill_confirmation,
     recent_writes_idempotency: input.recent_writes_idempotency ??
       { source_message_ids: [] },
     db_idempotency_check: input.db_idempotency_check ?? (async () => false),
@@ -411,7 +409,6 @@ export async function maybeRunTrackProgressPlanItemRuntime(
       turn_frame: turnFrame,
       message: input.message,
       plan_snapshot: input.plan_snapshot,
-      pending_tool_skill_confirmation: input.pending_tool_skill_confirmation,
       db_idempotency_check: input.db_idempotency_check,
       no_mutation_requested: input.no_mutation_requested,
       blocked_reason_code: input.blocked_reason_code,

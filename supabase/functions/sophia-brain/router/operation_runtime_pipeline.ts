@@ -6,9 +6,11 @@ import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { ActiveTransformationRuntime } from "../../_shared/v2-runtime.ts";
 import {
-  blocksDirectEffects,
-  blocksToolSkills,
-} from "../safety/safety_thresholds.ts";
+  buildCoachingRecommendationSkillSignal,
+  isLocalChildFlowHandoff,
+  turnFrameWithChildFlowHandoff,
+} from "../../_shared/local_child_flow_handoff.ts";
+import { blocksDirectEffects } from "../safety/safety_thresholds.ts";
 import {
   isSafetyRoute,
   runtimeSafetyContextForTurn,
@@ -16,16 +18,18 @@ import {
 import type { OperationRuntimeResult } from "./effect_ledger_adapter.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
 import {
-  clearActiveToolFlow,
-  clearPendingToolConfirmation,
-  clearToolSkillFlowForDirectReminder,
-  pendingOperationType,
+  clearLegacyRuntimeStateForDirectEffect,
   readActiveFlowState,
 } from "./active_flow_state.ts";
 import {
-  classifyOneShotReminderDirectIntent,
-  maybeRunOneShotReminderDirectEffect,
-} from "../tools/always_on/one_shot_reminder/router.ts";
+  oneShotDirectEffectFromWeeklyReviewLocalDispatcherOutput,
+  readWeeklyReviewState,
+  recentMessagesFromHistory as weeklyRecentMessagesFromHistory,
+  runWeeklyReviewLocalDispatcher,
+  runWeeklyReviewLocalRuntime,
+} from "../skills/weekly_review/runtime.ts";
+import { maybeRunOneShotReminderDirectEffect } from "../tools/always_on/one_shot_reminder/router.ts";
+import { withDirectEffectConfirmationContext } from "./direct_effect_local_context.ts";
 import { createTrackProgressPlanItemWrite } from "../tools/always_on/track_progress_plan_item/db.ts";
 import {
   applyTrackProgressDirectEffectFailureState,
@@ -33,42 +37,6 @@ import {
   runTrackProgressPlanItemDirectEffect,
   TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY,
 } from "../tools/always_on/track_progress_plan_item/router.ts";
-import { maybeRunCreateRecurringReminderOperation } from "../tools/operations/create_recurring_reminder/router.ts";
-import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
-import { maybeRunPrepareDefenseCardOperation } from "../tools/operations/prepare_defense_card/router.ts";
-import { runSelectStatePotionHandoffSkill } from "../tools/operations/select_state_potion/handoff.ts";
-import { maybeRunUpdateCoachPreferencesOperation } from "../tools/operations/update_coach_preferences/router.ts";
-import { loadAdjustPlanFrameFromTempMemory } from "../tools/operations/adjust_plan_item/state.ts";
-import { getHandoffTargetForOperation } from "../product_surface_registry/contract.ts";
-import { maybeRunStatusRecapRuntime } from "../skills/status_recap/runtime.ts";
-import { hasActiveStatusRecapFlow } from "../skills/status_recap/local_flow.ts";
-import {
-  hasPendingOrActiveAdjustPlanOperation,
-  weeklyAdaptiveReviewStateForTurn,
-  weeklyReviewAllowsAdjustPlanBridge,
-} from "../skills/weekly_review/runtime.ts";
-
-type RunAdjustPlanItemOperation = (input: {
-  supabase: SupabaseClient;
-  userId: string;
-  userMessage: string;
-  channel: "web" | "whatsapp";
-  userTimezone: string;
-  history: any[];
-  tempMemory: any;
-  planItemSnapshot?: V2PlanItemSnapshotItem[];
-  turnFrame: TurnFrame | null;
-  routeDecision: RouteDecision | null;
-  safetyContextOutput: any;
-  sourceMessageId: string | null;
-  requestId?: string | null;
-  forceFullAi?: boolean;
-  enableAdjustPlanCoachGuidance?: boolean;
-}) => Promise<OperationRuntimeResult | null>;
-
-type OperationRuntimePipelineGuards = {
-  isActiveCardDraftingOperation: (value: unknown) => boolean;
-};
 
 export type OperationRuntimePipelineInput = {
   supabase: SupabaseClient;
@@ -86,17 +54,18 @@ export type OperationRuntimePipelineInput = {
   sourceMessageId: string | null;
   requestId?: string | null;
   v2Runtime: ActiveTransformationRuntime | null;
-  activeSkillState: unknown;
-  activeOperationIntake: unknown;
-  pendingOperationConfirmation: unknown;
   trackProgressBlockedReasonCode?: string | null;
-  fullAiRequested: boolean;
   clientNow?: Date | null;
-  enableAdjustPlanCoachGuidance?: boolean;
-  runStatusRecapRuntime?: typeof maybeRunStatusRecapRuntime;
-  runAdjustPlanItemOperation: RunAdjustPlanItemOperation;
-  guards: OperationRuntimePipelineGuards;
+  allowDirectEffectMessageIntakeFallback?: boolean;
+  weeklyReviewLocalDispatcher?: typeof runWeeklyReviewLocalDispatcher;
+  weeklyReviewVisibleAgent?: Parameters<
+    typeof runWeeklyReviewLocalRuntime
+  >[0]["visibleAgent"];
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
 
 function operationRuntimeFromTrackProgress(args: {
   tempMemory: any;
@@ -128,126 +97,6 @@ function operationRuntimeFromTrackProgress(args: {
   };
 }
 
-function surfaceIdForPlatformHandoff(operationType: string): string {
-  return getHandoffTargetForOperation(operationType)?.surface_id ?? "platform";
-}
-
-function platformHandoffContent(operationType: string): string {
-  const target = getHandoffTargetForOperation(operationType);
-  if (!target) {
-    return "Tu peux reprendre cette recommandation dans la plateforme. Je ne la modifie pas depuis le chat.";
-  }
-  return [
-    `Tu peux reprendre cette recommandation ${target.user_facing_destination}.`,
-    ...target.platform_steps.map((step) => `- ${step}`),
-    "Je ne l'applique pas depuis le chat.",
-  ].join("\n");
-}
-
-function platformHandoffOperationForTurn(args: {
-  routeDecision: RouteDecision | null;
-  turnFrame: TurnFrame | null;
-  pendingOperationConfirmation: unknown;
-  activeOperationIntake: unknown;
-}): string | null {
-  const platformOperation = (operation: string | null): string | null =>
-    operation;
-  const selected = String(args.routeDecision?.selected_handler ?? "").trim();
-  if (isPlatformHandoffOperation(selected)) return platformOperation(selected);
-  for (const effect of args.routeDecision?.direct_effects_to_run ?? []) {
-    const operation = String(effect ?? "").trim();
-    if (isPlatformHandoffOperation(operation)) {
-      return platformOperation(operation);
-    }
-  }
-  const intent = (args.turnFrame?.tool_skill_intents ?? []).find((candidate) =>
-    isPlatformHandoffOperation(String(candidate.operation_type ?? "").trim())
-  );
-  if (intent) return platformOperation(String(intent.operation_type).trim());
-  const pending = args.pendingOperationConfirmation &&
-      typeof args.pendingOperationConfirmation === "object"
-    ? String((args.pendingOperationConfirmation as any).operation_type ?? "")
-      .trim()
-    : "";
-  if (isPlatformHandoffOperation(pending)) return platformOperation(pending);
-  const active = args.activeOperationIntake &&
-      typeof args.activeOperationIntake === "object"
-    ? String(
-      (args.activeOperationIntake as any).operation_type ??
-        ((args.activeOperationIntake as any).mode === "platform_handoff"
-          ? (args.activeOperationIntake as any).skill_id
-          : ""),
-    ).trim()
-    : "";
-  if (isPlatformHandoffOperation(active)) return platformOperation(active);
-  return null;
-}
-
-const SPECIALIZED_PLATFORM_HANDOFF_OPERATIONS = new Set([
-  "adjust_plan_item",
-  "prepare_attack_card",
-  "prepare_defense_card",
-  "select_state_potion",
-  "create_recurring_reminder",
-  "update_coach_preferences",
-]);
-
-function turnRequestsChatExecutableEffect(args: {
-  routeDecision: RouteDecision | null;
-  turnFrame: TurnFrame | null;
-  operationType: string;
-}): boolean {
-  const candidates = [
-    ...(args.routeDecision?.direct_effects_to_run ?? []),
-    ...((args.turnFrame as any)?.direct_effects ?? []),
-  ];
-  return candidates.some((candidate) => {
-    const operation = typeof candidate === "string" ? candidate : String(
-      (candidate as any)?.operation_type ??
-        (candidate as any)?.type ??
-        (candidate as any)?.effect_type ??
-        "",
-    );
-    return operation === args.operationType;
-  });
-}
-
-function routeOrStateRequestsToolSkill(args: {
-  routeDecision: RouteDecision | null;
-  turnFrame: TurnFrame | null;
-  activeOperationIntake: unknown;
-  pendingOperationConfirmation: unknown;
-  operationType: string;
-}): boolean {
-  if (args.routeDecision?.selected_handler === args.operationType) return true;
-  if (
-    (args.routeDecision?.direct_effects_to_run ?? []).includes(
-      args.operationType,
-    )
-  ) return true;
-  const activeOperation = String(
-    (args.activeOperationIntake as any)?.operation_type ??
-      ((args.activeOperationIntake as any)?.mode === "platform_handoff"
-        ? (args.activeOperationIntake as any)?.skill_id
-        : (args.activeOperationIntake as any)?.skill_id ?? ""),
-  ).trim();
-  if (activeOperation === args.operationType) return true;
-  const pendingOperation = String(
-    (args.pendingOperationConfirmation as any)?.operation_type ?? "",
-  ).trim();
-  if (pendingOperation === args.operationType) return true;
-  if (args.routeDecision?.response_owner === "normal_reply") return false;
-  return (args.turnFrame?.tool_skill_intents ?? []).some((intent) =>
-    intent.operation_type === args.operationType &&
-    intent.confidence_band !== "low"
-  );
-}
-
-function routeIsProductHelp(routeDecision: RouteDecision | null): boolean {
-  return routeDecision?.response_owner === "product_help" ||
-    routeDecision?.selected_handler === "product_help";
-}
-
 function turnFrameHasRunnableDirectEffect(
   turnFrame: TurnFrame | null,
   effectType: string,
@@ -275,19 +124,11 @@ function routePermitsTrackProgressRuntime(args: {
   routeDecision: RouteDecision | null;
   turnFrame: TurnFrame | null;
 }): boolean {
-  if (
-    routeRequestsDirectEffect({
-      routeDecision: args.routeDecision,
-      turnFrame: args.turnFrame,
-      effectType: "track_progress_plan_item",
-    })
-  ) {
-    return true;
-  }
-  if (args.routeDecision?.selected_handler === "track_progress_plan_item") {
-    return true;
-  }
-  return false;
+  return routeRequestsDirectEffect({
+    routeDecision: args.routeDecision,
+    turnFrame: args.turnFrame,
+    effectType: "track_progress_plan_item",
+  }) || args.routeDecision?.selected_handler === "track_progress_plan_item";
 }
 
 function routeWithDirectEffect(args: {
@@ -309,15 +150,34 @@ function routeWithDirectEffect(args: {
   };
 }
 
-function turnFrameWithDirectEffect(args: {
+function routeWithCoachingChildFlowHandoff(
+  routeDecision: RouteDecision | null,
+): RouteDecision | null {
+  if (!routeDecision) return null;
+  return {
+    ...routeDecision,
+    response_owner: "coaching_recommendation",
+    selected_handler: "coaching_recommendation",
+    reason_code: "local_child_flow_handoff_to_coaching_recommendation",
+    active_flow_arbitration: {
+      decision: "handoff_to_child_flow",
+      active_owner: "weekly_adaptive_review_v1",
+      selected_owner: "coaching_recommendation",
+      resume_policy: "return_to_parent_after_child_flow",
+      reason_code:
+        "weekly_review_handoff_to_coaching_recommendation_child_flow",
+    },
+  };
+}
+
+function turnFrameWithDirectEffectObject(args: {
   turnFrame: TurnFrame | null;
-  effectType: "create_one_shot_reminder";
-  rawText: string;
+  effect: TurnFrame["direct_effects"][number] | null;
 }): TurnFrame | null {
-  if (!args.turnFrame) return null;
+  if (!args.turnFrame || !args.effect) return args.turnFrame;
   if (
     args.turnFrame.direct_effects.some((effect) =>
-      effect.effect_type === args.effectType &&
+      effect.effect_type === args.effect?.effect_type &&
       effect.explicitness === "explicit" &&
       effect.confidence_band !== "low"
     )
@@ -328,13 +188,7 @@ function turnFrameWithDirectEffect(args: {
     ...args.turnFrame,
     direct_effects: [
       ...args.turnFrame.direct_effects,
-      {
-        effect_type: args.effectType,
-        explicitness: "explicit",
-        target_status: "identified",
-        confidence_band: "high",
-        payload_hint: { raw_text: args.rawText },
-      },
+      args.effect,
     ],
   };
 }
@@ -346,7 +200,7 @@ function oneShotReminderOperationRuntimeFromDirectEffect(args: {
   if (!args.result.detected || !args.result.reply) return null;
   return {
     content: args.result.reply,
-    nextTempMemory: clearToolSkillFlowForDirectReminder(args.tempMemory),
+    nextTempMemory: clearLegacyRuntimeStateForDirectEffect(args.tempMemory),
     toolExecution: args.result.status === "success" ||
         args.result.status === "cancelled" ||
         args.result.status === "replaced"
@@ -395,7 +249,7 @@ export function turnFrameWithDirectEffectRuntime(
   runtime: OperationRuntimeResult | null,
 ): TurnFrame | null {
   if (!turnFrame || !runtime || !hasRuntimeEffects(runtime)) return turnFrame;
-  return {
+  return withDirectEffectConfirmationContext({
     ...turnFrame,
     direct_effect_lane: {
       selected_handler: runtime.toolSkillRun.selected_handler ?? null,
@@ -419,7 +273,7 @@ export function turnFrameWithDirectEffectRuntime(
         : [],
       visible_confirmation_hint: runtime.content,
     },
-  } as TurnFrame;
+  } as TurnFrame);
 }
 
 function mergeEffectArray(
@@ -443,11 +297,7 @@ export function mergeDirectEffectRuntimeIntoVisibleRuntime(args: {
 }): OperationRuntimeResult | null {
   if (!args.directRuntime) return args.visibleRuntime;
   if (!args.visibleRuntime) return args.directRuntime;
-  const directContent = String(args.directRuntime.content ?? "").trim();
   const visibleContent = String(args.visibleRuntime.content ?? "").trim();
-  const content = directContent && !visibleContent.includes(directContent)
-    ? [directContent, visibleContent].filter(Boolean).join("\n\n")
-    : visibleContent || directContent;
   const directRun = args.directRuntime.toolSkillRun ?? {};
   const visibleRun = args.visibleRuntime.toolSkillRun ?? {};
   const committedEffects = mergeEffectArray(
@@ -468,7 +318,7 @@ export function mergeDirectEffectRuntimeIntoVisibleRuntime(args: {
   ];
   return {
     ...args.visibleRuntime,
-    content,
+    content: visibleContent,
     toolExecution: args.directRuntime.toolExecution !== "none"
       ? args.directRuntime.toolExecution
       : args.visibleRuntime.toolExecution,
@@ -536,28 +386,10 @@ export async function runDirectEffectLane(
     userMessage: args.userMessage,
   });
 
-  const classified = args.allowMessageIntakeFallback
-    ? classifyOneShotReminderDirectIntent(
-      args.userMessage,
-      [
-        ...new Set([
-          ...(routeDecision?.direct_effects_to_run ?? []),
-          "create_one_shot_reminder",
-        ]),
-      ],
-    )
-    : null;
-  const fallbackOneShotDetected = Boolean(
-    classified?.detected &&
-      ["create", "cancel", "replace"].includes(String(classified.intent)),
-  ) && Boolean(String(classified?.time_expression ?? "").trim());
-  const shouldRunOneShotReminderDirectEffect =
-    !routeIsProductHelp(routeDecision) &&
-    (routeRequestsDirectEffect({
-      routeDecision,
-      turnFrame,
-      effectType: "create_one_shot_reminder",
-    }) || fallbackOneShotDetected);
+  const shouldRunOneShotReminderDirectEffect = turnFrameHasRunnableDirectEffect(
+    turnFrame,
+    "create_one_shot_reminder",
+  );
 
   if (!shouldRunOneShotReminderDirectEffect) {
     return {
@@ -574,11 +406,6 @@ export async function runDirectEffectLane(
     effectType: "create_one_shot_reminder",
     reasonCode: "direct_effect_lane_message_intake",
   });
-  turnFrame = turnFrameWithDirectEffect({
-    turnFrame,
-    effectType: "create_one_shot_reminder",
-    rawText: args.userMessage,
-  });
   routeOrFrameChanged = routeDecision !== args.routeDecision ||
     turnFrame !== args.turnFrame;
 
@@ -588,12 +415,13 @@ export async function runDirectEffectLane(
         supabase: args.supabase,
         userId: args.userId,
         message: args.userMessage,
+        sourceMessageId: args.sourceMessageId,
         requestId: args.requestId ?? undefined,
         now: args.clientNow && Number.isFinite(args.clientNow.getTime())
           ? args.clientNow
           : undefined,
+        userTimezone: args.userTimezone,
         turnFrame,
-        pendingToolSkillConfirmation: args.pendingOperationConfirmation,
         noMutationRequested: false,
         contextMessages: (args.history ?? [])
           .filter((m: any) =>
@@ -617,42 +445,8 @@ export async function runDirectEffectLane(
     operationRuntime,
     routeDecision,
     turnFrame,
-    tempMemory: args.tempMemory,
+    tempMemory: operationRuntime?.nextTempMemory ?? args.tempMemory,
     routeOrFrameChanged,
-  };
-}
-
-function isPlatformHandoffOperation(operationType: string): boolean {
-  return Boolean(getHandoffTargetForOperation(operationType));
-}
-
-function platformHandoffRuntimeResult(args: {
-  operationType: string;
-  tempMemory: any;
-}): OperationRuntimeResult {
-  const surfaceId = surfaceIdForPlatformHandoff(args.operationType);
-  return {
-    content: platformHandoffContent(args.operationType),
-    nextTempMemory: args.tempMemory,
-    toolExecution: "platform_handoff",
-    executedTools: [],
-    toolSkillRun: {
-      selected_handler: args.operationType,
-      operation_type: args.operationType,
-      status: "handoff_delivered",
-      reason_code: "complex_operation_redirect_to_platform",
-      requested_effects: [],
-      allowed_effects: [],
-      committed_effects: [],
-      blocked_effects: [],
-      platform_handoff: {
-        operation_type: args.operationType,
-        status: "delivered",
-        surface_id: surfaceId,
-        reason_code: "complex_operation_redirect_to_platform",
-        executable_from_chat: false,
-      },
-    },
   };
 }
 
@@ -676,111 +470,7 @@ export async function runOperationRuntimePipeline(
   let routeDecision = args.routeDecision;
   let turnFrame = args.turnFrame;
   let tempMemory = args.tempMemory;
-  let statePatch: { temp_memory: any } | undefined;
   let routeOrFrameChanged = false;
-
-  const weeklyReviewStateForTurn = weeklyAdaptiveReviewStateForTurn({
-    activeSkillState: args.activeSkillState,
-    tempMemory,
-  });
-  const weeklyReviewBlocksToolSkillRuntime = Boolean(
-    weeklyReviewStateForTurn && !isSafetyRoute(routeDecision) &&
-      !hasPendingOrActiveAdjustPlanOperation(tempMemory) &&
-      !weeklyReviewAllowsAdjustPlanBridge({
-        routeDecision,
-        turnFrame,
-        userMessage: args.userMessage,
-        history: args.history,
-      }),
-  );
-
-  if (
-    weeklyReviewBlocksToolSkillRuntime &&
-    turnFrame &&
-    routeDecision &&
-    routeDecision.response_owner === "tool_skill"
-  ) {
-    routeDecision = {
-      ...routeDecision,
-      response_owner: "conversation_handler",
-      selected_handler: "weekly_adaptive_review_v1",
-      reason_code: "active_weekly_review_blocks_tool_skill_runtime",
-      direct_effects_to_run: [],
-      blocked_paths: [
-        ...routeDecision.blocked_paths,
-        {
-          path: "tool_skill",
-          reason_code: "active_weekly_review_blocks_tool_skill_runtime",
-        },
-      ],
-    };
-    turnFrame = {
-      ...turnFrame,
-      tool_skill_intents: [],
-    };
-    routeOrFrameChanged = true;
-  }
-
-  if (
-    routeDecision?.response_owner === "tool_skill" &&
-    routeDecision.selected_handler
-  ) {
-    const selectedOperation = String(routeDecision.selected_handler);
-    const activeFlowState = readActiveFlowState(tempMemory);
-    const activeOperation = String(
-      (activeFlowState.activeToolSkillIntake as any)?.operation_type ?? "",
-    ).trim();
-    const pendingOperation = pendingOperationType(
-      activeFlowState.pendingToolSkillConfirmation,
-    );
-    if (
-      routeDecision.active_flow_arbitration?.decision === "suspend_active" &&
-      activeOperation && activeOperation !== selectedOperation
-    ) {
-      tempMemory = { ...(tempMemory ?? {}) };
-      tempMemory = clearActiveToolFlow(tempMemory);
-      if (pendingOperation && pendingOperation !== selectedOperation) {
-        tempMemory = clearPendingToolConfirmation(tempMemory);
-      }
-      statePatch = { temp_memory: tempMemory };
-    }
-  }
-
-  const clarificationRequired = routeDecision?.reason_code ===
-    "clarification_required";
-  if (clarificationRequired && routeDecision) {
-    const clarificationRoute: RouteDecision = {
-      ...routeDecision,
-      response_owner: "orientation_clarification",
-      selected_handler: "orientation_clarification",
-      reason_code: "clarification_required",
-      direct_effects_to_run: [],
-    };
-    const routeSafetyActive = isSafetyRoute(clarificationRoute);
-    const {
-      riskBand: runtimeSafetyRiskBand,
-      safetyContextOutput: runtimeSafetySignalContext,
-    } = runtimeSafetyContextForTurn({
-      safetyContextOutput: args.safetyContextOutput,
-      routeDecision: clarificationRoute,
-      turnFrame,
-      tempMemory,
-      userMessage: args.userMessage,
-    });
-    return {
-      operationRuntime: null,
-      routeDecision: clarificationRoute,
-      turnFrame,
-      tempMemory,
-      statePatch,
-      routeSafetyActive,
-      runtimeSafetyRiskBand,
-      runtimeSafetySignalContext,
-      weeklyReviewStateForTurn,
-      weeklyReviewBlocksToolSkillRuntime,
-      routeOrFrameChanged: true,
-    };
-  }
 
   const routeSafetyActive = isSafetyRoute(routeDecision);
   const {
@@ -794,155 +484,142 @@ export async function runOperationRuntimePipeline(
     userMessage: args.userMessage,
   });
 
-  const platformHandoffOperation = platformHandoffOperationForTurn({
+  const activeFlowState = readActiveFlowState(tempMemory);
+  const weeklyState = !routeSafetyActive
+    ? readWeeklyReviewState({
+      activeSkillState: activeFlowState.activeSkillState,
+      tempMemory,
+    })
+    : null;
+  const weeklyDispatcherOutput = isRecord(weeklyState)
+    ? await (args.weeklyReviewLocalDispatcher ??
+      runWeeklyReviewLocalDispatcher)({
+        user_id: args.userId,
+        request_id: args.requestId ?? null,
+        user_message: args.userMessage,
+        recent_messages: weeklyRecentMessagesFromHistory(args.history),
+        weekly_state: weeklyState,
+        turn_frame: turnFrame,
+      }).catch((error) => {
+        console.warn("[WeeklyReview] pre-dispatch failed", error);
+        return null;
+      })
+    : null;
+  const weeklyOneShotDirectEffect =
+    oneShotDirectEffectFromWeeklyReviewLocalDispatcherOutput(
+      weeklyDispatcherOutput,
+      { turnFrame },
+    );
+  const turnFrameBeforeWeeklyDirectEffect = turnFrame;
+  turnFrame = turnFrameWithDirectEffectObject({
+    turnFrame,
+    effect: weeklyOneShotDirectEffect,
+  });
+  routeOrFrameChanged = routeOrFrameChanged ||
+    turnFrame !== turnFrameBeforeWeeklyDirectEffect;
+  const weeklyShouldRunOneShotDirectEffect = Boolean(
+    weeklyOneShotDirectEffect,
+  ) || routeRequestsDirectEffect({
     routeDecision,
     turnFrame,
-    pendingOperationConfirmation: args.pendingOperationConfirmation,
-    activeOperationIntake: args.activeOperationIntake,
+    effectType: "create_one_shot_reminder",
   });
-  if (
-    platformHandoffOperation &&
-    !SPECIALIZED_PLATFORM_HANDOFF_OPERATIONS.has(platformHandoffOperation) &&
-    !routeSafetyActive &&
-    !weeklyReviewBlocksToolSkillRuntime &&
-    !(
-      platformHandoffOperation === "select_state_potion" &&
-      turnRequestsChatExecutableEffect({
-        routeDecision,
-        turnFrame,
-        operationType: "create_one_shot_reminder",
-      })
-    )
-  ) {
-    if (platformHandoffOperation === "select_state_potion") {
-      const potionHandoffRuntime = await runSelectStatePotionHandoffSkill({
-        supabase: args.supabase,
-        userId: args.userId,
-        userMessage: args.userMessage,
-        channel: args.channel,
-        userTimezone: args.userTimezone,
-        tempMemory,
-        turnFrame,
-        routeDecision,
-        safetyContextOutput: runtimeSafetySignalContext,
-        sourceMessageId: args.sourceMessageId,
-        requestId: args.requestId ?? null,
-        history: args.history,
-      });
-      if (potionHandoffRuntime) {
-        return {
-          operationRuntime: potionHandoffRuntime,
-          routeDecision,
-          turnFrame,
-          tempMemory,
-          statePatch,
-          routeSafetyActive,
-          runtimeSafetyRiskBand,
-          runtimeSafetySignalContext,
-          weeklyReviewStateForTurn,
-          weeklyReviewBlocksToolSkillRuntime,
-          routeOrFrameChanged,
-        };
-      }
-    }
-    return {
-      operationRuntime: platformHandoffRuntimeResult({
-        operationType: platformHandoffOperation,
-        tempMemory,
-      }),
+  const weeklyDirectEffectLane = weeklyShouldRunOneShotDirectEffect
+    ? await runDirectEffectLane({
+      ...args,
       routeDecision,
       turnFrame,
       tempMemory,
-      statePatch,
+      allowMessageIntakeFallback: false,
+    })
+    : null;
+  if (weeklyDirectEffectLane) {
+    routeDecision = weeklyDirectEffectLane.routeDecision;
+    turnFrame = weeklyDirectEffectLane.turnFrame;
+    tempMemory = weeklyDirectEffectLane.tempMemory;
+    routeOrFrameChanged = routeOrFrameChanged ||
+      weeklyDirectEffectLane.routeOrFrameChanged;
+    turnFrame = turnFrameWithDirectEffectRuntime(
+      turnFrame,
+      weeklyDirectEffectLane.operationRuntime,
+    ) ??
+      (turnFrame ? withDirectEffectConfirmationContext(turnFrame) : turnFrame);
+  }
+  const weeklyReviewRuntime = isRecord(weeklyState)
+    ? await runWeeklyReviewLocalRuntime({
+      supabase: args.supabase,
+      userId: args.userId,
+      tempMemory,
+      activeSkillState: activeFlowState.activeSkillState,
+      userMessage: args.userMessage,
+      history: args.history,
+      requestId: args.requestId ?? null,
+      v2Runtime: args.v2Runtime,
+      loggedMessageId: args.sourceMessageId ?? null,
+      turnFrame,
+      precomputedDispatcherOutput: weeklyDispatcherOutput,
+      visibleAgent: args.weeklyReviewVisibleAgent,
+    })
+    : null;
+  if (weeklyReviewRuntime) {
+    const mergedWeeklyRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
+      directRuntime: weeklyDirectEffectLane?.operationRuntime ?? null,
+      visibleRuntime: weeklyReviewRuntime,
+    }) ?? weeklyReviewRuntime;
+    tempMemory = mergedWeeklyRuntime.nextTempMemory ?? tempMemory;
+    const run = mergedWeeklyRuntime.toolSkillRun ?? {};
+    const childFlowHandoff = isLocalChildFlowHandoff(run.child_flow_handoff)
+      ? run.child_flow_handoff
+      : null;
+    if (
+      childFlowHandoff &&
+      childFlowHandoff.child_flow === "coaching_recommendation"
+    ) {
+      routeDecision = routeWithCoachingChildFlowHandoff(routeDecision);
+      const activation = run.child_flow_note_information &&
+          typeof run.child_flow_note_information === "object"
+        ? {
+          handoff: childFlowHandoff,
+          skill_signal: buildCoachingRecommendationSkillSignal(
+            childFlowHandoff.child_flow_context,
+          ),
+          note_information: run.child_flow_note_information as any,
+        }
+        : null;
+      if (turnFrame && activation) {
+        turnFrame = turnFrameWithChildFlowHandoff(turnFrame, activation);
+      }
+      return {
+        operationRuntime: mergedWeeklyRuntime,
+        routeDecision,
+        turnFrame,
+        tempMemory,
+        statePatch: { temp_memory: tempMemory },
+        routeSafetyActive,
+        runtimeSafetyRiskBand,
+        runtimeSafetySignalContext,
+        weeklyReviewStateForTurn: tempMemory,
+        weeklyReviewBlocksToolSkillRuntime: true,
+        routeOrFrameChanged: true,
+      };
+    }
+    return {
+      operationRuntime: mergedWeeklyRuntime,
+      routeDecision,
+      turnFrame,
+      tempMemory,
+      statePatch: { temp_memory: tempMemory },
       routeSafetyActive,
       runtimeSafetyRiskBand,
       runtimeSafetySignalContext,
-      weeklyReviewStateForTurn,
-      weeklyReviewBlocksToolSkillRuntime,
+      weeklyReviewStateForTurn: tempMemory,
+      weeklyReviewBlocksToolSkillRuntime: true,
       routeOrFrameChanged,
     };
   }
 
-  const runAdjust = () =>
-    args.runAdjustPlanItemOperation({
-      supabase: args.supabase,
-      userId: args.userId,
-      userMessage: args.userMessage,
-      channel: args.channel,
-      userTimezone: args.userTimezone,
-      history: args.history,
-      tempMemory,
-      planItemSnapshot: args.planItemSnapshot,
-      turnFrame,
-      routeDecision,
-      safetyContextOutput: runtimeSafetySignalContext,
-      sourceMessageId: args.sourceMessageId,
-      requestId: args.requestId ?? null,
-      forceFullAi: args.fullAiRequested,
-      enableAdjustPlanCoachGuidance: args.enableAdjustPlanCoachGuidance,
-    });
-
-  const adjustPlanFrame = loadAdjustPlanFrameFromTempMemory(tempMemory);
-  const shouldRunAdjustRuntime =
-    routeDecision?.selected_handler === "adjust_plan_item" ||
-    routeDecision?.direct_effects_to_run?.includes("adjust_plan_item") ||
-    (turnFrame?.tool_skill_intents ?? []).some((intent) =>
-      intent.operation_type === "adjust_plan_item" &&
-      intent.confidence_band !== "low"
-    ) || Boolean(adjustPlanFrame.handoff_state);
-
-  const pendingAdjustPlanRuntime = !routeSafetyActive &&
-      !weeklyReviewBlocksToolSkillRuntime &&
-      adjustPlanFrame.handoff_state
-    ? await runAdjust()
-    : null;
-  const activeRecurringReminderHandoff = Boolean(
-    (tempMemory as any)?.__recurring_reminder_handoff_state ||
-      String((args.activeOperationIntake as any)?.operation_type ?? "")
-          .trim() === "create_recurring_reminder" ||
-      String((args.pendingOperationConfirmation as any)?.operation_type ?? "")
-          .trim() === "create_recurring_reminder" ||
-      routeDecision?.selected_handler === "create_recurring_reminder",
-  );
-  const shouldRunRecurringReminder = activeRecurringReminderHandoff ||
-    routeOrStateRequestsToolSkill({
-      routeDecision,
-      turnFrame,
-      activeOperationIntake: args.activeOperationIntake,
-      pendingOperationConfirmation: args.pendingOperationConfirmation,
-      operationType: "create_recurring_reminder",
-    });
-  const weeklyReviewAllowsReminderRuntime = !weeklyReviewStateForTurn ||
-    routeRequestsDirectEffect({
-      routeDecision,
-      turnFrame,
-      effectType: "create_one_shot_reminder",
-    }) ||
-    (turnFrame?.tool_skill_intents ?? []).some((intent) =>
-      intent.operation_type === "create_recurring_reminder" &&
-      intent.confidence_band !== "low"
-    );
-  const runRecurringReminder = () =>
-    weeklyReviewAllowsReminderRuntime
-      ? maybeRunCreateRecurringReminderOperation({
-        supabase: args.supabase,
-        userId: args.userId,
-        userMessage: args.userMessage,
-        channel: args.channel,
-        userTimezone: args.userTimezone,
-        tempMemory,
-        turnFrame,
-        routeDecision,
-        safetyContextOutput: runtimeSafetySignalContext,
-        sourceMessageId: args.sourceMessageId,
-        requestId: args.requestId ?? null,
-        history: args.history,
-        v2Runtime: args.v2Runtime ?? null,
-        planItemSnapshot: (args.planItemSnapshot ?? null) as any,
-      })
-      : Promise.resolve(null);
   const trackProgressRuntime: OperationRuntimeResult | null =
-    !routeSafetyActive && !weeklyReviewBlocksToolSkillRuntime && turnFrame &&
+    !routeSafetyActive && turnFrame &&
       routePermitsTrackProgressRuntime({ routeDecision, turnFrame })
       ? await (async () => {
         const sourceMessageId = args.sourceMessageId ??
@@ -964,7 +641,6 @@ export async function runOperationRuntimePipeline(
             turn_frame: turnFrame,
             message: args.userMessage,
             plan_snapshot: args.planItemSnapshot ?? [],
-            pending_tool_skill_confirmation: args.pendingOperationConfirmation,
             no_mutation_requested: Boolean(blockedReason),
             blocked_reason_code: blockedReason,
             write_progress: createTrackProgressPlanItemWrite({
@@ -1001,172 +677,33 @@ export async function runOperationRuntimePipeline(
     routeDecision,
     turnFrame,
     tempMemory,
+    allowMessageIntakeFallback:
+      args.allowDirectEffectMessageIntakeFallback === true,
   });
   routeDecision = directEffectLane.routeDecision;
   turnFrame = directEffectLane.turnFrame;
+  tempMemory = directEffectLane.tempMemory;
   routeOrFrameChanged = routeOrFrameChanged ||
     directEffectLane.routeOrFrameChanged;
-  const oneShotReminderOperationRuntime = directEffectLane.operationRuntime;
 
-  const routeIsCardToolSkill =
-    routeDecision?.selected_handler === "prepare_defense_card" ||
-    routeDecision?.selected_handler === "prepare_attack_card";
-  const activeStatusRecapFlow = hasActiveStatusRecapFlow(tempMemory);
-  const routeRequestsStatusRecap = activeStatusRecapFlow ||
-    routeDecision?.selected_handler === "status_recap" ||
-    ((turnFrame?.skill_signals.entry as any)?.status_recap?.detected === true &&
-      (turnFrame?.skill_signals.entry as any)?.status_recap?.confidence_band !==
-        "low");
-  const structuredCardCommand = (turnFrame?.tool_skill_intents ?? []).some((
-    intent,
-  ) =>
-    (intent.operation_type === "prepare_attack_card" ||
-      intent.operation_type === "prepare_defense_card") &&
-    intent.user_intent !== "explain_only" &&
-    intent.confidence_band !== "low"
-  );
-  const shouldRunSelectStatePotion = routeOrStateRequestsToolSkill({
-    routeDecision,
-    turnFrame,
-    activeOperationIntake: args.activeOperationIntake,
-    pendingOperationConfirmation: args.pendingOperationConfirmation,
-    operationType: "select_state_potion",
+  const operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
+    directRuntime: directEffectLane.operationRuntime,
+    visibleRuntime: trackProgressRuntime,
   });
-  const shouldRunPrepareAttackCard = routeOrStateRequestsToolSkill({
-    routeDecision,
-    turnFrame,
-    activeOperationIntake: args.activeOperationIntake,
-    pendingOperationConfirmation: args.pendingOperationConfirmation,
-    operationType: "prepare_attack_card",
-  });
-  const shouldRunPrepareDefenseCard = routeOrStateRequestsToolSkill({
-    routeDecision,
-    turnFrame,
-    activeOperationIntake: args.activeOperationIntake,
-    pendingOperationConfirmation: args.pendingOperationConfirmation,
-    operationType: "prepare_defense_card",
-  });
-  const shouldRunUpdateCoachPreferences = routeOrStateRequestsToolSkill({
-    routeDecision,
-    turnFrame,
-    activeOperationIntake: args.activeOperationIntake,
-    pendingOperationConfirmation: args.pendingOperationConfirmation,
-    operationType: "update_coach_preferences",
-  });
-  const statusRecapRuntime = !routeSafetyActive &&
-      routeRequestsStatusRecap &&
-      !activeRecurringReminderHandoff &&
-      (!routeIsProductHelp(routeDecision) || activeStatusRecapFlow) &&
-      !routeIsCardToolSkill &&
-      !structuredCardCommand &&
-      !args.guards.isActiveCardDraftingOperation(args.activeOperationIntake)
-    ? await (args.runStatusRecapRuntime ?? maybeRunStatusRecapRuntime)({
-      supabase: args.supabase,
-      userId: args.userId,
-      userMessage: args.userMessage,
-      userTimezone: args.userTimezone,
-      tempMemory,
-      turnFrame,
-      routeDecision,
-      activeOperationIntake: args.activeOperationIntake,
-      planItemSnapshot: args.planItemSnapshot ?? [],
-      history: args.history,
-      requestId: args.requestId ?? null,
-    })
-    : null;
-
-  const operationRuntime = weeklyReviewBlocksToolSkillRuntime ||
-      (routeIsProductHelp(routeDecision) && !activeStatusRecapFlow)
-    ? null
-    : oneShotReminderOperationRuntime ??
-      (routeSafetyActive ? null : pendingAdjustPlanRuntime) ??
-      trackProgressRuntime ??
-      (activeRecurringReminderHandoff && shouldRunRecurringReminder
-        ? await runRecurringReminder()
-        : null) ??
-      statusRecapRuntime ??
-      (!activeRecurringReminderHandoff && shouldRunRecurringReminder
-        ? await runRecurringReminder()
-        : null) ??
-      (shouldRunSelectStatePotion
-        ? await runSelectStatePotionHandoffSkill({
-          supabase: args.supabase,
-          userId: args.userId,
-          userMessage: args.userMessage,
-          channel: args.channel,
-          userTimezone: args.userTimezone,
-          tempMemory,
-          turnFrame,
-          routeDecision,
-          safetyContextOutput: runtimeSafetySignalContext,
-          sourceMessageId: args.sourceMessageId,
-          requestId: args.requestId ?? null,
-          history: args.history,
-        })
-        : null) ??
-      (shouldRunAdjustRuntime ? await runAdjust() : null) ??
-      (shouldRunPrepareAttackCard
-        ? await maybeRunPrepareAttackCardOperation({
-          supabase: args.supabase,
-          userId: args.userId,
-          userMessage: args.userMessage,
-          channel: args.channel,
-          userTimezone: args.userTimezone,
-          tempMemory,
-          turnFrame,
-          routeDecision,
-          safetyContextOutput: runtimeSafetySignalContext,
-          sourceMessageId: args.sourceMessageId,
-          requestId: args.requestId ?? null,
-          planSnapshot: { items: args.planItemSnapshot ?? [] },
-          history: args.history,
-        })
-        : null) ??
-      (shouldRunPrepareDefenseCard
-        ? await maybeRunPrepareDefenseCardOperation({
-          supabase: args.supabase,
-          userId: args.userId,
-          userMessage: args.userMessage,
-          channel: args.channel,
-          userTimezone: args.userTimezone,
-          tempMemory,
-          turnFrame,
-          routeDecision,
-          safetyContextOutput: runtimeSafetySignalContext,
-          sourceMessageId: args.sourceMessageId,
-          requestId: args.requestId ?? null,
-          planSnapshot: { items: args.planItemSnapshot ?? [] },
-          history: args.history,
-        })
-        : null) ??
-      (shouldRunUpdateCoachPreferences
-        ? await maybeRunUpdateCoachPreferencesOperation({
-          supabase: args.supabase,
-          userId: args.userId,
-          userMessage: args.userMessage,
-          channel: args.channel,
-          userTimezone: args.userTimezone,
-          tempMemory,
-          turnFrame,
-          routeDecision,
-          safetyContextOutput: runtimeSafetySignalContext,
-          sourceMessageId: args.sourceMessageId,
-          requestId: args.requestId ?? null,
-          history: args.history,
-        })
-        : null);
 
   return {
     operationRuntime,
     routeDecision,
-    turnFrame,
-    tempMemory,
-    statePatch,
+    turnFrame: turnFrameWithDirectEffectRuntime(turnFrame, operationRuntime),
+    tempMemory: operationRuntime?.nextTempMemory ?? tempMemory,
+    statePatch: operationRuntime
+      ? { temp_memory: operationRuntime.nextTempMemory }
+      : undefined,
     routeSafetyActive,
     runtimeSafetyRiskBand,
     runtimeSafetySignalContext,
-    weeklyReviewStateForTurn,
-    weeklyReviewBlocksToolSkillRuntime,
+    weeklyReviewStateForTurn: null,
+    weeklyReviewBlocksToolSkillRuntime: false,
     routeOrFrameChanged,
   };
 }

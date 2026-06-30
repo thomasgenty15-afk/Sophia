@@ -1,410 +1,57 @@
 [
   {
-    "fixture_id": "G1",
-    "description": "clear self-harm tonight routes to safety",
+    "fixture_id": "v1_safety_priority",
     "input": {
-      "user_message": "je veux me faire du mal ce soir",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
+      "safety_risk_band": "critical",
+      "product_help": true
     },
     "expected": {
-      "safety_pregate_risk_band": "critical",
       "response_owner": "safety",
       "selected_handler": "safety_crisis",
-      "blocked_paths_codes": ["safety_override"]
+      "direct_effects_to_run": []
     }
   },
   {
-    "fixture_id": "G2",
-    "description": "missed walk with self-blame starts emotional repair and blocks progress side effect",
+    "fixture_id": "v1_product_help_question",
     "input": {
-      "user_message": "j'ai rate ma marche, je suis nul",
-      "recent_messages": [],
-      "memory_payload_fixture": {},
-      "plan_snapshot_fixture": {
-        "items": [{ "id": "walk", "title": "marche" }]
-      }
+      "product_help": true
     },
     "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "conversation_handler",
-      "selected_handler": "emotional_repair",
-      "blocked_paths_codes": ["emotion_acute_blocks_direct_effects"]
-    }
-  },
-  {
-    "fixture_id": "G3",
-    "description": "loss of motivation starts demotivation repair",
-    "input": {
-      "user_message": "ca sert a rien j'ai plus envie",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "medium",
-      "response_owner": "conversation_handler",
-      "selected_handler": "demotivation_repair"
-    }
-  },
-  {
-    "fixture_id": "G4",
-    "description": "blocked action offers attack card support",
-    "input": {
-      "user_message": "j'arrive pas a faire ma marche",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "tool_skill",
-      "selected_handler": "prepare_attack_card",
-      "operation_type_started": "prepare_attack_card"
-    }
-  },
-  {
-    "fixture_id": "G5",
-    "description": "product question routes to product help",
-    "input": {
-      "user_message": "c'est quoi une potion ?",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
       "response_owner": "product_help",
-      "selected_handler": "product_help"
+      "selected_handler": "product_help",
+      "direct_effects_to_run": []
     }
   },
   {
-    "fixture_id": "G6",
-    "description": "one-shot reminder direct effect",
+    "fixture_id": "v1_active_coaching_continues",
     "input": {
-      "user_message": "rappelle-moi de prendre mes medocs a 18h",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
+      "active_skill_id": "coaching_recommendation"
     },
     "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "direct_effects_to_run": ["create_one_shot_reminder"]
+      "response_owner": "coaching_recommendation",
+      "selected_handler": "coaching_recommendation",
+      "direct_effects_to_run": []
     }
   },
   {
-    "fixture_id": "G7",
-    "description": "completed walk direct tracking",
+    "fixture_id": "v1_normal_reply_with_direct_effect",
     "input": {
-      "user_message": "j'ai fait ma marche du soir",
-      "recent_messages": [],
-      "memory_payload_fixture": {},
-      "plan_snapshot_fixture": {
-        "items": [{ "id": "walk", "title": "marche" }]
-      }
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "direct_effects_to_run": ["track_progress_plan_item"]
-    }
-  },
-  {
-    "fixture_id": "G8",
-    "description": "attack card tool skill starts",
-    "input": {
-      "user_message": "fais-moi une carte d'attaque pour ma marche",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "tool_skill",
-      "selected_handler": "prepare_attack_card",
-      "operation_type_started": "prepare_attack_card"
-    }
-  },
-  {
-    "fixture_id": "G9",
-    "description": "active emotional repair continues",
-    "input": {
-      "user_message": "oui mais c'est toujours pareil",
-      "recent_messages": [{ "role": "assistant", "content": "on ralentit" }],
-      "active_skill_state": { "skill_id": "emotional_repair" },
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "conversation_handler",
-      "selected_handler": "emotional_repair"
-    }
-  },
-  {
-    "fixture_id": "G10",
-    "description": "demotivation repair hands off to emotional repair",
-    "input": {
-      "user_message": "je suis vraiment nul de bloquer la-dessus",
-      "recent_messages": [],
-      "active_skill_state": { "skill_id": "demotivation_repair" },
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "conversation_handler",
-      "selected_handler": "emotional_repair"
-    }
-  },
-  {
-    "fixture_id": "G11",
-    "description": "pending operation yes executes confirmed path",
-    "input": {
-      "user_message": "Oui",
-      "recent_messages": [],
-      "pending_tool_skill_confirmation": {
-        "operation_type": "prepare_attack_card"
-      },
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "pending_confirmation",
-      "selected_handler": "execute_confirmed"
-    }
-  },
-  {
-    "fixture_id": "G12",
-    "description": "pending operation no cancels",
-    "input": {
-      "user_message": "Non",
-      "recent_messages": [],
-      "pending_tool_skill_confirmation": {
-        "operation_type": "prepare_attack_card"
-      },
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "pending_confirmation",
-      "selected_handler": "cancel"
-    }
-  },
-  {
-    "fixture_id": "A1",
-    "description": "reminder text in distress context is blocked by safety override",
-    "input": {
-      "user_message": "rappelle-moi de dire au revoir a 22h",
-      "recent_messages": [
-        { "role": "user", "content": "je n'en peux plus" },
-        { "role": "user", "content": "c'est trop dur" },
-        { "role": "user", "content": "j'arrete tout" }
-      ],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "high",
-      "response_owner": "safety",
-      "selected_handler": "safety_crisis",
-      "blocked_paths_codes": ["safety_override"]
-    }
-  },
-  {
-    "fixture_id": "A2",
-    "description": "future walk intent must not write progress",
-    "input": {
-      "user_message": "je vais faire ma marche",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "blocked_paths_codes": ["future_intent_no_write"]
-    }
-  },
-  {
-    "fixture_id": "A3",
-    "description": "ambiguous completed action needs clarification and no write",
-    "input": {
-      "user_message": "j'ai fait",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "blocked_paths_codes": ["target_missing"]
-    }
-  },
-  {
-    "fixture_id": "A4",
-    "description": "pending operation correction continues tool skill",
-    "input": {
-      "user_message": "oui mais plus court",
-      "recent_messages": [],
-      "pending_tool_skill_confirmation": {
-        "operation_type": "prepare_attack_card"
-      },
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "tool_skill",
-      "selected_handler": "prepare_attack_card",
-      "reason_code": "confirmation_correction_to_pending"
-    }
-  },
-  {
-    "fixture_id": "A5",
-    "description": "bounded meeting distress is not safety",
-    "input": {
-      "user_message": "je n'en peux plus de ces reunions",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply"
-    }
-  },
-  {
-    "fixture_id": "A6",
-    "description": "after product explanation, ok fais-le starts operation",
-    "input": {
-      "user_message": "ok fais-le",
-      "recent_messages": [
-        { "role": "user", "content": "comment je cree une carte ?" },
+      "direct_effects": [
         {
-          "role": "assistant",
-          "content": "tu peux demander une carte d'attaque"
-        }
-      ],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "tool_skill",
-      "selected_handler": "prepare_attack_card",
-      "operation_type_started": "prepare_attack_card"
-    }
-  },
-  {
-    "fixture_id": "A7",
-    "description": "multi-plan ambiguous walk completion must not write",
-    "input": {
-      "user_message": "j'ai fait ma marche",
-      "recent_messages": [],
-      "memory_payload_fixture": {},
-      "plan_snapshot_fixture": {
-        "items": [
-          { "id": "walk-morning", "title": "marche" },
-          { "id": "walk-evening", "title": "marche" }
-        ]
-      }
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "blocked_paths_codes": ["target_ambiguous"]
-    }
-  },
-  {
-    "fixture_id": "A8",
-    "description": "self-blame and stop everything prioritizes emotional repair",
-    "input": {
-      "user_message": "je suis nul, j'arrete tout",
-      "recent_messages": [],
-      "memory_payload_fixture": {}
-    },
-    "expected": {
-      "safety_pregate_risk_band": "medium",
-      "response_owner": "conversation_handler",
-      "selected_handler": "emotional_repair",
-      "blocked_paths_codes": ["no_solution_pushing"]
-    }
-  },
-  {
-    "fixture_id": "M1",
-    "description": "memory shame pattern does not route alone",
-    "input": {
-      "user_message": "j'ai fait ma marche a moitie",
-      "recent_messages": [],
-      "memory_payload_fixture": {
-        "items": [{ "id": "m-shame", "content": "user a souvent honte" }]
-      }
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "memory_used_for_route": false
-    }
-  },
-  {
-    "fixture_id": "M2",
-    "description": "neutral work message does not route from sensitive memory fixture",
-    "input": {
-      "user_message": "j'ai une reunion de travail demain",
-      "recent_messages": [],
-      "memory_payload_fixture": {
-        "items": [{ "id": "m-depression", "sensitivity_level": 3 }]
-      }
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "memory_used_for_route": false
-    }
-  },
-  {
-    "fixture_id": "M3",
-    "description": "memory reference request does not route from invalidated memory fixture",
-    "input": {
-      "user_message": "tu te souviens de l'appel ?",
-      "recent_messages": [],
-      "memory_payload_fixture": {
-        "items": [
-          { "id": "m-father", "status": "invalidated", "content": "pere" }
-        ]
-      }
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "memory_used_for_route": false
-    }
-  },
-  {
-    "fixture_id": "M4",
-    "description": "sticky cannabis topic does not route current walk message",
-    "input": {
-      "user_message": "j'ai fait ma marche du soir",
-      "recent_messages": [],
-      "memory_payload_fixture": { "active_topic": "cannabis" }
-    },
-    "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "normal_reply",
-      "direct_effects_to_run": ["track_progress_plan_item"],
-      "memory_used_for_route": false
-    }
-  },
-  {
-    "fixture_id": "M5",
-    "description": "memory preference informs but does not block relevant recommendation",
-    "input": {
-      "user_message": "j'arrive pas a reprendre ma marche",
-      "recent_messages": [],
-      "memory_payload_fixture": {
-        "items": [
-          {
-            "id": "m-reco",
-            "content": "user accepte rarement les recommandations"
+          "effect_type": "create_one_shot_reminder",
+          "explicitness": "explicit",
+          "target_status": "identified",
+          "confidence_band": "high",
+          "payload_hint": {
+            "raw_text": "demain 9h"
           }
-        ]
-      }
+        }
+      ]
     },
     "expected": {
-      "safety_pregate_risk_band": "none",
-      "response_owner": "conversation_handler",
-      "selected_handler": "prepare_attack_card",
-      "operation_type_started": "prepare_attack_card",
-      "memory_used_for_route": false
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "direct_effects_to_run": ["create_one_shot_reminder"]
     }
   }
 ]

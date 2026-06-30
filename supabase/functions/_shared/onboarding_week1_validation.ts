@@ -2,6 +2,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { loadRecommendedWeekPlanning } from "./plan_week_recommendations.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
+import type { WeekPlanLifecycleStatus } from "./week_plan_lifecycle.ts";
 
 export const ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT =
   "onboarding_week1_validation_prompt_v1";
@@ -23,7 +24,7 @@ type WeekPlanRow = {
   plan_id: string;
   plan_item_id: string;
   week_start_date: string;
-  status: string;
+  status: WeekPlanLifecycleStatus | string;
   confirmed_at?: string | null;
   user_plan_items?: UserPlanItemRow | UserPlanItemRow[] | null;
 };
@@ -151,6 +152,25 @@ export async function loadOnboardingWeek1Planning(
   has_planning: boolean;
   summary_lines: string[];
 }> {
+  const { data: parentPlan, error: parentPlanError } = await admin
+    .from("user_plans_v2")
+    .select("id,status")
+    .eq("user_id", params.userId)
+    .eq("id", params.planId)
+    .maybeSingle();
+  if (parentPlanError) throw parentPlanError;
+  if (!parentPlan || cleanText((parentPlan as any).status) !== "active") {
+    return {
+      week_start_date: null,
+      week_end_date: null,
+      plans: [],
+      occurrences: [],
+      already_confirmed: false,
+      has_planning: false,
+      summary_lines: [],
+    };
+  }
+
   const { data: planRows, error: planError } = await admin
     .from("user_habit_week_plans")
     .select(
@@ -162,7 +182,9 @@ export async function loadOnboardingWeek1Planning(
   if (planError) throw planError;
 
   const allPlans = ((planRows ?? []) as unknown as WeekPlanRow[])
-    .filter((row) => cleanText(row.week_start_date));
+    .filter((row) =>
+      cleanText(row.week_start_date) && cleanText(row.status) !== "archived"
+    );
   const targetWeekStart = cleanYmd(params.targetWeekStartDate);
   const firstWeekStart = targetWeekStart ??
     cleanText(allPlans[0]?.week_start_date).slice(0, 10);

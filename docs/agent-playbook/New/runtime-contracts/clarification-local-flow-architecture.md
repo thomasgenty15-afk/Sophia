@@ -173,7 +173,6 @@ Rules :
   "conflict_summary": "string",
   "candidate_signals": [],
   "selected_candidate_id": "string|null",
-  "user_words": ["string"],
   "inbound_note_information": {},
   "outbound_note_information": {}
 }
@@ -202,7 +201,6 @@ For resolved candidate :
     "selected_candidate_id": "string",
     "selected_candidate_label": "string",
     "original_conflict_summary": "string",
-    "user_words": ["string"],
     "selected_candidate_payload_hint": {}
   }
 }
@@ -273,4 +271,3 @@ user message
 - no regex business logic ;
 - no renderer deterministic visible in nominal path ;
 - no DB write or tool execution from clarification.
-

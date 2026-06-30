@@ -19,7 +19,7 @@ Deno.test("confirmation token verifies valid draft and signature", async () => {
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "pending1",
@@ -43,7 +43,7 @@ Deno.test("confirmation token rejects invalid signature", async () => {
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "pending1",
@@ -65,7 +65,7 @@ Deno.test("confirmation token rejects expired token", async () => {
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "pending1",
@@ -90,7 +90,7 @@ Deno.test("confirmation token rejects draft mismatch", async () => {
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "pending1",
@@ -112,7 +112,7 @@ Deno.test("confirmation token rejects double consume and pending consumed", asyn
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "pending1",
@@ -148,7 +148,7 @@ Deno.test("confirmation token rejects missing pending confirmation", async () =>
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "missing",
@@ -172,7 +172,7 @@ Deno.test("confirmation token rejects missing verification secret", async () => 
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "pending1",
@@ -196,7 +196,7 @@ Deno.test("confirmation token rejects safety override and user mismatch", async 
   const token = await createConfirmationToken({
     user_id: "u1",
     operation_id: "op1",
-    operation_type: "prepare_attack_card",
+    operation_type: "create_one_shot_reminder",
     draft,
     source_message_id: "m1",
     pending_confirmation_id: "pending1",

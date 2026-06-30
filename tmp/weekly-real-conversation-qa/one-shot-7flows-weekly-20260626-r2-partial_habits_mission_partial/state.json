@@ -1,0 +1,2144 @@
+{
+  "run_id": "one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "73256dc0-7e26-4345-87aa-728bc1adca3d",
+  "email": "qa-weekly-deep-one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-one-shot-7flows-weekly-20260626-r2",
+  "created_at": "2026-06-26T11:04:04.336Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-06-26T11:04:04.337Z",
+      "user": "Oui, la fatigue a clairement guidé ma semaine. Rappelle-moi dans 30 minutes de relire ce point weekly, et continue le bilan simplement.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je note que la fatigue a guidé ta semaine. Et pour l’avancée vers ton objectif global, tu la sens plutôt en progrès, stable ou en retrait ? Je te relis ce point weekly dans 30 minutes, vers 13:34.",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "weekly_adaptive_review_v1",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial-t01",
+        "user_id": "73256dc0-7e26-4345-87aa-728bc1adca3d",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-one-shot-7flows-weekly-20260626-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je note que la fatigue a guidé ta semaine. Et pour l’avancée vers ton objectif global, tu la sens plutôt en progrès, stable ou en retrait ? Je te relis ce point weekly dans 30 minutes, vers 13:34.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial-t01",
+              "source_message_id": "902cf95c-cb3b-4321-957c-2afeebadacbb",
+              "user_id": "73256dc0-7e26-4345-87aa-728bc1adca3d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "relire ce point weekly",
+                    "when_hint": "dans 30 minutes",
+                    "UTC_time": "2026-06-26T11:34:04.875Z",
+                    "local_label": "dans 30 minutes, vers 13:34",
+                    "instruction_hint": "relire ce point weekly"
+                  }
+                }
+              ],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-26T11:04:04.875Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-26T13:04:04",
+                "user_local_human": "vendredi 26 juin 2026 à 13:04"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "direct_effect_lane": {
+                "selected_handler": "weekly_adaptive_review_v1",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                    "local_label": "dans 30 minutes, vers 13:34",
+                    "reminder_instruction": "relire ce point weekly",
+                    "reason_code": "payload"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                    "local_label": "dans 30 minutes, vers 13:34",
+                    "reminder_instruction": "relire ce point weekly",
+                    "reason_code": "payload"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "7187a022-67d3-47f9-a11f-4708bbded40a",
+                    "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                    "local_label": "dans 30 minutes, vers 13:34",
+                    "reminder_instruction": "relire ce point weekly"
+                  }
+                ],
+                "blocked_effects": [],
+                "visible_confirmation_hint": "Je note que la fatigue a guidé ta semaine. Et pour l’avancée vers ton objectif global, tu la sens plutôt en progrès, stable ou en retrait ? Je te relis ce point weekly dans 30 minutes, vers 13:34."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": true,
+                "has_requested_one_shot_reminder": true,
+                "one_shot_reminder": {
+                  "committed": true,
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly"
+                },
+                "confirmation_text": null,
+                "committed_effects": [],
+                "requested_effects": [],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "weekly_adaptive_review_v1",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "direct_effect_lane_message_intake",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "weekly_adaptive_review_v1",
+                "selected_owner": "weekly_adaptive_review_v1",
+                "resume_policy": "resume_active",
+                "reason_code": "active_weekly_adaptive_review"
+              },
+              "selected_handler": "weekly_adaptive_review_v1"
+            },
+            "effect_ledger": {
+              "turn_id": "one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "weekly_adaptive_review_v1",
+            "tool_skill_run": {
+              "selected_handler": "weekly_adaptive_review_v1",
+              "operation_type": "weekly_adaptive_review_v1",
+              "status": "answered",
+              "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+              "flow_action": "confirm_weekly_diagnostic",
+              "visible_task": "ask_global_progress_feeling",
+              "confidence": "high",
+              "risk_score": 0,
+              "weekly_intent": {
+                "kind": "weekly_confirmation",
+                "summary": "Le user confirme que la fatigue a guide sa semaine."
+              },
+              "handoff_updates": {
+                "status": "none",
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                }
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null
+              },
+              "local_flow_state": {
+                "stage": "global_progress",
+                "proposal_status": "none",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "human_signals": {
+                  "objective_delta": "unknown",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "unknown",
+                "weekly_gates": {
+                  "week_experience_status": "captured",
+                  "action_review_status": "captured",
+                  "global_progress_status": "missing",
+                  "felt_progress_status": "missing",
+                  "solution_fit_status": "missing",
+                  "synthesis_status": "missing",
+                  "closure_status": "missing"
+                },
+                "detour_candidate": {
+                  "kind": "none",
+                  "source_stage": null,
+                  "target_action_or_plan": null,
+                  "fit_hypothesis": null,
+                  "readiness": "none",
+                  "user_consent": false,
+                  "scope": {},
+                  "return_focus": null
+                },
+                "synthesis_visible_status": "not_rendered",
+                "last_user_signal": null,
+                "last_visible_summary": "Le user confirme que la fatigue a guide sa semaine.",
+                "last_handoff_summary": null,
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null,
+                  "result_details": null
+                },
+                "weekly_planning_context": {
+                  "mode": "next_level_required",
+                  "current_week": {
+                    "start_date": "2026-06-22",
+                    "end_date": "2026-06-28"
+                  },
+                  "transformation_objective": {
+                    "title": "Stabiliser le rythme de fin de journee",
+                    "user_summary": null,
+                    "success_definition": null,
+                    "main_constraint": null
+                  },
+                  "plan_rationale": null,
+                  "next_week": null,
+                  "next_level": {
+                    "available": false,
+                    "level_order": 0,
+                    "title": null,
+                    "intention": null,
+                    "preview_summary": null,
+                    "validation_input_destination": "Validation du niveau"
+                  },
+                  "adjustment_destination": {
+                    "mode": "level_validation",
+                    "label": "Validation du niveau",
+                    "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                    "chat_mutation_allowed": false
+                  }
+                },
+                "adjust_recommendation": {
+                  "status": "none",
+                  "confidence": 0,
+                  "mode": null,
+                  "what_to_adjust": [],
+                  "why": [],
+                  "evidence": [],
+                  "target_scope": null,
+                  "destination_instruction": null,
+                  "safe_to_surface": false,
+                  "surfaced_in_weekly": false,
+                  "updated_at": null
+                },
+                "user_corrected_action_statuses": [],
+                "turn_count": 1,
+                "max_turns": 6,
+                "updated_at": "2026-06-26T11:04:09.503Z"
+              },
+              "target_dispatcher": "none",
+              "note_information": null,
+              "conversation_context": {
+                "state_summary": "Le user confirme que la fatigue a guide sa semaine.",
+                "week_window": {
+                  "start_date": "2026-06-22",
+                  "end_date": "2026-06-28"
+                },
+                "field_or_stage": "ask_global_progress_feeling",
+                "known_values": {
+                  "human_signals": {
+                    "objective_delta": "unknown",
+                    "felt_state": "tired_but_ok"
+                  },
+                  "felt_progress": "unknown",
+                  "weekly_gates": {
+                    "week_experience_status": "captured",
+                    "action_review_status": "captured",
+                    "global_progress_status": "missing",
+                    "felt_progress_status": "missing",
+                    "solution_fit_status": "missing",
+                    "synthesis_status": "missing",
+                    "closure_status": "missing"
+                  },
+                  "action_review_complete": false,
+                  "synthesis_visible_status": "not_rendered",
+                  "synthesis_already_rendered": false,
+                  "action_review_before_global_progress_required": true,
+                  "partial_statuses_must_remain_partial": true,
+                  "detour_candidate": {
+                    "kind": "none",
+                    "source_stage": null,
+                    "target_action_or_plan": null,
+                    "fit_hypothesis": null,
+                    "readiness": "none",
+                    "user_consent": false,
+                    "scope": {},
+                    "return_focus": null
+                  },
+                  "next_required_weekly_step": "ask_global_progress_feeling",
+                  "validation_unlock_status": "locked_until_weekly_complete",
+                  "proposal_status": "none",
+                  "child_flow": {
+                    "status": "none",
+                    "flow_id": null,
+                    "reason": null,
+                    "expected_return_focus": null,
+                    "result_summary": null,
+                    "result_details": null
+                  },
+                  "child_flow_result_details": null,
+                  "weekly_planning_context": {
+                    "mode": "next_level_required",
+                    "current_week": {
+                      "start_date": "2026-06-22",
+                      "end_date": "2026-06-28"
+                    },
+                    "transformation_objective": {
+                      "title": "Stabiliser le rythme de fin de journee",
+                      "user_summary": null,
+                      "success_definition": null,
+                      "main_constraint": null
+                    },
+                    "plan_rationale": null,
+                    "next_week": null,
+                    "next_level": {
+                      "available": false,
+                      "level_order": 0,
+                      "title": null,
+                      "intention": null,
+                      "preview_summary": null,
+                      "validation_input_destination": "Validation du niveau"
+                    },
+                    "adjustment_destination": {
+                      "mode": "level_validation",
+                      "label": "Validation du niveau",
+                      "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                      "chat_mutation_allowed": false
+                    }
+                  },
+                  "adjust_recommendation": {
+                    "status": "none",
+                    "confidence": 0,
+                    "mode": null,
+                    "what_to_adjust": [],
+                    "why": [],
+                    "evidence": [],
+                    "target_scope": null,
+                    "destination_instruction": null,
+                    "safe_to_surface": false,
+                    "surfaced_in_weekly": false,
+                    "updated_at": null
+                  },
+                  "user_corrected_action_statuses": [],
+                  "dominant_blocker_confirmation": null
+                },
+                "missing_or_weak_values": [
+                  "avancee_objectif_global",
+                  "ressenti_avancee_objectif_global"
+                ],
+                "weekly_strategy": {
+                  "strategy_label_human": null,
+                  "reason_human": null,
+                  "confidence": "high"
+                },
+                "weekly_planning_context": {
+                  "mode": "next_level_required",
+                  "current_week": {
+                    "start_date": "2026-06-22",
+                    "end_date": "2026-06-28"
+                  },
+                  "transformation_objective": {
+                    "title": "Stabiliser le rythme de fin de journee",
+                    "user_summary": null,
+                    "success_definition": null,
+                    "main_constraint": null
+                  },
+                  "plan_rationale": null,
+                  "next_week": null,
+                  "next_level": {
+                    "available": false,
+                    "level_order": 0,
+                    "title": null,
+                    "intention": null,
+                    "preview_summary": null,
+                    "validation_input_destination": "Validation du niveau"
+                  },
+                  "adjustment_destination": {
+                    "mode": "level_validation",
+                    "label": "Validation du niveau",
+                    "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                    "chat_mutation_allowed": false
+                  }
+                },
+                "adjust_recommendation": {
+                  "status": "none",
+                  "confidence": 0,
+                  "mode": null,
+                  "what_to_adjust": [],
+                  "why": [],
+                  "evidence": [],
+                  "target_scope": null,
+                  "destination_instruction": null,
+                  "safe_to_surface": false,
+                  "surfaced_in_weekly": false,
+                  "updated_at": null
+                },
+                "plan_contexts": [
+                  {
+                    "transformation_id": "2e696dbb-4868-47bc-9027-1d36f4ea491b",
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "action_count": 6
+                  }
+                ],
+                "item_summaries": [
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                    "occurrence_id": "2cdbdf77-0a27-41da-ba13-beb507c6e543",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                    "occurrence_id": "89f80e11-d394-436c-8958-cda5ee9509bb",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai commence mais trop fatigue",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai commence mais trop fatigue",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                    "occurrence_id": "39e6c501-0b59-481c-91c1-d0e29781d919",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "trop lourd en fin de semaine",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "too_hard",
+                      "matched_user_text": "trop lourd en fin de semaine",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                    "occurrence_id": "ed4d687d-7074-4846-98d2-da4085a329b6",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                    "occurrence_id": "b000274d-def6-4087-9a84-39e8e3b4d0cd",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai zappe en rentrant tard",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai zappe en rentrant tard",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "1661cfc3-b08d-4349-bea4-5c88c8c0c583",
+                    "occurrence_id": "4b5145a5-dfa8-4d87-b649-60c1d7663a41",
+                    "title": "Convenir d'un signal de pause",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "message brouillon fait mais pas envoye",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "context",
+                      "matched_user_text": "message brouillon fait mais pas envoye",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  }
+                ],
+                "handoff_data": {
+                  "summary": null,
+                  "platform_destination": null,
+                  "scope": {
+                    "kind": "none",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "plan_item_ids": [],
+                    "scope_summary": null,
+                    "needs_scope_clarification": false
+                  },
+                  "requested_adjustment_summary": null,
+                  "revision_summary": null,
+                  "executable_from_chat": false,
+                  "requires_platform_confirmation": true,
+                  "adjustment_destination": {
+                    "mode": "level_validation",
+                    "label": "Validation du niveau",
+                    "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                    "chat_mutation_allowed": false
+                  }
+                },
+                "forgotten_progress": {
+                  "status": "none",
+                  "target_hint": null,
+                  "outcome_hint": null,
+                  "evidence": null,
+                  "no_plan_adjustment": true
+                },
+                "inline_result": {},
+                "weekly_gates": {
+                  "week_experience_status": "captured",
+                  "action_review_status": "captured",
+                  "global_progress_status": "missing",
+                  "felt_progress_status": "missing",
+                  "solution_fit_status": "missing",
+                  "synthesis_status": "missing",
+                  "closure_status": "missing"
+                },
+                "detour_candidate": {
+                  "kind": "none",
+                  "source_stage": null,
+                  "target_action_or_plan": null,
+                  "fit_hypothesis": null,
+                  "readiness": "none",
+                  "user_consent": false,
+                  "scope": {},
+                  "return_focus": null
+                },
+                "current_action_focus": null,
+                "known_action_gaps": [
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                    "occurrence_id": "2cdbdf77-0a27-41da-ba13-beb507c6e543",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                    "occurrence_id": "89f80e11-d394-436c-8958-cda5ee9509bb",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai commence mais trop fatigue",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai commence mais trop fatigue",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                    "occurrence_id": "39e6c501-0b59-481c-91c1-d0e29781d919",
+                    "title": "Partager un point positif",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "trop lourd en fin de semaine",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "too_hard",
+                      "matched_user_text": "trop lourd en fin de semaine",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                    "occurrence_id": "ed4d687d-7074-4846-98d2-da4085a329b6",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "on_plan",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "fait comme prevu",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "none",
+                      "matched_user_text": "fait comme prevu",
+                      "occurrence_status": "done",
+                      "reschedule_decision": "none"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                    "occurrence_id": "b000274d-def6-4087-9a84-39e8e3b4d0cd",
+                    "title": "Respiration de pause",
+                    "family": null,
+                    "status": "missed",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "j'ai zappe en rentrant tard",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "fatigue",
+                      "matched_user_text": "j'ai zappe en rentrant tard",
+                      "occurrence_status": "missed",
+                      "reschedule_decision": "carry_over"
+                    }
+                  },
+                  {
+                    "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                    "plan_title": "Semaine 1 - rythme simple",
+                    "plan_item_id": "1661cfc3-b08d-4349-bea4-5c88c8c0c583",
+                    "occurrence_id": "4b5145a5-dfa8-4d87-b649-60c1d7663a41",
+                    "title": "Convenir d'un signal de pause",
+                    "family": null,
+                    "status": "partial",
+                    "evidence": {
+                      "source": "daily_action_review_v1",
+                      "confidence": "high",
+                      "reason_text": "message brouillon fait mais pas envoye",
+                      "evidence_text": null,
+                      "outcome_source": "qa_fixture",
+                      "rescheduled_to": null,
+                      "still_relevant": true,
+                      "reason_category": "context",
+                      "matched_user_text": "message brouillon fait mais pas envoye",
+                      "occurrence_status": "planned",
+                      "reschedule_decision": "carry_over"
+                    }
+                  }
+                ],
+                "global_objective_signal": {
+                  "objective_delta": "unknown",
+                  "status": "missing"
+                },
+                "felt_progress_signal": {
+                  "felt_progress": "unknown",
+                  "felt_state": "tired_but_ok",
+                  "status": "missing"
+                },
+                "child_flow_return_summary": null,
+                "next_required_weekly_step": "ask_global_progress_feeling",
+                "tone_constraints": [
+                  "compact",
+                  "one_question_max_when_asking",
+                  "human_language",
+                  "prefer_gender_neutral_wording_when_not_certain",
+                  "do_not_use_gendered_adjectives_unless_conversation_context_confirms_gender"
+                ],
+                "do_not_say": [
+                  "bridge_week",
+                  "carry_over",
+                  "repeat_week",
+                  "level_review",
+                  "item_decision",
+                  "dominant_blocker",
+                  "applique",
+                  "modifie le plan",
+                  "valide le plan",
+                  "enregistre le plan",
+                  "j'ai une carte",
+                  "carte disponible",
+                  "carte prete",
+                  "nouvel outil",
+                  "j'ai modifie le plan",
+                  "ce qui bougerait",
+                  "ce qui resterait",
+                  "patch en attente",
+                  "proposition de changement deja prete",
+                  "changement de plan pret a appliquer",
+                  "j'ai cree un rappel",
+                  "j'ai cree une potion",
+                  "tu as ete rigoureux",
+                  "tu as ete rigoureuse",
+                  "reussite pleine pour une action partielle"
+                ],
+                "context_summary": "Le user confirme que la fatigue a guide sa semaine.",
+                "evidence_used": [
+                  "le user confirme que la fatigue a guide sa semaine",
+                  "demande explicite de rappel dans 30 minutes",
+                  "continue le bilan simplement"
+                ]
+              },
+              "short_trace": {
+                "flow_action": "confirm_weekly_diagnostic",
+                "visible_task": "ask_global_progress_feeling",
+                "selected_target": null,
+                "pending_state_present": false,
+                "direct_handoff_flag": false,
+                "candidate_summary": [],
+                "constraint_list": [
+                  "plan_patch_empty_until_platform_handoff",
+                  "weekly_parent_returns_after_child_flow"
+                ],
+                "readiness": "none",
+                "blocked_effects": [],
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "weekly_flow_state",
+                    "stage",
+                    "proposal_status",
+                    "validation_unlock_status",
+                    "human_signals",
+                    "felt_progress",
+                    "weekly_gates",
+                    "detour_candidate",
+                    "synthesis_visible_status",
+                    "last_user_signal",
+                    "last_visible_summary",
+                    "last_handoff_summary",
+                    "child_flow",
+                    "weekly_planning_context",
+                    "adjust_recommendation",
+                    "user_corrected_action_statuses",
+                    "turn_count",
+                    "max_turns",
+                    "daily_derived_evidence",
+                    "synthesis_state",
+                    "weekly_adaptive_review",
+                    "weekly_adaptive_review.plan_patch",
+                    "weekly_adaptive_review.plan_patch.requires_confirmation",
+                    "weekly_adaptive_review.pending_confirmation",
+                    "weekly_planning_context",
+                    "adjust_recommendation",
+                    "suspended_weekly_snapshot",
+                    "completed_child_result"
+                  ],
+                  "modified_fields_declared": [],
+                  "clear_fields_declared": [],
+                  "applied_fields": [
+                    "stage",
+                    "human_signals",
+                    "weekly_gates",
+                    "last_visible_summary",
+                    "turn_count",
+                    "daily_derived_evidence"
+                  ],
+                  "preserved_fields": [
+                    "proposal_status",
+                    "validation_unlock_status",
+                    "felt_progress",
+                    "detour_candidate",
+                    "synthesis_visible_status",
+                    "last_user_signal",
+                    "last_handoff_summary",
+                    "child_flow",
+                    "weekly_planning_context",
+                    "adjust_recommendation",
+                    "user_corrected_action_statuses",
+                    "max_turns",
+                    "weekly_adaptive_review.pending_confirmation"
+                  ],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                }
+              },
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "weekly_flow_state",
+                  "stage",
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "human_signals",
+                  "felt_progress",
+                  "weekly_gates",
+                  "detour_candidate",
+                  "synthesis_visible_status",
+                  "last_user_signal",
+                  "last_visible_summary",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "weekly_planning_context",
+                  "adjust_recommendation",
+                  "user_corrected_action_statuses",
+                  "turn_count",
+                  "max_turns",
+                  "daily_derived_evidence",
+                  "synthesis_state",
+                  "weekly_adaptive_review",
+                  "weekly_adaptive_review.plan_patch",
+                  "weekly_adaptive_review.plan_patch.requires_confirmation",
+                  "weekly_adaptive_review.pending_confirmation",
+                  "weekly_planning_context",
+                  "adjust_recommendation",
+                  "suspended_weekly_snapshot",
+                  "completed_child_result"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "stage",
+                  "human_signals",
+                  "weekly_gates",
+                  "last_visible_summary",
+                  "turn_count",
+                  "daily_derived_evidence"
+                ],
+                "preserved_fields": [
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "felt_progress",
+                  "detour_candidate",
+                  "synthesis_visible_status",
+                  "last_user_signal",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "weekly_planning_context",
+                  "adjust_recommendation",
+                  "user_corrected_action_statuses",
+                  "max_turns",
+                  "weekly_adaptive_review.pending_confirmation"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              },
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "7187a022-67d3-47f9-a11f-4708bbded40a",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly"
+                }
+              ],
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": true,
+                "has_requested_one_shot_reminder": true,
+                "one_shot_reminder": {
+                  "committed": true,
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly"
+                },
+                "confirmation_text": null,
+                "committed_effects": [],
+                "requested_effects": [],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              },
+              "blocked_effects": [],
+              "visible_fallback_used": false,
+              "qa_green_eligible": true,
+              "no_durable_plan_mutation": true,
+              "evidence": [
+                "le user confirme que la fatigue a guide sa semaine",
+                "demande explicite de rappel dans 30 minutes",
+                "continue le bilan simplement"
+              ],
+              "toolExecution": "none",
+              "executedTools": [],
+              "direct_effect_lane": {
+                "selected_handler": "create_one_shot_reminder",
+                "status": "success",
+                "reason": "payload",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                    "local_label": "dans 30 minutes, vers 13:34",
+                    "reminder_instruction": "relire ce point weekly",
+                    "reason_code": "payload"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                    "local_label": "dans 30 minutes, vers 13:34",
+                    "reminder_instruction": "relire ce point weekly",
+                    "reason_code": "payload"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "7187a022-67d3-47f9-a11f-4708bbded40a",
+                    "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                    "local_label": "dans 30 minutes, vers 13:34",
+                    "reminder_instruction": "relire ce point weekly"
+                  }
+                ],
+                "blocked_effects": []
+              }
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial-t01",
+            "source_message_id": "902cf95c-cb3b-4321-957c-2afeebadacbb",
+            "user_id": "73256dc0-7e26-4345-87aa-728bc1adca3d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "relire ce point weekly",
+                  "when_hint": "dans 30 minutes",
+                  "UTC_time": "2026-06-26T11:34:04.875Z",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "instruction_hint": "relire ce point weekly"
+                }
+              }
+            ],
+            "direct_effect_time_context": {
+              "now_utc": "2026-06-26T11:04:04.875Z",
+              "user_timezone": "Europe/Paris",
+              "user_locale": "fr-FR",
+              "user_local_datetime": "2026-06-26T13:04:04",
+              "user_local_human": "vendredi 26 juin 2026 à 13:04"
+            },
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "direct_effect_lane": {
+              "selected_handler": "weekly_adaptive_review_v1",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "7187a022-67d3-47f9-a11f-4708bbded40a",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly"
+                }
+              ],
+              "blocked_effects": [],
+              "visible_confirmation_hint": "Je note que la fatigue a guidé ta semaine. Et pour l’avancée vers ton objectif global, tu la sens plutôt en progrès, stable ou en retrait ? Je te relis ce point weekly dans 30 minutes, vers 13:34."
+            },
+            "direct_effect_confirmation_context": {
+              "has_committed_one_shot_reminder": true,
+              "has_requested_one_shot_reminder": true,
+              "one_shot_reminder": {
+                "committed": true,
+                "local_label": "dans 30 minutes, vers 13:34",
+                "reminder_instruction": "relire ce point weekly"
+              },
+              "confirmation_text": null,
+              "committed_effects": [],
+              "requested_effects": [],
+              "blocked_effects": [],
+              "do_not_recreate": true,
+              "do_not_reroute": true,
+              "do_not_redemand": true,
+              "do_not_confirm_without_commit": true,
+              "remaining_user_need_must_continue": true
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "weekly_adaptive_review_v1",
+            "blocked_paths": [],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "direct_effect_lane_message_intake",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "weekly_adaptive_review_v1",
+              "selected_owner": "weekly_adaptive_review_v1",
+              "resume_policy": "resume_active",
+              "reason_code": "active_weekly_adaptive_review"
+            },
+            "selected_handler": "weekly_adaptive_review_v1"
+          },
+          "effect_ledger": {
+            "turn_id": "one-shot-7flows-weekly-20260626-r2-partial_habits_mission_partial-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "weekly_adaptive_review_v1",
+          "tool_skill_run": {
+            "selected_handler": "weekly_adaptive_review_v1",
+            "operation_type": "weekly_adaptive_review_v1",
+            "status": "answered",
+            "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+            "flow_action": "confirm_weekly_diagnostic",
+            "visible_task": "ask_global_progress_feeling",
+            "confidence": "high",
+            "risk_score": 0,
+            "weekly_intent": {
+              "kind": "weekly_confirmation",
+              "summary": "Le user confirme que la fatigue a guide sa semaine."
+            },
+            "handoff_updates": {
+              "status": "none",
+              "requested_adjustment_summary": null,
+              "revision_summary": null,
+              "platform_destination": null,
+              "scope": {
+                "kind": "none",
+                "plan_id": null,
+                "plan_title": null,
+                "plan_item_ids": [],
+                "scope_summary": null,
+                "needs_scope_clarification": false
+              }
+            },
+            "forgotten_progress": {
+              "status": "none",
+              "target_hint": null,
+              "outcome_hint": null,
+              "evidence": null
+            },
+            "local_flow_state": {
+              "stage": "global_progress",
+              "proposal_status": "none",
+              "validation_unlock_status": "locked_until_weekly_complete",
+              "human_signals": {
+                "objective_delta": "unknown",
+                "felt_state": "tired_but_ok"
+              },
+              "felt_progress": "unknown",
+              "weekly_gates": {
+                "week_experience_status": "captured",
+                "action_review_status": "captured",
+                "global_progress_status": "missing",
+                "felt_progress_status": "missing",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "detour_candidate": {
+                "kind": "none",
+                "source_stage": null,
+                "target_action_or_plan": null,
+                "fit_hypothesis": null,
+                "readiness": "none",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": null
+              },
+              "synthesis_visible_status": "not_rendered",
+              "last_user_signal": null,
+              "last_visible_summary": "Le user confirme que la fatigue a guide sa semaine.",
+              "last_handoff_summary": null,
+              "child_flow": {
+                "status": "none",
+                "flow_id": null,
+                "reason": null,
+                "expected_return_focus": null,
+                "result_summary": null,
+                "result_details": null
+              },
+              "weekly_planning_context": {
+                "mode": "next_level_required",
+                "current_week": {
+                  "start_date": "2026-06-22",
+                  "end_date": "2026-06-28"
+                },
+                "transformation_objective": {
+                  "title": "Stabiliser le rythme de fin de journee",
+                  "user_summary": null,
+                  "success_definition": null,
+                  "main_constraint": null
+                },
+                "plan_rationale": null,
+                "next_week": null,
+                "next_level": {
+                  "available": false,
+                  "level_order": 0,
+                  "title": null,
+                  "intention": null,
+                  "preview_summary": null,
+                  "validation_input_destination": "Validation du niveau"
+                },
+                "adjustment_destination": {
+                  "mode": "level_validation",
+                  "label": "Validation du niveau",
+                  "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                  "chat_mutation_allowed": false
+                }
+              },
+              "adjust_recommendation": {
+                "status": "none",
+                "confidence": 0,
+                "mode": null,
+                "what_to_adjust": [],
+                "why": [],
+                "evidence": [],
+                "target_scope": null,
+                "destination_instruction": null,
+                "safe_to_surface": false,
+                "surfaced_in_weekly": false,
+                "updated_at": null
+              },
+              "user_corrected_action_statuses": [],
+              "turn_count": 1,
+              "max_turns": 6,
+              "updated_at": "2026-06-26T11:04:09.503Z"
+            },
+            "target_dispatcher": "none",
+            "note_information": null,
+            "conversation_context": {
+              "state_summary": "Le user confirme que la fatigue a guide sa semaine.",
+              "week_window": {
+                "start_date": "2026-06-22",
+                "end_date": "2026-06-28"
+              },
+              "field_or_stage": "ask_global_progress_feeling",
+              "known_values": {
+                "human_signals": {
+                  "objective_delta": "unknown",
+                  "felt_state": "tired_but_ok"
+                },
+                "felt_progress": "unknown",
+                "weekly_gates": {
+                  "week_experience_status": "captured",
+                  "action_review_status": "captured",
+                  "global_progress_status": "missing",
+                  "felt_progress_status": "missing",
+                  "solution_fit_status": "missing",
+                  "synthesis_status": "missing",
+                  "closure_status": "missing"
+                },
+                "action_review_complete": false,
+                "synthesis_visible_status": "not_rendered",
+                "synthesis_already_rendered": false,
+                "action_review_before_global_progress_required": true,
+                "partial_statuses_must_remain_partial": true,
+                "detour_candidate": {
+                  "kind": "none",
+                  "source_stage": null,
+                  "target_action_or_plan": null,
+                  "fit_hypothesis": null,
+                  "readiness": "none",
+                  "user_consent": false,
+                  "scope": {},
+                  "return_focus": null
+                },
+                "next_required_weekly_step": "ask_global_progress_feeling",
+                "validation_unlock_status": "locked_until_weekly_complete",
+                "proposal_status": "none",
+                "child_flow": {
+                  "status": "none",
+                  "flow_id": null,
+                  "reason": null,
+                  "expected_return_focus": null,
+                  "result_summary": null,
+                  "result_details": null
+                },
+                "child_flow_result_details": null,
+                "weekly_planning_context": {
+                  "mode": "next_level_required",
+                  "current_week": {
+                    "start_date": "2026-06-22",
+                    "end_date": "2026-06-28"
+                  },
+                  "transformation_objective": {
+                    "title": "Stabiliser le rythme de fin de journee",
+                    "user_summary": null,
+                    "success_definition": null,
+                    "main_constraint": null
+                  },
+                  "plan_rationale": null,
+                  "next_week": null,
+                  "next_level": {
+                    "available": false,
+                    "level_order": 0,
+                    "title": null,
+                    "intention": null,
+                    "preview_summary": null,
+                    "validation_input_destination": "Validation du niveau"
+                  },
+                  "adjustment_destination": {
+                    "mode": "level_validation",
+                    "label": "Validation du niveau",
+                    "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                    "chat_mutation_allowed": false
+                  }
+                },
+                "adjust_recommendation": {
+                  "status": "none",
+                  "confidence": 0,
+                  "mode": null,
+                  "what_to_adjust": [],
+                  "why": [],
+                  "evidence": [],
+                  "target_scope": null,
+                  "destination_instruction": null,
+                  "safe_to_surface": false,
+                  "surfaced_in_weekly": false,
+                  "updated_at": null
+                },
+                "user_corrected_action_statuses": [],
+                "dominant_blocker_confirmation": null
+              },
+              "missing_or_weak_values": [
+                "avancee_objectif_global",
+                "ressenti_avancee_objectif_global"
+              ],
+              "weekly_strategy": {
+                "strategy_label_human": null,
+                "reason_human": null,
+                "confidence": "high"
+              },
+              "weekly_planning_context": {
+                "mode": "next_level_required",
+                "current_week": {
+                  "start_date": "2026-06-22",
+                  "end_date": "2026-06-28"
+                },
+                "transformation_objective": {
+                  "title": "Stabiliser le rythme de fin de journee",
+                  "user_summary": null,
+                  "success_definition": null,
+                  "main_constraint": null
+                },
+                "plan_rationale": null,
+                "next_week": null,
+                "next_level": {
+                  "available": false,
+                  "level_order": 0,
+                  "title": null,
+                  "intention": null,
+                  "preview_summary": null,
+                  "validation_input_destination": "Validation du niveau"
+                },
+                "adjustment_destination": {
+                  "mode": "level_validation",
+                  "label": "Validation du niveau",
+                  "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                  "chat_mutation_allowed": false
+                }
+              },
+              "adjust_recommendation": {
+                "status": "none",
+                "confidence": 0,
+                "mode": null,
+                "what_to_adjust": [],
+                "why": [],
+                "evidence": [],
+                "target_scope": null,
+                "destination_instruction": null,
+                "safe_to_surface": false,
+                "surfaced_in_weekly": false,
+                "updated_at": null
+              },
+              "plan_contexts": [
+                {
+                  "transformation_id": "2e696dbb-4868-47bc-9027-1d36f4ea491b",
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "action_count": 6
+                }
+              ],
+              "item_summaries": [
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                  "occurrence_id": "2cdbdf77-0a27-41da-ba13-beb507c6e543",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                  "occurrence_id": "89f80e11-d394-436c-8958-cda5ee9509bb",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai commence mais trop fatigue",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai commence mais trop fatigue",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                  "occurrence_id": "39e6c501-0b59-481c-91c1-d0e29781d919",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "trop lourd en fin de semaine",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "too_hard",
+                    "matched_user_text": "trop lourd en fin de semaine",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                  "occurrence_id": "ed4d687d-7074-4846-98d2-da4085a329b6",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                  "occurrence_id": "b000274d-def6-4087-9a84-39e8e3b4d0cd",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai zappe en rentrant tard",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai zappe en rentrant tard",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "1661cfc3-b08d-4349-bea4-5c88c8c0c583",
+                  "occurrence_id": "4b5145a5-dfa8-4d87-b649-60c1d7663a41",
+                  "title": "Convenir d'un signal de pause",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "message brouillon fait mais pas envoye",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "context",
+                    "matched_user_text": "message brouillon fait mais pas envoye",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                }
+              ],
+              "handoff_data": {
+                "summary": null,
+                "platform_destination": null,
+                "scope": {
+                  "kind": "none",
+                  "plan_id": null,
+                  "plan_title": null,
+                  "plan_item_ids": [],
+                  "scope_summary": null,
+                  "needs_scope_clarification": false
+                },
+                "requested_adjustment_summary": null,
+                "revision_summary": null,
+                "executable_from_chat": false,
+                "requires_platform_confirmation": true,
+                "adjustment_destination": {
+                  "mode": "level_validation",
+                  "label": "Validation du niveau",
+                  "instruction": "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+                  "chat_mutation_allowed": false
+                }
+              },
+              "forgotten_progress": {
+                "status": "none",
+                "target_hint": null,
+                "outcome_hint": null,
+                "evidence": null,
+                "no_plan_adjustment": true
+              },
+              "inline_result": {},
+              "weekly_gates": {
+                "week_experience_status": "captured",
+                "action_review_status": "captured",
+                "global_progress_status": "missing",
+                "felt_progress_status": "missing",
+                "solution_fit_status": "missing",
+                "synthesis_status": "missing",
+                "closure_status": "missing"
+              },
+              "detour_candidate": {
+                "kind": "none",
+                "source_stage": null,
+                "target_action_or_plan": null,
+                "fit_hypothesis": null,
+                "readiness": "none",
+                "user_consent": false,
+                "scope": {},
+                "return_focus": null
+              },
+              "current_action_focus": null,
+              "known_action_gaps": [
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                  "occurrence_id": "2cdbdf77-0a27-41da-ba13-beb507c6e543",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                  "occurrence_id": "89f80e11-d394-436c-8958-cda5ee9509bb",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai commence mais trop fatigue",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai commence mais trop fatigue",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "a5b53811-9051-43c0-8c24-886959d19cf0",
+                  "occurrence_id": "39e6c501-0b59-481c-91c1-d0e29781d919",
+                  "title": "Partager un point positif",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "trop lourd en fin de semaine",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "too_hard",
+                    "matched_user_text": "trop lourd en fin de semaine",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                  "occurrence_id": "ed4d687d-7074-4846-98d2-da4085a329b6",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "on_plan",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "fait comme prevu",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "none",
+                    "matched_user_text": "fait comme prevu",
+                    "occurrence_status": "done",
+                    "reschedule_decision": "none"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "898a35fa-7424-4549-8210-023c24f09b97",
+                  "occurrence_id": "b000274d-def6-4087-9a84-39e8e3b4d0cd",
+                  "title": "Respiration de pause",
+                  "family": null,
+                  "status": "missed",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "j'ai zappe en rentrant tard",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "fatigue",
+                    "matched_user_text": "j'ai zappe en rentrant tard",
+                    "occurrence_status": "missed",
+                    "reschedule_decision": "carry_over"
+                  }
+                },
+                {
+                  "plan_id": "fc1700da-5fb3-4c83-b15a-c7147d601c4d",
+                  "plan_title": "Semaine 1 - rythme simple",
+                  "plan_item_id": "1661cfc3-b08d-4349-bea4-5c88c8c0c583",
+                  "occurrence_id": "4b5145a5-dfa8-4d87-b649-60c1d7663a41",
+                  "title": "Convenir d'un signal de pause",
+                  "family": null,
+                  "status": "partial",
+                  "evidence": {
+                    "source": "daily_action_review_v1",
+                    "confidence": "high",
+                    "reason_text": "message brouillon fait mais pas envoye",
+                    "evidence_text": null,
+                    "outcome_source": "qa_fixture",
+                    "rescheduled_to": null,
+                    "still_relevant": true,
+                    "reason_category": "context",
+                    "matched_user_text": "message brouillon fait mais pas envoye",
+                    "occurrence_status": "planned",
+                    "reschedule_decision": "carry_over"
+                  }
+                }
+              ],
+              "global_objective_signal": {
+                "objective_delta": "unknown",
+                "status": "missing"
+              },
+              "felt_progress_signal": {
+                "felt_progress": "unknown",
+                "felt_state": "tired_but_ok",
+                "status": "missing"
+              },
+              "child_flow_return_summary": null,
+              "next_required_weekly_step": "ask_global_progress_feeling",
+              "tone_constraints": [
+                "compact",
+                "one_question_max_when_asking",
+                "human_language",
+                "prefer_gender_neutral_wording_when_not_certain",
+                "do_not_use_gendered_adjectives_unless_conversation_context_confirms_gender"
+              ],
+              "do_not_say": [
+                "bridge_week",
+                "carry_over",
+                "repeat_week",
+                "level_review",
+                "item_decision",
+                "dominant_blocker",
+                "applique",
+                "modifie le plan",
+                "valide le plan",
+                "enregistre le plan",
+                "j'ai une carte",
+                "carte disponible",
+                "carte prete",
+                "nouvel outil",
+                "j'ai modifie le plan",
+                "ce qui bougerait",
+                "ce qui resterait",
+                "patch en attente",
+                "proposition de changement deja prete",
+                "changement de plan pret a appliquer",
+                "j'ai cree un rappel",
+                "j'ai cree une potion",
+                "tu as ete rigoureux",
+                "tu as ete rigoureuse",
+                "reussite pleine pour une action partielle"
+              ],
+              "context_summary": "Le user confirme que la fatigue a guide sa semaine.",
+              "evidence_used": [
+                "le user confirme que la fatigue a guide sa semaine",
+                "demande explicite de rappel dans 30 minutes",
+                "continue le bilan simplement"
+              ]
+            },
+            "short_trace": {
+              "flow_action": "confirm_weekly_diagnostic",
+              "visible_task": "ask_global_progress_feeling",
+              "selected_target": null,
+              "pending_state_present": false,
+              "direct_handoff_flag": false,
+              "candidate_summary": [],
+              "constraint_list": [
+                "plan_patch_empty_until_platform_handoff",
+                "weekly_parent_returns_after_child_flow"
+              ],
+              "readiness": "none",
+              "blocked_effects": [],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "weekly_flow_state",
+                  "stage",
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "human_signals",
+                  "felt_progress",
+                  "weekly_gates",
+                  "detour_candidate",
+                  "synthesis_visible_status",
+                  "last_user_signal",
+                  "last_visible_summary",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "weekly_planning_context",
+                  "adjust_recommendation",
+                  "user_corrected_action_statuses",
+                  "turn_count",
+                  "max_turns",
+                  "daily_derived_evidence",
+                  "synthesis_state",
+                  "weekly_adaptive_review",
+                  "weekly_adaptive_review.plan_patch",
+                  "weekly_adaptive_review.plan_patch.requires_confirmation",
+                  "weekly_adaptive_review.pending_confirmation",
+                  "weekly_planning_context",
+                  "adjust_recommendation",
+                  "suspended_weekly_snapshot",
+                  "completed_child_result"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "stage",
+                  "human_signals",
+                  "weekly_gates",
+                  "last_visible_summary",
+                  "turn_count",
+                  "daily_derived_evidence"
+                ],
+                "preserved_fields": [
+                  "proposal_status",
+                  "validation_unlock_status",
+                  "felt_progress",
+                  "detour_candidate",
+                  "synthesis_visible_status",
+                  "last_user_signal",
+                  "last_handoff_summary",
+                  "child_flow",
+                  "weekly_planning_context",
+                  "adjust_recommendation",
+                  "user_corrected_action_statuses",
+                  "max_turns",
+                  "weekly_adaptive_review.pending_confirmation"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "weekly_flow_state",
+                "stage",
+                "proposal_status",
+                "validation_unlock_status",
+                "human_signals",
+                "felt_progress",
+                "weekly_gates",
+                "detour_candidate",
+                "synthesis_visible_status",
+                "last_user_signal",
+                "last_visible_summary",
+                "last_handoff_summary",
+                "child_flow",
+                "weekly_planning_context",
+                "adjust_recommendation",
+                "user_corrected_action_statuses",
+                "turn_count",
+                "max_turns",
+                "daily_derived_evidence",
+                "synthesis_state",
+                "weekly_adaptive_review",
+                "weekly_adaptive_review.plan_patch",
+                "weekly_adaptive_review.plan_patch.requires_confirmation",
+                "weekly_adaptive_review.pending_confirmation",
+                "weekly_planning_context",
+                "adjust_recommendation",
+                "suspended_weekly_snapshot",
+                "completed_child_result"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "stage",
+                "human_signals",
+                "weekly_gates",
+                "last_visible_summary",
+                "turn_count",
+                "daily_derived_evidence"
+              ],
+              "preserved_fields": [
+                "proposal_status",
+                "validation_unlock_status",
+                "felt_progress",
+                "detour_candidate",
+                "synthesis_visible_status",
+                "last_user_signal",
+                "last_handoff_summary",
+                "child_flow",
+                "weekly_planning_context",
+                "adjust_recommendation",
+                "user_corrected_action_statuses",
+                "max_turns",
+                "weekly_adaptive_review.pending_confirmation"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            },
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                "local_label": "dans 30 minutes, vers 13:34",
+                "reminder_instruction": "relire ce point weekly",
+                "reason_code": "payload"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                "local_label": "dans 30 minutes, vers 13:34",
+                "reminder_instruction": "relire ce point weekly",
+                "reason_code": "payload"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "7187a022-67d3-47f9-a11f-4708bbded40a",
+                "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                "local_label": "dans 30 minutes, vers 13:34",
+                "reminder_instruction": "relire ce point weekly"
+              }
+            ],
+            "direct_effect_confirmation_context": {
+              "has_committed_one_shot_reminder": true,
+              "has_requested_one_shot_reminder": true,
+              "one_shot_reminder": {
+                "committed": true,
+                "local_label": "dans 30 minutes, vers 13:34",
+                "reminder_instruction": "relire ce point weekly"
+              },
+              "confirmation_text": null,
+              "committed_effects": [],
+              "requested_effects": [],
+              "blocked_effects": [],
+              "do_not_recreate": true,
+              "do_not_reroute": true,
+              "do_not_redemand": true,
+              "do_not_confirm_without_commit": true,
+              "remaining_user_need_must_continue": true
+            },
+            "blocked_effects": [],
+            "visible_fallback_used": false,
+            "qa_green_eligible": true,
+            "no_durable_plan_mutation": true,
+            "evidence": [
+              "le user confirme que la fatigue a guide sa semaine",
+              "demande explicite de rappel dans 30 minutes",
+              "continue le bilan simplement"
+            ],
+            "toolExecution": "none",
+            "executedTools": [],
+            "direct_effect_lane": {
+              "selected_handler": "create_one_shot_reminder",
+              "status": "success",
+              "reason": "payload",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "7187a022-67d3-47f9-a11f-4708bbded40a",
+                  "scheduled_for": "2026-06-26T11:34:04.875+00:00",
+                  "local_label": "dans 30 minutes, vers 13:34",
+                  "reminder_instruction": "relire ce point weekly"
+                }
+              ],
+              "blocked_effects": []
+            }
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-26T11:04:11.710Z"
+}

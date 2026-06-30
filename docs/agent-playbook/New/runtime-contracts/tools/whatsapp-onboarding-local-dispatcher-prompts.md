@@ -389,7 +389,6 @@ Sortie JSON stricte :
     },
     "conversation_context": {
       "state_summary": "string",
-      "user_words": ["string"],
       "stage": "string",
       "plan": {
         "status": "not_started|generating|missing|ready_pending_activation|active|unknown",
@@ -420,7 +419,6 @@ Sortie JSON stricte :
     "target_dispatcher": "global|safety_crisis|product_help|status_recap|other_local",
     "handoff_context_for_next_dispatcher": "string",
     "target_local_dispatcher_hint": "string|null",
-    "user_words": ["string"],
     "structured_context": {},
     "risk_score": 0,
     "no_chat_mutation": {}

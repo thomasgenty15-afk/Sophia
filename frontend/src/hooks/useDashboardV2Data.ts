@@ -110,6 +110,8 @@ function mapPlanItemRuntime(
 export function useDashboardV2Data(selectedTransformationId: string | null) {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
+  const userEmail = user?.email ?? null;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +138,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
   const [hasIncompleteCycle, setHasIncompleteCycle] = useState(false);
 
   const refetch = useCallback(async (options?: { silent?: boolean }) => {
-    if (!user) return;
+    if (!userId) return;
 
     if (!options?.silent) setLoading(true);
     setError(null);
@@ -146,19 +148,19 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
       const { data: profileRow, error: profileError } = await supabase
         .from("profiles")
         .select("onboarding_completed, full_name")
-        .eq("id", user.id)
+        .eq("id", userId)
         .maybeSingle();
 
       if (profileError) throw profileError;
 
       setProfile({
-        firstName: getFirstName(profileRow?.full_name ?? null, user.email),
+        firstName: getFirstName(profileRow?.full_name ?? null, userEmail),
       });
 
       const { data: activeCycleRow, error: cycleError } = await supabase
         .from("user_cycles")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("status", "active")
         .order("updated_at", { ascending: false })
         .limit(1)
@@ -173,7 +175,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         const { data: latestPlanRow, error: latestPlanError } = await supabase
           .from("user_plans_v2")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
           .in("status", [...DASHBOARD_PLAN_STATUSES])
           .order("activated_at", { ascending: false, nullsFirst: false })
           .order("updated_at", { ascending: false })
@@ -188,7 +190,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
             .from("user_cycles")
             .select("*")
             .eq("id", recoveredPlan.cycle_id)
-            .eq("user_id", user.id)
+            .eq("user_id", userId)
             .maybeSingle();
 
           if (recoveredCycleError) throw recoveredCycleError;
@@ -201,7 +203,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
           await supabase
             .from("user_cycles")
             .select("id")
-            .eq("user_id", user.id)
+            .eq("user_id", userId)
             .in("status", [...INCOMPLETE_CYCLE_STATUSES])
             .order("updated_at", { ascending: false })
             .limit(1)
@@ -387,7 +389,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [selectedTransformationId, user]);
+  }, [selectedTransformationId, userEmail, userId]);
 
   useEffect(() => {
     if (authLoading) return;

@@ -1,0 +1,2727 @@
+{
+  "run_id": "coachingrec-defense-revision-20260625-r1",
+  "scope": "qa-normal-conversation-coachingrec-defense-revision-20260625-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-defense-revision-20260625-r1-1782396689035@example.com",
+  "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIyM2I4Njc3Yi0wY2I0LTQ4ZmMtODI0Yi1jMTY2NDg3MTFkMWEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyNDAwMjg5LCJpYXQiOjE3ODIzOTY2ODksImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLWRlZmVuc2UtcmV2aXNpb24tMjAyNjA2MjUtcjEtMTc4MjM5NjY4OTAzNUBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtY29hY2hpbmdyZWMtZGVmZW5zZS1yZXZpc2lvbi0yMDI2MDYyNS1yMS0xNzgyMzk2Njg5MDM1QGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJjb2FjaGluZ3JlYy1kZWZlbnNlLXJldmlzaW9uLTIwMjYwNjI1LXIxIiwic3ViIjoiMjNiODY3N2ItMGNiNC00OGZjLTgyNGItYzE2NjQ4NzExZDFhIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIzOTY2ODl9XSwic2Vzc2lvbl9pZCI6IjkzN2E2YmMzLTg0MWQtNDZkYy04MGM2LTNjMTMyYWFiZmZiZCIsImlzX2Fub255bW91cyI6ZmFsc2V9.WIOQ5n4G5goz7F0vmrcPp7XqdDCg0wvrV34gwoQdNnA",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-25T14:11:29.498Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-25T14:12:18.654Z",
+      "user": "Dans mon Plan, j’ai Préparer le dossier mutuelle. J’arrive à ouvrir les justificatifs, mais après deux ou trois minutes je décroche et je finis sur YouTube. Tu conseillerais une carte d’attaque ou une carte de défense ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Entre les deux, la différence est simple :\n- carte d’attaque = t’aider à démarrer quand ça bloque au départ\n- carte de défense = te protéger quand tu décroches en cours de route\n\nIci, je partirais sur une carte de défense, parce que tu commences bien puis tu bascules sur YouTube au bout de quelques minutes. La technique la plus adaptée serait un **mot de bascule** : un mot unique comme « Stop » pour couper le réflexe de fuite au moment critique.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:12:18.564Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-25T14:12:18.564Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème n’est pas le démarrage mais le décrochage en cours d’action et la bascule vers une distraction. La carte de défense est prioritaire pour protéger le moment de risque et prévoir un geste court si l’envie de quitter l’action revient."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "defense_card",
+                        "reason": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte de defense liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseille d’abord une carte de défense pour protéger le moment où tu décroches. Si tu veux, je peux aussi te dire quelle carte d’attaque serait utile en complément pour faciliter l’entrée dans le dossier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.89,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:12:18.564Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-25T14:12:18.564Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème n’est pas le démarrage mais le décrochage en cours d’action et la bascule vers une distraction. La carte de défense est prioritaire pour protéger le moment de risque et prévoir un geste court si l’envie de quitter l’action revient."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "defense_card",
+                        "reason": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le problème n’est pas le démarrage mais le décrochage pendant l’action et la bascule vers une distraction; la carte de défense est donc le meilleur levier.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte de defense liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseille d’abord une carte de défense pour protéger le moment où tu décroches. Si tu veux, je peux aussi te dire quelle carte d’attaque serait utile en complément pour faciliter l’entrée dans le dossier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.89,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-25T14:12:18.581985+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-defense-revision-20260625-r1-t01",
+        "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-defense-revision-20260625-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Entre les deux, la différence est simple :\n- carte d’attaque = t’aider à démarrer quand ça bloque au départ\n- carte de défense = te protéger quand tu décroches en cours de route\n\nIci, je partirais sur une carte de défense, parce que tu commences bien puis tu bascules sur YouTube au bout de quelques minutes. La technique la plus adaptée serait un **mot de bascule** : un mot unique comme « Stop » pour couper le réflexe de fuite au moment critique.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t01",
+              "source_message_id": "577ba541-99d9-44ed-9e01-6d2cf1eeb8dd",
+              "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-05-22T08:00:00.000Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-05-22T10:00:00",
+                "user_local_human": "vendredi 22 mai 2026 à 10:00"
+              },
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "plan_action_coaching_need",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.89,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe",
+                      "action_title": "Préparer le dossier mutuelle",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission"
+                    },
+                    "emotional_state_context": null,
+                    "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coach_on_plan_action_lever_choice",
+                "reasoning_complexity": "medium",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.91
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 23496
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t01",
+            "source_message_id": "577ba541-99d9-44ed-9e01-6d2cf1eeb8dd",
+            "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "direct_effect_time_context": {
+              "now_utc": "2026-05-22T08:00:00.000Z",
+              "user_timezone": "Europe/Paris",
+              "user_locale": "fr-FR",
+              "user_local_datetime": "2026-05-22T10:00:00",
+              "user_local_human": "vendredi 22 mai 2026 à 10:00"
+            },
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "plan_action_coaching_need",
+                "context": {
+                  "coaching_type": "plan_action",
+                  "confidence": 0.89,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe",
+                    "action_title": "Préparer le dossier mutuelle",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "mission"
+                  },
+                  "emotional_state_context": null,
+                  "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coach_on_plan_action_lever_choice",
+              "reasoning_complexity": "medium",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.91
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 23496
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-25T14:13:09.210Z",
+      "user": "Attends, le mot de bascule c’est pas plutôt une technique de carte d’attaque ? Si je fais une carte de défense pour le moment où je pars sur YouTube, je dois préparer quoi exactement ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui : le mot de bascule est bien une technique de carte d’attaque, et il sert à lancer le démarrage avec un seul mot qui te remet dans l’action.\n\nIci, comme tu décroches après 2 ou 3 minutes et que tu pars sur YouTube, je partirais sur une carte de défense : tu prépares le moment précis où tu bascules, le piège visible, un geste de retour en moins de 30 secondes, et un plan B simple.\n\nExemple : « quand j’ouvre YouTube alors que je suis sur le dossier mutuelle, je ferme l’onglet, je reviens au dossier, et je rouvre le justificatif ».",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:12:18.564Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-25T14:13:09.131Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème n’est pas le démarrage mais le décrochage en cours d’action et la bascule vers une distraction. La carte de défense est prioritaire pour protéger le moment de risque et prévoir un geste court si l’envie de quitter l’action revient."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande si le « mot de bascule » relève plutôt d’une carte d’attaque et veut savoir quoi préparer exactement pour une carte de défense au moment où il part sur YouTube.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "defense_card",
+                        "reason": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the i"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte de defense liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseille d’abord une carte de défense pour protéger le moment où tu décroches. Si tu veux, je peux aussi te dire quelle carte d’attaque serait utile en complément pour faciliter l’entrée dans le dossier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.89,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:12:18.564Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-25T14:13:09.131Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème n’est pas le démarrage mais le décrochage en cours d’action et la bascule vers une distraction. La carte de défense est prioritaire pour protéger le moment de risque et prévoir un geste court si l’envie de quitter l’action revient."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande si le « mot de bascule » relève plutôt d’une carte d’attaque et veut savoir quoi préparer exactement pour une carte de défense au moment où il part sur YouTube.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "defense_card",
+                        "reason": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the i"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte de defense liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseille d’abord une carte de défense pour protéger le moment où tu décroches. Si tu veux, je peux aussi te dire quelle carte d’attaque serait utile en complément pour faciliter l’entrée dans le dossier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.89,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-25T14:13:09.143846+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-defense-revision-20260625-r1-t02",
+        "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-defense-revision-20260625-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui : le mot de bascule est bien une technique de carte d’attaque, et il sert à lancer le démarrage avec un seul mot qui te remet dans l’action.\n\nIci, comme tu décroches après 2 ou 3 minutes et que tu pars sur YouTube, je partirais sur une carte de défense : tu prépares le moment précis où tu bascules, le piège visible, un geste de retour en moins de 30 secondes, et un plan B simple.\n\nExemple : « quand j’ouvre YouTube alors que je suis sur le dossier mutuelle, je ferme l’onglet, je reviens au dossier, et je rouvre le justificatif ».",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t02",
+              "source_message_id": "c64ac4d7-a151-4671-9bad-81392d2c2fad",
+              "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-05-22T08:00:00.000Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-05-22T10:00:00",
+                "user_local_human": "vendredi 22 mai 2026 à 10:00"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 33613
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t02",
+            "source_message_id": "c64ac4d7-a151-4671-9bad-81392d2c2fad",
+            "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "direct_effect_time_context": {
+              "now_utc": "2026-05-22T08:00:00.000Z",
+              "user_timezone": "Europe/Paris",
+              "user_locale": "fr-FR",
+              "user_local_datetime": "2026-05-22T10:00:00",
+              "user_local_human": "vendredi 22 mai 2026 à 10:00"
+            },
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 33613
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-25T14:13:51.446Z",
+      "user": "Ok, et pour cette carte de défense liée à Préparer le dossier mutuelle, je la prépare où exactement dans Sophia ? Ne crée rien depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Dans le Plan, ouvre l’action « Préparer le dossier mutuelle », puis prépare la carte de défense depuis cette action. C’est là qu’elle se rattache à l’action concernée ; Ressources sert plutôt à la consulter ou la retrouver ensuite.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:12:18.564Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-25T14:13:51.378Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème n’est pas le démarrage mais le décrochage en cours d’action et la bascule vers une distraction. La carte de défense est prioritaire pour protéger le moment de risque et prévoir un geste court si l’envie de quitter l’action revient."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "La recommandation stable reste une carte de défense liée à l’action du plan, et le user demande simplement où la préparer dans Sophia.",
+                          "feature": "defense_card",
+                          "destination_hint": null
+                        }
+                      ],
+                      "last_answer_summary": "Le problème est un décrochage pendant l’exécution et non un problème de démarrage ou de structure du plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the i"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "La recommandation stable reste une carte de défense liée à l’action du plan, et le user demande simplement où la préparer dans Sophia.",
+                        "feature": "defense_card",
+                        "destination_hint": null
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte de defense liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseille d’abord une carte de défense pour protéger le moment où tu décroches. Si tu veux, je peux aussi te dire quelle carte d’attaque serait utile en complément pour faciliter l’entrée dans le dossier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.89,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:12:18.564Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-25T14:13:51.378Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’action du plan est bien identifiée, mais le user décroche au bout de quelques minutes et bascule vers YouTube pendant l’exécution.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème n’est pas le démarrage mais le décrochage en cours d’action et la bascule vers une distraction. La carte de défense est prioritaire pour protéger le moment de risque et prévoir un geste court si l’envie de quitter l’action revient."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "La recommandation stable reste une carte de défense liée à l’action du plan, et le user demande simplement où la préparer dans Sophia.",
+                          "feature": "defense_card",
+                          "destination_hint": null
+                        }
+                      ],
+                      "last_answer_summary": "Le problème est un décrochage pendant l’exécution et non un problème de démarrage ou de structure du plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the i"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "La recommandation stable reste une carte de défense liée à l’action du plan, et le user demande simplement où la préparer dans Sophia.",
+                        "feature": "defense_card",
+                        "destination_hint": null
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage n’est pas au démarrage mais pendant l’exécution, avec une bascule vers une distraction ; une carte de défense est donc le meilleur levier pour protéger le moment critique.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte de defense liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseille d’abord une carte de défense pour protéger le moment où tu décroches. Si tu veux, je peux aussi te dire quelle carte d’attaque serait utile en complément pour faciliter l’entrée dans le dossier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.89,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-25T14:13:51.387371+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-defense-revision-20260625-r1-t03",
+        "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-defense-revision-20260625-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Dans le Plan, ouvre l’action « Préparer le dossier mutuelle », puis prépare la carte de défense depuis cette action. C’est là qu’elle se rattache à l’action concernée ; Ressources sert plutôt à la consulter ou la retrouver ensuite.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t03",
+              "source_message_id": "87f32e61-4ce2-4420-8ca4-cbc5f4b8e2b8",
+              "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-05-22T08:00:00.000Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-05-22T10:00:00",
+                "user_local_human": "vendredi 22 mai 2026 à 10:00"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 32458
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t03",
+            "source_message_id": "87f32e61-4ce2-4420-8ca4-cbc5f4b8e2b8",
+            "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "direct_effect_time_context": {
+              "now_utc": "2026-05-22T08:00:00.000Z",
+              "user_timezone": "Europe/Paris",
+              "user_locale": "fr-FR",
+              "user_local_datetime": "2026-05-22T10:00:00",
+              "user_local_human": "vendredi 22 mai 2026 à 10:00"
+            },
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 32458
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-25T14:14:56.964Z",
+      "user": "Autre cas : j’ai aussi un mail perso à envoyer à Camille, il n’est pas dans mon Plan. Je commence à écrire, puis au bout de quelques lignes je panique et je ferme le brouillon. Là tu m’aiderais comment ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte de défense libre. Ici, le piège, c’est le moment où la panique monte et te fait fermer le brouillon. Je te conseille de prévoir un geste ultra simple de 30 secondes pour rester dans le mail, puis un plan B si ça remonte encore. Par exemple: tu t’arrêtes, tu lis seulement la dernière phrase, puis tu rajoutes une ligne très courte avant de décider si tu continues ou si tu fais une pause de 2 minutes.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:14:56.918Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-25T14:14:56.918Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Mail perso hors Plan : le user démarre la rédaction puis panique et ferme le brouillon, donc le blocage arrive en cours d'action au moment de risque.",
+                        "target_kind": "free_action",
+                        "action_title": "écrire un mail perso à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage n'est pas au démarrage mais au moment où la panique monte et fait fermer le brouillon. Une carte de défense sert à protéger précisément ce moment de bascule."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Mail perso hors Plan : le user démarre la rédaction puis panique et ferme le brouillon, donc le blocage arrive en cours d'action au moment de risque.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_defense_card",
+                        "reason": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas",
+                        "mail perso à envoyer à Camille, il n’est pas dans mon Plan",
+                        "Je commence à écrire",
+                        "au bout de quelques lignes je panique et je ferme le brouillon",
+                        "explicit target switch to no_plan_action: écrire un mail perso à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte de defense libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte de défense pour le moment où tu paniques et fermes le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: écrire un mail perso à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": null,
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "action_title": "écrire un mail perso à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:14:56.918Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-25T14:14:56.918Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Mail perso hors Plan : le user démarre la rédaction puis panique et ferme le brouillon, donc le blocage arrive en cours d'action au moment de risque.",
+                        "target_kind": "free_action",
+                        "action_title": "écrire un mail perso à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage n'est pas au démarrage mais au moment où la panique monte et fait fermer le brouillon. Une carte de défense sert à protéger précisément ce moment de bascule."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Mail perso hors Plan : le user démarre la rédaction puis panique et ferme le brouillon, donc le blocage arrive en cours d'action au moment de risque.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_defense_card",
+                        "reason": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas",
+                        "mail perso à envoyer à Camille, il n’est pas dans mon Plan",
+                        "Je commence à écrire",
+                        "au bout de quelques lignes je panique et je ferme le brouillon",
+                        "explicit target switch to no_plan_action: écrire un mail perso à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage arrive pendant l’écriture, au moment critique où la panique fait décrocher; une carte de défense libre est le meilleur levier pour protéger ce passage.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte de defense libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte de défense pour le moment où tu paniques et fermes le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: écrire un mail perso à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": null,
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "action_title": "écrire un mail perso à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__last_coaching_recommendation_exit_memo": {
+                  "at": "2026-06-25T14:14:23.777Z",
+                  "note_information": {
+                    "confidence": "high",
+                    "user_words": [
+                      "Autre cas : j’ai aussi un mail perso à envoyer à Camille, il n’est pas dans mon Plan. Je commence à écrire, puis au bout de quelques lignes je panique et je ferme le brouillon. Là tu m’aiderais comment ?"
+                    ],
+                    "handoff_reason": "topic_change",
+                    "source_flow_id": "coaching_recommendation",
+                    "target_dispatcher": "global",
+                    "structured_context": {
+                      "evidence": [],
+                      "collected_state": {
+                        "parent_context": null,
+                        "user_need_summary": "Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.",
+                        "candidate_features": [
+                          {
+                            "fit": "high",
+                            "why": "Le problème est un moment de risque pendant l’action hors Plan : le user commence puis panique et abandonne le brouillon. Une carte de défense sert précisément à protéger ce moment de bascule.",
+                            "feature": "defense_card",
+                            "destination_hint": null
+                          }
+                        ],
+                        "current_recommendation": "defense_card",
+                        "dispatcher_signal_context": {
+                          "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                          "category": "plan_action_coaching",
+                          "confidence": 0.89,
+                          "failure_mode": "unclear",
+                          "coaching_type": "plan_action",
+                          "action_context": {
+                            "source": "plan",
+                            "plan_id": null,
+                            "plan_title": null,
+                            "action_type": "mission",
+                            "action_title": "Préparer le dossier mutuelle",
+                            "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                          },
+                          "activation_checks": {
+                            "is_coaching_need": true,
+                            "is_about_plan_action": true,
+                            "needs_type_confirmation": false,
+                            "has_concrete_plan_action": true,
+                            "is_about_emotional_state": false,
+                            "is_about_non_plan_action": false
+                          },
+                          "priority_features": [],
+                          "emotional_state_context": null
+                        }
+                      },
+                      "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+                      "unresolved_questions": [],
+                      "user_message_summary": "Le user parle d’un mail perso hors Plan : il démarre l’écriture puis panique et ferme le brouillon, donc le blocage survient pendant l’action et non au démarrage.",
+                      "recommended_next_focus": "global"
+                    },
+                    "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Le user parle d’un mail perso hors Plan : il démarre l’écriture puis panique et ferme le brouillon, donc le blocage survient pendant l’action et non au démarrage.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.\",\"candidate_features\":[{\"feature\":\"defense_card\",\"fit\":\"high\",\"why\":\"Le problème est un moment de risque pendant l’action hors Plan : le user commence puis panique et abandonne le brouillon. Une carte de défense sert précisément à protéger ce moment de bascule.\",\"destination_hint\":null}],\"current_recommendation\":\"defense_card\",\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.\",\"category\":\"plan_action_coaching\",\"confidence\":0.89,\"failure_mode\":\"unclear\",\"coaching_type\":\"plan_action\",\"action_context\":{\"source\":\"plan\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"mission\",\"action_title\":\"Préparer le dossier mutuelle\",\"plan_item_id\":\"2ab0418a-6f82-48dc-b1ca-0920b835fbfe\"},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":true,\"needs_type_confirmation\":false,\"has_concrete_plan_action\":true,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"priority_features\":[],\"emotional_state_context\":null}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[]}"
+                  }
+                }
+              },
+              "updated_at": "2026-06-25T14:14:56.92464+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-defense-revision-20260625-r1-t04",
+        "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-defense-revision-20260625-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte de défense libre. Ici, le piège, c’est le moment où la panique monte et te fait fermer le brouillon. Je te conseille de prévoir un geste ultra simple de 30 secondes pour rester dans le mail, puis un plan B si ça remonte encore. Par exemple: tu t’arrêtes, tu lis seulement la dernière phrase, puis tu rajoutes une ligne très courte avant de décider si tu continues ou si tu fais une pause de 2 minutes.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t04",
+              "source_message_id": "7012b588-7630-4882-b8b0-296cf1bfc515",
+              "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-05-22T08:00:00.000Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-05-22T10:00:00",
+                "user_local_human": "vendredi 22 mai 2026 à 10:00"
+              },
+              "note_information": {
+                "source_flow_id": "coaching_recommendation",
+                "handoff_reason": "topic_change",
+                "target_dispatcher": "global",
+                "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Le user parle d’un mail perso hors Plan : il démarre l’écriture puis panique et ferme le brouillon, donc le blocage survient pendant l’action et non au démarrage.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.\",\"candidate_features\":[{\"feature\":\"defense_card\",\"fit\":\"high\",\"why\":\"Le problème est un moment de risque pendant l’action hors Plan : le user commence puis panique et abandonne le brouillon. Une carte de défense sert précisément à protéger ce moment de bascule.\",\"destination_hint\":null}],\"current_recommendation\":\"defense_card\",\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.\",\"category\":\"plan_action_coaching\",\"confidence\":0.89,\"failure_mode\":\"unclear\",\"coaching_type\":\"plan_action\",\"action_context\":{\"source\":\"plan\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"mission\",\"action_title\":\"Préparer le dossier mutuelle\",\"plan_item_id\":\"2ab0418a-6f82-48dc-b1ca-0920b835fbfe\"},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":true,\"needs_type_confirmation\":false,\"has_concrete_plan_action\":true,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"priority_features\":[],\"emotional_state_context\":null}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[]}",
+                "user_words": [
+                  "Autre cas : j’ai aussi un mail perso à envoyer à Camille, il n’est pas dans mon Plan. Je commence à écrire, puis au bout de quelques lignes je panique et je ferme le brouillon. Là tu m’aiderais comment ?"
+                ],
+                "structured_context": {
+                  "user_message_summary": "Le user parle d’un mail perso hors Plan : il démarre l’écriture puis panique et ferme le brouillon, donc le blocage survient pendant l’action et non au démarrage.",
+                  "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+                  "collected_state": {
+                    "user_need_summary": "Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.",
+                    "candidate_features": [
+                      {
+                        "feature": "defense_card",
+                        "fit": "high",
+                        "why": "Le problème est un moment de risque pendant l’action hors Plan : le user commence puis panique et abandonne le brouillon. Une carte de défense sert précisément à protéger ce moment de bascule.",
+                        "destination_hint": null
+                      }
+                    ],
+                    "current_recommendation": "defense_card",
+                    "parent_context": null,
+                    "dispatcher_signal_context": {
+                      "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                      "category": "plan_action_coaching",
+                      "confidence": 0.89,
+                      "failure_mode": "unclear",
+                      "coaching_type": "plan_action",
+                      "action_context": {
+                        "source": "plan",
+                        "plan_id": null,
+                        "plan_title": null,
+                        "action_type": "mission",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                      },
+                      "activation_checks": {
+                        "is_coaching_need": true,
+                        "is_about_plan_action": true,
+                        "needs_type_confirmation": false,
+                        "has_concrete_plan_action": true,
+                        "is_about_emotional_state": false,
+                        "is_about_non_plan_action": false
+                      },
+                      "priority_features": [],
+                      "emotional_state_context": null
+                    }
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "global",
+                  "evidence": []
+                },
+                "confidence": "high"
+              },
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "free_action_coaching_need",
+                  "context": {
+                    "coaching_type": "no_plan_action",
+                    "confidence": 0.88,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "écrire un mail perso à Camille",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "panic when drafting the email",
+                      "intensity": "medium"
+                    },
+                    "reason": "User asks how to help with a concrete non-plan action: writing a personal email. The blocker happens during the action, with panic and closing the draft, so this is free action coaching, not emotional_state coaching."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coach the user on a blocked non-plan action (personal email draft panic)",
+                "reasoning_complexity": "medium",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_only",
+                "plan_confidence": 0.72
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 18271
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t04",
+            "source_message_id": "7012b588-7630-4882-b8b0-296cf1bfc515",
+            "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "direct_effect_time_context": {
+              "now_utc": "2026-05-22T08:00:00.000Z",
+              "user_timezone": "Europe/Paris",
+              "user_locale": "fr-FR",
+              "user_local_datetime": "2026-05-22T10:00:00",
+              "user_local_human": "vendredi 22 mai 2026 à 10:00"
+            },
+            "note_information": {
+              "source_flow_id": "coaching_recommendation",
+              "handoff_reason": "topic_change",
+              "target_dispatcher": "global",
+              "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Le user parle d’un mail perso hors Plan : il démarre l’écriture puis panique et ferme le brouillon, donc le blocage survient pendant l’action et non au démarrage.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.\",\"candidate_features\":[{\"feature\":\"defense_card\",\"fit\":\"high\",\"why\":\"Le problème est un moment de risque pendant l’action hors Plan : le user commence puis panique et abandonne le brouillon. Une carte de défense sert précisément à protéger ce moment de bascule.\",\"destination_hint\":null}],\"current_recommendation\":\"defense_card\",\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.\",\"category\":\"plan_action_coaching\",\"confidence\":0.89,\"failure_mode\":\"unclear\",\"coaching_type\":\"plan_action\",\"action_context\":{\"source\":\"plan\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"mission\",\"action_title\":\"Préparer le dossier mutuelle\",\"plan_item_id\":\"2ab0418a-6f82-48dc-b1ca-0920b835fbfe\"},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":true,\"needs_type_confirmation\":false,\"has_concrete_plan_action\":true,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"priority_features\":[],\"emotional_state_context\":null}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[]}",
+              "user_words": [
+                "Autre cas : j’ai aussi un mail perso à envoyer à Camille, il n’est pas dans mon Plan. Je commence à écrire, puis au bout de quelques lignes je panique et je ferme le brouillon. Là tu m’aiderais comment ?"
+              ],
+              "structured_context": {
+                "user_message_summary": "Le user parle d’un mail perso hors Plan : il démarre l’écriture puis panique et ferme le brouillon, donc le blocage survient pendant l’action et non au démarrage.",
+                "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+                "collected_state": {
+                  "user_need_summary": "Le user demande où préparer, dans Sophia, la carte de défense déjà recommandée pour l'action du plan « Préparer le dossier mutuelle », sans créer quoi que ce soit depuis le chat.",
+                  "candidate_features": [
+                    {
+                      "feature": "defense_card",
+                      "fit": "high",
+                      "why": "Le problème est un moment de risque pendant l’action hors Plan : le user commence puis panique et abandonne le brouillon. Une carte de défense sert précisément à protéger ce moment de bascule.",
+                      "destination_hint": null
+                    }
+                  ],
+                  "current_recommendation": "defense_card",
+                  "parent_context": null,
+                  "dispatcher_signal_context": {
+                    "reason": "User asks which coaching lever to use for a concrete plan action that is losing momentum after a few minutes and ending in YouTube; the blocker is tied to the identified plan item.",
+                    "category": "plan_action_coaching",
+                    "confidence": 0.89,
+                    "failure_mode": "unclear",
+                    "coaching_type": "plan_action",
+                    "action_context": {
+                      "source": "plan",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission",
+                      "action_title": "Préparer le dossier mutuelle",
+                      "plan_item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+                    },
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "needs_type_confirmation": false,
+                      "has_concrete_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "is_about_non_plan_action": false
+                    },
+                    "priority_features": [],
+                    "emotional_state_context": null
+                  }
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "global",
+                "evidence": []
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "free_action_coaching_need",
+                "context": {
+                  "coaching_type": "no_plan_action",
+                  "confidence": 0.88,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "is_about_non_plan_action": true,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "écrire un mail perso à Camille",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "panic when drafting the email",
+                    "intensity": "medium"
+                  },
+                  "reason": "User asks how to help with a concrete non-plan action: writing a personal email. The blocker happens during the action, with panic and closing the draft, so this is free action coaching, not emotional_state coaching."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coach the user on a blocked non-plan action (personal email draft panic)",
+              "reasoning_complexity": "medium",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_only",
+              "plan_confidence": 0.72
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 18271
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-25T14:15:22.198Z",
+      "user": "Et cette carte de défense libre pour le mail à Camille, je la trouve où ? Je veux juste savoir où aller, pas créer depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, pour ça tu vas dans Dashboard > Ressources, puis tu ouvres Ressources et tu choisis ou crées une carte de défense libre. Ici, elle te sert à protéger le moment où la panique monte et où tu fermes le brouillon.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:14:56.918Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-25T14:15:22.161Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Mail perso hors Plan : le user démarre la rédaction puis panique et ferme le brouillon, donc le blocage arrive en cours d'action au moment de risque.",
+                        "target_kind": "free_action",
+                        "action_title": "écrire un mail perso à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage n'est pas au démarrage mais au moment où la panique monte et fait fermer le brouillon. Une carte de défense sert à protéger précisément ce moment de bascule."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande seulement où trouver la carte de défense libre pour le mail à Camille, sans vouloir la créer depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_defense_card",
+                        "reason": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas",
+                        "mail perso à envoyer à Camille, il n’est pas dans mon Plan",
+                        "Je commence à écrire",
+                        "au bout de quelques lignes je panique et je ferme le brouillon",
+                        "explicit target switch to no_plan_action: écrire un mail perso à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte de defense libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte de défense pour le moment où tu paniques et fermes le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: écrire un mail perso à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "écrire un mail perso à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-25T14:14:56.918Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-25T14:15:22.161Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Mail perso hors Plan : le user démarre la rédaction puis panique et ferme le brouillon, donc le blocage arrive en cours d'action au moment de risque.",
+                        "target_kind": "free_action",
+                        "action_title": "écrire un mail perso à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage n'est pas au démarrage mais au moment où la panique monte et fait fermer le brouillon. Une carte de défense sert à protéger précisément ce moment de bascule."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande seulement où trouver la carte de défense libre pour le mail à Camille, sans vouloir la créer depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                          "feature": "defense_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_defense_card",
+                        "reason": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas",
+                        "mail perso à envoyer à Camille, il n’est pas dans mon Plan",
+                        "Je commence à écrire",
+                        "au bout de quelques lignes je panique et je ferme le brouillon",
+                        "explicit target switch to no_plan_action: écrire un mail perso à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                        "feature": "defense_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande où trouver une carte de défense libre hors Plan pour un mail perso, avec un décrochage pendant l’écriture; la destination correcte est Ressources.",
+                        "why_not_others": {},
+                        "primary_feature": "defense_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte de defense libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte de defense libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte de défense pour le moment où tu paniques et fermes le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: écrire un mail perso à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "écrire un mail perso à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-25T14:15:22.169445+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-defense-revision-20260625-r1-t05",
+        "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-defense-revision-20260625-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, pour ça tu vas dans Dashboard > Ressources, puis tu ouvres Ressources et tu choisis ou crées une carte de défense libre. Ici, elle te sert à protéger le moment où la panique monte et où tu fermes le brouillon.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t05",
+              "source_message_id": "10e8c5c6-efa1-4ce4-ac70-d9612f6fe17c",
+              "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-05-22T08:00:00.000Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-05-22T10:00:00",
+                "user_local_human": "vendredi 22 mai 2026 à 10:00"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-defense-revision-20260625-r1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 14867
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t05",
+            "source_message_id": "10e8c5c6-efa1-4ce4-ac70-d9612f6fe17c",
+            "user_id": "23b8677b-0cb4-48fc-824b-c16648711d1a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "direct_effect_time_context": {
+              "now_utc": "2026-05-22T08:00:00.000Z",
+              "user_timezone": "Europe/Paris",
+              "user_locale": "fr-FR",
+              "user_local_datetime": "2026-05-22T10:00:00",
+              "user_local_human": "vendredi 22 mai 2026 à 10:00"
+            },
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-defense-revision-20260625-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 14867
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "seeded_plan": {
+    "cycle_id": "2db520be-8ff6-401b-ab75-60abdea3842f",
+    "transformation_id": "f2c713d5-e494-4ede-ba00-62c60f2f1e9a",
+    "plan_id": "49bcaea9-e4f5-43e0-b5b9-3a2cb65dc6ab",
+    "item_id": "2ab0418a-6f82-48dc-b1ca-0920b835fbfe"
+  },
+  "updated_at": "2026-06-25T14:15:22.199Z",
+  "seeded_plan_cleanup": "2026-06-25T14:15:41.244Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-25T14:15:53.400Z"
+}

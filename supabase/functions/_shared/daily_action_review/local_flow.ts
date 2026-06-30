@@ -24,44 +24,53 @@ import { reduceDailyReviewState } from "./reducer.ts";
 import {
   dailyTargetsToActiveActionCandidates,
   directEffectLocalDispatcherPromptLines,
+  directEffectTimeContextFromUnknown,
   withDirectEffectLocalContext,
 } from "../../sophia-brain/router/direct_effect_local_context.ts";
+import {
+  LOCAL_ONE_SHOT_DIRECT_EFFECT_EXPECTED_JSON_SHAPE,
+  localOneShotDirectEffectPromptLines,
+  type LocalOneShotDirectEffectRequest,
+  normalizeLocalOneShotDirectEffectRequest,
+} from "../../sophia-brain/router/one_shot_local_direct_effect.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../sophia-brain/router/response_style_policy.ts";
+import {
+  dailyActionReviewVisibleAgentSpec,
+  dailyActionReviewVisibleSystemPrompt,
+} from "./visible_agents.ts";
+import type {
+  LocalChildFlowHandoff,
+  LocalChildFlowReturnToParent,
+} from "../local_child_flow_handoff.ts";
+import type {
+  DailyActionCoachingHandoffContext,
+} from "../../sophia-brain/skills/daily_action_coaching_recommendation/contract.ts";
 
 export type DailyActionReviewLocalFlowAction =
   | "answer_review"
   | "missing_info"
   | "clarify_which_action"
   | "clarify_outcome"
-  | "clarify_completion_level"
   | "clarify_reason"
   | "clarify_still_relevant"
+  | "explain_target"
   | "correction"
   | "revise"
   | "recap_daily_state"
-  | "repeat_current_question"
-  | "user_stopped"
-  | "exit_to_global_dispatcher"
-  | "cancel_flow"
-  | "defer_flow"
-  | "inline_product_help"
-  | "inline_status_recap"
-  | "handoff_to_local_flow"
+  | "clarify_daily_question"
+  | "handoff_to_child_flow"
   | "exit_to_global_dispatcher"
   | "safety_preempt";
 
 export type DailyActionReviewVisibleTaskKind =
   | "clarify_which_action"
   | "clarify_outcome"
-  | "clarify_completion_level"
   | "clarify_reason"
   | "clarify_still_relevant"
+  | "explain_target"
   | "recap_daily_state"
-  | "repeat_question"
-  | "stop_close"
-  | "commit_success"
-  | "commit_failed"
-  | "exit_or_cancel"
-  | "safety";
+  | "clarify_daily_question"
+  | "commit_success";
 
 export type DailyActionReviewNoteInformation = {
   source_flow_id: "daily_action_review_v1";
@@ -75,13 +84,8 @@ export type DailyActionReviewNoteInformation = {
   target_dispatcher:
     | "global"
     | "safety_crisis"
-    | "product_help"
-    | "status_recap"
-    | "prepare_attack_card"
-    | "prepare_defense_card"
-    | "select_state_potion"
-    | "update_coach_preferences"
-    | "other_local";
+    | "coaching_recommendation"
+    | "product_help";
   handoff_context_for_next_dispatcher: string;
   user_words: string[];
   structured_context: Record<string, unknown>;
@@ -111,32 +115,38 @@ export type DailyActionReviewExitMemo = {
   };
   handoff_hint_for_global_dispatcher: {
     likely_intent:
-      | "prepare_attack_card"
-      | "prepare_defense_card"
-      | "select_state_potion"
-      | "update_coach_preferences"
-      | "status_recap"
+      | "coaching_recommendation"
       | "product_help"
       | "normal_coaching"
       | "unknown";
     why: string | null;
-    constraints: string[];
   };
   note_information?: DailyActionReviewNoteInformation | null;
 };
 
 export type DailyActionReviewConversationContext = {
   state_summary: string;
-  user_words: string[];
   field_or_stage: string | null;
   known_values: Record<string, unknown>;
   missing_or_weak_values: string[];
   selected_candidate: Record<string, unknown> | null;
   handoff_data: Record<string, unknown> | null;
+  affect_context: DailyActionReviewAffectContext;
   tone_constraints: string[];
   do_not_say: string[];
   context_summary: string | null;
   evidence_used: string[];
+};
+
+export type DailyActionReviewAffectContext = {
+  emotional_intensity: "none" | "low" | "medium" | "high";
+  fragile_signal: boolean;
+  suggested_tone:
+    | "neutral"
+    | "gentle"
+    | "supportive_investigate"
+    | "calm";
+  evidence: string[];
 };
 
 export type DailyActionReviewLocalDispatcherOutput = {
@@ -174,6 +184,7 @@ export type DailyActionReviewLocalDispatcherOutput = {
     kind:
       | "daily_answer"
       | "daily_clarification"
+      | "action_question"
       | "daily_correction"
       | "daily_recap"
       | "stop"
@@ -183,6 +194,7 @@ export type DailyActionReviewLocalDispatcherOutput = {
       | "unclear";
     summary: string;
   };
+  direct_effect_request: LocalOneShotDirectEffectRequest;
   state_updates: {
     status_hint:
       | "collecting"
@@ -198,6 +210,9 @@ export type DailyActionReviewLocalDispatcherOutput = {
     instruction: string;
     conversation_context: DailyActionReviewConversationContext;
   };
+  child_flow: "daily_action_coaching_recommendation_v1" | null;
+  return_to_parent: LocalChildFlowReturnToParent | null;
+  child_flow_context: DailyActionCoachingHandoffContext | null;
   note_information: DailyActionReviewNoteInformation | null;
   exit_memo: DailyActionReviewExitMemo;
   state_change_intent: {
@@ -210,6 +225,7 @@ export type DailyActionReviewLocalDispatcherOutput = {
 export type DailyActionReviewLocalFlowResult = DailyActionReviewSkillResult & {
   dispatcherOutput: DailyActionReviewLocalDispatcherOutput;
   exitToGlobalDispatcher: boolean;
+  childFlowHandoff: LocalChildFlowHandoff | null;
   stateMutationAudit?: DailyReviewStateMutationAudit;
   diagnosis: {
     flow_action: DailyActionReviewLocalFlowAction;
@@ -222,7 +238,6 @@ export type DailyActionReviewLocalFlowResult = DailyActionReviewSkillResult & {
       plan_item_id: string;
       title: string;
     }>;
-    constraints: string[];
     stabilization_ready: boolean;
     blocked_effects: unknown[];
     state_mutation_audit?: DailyReviewStateMutationAudit;
@@ -283,27 +298,44 @@ function recordOrEmpty(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function withoutLegacyPayloadFields(
+  value: Record<string, unknown>,
+): Record<string, unknown> {
+  const { constraints: _constraints, user_words: _userWords, ...rest } = value;
+  return rest;
+}
+
+function legacyToken(...parts: string[]): string {
+  return parts.join("_");
+}
+
 function flowAction(value: unknown): DailyActionReviewLocalFlowAction {
   const raw = cleanText(value);
+  if (
+    raw === legacyToken("handoff", "to", "local", "flow") ||
+    raw === legacyToken("inline", "status", "recap") ||
+    raw === "inline_product_help" ||
+    raw === "user_stopped" ||
+    raw === "cancel_flow" ||
+    raw === "defer_flow"
+  ) {
+    return "exit_to_global_dispatcher";
+  }
+  if (raw === "clarify_completion_level") return "clarify_outcome";
+  if (raw === "repeat_current_question") return "clarify_daily_question";
   return [
       "answer_review",
       "missing_info",
       "clarify_which_action",
       "clarify_outcome",
-      "clarify_completion_level",
       "clarify_reason",
       "clarify_still_relevant",
+      "explain_target",
       "correction",
       "revise",
       "recap_daily_state",
-      "repeat_current_question",
-      "user_stopped",
-      "exit_to_global_dispatcher",
-      "cancel_flow",
-      "defer_flow",
-      "inline_product_help",
-      "inline_status_recap",
-      "handoff_to_local_flow",
+      "clarify_daily_question",
+      "handoff_to_child_flow",
       "exit_to_global_dispatcher",
       "safety_preempt",
     ].includes(raw)
@@ -313,19 +345,17 @@ function flowAction(value: unknown): DailyActionReviewLocalFlowAction {
 
 function visibleTaskKind(value: unknown): DailyActionReviewVisibleTaskKind {
   const raw = cleanText(value);
+  if (raw === "clarify_completion_level") return "clarify_outcome";
+  if (raw === "repeat_question") return "clarify_daily_question";
   return [
       "clarify_which_action",
       "clarify_outcome",
-      "clarify_completion_level",
       "clarify_reason",
       "clarify_still_relevant",
+      "explain_target",
       "recap_daily_state",
-      "repeat_question",
-      "stop_close",
+      "clarify_daily_question",
       "commit_success",
-      "commit_failed",
-      "exit_or_cancel",
-      "safety",
     ].includes(raw)
     ? raw as DailyActionReviewVisibleTaskKind
     : "clarify_outcome";
@@ -361,13 +391,20 @@ function outcome(
   value: unknown,
 ): DailyActionReviewLocalDispatcherOutput["item_updates"][string]["outcome"] {
   const raw = cleanText(value);
-  return raw === "completed" || raw === "partial" || raw === "missed" ||
+  if (raw === "partial") return "completed";
+  return raw === "completed" || raw === "missed" ||
       raw === "unclear"
     ? raw
     : null;
 }
 
-function missingSlots(value: unknown): DailyReviewMissingSlot[] {
+function missingSlots(
+  value: unknown,
+  normalizedOutcome?: DailyActionReviewLocalDispatcherOutput["item_updates"][
+    string
+  ]["outcome"],
+): DailyReviewMissingSlot[] {
+  if (normalizedOutcome === "completed") return [];
   const allowed = new Set([
     "outcome",
     "reason",
@@ -378,6 +415,39 @@ function missingSlots(value: unknown): DailyReviewMissingSlot[] {
   return stringArray(value).filter((slot) =>
     allowed.has(slot)
   ) as DailyReviewMissingSlot[];
+}
+
+function affectContext(
+  value: unknown,
+): DailyActionReviewAffectContext | null {
+  const root = recordOrEmpty(value);
+  if (!Object.keys(root).length) return null;
+  const intensity = cleanText(root.emotional_intensity);
+  const tone = cleanText(root.suggested_tone);
+  return {
+    emotional_intensity:
+      intensity === "low" || intensity === "medium" || intensity === "high" ||
+        intensity === "none"
+        ? intensity
+        : "none",
+    fragile_signal: root.fragile_signal === true,
+    suggested_tone: tone === "gentle" || tone === "supportive_investigate" ||
+        tone === "calm" || tone === "neutral"
+      ? tone
+      : "neutral",
+    evidence: stringArray(root.evidence).slice(0, 6),
+  };
+}
+
+function uniqueStringArray(values: string[], max = 12): string[] {
+  const out: string[] = [];
+  for (const value of values) {
+    const text = cleanText(value);
+    if (!text || out.includes(text)) continue;
+    out.push(text);
+    if (out.length >= max) break;
+  }
+  return out;
 }
 
 function declaredStateChangeIntent(value: unknown): {
@@ -395,11 +465,9 @@ function statusFromHint(
   value: unknown,
   action: DailyActionReviewLocalFlowAction,
 ): DailyReviewStatus {
-  if (
-    action === "user_stopped" || action === "cancel_flow" ||
-    action === "defer_flow"
-  ) return "stopped";
+  if (action === "explain_target") return "needs_clarification";
   if (action === "safety_preempt") return "stopped";
+  if (action === "handoff_to_child_flow") return "collecting";
   const raw = cleanText(value);
   if (raw === "complete" || raw === "collecting" || raw === "stopped") {
     return raw;
@@ -416,21 +484,14 @@ function intentFromAction(
   if (
     action === "missing_info" ||
     action === "clarify_outcome" || action === "clarify_which_action" ||
-    action === "clarify_completion_level" ||
-    action === "repeat_current_question"
+    action === "explain_target" ||
+    action === "clarify_daily_question"
   ) return "clarify_outcome";
   if (action === "correction" || action === "revise") return "correction";
   if (action === "recap_daily_state") return "recap";
-  if (
-    action === "user_stopped" || action === "cancel_flow" ||
-    action === "defer_flow"
-  ) return "user_stopped";
   if (action === "safety_preempt") return "safety";
   if (
-    action === "exit_to_global_dispatcher" ||
-    action === "handoff_to_local_flow" ||
-    action === "inline_product_help" ||
-    action === "inline_status_recap"
+    action === "exit_to_global_dispatcher" || action === "handoff_to_child_flow"
   ) return "off_topic";
   return "unclear";
 }
@@ -438,13 +499,14 @@ function intentFromAction(
 function normalizeExitMemo(
   raw: unknown,
   action: DailyActionReviewLocalFlowAction,
+  targets: DailyActionReviewTarget[],
+  rawNoteInformation?: unknown,
 ): DailyActionReviewExitMemo {
   const root = recordOrEmpty(raw);
   const local = recordOrEmpty(root.local_flow_context);
   const handoff = recordOrEmpty(root.handoff_hint_for_global_dispatcher);
   const needs = action === "exit_to_global_dispatcher" ||
-    action === "safety_preempt" || action === "handoff_to_local_flow" ||
-    action === "inline_product_help" || action === "inline_status_recap";
+    action === "safety_preempt";
   const memo: DailyActionReviewExitMemo = {
     needed: needs,
     reason: [
@@ -477,12 +539,8 @@ function normalizeExitMemo(
     },
     handoff_hint_for_global_dispatcher: {
       likely_intent: [
-          "prepare_attack_card",
-          "prepare_defense_card",
-          "select_state_potion",
-          "update_coach_preferences",
-          "status_recap",
           "product_help",
+          "coaching_recommendation",
           "normal_coaching",
           "unknown",
         ].includes(cleanText(handoff.likely_intent))
@@ -491,14 +549,20 @@ function normalizeExitMemo(
         ]["likely_intent"]
         : "unknown",
       why: nullableString(handoff.why),
-      constraints: stringArray(handoff.constraints).slice(0, 8),
     },
   };
   memo.note_information = normalizeDailyActionReviewNoteInformation({
-    raw: root.note_information,
+    raw: root.note_information ?? rawNoteInformation,
     action,
     exitMemo: memo,
+    targets,
   });
+  if (memo.note_information?.target_dispatcher === "coaching_recommendation") {
+    memo.handoff_hint_for_global_dispatcher = {
+      ...memo.handoff_hint_for_global_dispatcher,
+      likely_intent: "coaching_recommendation",
+    };
+  }
   return memo;
 }
 
@@ -508,37 +572,147 @@ function targetDispatcherForDailyAction(params: {
   likelyIntent: DailyActionReviewExitMemo["handoff_hint_for_global_dispatcher"][
     "likely_intent"
   ];
+  rawTargetDispatcher?: unknown;
 }): DailyActionReviewNoteInformation["target_dispatcher"] {
   if (params.action === "safety_preempt" || params.reason === "safety") {
     return "safety_crisis";
   }
-  if (
-    params.action === "inline_product_help" || params.reason === "product_help"
-  ) {
-    return "product_help";
+  if (cleanText(params.rawTargetDispatcher) === "coaching_recommendation") {
+    return "coaching_recommendation";
   }
-  if (
-    params.action === "inline_status_recap" ||
-    params.reason === "status_question"
-  ) {
-    return "status_recap";
-  }
-  if (params.action === "handoff_to_local_flow") {
-    if (params.likelyIntent === "prepare_attack_card") {
-      return "prepare_attack_card";
-    }
-    if (params.likelyIntent === "prepare_defense_card") {
-      return "prepare_defense_card";
-    }
-    if (params.likelyIntent === "select_state_potion") {
-      return "select_state_potion";
-    }
-    if (params.likelyIntent === "update_coach_preferences") {
-      return "update_coach_preferences";
-    }
-    return "other_local";
+  if (params.likelyIntent === "coaching_recommendation") {
+    return "coaching_recommendation";
   }
   return "global";
+}
+
+function confidenceNumberFromBand(
+  confidence: "low" | "medium" | "high",
+): number {
+  if (confidence === "high") return 0.86;
+  if (confidence === "medium") return 0.68;
+  return 0.45;
+}
+
+function targetForDailyCoachingBridge(
+  raw: unknown,
+  targets: DailyActionReviewTarget[],
+): DailyActionReviewTarget | null {
+  const root = recordOrEmpty(raw);
+  const context = recordOrEmpty(root.structured_context);
+  const actionContext = recordOrEmpty(context.action_context);
+  const ids = [
+    actionContext.occurrence_id,
+    context.occurrence_id,
+    context.target_occurrence_id,
+    ...(Array.isArray(context.resolved_occurrence_ids)
+      ? context.resolved_occurrence_ids
+      : []),
+  ].map((value) => cleanText(value)).filter(Boolean);
+  const selected = targets.find((target) =>
+    ids.includes(target.occurrence_id) || ids.includes(target.plan_item_id)
+  );
+  return selected ?? targets[0] ?? null;
+}
+
+function returnToDailyAfterCoaching(): LocalChildFlowReturnToParent {
+  return {
+    parent_flow_id: "daily_action_review_v1",
+    return_focus: "resume_daily_after_action_coaching",
+    preserve_parent_state: true,
+  };
+}
+
+function actionTypeFromTarget(
+  target: DailyActionReviewTarget,
+): DailyActionCoachingHandoffContext["action_context"]["action_type"] {
+  if (target.kind === "habit" || target.dimension === "habits") {
+    return "habit";
+  }
+  if (target.kind === "task" || target.dimension === "missions") {
+    return "mission";
+  }
+  if (target.kind === "framework" || target.dimension === "clarifications") {
+    return "clarification";
+  }
+  return "other";
+}
+
+function dailyActionCoachingContextFromTarget(params: {
+  target: DailyActionReviewTarget;
+  stateItem?: DailyActionReviewState["items"][string] | null;
+  confidence: "low" | "medium" | "high";
+  helpRequestSummary: string;
+  affectContext?: Record<string, unknown> | null;
+}): DailyActionCoachingHandoffContext {
+  const item = params.stateItem ?? null;
+  return {
+    source_flow_id: "daily_action_review_v1",
+    parent_flow_id: "daily_action_review_v1",
+    return_focus: "resume_daily_after_action_coaching",
+    action_context: {
+      occurrence_id: params.target.occurrence_id,
+      plan_item_id: params.target.plan_item_id,
+      plan_id: params.target.plan_id || null,
+      title: params.target.title,
+      description: cleanText(params.target.description) || null,
+      action_type: actionTypeFromTarget(params.target),
+      outcome: item?.outcome === "completed" || item?.outcome === "missed"
+        ? item.outcome
+        : null,
+      reason_category: cleanText(item?.reason_category) || null,
+      reason_text: cleanText(item?.reason_text) || null,
+    },
+    help_request_summary: params.helpRequestSummary ||
+      "User asks for help succeeding with this daily action.",
+    affect_context: params.affectContext ?? null,
+    confidence: confidenceNumberFromBand(params.confidence),
+  };
+}
+
+function normalizedDailyChildFlowContext(params: {
+  root: Record<string, unknown>;
+  action: DailyActionReviewLocalFlowAction;
+  exitMemo: DailyActionReviewExitMemo;
+  targets: DailyActionReviewTarget[];
+  state: DailyActionReviewState;
+  confidence: "low" | "medium" | "high";
+}): DailyActionCoachingHandoffContext | null {
+  if (params.action !== "handoff_to_child_flow") return null;
+  const rawContext = recordOrEmpty(params.root.child_flow_context);
+  const actionContext = recordOrEmpty(rawContext.action_context);
+  const requestedIds = [
+    actionContext.occurrence_id,
+    actionContext.plan_item_id,
+    params.root.target_resolution &&
+    recordOrEmpty(params.root.target_resolution).resolved_occurrence_ids,
+  ].flatMap((value) => Array.isArray(value) ? value : [value])
+    .map((value) => cleanText(value))
+    .filter(Boolean);
+  const selectedTarget = requestedIds.length > 0
+    ? params.targets.find((target) =>
+      requestedIds.includes(target.occurrence_id) ||
+      requestedIds.includes(target.plan_item_id)
+    ) ?? null
+    : targetForDailyCoachingBridge(params.root.note_information ?? params.root, params.targets);
+  if (!selectedTarget) return null;
+  const userIntentSummary = params.exitMemo.user_intent_summary ||
+    cleanText(rawContext.help_request_summary) ||
+    cleanText(rawContext.reason) ||
+    cleanText(
+      recordOrEmpty(params.root.note_information)
+        .handoff_context_for_next_dispatcher,
+    ) ||
+    "Daily action review detected a coaching recommendation need.";
+  return dailyActionCoachingContextFromTarget({
+    target: selectedTarget,
+    stateItem: params.state.items[selectedTarget.occurrence_id] ?? null,
+    confidence: params.confidence,
+    helpRequestSummary: userIntentSummary,
+    affectContext: recordOrEmpty(
+      recordOrEmpty(params.root.visible_task).conversation_context,
+    ).affect_context as Record<string, unknown> | null,
+  });
 }
 
 function handoffReasonForDailyAction(params: {
@@ -548,11 +722,6 @@ function handoffReasonForDailyAction(params: {
   if (params.action === "safety_preempt" || params.reason === "safety") {
     return "safety";
   }
-  if (
-    params.action === "inline_product_help" ||
-    params.action === "inline_status_recap"
-  ) return "inline_tool";
-  if (params.action === "handoff_to_local_flow") return "bridge";
   if (
     params.reason === "explicit_tool_request" ||
     params.reason === "product_help" ||
@@ -566,6 +735,7 @@ function normalizeDailyActionReviewNoteInformation(params: {
   raw: unknown;
   action: DailyActionReviewLocalFlowAction;
   exitMemo: DailyActionReviewExitMemo;
+  targets: DailyActionReviewTarget[];
 }): DailyActionReviewNoteInformation | null {
   const needs = params.exitMemo.needed || params.action === "safety_preempt";
   if (!needs) return null;
@@ -575,8 +745,11 @@ function normalizeDailyActionReviewNoteInformation(params: {
     reason: params.exitMemo.reason,
     likelyIntent: params.exitMemo.handoff_hint_for_global_dispatcher
       .likely_intent,
+    rawTargetDispatcher: root.target_dispatcher,
   });
-  const structuredContext = recordOrEmpty(root.structured_context);
+  const structuredContext = withoutLegacyPayloadFields(
+    recordOrEmpty(root.structured_context),
+  );
   const fallbackStructuredContext = {
     source_flow: "daily_action_review_v1",
     user_intent_summary: params.exitMemo.user_intent_summary,
@@ -594,9 +767,7 @@ function normalizeDailyActionReviewNoteInformation(params: {
     }),
     target_dispatcher: targetDispatcher,
     handoff_context_for_next_dispatcher: contextForNext,
-    user_words: stringArray(root.user_words).length
-      ? stringArray(root.user_words).slice(0, 4)
-      : params.exitMemo.user_intent_summary
+    user_words: params.exitMemo.user_intent_summary
       ? [params.exitMemo.user_intent_summary]
       : [],
     structured_context: Object.keys(structuredContext).length
@@ -617,6 +788,7 @@ function targetSummary(
     occurrence_id: target.occurrence_id,
     plan_item_id: target.plan_item_id,
     title: target.title,
+    description: target.description ?? null,
     dimension: target.dimension ?? null,
     kind: target.kind ?? null,
     planned_day: target.planned_day ?? null,
@@ -642,13 +814,126 @@ function stateSummaryForConversation(
   return parts.length ? parts.join(" | ") : `Daily status=${state.status}`;
 }
 
+function compactActionIntelligenceForVisible(
+  intelligence: DailyActionReviewActionIntelligence | undefined,
+): Record<string, unknown> | null {
+  if (!intelligence) return null;
+  return {
+    recent_observations: intelligence.recent_observations.slice(0, 2),
+    recurring_patterns: intelligence.recurring_patterns.slice(0, 2),
+    last_weekly_interpretation: intelligence.last_weekly_interpretation,
+    freshness_summary: intelligence.freshness_summary,
+    suggested_tone: intelligence.suggested_tone,
+    risk_of_overcoaching: intelligence.risk_of_overcoaching,
+  };
+}
+
+function affectContextFromSignals(params: {
+  outputContext: Partial<DailyActionReviewConversationContext>;
+  dispatcherOutput?: DailyActionReviewLocalDispatcherOutput | null;
+  state: DailyActionReviewState;
+  selectedTargets: DailyActionReviewTarget[];
+}): DailyActionReviewAffectContext {
+  const explicitAffect = params.outputContext.affect_context;
+  if (
+    explicitAffect &&
+    (explicitAffect.fragile_signal ||
+      explicitAffect.emotional_intensity !== "none" ||
+      explicitAffect.suggested_tone !== "neutral" ||
+      explicitAffect.evidence.length > 0)
+  ) {
+    return explicitAffect;
+  }
+  const selectedIds = params.selectedTargets.map((target) =>
+    target.occurrence_id
+  );
+  const selectedItems = selectedIds.map((id) => params.state.items[id])
+    .filter(Boolean);
+  const selectedIntelligence = selectedIds.map((id) =>
+    params.state.action_intelligence_by_occurrence_id[id]
+  ).filter(Boolean);
+  const evidence = uniqueStringArray([
+    ...selectedItems.flatMap((item) =>
+      item?.reason_category === "emotional"
+        ? [item.reason_text || "reason_category=emotional"]
+        : []
+    ),
+    ...selectedIntelligence.flatMap((item) => [
+      ...item.recurring_patterns.slice(0, 2),
+      ...item.recent_observations.slice(0, 2),
+      item.risk_of_overcoaching !== "low"
+        ? `overcoaching=${item.risk_of_overcoaching}`
+        : "",
+      item.suggested_tone !== "neutral" ? `tone=${item.suggested_tone}` : "",
+    ]),
+    ...(params.dispatcherOutput?.risk_score
+      ? [`risk_score=${params.dispatcherOutput.risk_score}`]
+      : []),
+  ], 6);
+  const hasEmotionalReason = selectedItems.some((item) =>
+    item?.reason_category === "emotional"
+  );
+  const hasSupportTone = selectedIntelligence.some((item) =>
+    item.suggested_tone === "gentle" ||
+    item.suggested_tone === "supportive_investigate"
+  );
+  const hasOvercoachingRisk = selectedIntelligence.some((item) =>
+    item.risk_of_overcoaching === "medium" ||
+    item.risk_of_overcoaching === "high"
+  );
+  const riskScore = params.dispatcherOutput?.risk_score ?? 0;
+  const emotionalIntensity: DailyActionReviewAffectContext[
+    "emotional_intensity"
+  ] = riskScore >= 7 ||
+      selectedIntelligence.some((item) => item.risk_of_overcoaching === "high")
+    ? "high"
+    : hasEmotionalReason || hasOvercoachingRisk || riskScore >= 4
+    ? "medium"
+    : hasSupportTone || riskScore > 0
+    ? "low"
+    : "none";
+  const suggestedTone: DailyActionReviewAffectContext["suggested_tone"] =
+    emotionalIntensity === "high"
+      ? "calm"
+      : selectedIntelligence.some((item) =>
+          item.suggested_tone === "supportive_investigate"
+        )
+      ? "supportive_investigate"
+      : emotionalIntensity === "medium" || emotionalIntensity === "low"
+      ? "gentle"
+      : "neutral";
+  return {
+    emotional_intensity: emotionalIntensity,
+    fragile_signal: emotionalIntensity === "medium" ||
+      emotionalIntensity === "high",
+    suggested_tone: suggestedTone,
+    evidence,
+  };
+}
+
+function toneConstraintsForVisible(params: {
+  outputConstraints: string[];
+  affect: DailyActionReviewAffectContext;
+}): string[] {
+  const base = params.outputConstraints.length
+    ? params.outputConstraints
+    : ["short", "non_judgmental", "one_main_question_max"];
+  const affectConstraints = params.affect.fragile_signal
+    ? ["gentle", "low_pressure", "emotionally_safe"]
+    : params.affect.suggested_tone === "supportive_investigate"
+    ? ["supportive_investigate", "low_pressure"]
+    : params.affect.suggested_tone === "gentle"
+    ? ["gentle", "low_pressure"]
+    : [];
+  return uniqueStringArray([...base, ...affectConstraints], 10);
+}
+
 function normalizeConversationContext(
   raw: unknown,
 ): Partial<DailyActionReviewConversationContext> {
   const root = recordOrEmpty(raw);
   return {
     state_summary: cleanText(root.state_summary),
-    user_words: stringArray(root.user_words).slice(0, 4),
     field_or_stage: nullableString(root.field_or_stage),
     known_values: recordOrEmpty(root.known_values),
     missing_or_weak_values: stringArray(root.missing_or_weak_values).slice(
@@ -662,6 +947,7 @@ function normalizeConversationContext(
     handoff_data: Object.keys(recordOrEmpty(root.handoff_data)).length
       ? recordOrEmpty(root.handoff_data)
       : null,
+    affect_context: affectContext(root.affect_context) ?? undefined,
     tone_constraints: stringArray(root.tone_constraints).slice(0, 8),
     do_not_say: stringArray(root.do_not_say).slice(0, 10),
     context_summary: nullableString(root.context_summary),
@@ -681,12 +967,19 @@ function buildDailyActionReviewConversationContext(params: {
   const outputContext = normalizeConversationContext(
     params.dispatcherOutput?.visible_task.conversation_context,
   );
-  const targetIds =
-    params.dispatcherOutput?.target_resolution.resolved_occurrence_ids.length
-      ? params.dispatcherOutput.target_resolution.resolved_occurrence_ids
-      : params.state.next_question_targets.length
-      ? params.state.next_question_targets
-      : params.state.current_focus_occurrence_ids;
+  const resolvedIds =
+    params.dispatcherOutput?.target_resolution.resolved_occurrence_ids ?? [];
+  const targetIds = (params.kind === "clarify_outcome" ||
+      params.kind === "clarify_reason" ||
+      params.kind === "clarify_still_relevant" ||
+      params.kind === "clarify_daily_question") &&
+      params.state.next_question_targets.length
+    ? params.state.next_question_targets
+    : resolvedIds.length
+    ? resolvedIds
+    : params.state.next_question_targets.length
+    ? params.state.next_question_targets
+    : params.state.current_focus_occurrence_ids;
   const currentTargets = params.targets.filter((target) =>
     targetIds.includes(target.occurrence_id)
   );
@@ -719,26 +1012,60 @@ function buildDailyActionReviewConversationContext(params: {
       ];
     }),
   );
+  const actionIntelligence = Object.fromEntries(
+    selectedTargets.flatMap((target) => {
+      const intelligence = compactActionIntelligenceForVisible(
+        params.state.action_intelligence_by_occurrence_id[
+          target.occurrence_id
+        ],
+      );
+      return intelligence ? [[target.occurrence_id, intelligence]] : [];
+    }),
+  );
+  const commitSummary = buildVisibleCommitSummary({
+    kind: params.kind,
+    targets: params.targets,
+    state: params.state,
+    committedEffects: params.committedEffects ?? [],
+  });
+  const recentCollectedUpdate = recentCollectedUpdateForVisible({
+    dispatcherOutput: params.dispatcherOutput,
+    targets: params.targets,
+  });
+  const computedKnownValues = {
+    status: params.state.status,
+    targets: selectedTargets.map(targetSummary),
+    items: itemValues,
+    action_intelligence_by_occurrence_id: actionIntelligence,
+    current_daily_question: params.currentDailyQuestion ??
+      params.state.next_question ?? null,
+    committed_effects: params.committedEffects ?? [],
+    failed_effects: params.failedEffects ?? [],
+    commit_summary: commitSummary,
+    recent_collected_update: recentCollectedUpdate,
+  };
+  const outputKnownValues = outputContext.known_values ?? {};
+  const mergedKnownValues = Object.keys(outputKnownValues).length
+    ? { ...computedKnownValues, ...outputKnownValues }
+    : computedKnownValues;
+  const runtimeOwnedKnownValues = {
+    ...mergedKnownValues,
+    committed_effects: params.committedEffects ?? [],
+    failed_effects: params.failedEffects ?? [],
+    commit_summary: commitSummary,
+    recent_collected_update: recentCollectedUpdate,
+  };
+  const affect = affectContextFromSignals({
+    outputContext,
+    dispatcherOutput: params.dispatcherOutput,
+    state: params.state,
+    selectedTargets,
+  });
   const base: DailyActionReviewConversationContext = {
     state_summary: outputContext.state_summary ||
       stateSummaryForConversation(params.state, params.targets),
-    user_words: outputContext.user_words?.length
-      ? outputContext.user_words
-      : params.dispatcherOutput?.daily_intent.summary
-      ? [params.dispatcherOutput.daily_intent.summary]
-      : [],
     field_or_stage: outputContext.field_or_stage || params.kind,
-    known_values: Object.keys(outputContext.known_values ?? {}).length
-      ? outputContext.known_values ?? {}
-      : {
-        status: params.state.status,
-        targets: selectedTargets.map(targetSummary),
-        items: itemValues,
-        current_daily_question: params.currentDailyQuestion ??
-          params.state.next_question ?? null,
-        committed_effects: params.committedEffects ?? [],
-        failed_effects: params.failedEffects ?? [],
-      },
+    known_values: runtimeOwnedKnownValues,
     missing_or_weak_values: outputContext.missing_or_weak_values?.length
       ? outputContext.missing_or_weak_values
       : missingValues,
@@ -750,9 +1077,11 @@ function buildDailyActionReviewConversationContext(params: {
           note_information: params.dispatcherOutput.note_information,
         }
         : null),
-    tone_constraints: outputContext.tone_constraints?.length
-      ? outputContext.tone_constraints
-      : ["short", "non_judgmental", "one_main_question_max"],
+    affect_context: affect,
+    tone_constraints: toneConstraintsForVisible({
+      outputConstraints: outputContext.tone_constraints ?? [],
+      affect,
+    }),
     do_not_say: outputContext.do_not_say?.length ? outputContext.do_not_say : [
       "do not mention dispatcher, reducer, JSON, flow, prompt, or commit",
       "do not propose cards, potions, reminders, plan changes, or coaching",
@@ -768,12 +1097,83 @@ function buildDailyActionReviewConversationContext(params: {
   return base;
 }
 
+function recentCollectedUpdateForVisible(params: {
+  dispatcherOutput?: DailyActionReviewLocalDispatcherOutput | null;
+  targets: DailyActionReviewTarget[];
+}): Record<string, unknown> | null {
+  const updates = Object.entries(params.dispatcherOutput?.item_updates ?? {})
+    .filter(([, update]) =>
+      update?.update_mode === "set" || update?.update_mode === "revise"
+    )
+    .filter(([, update]) =>
+      update?.outcome === "completed" || update?.outcome === "missed"
+    );
+  if (!updates.length) return null;
+  const [occurrenceId, update] = updates[updates.length - 1];
+  const target = params.targets.find((item) =>
+    item.occurrence_id === occurrenceId
+  );
+  return {
+    occurrence_id: occurrenceId,
+    title: target?.title ?? null,
+    outcome: update.outcome,
+    reason_category: update.reason_category ?? null,
+    reason_text: update.reason_text ?? null,
+    transition_hint: update.outcome === "missed"
+      ? "acknowledge_briefly_then_continue_daily"
+      : "continue_daily",
+  };
+}
+
+function buildVisibleCommitSummary(params: {
+  kind: DailyActionReviewVisibleTaskKind;
+  targets: DailyActionReviewTarget[];
+  state: DailyActionReviewState;
+  committedEffects: DailyReviewEffectsResult["committed_effects"];
+}): Record<string, unknown> {
+  const occurrenceIds = new Set<string>();
+  const planItemIds = new Set<string>();
+  for (const effect of params.committedEffects) {
+    const occurrenceId = cleanText(effect.occurrence_id);
+    const planItemId = cleanText(effect.plan_item_id);
+    if (occurrenceId) occurrenceIds.add(occurrenceId);
+    if (planItemId) planItemIds.add(planItemId);
+  }
+  const committedTargets = params.targets.filter((target) =>
+    occurrenceIds.has(target.occurrence_id) ||
+    planItemIds.has(target.plan_item_id)
+  );
+  const committedTargetIds = new Set(
+    committedTargets.map((target) => target.occurrence_id),
+  );
+  for (const occurrenceId of occurrenceIds) {
+    if (occurrenceId) committedTargetIds.add(occurrenceId);
+  }
+  const planIds = new Set(
+    committedTargets
+      .map((target) => cleanText(target.plan_id))
+      .filter(Boolean),
+  );
+  const committedTargetsCount = committedTargetIds.size;
+  return {
+    committed_effects_count: params.committedEffects.length,
+    committed_targets_count: committedTargetsCount,
+    plans_count: planIds.size,
+    is_multi_target_commit: committedTargetsCount > 1 ||
+      params.committedEffects.length > 1,
+    is_final_daily_commit: params.kind === "commit_success" &&
+      params.committedEffects.length > 0 &&
+      params.state.status === "complete",
+  };
+}
+
 export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
   raw: unknown;
   targets: DailyActionReviewTarget[];
+  state?: DailyActionReviewState;
 }): DailyActionReviewLocalDispatcherOutput {
   const root = parseJsonObject(params.raw);
-  const action = flowAction(root.flow_action);
+  let action = flowAction(root.flow_action);
   const targetIds = new Set(
     params.targets.map((target) => target.occurrence_id),
   );
@@ -792,11 +1192,12 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
       ? value as Record<string, unknown>
       : {};
     const mode = cleanText(update.update_mode);
+    const normalizedOutcome = outcome(update.outcome);
     itemUpdates[occurrenceId] = {
       update_mode: mode === "revise" || mode === "clear" || mode === "none"
         ? mode
         : "set",
-      outcome: outcome(update.outcome),
+      outcome: normalizedOutcome,
       reason_category: reasonCategory(update.reason_category),
       reason_text: nullableString(update.reason_text),
       still_relevant: update.still_relevant === true ||
@@ -806,7 +1207,7 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
       evidence_text: nullableString(update.evidence_text),
       matched_user_text: nullableString(update.matched_user_text),
       confidence: confidence(update.confidence),
-      missing_slots: missingSlots(update.missing_slots),
+      missing_slots: missingSlots(update.missing_slots, normalizedOutcome),
     };
   }
   const visible = root.visible_task && typeof root.visible_task === "object"
@@ -820,7 +1221,20 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
     ? root.daily_intent as Record<string, unknown>
     : {};
 
-  const exitMemo = normalizeExitMemo(root.exit_memo, action);
+  const exitMemo = normalizeExitMemo(
+    root.exit_memo,
+    action,
+    params.targets,
+    root.note_information,
+  );
+  const childFlowContext = normalizedDailyChildFlowContext({
+    root,
+    action,
+    exitMemo,
+    targets: params.targets,
+    state: params.state ?? stateFromUnknown(undefined, params.targets),
+    confidence: confidence(root.confidence),
+  });
   const visibleConversationContext = normalizeConversationContext(
     visible.conversation_context,
   );
@@ -840,6 +1254,7 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
       kind: [
           "daily_answer",
           "daily_clarification",
+          "action_question",
           "daily_correction",
           "daily_recap",
           "stop",
@@ -854,6 +1269,9 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
         : "unclear",
       summary: cleanText(dailyIntent.summary),
     },
+    direct_effect_request: normalizeLocalOneShotDirectEffectRequest(
+      root.direct_effect_request,
+    ),
     state_updates: {
       status_hint: [
           "collecting",
@@ -880,7 +1298,6 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
       instruction: cleanText(visible.instruction),
       conversation_context: {
         state_summary: visibleConversationContext.state_summary || "",
-        user_words: visibleConversationContext.user_words ?? [],
         field_or_stage: visibleConversationContext.field_or_stage ?? null,
         known_values: visibleConversationContext.known_values ?? {},
         missing_or_weak_values:
@@ -888,12 +1305,27 @@ export function sanitizeDailyActionReviewLocalDispatcherOutput(params: {
         selected_candidate: visibleConversationContext.selected_candidate ??
           null,
         handoff_data: visibleConversationContext.handoff_data ?? null,
+        affect_context: visibleConversationContext.affect_context ?? {
+          emotional_intensity: "none",
+          fragile_signal: false,
+          suggested_tone: "neutral",
+          evidence: [],
+        },
         tone_constraints: visibleConversationContext.tone_constraints ?? [],
         do_not_say: visibleConversationContext.do_not_say ?? [],
         context_summary: visibleConversationContext.context_summary ?? null,
         evidence_used: visibleConversationContext.evidence_used ?? [],
       },
     },
+    child_flow: action === "handoff_to_child_flow"
+      ? "daily_action_coaching_recommendation_v1"
+      : null,
+    return_to_parent: action === "handoff_to_child_flow"
+      ? returnToDailyAfterCoaching()
+      : null,
+    child_flow_context: action === "handoff_to_child_flow"
+      ? childFlowContext
+      : null,
     note_information: exitMemo.note_information ?? null,
     exit_memo: exitMemo,
     state_change_intent: declaredStateChangeIntent(root.state_change_intent),
@@ -957,6 +1389,8 @@ export function dailyReviewDecisionFromLocalDispatcher(params: {
   const target_occurrence_ids =
     params.output.target_resolution.resolved_occurrence_ids.length > 0
       ? params.output.target_resolution.resolved_occurrence_ids
+      : params.state.next_question_targets.length > 0
+      ? params.state.next_question_targets
       : params.state.current_focus_occurrence_ids;
   const status = statusFromHint(
     params.output.state_updates.status_hint,
@@ -977,10 +1411,6 @@ export function dailyReviewDecisionFromLocalDispatcher(params: {
     should_apply_effects: false,
     stop_reason: params.output.flow_action === "safety_preempt"
       ? "safety"
-      : params.output.flow_action === "user_stopped" ||
-          params.output.flow_action === "cancel_flow" ||
-          params.output.flow_action === "defer_flow"
-      ? "user_stopped"
       : null,
     effect_plan: { allowed: false, effects: [] },
   };
@@ -1010,6 +1440,90 @@ function resultFromState(
   };
 }
 
+function missingOccurrenceIdsForState(
+  state: DailyActionReviewState,
+): string[] {
+  return Object.values(state.items)
+    .filter((item) =>
+      !isAppliedDailyOutcome(item.outcome) || item.missing_slots.length > 0
+    )
+    .map((item) => item.occurrence_id);
+}
+
+function preferredVisibleKindForState(
+  state: DailyActionReviewState,
+): DailyActionReviewVisibleTaskKind | null {
+  const items = Object.values(state.items);
+  if (
+    items.some((item) =>
+      item.missing_slots.includes("outcome") ||
+      item.missing_slots.includes("which_action") ||
+      item.missing_slots.includes("completion_level")
+    )
+  ) return "clarify_outcome";
+  if (
+    items.some((item) =>
+      item.outcome === "missed" && item.missing_slots.includes("reason")
+    )
+  ) return "clarify_reason";
+  if (
+    items.some((item) =>
+      item.outcome === "missed" &&
+      item.missing_slots.includes("still_relevant")
+    )
+  ) return "clarify_still_relevant";
+  return null;
+}
+
+function visibleKindBeforeCommit(params: {
+  dispatcherOutput: DailyActionReviewLocalDispatcherOutput;
+  nextState: DailyActionReviewState;
+}): DailyActionReviewVisibleTaskKind {
+  const missingIds = missingOccurrenceIdsForState(params.nextState);
+  const preferredKind = preferredVisibleKindForState(params.nextState);
+  if (
+    !params.nextState.should_apply_effects &&
+    params.dispatcherOutput.visible_task.kind === "commit_success"
+  ) {
+    params.nextState.next_question_targets = params.nextState
+        .next_question_targets.length
+      ? params.nextState.next_question_targets
+      : missingIds.length
+      ? missingIds
+      : params.nextState.current_focus_occurrence_ids;
+    return preferredKind ?? "clarify_outcome";
+  }
+  if (
+    !params.nextState.should_apply_effects &&
+    params.dispatcherOutput.visible_task.kind.startsWith("clarify_") &&
+    preferredKind
+  ) {
+    return preferredKind;
+  }
+  return params.dispatcherOutput.visible_task.kind;
+}
+
+function childFlowHandoffFromDailyOutput(
+  output: DailyActionReviewLocalDispatcherOutput,
+): LocalChildFlowHandoff | null {
+  if (
+    output.flow_action !== "handoff_to_child_flow" ||
+    output.child_flow !== "daily_action_coaching_recommendation_v1" ||
+    !output.return_to_parent ||
+    !output.child_flow_context
+  ) return null;
+  return {
+    flow_action: "handoff_to_child_flow",
+    child_flow: "daily_action_coaching_recommendation_v1",
+    return_to_parent: {
+      parent_flow_id: "daily_action_review_v1",
+      return_focus: "resume_daily_after_action_coaching",
+      preserve_parent_state: true,
+    },
+    child_flow_context: output.child_flow_context,
+  };
+}
+
 function buildDailyActionReviewDiagnosis(params: {
   dispatcherOutput: DailyActionReviewLocalDispatcherOutput;
   decision: DailyReviewDecision;
@@ -1029,7 +1543,6 @@ function buildDailyActionReviewDiagnosis(params: {
       plan_item_id: target.plan_item_id,
       title: target.title,
     })),
-    constraints: params.state.constraints,
     stabilization_ready: params.state.effect_plan.allowed,
     blocked_effects: params.state.blocked_effects ?? [],
     state_mutation_audit: params.state.state_mutation_audit,
@@ -1040,66 +1553,96 @@ export function dispatcherSystemPrompt(): string {
   return [
     "Tu es le dispatcher local du flow daily_action_review_v1.",
     "Sophia a envoye une question daily sur une ou deux actions ciblees. Le user vient de repondre.",
-    "Le daily collecte une preuve du jour: action faite, faite en partie, ou manquee.",
+    "Le daily collecte une preuve du jour pour chaque target: action faite ou pas faite.",
     "Tu n'es pas le dispatcher global. Tu ne reponds jamais directement au user.",
     "Tu retournes uniquement un JSON conforme au contrat.",
     "",
-    "Actions possibles: answer_review, missing_info, clarify_which_action, clarify_outcome, clarify_completion_level, clarify_reason, clarify_still_relevant, correction, revise, recap_daily_state, repeat_current_question, user_stopped, exit_to_global_dispatcher, cancel_flow, defer_flow, inline_product_help, inline_status_recap, handoff_to_local_flow, safety_preempt.",
+    "Actions possibles: answer_review, missing_info, clarify_which_action, clarify_outcome, clarify_reason, clarify_still_relevant, explain_target, correction, revise, recap_daily_state, clarify_daily_question, exit_to_global_dispatcher, safety_preempt.",
     "",
     "Regles:",
     ...directEffectLocalDispatcherPromptLines(),
+    ...localOneShotDirectEffectPromptLines("le daily"),
     "- Ne fais aucune regex metier et ne decide pas par mot-cle isole.",
     "- Analyse la reponse par rapport aux targets daily.",
+    "- Utilise le titre, la description, le type, le contexte d'action et les formulations proches pour relier semantiquement les mots du user aux targets. Ne te limite pas au titre.",
     "- Le selector a deja choisi les actions. Tu ne changes pas la liste de targets.",
+    "- Chaque target du pending doit finir avec un outcome stabilise: completed si quelque chose a ete fait, missed si rien n'a ete fait.",
+    "- Si active_flow_state.next_question_targets contient exactement une target, et que le user repond a la question courante par fait/pas fait, une raison ou la pertinence, rattache cette reponse a cette target meme si le user ne repete pas son titre. C'est le scope prioritaire de la reponse suivante.",
+    "- Si active_flow_state.next_question_targets contient plusieurs targets et que la reponse courte ne permet pas de savoir laquelle est visee, demande clarify_which_action ou clarify_outcome selon le slot manquant; ne devine pas.",
+    "- Si un meme message contient des preuves distinctes pour plusieurs targets, mets a jour toutes les targets reconnues dans le meme tour. Cette regle vaut pour 1, 2, 3 targets ou plus.",
+    "- Ne demande clarify_which_action que si le meme fragment reste vraiment compatible avec plusieurs targets ou si aucune target ne peut etre reliee avec confiance. Si le mapping est clair par titre, description, synonyme, paraphrase ou intention d'action, resous la target.",
+    "- Si le user donne une reponse exploitable pour une target presente dans active_flow_state.items ou db_context_pack.targets mais hors current_focus_occurrence_ids, mets aussi cette target a jour au lieu d'ignorer l'evidence.",
+    "- Si une target presente dans active_flow_state.items ou db_context_pack.targets n'a jamais ete demandee ou n'a pas d'outcome, ne declare pas le daily complete: demande son outcome.",
+    "- Si current_focus_occurrence_ids est complet mais remaining_occurrence_ids n'est pas vide, utilise clarify_outcome pour la prochaine target restante. Ne retourne pas commit_success.",
     "- Si deux targets sont presentes et que le user dit seulement qu'il l'a fait, ne devine pas: clarify_which_action.",
     "- Si le user dit qu'il a fait les deux, mets a jour les deux targets.",
-    "- Pour completed, reason_category peut etre none.",
-    "- Pour partial, il faut une evidence de ce qui a ete fait et une raison si necessaire pour comprendre le partiel.",
-    "- Pour missed, il faut une raison et savoir si l'action reste pertinente.",
+    "- Si le user indique qu'il a fait seulement une partie concrete d'une target, classe cette target en completed: le daily retient qu'il y a eu action.",
+    "- Si le user demande ce que veut dire une target daily, pourquoi elle est la, ou a quoi correspond une action ciblee, reste dans daily avec flow_action=explain_target et visible_task.kind=explain_target. Explique uniquement depuis les targets, le contexte filtre et l'intelligence d'action disponible; ne mute rien; repose ensuite la question faite ou pas faite.",
+    "- Pour completed, omets reason_category, reason_text et still_relevant sauf si le user donne spontanement une information utile.",
+    "- Pour missed, il faut une raison, une reason_category canonique et savoir si l'action reste pertinente.",
+    "- Pour missed, si une raison est connue, reason_text et reason_category doivent etre renseignes ensemble. N'envoie pas seulement reason_text.",
+    "- Mapping reason_category: fatigue/epuise/HS => fatigue; oubli/zappe/pas pense => forgot; imprevu/travail/famille/temps/rdv => external; trop dur/difficile/lourd/impossible => too_hard; stress/angoisse/honte/peur/envie trop forte/craquage/rechute/joint/fume => emotional; plus utile/pas pertinent/pas besoin => not_relevant; raison claire mais hors mapping => other; raison trop floue => unclear.",
     "- Ne propose pas de solution, carte, potion ou ajustement pendant la collecte.",
     "- Si le user veut arreter/refuser le daily: exit_to_global_dispatcher avec note_information vers global avant toute reprise globale.",
-    "- Si le user change clairement de sujet sans dispatcher local cible: exit_to_global_dispatcher avec note_information.",
-    "- Si le user demande une carte, potion, preference ou autre flow local clair: handoff_to_local_flow avec note_information.",
-    "- Si le user pose une question produit ou status temporaire: inline_product_help ou inline_status_recap avec note_information.",
+    "- Si le user change clairement de sujet, demande une carte, potion, preference, status, ajustement ou autre capacite non daily: exit_to_global_dispatcher avec note_information target_dispatcher=global.",
+    "- Si le user repond encore au daily, reste dans daily.",
+    "- Si le user donne seulement une raison d'echec, une difficulte, un oubli, un blocage ou une action trop dure, reste dans daily: collecte missed, reason_category, reason_text et still_relevant. Ne bridge pas sans demande d'aide explicite.",
+    "- Si le user demande explicitement de l'aide, une solution, un levier Sophia ou quoi faire pour reussir une action daily identifiable, utilise flow_action=handoff_to_child_flow, child_flow=daily_action_coaching_recommendation_v1, return_to_parent daily, et child_flow_context au contrat daily_action_coaching.",
+    "- Le child_flow_context daily_action_coaching contient source_flow_id=daily_action_review_v1, parent_flow_id=daily_action_review_v1, return_focus=resume_daily_after_action_coaching, action_context, help_request_summary et affect_context si utile.",
+    "- action_context doit venir de la target daily identifiee: occurrence_id, plan_item_id, plan_id si disponible, title, description si disponible, action_type, outcome si deja connu, reason_category et reason_text si deja connus. N'invente jamais d'id.",
+    "- Si le user demande de l'aide mais que l'action daily ciblee est ambigue, reste dans daily avec clarify_which_action; ne lance pas de child flow ambigu.",
+    "- Si le user pose une question produit explicite sur Sophia ou une fonctionnalite: exit_to_global_dispatcher avec note_information target_dispatcher=global et handoff_hint_for_global_dispatcher.likely_intent=product_help. Le global decidera product_help; le daily ne lance aucun sous-flow produit.",
     "- Si safety est present: safety_preempt avec note_information.target_dispatcher=safety_crisis.",
     "- Ne dis jamais que quelque chose est note ou enregistre.",
     "- Le commit sera decide uniquement par le reducer/executor.",
     "- visible_task.conversation_context doit contenir uniquement le contexte filtre utile au prompt visible, jamais un dump DB ou memoire brute.",
-    "- note_information est obligatoire pour exit_to_global_dispatcher, handoff_to_local_flow, inline_product_help, inline_status_recap et safety_preempt. Garde la structure simplifiee: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. user_words contient 1 a 3 fragments du message courant. structured_context est succinct et non vide avec etat daily utile, commits deja faits ou non, contraintes, incertitudes et recommended_next_focus. Ne mets pas source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou no_chat_mutation dans la note.",
+    "- Si le message montre une fragilite emotionnelle non safety ou une charge forte, remplis visible_task.conversation_context.affect_context avec emotional_intensity, fragile_signal, suggested_tone et evidence; ajoute des tone_constraints comme gentle, low_pressure ou emotionally_safe. Si safety, utilise safety_preempt.",
+    "- note_information est obligatoire pour exit_to_global_dispatcher et safety_preempt. Garde la structure simplifiee: source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, structured_context, confidence si utile. Ne fournis pas user_words. structured_context est succinct et non vide avec etat daily utile, commits deja faits ou non, incertitudes et recommended_next_focus. Ne mets pas constraints, source_flow_presentation, source_flow_state_summary, target_local_dispatcher_hint ou risk_score dans la note.",
     "",
     "Field Completion Rules:",
-    "- flow_action: decision principale du tour courant. Elle doit refleter le message actuel, pas seulement l'etat precedent. Utilise answer_review pour une reponse daily exploitable, les clarify_* pour les slots daily manquants, recap_daily_state pour un recap du daily courant, repeat_current_question pour redire la question, exit_to_global_dispatcher pour arret du daily ou nouveau sujet global clair, handoff_to_local_flow pour autre flow local clair, inline_product_help/inline_status_recap pour question temporaire produit/status, safety_preempt pour safety.",
+    "- flow_action: decision principale du tour courant. Elle doit refleter le message actuel, pas seulement l'etat precedent. Utilise answer_review pour une reponse daily exploitable, les clarify_* pour les slots daily manquants, explain_target pour expliquer une action ciblee sans mutation, recap_daily_state pour un recap du daily courant, clarify_daily_question pour clarifier ou reformuler la question daily courante, handoff_to_child_flow pour une demande explicite d'aide Sophia sur une action daily, exit_to_global_dispatcher pour arret du daily, nouveau sujet global clair ou question produit explicite, safety_preempt pour safety.",
     "- confidence: high si l'intention et les targets sont claires; medium si probable mais incomplete; low si clarification ou prudence necessaire. Ne gonfle pas la confiance pour masquer une ambiguite.",
-    "- risk_score: score de risque utile au flow. 0 si pas de risque. Ne fabrique pas de safety; si le message contient un vrai signal safety, utilise safety_preempt et une note_information vers safety_crisis.",
-    "- target_resolution: decrit uniquement quelles occurrences daily le message permet de relier. resolved_occurrence_ids contient seulement des occurrence_id des targets. ambiguous=true quand le user parle d'une action sans dire laquelle. why explique le raisonnement semantique court.",
-    "- item_updates: etat metier local propose au reducer, par occurrence_id connu seulement. Mets update_mode=none ou laisse l'objet absent si aucune valeur metier n'est stabilisee. Ne transforme jamais une hypothese en fait. Pour partial/missed, renseigne les missing_slots restants au lieu d'inventer une raison ou un niveau.",
-    "- item_updates.outcome: completed, partial ou missed seulement si le message le supporte. unclear ou null si le slot outcome reste ouvert.",
-    "- item_updates.reason_category/reason_text: none/null pour completed sauf si le user donne spontanement un contexte utile; pour partial ou missed, renseigne la raison seulement si elle est dite ou clairement proche, sinon missing_slots inclut reason.",
-    "- item_updates.still_relevant: true/false seulement si le user le dit ou si la pertinence est evidente dans son message; unknown sinon, surtout pour missed.",
-    "- item_updates.evidence_text/matched_user_text: evidence courte tiree des mots du user. Pas de pseudo-preuves, pas de resume invente.",
-    "- daily_intent: classification locale du message. daily_answer/daily_clarification/daily_correction/daily_recap restent dans le flow. stop reste local. off_topic ou explicit_tool_request doit mener a exit/handoff/inline selon le contrat. safety doit mener a safety_preempt.",
-    "- state_updates: status_hint aide le reducer. collecting si le flow continue, needs_clarification si un slot manque, complete si les updates suffisent au commit, stopped si arret local, blocked si safety ou transition bloque le daily. turn_count_increment vaut normalement 1; close_after_visible=true seulement pour stop/cancel/defer local.",
-    "- visible_task.kind: stage visible exact. Evite un stage generique si un stage precis existe. Pour stop/cancel/defer utilise stop_close. Pour exit ou handoff utilise exit_or_cancel. Pour safety utilise safety. Pour une reponse complete, le reducer/executor peut finir; ne promets pas toi-meme un commit visible.",
-    "- visible_task.instruction: consigne courte pour le prompt visible stage-specific; jamais une reponse visible complete.",
-    "- visible_task.conversation_context: seul contexte que l'agent visible pourra utiliser. Inclure state_summary, user_words, field_or_stage, known_values, missing_or_weak_values, selected_candidate, tone_constraints, do_not_say et evidence_used utiles. Ne jamais y mettre DB brute, memoire brute, note_information brute ou decision a refaire.",
-    "- note_information: null seulement pour continuation daily sans changement de dispatcher. Obligatoire pour exit_to_global_dispatcher, handoff_to_local_flow, inline_product_help, inline_status_recap et safety_preempt. Elle est consommee par le dispatcher cible et ne doit jamais etre un message visible. Elle doit porter le sens du handoff, pas des champs runtime legacy.",
-    "- exit_memo: needed=false pour continuation daily, user_stopped, cancel_flow et defer_flow. needed=true pour exit/handoff/inline/safety. Remplis reason, user_intent_summary, local_flow_context et handoff_hint_for_global_dispatcher avec l'etat daily acquis, les slots non resolus et les contraintes no-chat-mutation.",
+    "- risk_score: optionnel. Omettre quand il vaut 0. Ne le renseigne que pour safety ou fragilite utile au routing/ton. Ne fabrique pas de safety; si le message contient un vrai signal safety, utilise safety_preempt et une note_information vers safety_crisis.",
+    "- target_resolution: decrit uniquement quelles occurrences daily le message permet de relier. resolved_occurrence_ids contient seulement des occurrence_id des targets. ambiguous=true quand le user parle d'une action sans dire laquelle. why est optionnel et reserve au debug/trace.",
+    "- item_updates: etat metier local propose au reducer, par occurrence_id connu seulement. Mets update_mode=none ou laisse l'objet absent si aucune valeur metier n'est stabilisee. Ne transforme jamais une hypothese en fait. Pour missed, renseigne les champs necessaires et les missing_slots restants au lieu d'inventer une raison.",
+    "- item_updates.outcome: completed ou missed seulement si le message le supporte. unclear ou null si le slot outcome reste ouvert.",
+    "- item_updates.reason_category/reason_text: optionnels pour completed; pour missed, si la raison est dite ou clairement proche, renseigne reason_text et reason_category avec une categorie canonique; sinon missing_slots inclut reason.",
+    "- item_updates.still_relevant: optionnel. Utile surtout pour missed; true/false seulement si le user le dit ou si la pertinence est evidente dans son message.",
+    "- item_updates.missing_slots: optionnel quand vide; utile seulement pour signaler outcome, reason, still_relevant ou which_action manquant.",
+    "- item_updates.evidence_text: evidence courte tiree des mots du user. matched_user_text est optionnel et reserve a l'audit fin. Pas de pseudo-preuves, pas de resume invente.",
+    "- daily_intent: kind est utile pour classer localement le message. summary est optionnel/debug et ne doit pas repeter flow_action ou evidence.",
+    "- direct_effect_request: present seulement si le user demande explicitement un rappel ponctuel pendant le daily. Pour un rappel recurrent ou une demande produit/outillage non ponctuelle, sors via exit_to_global_dispatcher. Ce champ ne permet jamais au visible de confirmer un rappel avant commit runtime.",
+    "- direct_effect_request est independant de flow_action: si le meme message remplit les slots daily et demande explicitement un rappel ponctuel, retourne flow_action=answer_review avec item_updates daily ET direct_effect_request complet. Ne laisse jamais commit_success, answer_review ou clarify_* absorber ou faire disparaitre le rappel ponctuel.",
+    "- direct_effect_request est aussi valable quand le message ne repond pas encore au daily: si le user demande seulement un rappel ponctuel pendant le pending daily, expose direct_effect_request complet et continue le daily avec le visible_task de clarification adapte.",
+    "- state_updates: optionnel. status_hint peut aider mais le reducer derive l'etat depuis les slots et la coverage. Ne renseigne pas turn_count_increment: c'est runtime-owned. close_after_visible doit etre absent sauf si true.",
+    "- visible_task.kind: stage visible exact uniquement si daily continue ou si commit_success est vise apres commit runtime. Kinds visibles autorises: clarify_which_action, clarify_outcome, clarify_reason, clarify_still_relevant, explain_target, recap_daily_state, clarify_daily_question, commit_success. Pas de visible_task daily pour stop, report, exit, handoff, safety ou incident commit.",
+    "- visible_task.instruction: optionnel; a eviter sauf si le stage a besoin d'une consigne non derivable par le runtime.",
+    "- visible_task.conversation_context: sparse. Inclure seulement tone_constraints, do_not_say, affect_context et evidence_used quand ils ajoutent de l'information utile. Le runtime construit state_summary, field_or_stage, known_values, selected_candidate, handoff_data et context_summary depuis l'etat valide. Ne jamais y mettre user_words, constraints, DB brute, memoire brute, note_information brute ou decision a refaire.",
+    "- child_flow/return_to_parent/child_flow_context: presents uniquement avec flow_action=handoff_to_child_flow. child_flow=daily_action_coaching_recommendation_v1. return_to_parent.parent_flow_id=daily_action_review_v1, return_focus=resume_daily_after_action_coaching, preserve_parent_state=true. child_flow_context suit exactement le contrat daily_action_coaching.",
+    "- note_information: absent pour continuation daily sans changement de dispatcher et pour handoff_to_child_flow. Obligatoire uniquement pour exit_to_global_dispatcher et safety_preempt. Elle est consommee par le dispatcher cible et ne doit jamais etre un message visible. Elle doit porter le sens du handoff, pas des champs runtime historiques.",
+    "- exit_memo: absent pour continuation daily normale et commit_success local. Obligatoire seulement pour exit_to_global_dispatcher et safety_preempt. Ne retourne jamais handoff_hint_for_global_dispatcher quand il n'y a pas de handoff.",
     "- evidence: indices semantiques reellement utilises pour la decision. Court, lie aux mots du user ou a l'etat daily. Pas de pseudo-preuve.",
     "",
     "Transition rules:",
-    "- exit_to_global_dispatcher: le user veut arreter le daily ou apporte un nouveau sujet clair. note_information obligatoire vers global avant toute reprise globale, visible_task.kind=exit_or_cancel.",
-    "- user_stopped/cancel_flow/defer_flow: issue locale daily uniquement si le contrat produit explicitement une continuation locale non exit; ne l'utilise pas pour arreter le flow actif.",
-    "- exit_to_global_dispatcher: le user change clairement de sujet vers coaching general ou demande non locale. note_information obligatoire, target_dispatcher=global.",
+    "- exit_to_global_dispatcher: le user veut arreter le daily, refuse la collecte, reporte, ou apporte un nouveau sujet clair. note_information obligatoire vers global avant toute reprise globale. Le daily ne produit pas de message visible dans ce cas.",
+    "- handoff_to_child_flow: le user demande explicitement une aide/recommandation Sophia pour reussir une action daily. Ne passe jamais par exit_to_global_dispatcher pour ce cas.",
+    "- exit_to_global_dispatcher: le user change clairement de sujet, demande non daily ou pose une question produit/status/preference hors daily. note_information obligatoire vers global sauf safety_crisis.",
     "- safety_preempt: safety prioritaire. note_information obligatoire, target_dispatcher=safety_crisis, aucune continuation daily.",
-    "- handoff_to_local_flow: seulement si le message cible clairement un flow local autorise par ce contrat: prepare_attack_card, prepare_defense_card, select_state_potion ou update_coach_preferences. note_information obligatoire.",
-    "- inline_product_help/inline_status_recap: seulement pour une question produit/status temporaire; note_information obligatoire et le daily ne doit pas perdre son etat.",
+    "- Les demandes de carte, potion, preference, status, ajustement de plan ou rappel recurrent sortent vers global sauf si le message demande explicitement le bon levier Sophia pour une action daily, auquel cas utilise handoff_to_child_flow vers daily_action_coaching_recommendation_v1.",
     "- Anti-faux-positif exit: si le user repond encore au daily, meme avec hesitation ou nuance, reste dans le daily et clarifie au lieu de sortir.",
     "",
     "Exemples JSON non visibles (decision structuree seulement):",
-    '{"flow_action":"answer_review","confidence":"high","risk_score":0,"target_resolution":{"resolved_occurrence_ids":["occ-1"],"ambiguous":false,"why":"Single target and user reports doing it."},"item_updates":{"occ-1":{"update_mode":"set","outcome":"completed","reason_category":"none","reason_text":null,"still_relevant":true,"evidence_text":"je l ai fait 20 minutes","matched_user_text":"Oui, je l ai fait 20 minutes.","confidence":"high","missing_slots":[]}},"daily_intent":{"kind":"daily_answer","summary":"User completed the selected action."},"state_updates":{"status_hint":"complete","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"commit_success","instruction":"Let reducer/executor handle commit before visible confirmation.","conversation_context":{"state_summary":"Selected action appears completed.","user_words":["Oui, je l ai fait 20 minutes."],"field_or_stage":"commit_success","known_values":{"occurrence_id":"occ-1","outcome":"completed"},"missing_or_weak_values":[],"selected_candidate":{"occurrence_id":"occ-1"},"handoff_data":null,"tone_constraints":["short"],"do_not_say":["noted before commit"],"context_summary":"Daily answer complete for one target.","evidence_used":["je l ai fait 20 minutes"]}},"note_information":null,"exit_memo":{"needed":false,"reason":"none","user_intent_summary":null,"local_flow_context":{"skill_id":"daily_action_review_v1","targets":[],"current_daily_state":"complete","collected_updates_summary":"completed occ-1","missing_slots":[],"committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":null,"constraints":[]}},"evidence":["single target completed"]}',
-    '{"flow_action":"safety_preempt","confidence":"high","risk_score":8,"target_resolution":{"resolved_occurrence_ids":[],"ambiguous":false,"why":"Safety concern overrides daily collection."},"item_updates":{},"daily_intent":{"kind":"safety","summary":"User signals immediate self-harm risk."},"state_updates":{"status_hint":"blocked","turn_count_increment":1,"close_after_visible":true},"visible_task":{"kind":"safety","instruction":"Do not continue daily; hand off to safety.","conversation_context":{"state_summary":"Safety preempts daily review.","user_words":["je risque de me faire du mal"],"field_or_stage":"safety","known_values":{},"missing_or_weak_values":[],"selected_candidate":null,"handoff_data":{"target_dispatcher":"safety_crisis"},"tone_constraints":["calm","direct"],"do_not_say":["daily recap","commit"],"context_summary":"Daily paused because safety owns the next turn.","evidence_used":["je risque de me faire du mal"]}},"note_information":{"source_flow_id":"daily_action_review_v1","handoff_reason":"safety","target_dispatcher":"safety_crisis","handoff_context_for_next_dispatcher":"Safety owns next turn; daily review did not commit anything.","user_words":["je risque de me faire du mal"],"structured_context":{"source_flow":"daily_action_review_v1","user_message_summary":"User signals immediate self-harm risk.","active_flow_summary":"Daily interrupted by safety signal before commit.","collected_state":{"committed_effects":[]},"unresolved_questions":[],"recommended_next_focus":"safety_crisis"},"confidence":"high"},"exit_memo":{"needed":true,"reason":"safety","user_intent_summary":"User signals immediate self-harm risk.","local_flow_context":{"skill_id":"daily_action_review_v1","targets":[],"current_daily_state":"blocked","collected_updates_summary":null,"missing_slots":[],"committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":"Safety dispatcher must own the next turn.","constraints":["Daily has not mutated anything unless committed_effects is non-empty."]}},"evidence":["self-harm risk words"]}',
+    '{"flow_action":"answer_review","confidence":"high","target_resolution":{"resolved_occurrence_ids":["occ-1"],"ambiguous":false},"item_updates":{"occ-1":{"update_mode":"set","outcome":"completed","evidence_text":"je l ai fait 20 minutes","confidence":"high"}},"daily_intent":{"kind":"daily_answer"},"visible_task":{"kind":"commit_success","conversation_context":{"tone_constraints":["short"],"do_not_say":["dire que c est enregistre avant le commit runtime"],"evidence_used":["je l ai fait 20 minutes"]}},"evidence":["single target completed"]}',
+    '{"flow_action":"answer_review","confidence":"high","target_resolution":{"resolved_occurrence_ids":["occ-1","occ-2"],"ambiguous":false},"item_updates":{"occ-1":{"update_mode":"set","outcome":"completed","evidence_text":"le bloc sans telephone est fait","confidence":"high"},"occ-2":{"update_mode":"set","outcome":"completed","evidence_text":"le rangement est a moitie fait","reason_text":"disperse","reason_category":"other","confidence":"medium"}},"daily_intent":{"kind":"daily_answer","summary":"Le user donne son bilan daily et demande un rappel ponctuel."},"direct_effect_request":{"requested":true,"effect_type":"create_one_shot_reminder","explicitness":"explicit","target_status":"identified","confidence_band":"high","payload_hint":{"raw_text":"Rappelle-moi dans 37 minutes de finir les dix minutes de rangement","when_hint":"dans 37 minutes","UTC_time":"2026-06-26T13:10:00.000Z","local_label":"dans 37 minutes","instruction_hint":"finir les dix minutes de rangement"},"reason":"demande explicite de rappel ponctuel avec delai exploitable"},"visible_task":{"kind":"commit_success","conversation_context":{"tone_constraints":["short"],"evidence_used":["bilan daily","rappel ponctuel explicite"]}},"evidence":["bloc fait","rangement a moitie","Rappelle-moi dans 37 minutes"]}',
+    '{"flow_action":"clarify_outcome","confidence":"medium","target_resolution":{"resolved_occurrence_ids":[],"ambiguous":false},"item_updates":{},"daily_intent":{"kind":"daily_clarification","summary":"Le user demande un rappel avant de repondre au bilan."},"direct_effect_request":{"requested":true,"effect_type":"create_one_shot_reminder","explicitness":"explicit","target_status":"identified","confidence_band":"high","payload_hint":{"raw_text":"rappelle-moi dans 42 minutes de finir le rangement","when_hint":"dans 42 minutes","UTC_time":"2026-06-26T13:20:00.000Z","local_label":"dans 42 minutes","instruction_hint":"finir le rangement"},"reason":"demande explicite de rappel ponctuel pendant le daily"},"visible_task":{"kind":"clarify_outcome","conversation_context":{"tone_constraints":["short"],"evidence_used":["rappel ponctuel explicite","outcome daily encore manquant"]}},"evidence":["rappelle-moi dans 42 minutes","avant de repondre au bilan"]}',
+    '{"flow_action":"clarify_outcome","confidence":"medium","target_resolution":{"resolved_occurrence_ids":["occ-2"],"ambiguous":false},"item_updates":{"occ-2":{"update_mode":"none","outcome":"unclear","confidence":"medium","missing_slots":["outcome"]}},"daily_intent":{"kind":"daily_clarification"},"visible_task":{"kind":"clarify_outcome","conversation_context":{"tone_constraints":["short","low_pressure"]}},"evidence":["outcome missing for occ-2"]}',
+    '{"flow_action":"safety_preempt","confidence":"high","risk_score":8,"target_resolution":{"resolved_occurrence_ids":[],"ambiguous":false,"why":"Safety concern overrides daily collection."},"item_updates":{},"daily_intent":{"kind":"safety"},"state_updates":{"status_hint":"blocked","close_after_visible":true},"note_information":{"source_flow_id":"daily_action_review_v1","handoff_reason":"safety","target_dispatcher":"safety_crisis","handoff_context_for_next_dispatcher":"Safety owns next turn; daily review did not commit anything.","structured_context":{"source_flow_id":"daily_action_review_v1","recommended_next_focus":"safety_crisis"},"confidence":"high"},"exit_memo":{"needed":true,"reason":"safety","user_intent_summary":"User signals immediate self-harm risk.","local_flow_context":{"skill_id":"daily_action_review_v1","current_daily_state":"blocked","committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":"Safety dispatcher must own the next turn."}},"evidence":["self-harm risk words"]}',
     "",
-    'Retourne exactement ce JSON: {"flow_action":"answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|correction|revise|recap_daily_state|repeat_current_question|user_stopped|exit_to_global_dispatcher|cancel_flow|defer_flow|inline_product_help|inline_status_recap|handoff_to_local_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"target_resolution":{"resolved_occurrence_ids":[],"ambiguous":false,"why":"string"},"item_updates":{"occurrence_id":{"update_mode":"set|revise|clear|none","outcome":"completed|partial|missed|unclear|null","reason_category":"fatigue|forgot|external|too_hard|not_relevant|emotional|no_need|other|unclear|none|null","reason_text":"string|null","still_relevant":true,"evidence_text":"string|null","matched_user_text":"string|null","confidence":"high|medium|low","missing_slots":["outcome|reason|still_relevant|which_action|completion_level"]}},"daily_intent":{"kind":"daily_answer|daily_clarification|daily_correction|daily_recap|stop|off_topic|explicit_tool_request|safety|unclear","summary":"string"},"state_updates":{"status_hint":"collecting|needs_clarification|complete|stopped|blocked","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"clarify_which_action|clarify_outcome|clarify_completion_level|clarify_reason|clarify_still_relevant|recap_daily_state|repeat_question|stop_close|commit_success|commit_failed|exit_or_cancel|safety","instruction":"string","conversation_context":{"state_summary":"string","user_words":[],"field_or_stage":"string|null","known_values":{},"missing_or_weak_values":[],"selected_candidate":{},"handoff_data":{},"tone_constraints":[],"do_not_say":[],"context_summary":"string|null","evidence_used":[]}},"note_information":{"source_flow_id":"daily_action_review_v1","handoff_reason":"topic_change|safety|inline_tool|bridge|flow_interruption|explicit_user_request","target_dispatcher":"global|safety_crisis|product_help|status_recap|prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|other_local","handoff_context_for_next_dispatcher":"string","user_words":[],"structured_context":{},"confidence":"low|medium|high"},"exit_memo":{"needed":true,"reason":"topic_change|explicit_tool_request|product_help|status_question|preference_update|normal_coaching|safety|unknown|none","user_intent_summary":"string|null","local_flow_context":{"skill_id":"daily_action_review_v1","targets":[],"current_daily_state":"string|null","collected_updates_summary":"string|null","missing_slots":[],"committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|product_help|normal_coaching|unknown","why":"string|null","constraints":["Do not mark daily as completed unless daily_action_review later commits an entry.","Daily has not mutated anything unless committed_effects is non-empty."]}},"evidence":["string"]}',
+    JSON.stringify({
+      expected_direct_effect_request_shape:
+        LOCAL_ONE_SHOT_DIRECT_EFFECT_EXPECTED_JSON_SHAPE,
+    }),
+    'Schema minimal attendu: {"flow_action":"answer_review|missing_info|clarify_which_action|clarify_outcome|clarify_reason|clarify_still_relevant|explain_target|correction|revise|recap_daily_state|clarify_daily_question|handoff_to_child_flow|exit_to_global_dispatcher|safety_preempt","confidence":"low|medium|high","target_resolution":{"resolved_occurrence_ids":[],"ambiguous":false,"why":"string optionnel"},"item_updates":{"occurrence_id":{"update_mode":"set|revise|clear|none","outcome":"completed|missed|unclear|null","evidence_text":"string optionnel","confidence":"high|medium|low","reason_category":"categorie canonique requise pour missed quand reason_text est connue","reason_text":"raison user requise pour missed quand elle est connue","still_relevant":"true|false seulement si utile","missing_slots":["outcome|reason|still_relevant|which_action"]}},"daily_intent":{"kind":"daily_answer|daily_clarification|action_question|daily_correction|daily_recap|stop|off_topic|explicit_tool_request|safety|unclear","summary":"optionnel"},"direct_effect_request":{"requested":false,"effect_type":"create_one_shot_reminder|null","explicitness":"explicit|implied|weak|none","target_status":"identified|ambiguous|missing|none","confidence_band":"low|medium|high","payload_hint":{"raw_text":"string|null","when_hint":"string|null","UTC_time":"string|null","local_label":"string|null","instruction_hint":"string|null"},"reason":"string|null"},"child_flow":"daily_action_coaching_recommendation_v1|null","return_to_parent":{"parent_flow_id":"daily_action_review_v1","return_focus":"resume_daily_after_action_coaching","preserve_parent_state":true},"child_flow_context":{"source_flow_id":"daily_action_review_v1","parent_flow_id":"daily_action_review_v1","return_focus":"resume_daily_after_action_coaching","action_context":{"occurrence_id":"string","plan_item_id":"string","plan_id":"string|null","title":"string","description":"string|null","action_type":"habit|mission|clarification|other|null","outcome":"missed|completed|null","reason_category":"string|null","reason_text":"string|null"},"help_request_summary":"string","affect_context":{}},"visible_task":{"kind":"clarify_which_action|clarify_outcome|clarify_reason|clarify_still_relevant|explain_target|recap_daily_state|clarify_daily_question|commit_success","conversation_context":{"tone_constraints":[],"do_not_say":[],"affect_context":"optionnel","evidence_used":[]}},"evidence":["string"]}. Omettre visible_task pour handoff_to_child_flow, exit_to_global_dispatcher et safety_preempt. Ajoute direct_effect_request seulement si rappel ponctuel detecte. Ajoute risk_score seulement si non nul. Ajoute state_updates seulement si indispensable, sans turn_count_increment. Ajoute note_information et exit_memo seulement pour exit_to_global_dispatcher ou safety_preempt.',
   ].join("\n");
 }
 
@@ -1117,6 +1660,12 @@ function dispatcherUserPrompt(params: {
     params.targets,
     params.state,
   );
+  const focusAffect = affectContextFromSignals({
+    outputContext: {},
+    dispatcherOutput: null,
+    state: params.state,
+    selectedTargets: focusTargets,
+  });
   return JSON.stringify({
     current_user_message: params.userMessage,
     recent_messages: (params.recentMessages ?? []).slice(-8),
@@ -1126,7 +1675,7 @@ function dispatcherUserPrompt(params: {
       source: "daily_action_review.pending_payload",
       freshness: "current_pending",
       confidence: "high",
-      targets: focusTargets,
+      targets: params.targets.map(targetSummary),
     },
     micro_memory_context: params.microMemoryContext ?? {
       items: [],
@@ -1142,9 +1691,16 @@ function dispatcherUserPrompt(params: {
       },
       null,
       dailyTargetsToActiveActionCandidates(focusTargets),
+      directEffectTimeContextFromUnknown(params.platformContext),
     ),
-    risk_context: {},
-    available_inline_tools: ["product_help", "status_recap"],
+    risk_context: {
+      source: "daily_action_review_action_intelligence",
+      affect_context: focusAffect,
+      safety_memory_loaded: false,
+      note:
+        "Use as tone and routing context only. Safety still requires explicit current-message safety evidence.",
+    },
+    available_inline_tools: [],
     parent_flow_context: null,
     timezone: String((params.dbContextPack as any)?.timezone ?? ""),
     channel: String((params.platformContext as any)?.channel ?? "whatsapp"),
@@ -1209,89 +1765,26 @@ export async function runDailyActionReviewLocalDispatcher(params: {
   return sanitizeDailyActionReviewLocalDispatcherOutput({
     raw,
     targets: params.targets,
+    state,
   });
 }
 
-function visiblePromptLines(kind: DailyActionReviewVisibleTaskKind): string {
-  const common = [
-    "Tu ecris un message visible Sophia pour daily_action_review_v1.",
-    "Tu recois uniquement visible_task.conversation_context.",
-    "Tu n'as pas le droit de remplir un champ metier, choisir une route, appeler un outil, lire la DB brute ou lire la memoire brute.",
-    "Utilise seulement conversation_context pour formuler le message.",
-    "Retourne uniquement le message visible, sans JSON, sans guillemets englobants.",
-    "Une question principale max quand tu poses une question.",
-    "Ne propose pas de solution, carte, potion, rappel ou ajustement.",
-    "Ne culpabilise pas.",
-    "Ne parle pas de dispatcher, reducer, commit, JSON, prompt ou flow.",
-  ];
-  const byKind: Record<DailyActionReviewVisibleTaskKind, string[]> = {
-    clarify_which_action: [
-      "Stage: clarify_which_action.",
-      "La reponse est ambigue avec plusieurs actions. Demande de quelle action le user parle.",
-      "Cite seulement les targets presentes dans conversation_context.known_values.targets.",
-      "Ne marque rien comme fait.",
-    ],
-    clarify_outcome: [
-      "Stage: clarify_outcome.",
-      "On ne sait pas si l'action est faite, faite en partie, ou manquee.",
-      "Clarifie seulement l'outcome. Ne demande pas encore une raison.",
-    ],
-    clarify_completion_level: [
-      "Stage: clarify_completion_level.",
-      "Le user indique du partiel mais pas assez ce qui a ete fait.",
-      "Demande ce qui a ete fait ou quel niveau de completion est juste, factuellement.",
-    ],
-    clarify_reason: [
-      "Stage: clarify_reason.",
-      "L'action est faite en partie ou manquee, mais la raison manque ou reste trop floue.",
-      "Demande une raison utile pour le bilan, sans jugement et sans explication longue.",
-    ],
-    clarify_still_relevant: [
-      "Stage: clarify_still_relevant.",
-      "Une action est manquee et il faut savoir si elle reste pertinente.",
-      "Demande si elle reste pertinente. Ne propose pas de report ou de modification de plan.",
-    ],
-    recap_daily_state: [
-      "Stage: recap_daily_state.",
-      "Le user demande le recap de ce qui est compris dans ce daily.",
-      "Ne fais pas un status DB global. Ne dis pas enregistre si conversation_context ne contient pas committed_effects.",
-    ],
-    repeat_question: [
-      "Stage: repeat_question.",
-      "Le user demande de redire la question daily courante.",
-      "Redonne la question depuis conversation_context.known_values.current_daily_question, simplement, sans coaching.",
-    ],
-    stop_close: [
-      "Stage: stop_close.",
-      "Le user demande d'arreter le daily ou refuse la collecte.",
-      "Ferme sans commit, sans question finale, sans proposer autre chose. Reponse courte.",
-    ],
-    commit_success: [
-      "Stage: commit_success.",
-      "Le writer DB a produit des committed_effects dans conversation_context.known_values.committed_effects.",
-      "Tu peux dire que c'est note seulement pour ces effets. Reste court.",
-    ],
-    commit_failed: [
-      "Stage: commit_failed.",
-      "Le writer DB n'a pas tout commit.",
-      "Ne dis pas que tout est note. Si une partie est commit, dis-le prudemment. Reste clair et court.",
-    ],
-    exit_or_cancel: [
-      "Stage: exit_or_cancel.",
-      "Le runtime ferme localement sans seconde passe globale.",
-      "Ferme proprement sans commit et sans proposer autre chose.",
-    ],
-    safety: [
-      "Stage: safety_transition.",
-      "Signal safety. Ne continue pas le daily.",
-      "Reste minimal, sans conseil clinique. N'essaie pas de resoudre le daily.",
-    ],
-  };
-  return [...common, ...byKind[kind]].join("\n");
-}
-
-function visibleSystemPrompt(kind: DailyActionReviewVisibleTaskKind): string {
-  return visiblePromptLines(kind);
+function recentUserMessagesForVisible(
+  recentMessages?: Array<
+    { role: string; content: string; created_at?: string }
+  >,
+) {
+  return (recentMessages ?? [])
+    .filter((message) => cleanText(message.role).toLowerCase() === "user")
+    .map((message) => ({
+      role: "user",
+      content: cleanText(message.content),
+      ...(cleanText(message.created_at)
+        ? { created_at: cleanText(message.created_at) }
+        : {}),
+    }))
+    .filter((message) => message.content)
+    .slice(-5);
 }
 
 export function sanitizeDailyActionReviewVisibleText(
@@ -1332,7 +1825,41 @@ export function sanitizeDailyActionReviewVisibleText(
     const inner = text.slice(1, -1).trim();
     if (inner) text = inner;
   }
+  text = sanitizeDailyVisibleOutcomeWording(text);
   return text || null;
+}
+
+function sanitizeDailyVisibleOutcomeWording(text: string): string {
+  let next = text;
+  next = next.replace(
+    /\b(fait|faite)\s*,\s*pas\s+(fait|faite)\s*,?\s*ou\s+en\s+partie\b/gi,
+    (_match, done: string, missed: string) => `${done} ou pas ${missed}`,
+  );
+  next = next.replace(
+    /\b(fait|faite)\s*,\s*pas\s+(fait|faite)\s*,?\s*ou\s+partiellement\b/gi,
+    (_match, done: string, missed: string) => `${done} ou pas ${missed}`,
+  );
+  next = next.replace(/\bpartiel(?:le)?s?\b/gi, "").replace(
+    /\bpartiellement\b/gi,
+    "",
+  ).replace(/\ben\s+partie\b/gi, "");
+  next = next.replace(
+    /\bFaisable aujourd'hui\s*\?/gi,
+    "Est-ce que tu l'as faite aujourd'hui ?",
+  );
+  next = next.replace(
+    /\bFaisable aujourd’hui\s*\?/gi,
+    "Est-ce que tu l'as faite aujourd'hui ?",
+  );
+  next = next.replace(
+    /\btu\s+le\s+consid[eè]res\s+plut[oô]t\s+fait\s+ou\s+pas\s+fait\s*\?/gi,
+    "est-ce que tu l'as fait aujourd'hui ?",
+  );
+  next = next.replace(
+    /\btu\s+la\s+consid[eè]res\s+plut[oô]t\s+faite\s+ou\s+pas\s+faite\s*\?/gi,
+    "est-ce que tu l'as faite aujourd'hui ?",
+  );
+  return next.replace(/[ \t]{2,}/g, " ").replace(/\s+\?/g, " ?").trim();
 }
 
 export async function runDailyActionReviewVisibleAgent(params: {
@@ -1343,6 +1870,9 @@ export async function runDailyActionReviewVisibleAgent(params: {
   committedEffects?: DailyReviewEffectsResult["committed_effects"];
   failedEffects?: DailyReviewEffectsResult["failed_effects"];
   currentDailyQuestion?: string | null;
+  recentMessages?: Array<
+    { role: string; content: string; created_at?: string }
+  >;
   requestId?: string;
   userId?: string;
   llmRunner?: (input: {
@@ -1350,7 +1880,8 @@ export async function runDailyActionReviewVisibleAgent(params: {
     userPrompt: string;
   }) => Promise<unknown>;
 }): Promise<string | null> {
-  const systemPrompt = visibleSystemPrompt(params.kind);
+  const visibleAgent = dailyActionReviewVisibleAgentSpec(params.kind);
+  const systemPrompt = dailyActionReviewVisibleSystemPrompt(params.kind);
   const conversationContext = buildDailyActionReviewConversationContext({
     kind: params.kind,
     targets: params.targets,
@@ -1361,6 +1892,12 @@ export async function runDailyActionReviewVisibleAgent(params: {
     currentDailyQuestion: params.currentDailyQuestion,
   });
   const userPrompt = JSON.stringify({
+    visible_runtime_context: {
+      style_rules: VISIBLE_OUTPUT_STYLE_RULES,
+      recent_user_messages: recentUserMessagesForVisible(
+        params.recentMessages,
+      ),
+    },
     visible_task: {
       ...(params.dispatcherOutput?.visible_task ?? {
         kind: params.kind,
@@ -1381,7 +1918,7 @@ export async function runDailyActionReviewVisibleAgent(params: {
       "auto",
       {
         requestId: params.requestId,
-        source: `daily_action_review.visible.${params.kind}`,
+        source: visibleAgent.source,
         model: "gemini-3-flash-preview",
         forceRealAi: true,
         userId: params.userId,
@@ -1424,6 +1961,21 @@ export async function runDailyActionReviewLocalFlow(params: {
     userId: params.userId,
     llmRunner: params.dispatcherRunner,
   });
+  const directEffectConfirmationContext = recordOrEmpty(
+    recordOrEmpty(params.platformContext).direct_effect_confirmation_context,
+  );
+  if (Object.keys(directEffectConfirmationContext).length > 0) {
+    dispatcherOutput.visible_task.conversation_context.known_values = {
+      ...dispatcherOutput.visible_task.conversation_context.known_values,
+      direct_effect_confirmation_context: directEffectConfirmationContext,
+    };
+    dispatcherOutput.visible_task.conversation_context.do_not_say = [
+      ...new Set([
+        ...dispatcherOutput.visible_task.conversation_context.do_not_say,
+        "Ne dis pas que le rappel est programme si direct_effect_confirmation_context.has_committed_one_shot_reminder n'est pas true.",
+      ]),
+    ];
+  }
   const decision = dailyReviewDecisionFromLocalDispatcher({
     output: dispatcherOutput,
     state: previousState,
@@ -1437,11 +1989,10 @@ export async function runDailyActionReviewLocalFlow(params: {
   nextState.intent = decision.intent;
   nextState.last_user_text = params.text;
   const transfersOwnership =
+    dispatcherOutput.flow_action === "handoff_to_child_flow" ||
     dispatcherOutput.flow_action === "exit_to_global_dispatcher" ||
-    dispatcherOutput.flow_action === "handoff_to_local_flow" ||
-    dispatcherOutput.flow_action === "inline_product_help" ||
-    dispatcherOutput.flow_action === "inline_status_recap" ||
     dispatcherOutput.flow_action === "safety_preempt";
+  const childFlowHandoff = childFlowHandoffFromDailyOutput(dispatcherOutput);
   const diagnosis = buildDailyActionReviewDiagnosis({
     dispatcherOutput,
     decision,
@@ -1451,21 +2002,22 @@ export async function runDailyActionReviewLocalFlow(params: {
       params.previousState !== null,
     transfersOwnership,
   });
-  const localStop = dispatcherOutput.flow_action === "user_stopped" ||
-    dispatcherOutput.flow_action === "cancel_flow" ||
-    dispatcherOutput.flow_action === "defer_flow";
   const shouldRenderBeforeCommit = !transfersOwnership &&
     (!nextState.should_apply_effects ||
       dispatcherOutput.flow_action === "recap_daily_state" ||
-      dispatcherOutput.flow_action === "repeat_current_question" ||
-      localStop);
+      dispatcherOutput.flow_action === "clarify_daily_question");
   if (shouldRenderBeforeCommit) {
+    const visibleKind = visibleKindBeforeCommit({
+      dispatcherOutput,
+      nextState,
+    });
     const visible = await runDailyActionReviewVisibleAgent({
-      kind: dispatcherOutput.visible_task.kind,
+      kind: visibleKind,
       targets: params.targets,
       state: nextState,
       dispatcherOutput,
       currentDailyQuestion: previousState.next_question,
+      recentMessages: params.recentMessages,
       requestId: params.requestId,
       userId: params.userId,
       llmRunner: params.visibleRunner,
@@ -1480,10 +2032,8 @@ export async function runDailyActionReviewLocalFlow(params: {
     dispatcherOutput,
     exitToGlobalDispatcher:
       dispatcherOutput.flow_action === "exit_to_global_dispatcher" ||
-      dispatcherOutput.flow_action === "handoff_to_local_flow" ||
-      dispatcherOutput.flow_action === "inline_product_help" ||
-      dispatcherOutput.flow_action === "inline_status_recap" ||
       dispatcherOutput.flow_action === "safety_preempt",
+    childFlowHandoff,
     stateMutationAudit: nextState.state_mutation_audit,
     diagnosis,
   };

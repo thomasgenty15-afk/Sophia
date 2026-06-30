@@ -24,6 +24,11 @@ Qu'est-ce qui s'est passe aujourd'hui sur les actions ciblees, avec assez de
 preuve pour ecrire une entree daily fiable ?
 ```
 
+Le daily est binaire cote conversation : pour chaque target du pending, Sophia
+doit obtenir soit `fait`, soit `pas fait`. Si le user a fait meme une partie
+concrete de l'action, le daily la classe comme faite (`completed`). Le wording
+visible ne doit pas proposer ou reprendre une categorie intermediaire.
+
 Il ne doit pas :
 
 - proposer une carte ;
@@ -32,6 +37,10 @@ Il ne doit pas :
 - creer un rappel ;
 - faire du coaching motivationnel long ;
 - transformer une collecte de preuve en conversation libre.
+
+Il peut en revanche expliquer une action ciblee si le user demande ce qu'elle
+veut dire. Cette explication reste locale au daily, ne mute pas l'etat metier,
+et doit revenir a la question binaire : action faite ou pas faite aujourd'hui.
 
 Mais contrairement aux potions/cartes/status recap, le daily a un effet durable
 legitime :
@@ -79,14 +88,18 @@ whatsapp inbound
   -> if missing slots:
        visible prompt clarification
        update pending review_state
+     if explain_target:
+       visible prompt explain_target
+       keep pending review_state open without item update
      if effect_plan allowed:
        executeDailyReviewEffectPlan
        if committed:
          visible prompt commit_success
          mark pending done
        if failed:
-         visible prompt commit_failed
-         keep pending active
+         persist commit incident
+         mark pending failed
+         no daily visible response
      if exit_to_global_dispatcher:
        exit_memo
        second-pass global dispatcher
@@ -171,6 +184,71 @@ j'ai fait les deux
 
 the dispatcher can update both targets.
 
+If the current visible focus is complete but `remaining_occurrence_ids` is not
+empty, the dispatcher must ask the next remaining target before the daily can
+close. It must not return a success stage for the whole daily.
+
+## Local Action Explanation
+
+If the user asks what a selected target means, why it is in the daily, or what
+Sophia expects for that action, the local dispatcher returns :
+
+```txt
+flow_action = explain_target
+visible_task.kind = explain_target
+```
+
+This does not create an item update and does not exit to product help. The
+visible agent may use only filtered target fields, current daily state, and
+filtered `action_intelligence_by_occurrence_id`. It must not say the action is
+done or not done. It should end by resuming the daily collection with one
+question.
+
+## Coaching Recommendation Bridge
+
+Daily exits to `coaching_recommendation` only when the user is no longer merely
+answering the check and expresses a concrete need for a Sophia lever or action
+support. Accepted bridge situations are :
+
+- `action_blocker`: the user is stuck or cannot start ;
+- `recurrent_forgetting`: the user reports repeated forgetting ;
+- `action_too_hard`: the action feels too hard or too costly ;
+- `low_relevance`: the action no longer seems relevant ;
+- `emotional_friction`: emotion blocks the action without safety preemption ;
+- `needs_lever_choice`: the user asks what Sophia lever/tool to use ;
+- `dropoff_risk`: the user sounds close to disengaging.
+
+The bridge note is normalized into the parent coaching bridge contract. It must
+carry `return_target=daily_action_review_v1`, `recommendation_only`,
+`no_mutation`, and enough action context for coaching to recommend without
+marking the daily as done.
+
+Anti-false-positive rule : if the user still gives a usable daily answer, daily
+stays local and collects the missing `fait` / `pas fait` outcome instead of
+bridging.
+
+## Affect Context For Visible Tone
+
+Daily has two separate layers :
+
+- safety risk, which preempts the flow with `safety_preempt` ;
+- non-safety emotional fragility, which adjusts visible tone.
+
+For non-safety fragility, the visible agent receives an `affect_context` :
+
+```json
+{
+  "emotional_intensity": "none|low|medium|high",
+  "fragile_signal": false,
+  "suggested_tone": "neutral|gentle|supportive_investigate|calm",
+  "evidence": []
+}
+```
+
+This context can come from the current dispatcher output or from filtered
+`action_intelligence_by_occurrence_id`. It is tone context only. It must not
+invent safety and must not produce a durable mutation.
+
 ## Opening Message
 
 The opening phrase produced by IA can remain the same architectural surface.
@@ -217,6 +295,24 @@ flow_action = exit_to_global_dispatcher
 Then the same user message can be re-analysed by the global dispatcher with
 `exit_memo`.
 
+If daily commits successfully, the local flow closes the pending action and
+does not trigger a same-turn global dispatcher pass. The runtime writes a
+completion memo for future context instead of a handoff:
+
+```json
+{
+  "completed_flow_memo": {
+    "source_flow_id": "daily_action_review_v1",
+    "status": "completed",
+    "committed_effects": [],
+    "completed_at": "iso_timestamp"
+  }
+}
+```
+
+This memo is trace/context, not an instruction to redispatch the same user
+message.
+
 ## Exit Memo Contract
 
 `exit_memo` is mandatory when `flow_action=exit_to_global_dispatcher`.
@@ -241,12 +337,8 @@ Then the same user message can be re-analysed by the global dispatcher with
     "committed_effects": []
   },
   "handoff_hint_for_global_dispatcher": {
-    "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|product_help|normal_coaching|unknown",
-    "why": "string",
-    "constraints": [
-      "Do not mark daily as completed unless daily_action_review later commits an entry.",
-      "Daily has not mutated anything unless committed_effects is non-empty."
-    ]
+    "likely_intent": "coaching_recommendation|product_help|normal_coaching|unknown",
+    "why": "string"
   }
 }
 ```
@@ -263,7 +355,8 @@ Expected :
 
 ```txt
 exit_to_global_dispatcher
-likely_intent = prepare_attack_card
+target_dispatcher = coaching_recommendation
+bridge_reason = needs_lever_choice
 ```
 
 User says :
@@ -276,7 +369,8 @@ Expected :
 
 ```txt
 exit_to_global_dispatcher
-likely_intent = select_state_potion
+target_dispatcher = coaching_recommendation
+bridge_reason = needs_lever_choice
 ```
 
 User says :
@@ -289,7 +383,8 @@ Expected :
 
 ```txt
 exit_to_global_dispatcher
-likely_intent = status_recap
+target_dispatcher = global
+likely_intent = normal_coaching|unknown
 ```
 
 ## Mutation Policy
@@ -301,7 +396,7 @@ The reducer never writes.
 Only the executor writes, and only when :
 
 - all targets have usable updates ;
-- outcome is `completed|partial|missed`;
+- outcome is `completed|missed`;
 - required missing slots are empty ;
 - confidence is medium/high ;
 - evidence_text is present ;
@@ -350,6 +445,8 @@ Visible prompts :
 - do not decide outcome ;
 - do not write ;
 - do not suggest tools ;
+- can explain a selected target with `explain_target` without mutation ;
+- must respect `affect_context` and `tone_constraints` ;
 - do not produce success wording unless commit state says it is allowed.
 
 ## Logs And Trace
@@ -378,7 +475,11 @@ Architecture tests :
 - pending daily skips global dispatcher ;
 - "je l'ai fait" with two targets asks which action ;
 - "j'ai fait les deux" updates both targets ;
-- partial answer asks completion level/reason if missing ;
+- concrete progress on an action is recorded as `completed` ;
+- unanswered remaining targets are asked before daily closure ;
+- action explanation stays local and does not mutate state ;
+- coaching bridge reason is explicit and maps into parent bridge contract ;
+- non-safety emotional fragility is passed to visible tone context ;
 - missed asks reason and still_relevant if missing ;
 - correction replaces previous structured update ;
 - stop does not commit ;

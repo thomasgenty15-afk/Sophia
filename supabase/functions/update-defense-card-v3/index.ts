@@ -85,6 +85,7 @@ const CreateCardWithImpulsePayload = z.object({
   cycle_id: z.string().uuid(),
   scope_kind: z.enum(["transformation", "out_of_plan"]),
   transformation_id: z.string().uuid().optional(),
+  plan_item_id: z.string().uuid().optional(),
   label: z.string().min(1).max(200),
   generic_defense: z.string().min(1).max(500),
   triggers: z.array(TriggerDraftSchema).min(1).max(6),
@@ -128,6 +129,7 @@ class DefenseCardActionError extends Error {
 
 export type DefenseCardActionResult = {
   success: boolean;
+  card_id: string;
   updated_card: DefenseCardContent;
 };
 
@@ -140,11 +142,13 @@ async function loadCard(
   cycle_id: string;
   scope_kind: LabScopeKind;
   transformation_id: string | null;
+  phase_id: string | null;
+  plan_item_id: string | null;
   content: DefenseCardContent;
 }> {
   const { data, error } = await admin
     .from("user_defense_cards")
-    .select("id, user_id, cycle_id, scope_kind, transformation_id, content")
+    .select("id, user_id, cycle_id, scope_kind, transformation_id, phase_id, plan_item_id, content")
     .eq("id", cardId)
     .maybeSingle();
 
@@ -157,6 +161,8 @@ async function loadCard(
     cycle_id: data.cycle_id,
     scope_kind: data.scope_kind,
     transformation_id: data.transformation_id,
+    phase_id: data.phase_id,
+    plan_item_id: data.plan_item_id,
     content: data.content as DefenseCardContent,
   };
 }
@@ -231,6 +237,8 @@ async function loadOrCreateFreeCard(
   cycle_id: string;
   scope_kind: LabScopeKind;
   transformation_id: string | null;
+  phase_id: string | null;
+  plan_item_id: string | null;
   content: DefenseCardContent;
 }> {
   const scope = await resolveScopeForNewCard(admin, userId, args);
@@ -257,6 +265,8 @@ async function loadOrCreateFreeCard(
       cycle_id: String((existing as any).cycle_id),
       scope_kind: (existing as any).scope_kind as LabScopeKind,
       transformation_id: ((existing as any).transformation_id as string | null) ?? null,
+      phase_id: null,
+      plan_item_id: null,
       content: ((existing as any).content as DefenseCardContent) ?? { impulses: [] },
     };
   }
@@ -291,6 +301,104 @@ async function loadOrCreateFreeCard(
     cycle_id: String((inserted as any).cycle_id),
     scope_kind: (inserted as any).scope_kind as LabScopeKind,
     transformation_id: ((inserted as any).transformation_id as string | null) ?? null,
+    phase_id: null,
+    plan_item_id: null,
+    content: ((inserted as any).content as DefenseCardContent) ?? { impulses: [] },
+  };
+}
+
+async function loadOrCreatePlanItemCard(
+  admin: SupabaseClient,
+  userId: string,
+  planItemId: string,
+): Promise<{
+  id: string;
+  user_id: string;
+  cycle_id: string;
+  scope_kind: LabScopeKind;
+  transformation_id: string | null;
+  phase_id: string | null;
+  plan_item_id: string | null;
+  content: DefenseCardContent;
+}> {
+  const { data: item, error: itemError } = await admin
+    .from("user_plan_items")
+    .select("id, user_id, cycle_id, transformation_id, phase_id, dimension, status, defense_card_id")
+    .eq("id", planItemId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (itemError) throw new DefenseCardActionError(500, `DB error: ${itemError.message}`);
+  if (!item) throw new DefenseCardActionError(404, "Plan item not found");
+  if (item.dimension !== "missions" && item.dimension !== "habits") {
+    throw new DefenseCardActionError(409, "This plan item cannot receive a defense card");
+  }
+  if (item.status === "pending" || item.status === "deactivated" || item.status === "cancelled") {
+    throw new DefenseCardActionError(409, "This plan item is not available for a defense card");
+  }
+
+  const existingCardId = typeof item.defense_card_id === "string" ? item.defense_card_id : null;
+  if (existingCardId) {
+    return await loadCard(admin, existingCardId);
+  }
+
+  const { data: existing, error: existingError } = await admin
+    .from("user_defense_cards")
+    .select("id, user_id, cycle_id, scope_kind, transformation_id, phase_id, plan_item_id, content")
+    .eq("user_id", userId)
+    .eq("plan_item_id", planItemId)
+    .order("generated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existingError) throw new DefenseCardActionError(500, `DB error: ${existingError.message}`);
+  if (existing) {
+    return {
+      id: String((existing as any).id),
+      user_id: String((existing as any).user_id),
+      cycle_id: String((existing as any).cycle_id),
+      scope_kind: (existing as any).scope_kind as LabScopeKind,
+      transformation_id: ((existing as any).transformation_id as string | null) ?? null,
+      phase_id: ((existing as any).phase_id as string | null) ?? null,
+      plan_item_id: ((existing as any).plan_item_id as string | null) ?? null,
+      content: ((existing as any).content as DefenseCardContent) ?? { impulses: [] },
+    };
+  }
+
+  const now = new Date().toISOString();
+  const { data: inserted, error: insertError } = await admin
+    .from("user_defense_cards")
+    .insert({
+      user_id: userId,
+      cycle_id: String(item.cycle_id),
+      scope_kind: "transformation",
+      transformation_id: String(item.transformation_id),
+      plan_item_id: planItemId,
+      phase_id: item.phase_id ?? null,
+      source: "manual",
+      status: "active",
+      content: { impulses: [] },
+      metadata: {
+        plan_item_id: planItemId,
+        phase_id: item.phase_id ?? null,
+      },
+      generated_at: now,
+      last_updated_at: now,
+    })
+    .select("id, user_id, cycle_id, scope_kind, transformation_id, phase_id, plan_item_id, content")
+    .single();
+
+  if (insertError) {
+    throw new DefenseCardActionError(500, `Insert failed: ${insertError.message}`);
+  }
+
+  return {
+    id: String((inserted as any).id),
+    user_id: String((inserted as any).user_id),
+    cycle_id: String((inserted as any).cycle_id),
+    scope_kind: (inserted as any).scope_kind as LabScopeKind,
+    transformation_id: ((inserted as any).transformation_id as string | null) ?? null,
+    phase_id: ((inserted as any).phase_id as string | null) ?? null,
+    plan_item_id: ((inserted as any).plan_item_id as string | null) ?? null,
     content: ((inserted as any).content as DefenseCardContent) ?? { impulses: [] },
   };
 }
@@ -380,11 +488,13 @@ export async function executeDefenseCardAction(
   body: RequestBody,
 ): Promise<DefenseCardActionResult> {
   const card = body.action === "create_card_with_impulse"
-    ? await loadOrCreateFreeCard(admin, userId, {
-      cycleId: body.cycle_id,
-      scopeKind: body.scope_kind,
-      transformationId: body.transformation_id,
-    })
+    ? body.plan_item_id
+      ? await loadOrCreatePlanItemCard(admin, userId, body.plan_item_id)
+      : await loadOrCreateFreeCard(admin, userId, {
+        cycleId: body.cycle_id,
+        scopeKind: body.scope_kind,
+        transformationId: body.transformation_id,
+      })
     : await loadCard(admin, body.defense_card_id);
 
   if (card.user_id !== userId) {
@@ -496,7 +606,35 @@ export async function executeDefenseCardAction(
     throw new DefenseCardActionError(500, `Update failed: ${updateError.message}`);
   }
 
-  return { success: true, updated_card: enrichedContent };
+  if (body.action === "create_card_with_impulse" && body.plan_item_id) {
+    const hasAttackCard = await admin
+      .from("user_plan_items")
+      .select("attack_card_id")
+      .eq("id", body.plan_item_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (hasAttackCard.error) {
+      throw new DefenseCardActionError(500, `DB error: ${hasAttackCard.error.message}`);
+    }
+
+    const nextCardsStatus = hasAttackCard.data?.attack_card_id ? "ready" : "not_started";
+    const { error: linkError } = await admin
+      .from("user_plan_items")
+      .update({
+        defense_card_id: card.id,
+        cards_status: nextCardsStatus,
+        cards_generated_at: now,
+        updated_at: now,
+      })
+      .eq("id", body.plan_item_id)
+      .eq("user_id", userId);
+    if (linkError) {
+      throw new DefenseCardActionError(500, `Failed to link defense card: ${linkError.message}`);
+    }
+  }
+
+  return { success: true, card_id: card.id, updated_card: enrichedContent };
 }
 
 // ---------------------------------------------------------------------------

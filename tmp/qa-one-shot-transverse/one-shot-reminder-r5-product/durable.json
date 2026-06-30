@@ -1,0 +1,144 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "2068155f-1ce8-4e31-945d-22a67c800b04",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T07:35:00+00:00",
+      "event_context": "one_shot_reminder:tester_une_carte_sur_le_mail_a_camille",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: tester une carte sur le mail à Camille.",
+        "local_label": "demain à 9h35",
+        "parse_source": "payload_utc_time",
+        "request_text": "rappelle-moi demain à 9h35 de tester une carte sur le mail à Camille",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: tester une carte sur le mail à Camille.",
+        "source_message_id": "150602d4-e653-421b-93ac-9fbacfc165cf",
+        "reminder_instruction": "tester une carte sur le mail à Camille"
+      },
+      "created_at": "2026-06-24T17:18:44.874743+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je ne retrouve plus où Sophia range les cartes d’attaque ; explique-moi, et rappelle-moi demain à 9h35 de tester une carte sur le mail à Camille.",
+      "created_at": "2026-06-24T17:18:41.963133+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-r5-product-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu retrouves les cartes d’attaque dans Dashboard > Ressources. Et je te rappelle demain à 9h35 de tester une carte sur le mail à Camille.",
+      "created_at": "2026-06-24T17:18:49.531027+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-r5-product-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "492b3eca-014f-4518-8996-59f8e17e160d",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "product_help",
+        "started_at": "2026-06-24T17:18:49.511Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T17:18:49.511Z",
+        "working_state": {
+          "product_help_local_state": {
+            "mode": "standalone",
+            "status": "open",
+            "skill_id": "product_help",
+            "product_help_state": {
+              "stage": "answering",
+              "max_turns": 3,
+              "turn_count": 1,
+              "updated_at": "2026-06-24T17:18:48.247Z",
+              "last_intent": "where_is_it",
+              "last_target": {
+                "kind": "feature_catalog",
+                "confidence": "high",
+                "feature_id": "resources.attack_card",
+                "object_ref": null,
+                "object_type": "attack_card"
+              },
+              "last_locations": [
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Ressources",
+                "Dashboard > Plan"
+              ],
+              "last_answer_summary": "Question de destination sur l'endroit où retrouver les cartes d'attaque.",
+              "parent_flow_context": null,
+              "last_catalog_feature_ids": [
+                "resources.attack_card"
+              ]
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "product_help",
+        "started_at": "2026-06-24T17:18:49.511Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T17:18:49.511Z",
+        "working_state": {
+          "product_help_local_state": {
+            "mode": "standalone",
+            "status": "open",
+            "skill_id": "product_help",
+            "product_help_state": {
+              "stage": "answering",
+              "max_turns": 3,
+              "turn_count": 1,
+              "updated_at": "2026-06-24T17:18:48.247Z",
+              "last_intent": "where_is_it",
+              "last_target": {
+                "kind": "feature_catalog",
+                "confidence": "high",
+                "feature_id": "resources.attack_card",
+                "object_ref": null,
+                "object_type": "attack_card"
+              },
+              "last_locations": [
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Ressources",
+                "Dashboard > Plan"
+              ],
+              "last_answer_summary": "Question de destination sur l'endroit où retrouver les cartes d'attaque.",
+              "parent_flow_context": null,
+              "last_catalog_feature_ids": [
+                "resources.attack_card"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T17:18:49.521221+00:00"
+  }
+}

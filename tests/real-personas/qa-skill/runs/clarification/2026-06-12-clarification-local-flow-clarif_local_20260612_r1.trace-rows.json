@@ -361,7 +361,7 @@
               "visible_task": "clarify_product_question",
               "note_information": null,
               "return_to_parent_flow": false,
-              "handoff_to_local_dispatcher": false
+              "exit_to_global_dispatcher": false
             },
             "state_patch": {
               "summary": "User hesitates between understanding the attack card concept and preparing one for a specific blockage tomorrow.",
@@ -887,8 +887,8 @@
                 "missing_grounding_reason": null
               },
               "local_flow": true,
-              "flow_action": "handoff_to_local_dispatcher",
-              "reason_code": "product_help_handoff_to_local_dispatcher",
+              "flow_action": "exit_to_global_dispatcher",
+              "reason_code": "product_help_exit_to_global_dispatcher",
               "visible_task": "exit_ack",
               "note_information": {
                 "confidence": "high",
@@ -908,7 +908,7 @@
                 "handoff_context_for_next_dispatcher": "User was in product_help and decided to prepare an attack card for a specific situation: snoozing the alarm tomorrow morning."
               },
               "return_to_parent_flow": false,
-              "handoff_to_local_dispatcher": true
+              "exit_to_global_dispatcher": true
             },
             "state_patch": {
               "summary": "User wants to proceed with preparing an attack card for a specific morning blockage.",
@@ -941,7 +941,7 @@
                   "committed_effects": [],
                   "last_answer_summary": "User chose preparation over explanation for the attack card."
                 },
-                "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+                "reducer_reason_code": "product_help_exit_to_global_dispatcher",
                 "user_intent_summary": "User wants to prepare an attack card for tomorrow morning.",
                 "handoff_hint_for_global_dispatcher": {
                   "why": "User explicitly asked to prepare the card.",
@@ -1009,7 +1009,7 @@
               "correction_target_item_ids": []
             },
             "handoff_request": {
-              "reason": "product_help_handoff_to_local_dispatcher",
+              "reason": "product_help_exit_to_global_dispatcher",
               "confidence_band": "high",
               "target_skill_id": "prepare_attack_card"
             },

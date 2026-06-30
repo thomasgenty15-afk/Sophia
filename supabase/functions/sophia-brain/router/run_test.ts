@@ -1,1783 +1,900 @@
+import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import { buildContextString } from "../context/loader.ts";
+import { runConversationRouters } from "../routers/routers.ts";
+import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import {
-  attachPendingRecommendationOperation,
-  buildSafetyLocalOwnershipFrame,
-  computeStreakFromEntries,
-  currentTurnConversationSkillOverrideForOrientation,
-  currentTurnSupportsOrientationToolResolution,
-  effectiveResponseOwnerForOperationRuntime,
-  mapMomentumStateV2ToCoachingContext,
-  maybeRunAdjustPlanItemOperation,
-  resolveAgentChatModel,
-  resolveCoachingTargetPlanItem,
-  resolveOrientationClarificationConversationSkillHandler,
-  resolveOrientationClarificationToolSkillHandler,
-  shouldBypassOrientationClarificationForExplicitToolRoute,
-  shouldDeferConversationRiskFlowExitToLocalDispatcher,
+  type ActiveLocalConversationFlowSkillId,
+  readActiveFlowState,
+  shouldSkipGlobalDispatcherForActiveLocalFlow,
+} from "./active_flow_state.ts";
+import { ACTIVE_CONVERSATION_SKILL_KEY } from "../skills/_shared/active_skill_state.ts";
+import {
+  applyConversationSkillState,
+  applyMemoryV2ActiveLoaderResult,
+  applySafetyCrisisSkillState,
+  buildTurnFrameForRuntime,
+  mergeVisibleTextForTest,
 } from "./run.ts";
-import { isExplicitPendingApplyConfirmation } from "../skills/weekly_review/runtime.ts";
-import { logPlanItemProgressV2 } from "../tools/always_on/track_progress_plan_item/db.ts";
-import { getGlobalAiModel } from "../../_shared/gemini.ts";
-import { writeMomentumStateV2 } from "../momentum_state.ts";
-import type {
-  UserCycleRow,
-  UserPlanItemRow,
-  UserPlanV2Row,
-  UserTransformationRow,
-} from "../../_shared/v2-types.ts";
 
-function assertEquals(actual: unknown, expected: unknown, msg?: string) {
-  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-    throw new Error(
-      `${msg ? `${msg} - ` : ""}expected ${JSON.stringify(expected)} but got ${
-        JSON.stringify(actual)
-      }`,
-    );
-  }
-}
-
-function assertStringIncludes(actual: string, expected: string, msg?: string) {
-  if (!actual.includes(expected)) {
-    throw new Error(
-      `${msg ? `${msg} - ` : ""}expected ${JSON.stringify(actual)} to include ${
-        JSON.stringify(expected)
-      }`,
-    );
-  }
-}
-
-function orientationTurnFrame(patch: Record<string, unknown> = {}): any {
+function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {
-    turn_id: "turn-orientation",
-    source_message_id: "msg-orientation",
+    turn_id: "t1",
+    source_message_id: "m1",
     user_id: "u1",
     channel: "web",
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
-    confirmation_response: { kind: "unknown", confidence_band: "low" },
     direct_effects: [],
-    tool_skill_intents: [],
-    flow_opportunity: null,
-    skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+    skill_signals: {},
+    needs_research: { detected: false, value: false },
     memory_plan: {
+      response_intent: "reflection",
+      reasoning_complexity: "low",
       context_need: "minimal",
       memory_mode: "none",
+      model_tier_hint: "lite",
       context_budget_tier: "tiny",
       targets: [],
-      retrieval_policy: "taxonomy_first",
+      retrieval_policy: "semantic_first",
+      plan_confidence: 0.7,
     },
     ...patch,
   };
 }
 
-Deno.test("isExplicitPendingApplyConfirmation blocks detail requests before validation", () => {
+Deno.test("direct effect text is not deterministically prepended when visible agent answered", () => {
+  const merged = mergeVisibleTextForTest({
+    content: "C'est programmé pour demain.",
+    nextTempMemory: {},
+    toolExecution: "success",
+    executedTools: ["create_one_shot_reminder"],
+    toolSkillRun: {
+      selected_handler: "create_one_shot_reminder",
+      committed_effects: [{ type: "create_one_shot_reminder" }],
+    },
+  }, "Je confirme le rappel et je réponds au besoin produit.");
+
   assertEquals(
-    isExplicitPendingApplyConfirmation(
-      "Avant que je valide, confirme-moi juste que ca garde le signal de pause.",
-    ),
-    false,
+    merged,
+    "Je confirme le rappel et je réponds au besoin produit.",
   );
+});
+
+function route(turnFrame: TurnFrame) {
+  return runConversationRouters({
+    turn_frame: turnFrame,
+    safety_context_risk_band: turnFrame.safety.risk_band,
+  });
+}
+
+const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
+  "daily_action_review_v1",
+  "weekly_adaptive_review_v1",
+  "product_help",
+  "coaching_recommendation",
+  "feature_opportunity",
+  "safety_crisis",
+];
+
+Deno.test("global router gives safety high critical priority while preserving one-shot reminder", () => {
+  const decision = route(frame({
+    safety: {
+      risk_band: "critical",
+      reason_codes: ["self_harm"],
+      evidence: ["danger"],
+    },
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {},
+    }],
+    skill_signals: {
+      product_help: { detected: true, confidence_band: "high" },
+    },
+  }));
+
+  assertEquals(decision.response_owner, "safety");
+  assertEquals(decision.selected_handler, "safety_crisis");
+  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
+});
+
+Deno.test("runtime turn frame builder does not call global dispatcher LLM during active local flow", async () => {
+  let llmCalled = false;
+  const turnFrame = await buildTurnFrameForRuntime({
+    skipGlobalDispatcherForActiveLocalFlow: true,
+    dispatcherInput: {
+      user_message: "et du coup je fais quoi ?",
+      recent_messages: [{ role: "user", content: "question produit" }],
+      user_id: "u-active-flow",
+      channel: "web",
+      active_skill_state: { skill_id: "product_help", status: "active" },
+      plan_snapshot: [],
+      safety_context_output: {
+        detected: false,
+        risk_band: "none",
+        reason_codes: [],
+        evidence: [],
+        allow_side_effects: true,
+        layer_contributions: {},
+      } as any,
+      conversation_risk_history: [],
+      source_message_id: "m-active-flow",
+      turn_id: "t-active-flow",
+    },
+    llmRunner: async () => {
+      llmCalled = true;
+      throw new Error("global dispatcher llm must be skipped");
+    },
+  });
+
+  assertEquals(llmCalled, false);
+  assertEquals(turnFrame.turn_id, "t-active-flow");
+  assertEquals(turnFrame.source_message_id, "m-active-flow");
+  assertEquals(turnFrame.skill_signals, {});
+  assertEquals(turnFrame.direct_effects, []);
+  assertEquals(turnFrame.memory_plan.memory_mode, "none");
+});
+
+Deno.test("global redispatch after local exit uses note without active flow ownership", async () => {
+  const turnFrame = await buildTurnFrameForRuntime({
+    skipGlobalDispatcherForActiveLocalFlow: false,
+    dispatcherInput: {
+      user_message:
+        "explique-moi en deux phrases la difference entre une carte d'attaque et une carte de defense",
+      recent_messages: [],
+      user_id: "u-local-exit",
+      channel: "web",
+      active_skill_state: null,
+      flow_state_context: {
+        last_local_flow_exit: {
+          source_flow_id: "feature_opportunity",
+          note_information: {
+            source_flow_id: "feature_opportunity",
+            target_dispatcher: "global",
+            confidence: "high",
+            structured_context: {
+              recommended_next_focus: "product_help",
+            },
+          },
+        },
+      },
+      plan_snapshot: [],
+      safety_context_output: {
+        detected: false,
+        risk_band: "none",
+        reason_codes: [],
+        evidence: [],
+        allow_side_effects: true,
+        layer_contributions: {},
+      } as any,
+      conversation_risk_history: [],
+      source_message_id: "m-local-exit",
+      turn_id: "t-local-exit",
+    },
+    llmRunner: async () => ({
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      direct_effects: [],
+      skill_signals: {
+        product_help: {
+          detected: true,
+          confidence_band: "high",
+          reason: "local_flow_exit_note",
+        },
+      },
+    }),
+  });
+
+  const decision = runConversationRouters({
+    turn_frame: turnFrame,
+    active_skill_state: null,
+    safety_context_risk_band: "none",
+  });
+
   assertEquals(
-    isExplicitPendingApplyConfirmation(
-      "Oui, valide cet ajustement et applique-le.",
+    (turnFrame.note_information as any)?.source_flow_id,
+    "feature_opportunity",
+  );
+  assertEquals(decision.response_owner, "product_help");
+  assertEquals(decision.reason_code, "product_help_signal");
+});
+
+Deno.test("runtime turn frame builder skips global dispatcher LLM for every retained local flow", async () => {
+  for (const skillId of RETAINED_LOCAL_FLOW_IDS) {
+    let llmCalled = false;
+    const active = readActiveFlowState({
+      __active_skill_state: { skill_id: skillId, status: "active" },
+    });
+    const turnFrame = await buildTurnFrameForRuntime({
+      skipGlobalDispatcherForActiveLocalFlow:
+        shouldSkipGlobalDispatcherForActiveLocalFlow({
+          activeSkillState: active.activeSkillState,
+        }),
+      dispatcherInput: {
+        user_message: "message pendant flow actif",
+        recent_messages: [{ role: "user", content: "message precedent" }],
+        user_id: `u-${skillId}`,
+        channel: "web",
+        active_skill_state: active.activeSkillState,
+        plan_snapshot: [],
+        safety_context_output: {
+          detected: false,
+          risk_band: "none",
+          reason_codes: [],
+          evidence: [],
+          allow_side_effects: true,
+          layer_contributions: {},
+        } as any,
+        conversation_risk_history: [],
+        source_message_id: `m-${skillId}`,
+        turn_id: `t-${skillId}`,
+      },
+      llmRunner: async () => {
+        llmCalled = true;
+        throw new Error(`global dispatcher llm called for ${skillId}`);
+      },
+    });
+
+    assertEquals(llmCalled, false);
+    assertEquals(turnFrame.turn_id, `t-${skillId}`);
+    assertEquals(turnFrame.source_message_id, `m-${skillId}`);
+    assertEquals(turnFrame.skill_signals, {});
+  }
+});
+
+Deno.test("global router blocks non reminder direct effects during safety", () => {
+  const decision = route(frame({
+    safety: {
+      risk_band: "high",
+      reason_codes: ["self_harm"],
+      evidence: ["danger"],
+    },
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { plan_item_id: "walk", status_hint: "done" },
+    }],
+  }));
+
+  assertEquals(decision.response_owner, "safety");
+  assertEquals(decision.selected_handler, "safety_crisis");
+  assertEquals(decision.direct_effects_to_run, []);
+  assertEquals(
+    decision.blocked_paths.some((path) =>
+      path.path === "direct_effects.track_progress_plan_item" &&
+      path.reason_code === "safety_priority"
     ),
     true,
   );
+});
+
+Deno.test("global router runs direct effect then normal reply", () => {
+  const decision = route(frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { plan_item_id: "walk", status_hint: "done" },
+    }],
+  }));
+
+  assertEquals(decision.response_owner, "normal_reply");
+  assertEquals(decision.selected_handler, undefined);
+  assertEquals(decision.direct_effects_to_run, ["track_progress_plan_item"]);
+  assertEquals(decision.reason_code, "direct_effects_then_normal_reply");
+});
+
+Deno.test("global router can combine direct effect with product_help owner", () => {
+  const decision = route(frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "demain a 9h" },
+    }],
+    skill_signals: {
+      product_help: {
+        detected: true,
+        confidence_band: "high",
+        reason: "product_help_question",
+      },
+    },
+  }));
+
+  assertEquals(decision.response_owner, "product_help");
+  assertEquals(decision.selected_handler, "product_help");
+  assertEquals(decision.direct_effects_to_run, [
+    "create_one_shot_reminder",
+  ]);
+});
+
+Deno.test("global router routes coaching recommendation signal", () => {
+  const decision = route(frame({
+    skill_signals: {
+      coaching_recommendation: {
+        detected: true,
+        confidence_band: "high",
+        reason: "feature_choice",
+      },
+    },
+  }));
+
+  assertEquals(decision.response_owner, "coaching_recommendation");
+  assertEquals(decision.selected_handler, "coaching_recommendation");
+  assertEquals(decision.reason_code, "coaching_recommendation_signal");
+});
+
+Deno.test("global router does not invent active flow arbitration for standard routes", () => {
+  const decision = route(frame({
+    skill_signals: {
+      coaching_recommendation: {
+        detected: true,
+        confidence_band: "high",
+        reason: "feature_choice",
+      },
+    },
+  }));
+
+  assertEquals(decision.response_owner, "coaching_recommendation");
+  assertEquals(decision.active_flow_arbitration, undefined);
+});
+
+Deno.test("global router routes feature opportunity signal", () => {
+  const decision = route(frame({
+    skill_signals: {
+      feature_opportunity: {
+        detected: true,
+        confidence_band: "high",
+        reason: "initiative_opportunity",
+        context: {
+          feature: "initiatives",
+          opportunity_kind: "recurring_context",
+          trigger_context: "avant chaque diner",
+          user_problem_summary: "Repeated dinner smoking difficulty.",
+          priority_reason: "Repeated context fits initiatives.",
+        },
+      },
+    },
+  }));
+
+  assertEquals(decision.response_owner, "feature_opportunity");
+  assertEquals(decision.selected_handler, "feature_opportunity");
+  assertEquals(decision.reason_code, "feature_opportunity_signal");
+});
+
+Deno.test("global router keeps coaching recommendation before feature opportunity", () => {
+  const decision = route(frame({
+    skill_signals: {
+      coaching_recommendation: {
+        detected: true,
+        confidence_band: "high",
+        reason: "risk_moment_feature_recommendation",
+      },
+      feature_opportunity: {
+        detected: true,
+        confidence_band: "high",
+        reason: "initiative_opportunity",
+      },
+    },
+  }));
+
+  assertEquals(decision.response_owner, "coaching_recommendation");
+});
+
+Deno.test("global router keeps active coaching before product_help", () => {
+  const active = {
+    skill_id: "coaching_recommendation",
+    status: "active",
+    working_state: {},
+  };
+  const continued = runConversationRouters({
+    turn_frame: frame(),
+    active_skill_state: active,
+    safety_context_risk_band: "none",
+  });
+  assertEquals(continued.response_owner, "coaching_recommendation");
+
+  const interrupted = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        product_help: { detected: true, confidence_band: "high" },
+      },
+    }),
+    active_skill_state: active,
+    safety_context_risk_band: "none",
+  });
+  assertEquals(interrupted.response_owner, "coaching_recommendation");
+  assertEquals(interrupted.reason_code, "active_coaching_recommendation");
   assertEquals(
-    isExplicitPendingApplyConfirmation(
-      "Stop, on n'applique rien sur ce brouillon. Garde le plan tel quel.",
-    ),
-    false,
+    interrupted.active_flow_arbitration?.active_owner,
+    "coaching_recommendation",
   );
   assertEquals(
-    isExplicitPendingApplyConfirmation(
-      "Ajoute juste cette nuance au brouillon. Ne valide toujours pas.",
-    ),
-    false,
+    interrupted.active_flow_arbitration?.decision,
+    "continue_active",
   );
 });
 
-Deno.test("explicit central tool routes bypass orientation clarification", () => {
-  const bypass = shouldBypassOrientationClarificationForExplicitToolRoute({
-    routeDecision: {
-      route_version: "v1",
-      response_owner: "tool_skill",
-      selected_handler: "prepare_attack_card",
-      blocked_paths: [],
-      direct_effects_to_run: [],
-      reason_code: "central_arbitrator_explicit_attack_card_creation",
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-    },
-    turnFrame: {
-      turn_id: "t",
-      source_message_id: "m",
-      user_id: "u",
-      channel: "web",
-      safety: { risk_band: "none", reason_codes: [], evidence: [] },
-      confirmation_response: { kind: "unknown", confidence_band: "low" },
-      direct_effects: [],
-      tool_skill_intents: [{
-        operation_type: "prepare_attack_card",
-        explicitness: "explicit",
-        confidence_band: "high",
-        ambiguity: "none",
-        user_intent: "create",
-      }],
-      flow_opportunity: null,
-      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
-      memory_plan: {
-        context_need: "minimal",
-        memory_mode: "none",
-        context_budget_tier: "tiny",
-        targets: [],
-        retrieval_policy: "taxonomy_first",
+Deno.test("readActiveFlowState active coaching prevents product_help ownership", () => {
+  const activeFlowState = readActiveFlowState({
+    [ACTIVE_CONVERSATION_SKILL_KEY]: {
+      version: 1,
+      skill_id: "coaching_recommendation",
+      status: "active",
+      turn_count: 1,
+      started_at: "2026-06-18T10:00:00.000Z",
+      updated_at: "2026-06-18T10:01:00.000Z",
+      working_state: {
+        coaching_recommendation_local_state: {
+          stage: "recommend",
+          recommendation_decision: {
+            primary_feature: "attack_card",
+          },
+        },
       },
-    } as any,
+    },
+  });
+  const decision = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        product_help: {
+          detected: true,
+          confidence_band: "high",
+          reason: "where_is_feature",
+        },
+      },
+    }),
+    active_skill_state: activeFlowState.activeSkillState,
+    safety_context_risk_band: "none",
   });
 
-  assertEquals(bypass, true);
+  assertEquals(
+    (activeFlowState.activeSkillState as any)?.skill_id,
+    "coaching_recommendation",
+  );
+  assertEquals(decision.response_owner, "coaching_recommendation");
+  assertEquals(decision.reason_code, "active_coaching_recommendation");
 });
 
-Deno.test("ambiguous tool routes can still enter orientation clarification", () => {
-  const bypass = shouldBypassOrientationClarificationForExplicitToolRoute({
-    routeDecision: {
-      route_version: "v1",
-      response_owner: "tool_skill",
-      selected_handler: "prepare_attack_card",
-      blocked_paths: [],
-      direct_effects_to_run: [],
-      reason_code: "clarification_required",
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-    },
-    turnFrame: {
-      turn_id: "t",
-      source_message_id: "m",
-      user_id: "u",
-      channel: "web",
-      safety: { risk_band: "none", reason_codes: [], evidence: [] },
-      confirmation_response: { kind: "unknown", confidence_band: "low" },
-      direct_effects: [],
-      tool_skill_intents: [{
-        operation_type: "prepare_attack_card",
-        explicitness: "explicit",
-        confidence_band: "high",
-        ambiguity: "intent_ambiguous",
-        user_intent: "create",
-      }],
-      flow_opportunity: null,
-      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
-      memory_plan: {
-        context_need: "minimal",
-        memory_mode: "none",
-        context_budget_tier: "tiny",
-        targets: [],
-        retrieval_policy: "taxonomy_first",
+Deno.test("readActiveFlowState active product_help keeps product_help ownership", () => {
+  const activeFlowState = readActiveFlowState({
+    [ACTIVE_CONVERSATION_SKILL_KEY]: {
+      version: 1,
+      skill_id: "product_help",
+      status: "active",
+      turn_count: 1,
+      started_at: "2026-06-18T10:00:00.000Z",
+      updated_at: "2026-06-18T10:01:00.000Z",
+      working_state: {
+        product_help_local_state: {
+          skill_id: "product_help",
+          status: "open",
+        },
       },
-    } as any,
+    },
+  });
+  const decision = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        coaching_recommendation: { detected: true, confidence_band: "high" },
+      },
+    }),
+    active_skill_state: activeFlowState.activeSkillState,
+    safety_context_risk_band: "none",
   });
 
-  assertEquals(bypass, false);
+  assertEquals(
+    (activeFlowState.activeSkillState as any)?.skill_id,
+    "product_help",
+  );
+  assertEquals(decision.response_owner, "product_help");
+  assertEquals(decision.reason_code, "active_product_help");
+  assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
 });
 
-Deno.test("safety active ownership builds direct local frame without global routing", () => {
-  const result = buildSafetyLocalOwnershipFrame({
-    turnId: "turn-safety-direct",
-    sourceMessageId: "message-safety-direct",
-    userId: "user-safety-direct",
-    channel: "whatsapp",
-    activeSkillState: {
+Deno.test("readActiveFlowState active weekly keeps weekly ownership", () => {
+  const activeFlowState = readActiveFlowState({
+    [ACTIVE_CONVERSATION_SKILL_KEY]: {
+      version: 1,
+      skill_id: "weekly_adaptive_review_v1",
+      status: "open",
+      turn_count: 1,
+      started_at: "2026-06-23T10:00:00.000Z",
+      updated_at: "2026-06-23T10:01:00.000Z",
+      weekly_flow_state: {
+        stage: "week_experience",
+      },
+    },
+  });
+  const decision = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        product_help: { detected: true, confidence_band: "high" },
+      },
+    }),
+    active_skill_state: activeFlowState.activeSkillState,
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(
+    (activeFlowState.activeSkillState as any)?.skill_id,
+    "weekly_adaptive_review_v1",
+  );
+  assertEquals(decision.response_owner, "weekly_adaptive_review_v1");
+  assertEquals(decision.selected_handler, "weekly_adaptive_review_v1");
+  assertEquals(decision.reason_code, "active_weekly_adaptive_review");
+  assertEquals(
+    decision.active_flow_arbitration?.active_owner,
+    "weekly_adaptive_review_v1",
+  );
+  assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
+});
+
+Deno.test("readActiveFlowState active safety keeps safety ownership and skips product/help routes", () => {
+  const activeFlowState = readActiveFlowState({
+    [ACTIVE_CONVERSATION_SKILL_KEY]: {
+      version: 1,
       skill_id: "safety_crisis",
       status: "active",
-      working_state: { phase: "support_contact" },
+      mode: "local_safety_flow",
+      turn_count: 1,
+      started_at: "2026-06-22T10:00:00.000Z",
+      updated_at: "2026-06-22T10:01:00.000Z",
+      working_state: {
+        phase: "acute_grounding",
+        risk_band: "high",
+        user_not_alone: false,
+      },
     },
-    safetyContextOutput: {
-      detected: true,
-      risk_band: "medium",
-      reason_codes: ["active_safety_flow_caution"],
-      evidence: ["active safety context"],
-      allow_side_effects: false,
-      layer_contributions: {},
-    } as any,
-    conversationRiskHistory: [1, 2],
-    userMessage: "ok",
-    requestId: "request-safety-direct",
+  });
+  const decision = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        product_help: {
+          detected: true,
+          confidence_band: "high",
+          reason: "where_is_feature",
+        },
+      },
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: "rappelle-moi dans 30 minutes" },
+      }],
+    }),
+    active_skill_state: activeFlowState.activeSkillState,
+    safety_context_risk_band: "none",
   });
 
-  assertEquals(result.routeDecision.response_owner, "safety");
-  assertEquals(result.routeDecision.selected_handler, "safety_crisis");
   assertEquals(
-    result.routeDecision.reason_code,
-    "safety_local_flow_owns_turn",
-  );
-  assertEquals(result.routeDecision.direct_effects_to_run, []);
-  assertEquals(
-    result.routeDecision.blocked_paths.map((path) => path.path).sort(),
-    ["global_dispatcher", "global_router"],
-  );
-  assertEquals(result.turnFrame.tool_skill_intents, []);
-  assertEquals(result.turnFrame.direct_effects, []);
-  assertEquals(result.turnFrame.note_information, null);
-  assertEquals(result.noteInformationCreated, false);
-});
-
-Deno.test("safety first activation direct local frame carries activation note", () => {
-  const result = buildSafetyLocalOwnershipFrame({
-    turnId: "turn-safety-first",
-    sourceMessageId: "message-safety-first",
-    userId: "user-safety-first",
-    channel: "web",
-    activeSkillState: null,
-    safetyContextOutput: {
-      detected: true,
-      risk_band: "high",
-      reason_codes: ["explicit_suicidal_thoughts"],
-      evidence: ["safety context evidence"],
-      allow_side_effects: false,
-      layer_contributions: {},
-    } as any,
-    conversationRiskHistory: [],
-    userMessage: "je risque de me faire du mal",
-    requestId: "request-safety-first",
-  });
-
-  assertEquals(result.noteInformationCreated, true);
-  assertEquals(
-    result.turnFrame.note_information?.target_dispatcher,
+    (activeFlowState.activeSkillState as any)?.skill_id,
     "safety_crisis",
   );
-  assertEquals(result.turnFrame.note_information?.handoff_reason, "safety");
-  assertEquals(result.routeDecision.response_owner, "safety");
-  assertEquals(result.routeDecision.selected_handler, "safety_crisis");
-});
-
-Deno.test("conversation risk flow exit is deferred to active emotional repair dispatcher", () => {
-  const defer = shouldDeferConversationRiskFlowExitToLocalDispatcher({
-    activeSkillState: {
-      skill_id: "emotional_repair",
-      status: "active",
-      working_state: {
-        summary: "emotional repair active",
-      },
-    },
-    conversationRisk: {
-      score: 9,
-      threshold: 8,
-      should_exit_flows: true,
-      reason_codes: ["topic_change"],
-      previous_scores: [0],
-      matrix: [],
-      context_summary: null,
-      flow_exit_context: {
-        interrupted_flow_type: "conversation_skill",
-        restart_scope: "same_message",
-        active_conversation_skill_id: "emotional_repair",
-        active_tool_skill_type: null,
-        known_slots: null,
-        pending_confirmation: null,
-        last_user_message: "je change de sujet",
-      },
-    } as any,
-  });
-
-  assertEquals(defer, true);
-});
-
-Deno.test("conversation risk flow exit can clear when no local dispatcher is active", () => {
-  const defer = shouldDeferConversationRiskFlowExitToLocalDispatcher({
-    activeSkillState: null,
-    conversationRisk: {
-      score: 9,
-      threshold: 8,
-      should_exit_flows: true,
-      reason_codes: ["topic_change"],
-      previous_scores: [0],
-      matrix: [],
-      context_summary: null,
-      flow_exit_context: {
-        interrupted_flow_type: "none",
-        restart_scope: "same_message",
-        active_conversation_skill_id: null,
-        active_tool_skill_type: null,
-        known_slots: null,
-        pending_confirmation: null,
-        last_user_message: "je change de sujet",
-      },
-    } as any,
-  });
-
-  assertEquals(defer, false);
-});
-
-Deno.test("competing attack and defense card routes do not bypass orientation clarification", () => {
-  const bypass = shouldBypassOrientationClarificationForExplicitToolRoute({
-    routeDecision: {
-      route_version: "v1",
-      response_owner: "tool_skill",
-      selected_handler: "prepare_defense_card",
-      blocked_paths: [],
-      direct_effects_to_run: [],
-      reason_code: "central_arbitrator_defense_card_structured_intent",
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-    },
-    turnFrame: {
-      turn_id: "t",
-      source_message_id: "m",
-      user_id: "u",
-      channel: "web",
-      safety: { risk_band: "none", reason_codes: [], evidence: [] },
-      confirmation_response: { kind: "unknown", confidence_band: "low" },
-      direct_effects: [],
-      tool_skill_intents: [{
-        operation_type: "prepare_attack_card",
-        explicitness: "explicit",
-        confidence_band: "high",
-        ambiguity: "none",
-        user_intent: "create",
-      }, {
-        operation_type: "prepare_defense_card",
-        explicitness: "explicit",
-        confidence_band: "high",
-        ambiguity: "none",
-        user_intent: "create",
-      }],
-      flow_opportunity: null,
-      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
-      memory_plan: {
-        context_need: "minimal",
-        memory_mode: "none",
-        context_budget_tier: "tiny",
-        targets: [],
-        retrieval_policy: "taxonomy_first",
-      },
-    } as any,
-  });
-
-  assertEquals(bypass, false);
-});
-
-Deno.test("orientation clarification resolved to state potion resumes tool skill", () => {
   assertEquals(
-    resolveOrientationClarificationToolSkillHandler({
-      status: "resolved",
-      selectedCandidateId: "select_state_potion",
-      selectedCandidateOperationType: "select_state_potion",
-    }),
-    "select_state_potion",
-  );
-  assertEquals(
-    resolveOrientationClarificationToolSkillHandler({
-      status: "resolved",
-      selectedCandidateId: "emotional_repair",
-      selectedCandidateOperationType: null,
-    }),
-    null,
-  );
-});
-
-Deno.test("orientation clarification resolved to supported conversation skill resumes skill handler", () => {
-  assertEquals(
-    resolveOrientationClarificationConversationSkillHandler({
-      status: "resolved",
-      selectedCandidateId: "demotivation_repair",
-    }),
-    "demotivation_repair",
-  );
-  assertEquals(
-    resolveOrientationClarificationConversationSkillHandler({
-      status: "resolved",
-      selectedCandidateId: "emotional_repair",
-    }),
-    "emotional_repair",
-  );
-  assertEquals(
-    resolveOrientationClarificationConversationSkillHandler({
-      status: "ask",
-      selectedCandidateId: "demotivation_repair",
-    }),
-    null,
-  );
-  assertEquals(
-    resolveOrientationClarificationConversationSkillHandler({
-      status: "resolved",
-      selectedCandidateId: "execution" + "_breakdown",
-    }),
-    null,
-  );
-  assertEquals(
-    resolveOrientationClarificationConversationSkillHandler({
-      status: "resolved",
-      selectedCandidateId: "select_state_potion",
-    }),
-    null,
-  );
-});
-
-Deno.test("orientation clarification: current conversation signal can override stale tool resolution", () => {
-  const turnFrame = orientationTurnFrame({
-    skill_signals: {
-      entry: {
-        demotivation_repair: {
-          detected: true,
-          confidence_band: "high",
-          reason: "structured_demotivation_repair",
-        },
-      },
-      lifecycle: {},
-      exit: {},
-    },
-  });
-
-  assertEquals(
-    currentTurnSupportsOrientationToolResolution({
-      turnFrame,
-      operationType: "select_state_potion",
-    }),
-    false,
-  );
-  assertEquals(
-    currentTurnConversationSkillOverrideForOrientation({
-      status: "resolved",
-      turnFrame,
-      resolvedToolSkillHandler: "select_state_potion",
-    }),
-    "demotivation_repair",
-  );
-});
-
-Deno.test("orientation clarification: selected tool candidate prevents conversation override", () => {
-  const turnFrame = orientationTurnFrame({
-    skill_signals: {
-      entry: {
-        emotional_repair: {
-          detected: true,
-          confidence_band: "high",
-          reason: "structured_emotional_repair",
-        },
-      },
-      lifecycle: {},
-      exit: {},
-    },
-  });
-
-  assertEquals(
-    currentTurnSupportsOrientationToolResolution({
-      turnFrame,
-      operationType: "select_state_potion",
-    }),
-    false,
-  );
-  assertEquals(
-    currentTurnConversationSkillOverrideForOrientation({
-      status: "resolved",
-      turnFrame,
-      resolvedToolSkillHandler: "select_state_potion",
-      selectedCandidateOperationType: "select_state_potion",
-      selectedCandidateConfidence: "high",
-    }),
-    null,
-  );
-});
-
-Deno.test("orientation clarification: explicit current tool signal prevents conversation override", () => {
-  const turnFrame = orientationTurnFrame({
-    skill_signals: {
-      entry: {
-        demotivation_repair: {
-          detected: true,
-          confidence_band: "high",
-          reason: "structured_demotivation_repair",
-        },
-        select_state_potion: {
-          detected: true,
-          confidence_band: "medium",
-          reason: "structured_state_potion",
-        },
-      },
-      lifecycle: {},
-      exit: {},
-    },
-  });
-
-  assertEquals(
-    currentTurnSupportsOrientationToolResolution({
-      turnFrame,
-      operationType: "select_state_potion",
+    shouldSkipGlobalDispatcherForActiveLocalFlow({
+      activeSkillState: activeFlowState.activeSkillState,
     }),
     true,
   );
+  assertEquals(decision.response_owner, "safety");
+  assertEquals(decision.selected_handler, "safety_crisis");
   assertEquals(
-    currentTurnConversationSkillOverrideForOrientation({
-      status: "resolved",
-      turnFrame,
-      resolvedToolSkillHandler: "select_state_potion",
+    decision.reason_code,
+    "active_safety_crisis_with_direct_effects",
+  );
+  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
+  assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
+  assertEquals(
+    decision.active_flow_arbitration?.active_owner,
+    "safety_crisis",
+  );
+});
+
+Deno.test("applySafetyCrisisSkillState writes canonical active state on continue", () => {
+  const next = applySafetyCrisisSkillState({
+    tempMemory: {},
+    activeSkillState: null,
+    output: {
+      skill_id: "safety_crisis",
+      status: "continue",
+      response_intent: "continue_safety_flow",
+      reply: "reste avec moi",
+      memory_trace: {
+        memory_used_for_response: false,
+        memory_item_ids_used: [],
+        correction_detected: false,
+        correction_target_item_ids: [],
+      },
+      state_patch: {
+        phase: "acute_grounding",
+        risk_band: "high",
+        immediate_danger: null,
+        has_means_nearby: null,
+        user_not_alone: false,
+        emergency_help_mentioned: false,
+        human_support_mentioned: false,
+        consecutive_deescalated_turns: 0,
+        visible_task: { kind: "acute_grounding" },
+      },
+    } as any,
+  });
+
+  const active = readActiveFlowState(next).activeSkillState as any;
+  assertEquals(active.skill_id, "safety_crisis");
+  assertEquals(active.status, "active");
+  assertEquals(active.mode, "local_safety_flow");
+  assertEquals(active.working_state.phase, "acute_grounding");
+  assertEquals(active.working_state.risk_band, "high");
+  assertEquals(active.working_state.visible_task, undefined);
+  assertEquals((next as any).__active_skill_state.skill_id, "safety_crisis");
+});
+
+Deno.test("applySafetyCrisisSkillState purges every active flow key on exit to global", () => {
+  const active = {
+    version: 1,
+    skill_id: "safety_crisis",
+    status: "resolving",
+    mode: "local_safety_flow",
+    turn_count: 4,
+    working_state: { phase: "exit_check" },
+  };
+  const next = applySafetyCrisisSkillState({
+    tempMemory: {
+      [ACTIVE_CONVERSATION_SKILL_KEY]: active,
+      __active_skill_state: active,
+      active_skill_state: active,
+    },
+    activeSkillState: active,
+    output: {
+      skill_id: "safety_crisis",
+      status: "exit",
+      response_intent: "exit_to_global_dispatcher",
+      reply: "Le plus urgent est stabilisé.",
+      memory_trace: {
+        memory_used_for_response: false,
+        memory_item_ids_used: [],
+        correction_detected: false,
+        correction_target_item_ids: [],
+      },
+      state_patch: {
+        phase: "resolved",
+        risk_band: "low",
+        immediate_danger: false,
+        has_means_nearby: false,
+        user_not_alone: true,
+        emergency_help_mentioned: true,
+        human_support_mentioned: true,
+        visible_task: { kind: "resolved_exit" },
+        exit_memo: {
+          reason: "resolved",
+          flow_summary: "Safety crisis deescalated.",
+          note_information: {
+            source_flow_id: "safety_crisis",
+            target_dispatcher: "global",
+          },
+        },
+      },
+    } as any,
+  });
+
+  assertEquals(readActiveFlowState(next).activeSkillState, null);
+  assertEquals((next as any)[ACTIVE_CONVERSATION_SKILL_KEY], undefined);
+  assertEquals((next as any).__active_skill_state, undefined);
+  assertEquals((next as any).active_skill_state, undefined);
+  assertEquals(
+    (next as any).__last_safety_crisis_exit_memo.note_information
+      .target_dispatcher,
+    "global",
+  );
+});
+
+Deno.test("applyConversationSkillState purges every active flow key for local dispatcher exits", () => {
+  const skillIds = [
+    "product_help",
+    "coaching_recommendation",
+    "feature_opportunity",
+  ] as const;
+
+  for (const skillId of skillIds) {
+    const active = {
+      version: 1,
+      skill_id: skillId,
+      status: "active",
+      turn_count: 2,
+      working_state: {},
+    };
+    const next = applyConversationSkillState({
+      tempMemory: {
+        [ACTIVE_CONVERSATION_SKILL_KEY]: active,
+        __active_skill_state: active,
+        active_skill_state: active,
+      },
+      activeSkillState: active,
+      skillId,
+      output: {
+        skill_id: skillId,
+        status: "exit",
+        response_intent: "exit_to_global_dispatcher",
+        reply: "",
+        memory_trace: {
+          memory_used_for_response: false,
+          memory_item_ids_used: [],
+          correction_detected: false,
+          correction_target_item_ids: [],
+        },
+        state_patch: {},
+      } as any,
+    });
+
+    assertEquals(readActiveFlowState(next).activeSkillState, null);
+    assertEquals((next as any)[ACTIVE_CONVERSATION_SKILL_KEY], undefined);
+    assertEquals((next as any).__active_skill_state, undefined);
+    assertEquals((next as any).active_skill_state, undefined);
+  }
+});
+
+Deno.test("global router keeps active feature opportunity before product_help", () => {
+  const active = {
+    skill_id: "feature_opportunity",
+    status: "active",
+    working_state: {},
+  };
+  const continued = runConversationRouters({
+    turn_frame: frame(),
+    active_skill_state: active,
+    safety_context_risk_band: "none",
+  });
+  assertEquals(continued.response_owner, "feature_opportunity");
+
+  const interrupted = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        product_help: { detected: true, confidence_band: "high" },
+      },
     }),
-    null,
-  );
-});
-
-Deno.test("resolveAgentChatModel: explicit override wins", () => {
-  const selected = resolveAgentChatModel({
-    effectiveMode: "companion",
-    explicitModel: "gpt-5.4-mini",
-    memoryPlan: {
-      response_intent: "inventory",
-      reasoning_complexity: "high",
-      context_need: "dossier",
-      memory_mode: "dossier",
-      model_tier_hint: "deep",
-      context_budget_tier: "large",
-      targets: [],
-      retrieval_policy: "semantic_first",
-      plan_confidence: 0.99,
-    },
+    active_skill_state: active,
+    safety_context_risk_band: "none",
   });
-
-  assertEquals(selected.model, "gpt-5.4-mini");
-  assertEquals(selected.source, "explicit_override");
-  assertEquals(selected.tier, "explicit");
-});
-
-Deno.test("resolveAgentChatModel: sentry mode keeps global default model", () => {
-  const selected = resolveAgentChatModel({
-    effectiveMode: "sentry",
-    memoryPlan: {
-      response_intent: "reflection",
-      reasoning_complexity: "high",
-      context_need: "dossier",
-      memory_mode: "broad",
-      model_tier_hint: "deep",
-      context_budget_tier: "large",
-      targets: [],
-      retrieval_policy: "semantic_first",
-      plan_confidence: 0.95,
-    },
-  });
-
+  assertEquals(interrupted.response_owner, "feature_opportunity");
+  assertEquals(interrupted.reason_code, "active_feature_opportunity");
   assertEquals(
-    selected.model,
-    String(getGlobalAiModel()).trim(),
+    interrupted.active_flow_arbitration?.active_owner,
+    "feature_opportunity",
   );
-  assertEquals(selected.source, "non_companion_default");
-  assertEquals(selected.tier, "default");
+  assertEquals(
+    interrupted.active_flow_arbitration?.decision,
+    "continue_active",
+  );
 });
 
-Deno.test("resolveAgentChatModel: companion low-confidence default uses mini", () => {
-  const selected = resolveAgentChatModel({
-    effectiveMode: "companion",
-    memoryPlan: {
-      response_intent: "direct_answer",
-      reasoning_complexity: "low",
-      context_need: "minimal",
-      memory_mode: "light",
-      model_tier_hint: "lite",
-      context_budget_tier: "tiny",
-      targets: [],
-      retrieval_policy: "semantic_first",
-      plan_confidence: 0.4,
+Deno.test("global router can run one-shot direct effect during coaching", () => {
+  const decision = runConversationRouters({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: "demain a 9h" },
+      }],
+    }),
+    active_skill_state: {
+      skill_id: "coaching_recommendation",
+      status: "active",
     },
+    safety_context_risk_band: "none",
   });
 
-  assertEquals(selected.model, "gpt-5.4-mini");
-  assertEquals(selected.source, "companion_default");
-  assertEquals(selected.tier, "default");
+  assertEquals(decision.response_owner, "coaching_recommendation");
+  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
 });
 
-Deno.test("resolveAgentChatModel: companion standard tier uses mini", () => {
-  const selected = resolveAgentChatModel({
-    effectiveMode: "companion",
-    memoryPlan: {
-      response_intent: "direct_answer",
+Deno.test("global router allows one-shot direct effect during normal reply", () => {
+  const decision = runConversationRouters({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: "demain a 9h" },
+      }],
+    }),
+    safety_context_risk_band: "none",
+  });
+
+  assertEquals(decision.response_owner, "normal_reply");
+  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
+});
+
+Deno.test("global router sends personal inventory/status requests to normal reply", () => {
+  const decision = route(frame({
+    memory_plan: {
+      response_intent: "personal_state_question",
       reasoning_complexity: "medium",
       context_need: "targeted",
       memory_mode: "light",
       model_tier_hint: "standard",
       context_budget_tier: "small",
-      targets: [],
+      targets: [{ type: "runtime_snapshot", key: "active_surfaces" }],
       retrieval_policy: "semantic_first",
-      plan_confidence: 0.81,
+      plan_confidence: 0.8,
     },
-  });
+  }));
 
-  assertEquals(selected.model, "gpt-5.4-mini");
-  assertEquals(selected.source, "memory_plan_standard");
-  assertEquals(selected.tier, "standard");
+  assertEquals(decision.response_owner, "normal_reply");
+  assertEquals(decision.selected_handler, undefined);
+  assertEquals(decision.direct_effects_to_run, []);
 });
 
-Deno.test("resolveAgentChatModel: companion lite tier uses mini", () => {
-  const selected = resolveAgentChatModel({
-    effectiveMode: "companion",
-    memoryPlan: {
-      response_intent: "problem_solving",
-      reasoning_complexity: "medium",
-      context_need: "targeted",
-      memory_mode: "light",
-      model_tier_hint: "lite",
-      context_budget_tier: "small",
-      targets: [],
-      retrieval_policy: "semantic_first",
-      plan_confidence: 0.81,
+Deno.test("router bridge injects Memory V2 active payload into the final prompt context", () => {
+  const contextLoadResult = {
+    context: {
+      recentTurns: "=== MESSAGES RECENTS ===\nUser: ou en etait mon ICP ?\n\n",
     },
-  });
+    profile: {},
+    metrics: {},
+  } as any;
 
-  assertEquals(selected.model, "gpt-5.4-mini");
-  assertEquals(selected.source, "memory_plan_lite");
-  assertEquals(selected.tier, "lite");
-});
-
-Deno.test("effectiveResponseOwnerForOperationRuntime: operation runtime owns tool skill replies", () => {
-  assertEquals(
-    effectiveResponseOwnerForOperationRuntime({
-      routeDecision: { response_owner: "normal_reply" },
-      toolSkillRun: {
-        selected_handler: "prepare_attack_card",
-        status: "pending_confirmation_updated",
+  const applied = applyMemoryV2ActiveLoaderResult(
+    contextLoadResult,
+    { before: true },
+    {
+      tempMemory: { before: true, memory_v2_loaded: true },
+      context_block:
+        "=== MEMOIRE V2 ACTIVE ===\n- Le fondateur avait choisi les managers primo-accedants comme ICP prioritaire.\n\n",
+      retrieval_mode: "cross_topic_lookup",
+      topic_decision: "stay",
+      active_topic_id: "topic-1",
+      payload_item_ids: ["mem-1"],
+      metrics: {
+        load_ms: 12,
+        total_ms: 15,
+        sensitive_excluded_count: 0,
+        invalid_injection_count: 0,
+        fallback_used: false,
+        dispatcher_memory_plan_applied: true,
+        loader_plan_reason: "dispatcher_memory_plan",
+        loaded_scope_counts: {
+          topic: 1,
+          event: 0,
+          global: 0,
+          action: 0,
+          level: 0,
+          entity: 0,
+        },
       },
-    }),
-    "tool_skill",
+    },
   );
-  assertEquals(
-    effectiveResponseOwnerForOperationRuntime({
-      routeDecision: { response_owner: "product_help" },
-      toolSkillRun: null,
-    }),
-    "product_help",
-  );
+
+  const prompt = buildContextString(contextLoadResult.context);
+  assertEquals(applied.injected, true);
+  assertEquals((applied.tempMemory as any).memory_v2_loaded, true);
+  assertEquals(prompt.includes("=== MEMOIRE V2 ACTIVE ==="), true);
+  assertEquals(prompt.includes("managers primo-accedants"), true);
 });
 
-Deno.test("adjust plan routing: ambivalent reflection does not start adjustment intake", async () => {
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Une partie de moi se dit qu'il faudrait tout baisser à 1, voire laisser tomber, mais je ne suis pas sûre. Est-ce que c'est une bonne idée ou juste une réaction de fatigue ?",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {},
-    turnFrame: {
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        confidence_band: "high",
-        user_intent: "adjust",
-        ambiguity: "none",
-      }],
-    } as any,
-    routeDecision: {
-      response_owner: "tool_skill",
-      selected_handler: "adjust_plan_item",
-    } as any,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-ambivalent",
-    requestId: "req-ambivalent",
-    planItemSnapshot: [],
-    forceFullAi: true,
-  });
+Deno.test("global router does not run ambiguous direct effects", () => {
+  const decision = route(frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "ambiguous",
+      confidence_band: "high",
+      payload_hint: { raw_text: "rappelle-moi demain" },
+    }],
+  }));
 
-  assertEquals(result, null);
-});
-
-Deno.test("adjust plan draft review answers pre-confirmation detail request without executing", async () => {
-  const draft: any = {
-    operation_type: "adjust_plan_item",
-    output_schema: "plan_adjustment_draft_v1",
-    confirmation_message:
-      "Je n'ai encore rien appliqué. Je te propose de réduire Faire le choix du brut à 3 jours par semaine et de simplifier Préparer tes alternatives d'avance en une option simple. Le plan global ne change pas. Tu veux que je l'applique ?",
-    execution_message: "C'est fait.",
-    confirmation_actions: ["yes", "no"],
-    draft: {
-      title: "Ajustement - niveau actuel",
-      scope_label: "niveau actuel",
-      adjustment_type: "reduce",
-      execution_strategy: "level_adjustment",
-      proposed_change: "Alléger le niveau actuel.",
-      why_it_helps: "La pression baisse sans changer le plan global.",
-      confidence: "medium",
-      decision_basis: {
-        user_problem: "Le niveau actuel est trop intense.",
-        inferred_need: "Réduire la charge sans changer le cap.",
-        confidence: "medium",
-        evidence: ["test"],
-        uncertainty: [],
-        must_preserve: ["plan global"],
-      },
-      change_rationale: {
-        why_this_change: "Le user veut moins de pression.",
-        expected_mechanism: "Moins de fréquence rend le niveau tenable.",
-        success_condition: "Le user garde l'élan.",
-      },
-      ack_summary: {
-        changed: ["fréquence réduite", "préparation simplifiée"],
-        unchanged: ["plan global"],
-        why_it_helps: "Moins de pression.",
-        confidence: "medium",
-      },
-      adjust_plan_result: {
-        scope: "level",
-        applied_change: {
-          summary: "Deux changements ciblés dans le niveau actuel.",
-          changed_items: [
-            {
-              kind: "habit",
-              capability: "change_action_frequency",
-              id: "brut",
-              title: "Faire le choix du brut",
-              before: "6 jours par semaine",
-              after: "3 jours par semaine",
-              reason: "Réduire la pression et l'effet culpabilité.",
-            },
-            {
-              kind: "action",
-              capability: "modify_existing_action",
-              id: "alternatives",
-              title: "Préparer tes alternatives d'avance",
-              before: "Préparer plusieurs options.",
-              after: "Prévoir une option simple.",
-              reason: "Réduire la logistique.",
-            },
-            {
-              kind: "action",
-              capability: "modify_existing_action",
-              id: "bilan-signal",
-              title: "Faire le point sur le signal de pause",
-              before: "Bilan complet en fin de semaine.",
-              after: "Bilan court avec une seule question.",
-              reason: "Garder l'apprentissage sans alourdir le niveau.",
-            },
-          ],
-          preserved_items: [
-            {
-              kind: "plan",
-              id: null,
-              title: "Cartographier les moments de tension",
-              reason:
-                "Cette observation reste utile pour comprendre le rythme.",
-            },
-            {
-              kind: "plan",
-              id: null,
-              title: "Plan global",
-              reason: "Le changement reste limité au niveau actuel.",
-            },
-          ],
-        },
-        boundaries: {
-          affected_scope: "niveau actuel uniquement",
-          explicitly_not_affected: ["plan global"],
-          global_plan_impact: "none",
-          explanation: "Le plan global ne change pas.",
-        },
-        rationale: {
-          user_problem: "Trop de pression.",
-          why_this_change: "Réduire la fréquence et la préparation.",
-          expected_effect: "Le niveau devient plus tenable.",
-          confidence: "medium",
-          missing_info: [],
-        },
-        user_message_brief: "Brouillon prêt.",
-        user_message_detailed: "Brouillon détaillé.",
-      },
-      patch: { scope_kind: "current_level" },
-      allowed_patch_fields: ["scope_kind"],
-    },
-  };
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Avant que je dise oui, tu peux me dire concrètement les deux changements ?",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {
-      __pending_adjust_plan_draft_review: {
-        operation_type: "adjust_plan_item",
-        phase: "draft_review",
-        operation_id: "op-adjust",
-        draft,
-        operation_input: {
-          scope: {
-            kind: "current_level",
-            title: "niveau actuel",
-            current_summary: "niveau actuel",
-          },
-        },
-        turn_count: 0,
-      },
-    },
-    turnFrame: {
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        user_intent: "explain_only",
-        confidence_band: "high",
-      }],
-    } as any,
-    routeDecision: null,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-adjust",
-    requestId: "req-adjust",
-    planItemSnapshot: [],
-  });
-
-  assertEquals(result?.toolExecution, "none");
-  assertEquals(result?.executedTools, []);
-  assertEquals(result?.toolSkillRun?.status, "draft_review_details");
-  assertStringIncludes(result?.content ?? "", "brouillon actuel");
-  assertStringIncludes(
-    result?.content ?? "",
-    "Faire le point sur le signal de pause",
-  );
-  assertStringIncludes(
-    result?.content ?? "",
-    "Cartographier les moments de tension",
-  );
-  assertEquals(
-    Boolean((result?.nextTempMemory as any).__pending_adjust_plan_draft_review),
-    true,
-  );
-});
-
-Deno.test("adjust plan whole-plan detail request answers directly without repeating full draft", async () => {
-  const draft: any = {
-    operation_type: "adjust_plan_item",
-    output_schema: "plan_adjustment_draft_v1",
-    confirmation_message:
-      "Je peux te proposer un ajustement du plan global. Rien n'est encore appliqué tant que tu ne valides pas clairement.",
-    execution_message: "C'est fait.",
-    confirmation_actions: ["yes", "no"],
-    draft: {
-      title: "Ajuster la trajectoire du plan",
-      scope_label: "plan global",
-      execution_strategy: "whole_plan_adjustment",
-      proposed_change: "Réparer légèrement avant discussion de fond.",
-      adjust_plan_result: {
-        scope: "whole_plan",
-        applied_change: {
-          summary: "Phase future retravaillée.",
-          trajectory_change: {
-            before: "La phase future entrait directement par les reproches.",
-            after:
-              "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
-            inserted_step:
-              "Une phase de réparation légère après petite tension.",
-            preserved_direction: "L'objectif global du plan reste stable.",
-            coaching_reason:
-              "Cela rend l'entrée dans les sujets sensibles plus progressive.",
-          },
-          changed_items: [],
-          preserved_items: [],
-        },
-      },
-    },
-  };
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Avant validation, confirme-moi juste que ça ne supprime pas la discussion de fond, ça la décale après le retour au calme.",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {
-      __pending_adjust_plan_draft_review: {
-        operation_type: "adjust_plan_item",
-        phase: "draft_review",
-        operation_id: "op-whole-detail",
-        draft,
-        operation_input: {
-          scope: { kind: "whole_plan", title: "plan global" },
-        },
-        turn_count: 0,
-      },
-    },
-    turnFrame: {
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        user_intent: "explain_only",
-        confidence_band: "high",
-      }],
-    } as any,
-    routeDecision: null,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-whole-detail",
-    requestId: "req-whole-detail",
-    planItemSnapshot: [],
-  });
-
-  assertEquals(result?.toolExecution, "none");
-  assertEquals(result?.executedTools, []);
-  assertStringIncludes(result?.content ?? "", "ne supprime pas");
-  assertStringIncludes(result?.content ?? "", "après le retour au calme");
-});
-
-Deno.test("adjust plan whole-plan pre-validation progression concern gets coaching answer", async () => {
-  const draft: any = {
-    operation_type: "adjust_plan_item",
-    output_schema: "plan_adjustment_draft_v1",
-    confirmation_message:
-      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
-    execution_message: "C'est fait.",
-    confirmation_actions: ["yes", "no"],
-    draft: {
-      title: "Ajuster la trajectoire du plan",
-      scope_label: "plan global",
-      execution_strategy: "whole_plan_adjustment",
-      proposed_change:
-        "Réorienter le plan vers chaleur, fiabilité et réparation rapide.",
-      adjust_plan_result: {
-        scope: "whole_plan",
-        applied_change: {
-          trajectory_change: {
-            before:
-              "Le plan pouvait être vécu comme une suite de cases à cocher.",
-            after:
-              "Le plan garde les mêmes appuis, mais leur rôle devient plus clair: soutenir la présence fiable, les petits moments positifs et la réparation après maladresse.",
-            inserted_step:
-              "Une lecture moins performative des actions existantes.",
-            preserved_direction: "L'objectif global du plan reste stable.",
-            coaching_reason:
-              "Changer le sens et les critères implicites du plan sans augmenter la charge.",
-          },
-          changed_items: [],
-          preserved_items: [],
-        },
-      },
-    },
-  };
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Et si ça devient trop mou, est-ce que ça veut dire que je perds l'idée de progression du plan ? Je veux éviter de juste faire au feeling.",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {
-      __pending_adjust_plan_draft_review: {
-        operation_type: "adjust_plan_item",
-        phase: "draft_review",
-        operation_id: "op-whole-progression",
-        draft,
-        operation_input: {
-          scope: { kind: "whole_plan", title: "plan global" },
-        },
-        turn_count: 0,
-      },
-    },
-    turnFrame: {
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        user_intent: "explain_only",
-        confidence_band: "high",
-      }],
-    } as any,
-    routeDecision: null,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-whole-progression",
-    requestId: "req-whole-progression",
-    planItemSnapshot: [],
-  });
-
-  assertEquals(result?.toolExecution, "none");
-  assertEquals(result?.executedTools, []);
-  assertEquals(result?.toolSkillRun?.status, "draft_review_details");
-  assertStringIncludes(result?.content ?? "", "pas de rendre le plan flou");
-  assertStringIncludes(result?.content ?? "", "garde une progression");
-  if ((result?.content ?? "").includes("Le brouillon prévoit bien")) {
-    throw new Error("progression concern should not get a generic draft recap");
-  }
-});
-
-Deno.test("adjust plan whole-plan no-extra-actions confirmation is concrete", async () => {
-  const draft: any = {
-    operation_type: "adjust_plan_item",
-    output_schema: "plan_adjustment_draft_v1",
-    confirmation_message:
-      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
-    execution_message: "C'est fait.",
-    confirmation_actions: ["yes", "no"],
-    draft: {
-      title: "Ajuster la trajectoire du plan",
-      scope_label: "plan global",
-      execution_strategy: "whole_plan_adjustment",
-      proposed_change: "Ajouter une marche de réparation légère.",
-      adjust_plan_result: {
-        scope: "whole_plan",
-        applied_change: {
-          trajectory_change: {
-            before:
-              "La suite du plan passait trop vite de la tension à l'analyse.",
-            after:
-              "Le plan ajoute un passage court après dispute avant d'analyser le fond.",
-            inserted_step:
-              "Reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
-            preserved_direction: "L'objectif global du plan reste stable.",
-            coaching_reason:
-              "Le user demande une marche de réparation relationnelle.",
-          },
-          changed_items: [],
-          preserved_items: [],
-        },
-      },
-    },
-  };
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Avant de valider, confirme-moi que ça ne rajoute pas trois nouvelles actions, juste une petite marche dans le plan.",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {
-      __pending_adjust_plan_draft_review: {
-        operation_type: "adjust_plan_item",
-        phase: "draft_review",
-        operation_id: "op-whole-no-extra-actions",
-        draft,
-        operation_input: {
-          scope: { kind: "whole_plan", title: "plan global" },
-        },
-        turn_count: 0,
-      },
-    },
-    turnFrame: {
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        user_intent: "explain_only",
-        confidence_band: "high",
-      }],
-    } as any,
-    routeDecision: null,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-whole-no-extra-actions",
-    requestId: "req-whole-no-extra-actions",
-    planItemSnapshot: [],
-  });
-
-  assertEquals(result?.toolExecution, "none");
-  assertEquals(result?.executedTools, []);
-  assertEquals(result?.toolSkillRun?.status, "draft_review_details");
-  assertStringIncludes(result?.content ?? "", "ne rajoute pas");
-  assertStringIncludes(result?.content ?? "", "Reconnaître brièvement");
-  if ((result?.content ?? "").includes("change surtout l'axe du plan")) {
-    throw new Error("no-extra-actions answer should not stay generic");
-  }
-});
-
-Deno.test("adjust plan whole-plan repair progression concern stays specific", async () => {
-  const draft: any = {
-    operation_type: "adjust_plan_item",
-    output_schema: "plan_adjustment_draft_v1",
-    confirmation_message:
-      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
-    execution_message: "C'est fait.",
-    confirmation_actions: ["yes", "no"],
-    draft: {
-      title: "Ajuster la trajectoire du plan",
-      scope_label: "plan global",
-      execution_strategy: "whole_plan_adjustment",
-      proposed_change: "Ajouter une marche de réparation légère.",
-      adjust_plan_result: {
-        scope: "whole_plan",
-        applied_change: {
-          trajectory_change: {
-            before:
-              "La suite du plan passait trop vite de la tension à l'analyse.",
-            after:
-              "Le plan ajoute un passage court après dispute avant d'analyser le fond.",
-            inserted_step:
-              "Reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
-            preserved_direction: "L'objectif global du plan reste stable.",
-            coaching_reason:
-              "Le user demande une marche de réparation relationnelle.",
-          },
-          changed_items: [],
-          preserved_items: [],
-        },
-      },
-    },
-  };
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Avec cette marche prévue, on garde quand même l'idée de progression ? Je ne veux pas que ça devienne au feeling.",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {
-      __pending_adjust_plan_draft_review: {
-        operation_type: "adjust_plan_item",
-        phase: "draft_review",
-        operation_id: "op-whole-repair-progression",
-        draft,
-        operation_input: {
-          scope: { kind: "whole_plan", title: "plan global" },
-        },
-        turn_count: 0,
-      },
-    },
-    turnFrame: {
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        user_intent: "explain_only",
-        confidence_band: "high",
-      }],
-    } as any,
-    routeDecision: null,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-whole-repair-progression",
-    requestId: "req-whole-repair-progression",
-    planItemSnapshot: [],
-  });
-
-  assertEquals(result?.toolExecution, "none");
-  assertEquals(result?.executedTools, []);
-  assertEquals(result?.toolSkillRun?.status, "draft_review_details");
-  assertStringIncludes(result?.content ?? "", "garde une progression");
-  assertStringIncludes(result?.content ?? "", "Reconnaître brièvement");
-  if ((result?.content ?? "").includes("signes concrets de chaleur")) {
-    throw new Error("repair progression answer should not use warmth template");
-  }
-  if ((result?.content ?? "").includes("Avant:")) {
-    throw new Error(
-      "repair progression answer should not dump full trajectory",
-    );
-  }
-});
-
-Deno.test("adjust plan whole-plan pre-validation nuance updates draft without executing", async () => {
-  const draft: any = {
-    operation_type: "adjust_plan_item",
-    output_schema: "plan_adjustment_draft_v1",
-    confirmation_message:
-      "Je peux te proposer un ajustement du plan global. Rien n'est encore appliqué tant que tu ne valides pas clairement.",
-    execution_message: "C'est fait.",
-    confirmation_actions: ["yes", "no"],
-    draft: {
-      title: "Ajuster la trajectoire du plan",
-      scope_label: "plan global",
-      execution_strategy: "whole_plan_adjustment",
-      proposed_change: "Réparer légèrement avant discussion de fond.",
-      adjust_plan_result: {
-        scope: "whole_plan",
-        applied_change: {
-          trajectory_change: {
-            after:
-              "La phase future garde son objectif de clarté, mais son entrée devient plus progressive.",
-          },
-          changed_items: [],
-          preserved_items: [],
-        },
-      },
-    },
-  };
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Ajoute cette nuance au brouillon : on garde la discussion de fond, mais elle vient seulement après un retour au calme. Ne valide toujours pas.",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {
-      __pending_adjust_plan_draft_review: {
-        operation_type: "adjust_plan_item",
-        phase: "draft_review",
-        operation_id: "op-whole-nuance",
-        draft,
-        operation_input: {
-          scope: { kind: "whole_plan", title: "plan global" },
-        },
-        turn_count: 0,
-      },
-    },
-    turnFrame: {
-      confirmation_response: { kind: "no", confidence_band: "high" },
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        user_intent: "adjust",
-        confidence_band: "high",
-      }],
-    } as any,
-    routeDecision: null,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-whole-nuance",
-    requestId: "req-whole-nuance",
-    planItemSnapshot: [],
-  });
-
-  assertEquals(result?.toolExecution, "blocked");
-  assertEquals(result?.executedTools, []);
-  assertEquals(result?.toolSkillRun?.status, "draft_review_updated");
-  assertStringIncludes(result?.content ?? "", "Nuance intégrée");
-  assertStringIncludes(result?.content ?? "", "Je n'applique rien");
-  assertEquals(
-    Boolean((result?.nextTempMemory as any).__pending_adjust_plan_draft_review),
-    true,
-  );
-});
-
-Deno.test("adjust plan whole-plan pre-validation nuance strips command wrapper", async () => {
-  const draft: any = {
-    operation_type: "adjust_plan_item",
-    output_schema: "plan_adjustment_draft_v1",
-    confirmation_message:
-      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
-    execution_message: "C'est fait.",
-    confirmation_actions: ["yes", "no"],
-    draft: {
-      title: "Ajuster la trajectoire du plan",
-      scope_label: "plan global",
-      execution_strategy: "whole_plan_adjustment",
-      proposed_change: "Ajouter une étape légère de réparation.",
-      adjust_plan_result: {
-        scope: "whole_plan",
-        applied_change: {
-          trajectory_change: {
-            after:
-              "Reconnaître brièvement la tension, puis revenir au contact.",
-          },
-          changed_items: [],
-          preserved_items: [],
-        },
-      },
-    },
-  };
-  const result = await maybeRunAdjustPlanItemOperation({
-    supabase: {} as any,
-    userId: "u1",
-    userMessage:
-      "Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion. Ne valide pas encore.",
-    channel: "whatsapp",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {
-      __pending_adjust_plan_draft_review: {
-        operation_type: "adjust_plan_item",
-        phase: "draft_review",
-        operation_id: "op-whole-clean-nuance",
-        draft,
-        operation_input: {
-          scope: { kind: "whole_plan", title: "plan global" },
-        },
-        turn_count: 0,
-      },
-    },
-    turnFrame: {
-      confirmation_response: { kind: "no", confidence_band: "high" },
-      tool_skill_intents: [{
-        operation_type: "adjust_plan_item",
-        user_intent: "adjust",
-        confidence_band: "high",
-      }],
-    } as any,
-    routeDecision: null,
-    safetyContextOutput: { risk_band: "none" } as any,
-    sourceMessageId: "msg-whole-clean-nuance",
-    requestId: "req-whole-clean-nuance",
-    planItemSnapshot: [],
-  });
-
-  assertEquals(result?.toolExecution, "blocked");
-  assertEquals(result?.executedTools, []);
-  assertEquals(result?.toolSkillRun?.status, "draft_review_updated");
-  assertStringIncludes(result?.content ?? "", "Nuance intégrée");
-  assertStringIncludes(
-    result?.content ?? "",
-    "cette étape doit rester légère",
-  );
-  const content = result?.content ?? "";
-  for (const forbidden of ["Ok, ajoute", "Ne valide", "discussion. encore"]) {
-    if (content.includes(forbidden)) {
-      throw new Error(`nuance reply leaked command wrapper: ${forbidden}`);
-    }
-  }
-});
-
-Deno.test("resolveCoachingTargetPlanItem: matches exact active plan item title", () => {
-  const matched = resolveCoachingTargetPlanItem({
-    planItems: [
-      {
-        id: "pi-1",
-        user_id: "u1",
-        cycle_id: "c1",
-        transformation_id: "t1",
-        plan_id: "p1",
-        dimension: "missions",
-        kind: "task",
-        status: "active",
-        title: "Envoyer le dossier",
-        description: null,
-        tracking_type: "boolean",
-        activation_order: 1,
-        activation_condition: null,
-        current_habit_state: null,
-        support_mode: null,
-        support_function: null,
-        target_reps: null,
-        current_reps: null,
-        cadence_label: null,
-        scheduled_days: null,
-        time_of_day: null,
-        start_after_item_id: null,
-        phase_id: null,
-        payload: {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        activated_at: null,
-        completed_at: null,
-        last_entry_at: null,
-        recent_entries: [],
-      },
-    ],
-    actionHint: "Envoyer le dossier",
-  });
-
-  assertEquals(matched, {
-    id: "pi-1",
-    dimension: "missions",
-    kind: "task",
-    title: "Envoyer le dossier",
-    status: "active",
-  });
-});
-
-Deno.test("resolveCoachingTargetPlanItem: falls back to top blocker title when hint is absent", () => {
-  const matched = resolveCoachingTargetPlanItem({
-    planItems: [
-      {
-        id: "pi-2",
-        user_id: "u1",
-        cycle_id: "c1",
-        transformation_id: "t1",
-        plan_id: "p1",
-        dimension: "support",
-        kind: "framework",
-        status: "stalled",
-        title: "Journal de gratitude",
-        description: null,
-        tracking_type: "boolean",
-        activation_order: 2,
-        activation_condition: null,
-        current_habit_state: null,
-        support_mode: "recommended_now",
-        support_function: "understanding",
-        target_reps: null,
-        current_reps: null,
-        cadence_label: null,
-        scheduled_days: null,
-        time_of_day: null,
-        start_after_item_id: null,
-        phase_id: null,
-        payload: {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        activated_at: null,
-        completed_at: null,
-        last_entry_at: null,
-        recent_entries: [],
-      },
-    ],
-    fallbackTitle: "Journal de gratitude",
-  });
-
-  assertEquals(matched, {
-    id: "pi-2",
-    dimension: "support",
-    kind: "framework",
-    title: "Journal de gratitude",
-    status: "stalled",
-  });
-});
-
-Deno.test("mapMomentumStateV2ToCoachingContext: exposes plan fit and load balance", () => {
-  const tempMemory = writeMomentumStateV2({}, {
-    version: 2,
-    updated_at: new Date().toISOString(),
-    current_state: "friction_legere",
-    state_reason: "test",
-    dimensions: {
-      engagement: { level: "medium" },
-      execution_traction: { level: "flat" },
-      emotional_load: { level: "low" },
-      consent: { level: "open" },
-      plan_fit: { level: "poor" },
-      load_balance: { level: "overloaded" },
-    },
-    assessment: {
-      top_blocker: "Envoyer le dossier",
-      top_risk: "load",
-      confidence: "medium",
-    },
-    active_load: {
-      current_load_score: 8,
-      mission_slots_used: 3,
-      support_slots_used: 1,
-      habit_building_slots_used: 1,
-      needs_reduce: true,
-      needs_consolidate: false,
-    },
-    posture: { recommended_posture: "reduce_load", confidence: "medium" },
-    blockers: { blocker_kind: "mission", blocker_repeat_score: 4 },
-    memory_links: {
-      last_useful_support_ids: [],
-      last_failed_technique_ids: [],
-    },
-    _internal: {
-      signal_log: {
-        emotional_turns: [],
-        consent_events: [],
-        response_quality_events: [],
-      },
-      stability: {},
-      sources: {},
-      metrics_cache: {},
-    },
-  });
-
-  assertEquals(mapMomentumStateV2ToCoachingContext(tempMemory), {
-    plan_fit: "poor",
-    load_balance: "overloaded",
-    active_load_score: 8,
-    needs_reduce: true,
-    blocker_kind: "mission",
-    top_risk: "load",
-    posture: "reduce_load",
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// V2 Plan Item Snapshot Tests
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function makeEntry(kind: string): any {
-  return {
-    id: crypto.randomUUID(),
-    user_id: "u1",
-    cycle_id: "c1",
-    transformation_id: "t1",
-    plan_id: "p1",
-    plan_item_id: "pi1",
-    entry_kind: kind,
-    outcome: kind === "skip" ? "skipped" : "done",
-    value_numeric: null,
-    note: null,
-    effective_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    source: "test",
-    payload: {},
-  };
-}
-
-Deno.test("computeStreakFromEntries: counts consecutive positive entries", () => {
-  const entries = [
-    makeEntry("checkin"),
-    makeEntry("progress"),
-    makeEntry("partial"),
-    makeEntry("skip"),
-    makeEntry("checkin"),
-  ];
-  assertEquals(computeStreakFromEntries(entries), 3);
-});
-
-Deno.test("computeStreakFromEntries: returns 0 when first entry is negative", () => {
-  const entries = [
-    makeEntry("skip"),
-    makeEntry("checkin"),
-    makeEntry("checkin"),
-  ];
-  assertEquals(computeStreakFromEntries(entries), 0);
-});
-
-Deno.test("computeStreakFromEntries: returns 0 for empty entries", () => {
-  assertEquals(computeStreakFromEntries([]), 0);
-});
-
-Deno.test("computeStreakFromEntries: handles all positive entries", () => {
-  const entries = [
-    makeEntry("checkin"),
-    makeEntry("progress"),
-    makeEntry("checkin"),
-  ];
-  assertEquals(computeStreakFromEntries(entries), 3);
-});
-
-Deno.test("computeStreakFromEntries: blocker breaks streak", () => {
-  const entries = [
-    makeEntry("checkin"),
-    makeEntry("blocker"),
-    makeEntry("checkin"),
-  ];
-  assertEquals(computeStreakFromEntries(entries), 1);
-});
-
-Deno.test("computeStreakFromEntries: support_feedback is neutral (not positive, not negative) — breaks streak", () => {
-  const entries = [
-    makeEntry("checkin"),
-    makeEntry("support_feedback"),
-    makeEntry("checkin"),
-  ];
-  // support_feedback is neither positive nor negative, so it breaks the streak
-  assertEquals(computeStreakFromEntries(entries), 1);
-});
-
-type MockDbState = Record<string, any[]>;
-
-class MockQueryBuilder {
-  private filters: Array<(row: Record<string, unknown>) => boolean> = [];
-  private orders: Array<{ field: string; ascending: boolean }> = [];
-  private rowLimit: number | null = null;
-  private action: "select" | "update" = "select";
-  private patch: Record<string, unknown> | null = null;
-
-  constructor(private state: MockDbState, private table: string) {}
-
-  select(_columns: string) {
-    this.action = "select";
-    return this;
-  }
-
-  insert(payload: Record<string, unknown> | Record<string, unknown>[]) {
-    const rows = Array.isArray(payload) ? payload : [payload];
-    this.state[this.table] ??= [];
-    this.state[this.table].push(...structuredClone(rows));
-    return Promise.resolve({ data: null, error: null });
-  }
-
-  update(patch: Record<string, unknown>) {
-    this.action = "update";
-    this.patch = patch;
-    return this;
-  }
-
-  eq(field: string, value: unknown) {
-    this.filters.push((row) => row[field] === value);
-    return this;
-  }
-
-  in(field: string, values: unknown[]) {
-    const allowed = new Set(values);
-    this.filters.push((row) => allowed.has(row[field]));
-    return this;
-  }
-
-  order(field: string, options?: { ascending?: boolean }) {
-    this.orders.push({ field, ascending: options?.ascending !== false });
-    return this;
-  }
-
-  limit(count: number) {
-    this.rowLimit = count;
-    return this;
-  }
-
-  maybeSingle() {
-    const rows = this.runSelect();
-    return Promise.resolve({ data: rows[0] ?? null, error: null });
-  }
-
-  then<TResult1 = any, TResult2 = never>(
-    onfulfilled?:
-      | ((
-        value: { data: unknown; error: null },
-      ) => TResult1 | PromiseLike<TResult1>)
-      | null,
-    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null,
-  ): Promise<TResult1 | TResult2> {
-    const promise = this.action === "update"
-      ? this.runUpdate()
-      : Promise.resolve({ data: this.runSelect(), error: null });
-    return promise.then(onfulfilled, onrejected);
-  }
-
-  private matches(row: Record<string, unknown>) {
-    return this.filters.every((filter) => filter(row));
-  }
-
-  private runSelect() {
-    const rows = [...(this.state[this.table] ?? [])]
-      .filter((row) => this.matches(row));
-
-    for (const order of this.orders) {
-      rows.sort((a, b) => {
-        const left = a?.[order.field];
-        const right = b?.[order.field];
-        if (left === right) return 0;
-        if (left == null) return order.ascending ? -1 : 1;
-        if (right == null) return order.ascending ? 1 : -1;
-        return order.ascending
-          ? String(left).localeCompare(String(right))
-          : String(right).localeCompare(String(left));
-      });
-    }
-
-    return this.rowLimit == null ? rows : rows.slice(0, this.rowLimit);
-  }
-
-  private runUpdate() {
-    for (const row of this.state[this.table] ?? []) {
-      if (this.matches(row)) {
-        Object.assign(row, structuredClone(this.patch ?? {}));
-      }
-    }
-    return Promise.resolve({ data: null, error: null });
-  }
-}
-
-function createTrackingSupabaseMock(seed: MockDbState) {
-  const state = structuredClone(seed);
-  return {
-    state,
-    client: {
-      from(table: string) {
-        state[table] ??= [];
-        return new MockQueryBuilder(state, table);
-      },
-    },
-  };
-}
-
-function baseCycle(): UserCycleRow {
-  return {
-    id: "cycle-1",
-    user_id: "u1",
-    status: "active",
-    raw_intake_text: "test",
-    intake_language: "fr",
-    validated_structure: null,
-    duration_months: 3,
-    birth_date_snapshot: null,
-    gender_snapshot: null,
-    requested_pace: null,
-    active_transformation_id: "transfo-1",
-    version: 1,
-    created_at: "2026-03-20T08:00:00.000Z",
-    updated_at: "2026-03-24T08:00:00.000Z",
-    completed_at: null,
-    archived_at: null,
-  };
-}
-
-function baseTransformation(): UserTransformationRow {
-  return {
-    id: "transfo-1",
-    cycle_id: "cycle-1",
-    priority_order: 1,
-    status: "active",
-    title: "Transformation test",
-    internal_summary: "internal",
-    user_summary: "user",
-    success_definition: null,
-    main_constraint: null,
-    questionnaire_schema: null,
-    questionnaire_answers: null,
-    completion_summary: null,
-    handoff_payload: null,
-    base_de_vie_payload: null,
-    unlocked_principles: null,
-    created_at: "2026-03-20T08:00:00.000Z",
-    updated_at: "2026-03-24T08:00:00.000Z",
-    activated_at: "2026-03-20T08:00:00.000Z",
-    completed_at: null,
-  };
-}
-
-function basePlan(): UserPlanV2Row {
-  return {
-    id: "plan-1",
-    user_id: "u1",
-    cycle_id: "cycle-1",
-    transformation_id: "transfo-1",
-    status: "active",
-    version: 2,
-    title: "Plan test",
-    content: {},
-    generation_attempts: 1,
-    last_generation_reason: null,
-    generation_feedback: null,
-    generation_input_snapshot: null,
-    activated_at: "2026-03-20T08:00:00.000Z",
-    completed_at: null,
-    archived_at: null,
-    created_at: "2026-03-20T08:00:00.000Z",
-    updated_at: "2026-03-24T08:00:00.000Z",
-  };
-}
-
-function basePlanItem(
-  overrides: Partial<UserPlanItemRow> = {},
-): UserPlanItemRow {
-  return {
-    id: "item-1",
-    user_id: "u1",
-    cycle_id: "cycle-1",
-    transformation_id: "transfo-1",
-    plan_id: "plan-1",
-    dimension: "habits",
-    kind: "habit",
-    status: "active",
-    title: "Meditation du soir",
-    description: null,
-    tracking_type: "boolean",
-    activation_order: 1,
-    activation_condition: null,
-    current_habit_state: "active_building",
-    support_mode: null,
-    support_function: null,
-    target_reps: 5,
-    current_reps: 1,
-    cadence_label: "daily",
-    scheduled_days: null,
-    time_of_day: null,
-    start_after_item_id: null,
-    phase_id: null,
-    payload: {},
-    created_at: "2026-03-20T08:00:00.000Z",
-    updated_at: "2026-03-24T08:00:00.000Z",
-    activated_at: "2026-03-20T08:00:00.000Z",
-    completed_at: null,
-    ...overrides,
-  };
-}
-
-Deno.test("logPlanItemProgressV2: writes V2 plan item entry and emits event", async () => {
-  const { client, state } = createTrackingSupabaseMock({
-    user_cycles: [baseCycle()],
-    user_transformations: [baseTransformation()],
-    user_plans_v2: [basePlan()],
-    user_plan_items: [basePlanItem()],
-    user_plan_item_entries: [],
-    user_metrics: [],
-    system_runtime_snapshots: [],
-  });
-
-  const result = await logPlanItemProgressV2({
-    supabase: client as any,
-    userId: "u1",
-    planItemId: "item-1",
-    status: "completed",
-    value: 1,
-    dateHint: "2026-03-24",
-    source: "web",
-    sourceMessageId: "msg-1",
-  });
-
-  assertEquals(result.mode, "logged");
-  assertEquals(state.user_plan_item_entries.length, 1);
-  assertEquals(state.user_plan_item_entries[0].plan_item_id, "item-1");
-  assertEquals(state.user_plan_item_entries[0].entry_kind, "checkin");
-  assertEquals(state.system_runtime_snapshots.length, 1);
-  assertEquals(
-    state.system_runtime_snapshots[0].snapshot_type,
-    "plan_item_entry_logged_v2",
-  );
-  assertEquals(
-    state.system_runtime_snapshots[0].payload.plan_item_id,
-    "item-1",
-  );
+  assertEquals(decision.response_owner, "normal_reply");
+  assertEquals(decision.direct_effects_to_run, []);
+  assertEquals(decision.blocked_paths, [{
+    path: "direct_effects.create_one_shot_reminder",
+    reason_code: "target_ambiguous",
+  }]);
 });

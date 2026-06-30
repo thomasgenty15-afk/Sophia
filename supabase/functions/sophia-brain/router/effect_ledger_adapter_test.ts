@@ -7,7 +7,7 @@ import {
   recordToolSkillEffectsInLedger,
 } from "./effect_ledger_adapter.ts";
 
-Deno.test("effect_ledger_adapter maps direct chat effect tool types only", () => {
+Deno.test("effect_ledger_adapter maps only retained direct chat effect types", () => {
   assertEquals(
     effectTypeFromToolType("create_one_shot_reminder"),
     "one_shot_reminder.create",
@@ -20,14 +20,10 @@ Deno.test("effect_ledger_adapter maps direct chat effect tool types only", () =>
     effectTypeFromToolType("track_progress_plan_item"),
     "plan_item_progress.track",
   );
-  assertEquals(
-    effectTypeFromToolType("prepare_attack_card"),
-    "attack_card.create",
-  );
-  assertEquals(effectTypeFromToolType("adjust_plan_item"), "plan_item.adjust");
+  assertEquals(effectTypeFromToolType("legacy_operation"), "legacy_operation");
 });
 
-Deno.test("effect_ledger_adapter direct committed effect gets db ref when available", () => {
+Deno.test("effect_ledger_adapter records one-shot committed effect db ref", () => {
   const ledger = createEffectLedger("turn_1");
   recordToolSkillEffectsInLedger({
     ledger,
@@ -38,64 +34,18 @@ Deno.test("effect_ledger_adapter direct committed effect gets db ref when availa
       committed_effects: [{ type: "create_one_shot_reminder", id: "rem_1" }],
     },
   });
+
+  assertEquals(ledger.entries.length, 1);
   assertEquals(ledger.entries[0].status, "committed");
   assertEquals(ledger.entries[0].effect_type, "one_shot_reminder.create");
+  assertEquals(ledger.entries[0].operation_type, "create_one_shot_reminder");
   assertEquals(ledger.entries[0].db_ref, {
     table: "scheduled_checkins",
     id: "rem_1",
   });
-  assertEquals(ledger.entries[0].committed_id, "rem_1");
 });
 
-Deno.test("effect_ledger_adapter local write coach preferences records commit not legacy platform handoff", () => {
-  const ledger = createEffectLedger("turn_local_pref");
-  recordToolSkillEffectsInLedger({
-    ledger,
-    toolExecution: "success",
-    toolSkillRun: {
-      selected_handler: "update_coach_preferences",
-      operation_type: "update_coach_preferences",
-      mode: "local_write_flow",
-      status: "executed",
-      operation_id: "op_pref_1",
-      committed_effects: [{
-        type: "update_coach_preferences",
-        operation_id: "op_pref_1",
-        preference_keys: ["coach.tone", "coach.question_tendency"],
-        preferences_update_ids: [],
-      }],
-    },
-  });
-
-  assertEquals(ledger.entries.length, 1);
-  assertEquals(ledger.entries[0].kind, "durable_effect");
-  assertEquals(ledger.entries[0].status, "committed");
-  assertEquals(ledger.entries[0].effect_type, "coach_preferences.update");
-  assertEquals(ledger.entries[0].operation_type, "update_coach_preferences");
-  assertEquals(ledger.entries[0].tool_id, "update_coach_preferences");
-  assertEquals(ledger.entries[0].db_ref, {
-    table: "user_profile_facts",
-    key: "coach.tone",
-  });
-});
-
-Deno.test("effect_ledger_adapter failed runtime produces failed effect", () => {
-  const ledger = createEffectLedger("turn_2");
-  recordToolSkillEffectsInLedger({
-    ledger,
-    toolExecution: "failed",
-    toolSkillRun: {
-      selected_handler: "create_one_shot_reminder",
-      operation_id: "rem_1",
-      status: "executor_failed",
-      error: "write_failed",
-    },
-  });
-  assertEquals(ledger.entries[0].status, "failed");
-  assertEquals(ledger.entries[0].effect_type, "one_shot_reminder.create");
-});
-
-Deno.test("effect_ledger_adapter maps direct failed_effects generically", () => {
+Deno.test("effect_ledger_adapter records track-progress failed effect", () => {
   const ledger = createEffectLedger("turn_failed_array");
   recordToolSkillEffectsInLedger({
     ledger,
@@ -109,112 +59,39 @@ Deno.test("effect_ledger_adapter maps direct failed_effects generically", () => 
       }],
     },
   });
+
+  assertEquals(ledger.entries.length, 1);
   assertEquals(ledger.entries[0].status, "failed");
   assertEquals(ledger.entries[0].effect_type, "plan_item_progress.track");
 });
 
 Deno.test("executedToolsForStatus requires committed effects", () => {
+  assertEquals(executedToolsForStatus("blocked", ["legacy_operation"], []), []);
+  assertEquals(executedToolsForStatus("success", ["legacy_operation"], []), []);
   assertEquals(
-    executedToolsForStatus("blocked", ["prepare_attack_card"], []),
-    [],
-  );
-  assertEquals(
-    executedToolsForStatus("success", ["prepare_attack_card"], []),
-    [],
-  );
-  assertEquals(
-    executedToolsForStatus("success", ["prepare_attack_card"], [{
-      type: "prepare_attack_card",
+    executedToolsForStatus("success", ["create_one_shot_reminder"], [{
+      type: "create_one_shot_reminder",
     }]),
-    ["prepare_attack_card"],
+    ["create_one_shot_reminder"],
   );
 });
 
-Deno.test("effect_ledger_adapter complex tool run without platform_handoff does not become durable effect", () => {
-  const ledger = createEffectLedger("turn_complex_missing_contract");
+Deno.test("effect_ledger_adapter ignores removed operation runtime effects", () => {
+  const ledger = createEffectLedger("turn_removed_operation");
   recordToolSkillEffectsInLedger({
     ledger,
     toolExecution: "success",
     toolSkillRun: {
-      selected_handler: "prepare_attack_card",
-      operation_id: "attack_1",
-      requested_effects: [{ type: "prepare_attack_card" }],
-      allowed_effects: [{ type: "prepare_attack_card" }],
-      committed_effects: [{ type: "prepare_attack_card", id: "card_1" }],
-    },
-  });
-
-  assertEquals(ledger.entries.length, 1);
-  assertEquals(ledger.entries[0].kind, "platform_handoff");
-  assertEquals(ledger.entries[0].status, "blocked");
-  assertEquals(ledger.entries[0].operation_type, "prepare_attack_card");
-  assertEquals(ledger.entries[0].committed, false);
-  assertEquals(
-    ledger.entries[0].reason_code,
-    "missing_platform_handoff_contract",
-  );
-});
-
-Deno.test("effect_ledger_adapter does not flag complex intake clarification as missing handoff", () => {
-  const ledger = createEffectLedger("turn_complex_intake_question");
-  recordToolSkillEffectsInLedger({
-    ledger,
-    toolExecution: "blocked",
-    toolSkillRun: {
-      selected_handler: "prepare_attack_card",
-      status: "ask_question",
-      missing_slots: ["technique"],
-      committed_effects: [],
+      selected_handler: "removed_operation",
+      operation_id: "legacy_1",
+      committed_effects: [{ type: "removed_operation", id: "legacy_1" }],
     },
   });
 
   assertEquals(ledger.entries.length, 0);
 });
 
-Deno.test("effect_ledger_adapter does not flag non-mutant adjust_plan clarification as missing handoff", () => {
-  const ledger = createEffectLedger("turn_adjust_plan_clarifying");
-  recordToolSkillEffectsInLedger({
-    ledger,
-    toolExecution: "none",
-    toolSkillRun: {
-      selected_handler: "adjust_plan_item",
-      operation_type: "adjust_plan_item",
-      mode: "platform_handoff",
-      status: "clarifying",
-      reason_code: "adjust_plan_item_get_info_db",
-      requested_effects: [],
-      allowed_effects: [],
-      blocked_effects: [],
-      committed_effects: [],
-    },
-  });
-
-  assertEquals(ledger.entries.length, 0);
-});
-
-Deno.test("effect_ledger_adapter complex fake committed_effects are ignored", () => {
-  const ledger = createEffectLedger("turn_complex_fake_committed");
-  recordToolSkillEffectsInLedger({
-    ledger,
-    toolExecution: "success",
-    toolSkillRun: {
-      selected_handler: "prepare_defense_card",
-      operation_id: "defense_1",
-      committed_effects: [{
-        type: "prepare_defense_card",
-        defense_card_id: "defense_1",
-      }],
-    },
-  });
-
-  assertEquals(ledger.entries.length, 1);
-  assertEquals(ledger.entries[0].kind, "platform_handoff");
-  assertEquals(ledger.entries[0].status, "blocked");
-  assertEquals(ledger.entries[0].db_ref, null);
-  assertEquals(ledger.entries[0].committed_id, null);
-});
-
-Deno.test("effect_ledger_adapter records executable recommendation as request only", () => {
+Deno.test("effect_ledger_adapter records retained recommendation as request", () => {
   const ledger = createEffectLedger("turn_rec");
   recordRecommendationEffectInLedger({
     ledger,
@@ -228,28 +105,8 @@ Deno.test("effect_ledger_adapter records executable recommendation as request on
       presentation_level: 2,
     },
   });
+
   assertEquals(ledger.entries.length, 1);
   assertEquals(ledger.entries[0].status, "requested");
   assertEquals(ledger.entries[0].effect_type, "one_shot_reminder.create");
-});
-
-Deno.test("effect_ledger_adapter maps complex recommendation to platform handoff", () => {
-  const ledger = createEffectLedger("turn_rec_handoff");
-  recordRecommendationEffectInLedger({
-    ledger,
-    recommendation: {
-      recommendation_id: "rec_handoff_1",
-      decision: "recommend_operation",
-      operation_type: "prepare_attack_card",
-      executor_tool_id: "prepare_attack_card",
-      reason: "clear_execution_block",
-      requires_consent: true,
-      presentation_level: 2,
-    },
-  });
-
-  assertEquals(ledger.entries.length, 1);
-  assertEquals(ledger.entries[0].kind, "platform_handoff");
-  assertEquals(ledger.entries[0].status, "proposed");
-  assertEquals(ledger.entries[0].operation_type, "prepare_attack_card");
 });

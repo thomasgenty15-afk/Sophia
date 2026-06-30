@@ -1,0 +1,12 @@
+{
+  "table": "user_chat_states",
+  "status": 200,
+  "count": 1,
+  "ok": true,
+  "body": [
+    {
+      "user_id": "87c00a2e-eb81-44ad-9407-09bf6a506b7e",
+      "temp_memory": {}
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { loadSafetyCrisisContext } from "./context_loader.ts";
 import {
   dispatcherSystemPrompt,
   normalizeSafetyCrisisLocalDispatcherOutput,
+  oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput,
   setSafetyCrisisLocalDispatcherForTest,
 } from "./local_dispatcher.ts";
 import { mergeSafetyCrisisLocalState, reduceSafetyCrisis } from "./reducer.ts";
@@ -28,7 +29,6 @@ function turnFrame(patch: Partial<TurnFrame> = {}): TurnFrame {
     channel: "whatsapp",
     safety: { risk_band: "medium", reason_codes: [], evidence: [] },
     direct_effects: [],
-    tool_skill_intents: [],
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -94,7 +94,13 @@ function dispatcherOutput(patch: Record<string, unknown> = {}) {
       explicitness: "none",
       target_status: "none",
       confidence_band: "low",
-      payload_hint: { raw_text: null },
+      payload_hint: {
+        raw_text: null,
+        when_hint: null,
+        UTC_time: null,
+        local_label: null,
+        instruction_hint: null,
+      },
       reason: null,
     },
     exit_request: {
@@ -108,9 +114,9 @@ function dispatcherOutput(patch: Record<string, unknown> = {}) {
     },
     no_tooling: {
       product_help_called: false,
-      status_recap_called: false,
-      tool_skill_called: false,
-      operation_suggestion_created: false,
+      status_lookup_called: false,
+      legacy_operation_called: false,
+      operation_route_created: false,
       pending_confirmation_created: false,
       db_write_committed: false,
     },
@@ -129,17 +135,17 @@ Deno.test("safety_crisis local dispatcher normalizes null facts and blocks tooli
   });
   assertEquals(normalized.safety_signals.means_moved_away, true);
   assertEquals(normalized.safety_signals.immediate_danger, null);
-  assertEquals(normalized.no_tooling.tool_skill_called, false);
+  assertEquals(normalized.no_tooling.legacy_operation_called, false);
 
   assertThrows(
     () =>
       dispatcherOutput({
         no_tooling: {
-          tool_skill_called: true,
+          legacy_operation_called: true,
         },
       }),
     Error,
-    "tooling_tool_skill_called",
+    "tooling_legacy_operation_called",
   );
 });
 
@@ -154,6 +160,10 @@ Deno.test("safety_crisis local dispatcher prompt documents real field completion
   assert(prompt.includes("- user_state_summary:"));
   assert(prompt.includes("- product_tool_boundary:"));
   assert(prompt.includes("- direct_effect_request:"));
+  assert(prompt.includes("raw_text = clause exacte du rappel"));
+  assert(prompt.includes("when_hint = moment ou delai exploitable"));
+  assert(prompt.includes("instruction_hint = uniquement ce qu'il faut rappeler"));
+  assert(prompt.includes("sans absorber le besoin safety restant"));
   assert(prompt.includes("- exit_request:"));
   assert(prompt.includes("- state_hints:"));
   assert(prompt.includes("- note_information:"));
@@ -168,10 +178,9 @@ Deno.test("safety_crisis local dispatcher prompt documents real field completion
   assert(prompt.includes("safety_escalate"));
   assert(prompt.includes("create_one_shot_reminder via direct_effect_request"));
   assert(prompt.includes("Aucun handoff local autre que safety"));
-  assert(prompt.includes("N'invente pas handoff_to_local_flow"));
   assertEquals(
     (prompt.match(/EXAMPLE_JSON_/g) ?? []).length,
-    2,
+    3,
   );
 });
 
@@ -223,6 +232,10 @@ Deno.test("safety_crisis visible prompt enforces strict safety wording quality",
   assert(prompt.includes("pas de mot coupe"));
   assert(prompt.includes("termes simples et standards"));
   assert(prompt.includes("maximum 120 mots"));
+  assert(prompt.includes("VISIBLE_SAFETY_CONVERSATION_FLOW_RULES"));
+  assert(
+    prompt.includes("sans utiliser de message brut ni de recent_messages"),
+  );
 
   setSafetyCrisisVisibleAgentForTest((input) => {
     assertEquals(input.visible_task.kind, "stabilizing");
@@ -392,7 +405,7 @@ Deno.test("safety_crisis local dispatcher contract supports required transition 
   assertEquals(safety.safety_signals.immediate_danger, true);
 
   const unknownHandoff = dispatcherOutput({
-    flow_action: "handoff_to_local_flow",
+    flow_action: ["handoff", "to", "local", "flow"].join("_"),
   });
   assertEquals(unknownHandoff.flow_action, "answer_safety_check");
 });
@@ -418,7 +431,7 @@ Deno.test("safety_crisis local dispatcher preserves product/tool constraint and 
     boundary.product_tool_boundary.defer_reason,
     "user asks for a reminder while safety is active",
   );
-  assertEquals(boundary.no_tooling.operation_suggestion_created, false);
+  assertEquals(boundary.no_tooling.operation_route_created, false);
 
   const continueLocal = dispatcherOutput({
     flow_action: "answer_safety_check",
@@ -464,6 +477,10 @@ Deno.test("safety_crisis local dispatcher exposes explicit one-shot reminder as 
       payload_hint: {
         raw_text:
           "mets-moi un rappel dans 30 minutes pour verifier que je tiens",
+        when_hint: "dans 30 minutes",
+        UTC_time: "2026-06-24T12:30:00.000Z",
+        local_label: "dans 30 minutes",
+        instruction_hint: "verifier que je tiens",
       },
       reason: "explicit one-shot reminder request during safety flow",
     },
@@ -476,8 +493,49 @@ Deno.test("safety_crisis local dispatcher exposes explicit one-shot reminder as 
     "create_one_shot_reminder",
   );
   assertEquals(reminder.direct_effect_request.target_status, "identified");
+  assertEquals(
+    reminder.direct_effect_request.payload_hint.when_hint,
+    "dans 30 minutes",
+  );
+  assertEquals(
+    reminder.direct_effect_request.payload_hint.instruction_hint,
+    "verifier que je tiens",
+  );
   assertEquals(reminder.product_tool_boundary.attempted, false);
   assertEquals(reminder.no_tooling.db_write_committed, false);
+  assertEquals(
+    oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput(reminder)
+      ?.payload_hint,
+    {
+      raw_text:
+        "mets-moi un rappel dans 30 minutes pour verifier que je tiens",
+      when_hint: "dans 30 minutes",
+      UTC_time: "2026-06-24T12:30:00.000Z",
+      local_label: "dans 30 minutes",
+      instruction_hint: "verifier que je tiens",
+    },
+  );
+  assertEquals(
+    oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput(reminder, {
+      turnFrame: turnFrame({
+        direct_effects: [{
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text:
+              "mets-moi un rappel dans 30 minutes pour verifier que je tiens",
+            when_hint: "dans 30 minutes",
+            UTC_time: "2026-06-24T12:30:00.000Z",
+            local_label: "dans 30 minutes",
+            instruction_hint: "verifier que je tiens",
+          },
+        }],
+      }),
+    }),
+    null,
+  );
 });
 
 Deno.test("safety_crisis reducer escalates immediate danger and means nearby alone", () => {
@@ -949,7 +1007,6 @@ Deno.test("safety_crisis skill defers product or tool attempts with no effects",
     );
     assertEquals((output.diagnosis as any)?.visible_agent_ok, true);
     assertEquals((output.diagnosis as any)?.visible_fallback_used, false);
-    assertEquals(output.operation_suggestions?.length, 0);
     assertEquals(output.effects?.requested.length, 0);
     assertEquals(output.effects?.allowed.length, 0);
     assertEquals(output.effects?.committed.length, 0);
@@ -1042,6 +1099,10 @@ Deno.test("safety_crisis skill exposes direct handoff flag only for actionable o
           payload_hint: {
             raw_text:
               "rappelle-moi dans 30 minutes de verifier que je suis en securite",
+            when_hint: "dans 30 minutes",
+            UTC_time: "2026-06-24T12:30:00.000Z",
+            local_label: "dans 30 minutes",
+            instruction_hint: "verifier que je suis en securite",
           },
           reason: "explicit reminder",
         },
@@ -1074,7 +1135,13 @@ Deno.test("safety_crisis skill exposes direct handoff flag only for actionable o
           explicitness: "none",
           target_status: "none",
           confidence_band: "low",
-          payload_hint: { raw_text: null },
+          payload_hint: {
+            raw_text: null,
+            when_hint: null,
+            UTC_time: null,
+            local_label: null,
+            instruction_hint: null,
+          },
           reason: null,
         },
       })

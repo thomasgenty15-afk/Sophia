@@ -39,10 +39,6 @@ function stageInstruction(input: WhatsAppOnboardingVisibleInput): string {
       return "Sortie apres plan pret: accuse reception tres court si un message local est requis; ne pose aucune question; ne traite pas le nouveau sujet dans ce prompt visible.";
     case "progress_attempt_blocked":
       return "Progress attempt blocked: explique sobrement que ce tour reste dans l'onboarding WhatsApp et qu'aucune progression de plan n'a ete loggee; ramene a la question courante en une seule phrase.";
-    case "inline_product_return":
-      return "Inline product return: reponds tres court a la question produit avec le contexte fourni, puis reprends la question onboarding courante sans ouvrir un autre flow.";
-    case "inline_status_return":
-      return "Inline status return: reponds tres court au statut demande avec le contexte fourni, puis reprends la question onboarding courante sans ouvrir un autre flow.";
     case "repeat_question":
       return "Repeat question: reformule plus simplement la question onboarding courante, sans catalogue et sans pression.";
     case "technical_blocked":

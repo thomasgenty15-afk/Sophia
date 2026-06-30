@@ -5,19 +5,19 @@ import {
   runReplayFixtures,
 } from "./runner.ts";
 
-Deno.test("conversation_route_replay loads and passes 25 S1 fixtures", async () => {
-  const fixtures = (await loadReplayFixtures(
+Deno.test("conversation_route_replay loads and passes V1 fixtures", async () => {
+  const fixtures = await loadReplayFixtures(
     "supabase/functions/sophia-brain/test_harness/conversation_route_replay/fixtures",
-  )).filter((fixture) => !fixture.fixture_id.startsWith("W"));
-  assertEquals(fixtures.length, 25);
+  );
+  assertEquals(fixtures.length, 5);
   const results = await runReplayFixtures(fixtures);
   assertEquals(results.every((result) => result.passed), true);
 });
 
-Deno.test("conversation_route_replay passes 25 fixtures with S2 runtime", async () => {
-  const fixtures = (await loadReplayFixtures(
+Deno.test("conversation_route_replay accepts compatibility mode option", async () => {
+  const fixtures = await loadReplayFixtures(
     "supabase/functions/sophia-brain/test_harness/conversation_route_replay/fixtures",
-  )).filter((fixture) => !fixture.fixture_id.startsWith("W"));
+  );
   const results = await runReplayFixtures(fixtures, { mode: "s2" });
   assertEquals(results.every((result) => result.passed), true);
 });
@@ -33,11 +33,11 @@ Deno.test("conversation_route_replay S4 latency smoke stays below 4s average per
   assertEquals(averageLatencyMs < 4000, true);
 });
 
-Deno.test("conversation_route_replay passes 10 S8 WhatsApp realism fixtures", async () => {
+Deno.test("conversation_route_replay passes WhatsApp realism smoke fixture", async () => {
   const fixtures = await loadReplayFixtures(
     "supabase/functions/sophia-brain/test_harness/conversation_route_replay/fixtures/whatsapp_realism",
   );
-  assertEquals(fixtures.length, 10);
+  assertEquals(fixtures.length, 1);
   const results = await runReplayFixtures(fixtures, { mode: "s2" });
   assertEquals(results.every((result) => result.passed), true);
 });

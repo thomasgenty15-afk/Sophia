@@ -4,31 +4,19 @@ export type NoteInformationHandoffReason =
   | "safety"
   | "inline_tool"
   | "bridge"
+  | "child_flow_completed"
   | "flow_interruption"
   | "explicit_user_request";
 
 export type NoteInformationTargetDispatcher =
   | "global"
   | "safety_crisis"
-  | "clarification"
   | "create_one_shot_reminder"
-  | "create_recurring_reminder"
-  | "prepare_attack_card"
-  | "prepare_defense_card"
-  | "adjust_plan_item"
-  | "select_state_potion"
   | "track_progress_plan_item"
-  | "update_coach_preferences"
-  | "emotional_repair"
-  | "demotivation_repair"
   | "product_help"
-  | "status_recap"
-  | "weekly_adaptive_review_v1"
-  | "verification_opportunities"
-  | "post_morning_nudge.action"
-  | "post_morning_nudge.suppressed_action"
-  | "post_morning_nudge.emotional_presence"
-  | "other_local";
+  | "coaching_recommendation"
+  | "daily_action_review_v1"
+  | "weekly_adaptive_review_v1";
 
 export type NoteInformation = {
   source_flow_id: string;
@@ -41,44 +29,22 @@ export type NoteInformation = {
 };
 
 export const FLOW_PRESENTATIONS: Record<string, string> = {
-  adjust_plan_item:
-    "Helps prepare a Plan adjustment to resume in the Plan surface. It never modifies the plan from chat.",
-  prepare_attack_card:
-    "Helps prepare an attack card to resume in the product surface. It chooses/validates technique and fields but never creates the card.",
-  prepare_defense_card:
-    "Helps prepare a defense card for a moment of risk or derailment. It fills/supports the platform handoff but never creates the card.",
-  select_state_potion:
-    "Helps recommend a state potion or support option and redirects to the Etat-Potions surface. It never launches or schedules a potion.",
-  create_recurring_reminder:
-    "Prepares a recurring reminder handoff for the Recurring Reminders surface. It never creates recurring reminders from chat.",
-  update_coach_preferences:
-    "Updates a small closed set of durable coach preferences when clear and supported. It can also handle punctual or unsupported preference requests without writing.",
   whatsapp_onboarding:
     "Manages WhatsApp onboarding, plan readiness, preference calibration, and first-topic handoff. It blocks normal product exits until the plan is ready.",
-  demotivation_repair:
-    "Repairs demotivation, fatigue, loss of meaning, avoidance, or overwhelm without moralizing. It may bridge to a potion after consent.",
-  emotional_repair:
-    "Repairs shame, guilt, anxiety, self-attack, relational tension, or acute emotional pressure. It can bridge to limited state potions after consent.",
   safety_crisis:
     "Owns active safety/crisis turns and prioritizes immediate human safety, grounding, means distance, and support contact. Product/tool requests are deferred, not routed.",
   product_help:
     "Answers Sophia product, navigation, feature, and limit questions. It never creates, modifies, activates, cancels, or fills another flow's slots.",
-  clarification:
-    "Arbitrates between multiple already-produced strong candidate signals before handing ownership to the right dispatcher. It never invents candidates, executes tools, or mutates data.",
-  status_recap:
-    "Answers DB-grounded questions about what exists, is active, was cancelled, or recently happened. It is read-only and never mutates.",
-  flow_opportunity_verification:
-    "Verifies an implicit opportunity chosen by the global dispatcher while preserving the original confirmation anchor. It can answer product/status questions inline before launching the accepted target flow.",
+  coaching_recommendation:
+    "Short coaching recommendation flow that helps the user choose the right Sophia feature. It never executes legacy tools or creates platform objects from chat.",
+  create_one_shot_reminder:
+    "Runs the direct one-shot reminder lane when the user gives an explicit reminder request.",
+  track_progress_plan_item:
+    "Runs the direct plan-item progress lane when the user explicitly reports progress on a known action.",
   daily_action_review_v1:
     "Collects daily evidence for one or two targeted actions. It may commit a daily review entry only after reducer/executor validation.",
   weekly_adaptive_review_v1:
     "Runs the weekly strategic review, updates human signals, and may prepare a Plan handoff. It never applies plan changes from chat.",
-  "post_morning_nudge.action":
-    "Handles the first reply to a morning action nudge. It helps the user start, reduce scope, handle a blocker, or close quickly.",
-  "post_morning_nudge.suppressed_action":
-    "Handles the first reply to a protective morning nudge where an action was deliberately not pushed. It preserves protection unless the user asks to reopen action.",
-  "post_morning_nudge.emotional_presence":
-    "Handles the first reply to a non-action morning presence nudge. It can hold space, clarify support, offer a soft next step, or close quickly.",
 };
 
 function cleanString(value: unknown): string {
@@ -113,7 +79,7 @@ function compactStructuredContext(
   value: unknown,
 ): Record<string, unknown> {
   if (!isRecord(value)) return {};
-  const blockedKeys = new Set(["risk_score"]);
+  const blockedKeys = new Set(["risk_score", "executable_from_chat"]);
   const compact: Record<string, unknown> = {};
   for (const [key, rawValue] of Object.entries(value)) {
     if (blockedKeys.has(key)) continue;
@@ -163,7 +129,7 @@ function normalizeHandoffReason(
   const text = cleanString(value);
   return text === "topic_change" || text === "safety" ||
       text === "clarification_resolved" || text === "inline_tool" ||
-      text === "bridge" ||
+      text === "bridge" || text === "child_flow_completed" ||
       text === "flow_interruption" || text === "explicit_user_request"
     ? text
     : fallback;
@@ -176,22 +142,96 @@ function normalizeTargetDispatcher(
   const text = cleanString(value);
   if (
     text === "global" || text === "safety_crisis" ||
-    text === "clarification" || text === "create_one_shot_reminder" ||
-    text === "create_recurring_reminder" ||
-    text === "prepare_attack_card" || text === "prepare_defense_card" ||
-    text === "adjust_plan_item" || text === "select_state_potion" ||
+    text === "create_one_shot_reminder" ||
     text === "track_progress_plan_item" ||
-    text === "update_coach_preferences" || text === "emotional_repair" ||
-    text === "demotivation_repair" || text === "product_help" ||
-    text === "status_recap" || text === "weekly_adaptive_review_v1" ||
-    text === "verification_opportunities" ||
-    text === "post_morning_nudge.action" ||
-    text === "post_morning_nudge.suppressed_action" ||
-    text === "post_morning_nudge.emotional_presence" ||
-    text === "other_local"
+    text === "product_help" ||
+    text === "coaching_recommendation" ||
+    text === "daily_action_review_v1" ||
+    text === "weekly_adaptive_review_v1"
   ) return text;
   if (text === "safety") return "safety_crisis";
-  return fallback;
+  return fallback === "safety_crisis" || fallback === "product_help" ||
+      fallback === "coaching_recommendation"
+    ? fallback
+    : "global";
+}
+
+const LOCAL_EXIT_ALLOWED_TARGETS = new Set<NoteInformationTargetDispatcher>([
+  "global",
+  "safety_crisis",
+  "product_help",
+  "coaching_recommendation",
+  "create_one_shot_reminder",
+  "track_progress_plan_item",
+  "daily_action_review_v1",
+  "weekly_adaptive_review_v1",
+]);
+
+export function sanitizeLocalExitTargetDispatcher(
+  value: unknown,
+  fallback: NoteInformationTargetDispatcher = "global",
+): NoteInformationTargetDispatcher {
+  const normalized = normalizeTargetDispatcher(value, fallback);
+  return LOCAL_EXIT_ALLOWED_TARGETS.has(normalized) ? normalized : fallback;
+}
+
+function sanitizeLocalExitStructuredContext(
+  value: unknown,
+  targetDispatcher: NoteInformationTargetDispatcher,
+  originalTargetDispatcher: NoteInformationTargetDispatcher,
+): Record<string, unknown> {
+  const context = compactStructuredContext(value);
+  const next: Record<string, unknown> = {
+    ...context,
+    target_dispatcher: targetDispatcher,
+    recommended_next_focus: sanitizeLocalExitTargetDispatcher(
+      context.recommended_next_focus,
+      targetDispatcher,
+    ),
+  };
+  const targetFlow = cleanString(context.target_flow);
+  if (targetFlow) {
+    next.target_flow = sanitizeLocalExitTargetDispatcher(
+      targetFlow,
+      targetDispatcher,
+    );
+  }
+  delete next.target_local_dispatcher_hint;
+  delete next.source_flow_presentation;
+  delete next.source_flow_state_summary;
+  if (originalTargetDispatcher !== targetDispatcher) {
+    next.sanitized_from_target_dispatcher = originalTargetDispatcher;
+  }
+  return next;
+}
+
+export function sanitizeLocalExitNoteInformation(
+  note: NoteInformation,
+  fallbackTargetDispatcher: NoteInformationTargetDispatcher = "global",
+): NoteInformation {
+  const targetDispatcher = sanitizeLocalExitTargetDispatcher(
+    note.target_dispatcher,
+    fallbackTargetDispatcher,
+  );
+  const handoffReason: NoteInformationHandoffReason =
+    targetDispatcher === "safety_crisis"
+      ? "safety"
+      : note.handoff_reason === "safety"
+      ? "topic_change"
+      : note.handoff_reason === "bridge" ||
+          note.handoff_reason === "inline_tool"
+      ? "explicit_user_request"
+      : note.handoff_reason;
+  return {
+    ...note,
+    handoff_reason: handoffReason,
+    target_dispatcher: targetDispatcher,
+    structured_context: sanitizeLocalExitStructuredContext(
+      note.structured_context,
+      targetDispatcher,
+      note.target_dispatcher,
+    ),
+  };
 }
 
 export function flowPresentation(flowId: string): string {

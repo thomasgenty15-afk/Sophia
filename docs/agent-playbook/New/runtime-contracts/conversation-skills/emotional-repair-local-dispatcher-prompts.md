@@ -35,13 +35,9 @@ The dispatcher returns only this JSON :
     "emotional_dominance": "high|medium|low",
     "context_domain": "relationship|work|body|plan_execution|unknown",
     "summary": "string",
-    "user_words": ["string"],
     "identity_freeze_risk": true,
     "emotion_stabilized_enough_for_tool": false
   },
-  "constraints": [
-    "no_potion|no_tool|no_plan|no_protocol|no_technique|no_questions|one_question_max|concrete_before_question|soft_support_only|short_reply|relationship_context|do_not_persist_identity_attack"
-  ],
   "response_contract": {
     "max_questions": 0,
     "allow_plan": false,
@@ -79,7 +75,6 @@ The dispatcher returns only this JSON :
     "kind": "soft_presence|de_shame|separate_fact_from_identity|repair_relationship|concrete_phrase|stabilize_anxiety|potion_bridge_offer|potion_bridge_choice|potion_bridge_handoff|ask_gentle_clarification|repeat_repair|exit_or_cancel|safety",
     "required_data": {
       "repair_summary": "string",
-      "user_words": ["string"],
       "selected_potion": "amour|guerison|apaisement|null",
       "potion_label": "Potion d'amour|Potion de guerison|Potion d'apaisement|null",
       "bridge_context_summary": "string|null"

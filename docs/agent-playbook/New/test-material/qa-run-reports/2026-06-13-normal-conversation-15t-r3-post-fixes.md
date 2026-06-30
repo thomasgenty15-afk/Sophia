@@ -184,7 +184,7 @@
 **Trace courte**
 - response_owner: `tool_skill`
 - selected_handler: `prepare_attack_card`
-- route_reason: `product_help_handoff_to_local_dispatcher`
+- route_reason: `product_help_exit_to_global_dispatcher`
 - blocked_paths: `product_help.visible_reply`, `global_dispatcher`, `global_router`
 - executed_tools: none
 

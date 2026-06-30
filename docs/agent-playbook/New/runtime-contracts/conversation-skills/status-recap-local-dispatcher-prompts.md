@@ -195,11 +195,7 @@ Le dispatcher local retourne uniquement ce JSON :
     },
     "handoff_hint_for_global_dispatcher": {
       "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|one_shot_reminder|recurring_reminder|product_help|normal_coaching|unknown",
-      "why": "string|null",
-      "constraints": [
-        "Status recap was read-only and did not mutate anything.",
-        "Do not treat previous status facts as a request to create or modify unless the current user message asks for it."
-      ]
+      "why": "string|null"
     }
   },
   "evidence": ["string"]
@@ -366,11 +362,7 @@ Sortie JSON :
     },
     "handoff_hint_for_global_dispatcher": {
       "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|one_shot_reminder|recurring_reminder|product_help|normal_coaching|unknown",
-      "why": "string|null",
-      "constraints": [
-        "Status recap was read-only and did not mutate anything.",
-        "Do not treat previous status facts as a request to create or modify unless the current user message asks for it."
-      ]
+      "why": "string|null"
     }
   },
   "evidence": ["string"]

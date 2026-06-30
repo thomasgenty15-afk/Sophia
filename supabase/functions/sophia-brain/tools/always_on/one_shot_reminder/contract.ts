@@ -159,6 +159,7 @@ export type OneShotReminderToolOutcome =
       | "local_parser"
       | "ai_fallback"
       | "payload"
+      | "payload_utc_time"
       | "unknown";
   };
 

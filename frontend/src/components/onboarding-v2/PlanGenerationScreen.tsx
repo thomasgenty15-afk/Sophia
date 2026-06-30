@@ -1,6 +1,8 @@
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import type { PlanTypeClassificationV1 } from "../../types/v2";
+
 const STARS = [
   { top: "10%",  left: "7%",  delay: "0s",    dur: "3.2s" },
   { top: "18%",  left: "91%", delay: "0.7s",  dur: "4.0s" },
@@ -29,12 +31,14 @@ const DEFAULT_STEPS = [
 
 type PlanGenerationScreenProps = {
   startedAt?: string | null;
+  transformationSnapshot?: PlanTypeClassificationV1["transformation_snapshot"] | null;
   steps?: string[];
   durationPerStepMs?: number;
 };
 
 export function PlanGenerationScreen({
   startedAt = null,
+  transformationSnapshot = null,
   steps = DEFAULT_STEPS,
   durationPerStepMs = 14_000,
 }: PlanGenerationScreenProps) {
@@ -78,7 +82,7 @@ export function PlanGenerationScreen({
       ))}
 
       {/* Content */}
-      <div className="relative flex flex-col items-center gap-10 px-6 py-10 md:px-8 md:py-12">
+      <div className="relative flex flex-col items-center gap-8 px-6 py-10 md:px-8 md:py-12">
 
         {/* ── Orbital system ───────────────────────────────────────── */}
         <div className="relative flex h-[300px] w-[300px] items-center justify-center">
@@ -173,6 +177,29 @@ export function PlanGenerationScreen({
             );
           })}
         </div>
+
+        {transformationSnapshot ? (
+          <div className="w-full max-w-xl border-t border-blue-100 pt-5">
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-700">
+                  Ton point de départ
+                </p>
+                <p className="mt-2 text-sm leading-6 text-gray-700">
+                  {transformationSnapshot.starting_point}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+                  Ton point d'arrivée
+                </p>
+                <p className="mt-2 text-sm leading-6 text-gray-700">
+                  {transformationSnapshot.arrival_point}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
       </div>
     </div>

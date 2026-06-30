@@ -1,0 +1,63 @@
+{
+  "run_id": "coaching_ui_grounding_20260623_r1",
+  "turn": "t06",
+  "request_id": "coaching_ui_grounding_20260623_r1-t06",
+  "user": "On met les cartes de côté. Là c’est plutôt une pression globale, pas liée à une action précise. Si tu me conseilles une potion, je la trouve où ?",
+  "http_status": 200,
+  "ok": true,
+  "assistant": "Oui — pour une pression globale, la potion la plus adaptée ici est plutôt l’**apaisement**.\n\nTu la trouves dans **Dashboard > Ressources > Potions**. Ensuite, tu choisis celle qui correspond à ton état et tu peux l’ouvrir depuis là.",
+  "response_owner": "coaching_recommendation",
+  "selected_handler": "coaching_recommendation",
+  "route_reason": "active_coaching_recommendation",
+  "active_flow_arbitration": {
+    "decision": "continue_active",
+    "active_owner": "coaching_recommendation",
+    "selected_owner": "coaching_recommendation",
+    "resume_policy": "resume_active",
+    "reason_code": "active_coaching_recommendation"
+  },
+  "safety": {
+    "risk_band": "none",
+    "reason_codes": [],
+    "evidence": []
+  },
+  "direct_effects": [],
+  "direct_effect_lane": null,
+  "direct_effect_confirmation_context": null,
+  "memory_plan": {
+    "response_intent": "reflection",
+    "reasoning_complexity": "low",
+    "context_need": "minimal",
+    "memory_mode": "none",
+    "model_tier_hint": "lite",
+    "context_budget_tier": "tiny",
+    "targets": [],
+    "retrieval_policy": "semantic_first",
+    "plan_confidence": 0.7
+  },
+  "effect_ledger": {
+    "turn_id": "coaching_ui_grounding_20260623_r1-t06",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "status": "continue",
+    "reason_code": "active_coaching_recommendation",
+    "latency_ms": 10955
+  },
+  "tool_skill_run": null
+}

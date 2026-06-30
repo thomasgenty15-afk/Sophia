@@ -1,0 +1,54 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "9889ce36-7d32-4d92-968b-95864ccedcb6",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T12:20:00+00:00",
+      "event_context": "one_shot_reminder:rouvrir_la_page_ressources",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: rouvrir la page ressources.",
+        "parse_source": "payload_when_hint",
+        "request_text": "Rappelle-moi aussi demain à 14h20 de rouvrir la page ressources.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: rouvrir la page ressources.",
+        "source_message_id": null,
+        "reminder_instruction": "rouvrir la page ressources"
+      },
+      "created_at": "2026-06-24T13:56:13.868079+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je ne retrouve plus où Sophia range les ressources ou cartes déjà créées. Rappelle-moi aussi demain à 14h20 de rouvrir la page ressources.",
+      "created_at": "2026-06-24T13:56:10.605606+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3b-product-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui — pour retrouver les ressources ou cartes déjà créées, va dans Dashboard > Ressources. Si elles sont liées à une mission ou une habitude, tu peux aussi les revoir depuis Dashboard > Plan. Elles ne sont pas rangées directement dans la Base de vie.\n\nC’est programmé pour demain à 14h20 : je te ferai un rappel pour rouvrir la page ressources.",
+      "created_at": "2026-06-24T13:56:20.476487+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3b-product-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "a7c9fa3d-a599-492e-90d3-85ca3db3d822",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-24T13:56:20.473525+00:00"
+  }
+}

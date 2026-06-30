@@ -109,6 +109,89 @@ const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
   completed: [],
 };
 
+const LEVEL_COMPLETION_PENDING_KEY = "sophia.dashboard.levelCompletion.pending.v1";
+const LEVEL_COMPLETION_PENDING_TTL_MS = 10 * 60 * 1000;
+
+type LevelCompletionPendingEntry = {
+  user_id: string;
+  transformation_id: string;
+  plan_id: string;
+  phase_id: string;
+  level_order: number;
+  request_id: string;
+  started_at_ms: number;
+};
+
+type LevelCompletionPendingScope = Omit<
+  LevelCompletionPendingEntry,
+  "request_id" | "started_at_ms"
+>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function readLevelCompletionPending(): LevelCompletionPendingEntry | null {
+  try {
+    const raw = window.localStorage.getItem(LEVEL_COMPLETION_PENDING_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!isRecord(parsed)) return null;
+    const entry = parsed as Partial<LevelCompletionPendingEntry>;
+    if (
+      typeof entry.user_id !== "string" ||
+      typeof entry.transformation_id !== "string" ||
+      typeof entry.plan_id !== "string" ||
+      typeof entry.phase_id !== "string" ||
+      typeof entry.level_order !== "number" ||
+      typeof entry.request_id !== "string" ||
+      typeof entry.started_at_ms !== "number"
+    ) {
+      return null;
+    }
+    return entry as LevelCompletionPendingEntry;
+  } catch {
+    return null;
+  }
+}
+
+function sameLevelCompletionScope(
+  entry: LevelCompletionPendingEntry,
+  scope: LevelCompletionPendingScope,
+): boolean {
+  return entry.user_id === scope.user_id &&
+    entry.transformation_id === scope.transformation_id &&
+    entry.plan_id === scope.plan_id &&
+    entry.phase_id === scope.phase_id &&
+    entry.level_order === scope.level_order;
+}
+
+function readActiveLevelCompletionPending(
+  scope: LevelCompletionPendingScope | null,
+): LevelCompletionPendingEntry | null {
+  if (!scope) return null;
+  const entry = readLevelCompletionPending();
+  if (!entry) return null;
+  const expired = Date.now() - entry.started_at_ms > LEVEL_COMPLETION_PENDING_TTL_MS;
+  if (expired || !sameLevelCompletionScope(entry, scope)) {
+    window.localStorage.removeItem(LEVEL_COMPLETION_PENDING_KEY);
+    return null;
+  }
+  return entry;
+}
+
+function writeLevelCompletionPending(entry: LevelCompletionPendingEntry): void {
+  window.localStorage.setItem(LEVEL_COMPLETION_PENDING_KEY, JSON.stringify(entry));
+}
+
+function clearLevelCompletionPending(scope: LevelCompletionPendingScope | null): void {
+  const entry = readLevelCompletionPending();
+  if (!entry) return;
+  if (!scope || sameLevelCompletionScope(entry, scope)) {
+    window.localStorage.removeItem(LEVEL_COMPLETION_PENDING_KEY);
+  }
+}
+
 function toPositiveIntegerOrNull(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
     return Math.trunc(value);
@@ -531,6 +614,22 @@ export default function DashboardV2() {
     refetch,
   });
   const currentLevel = logic.phases.find((phase) => phase.state === "active") ?? null;
+  const levelCompletionPendingScope = useMemo<LevelCompletionPendingScope | null>(() => {
+    if (!user || !transformation || !plan || !currentLevel) return null;
+    return {
+      user_id: user.id,
+      transformation_id: transformation.id,
+      plan_id: plan.id,
+      phase_id: currentLevel.phase_id,
+      level_order: currentLevel.phase_order,
+    };
+  }, [
+    currentLevel?.phase_id,
+    currentLevel?.phase_order,
+    plan?.id,
+    transformation?.id,
+    user?.id,
+  ]);
   const levelToolState = useMemo(
     () => extractLevelToolRecommendationState(transformation?.handoff_payload ?? null),
     [transformation?.handoff_payload],
@@ -973,12 +1072,14 @@ export default function DashboardV2() {
       (inferredJourneyTotalParts ?? 2) >= 2 &&
       recommendedAdditionalTransformation,
   );
+  const currentTransformationCompletionReached = Boolean(
+    allPhasesCompleted ||
+      transformation?.status === "completed" ||
+      isTransformationReadyForClosure,
+  );
   const transitionCheckpointReached = Boolean(
     hasSequencedNextTransformation &&
-      (allPhasesCompleted || transformation?.status === "completed" || isTransformationReadyForClosure),
-  );
-  const shouldWarnBeforeNextTransformation = Boolean(
-    hasSequencedNextTransformation && !transitionCheckpointReached,
+      currentTransformationCompletionReached,
   );
   const hasSimpleNextTransformation = Boolean(
     !hasSequencedNextTransformation &&
@@ -993,6 +1094,10 @@ export default function DashboardV2() {
     !hasSequencedNextTransformation &&
       !hasSimpleNextTransformation &&
       canShowTransformationEndAction,
+  );
+  const shouldWarnBeforeNextTransformation = Boolean(
+    (hasSequencedNextTransformation || hasSimpleNextTransformation || hasCycleRelaunchAction) &&
+      !currentTransformationCompletionReached,
   );
   const nextSequencedTransformation = hasSequencedNextTransformation
     ? recommendedAdditionalTransformation
@@ -1206,10 +1311,26 @@ export default function DashboardV2() {
     setPlanReviewProposal(null);
     setPlanReviewBusy(false);
     setIsLevelCompletionModalOpen(false);
-    setLevelCompletionBusy(false);
+    setLevelCompletionBusy(Boolean(readActiveLevelCompletionPending(levelCompletionPendingScope)));
     setLevelCompletionError(null);
     setLevelCompletionSummary(null);
-  }, [plan?.id, transformation?.id]);
+  }, [levelCompletionPendingScope, plan?.id, transformation?.id]);
+
+  useEffect(() => {
+    const syncPendingLevelCompletion = () => {
+      setLevelCompletionBusy(Boolean(readActiveLevelCompletionPending(levelCompletionPendingScope)));
+    };
+
+    syncPendingLevelCompletion();
+    window.addEventListener("storage", syncPendingLevelCompletion);
+    window.addEventListener("focus", syncPendingLevelCompletion);
+    document.addEventListener("visibilitychange", syncPendingLevelCompletion);
+    return () => {
+      window.removeEventListener("storage", syncPendingLevelCompletion);
+      window.removeEventListener("focus", syncPendingLevelCompletion);
+      document.removeEventListener("visibilitychange", syncPendingLevelCompletion);
+    };
+  }, [levelCompletionPendingScope]);
 
   const isArchitectMode = mode === "architecte";
   const canAccessWhatsappFeatures =
@@ -1843,8 +1964,14 @@ export default function DashboardV2() {
   ) : null;
 
   const handleLevelCompletionSubmit = async (answers: Record<string, string>) => {
-    if (!transformation || !plan || !currentLevel) return;
+    if (!transformation || !plan || !currentLevel || !levelCompletionPendingScope) return;
 
+    const requestId = newRequestId();
+    writeLevelCompletionPending({
+      ...levelCompletionPendingScope,
+      request_id: requestId,
+      started_at_ms: Date.now(),
+    });
     setLevelCompletionBusy(true);
     setLevelCompletionError(null);
     setDashboardActionError(null);
@@ -1853,6 +1980,7 @@ export default function DashboardV2() {
       const { data, error: fnError } = await supabase.functions.invoke<CompleteLevelResponse>(
         "complete-level-v1",
         {
+          headers: requestHeaders(requestId),
           body: {
             transformation_id: transformation.id,
             plan_id: plan.id,
@@ -1866,8 +1994,10 @@ export default function DashboardV2() {
 
       setLevelCompletionSummary(data.summary);
       setIsLevelCompletionModalOpen(false);
+      clearLevelCompletionPending(levelCompletionPendingScope);
       await refetch();
     } catch (actionError) {
+      clearLevelCompletionPending(levelCompletionPendingScope);
       console.error("[DashboardV2] level completion failed", actionError);
       setLevelCompletionError(
         actionError instanceof Error
@@ -1875,7 +2005,8 @@ export default function DashboardV2() {
           : "Impossible de valider ce niveau pour le moment.",
       );
     } finally {
-      setLevelCompletionBusy(false);
+      const pending = readActiveLevelCompletionPending(levelCompletionPendingScope);
+      setLevelCompletionBusy(Boolean(pending));
     }
   };
 
@@ -3213,7 +3344,7 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onPrepareCards={logic.prepareItemCards}
+                              onCardsChanged={refetch}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
                               onLogHeartbeat={() =>
                                 navigate("/chat", {
@@ -3306,7 +3437,7 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onPrepareCards={logic.prepareItemCards}
+                              onCardsChanged={refetch}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
                             />
 
@@ -3322,7 +3453,7 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onPrepareCards={logic.prepareItemCards}
+                              onCardsChanged={refetch}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
                             />
 
@@ -3338,7 +3469,7 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onPrepareCards={logic.prepareItemCards}
+                              onCardsChanged={refetch}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
                             />
 
@@ -3462,7 +3593,11 @@ export default function DashboardV2() {
                               <button
                                 type="button"
                                 onClick={handleOpenMultiPartTransitionGate}
-                                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700"
+                                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md transition ${
+                                  shouldWarnBeforeNextTransformation
+                                    ? "bg-rose-700 shadow-rose-200 hover:bg-rose-800"
+                                    : "bg-blue-600 shadow-blue-200 hover:bg-blue-700"
+                                }`}
                               >
                                 Passer à la prochaine transformation
                               </button>
@@ -3471,7 +3606,11 @@ export default function DashboardV2() {
                               <button
                                 type="button"
                                 onClick={() => void handleEndSimpleTransformation()}
-                                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-[var(--action-green)] transition hover:bg-emerald-100"
+                                className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                                  shouldWarnBeforeNextTransformation
+                                    ? "border-rose-200 bg-white text-rose-800 hover:bg-rose-50"
+                                    : "border-emerald-200 bg-emerald-50 text-[var(--action-green)] hover:bg-emerald-100"
+                                }`}
                               >
                                 Mettre fin à cette transformation
                               </button>

@@ -741,13 +741,20 @@ export async function generateWithGemini(
 
   const pickModelForAttempt = (startModel: string, attempt: number): string => {
     const start = String(startModel ?? "").trim();
+    if (
+      Boolean(meta?.forceInitialModel) &&
+      Boolean(meta?.disableFallbackChain) &&
+      start
+    ) {
+      return start;
+    }
+    if (Boolean(meta?.forceInitialModel) && attempt === 1 && start) {
+      return start;
+    }
     if (shouldPromoteToPrimary(start)) {
       return attempt % 2 === 1 || !hasDistinctGeminiFallback
         ? primaryModel
         : geminiFallbackModel;
-    }
-    if (Boolean(meta?.forceInitialModel) && attempt === 1 && start) {
-      return start;
     }
     if (!isOpenAiModel(start) && !isGpt52(start) && hasDistinctGeminiFallback) {
       return attempt % 2 === 1 ? primaryModel : geminiFallbackModel;

@@ -10,7 +10,6 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
     channel: "whatsapp",
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
     direct_effects: [],
-    tool_skill_intents: [],
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -108,30 +107,6 @@ Deno.test("orchestrator: safety band allows one-shot reminder and blocks other d
   assertEquals(result.additional_blocked_paths, [
     { path: "track_progress_plan_item", reason_code: "safety_high" },
   ]);
-});
-
-Deno.test("orchestrator: pending confirmation blocks all direct effects", async () => {
-  const result = await runEffectGateOrchestrator({
-    turn_frame: frame({
-      direct_effects: [
-        {
-          effect_type: "create_one_shot_reminder",
-          explicitness: "explicit",
-          target_status: "identified",
-          confidence_band: "high",
-          payload_hint: {},
-        },
-      ],
-    }),
-    pending_tool_skill_confirmation: { id: "p1" },
-    direct_effects_to_run: ["create_one_shot_reminder"],
-  });
-  assertEquals(result.allowed, []);
-  assertEquals(
-    (result.outcomes.create_one_shot_reminder as { reason_code: string })
-      .reason_code,
-    "pending_confirmation_active",
-  );
 });
 
 Deno.test("orchestrator: db idempotency duplicate is blocked", async () => {

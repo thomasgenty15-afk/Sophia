@@ -1,0 +1,65 @@
+{
+  "matching": [],
+  "recent": [
+    {
+      "turn_id": "qa-2026-06-12-status-recap-real-r2-t04",
+      "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+      "ts": "2026-06-12T01:01:22.134+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-2026-06-12-status-recap-real-r2-t03",
+      "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+      "ts": "2026-06-12T01:01:03.992+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-2026-06-12-status-recap-real-r2-t02",
+      "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+      "ts": "2026-06-12T01:00:48.429+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-2026-06-12-status-recap-real-r2-t01",
+      "user_id": "5aafed25-ae58-4413-bbe4-97da5b12d85d",
+      "ts": "2026-06-12T01:00:27.671+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "ts": "2026-06-12T00:46:47.357+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "ts": "2026-06-12T00:46:15.319+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-rose-2026-06-12-weekly-local-dispatcher-weekly-child-detours-r1-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "ts": "2026-06-12T00:45:40.813+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r1-t06",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "ts": "2026-06-11T23:16:06.411+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r1-t05",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "ts": "2026-06-11T23:15:35.937+00:00",
+      "response_owner": "tool_skill"
+    },
+    {
+      "turn_id": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r1-t04",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "ts": "2026-06-11T23:15:11.908+00:00",
+      "response_owner": "tool_skill"
+    }
+  ]
+}

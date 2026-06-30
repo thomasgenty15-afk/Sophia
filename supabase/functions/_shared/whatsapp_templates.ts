@@ -62,6 +62,11 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
       "Hello {{1}}, c'est l'heure de ton bilan de la semaine (important!). 😉\nOn y va ?",
     buttons: ["Go !", "La semaine prochaine!"],
   },
+  sophia_bilan_v2: {
+    name: "sophia_bilan_v2",
+    body: "Hey {{1}} 😊\nPrêt pour ton petit bilan ?",
+    buttons: ["Carrément!", "On le fait demain!"],
+  },
   sophia_checkin_v2: {
     name: "sophia_checkin_v2",
     body:

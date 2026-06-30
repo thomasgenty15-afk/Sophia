@@ -95,7 +95,7 @@
 - executed_tools: []
 - durable_effect: aucun
 - skill_run: `product_help`, status `handoff`, intent `tool_action_request`
-- flow_action: `handoff_to_local_dispatcher`
+- flow_action: `exit_to_global_dispatcher`
 - visible_task: `exit_ack`
 - bridge: `operation_type=prepare_attack_card`, `kind=handoff_needed`, `executable=false`
 - note_information_target: `prepare_attack_card`
@@ -104,10 +104,10 @@
 **Analyse si yellow/red**
 - Symptome: le dispatcher local produit bien un handoff vers `prepare_attack_card`, mais le tour reste visiblement rendu par `product_help`; le dispatcher cible n'est pas execute sur ce tour.
 - Symptome visible: Sophia dit "on s'occupe de préparer ta carte", ce qui promet une preparation alors qu'aucun outil, aucun flow cible visible et aucun effet durable ne sont observes.
-- Source amont probable: arbitration/handoff runtime apres sortie `handoff_to_local_dispatcher`; le handoff note est stocke mais pas consomme immediatement par le dispatcher local cible.
+- Source amont probable: arbitration/handoff runtime apres sortie `exit_to_global_dispatcher`; le handoff note est stocke mais pas consomme immediatement par le dispatcher local cible.
 - Owner runtime: handoff runtime entre conversation skills / router, puis visible response guard pour le claim sans commit.
-- Meilleure correction selon les guidelines: apres `product_help_handoff_to_local_dispatcher`, router directement vers le dispatcher local cible avec `note_information`, ou rendre un vrai `exit_ack` minimal qui ne promet pas l'action.
-- Pourquoi ce n'est pas un patch local: le JSON product_help est correct (`handoff_to_local_dispatcher`, note cible `prepare_attack_card`); la rupture se produit apres reducer/route handoff.
+- Meilleure correction selon les guidelines: apres `product_help_exit_to_global_dispatcher`, router directement vers le dispatcher local cible avec `note_information`, ou rendre un vrai `exit_ack` minimal qui ne promet pas l'action.
+- Pourquoi ce n'est pas un patch local: le JSON product_help est correct (`exit_to_global_dispatcher`, note cible `prepare_attack_card`); la rupture se produit apres reducer/route handoff.
 
 ### Tour 4
 
@@ -162,7 +162,7 @@
 
 **Fix propose**
 - Source amont: handoff runtime + final response guard.
-- Correction recommandee: garantir que `handoff_to_local_dispatcher` soit suivi du dispatcher cible ou d'un ack strictement minimal sans promesse; interdire les commentaires HTML internes dans la sortie finale.
+- Correction recommandee: garantir que `exit_to_global_dispatcher` soit suivi du dispatcher cible ou d'un ack strictement minimal sans promesse; interdire les commentaires HTML internes dans la sortie finale.
 - Tests d'invariant attendus: demande "prepare-moi une carte" depuis `product_help` doit produire `prepare_attack_card` comme prochain owner/handler ou une transition sans claim; toute reponse visible doit etre sans `<!--`.
 
 ## 4. Analyse Systeme
@@ -172,7 +172,7 @@
 **Routage**
 - T1: correct, `product_help` via `skill_entry_signal`.
 - T2: correct, active flow `product_help` owns turn; global dispatcher/router bloques.
-- T3: partiellement correct: dispatcher local product_help detecte `handoff_to_local_dispatcher` et produit une `note_information` vers `prepare_attack_card`; incorrect ensuite car le dispatcher cible n'est pas execute.
+- T3: partiellement correct: dispatcher local product_help detecte `exit_to_global_dispatcher` et produit une `note_information` vers `prepare_attack_card`; incorrect ensuite car le dispatcher cible n'est pas execute.
 - T4: incorrect: la note de handoff est consommee par `global_dispatcher_second_pass`, mais la sortie finale est `normal_reply`, pas `prepare_attack_card` ni un stop local cible.
 
 **Skills / Operations / Tools**
@@ -195,7 +195,7 @@
 - Source amont: `handoff_flow_arbitration`, route runtime local handoff, final response pipeline.
 - Correction recommandee: brancher `product_help_exit_memo.note_information.target_dispatcher=prepare_attack_card` vers le dispatcher local cible au meme tour ou au tour suivant sans passer par un `normal_reply_default`; bloquer toute phrase de type "on s'occupe" quand `tool_execution=none` et aucun effect/target flow n'a produit de visible task; filtrer les commentaires HTML internes.
 - Tests d'invariant attendus:
-  - `product_help` + demande operationnelle explicite -> `handoff_to_local_dispatcher` avec `note_information` et owner cible `prepare_attack_card`.
+  - `product_help` + demande operationnelle explicite -> `exit_to_global_dispatcher` avec `note_information` et owner cible `prepare_attack_card`.
   - Aucun claim d'action quand `direct_effects=[]`, `executed_tools=[]`, `tool_execution=none`.
   - Reponse finale ne contient jamais `<!--`.
   - Stop apres handoff annule proprement le flow cible ou repond sans global second pass incoherent.
@@ -204,7 +204,7 @@
 
 - Verdict: red
 - Raison principale: le flow product_help fonctionne bien pour les questions produit simples, mais le handoff operationnel vers `prepare_attack_card` casse l'ownership et produit une promesse visible sans effet ni dispatcher cible.
-- Follow-up prioritaire: corriger le runtime de handoff local apres `product_help_handoff_to_local_dispatcher`, puis ajouter un guard visible anti-claim sans commit/flow cible.
+- Follow-up prioritaire: corriger le runtime de handoff local apres `product_help_exit_to_global_dispatcher`, puis ajouter un guard visible anti-claim sans commit/flow cible.
 
 ## Feuille De Suivi Bugs
 

@@ -20,6 +20,18 @@ conversationnels Sophia. Elle complete les fiches specialisees, notamment :
   test de renderer. Cela implique le chemin local
   `/functions/v1/test-send-message` avec `force_full_ai=true`, sauf si le
   demandeur dit explicitement qu'il veut seulement un test technique local.
+- Exception daily/weekly pending: pour tester un flow proactive qui depend d'un
+  `whatsapp_pending_actions` actif (`daily_action_review`, weekly pending,
+  template gate, scheduled checkin), le run doit emprunter le vrai chemin
+  pending WhatsApp local, c'est-a-dire `process-checkins` puis
+  `/functions/v1/whatsapp-webhook` en loopback. Ne pas utiliser
+  `/functions/v1/test-send-message` pour ces tours de pending: cet endpoint
+  appelle directement `processMessage` et ne passe pas par
+  `whatsapp-webhook/handlePendingActions`, donc il peut laisser le pending en
+  DB et router a tort vers le global. Dans ce cas, `force_full_ai=true` n'est
+  pas applicable au tour pending; la validite vient du webhook local, du pending
+  reel, du dispatcher/visible IA reels appeles par le handler, et des
+  verifications DB.
 - Les runs sont locaux par defaut : Supabase local, connexions locales, chemin
   IA reel local de Sophia.
 - Ne pas utiliser staging, remote ou deploy sauf consigne explicite.

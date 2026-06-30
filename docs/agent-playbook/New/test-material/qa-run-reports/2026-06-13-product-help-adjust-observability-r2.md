@@ -72,9 +72,9 @@ Artefacts:
 **Trace courte**
 - http_status: 200
 - first route owner: `product_help`
-- bridge event: `brain:product_help_handoff_to_local_dispatcher`
+- bridge event: `brain:product_help_exit_to_global_dispatcher`
 - selected_handler final: `adjust_plan_item`
-- product_help local dispatcher raw: `handoff_to_local_dispatcher`, target `adjust_plan_item`, note_information present
+- product_help local dispatcher raw: `exit_to_global_dispatcher`, target `adjust_plan_item`, note_information present
 - adjust_plan flow_action: `prepare_plan_handoff`
 - visible_task.kind: `plan_handoff_ready`
 - mode: `platform_handoff`
@@ -163,7 +163,7 @@ Artefacts:
 
 **Skills / Operations / Tools**
 - `product_help.local_dispatcher` T1: `flow_action=answer_product_question`, `target.feature_id=resources.attack_card`.
-- `product_help.local_dispatcher` T2: `flow_action=handoff_to_local_dispatcher`, `target.feature_id=plan.adjustment`, `bridge.operation_type=adjust_plan_item`, `note_information.target_dispatcher=adjust_plan_item`.
+- `product_help.local_dispatcher` T2: `flow_action=exit_to_global_dispatcher`, `target.feature_id=plan.adjustment`, `bridge.operation_type=adjust_plan_item`, `note_information.target_dispatcher=adjust_plan_item`.
 - `adjust_plan_item.local_dispatcher`:
   - T2: `prepare_plan_handoff`
   - T3: `revise_plan_handoff`

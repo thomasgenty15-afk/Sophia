@@ -1,13 +1,18 @@
 import type {
+  CoachingRecommendationCategory,
+  CoachingRecommendationSignalContext,
+  CoachingRecommendationType,
   ConfidenceBand,
   ConversationChannel,
   ConversationRisk,
+  DirectEffectTimeContext,
   DispatcherMemoryPlan,
   DispatcherMemoryRetrievalPolicy,
   DispatcherMemoryTargetType,
   DispatcherResearchSignal,
   Explicitness,
-  FlowOpportunity,
+  FeatureOpportunityKind,
+  FeatureOpportunitySignalContext,
   RiskBand,
   TurnFrame,
 } from "../contracts/turn_frame.v1.ts";
@@ -22,12 +27,6 @@ import {
   DISPATCHER_V2_PROMPT_VERSION,
   DISPATCHER_V2_SYSTEM_PROMPT,
 } from "./dispatcher.prompts.ts";
-import {
-  normalizeNoteInformation,
-  type NoteInformation,
-  type NoteInformationHandoffReason,
-  type NoteInformationTargetDispatcher,
-} from "../contracts/note_information.v1.ts";
 
 export type DispatcherRunStats = {
   latency_ms: number;
@@ -51,10 +50,9 @@ export type RunDispatcherInput = {
   user_id: string;
   channel: ConversationChannel;
   active_skill_state?: unknown;
-  active_tool_skill_intake?: unknown;
-  pending_tool_skill_confirmation?: unknown;
   active_topic_state?: unknown;
   flow_state_context?: unknown;
+  direct_effect_time_context?: DirectEffectTimeContext | null;
   plan_snapshot: unknown;
   safety_context_output: SafetySignalContext;
   conversation_risk_history?: number[];
@@ -63,10 +61,6 @@ export type RunDispatcherInput = {
   llm_runner?: DispatcherLlmRunner;
   model_name?: string;
   on_stats?: (stats: DispatcherRunStats) => void;
-};
-
-type TurnFrameWithRouteHints = TurnFrame & {
-  route_blocked_codes?: string[];
 };
 
 const RISK_ORDER: RiskBand[] = ["none", "low", "medium", "high", "critical"];
@@ -128,6 +122,20 @@ function recentConversationRiskScores(raw: unknown): number[] {
     .slice(-5);
 }
 
+function recordOrNull(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function noteInformationFromFlowStateContext(
+  flowStateContext: unknown,
+): Record<string, unknown> | null {
+  const root = recordOrNull(flowStateContext);
+  const lastLocalFlowExit = recordOrNull(root?.last_local_flow_exit);
+  return recordOrNull(lastLocalFlowExit?.note_information);
+}
+
 function evaluateConversationRisk(input: RunDispatcherInput): ConversationRisk {
   const previousScores = recentConversationRiskScores(
     input.conversation_risk_history,
@@ -140,80 +148,7 @@ function evaluateConversationRisk(input: RunDispatcherInput): ConversationRisk {
     previous_scores: previousScores,
     matrix: [],
     context_summary: null,
-    flow_exit_context: null,
   };
-}
-
-function confidenceRank(confidence: ConfidenceBand): number {
-  return confidence === "critical"
-    ? 4
-    : confidence === "high"
-    ? 3
-    : confidence === "medium"
-    ? 2
-    : 1;
-}
-
-function explicitnessRank(explicitness: Explicitness): number {
-  return explicitness === "explicit" ? 3 : explicitness === "implied" ? 2 : 1;
-}
-
-function selectDominantToolSkillIntent(
-  intents: TurnFrame["tool_skill_intents"],
-): TurnFrame["tool_skill_intents"] {
-  if (intents.length <= 1) return intents;
-
-  const withRejections = intents
-    .map((intent, index) => ({ intent, index }))
-    .filter(({ intent }) => (intent.rejected_operations ?? []).length > 0);
-  if (withRejections.length > 0) {
-    return [withRejections[withRejections.length - 1].intent];
-  }
-
-  const cardIntents = intents.filter((intent) =>
-    intent.operation_type === "prepare_attack_card" ||
-    intent.operation_type === "prepare_defense_card"
-  );
-  const cardOperationTypes = new Set(
-    cardIntents.map((intent) => intent.operation_type),
-  );
-  if (
-    cardOperationTypes.has("prepare_attack_card") &&
-    cardOperationTypes.has("prepare_defense_card") &&
-    cardIntents.length === intents.length
-  ) {
-    return intents;
-  }
-
-  const hasPlanAndCard =
-    intents.some((intent) => intent.operation_type === "adjust_plan_item") &&
-    intents.some((intent) =>
-      intent.operation_type === "prepare_attack_card" ||
-      intent.operation_type === "prepare_defense_card"
-    );
-  if (hasPlanAndCard) {
-    const planIntents = intents
-      .map((intent, index) => ({ intent, index }))
-      .filter(({ intent }) => intent.operation_type === "adjust_plan_item");
-    planIntents.sort((a, b) =>
-      confidenceRank(b.intent.confidence_band) -
-        confidenceRank(a.intent.confidence_band) ||
-      explicitnessRank(b.intent.explicitness) -
-        explicitnessRank(a.intent.explicitness) ||
-      b.index - a.index
-    );
-    return [planIntents[0].intent];
-  }
-
-  const ranked = intents.map((intent, index) => ({ intent, index }));
-  ranked.sort((a, b) =>
-    confidenceRank(b.intent.confidence_band) -
-      confidenceRank(a.intent.confidence_band) ||
-    explicitnessRank(b.intent.explicitness) -
-      explicitnessRank(a.intent.explicitness) ||
-    b.index - a.index
-  );
-  return [ranked[0].intent];
 }
 
 function normalizePolicy(raw: unknown): DispatcherMemoryRetrievalPolicy {
@@ -424,7 +359,6 @@ function suppressConcurrentRoutingDuringReview(
   return {
     ...turnFrame,
     direct_effects: [],
-    flow_opportunity: null,
   };
 }
 
@@ -432,97 +366,6 @@ function objectRecord(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : undefined;
-}
-
-function sanitizedOperationInputFromIntent(
-  intent: Record<string, unknown>,
-): Record<string, unknown> | undefined {
-  const explicitInput = objectRecord(intent.operation_input);
-  if (explicitInput) return explicitInput;
-  const payloadHint = objectRecord(intent.payload_hint);
-  if (payloadHint) return undefined;
-  const targetHint = String(intent.target_hint ?? "").trim();
-  const evidence = Array.isArray(intent.evidence)
-    ? intent.evidence.map((item) => String(item).trim()).filter(Boolean).slice(
-      0,
-      4,
-    )
-    : [];
-  if (!targetHint && evidence.length === 0) return undefined;
-  return {
-    ...(targetHint ? { target_hint: targetHint } : {}),
-    ...(evidence.length > 0 ? { evidence } : {}),
-  };
-}
-
-function sanitizeToolSkillIntent(
-  raw: unknown,
-): TurnFrame["tool_skill_intents"][number] | null {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const intent = raw as any;
-  const operationType = String(intent.operation_type ?? "").trim();
-  if (!operationType) return null;
-  const explicitnessRaw = String(intent.explicitness ?? "").trim();
-  const explicitness: TurnFrame["tool_skill_intents"][number]["explicitness"] =
-    explicitnessRaw === "explicit" || explicitnessRaw === "implied" ||
-      explicitnessRaw === "weak"
-      ? explicitnessRaw
-      : "explicit";
-  const confidenceRaw = String(intent.confidence_band ?? "").trim();
-  const confidenceBand:
-    TurnFrame["tool_skill_intents"][number]["confidence_band"] =
-      confidenceRaw === "low" || confidenceRaw === "medium" ||
-        confidenceRaw === "high" || confidenceRaw === "critical"
-        ? confidenceRaw
-        : "low";
-  const ambiguityRaw = String(intent.ambiguity ?? "").trim();
-  const ambiguity: TurnFrame["tool_skill_intents"][number]["ambiguity"] =
-    ambiguityRaw === "none" || ambiguityRaw === "target_ambiguous" ||
-      ambiguityRaw === "intent_ambiguous" || ambiguityRaw === "both"
-      ? ambiguityRaw
-      : "none";
-  const userIntentRaw = String(intent.user_intent ?? "").trim();
-  const userIntent: TurnFrame["tool_skill_intents"][number]["user_intent"] =
-    userIntentRaw === "create" || userIntentRaw === "update" ||
-      userIntentRaw === "adjust" || userIntentRaw === "select" ||
-      userIntentRaw === "explain_only" || userIntentRaw === "none"
-      ? userIntentRaw
-      : operationType === "adjust_plan_item"
-      ? "adjust"
-      : operationType === "select_state_potion"
-      ? "select"
-      : "create";
-  const adjustPlanScopeRaw = String(intent.adjust_plan_scope ?? "").trim();
-  const adjustPlanScope = adjustPlanScopeRaw === "specific_action" ||
-      adjustPlanScopeRaw === "current_level" ||
-      adjustPlanScopeRaw === "whole_plan"
-    ? adjustPlanScopeRaw
-    : undefined;
-  const rejectedOperations = Array.isArray(intent.rejected_operations)
-    ? intent.rejected_operations.map((item: unknown) => String(item).trim())
-      .filter(Boolean)
-    : undefined;
-  const score = optionalScore(intent.score);
-  return {
-    operation_type: operationType,
-    explicitness,
-    target_hint: String(intent.target_hint ?? "").trim() || undefined,
-    operation_input: sanitizedOperationInputFromIntent(intent),
-    payload_hint: objectRecord(intent.payload_hint),
-    adjust_plan_scope: adjustPlanScope,
-    rejected_operations: rejectedOperations,
-    confidence_band: confidenceBand,
-    ...(score !== undefined ? { score } : {}),
-    ambiguity,
-    user_intent: userIntent,
-  };
-}
-
-function addBlockedCode(turnFrame: TurnFrame, code: string): void {
-  const withHints = turnFrame as TurnFrameWithRouteHints;
-  withHints.route_blocked_codes = [
-    ...new Set([...(withHints.route_blocked_codes ?? []), code]),
-  ];
 }
 
 function clamp01(value: unknown, fallback = 0): number {
@@ -534,6 +377,111 @@ function clamp01(value: unknown, fallback = 0): number {
 function optionalScore(value: unknown): number | undefined {
   if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
   return clamp01(value);
+}
+
+function optionalText(value: unknown, max = 160): string | null {
+  const text = String(value ?? "").trim();
+  return text ? text.slice(0, max) : null;
+}
+
+function enumString<T extends string>(
+  raw: unknown,
+  allowed: readonly T[],
+  fallback: T,
+): T {
+  const value = String(raw ?? "").trim();
+  return (allowed as readonly string[]).includes(value) ? value as T : fallback;
+}
+
+function coachingTypeFromLegacyCategory(
+  value: CoachingRecommendationCategory,
+): CoachingRecommendationType {
+  return value === "plan_action_coaching"
+    ? "plan_action"
+    : value === "free_action_coaching"
+    ? "no_plan_action"
+    : value === "emotional_state_coaching"
+    ? "emotional"
+    : "ambiguous";
+}
+
+function sanitizeCoachingRecommendationSignalContext(
+  raw: unknown,
+): CoachingRecommendationSignalContext | undefined {
+  const root = objectRecord(raw);
+  if (!root) return undefined;
+  const legacyCategory = enumString<CoachingRecommendationCategory>(
+    root.category,
+    [
+      "plan_action_coaching",
+      "free_action_coaching",
+      "emotional_state_coaching",
+      "ambiguous_coaching_need",
+    ],
+    "ambiguous_coaching_need",
+  );
+  const coachingType = enumString<CoachingRecommendationType>(
+    root.coaching_type,
+    [
+      "plan_action",
+      "no_plan_action",
+      "emotional",
+      "ambiguous",
+    ],
+    coachingTypeFromLegacyCategory(legacyCategory),
+  );
+  const actionRoot = objectRecord(root.action_context);
+  return {
+    coaching_type: coachingType,
+    confidence: optionalScore(root.confidence) ??
+      (root.confidence_band === "high" || root.confidence_band === "critical"
+        ? 0.9
+        : root.confidence_band === "medium"
+        ? 0.65
+        : 0.5),
+    reason: optionalText(root.reason, 240) ?? "",
+    action_context: actionRoot
+      ? {
+        source: enumString(
+          actionRoot.source,
+          ["plan", "free", "none", "ambiguous"],
+          "ambiguous",
+        ),
+        plan_item_id: optionalText(actionRoot.plan_item_id, 80),
+        action_title: optionalText(actionRoot.action_title, 160),
+      }
+      : null,
+  };
+}
+
+function sanitizeFeatureOpportunitySignalContext(
+  raw: unknown,
+): FeatureOpportunitySignalContext | undefined {
+  const root = objectRecord(raw);
+  if (!root) return undefined;
+  const feature = enumString<FeatureOpportunityKind>(
+    root.feature,
+    ["initiatives", "coach_preferences"],
+    "initiatives",
+  );
+  return {
+    feature,
+    opportunity_kind: enumString(
+      root.opportunity_kind,
+      [
+        "recurring_context",
+        "ritual_or_initiative",
+        "coach_style_feedback",
+        "coach_interaction_preference",
+      ],
+      feature === "coach_preferences"
+        ? "coach_interaction_preference"
+        : "recurring_context",
+    ),
+    trigger_context: optionalText(root.trigger_context, 200),
+    user_problem_summary: optionalText(root.user_problem_summary, 240) ?? "",
+    priority_reason: optionalText(root.priority_reason, 240) ?? "",
+  };
 }
 
 function sanitizeResearchSignal(
@@ -568,50 +516,70 @@ function sanitizeResearchSignal(
   };
 }
 
-function sanitizeFlowOpportunity(raw: unknown): FlowOpportunity | null {
+function sanitizeDirectEffect(
+  raw: unknown,
+): TurnFrame["direct_effects"][number] | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const record = raw as Record<string, unknown>;
-  const targetKind = record.target_kind;
-  const targetFlow = record.target_flow;
-  const confidence = record.confidence;
+  const effect = raw as Record<string, unknown>;
+  const effectType = String(effect.effect_type ?? "").trim();
   if (
-    (targetKind !== "skill" && targetKind !== "tool_skill" &&
-      targetKind !== "direct_effect") ||
-    typeof targetFlow !== "string" ||
-    (confidence !== "low" && confidence !== "medium" &&
-      confidence !== "high")
-  ) {
-    return null;
-  }
-  const score = optionalScore(record.score);
+    effectType !== "create_one_shot_reminder" &&
+    effectType !== "track_progress_plan_item"
+  ) return null;
+  const explicitnessRaw = String(effect.explicitness ?? "").trim();
+  const explicitness: Explicitness = explicitnessRaw === "explicit" ||
+      explicitnessRaw === "implied" || explicitnessRaw === "weak"
+    ? explicitnessRaw
+    : "weak";
+  const targetStatusRaw = String(effect.target_status ?? "").trim();
+  const targetStatus = targetStatusRaw === "identified" ||
+      targetStatusRaw === "ambiguous" || targetStatusRaw === "missing"
+    ? targetStatusRaw
+    : "missing";
+  const confidenceRaw = String(effect.confidence_band ?? "").trim();
+  const confidenceBand: ConfidenceBand = confidenceRaw === "low" ||
+      confidenceRaw === "medium" || confidenceRaw === "high" ||
+      confidenceRaw === "critical"
+    ? confidenceRaw
+    : "low";
+  if (
+    explicitness !== "explicit" ||
+    targetStatus !== "identified" ||
+    (confidenceBand !== "high" && confidenceBand !== "critical")
+  ) return null;
   return {
-    opportunity_id: typeof record.opportunity_id === "string"
-      ? record.opportunity_id
-      : `${targetFlow}.opportunity`,
-    target_kind: targetKind,
-    target_flow: targetFlow as FlowOpportunity["target_flow"],
-    confidence,
-    ...(score !== undefined ? { score } : {}),
-    priority: Number.isFinite(Number(record.priority))
-      ? Number(record.priority)
-      : 50,
-    reason: typeof record.reason === "string" ? record.reason : "opportunity",
-    evidence: Array.isArray(record.evidence)
-      ? record.evidence.map(String).slice(0, 8)
-      : [],
-    seed_context: record.seed_context &&
-        typeof record.seed_context === "object" &&
-        !Array.isArray(record.seed_context)
-      ? record.seed_context as Record<string, unknown>
-      : {},
+    effect_type: effectType,
+    explicitness,
+    target_status: targetStatus,
+    confidence_band: confidenceBand,
+    payload_hint: objectRecord(effect.payload_hint) ?? {},
   };
 }
 
-function sanitizeSkillSignal(raw: unknown): {
+function sanitizeDirectEffects(raw: unknown): TurnFrame["direct_effects"] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const effects: TurnFrame["direct_effects"] = [];
+  for (const item of raw) {
+    const effect = sanitizeDirectEffect(item);
+    if (!effect || seen.has(effect.effect_type)) continue;
+    seen.add(effect.effect_type);
+    effects.push(effect);
+  }
+  return effects;
+}
+
+function sanitizeSkillSignal(
+  raw: unknown,
+  kind?: "coaching_recommendation" | "feature_opportunity" | "product_help",
+): {
   detected: boolean;
   confidence_band: ConfidenceBand;
   score?: number;
   reason?: string;
+  context?:
+    | CoachingRecommendationSignalContext
+    | FeatureOpportunitySignalContext;
 } | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const signal = raw as Record<string, unknown>;
@@ -623,34 +591,18 @@ function sanitizeSkillSignal(raw: unknown): {
     : "low";
   const score = optionalScore(signal.score);
   const reason = String(signal.reason ?? "").trim();
+  const context = kind === "coaching_recommendation"
+    ? sanitizeCoachingRecommendationSignalContext(signal.context)
+    : kind === "feature_opportunity"
+    ? sanitizeFeatureOpportunitySignalContext(signal.context)
+    : undefined;
   return {
     detected: signal.detected === true,
     confidence_band: confidenceBand,
     ...(score !== undefined ? { score } : {}),
     ...(reason ? { reason } : {}),
+    ...(context ? { context } : {}),
   };
-}
-
-function sanitizeSkillSignalGroup(raw: unknown): Record<
-  string,
-  NonNullable<
-    NonNullable<TurnFrame["skill_signals"]["entry"]>[string]
-  >
-> {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
-  const entries: Record<
-    string,
-    NonNullable<
-      NonNullable<TurnFrame["skill_signals"]["entry"]>[string]
-    >
-  > = {};
-  for (const [key, value] of Object.entries(raw)) {
-    const skillId = String(key ?? "").trim();
-    if (!skillId) continue;
-    const signal = sanitizeSkillSignal(value);
-    if (signal) entries[skillId] = signal as any;
-  }
-  return entries;
 }
 
 function sanitizeSkillSignals(
@@ -659,119 +611,58 @@ function sanitizeSkillSignals(
   const root = raw && typeof raw === "object" && !Array.isArray(raw)
     ? raw as Record<string, unknown>
     : {};
-  return {
-    entry: sanitizeSkillSignalGroup(root.entry),
-    lifecycle: sanitizeSkillSignalGroup(root.lifecycle),
-    exit: sanitizeSkillSignalGroup(root.exit),
-  };
-}
-
-function firstDetectedSkillSignalKey(
-  group: Record<string, unknown> | undefined,
-): string | null {
-  if (!group || typeof group !== "object") return null;
-  for (const [key, value] of Object.entries(group)) {
-    if (
-      value && typeof value === "object" && !Array.isArray(value) &&
-      (value as Record<string, unknown>).detected === true
-    ) {
-      return key;
-    }
+  const directProductHelp = sanitizeSkillSignal(
+    root.product_help,
+    "product_help",
+  );
+  const directCoachingRecommendation = sanitizeSkillSignal(
+    root.coaching_recommendation,
+    "coaching_recommendation",
+  );
+  const directFeatureOpportunity = sanitizeSkillSignal(
+    root.feature_opportunity,
+    "feature_opportunity",
+  );
+  const entryRoot = root.entry && typeof root.entry === "object" &&
+      !Array.isArray(root.entry)
+    ? root.entry as Record<string, unknown>
+    : {};
+  const entryProductHelp = sanitizeSkillSignal(
+    entryRoot.product_help,
+    "product_help",
+  );
+  const entryCoachingRecommendation = sanitizeSkillSignal(
+    entryRoot.coaching_recommendation,
+    "coaching_recommendation",
+  );
+  const entryFeatureOpportunity = sanitizeSkillSignal(
+    entryRoot.feature_opportunity,
+    "feature_opportunity",
+  );
+  const productHelp = directProductHelp ?? entryProductHelp;
+  const coachingRecommendation = directCoachingRecommendation ??
+    entryCoachingRecommendation;
+  const featureOpportunity = directFeatureOpportunity ??
+    entryFeatureOpportunity;
+  const signals: NonNullable<TurnFrame["skill_signals"]> = {};
+  if (productHelp?.detected === true) {
+    signals.product_help = productHelp;
   }
-  return null;
-}
-
-function noteFallbackTargetDispatcher(args: {
-  safetyBlocksToolSkills: boolean;
-  routedOperationIntents: TurnFrame["tool_skill_intents"];
-  raw: Record<string, unknown> | null;
-  skillSignals: NonNullable<TurnFrame["skill_signals"]>;
-  needsResearch: DispatcherResearchSignal;
-}): NoteInformationTargetDispatcher {
-  if (args.safetyBlocksToolSkills) return "safety_crisis";
-  const operationType = args.routedOperationIntents[0]?.operation_type;
-  if (operationType) return operationType as NoteInformationTargetDispatcher;
-  const directEffects = Array.isArray(args.raw?.direct_effects)
-    ? args.raw?.direct_effects as Array<Record<string, unknown>>
-    : [];
-  const effectType = String(directEffects[0]?.effect_type ?? "").trim();
-  if (effectType) return effectType as NoteInformationTargetDispatcher;
-  if (
-    args.raw?.flow_opportunity && typeof args.raw.flow_opportunity === "object"
-  ) {
-    return "verification_opportunities";
+  if (coachingRecommendation?.detected === true) {
+    signals.coaching_recommendation = coachingRecommendation as any;
   }
-  const skillKey = firstDetectedSkillSignalKey(args.skillSignals.entry) ??
-    firstDetectedSkillSignalKey(args.skillSignals.lifecycle) ??
-    firstDetectedSkillSignalKey(args.skillSignals.exit);
-  if (skillKey) return skillKey as NoteInformationTargetDispatcher;
-  if (args.needsResearch.value) return "global";
-  return "other_local";
-}
-
-function noteFallbackHandoffReason(args: {
-  safetyBlocksToolSkills: boolean;
-  raw: Record<string, unknown> | null;
-}): NoteInformationHandoffReason {
-  if (args.safetyBlocksToolSkills) return "safety";
-  if (
-    args.raw?.flow_opportunity && typeof args.raw.flow_opportunity === "object"
-  ) {
-    return "bridge";
+  if (featureOpportunity?.detected === true) {
+    signals.feature_opportunity = featureOpportunity as any;
   }
-  return "explicit_user_request";
+  return signals;
 }
 
-function normalizeDispatcherNoteInformation(args: {
-  rawNoteInformation: Record<string, unknown> | null;
-  input: RunDispatcherInput;
-  safetyBlocksToolSkills: boolean;
-  routedOperationIntents: TurnFrame["tool_skill_intents"];
-  raw: Record<string, unknown> | null;
-  skillSignals: NonNullable<TurnFrame["skill_signals"]>;
-  needsResearch: DispatcherResearchSignal;
-}): NoteInformation {
-  const targetDispatcher = noteFallbackTargetDispatcher({
-    safetyBlocksToolSkills: args.safetyBlocksToolSkills,
-    routedOperationIntents: args.routedOperationIntents,
-    raw: args.raw,
-    skillSignals: args.skillSignals,
-    needsResearch: args.needsResearch,
-  });
-  const handoffReason = noteFallbackHandoffReason({
-    safetyBlocksToolSkills: args.safetyBlocksToolSkills,
-    raw: args.raw,
-  });
-  return normalizeNoteInformation(args.rawNoteInformation, {
-    source_flow_id: "global_dispatcher",
-    handoff_reason: handoffReason,
-    target_dispatcher: targetDispatcher,
-    handoff_context_for_next_dispatcher:
-      `User message produced a non-normal routing signal for ${targetDispatcher}. Use structured_context and evidence; do not reinterpret as normal conversation unless the current message clearly contradicts the signal.`,
-    user_words: [args.input.user_message.slice(0, 240)],
-    structured_context: {
-      user_message_summary: args.input.user_message.slice(0, 240),
-      active_flow_summary:
-        `Global dispatcher selected target=${targetDispatcher}.`,
-      target_dispatcher: targetDispatcher,
-      routed_operation_types: args.routedOperationIntents.map((intent) =>
-        intent.operation_type
-      ),
-      flow_opportunity: args.raw?.flow_opportunity ?? null,
-      skill_signal_entry_keys: Object.keys(args.skillSignals.entry ?? {}),
-      skill_signal_lifecycle_keys: Object.keys(
-        args.skillSignals.lifecycle ?? {},
-      ),
-      skill_signal_exit_keys: Object.keys(args.skillSignals.exit ?? {}),
-      needs_research: args.needsResearch.value,
-    },
-    confidence: "medium",
-  });
-}
-
-function neutralTurnFrame(input: RunDispatcherInput): TurnFrame {
+export function buildNeutralTurnFrame(input: RunDispatcherInput): TurnFrame {
   const safetyRisk = input.safety_context_output.risk_band;
   const conversationRisk = evaluateConversationRisk(input);
+  const noteInformation = noteInformationFromFlowStateContext(
+    input.flow_state_context,
+  );
   const turnFrame: TurnFrame = {
     turn_id: input.turn_id ?? crypto.randomUUID(),
     source_message_id: input.source_message_id ?? crypto.randomUUID(),
@@ -784,9 +675,8 @@ function neutralTurnFrame(input: RunDispatcherInput): TurnFrame {
     },
     conversation_risk: conversationRisk,
     direct_effects: [],
-    tool_skill_intents: [],
-    flow_opportunity: null,
-    note_information: null,
+    direct_effect_time_context: input.direct_effect_time_context ?? undefined,
+    note_information: noteInformation as any,
     skill_signals: {},
     needs_research: DEFAULT_RESEARCH_SIGNAL,
     action_reference: {
@@ -804,23 +694,10 @@ function neutralTurnFrame(input: RunDispatcherInput): TurnFrame {
     memory_plan: DEFAULT_MEMORY_PLAN,
   };
 
-  if (input.active_skill_state && (input.active_skill_state as any)?.skill_id) {
-    const skillId = String((input.active_skill_state as any).skill_id);
-    turnFrame.skill_signals.lifecycle = {
-      [skillId]: {
-        detected: true,
-        confidence_band: "high",
-        reason: "active_skill_continue",
-      },
-    };
-  }
-
   const safetyBlocksToolSkills = safetyRisk === "high" ||
     safetyRisk === "critical";
   if (safetyBlocksToolSkills) {
     turnFrame.direct_effects = [];
-    turnFrame.tool_skill_intents = [];
-    turnFrame.flow_opportunity = null;
     turnFrame.skill_signals = {};
   }
 
@@ -831,113 +708,27 @@ function sanitizeLlmTurnFrame(
   candidate: unknown,
   input: RunDispatcherInput,
 ): TurnFrame {
-  const baseline = neutralTurnFrame(input);
+  const baseline = buildNeutralTurnFrame(input);
   const raw = candidate && typeof candidate === "object"
     ? candidate as any
     : {};
-  const rawToolSkillIntents = Array.isArray(raw?.tool_skill_intents)
-    ? raw.tool_skill_intents
-    : [];
-  const reviewSkillActive = Boolean(activeReviewSkillId(input));
-  const operationIntents = rawToolSkillIntents
-    .map(sanitizeToolSkillIntent)
-    .filter(
-      (intent: ReturnType<typeof sanitizeToolSkillIntent>): intent is TurnFrame[
-        "tool_skill_intents"
-      ][number] => {
-        return Boolean(intent);
-      },
-    );
-  const dominantOperationIntents = selectDominantToolSkillIntent(
-    operationIntents,
-  );
-  const routedOperationIntents = reviewSkillActive
-    ? dominantOperationIntents.filter((
-      intent: TurnFrame["tool_skill_intents"][number],
-    ) =>
-      intent.explicitness === "explicit" &&
-      (intent.confidence_band === "high" ||
-        intent.confidence_band === "critical") &&
-      intent.ambiguity === "none" &&
-      intent.user_intent !== "explain_only"
-    )
-    : dominantOperationIntents;
   const safetyRisk = riskMax(
     input.safety_context_output.risk_band,
     raw?.safety?.risk_band ?? baseline.safety.risk_band,
   );
-  const rawSkillSignals = sanitizeSkillSignals(raw?.skill_signals);
-  const shouldSuppressProductHelpForExplicitOperation =
-    rawSkillSignals.entry?.product_help?.detected === true &&
-    operationIntents.some((intent: TurnFrame["tool_skill_intents"][number]) =>
-      intent.explicitness === "explicit" &&
-      (intent.confidence_band === "high" ||
-        intent.confidence_band === "critical") &&
-      intent.user_intent !== "explain_only"
-    );
-  const skillSignals = shouldSuppressProductHelpForExplicitOperation
-    ? (() => {
-      const entry = { ...(rawSkillSignals.entry ?? {}) };
-      delete entry.product_help;
-      return { ...rawSkillSignals, entry };
-    })()
-    : rawSkillSignals;
+  const skillSignals = sanitizeSkillSignals(raw?.skill_signals);
   const baselineConversationRisk = baseline.conversation_risk ??
     evaluateConversationRisk(input);
   const safetyBlocksToolSkills = safetyRisk === "high" ||
     safetyRisk === "critical";
-  const finalRoutedOperationIntents = safetyBlocksToolSkills
-    ? []
-    : routedOperationIntents;
-  const rawNoteInformation =
-    raw?.note_information && typeof raw.note_information === "object" &&
-      !Array.isArray(raw.note_information)
-      ? raw.note_information
-      : null;
   const needsResearch = sanitizeResearchSignal(
     raw?.needs_research,
     baseline.needs_research ?? DEFAULT_RESEARCH_SIGNAL,
     input.user_message,
   );
-  const hasRawNonNormalSignal = safetyBlocksToolSkills ||
-    finalRoutedOperationIntents.length > 0 ||
-    (Array.isArray(raw?.direct_effects) && raw.direct_effects.length > 0) ||
-    (raw?.flow_opportunity && typeof raw.flow_opportunity === "object") ||
-    (raw?.active_handoff_action &&
-      typeof raw.active_handoff_action === "object") ||
-    (raw?.confirmation_response &&
-      typeof raw.confirmation_response === "object") ||
-    needsResearch.value === true ||
-    Object.values(skillSignals.entry ?? {}).some((signal: any) =>
-      signal?.detected === true
-    ) ||
-    Object.values(skillSignals.lifecycle ?? {}).some((signal: any) =>
-      signal?.detected === true
-    ) ||
-    Object.values(skillSignals.exit ?? {}).some((signal: any) =>
-      signal?.detected === true
-    );
-  const normalizedNoteInformation = hasRawNonNormalSignal
-    ? normalizeDispatcherNoteInformation({
-      rawNoteInformation,
-      input,
-      safetyBlocksToolSkills,
-      routedOperationIntents: finalRoutedOperationIntents,
-      raw,
-      skillSignals,
-      needsResearch,
-    })
-    : null;
-  const safeRaw = { ...raw };
-  delete safeRaw[["tool", "skill", "opportunity"].join("_")];
-  delete safeRaw.confirmation_response;
-  const normalReplyFitScore = optionalScore(raw?.normal_reply_fit_score);
-  const normalReplyFitEvidence = Array.isArray(raw?.normal_reply_fit_evidence)
-    ? raw.normal_reply_fit_evidence.map(String).slice(0, 8)
-    : undefined;
+  const directEffects = sanitizeDirectEffects(raw?.direct_effects);
   return {
     ...baseline,
-    ...safeRaw,
     user_id: input.user_id,
     channel: input.channel,
     safety: {
@@ -950,26 +741,13 @@ function sanitizeLlmTurnFrame(
         : baseline.safety.evidence,
     },
     conversation_risk: baselineConversationRisk,
-    ...(normalReplyFitScore !== undefined
-      ? { normal_reply_fit_score: normalReplyFitScore }
-      : {}),
-    ...(normalReplyFitEvidence !== undefined
-      ? { normal_reply_fit_evidence: normalReplyFitEvidence }
-      : {}),
-    direct_effects: safetyBlocksToolSkills || reviewSkillActive
-      ? []
-      : Array.isArray(raw?.direct_effects)
-      ? raw.direct_effects
-      : [],
-    tool_skill_intents: finalRoutedOperationIntents,
-    flow_opportunity: safetyBlocksToolSkills
-      ? null
-      : sanitizeFlowOpportunity(raw?.flow_opportunity),
-    note_information: normalizedNoteInformation,
+    direct_effects: safetyBlocksToolSkills ? [] : directEffects,
+    direct_effect_time_context: baseline.direct_effect_time_context,
+    note_information: baseline.note_information,
     skill_signals: safetyBlocksToolSkills ? {} : skillSignals,
-    active_handoff_action: null,
-    confirmation_response: null,
-    needs_research: needsResearch,
+    needs_research: safetyBlocksToolSkills
+      ? DEFAULT_RESEARCH_SIGNAL
+      : needsResearch,
     action_reference: baseline.action_reference,
     level_reference: baseline.level_reference,
     memory_plan: suppressActionAndLevelMemoryDuringReview(
@@ -1005,23 +783,15 @@ function hasAllOriginalDirectEffects(
 }
 
 function hasEntrySkillSignal(frame: TurnFrame): boolean {
-  const entry = frame.skill_signals?.entry;
-  return Boolean(
-    entry && typeof entry === "object" &&
-      Object.values(entry).some((value) =>
-        value && typeof value === "object" &&
-        (value as { detected?: unknown }).detected !== false
-      ),
-  );
+  return frame.skill_signals?.product_help?.detected === true ||
+    frame.skill_signals?.coaching_recommendation?.detected === true ||
+    frame.skill_signals?.feature_opportunity?.detected === true;
 }
 
 function hasAdditionalStructuredSignal(
   original: TurnFrame,
   repaired: TurnFrame,
 ): boolean {
-  if (repaired.tool_skill_intents.length > original.tool_skill_intents.length) {
-    return true;
-  }
   return !hasEntrySkillSignal(original) && hasEntrySkillSignal(repaired);
 }
 
@@ -1036,7 +806,6 @@ function needsCompositeIntentRepair(
   }
   if (frame.conversation_risk?.should_exit_flows) return false;
   if (frame.direct_effects.length === 0) return false;
-  if (frame.tool_skill_intents.length > 0) return false;
   if (hasEntrySkillSignal(frame)) return false;
 
   const message = normalizeCoverageText(input.user_message);
@@ -1085,7 +854,7 @@ function buildCompositeIntentRepairPrompt(args: {
       "Ne crée aucun candidat, skill ou opération absent du message.",
       "Ne déclenche aucune action; retourne seulement les signaux structurés.",
       "Si le TurnFrame est déjà complet ou si la suite du message n'est pas une demande explicite, retourne le même TurnFrame.",
-      "Pour un tool_skill_intent complexe, fournis operation_input avec un indice minimal et de courtes evidence.",
+      "Ne propose aucune route locale, skill legacy ou opportunite de flow pendant cette reparation.",
     ],
     user_message: args.input.user_message,
     covered_texts: coveredTexts,
@@ -1138,6 +907,7 @@ export async function runDispatcher(
     recent_messages: input.recent_messages,
     active_topic_state: input.active_topic_state,
     flow_state_context: input.flow_state_context,
+    direct_effect_time_context: input.direct_effect_time_context ?? null,
     plan_snapshot: input.plan_snapshot,
   });
   const modelName = input.model_name ?? "gemini-3-flash-preview";
@@ -1160,7 +930,7 @@ export async function runDispatcher(
       model_name: modelName,
     });
   } else {
-    output = neutralTurnFrame(input);
+    output = buildNeutralTurnFrame(input);
   }
 
   const stats: DispatcherRunStats = {

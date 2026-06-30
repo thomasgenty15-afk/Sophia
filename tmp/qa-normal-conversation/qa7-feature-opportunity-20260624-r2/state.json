@@ -1,0 +1,721 @@
+{
+  "run_id": "qa7-feature-opportunity-20260624-r2",
+  "scope": "qa-normal-conversation-qa7-feature-opportunity-20260624-r2",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-qa7-feature-opportunity-20260624-r2-1782256494269@example.com",
+  "user_id": "a5853200-9f1a-47f5-814b-82b84997d0a9",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJhNTg1MzIwMC05ZjFhLTQ3ZjUtODE0Yi04MmI4NDk5N2QwYTkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMjYwMDk0LCJpYXQiOjE3ODIyNTY0OTQsImVtYWlsIjoicWEtbm9ybWFsLXFhNy1mZWF0dXJlLW9wcG9ydHVuaXR5LTIwMjYwNjI0LXIyLTE3ODIyNTY0OTQyNjlAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLXFhNy1mZWF0dXJlLW9wcG9ydHVuaXR5LTIwMjYwNjI0LXIyLTE3ODIyNTY0OTQyNjlAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6InFhNy1mZWF0dXJlLW9wcG9ydHVuaXR5LTIwMjYwNjI0LXIyIiwic3ViIjoiYTU4NTMyMDAtOWYxYS00N2Y1LTgxNGItODJiODQ5OTdkMGE5In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIyNTY0OTR9XSwic2Vzc2lvbl9pZCI6ImM5NGRhZjcyLWMzN2MtNDk1NC1hZTUxLTgwZDljZmNiM2MwZSIsImlzX2Fub255bW91cyI6ZmFsc2V9.Be8GXHGxXuzytuXsH5kjzkG9AQ_87X5J2SwJoGXsDWw",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-23T23:14:54.639Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-23T23:15:01.359Z",
+      "user": "Je vois un motif qui revient: chaque dimanche soir je retombe dans le meme trou d'organisation, et j'aimerais que Sophia repere ce cycle au lieu de traiter ca comme un incident isole.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, c’est typiquement un cas pour initiatives : un moment récurrent où le même bloc revient. La prochaine action utile, c’est d’y mettre ce cycle du dimanche soir avec quoi te rappeler et quand le faire apparaître, pour le traiter comme un motif à part entière.",
+      "trace_short": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "route_reason": "feature_opportunity_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "feature_opportunity",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-23T23:15:01.317Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-23T23:15:01.317Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 1,
+                      "trigger_context": "chaque dimanche soir",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "Le user décrit un motif récurrent d'organisation chaque dimanche soir et veut que Sophia le reconnaisse comme un cycle, pas comme un incident isolé.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context fits initiatives.",
+                        "trigger_context": "chaque dimanche soir",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "The user says a recurring Sunday evening organization cycle keeps happening and wants Sophia to recognize it as a cycle rather than an isolated incident."
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-23T23:15:01.317Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-23T23:15:01.317Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 1,
+                      "trigger_context": "chaque dimanche soir",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "Le user décrit un motif récurrent d'organisation chaque dimanche soir et veut que Sophia le reconnaisse comme un cycle, pas comme un incident isolé.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context fits initiatives.",
+                        "trigger_context": "chaque dimanche soir",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "The user says a recurring Sunday evening organization cycle keeps happening and wants Sophia to recognize it as a cycle rather than an isolated incident."
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-23T23:15:01.325642+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa7-feature-opportunity-20260624-r2-t01",
+        "user_id": "a5853200-9f1a-47f5-814b-82b84997d0a9",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa7-feature-opportunity-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, c’est typiquement un cas pour initiatives : un moment récurrent où le même bloc revient. La prochaine action utile, c’est d’y mettre ce cycle du dimanche soir avec quoi te rappeler et quand le faire apparaître, pour le traiter comme un motif à part entière.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa7-feature-opportunity-20260624-r2-t01",
+              "source_message_id": "0672e9b9-c3a5-47f8-ad6e-f38a7ad80dbc",
+              "user_id": "a5853200-9f1a-47f5-814b-82b84997d0a9",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "feature_opportunity": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "initiative_opportunity",
+                  "context": {
+                    "feature": "initiatives",
+                    "opportunity_kind": "recurring_context",
+                    "trigger_context": "chaque dimanche soir",
+                    "user_problem_summary": "The user says a recurring Sunday evening organization cycle keeps happening and wants Sophia to recognize it as a cycle rather than an isolated incident.",
+                    "priority_reason": "Repeated context fits initiatives."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "feature_opportunity_detection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.88
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "none",
+                "reason_code": "feature_opportunity_signal"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa7-feature-opportunity-20260624-r2-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "feature_opportunity_signal",
+              "status": "continue",
+              "latency_ms": 3947
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa7-feature-opportunity-20260624-r2-t01",
+            "source_message_id": "0672e9b9-c3a5-47f8-ad6e-f38a7ad80dbc",
+            "user_id": "a5853200-9f1a-47f5-814b-82b84997d0a9",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "feature_opportunity": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "initiative_opportunity",
+                "context": {
+                  "feature": "initiatives",
+                  "opportunity_kind": "recurring_context",
+                  "trigger_context": "chaque dimanche soir",
+                  "user_problem_summary": "The user says a recurring Sunday evening organization cycle keeps happening and wants Sophia to recognize it as a cycle rather than an isolated incident.",
+                  "priority_reason": "Repeated context fits initiatives."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "feature_opportunity_detection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.88
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "none",
+              "reason_code": "feature_opportunity_signal"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa7-feature-opportunity-20260624-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "feature_opportunity_signal",
+            "status": "continue",
+            "latency_ms": 3947
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-23T23:15:17.967Z",
+      "user": "Oui, c'est vraiment le dimanche soir, pas juste cette semaine. Je veux comprendre quoi en faire dans Sophia.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, là c’est un bon cas pour des initiatives : un motif récurrent du dimanche soir, pas un incident isolé.\n\nLe plus utile, c’est de le formuler comme une initiative avec :\n- quoi dire : le point d’alerte sur l’organisation\n- pourquoi / avant quel moment : le dimanche soir\n- horaire : celui où tu décroches le plus\n- jours actifs : dimanche\n- destination : Plan actuel ou Base de vie selon l’endroit où tu veux le retrouver\n- statut : actif si tu veux qu’il revienne, sinon inactif\n\nSi tu veux, je peux t’aider à formuler le texte exact à mettre dedans.",
+      "trace_short": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "route_reason": "active_feature_opportunity",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "feature_opportunity",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-23T23:15:01.317Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-23T23:15:17.927Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 2,
+                      "trigger_context": "dimanche soir",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "Le user confirme que le motif est bien récurrent le dimanche soir et veut savoir comment l'utiliser dans Sophia.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context fits initiatives.",
+                        "trigger_context": "chaque dimanche soir",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "The user says a recurring Sunday evening organization cycle keeps happening and wants Sophia to recognize it as a cycle rather than an isolated incident."
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "feature_opportunity",
+                  "started_at": "2026-06-23T23:15:01.317Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-23T23:15:17.927Z",
+                  "working_state": {
+                    "feature_opportunity_local_state": {
+                      "feature": "initiatives",
+                      "max_turns": 3,
+                      "turn_count": 2,
+                      "trigger_context": "dimanche soir",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "Le user confirme que le motif est bien récurrent le dimanche soir et veut savoir comment l'utiliser dans Sophia.",
+                      "dispatcher_signal_context": {
+                        "feature": "initiatives",
+                        "priority_reason": "Repeated context fits initiatives.",
+                        "trigger_context": "chaque dimanche soir",
+                        "opportunity_kind": "recurring_context",
+                        "user_problem_summary": "The user says a recurring Sunday evening organization cycle keeps happening and wants Sophia to recognize it as a cycle rather than an isolated incident."
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-23T23:15:17.931298+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa7-feature-opportunity-20260624-r2-t02",
+        "user_id": "a5853200-9f1a-47f5-814b-82b84997d0a9",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa7-feature-opportunity-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, là c’est un bon cas pour des initiatives : un motif récurrent du dimanche soir, pas un incident isolé.\n\nLe plus utile, c’est de le formuler comme une initiative avec :\n- quoi dire : le point d’alerte sur l’organisation\n- pourquoi / avant quel moment : le dimanche soir\n- horaire : celui où tu décroches le plus\n- jours actifs : dimanche\n- destination : Plan actuel ou Base de vie selon l’endroit où tu veux le retrouver\n- statut : actif si tu veux qu’il revienne, sinon inactif\n\nSi tu veux, je peux t’aider à formuler le texte exact à mettre dedans.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa7-feature-opportunity-20260624-r2-t02",
+              "source_message_id": "4d338075-8c40-4fd4-b640-9d3b10bd5528",
+              "user_id": "a5853200-9f1a-47f5-814b-82b84997d0a9",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_feature_opportunity",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "feature_opportunity",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "resume_active",
+                "reason_code": "active_feature_opportunity"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa7-feature-opportunity-20260624-r2-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "active_feature_opportunity",
+              "status": "continue",
+              "latency_ms": 7556
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa7-feature-opportunity-20260624-r2-t02",
+            "source_message_id": "4d338075-8c40-4fd4-b640-9d3b10bd5528",
+            "user_id": "a5853200-9f1a-47f5-814b-82b84997d0a9",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_feature_opportunity",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "feature_opportunity",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "resume_active",
+              "reason_code": "active_feature_opportunity"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa7-feature-opportunity-20260624-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "active_feature_opportunity",
+            "status": "continue",
+            "latency_ms": 7556
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-23T23:15:17.969Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-23T23:20:05.944Z"
+}

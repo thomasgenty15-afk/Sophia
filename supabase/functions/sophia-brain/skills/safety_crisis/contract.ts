@@ -1,4 +1,5 @@
 import type { NoteInformation } from "../../contracts/note_information.v1.ts";
+import type { LocalOneShotDirectEffectRequest } from "../../router/one_shot_local_direct_effect.ts";
 
 export type SafetyCrisisPhase =
   | "entry"
@@ -64,17 +65,7 @@ export type SafetyCrisisProductToolAttemptKind =
   | "status_request"
   | "none";
 
-export type SafetyCrisisDirectEffectRequest = {
-  requested: boolean;
-  effect_type: "create_one_shot_reminder" | null;
-  explicitness: "explicit" | "implied" | "weak" | "none";
-  target_status: "identified" | "ambiguous" | "missing" | "none";
-  confidence_band: "low" | "medium" | "high";
-  payload_hint: {
-    raw_text: string | null;
-  };
-  reason: string | null;
-};
+export type SafetyCrisisDirectEffectRequest = LocalOneShotDirectEffectRequest;
 
 export type SafetyCrisisResolutionFact =
   | "immediate_danger_absent"
@@ -117,9 +108,9 @@ export type SafetyCrisisLocalDispatcherOutput = {
   };
   no_tooling: {
     product_help_called: false;
-    status_recap_called: false;
-    tool_skill_called: false;
-    operation_suggestion_created: false;
+    status_lookup_called: false;
+    legacy_operation_called: false;
+    operation_route_created: false;
     pending_confirmation_created: false;
     db_write_committed: false;
   };
@@ -141,6 +132,8 @@ export type SafetyCrisisConversationContext = {
     emergency_help_contacted: boolean | null;
     risk_band: SafetyRiskBand;
     phase: SafetyCrisisPhase;
+    direct_effect_lane?: Record<string, unknown> | null;
+    direct_effect_confirmation_context?: Record<string, unknown> | null;
   };
   missing_or_weak_values: string[];
   selected_candidate: Record<string, never>;
@@ -308,7 +301,7 @@ export const SAFETY_CRISIS_INVARIANTS = [
   "resolved_requires_human_support_or_recall_path",
   "resolved_requires_prior_exit_check",
   "risk_score_or_local_dispatcher_escalate_only",
-  "operation_suggestions_always_empty",
+  "no_operation_suggestion_runtime",
   "global_dispatcher_skipped_while_safety_active",
   "visible_agent_uses_conversation_context_only",
   "visible_fallback_not_nominal",

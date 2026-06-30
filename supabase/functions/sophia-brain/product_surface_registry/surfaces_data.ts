@@ -16,7 +16,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": null,
+    "feature_id": null,
     "default_level_cap": 2,
     "content_source": "state_potions",
     "aliases": [
@@ -49,7 +49,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": "prepare_attack_card",
+    "feature_id": "attack_card",
     "default_level_cap": 3,
     "content_source": "attack_cards",
     "aliases": [
@@ -81,7 +81,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": "prepare_defense_card",
+    "feature_id": "defense_card",
     "default_level_cap": 3,
     "content_source": "defense_cards",
     "aliases": [
@@ -111,7 +111,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": "adjust_plan_item",
+    "feature_id": "plan_adjustment",
     "default_level_cap": 3,
     "content_source": "plan_items",
     "aliases": [
@@ -142,7 +142,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": "adjust_plan_item",
+    "feature_id": "plan_adjustment",
     "default_level_cap": 2,
     "content_source": "plan_items",
     "aliases": [
@@ -172,7 +172,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": "create_recurring_reminder",
+    "feature_id": "recurring_reminder",
     "default_level_cap": 3,
     "content_source": "reminders",
     "aliases": [
@@ -203,7 +203,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": "update_coach_preferences",
+    "feature_id": "coach_preferences",
     "default_level_cap": 3,
     "content_source": "preferences",
     "aliases": [
@@ -235,7 +235,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
     "requires_consent": true,
     "can_execute_from_chat": false,
-    "executor_tool_id": null,
+    "feature_id": null,
     "default_level_cap": 2,
     "content_source": "personal_actions",
     "aliases": [
@@ -252,7 +252,7 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     ],
   },
   {
-    "operation_type": "adjust_plan_item",
+    "destination_id": "plan_adjustment",
     "surface_id": "plan",
     "label": "Plan",
     "short_destination_label": "Plan",
@@ -263,10 +263,10 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
       "reprends la recommandation proposée",
     ],
     "can_execute_from_chat": false,
-    "chat_behavior": "platform_handoff",
+    "chat_behavior": "platform_destination",
   },
   {
-    "operation_type": "prepare_attack_card",
+    "destination_id": "attack_card",
     "surface_id": "attack_cards",
     "label": "Cartes d’attaque",
     "short_destination_label": "Cartes d’attaque",
@@ -277,10 +277,10 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
       "reprends le brouillon proposé",
     ],
     "can_execute_from_chat": false,
-    "chat_behavior": "platform_handoff",
+    "chat_behavior": "platform_destination",
   },
   {
-    "operation_type": "prepare_defense_card",
+    "destination_id": "defense_card",
     "surface_id": "defense_cards",
     "label": "Cartes de défense",
     "short_destination_label": "Cartes de défense",
@@ -292,10 +292,10 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
       "reprends les champs préparés par Sophia",
     ],
     "can_execute_from_chat": false,
-    "chat_behavior": "platform_handoff",
+    "chat_behavior": "platform_destination",
   },
   {
-    "operation_type": "select_state_potion",
+    "destination_id": "state_potion",
     "surface_id": "state_potions",
     "label": "État / Potions",
     "short_destination_label": "État / Potions",
@@ -306,10 +306,10 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
       "active-la depuis la plateforme si elle te convient",
     ],
     "can_execute_from_chat": false,
-    "chat_behavior": "platform_handoff",
+    "chat_behavior": "platform_destination",
   },
   {
-    "operation_type": "create_recurring_reminder",
+    "destination_id": "recurring_reminder",
     "surface_id": "recurring_reminders",
     "label": "Initiatives",
     "short_destination_label": "Initiatives",
@@ -320,10 +320,10 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
       "reprends la cadence, l’heure et le contenu proposés",
     ],
     "can_execute_from_chat": false,
-    "chat_behavior": "platform_handoff",
+    "chat_behavior": "platform_destination",
   },
   {
-    "operation_type": "update_coach_preferences",
+    "destination_id": "coach_preferences",
     "surface_id": "coach_preferences",
     "label": "Préférences coach",
     "short_destination_label": "Préférences coach",
@@ -334,6 +334,6 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
       "applique-le depuis la plateforme",
     ],
     "can_execute_from_chat": false,
-    "chat_behavior": "platform_handoff",
+    "chat_behavior": "platform_destination",
   },
 ] as const;

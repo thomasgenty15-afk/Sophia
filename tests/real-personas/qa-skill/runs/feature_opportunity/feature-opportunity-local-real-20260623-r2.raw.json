@@ -1,0 +1,2233 @@
+{
+  "run_id": "feature-opportunity-local-real-20260623-r2",
+  "persona": "qa-skill",
+  "connection_name": "feature_opportunity_feature-opportunity-local-real-20260623-r2",
+  "connection_file": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/feature_opportunity_feature-opportunity-local-real-20260623-r2.json",
+  "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-local-real-20260623-r2@example.com",
+  "scope": "qa-feature-opportunity-local-real-20260623-r2",
+  "started_at": "2026-06-22T22:50:06.473Z",
+  "constraints": {
+    "endpoint": "/functions/v1/test-send-message",
+    "force_full_ai": true,
+    "local_supabase_only": true,
+    "no_code_changes_during_run": true
+  },
+  "supabase_services_note": "supabase status reported some stopped ancillary services before the run; API/auth/functions/db were reachable.",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+      "sent_at": "2026-06-22T22:50:06.473Z",
+      "user_message": "Le vendredi avant l’apéro avec mes collègues, je finis presque toujours par reprendre une clope alors que j’avais décidé de ne pas en acheter.",
+      "http_status": 200,
+      "assistant_message": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:50:14.348Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-22T22:50:14.348Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "initiatives",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "Le vendredi avant l’apéro avec les collègues, l’utilisateur retombe presque systématiquement sur l’achat d’une clope alors qu’il avait décidé de ne pas en acheter.",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated context fits initiatives.",
+                "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-22T22:50:14.355+00:00",
+            "updated_at": "2026-06-22T22:50:14.357281+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-22T22:50:14.354+00:00",
+            "scope": "qa-feature-opportunity-local-real-20260623-r2",
+            "temp_memory": {
+              "__active_skill_state": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:50:14.348Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-22T22:50:14.348Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "initiatives",
+                    "max_turns": 3,
+                    "turn_count": 1,
+                    "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                    "opportunity_kind": "recurring_context",
+                    "user_problem_summary": "Le vendredi avant l’apéro avec les collègues, l’utilisateur retombe presque systématiquement sur l’achat d’une clope alors qu’il avait décidé de ne pas en acheter.",
+                    "dispatcher_signal_context": {
+                      "feature": "initiatives",
+                      "priority_reason": "Repeated context fits initiatives.",
+                      "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+                    }
+                  }
+                }
+              },
+              "__active_conversation_skill_v1": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:50:14.348Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-22T22:50:14.348Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "initiatives",
+                    "max_turns": 3,
+                    "turn_count": 1,
+                    "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                    "opportunity_kind": "recurring_context",
+                    "user_problem_summary": "Le vendredi avant l’apéro avec les collègues, l’utilisateur retombe presque systématiquement sur l’achat d’une clope alors qu’il avait décidé de ne pas en acheter.",
+                    "dispatcher_signal_context": {
+                      "feature": "initiatives",
+                      "priority_reason": "Repeated context fits initiatives.",
+                      "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "c8a6bb01-bd53-4f51-9712-7b6bab762954",
+            "role": "user",
+            "content": "Le vendredi avant l’apéro avec mes collègues, je finis presque toujours par reprendre une clope alors que j’avais décidé de ne pas en acheter.",
+            "created_at": "2026-06-22T22:50:06.522139+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "c4f490b2-9db5-4a03-9b03-bd8c363dcb8a",
+            "role": "assistant",
+            "content": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+            "created_at": "2026-06-22T22:50:14.362541+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4085,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3725,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+        "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-local-real-20260623-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "source_message_id": "c8a6bb01-bd53-4f51-9712-7b6bab762954",
+              "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "feature_opportunity": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "initiative_opportunity",
+                  "context": {
+                    "feature": "initiatives",
+                    "opportunity_kind": "recurring_context",
+                    "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                    "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context.",
+                    "priority_reason": "Repeated context fits initiatives."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "identify recurring smoking trigger around a repeated Friday context",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.74
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "none",
+                "reason_code": "feature_opportunity_signal"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "feature_opportunity_signal",
+              "status": "continue",
+              "latency_ms": 4085
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+            "source_message_id": "c8a6bb01-bd53-4f51-9712-7b6bab762954",
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "feature_opportunity": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "initiative_opportunity",
+                "context": {
+                  "feature": "initiatives",
+                  "opportunity_kind": "recurring_context",
+                  "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                  "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context.",
+                  "priority_reason": "Repeated context fits initiatives."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "identify recurring smoking trigger around a repeated Friday context",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.74
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "none",
+              "reason_code": "feature_opportunity_signal"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "feature_opportunity_signal",
+            "status": "continue",
+            "latency_ms": 4085
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+      "sent_at": "2026-06-22T22:50:25.621Z",
+      "user_message": "Initiative, ça veut dire quoi concrètement dans Sophia, et où est-ce que je la règle si je veux préparer ce moment moi-même ?",
+      "http_status": 200,
+      "assistant_message": "Concrètement, une initiative sert à préparer à l’avance un moment récurrent ou délicat, comme ton vendredi avant l’apéro.\n\nTu peux la régler dans la section Initiatives de Sophia, avec l’instruction, le contexte, l’heure, les jours actifs et la destination.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:50:14.348Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-22T22:50:30.632Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "initiatives",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "L’utilisateur a un déclencheur récurrent juste avant l’apéro du vendredi et veut comprendre ce que signifie 'initiative' dans Sophia ainsi que où la préparer lui-même.",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated context fits initiatives.",
+                "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-22T22:50:30.635+00:00",
+            "updated_at": "2026-06-22T22:50:30.637706+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-22T22:50:30.635+00:00",
+            "scope": "qa-feature-opportunity-local-real-20260623-r2",
+            "temp_memory": {
+              "__active_skill_state": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:50:14.348Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-22T22:50:30.632Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "initiatives",
+                    "max_turns": 3,
+                    "turn_count": 2,
+                    "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                    "opportunity_kind": "recurring_context",
+                    "user_problem_summary": "L’utilisateur a un déclencheur récurrent juste avant l’apéro du vendredi et veut comprendre ce que signifie 'initiative' dans Sophia ainsi que où la préparer lui-même.",
+                    "dispatcher_signal_context": {
+                      "feature": "initiatives",
+                      "priority_reason": "Repeated context fits initiatives.",
+                      "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+                    }
+                  }
+                }
+              },
+              "__active_conversation_skill_v1": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:50:14.348Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-22T22:50:30.632Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "initiatives",
+                    "max_turns": 3,
+                    "turn_count": 2,
+                    "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                    "opportunity_kind": "recurring_context",
+                    "user_problem_summary": "L’utilisateur a un déclencheur récurrent juste avant l’apéro du vendredi et veut comprendre ce que signifie 'initiative' dans Sophia ainsi que où la préparer lui-même.",
+                    "dispatcher_signal_context": {
+                      "feature": "initiatives",
+                      "priority_reason": "Repeated context fits initiatives.",
+                      "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "c8a6bb01-bd53-4f51-9712-7b6bab762954",
+            "role": "user",
+            "content": "Le vendredi avant l’apéro avec mes collègues, je finis presque toujours par reprendre une clope alors que j’avais décidé de ne pas en acheter.",
+            "created_at": "2026-06-22T22:50:06.522139+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "c4f490b2-9db5-4a03-9b03-bd8c363dcb8a",
+            "role": "assistant",
+            "content": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+            "created_at": "2026-06-22T22:50:14.362541+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4085,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3725,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "07a450c6-625c-4318-8d84-df88eb5d5315",
+            "role": "user",
+            "content": "Initiative, ça veut dire quoi concrètement dans Sophia, et où est-ce que je la règle si je veux préparer ce moment moi-même ?",
+            "created_at": "2026-06-22T22:50:25.667737+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "867d046e-89db-4d7d-9744-5f3a77d51264",
+            "role": "assistant",
+            "content": "Concrètement, une initiative sert à préparer à l’avance un moment récurrent ou délicat, comme ton vendredi avant l’apéro.\n\nTu peux la régler dans la section Initiatives de Sophia, avec l’instruction, le contexte, l’heure, les jours actifs et la destination.",
+            "created_at": "2026-06-22T22:50:30.642049+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4934,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+        "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-local-real-20260623-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Concrètement, une initiative sert à préparer à l’avance un moment récurrent ou délicat, comme ton vendredi avant l’apéro.\n\nTu peux la régler dans la section Initiatives de Sophia, avec l’instruction, le contexte, l’heure, les jours actifs et la destination.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "source_message_id": "07a450c6-625c-4318-8d84-df88eb5d5315",
+              "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_feature_opportunity",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "feature_opportunity",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "resume_active",
+                "reason_code": "active_feature_opportunity"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "active_feature_opportunity",
+              "status": "continue",
+              "latency_ms": 4934
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+            "source_message_id": "07a450c6-625c-4318-8d84-df88eb5d5315",
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_feature_opportunity",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "feature_opportunity",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "resume_active",
+              "reason_code": "active_feature_opportunity"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "active_feature_opportunity",
+            "status": "continue",
+            "latency_ms": 4934
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+      "sent_at": "2026-06-22T22:50:41.959Z",
+      "user_message": "Ok, autre sujet : c’est quoi la différence entre une carte d’attaque et une carte de défense ?",
+      "http_status": 200,
+      "assistant_message": "Une carte d’attaque sert à agir avant la tentation ou le problème, pour réduire le risque qu’il arrive.  \nUne carte de défense sert à réagir quand le moment critique est déjà là, pour éviter de céder ou limiter la casse.\n\nEn gros :\n- attaque = prévention\n- défense = réponse sur le moment\n\nSi tu veux, je peux te donner un exemple concret sur ton vendredi avant l’apéro 🙂",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_exit_to_global",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-22T22:50:46.983+00:00",
+            "updated_at": "2026-06-22T22:50:46.984309+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-22T22:50:46.983+00:00",
+            "scope": "qa-feature-opportunity-local-real-20260623-r2",
+            "temp_memory": {
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0
+                ],
+                "last_updated_at": "2026-06-22T22:50:46.974Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 1
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "c8a6bb01-bd53-4f51-9712-7b6bab762954",
+            "role": "user",
+            "content": "Le vendredi avant l’apéro avec mes collègues, je finis presque toujours par reprendre une clope alors que j’avais décidé de ne pas en acheter.",
+            "created_at": "2026-06-22T22:50:06.522139+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "c4f490b2-9db5-4a03-9b03-bd8c363dcb8a",
+            "role": "assistant",
+            "content": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+            "created_at": "2026-06-22T22:50:14.362541+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4085,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3725,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "07a450c6-625c-4318-8d84-df88eb5d5315",
+            "role": "user",
+            "content": "Initiative, ça veut dire quoi concrètement dans Sophia, et où est-ce que je la règle si je veux préparer ce moment moi-même ?",
+            "created_at": "2026-06-22T22:50:25.667737+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "867d046e-89db-4d7d-9744-5f3a77d51264",
+            "role": "assistant",
+            "content": "Concrètement, une initiative sert à préparer à l’avance un moment récurrent ou délicat, comme ton vendredi avant l’apéro.\n\nTu peux la régler dans la section Initiatives de Sophia, avec l’instruction, le contexte, l’heure, les jours actifs et la destination.",
+            "created_at": "2026-06-22T22:50:30.642049+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4934,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "61c33ddb-afca-47f3-8285-bee30c53861b",
+            "role": "user",
+            "content": "Ok, autre sujet : c’est quoi la différence entre une carte d’attaque et une carte de défense ?",
+            "created_at": "2026-06-22T22:50:41.992434+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "fd10df1c-f584-436d-9260-2ea05fbe0e4c",
+            "role": "assistant",
+            "content": "Une carte d’attaque sert à agir avant la tentation ou le problème, pour réduire le risque qu’il arrive.  \nUne carte de défense sert à réagir quand le moment critique est déjà là, pour éviter de céder ou limiter la casse.\n\nEn gros :\n- attaque = prévention\n- défense = réponse sur le moment\n\nSi tu veux, je peux te donner un exemple concret sur ton vendredi avant l’apéro 🙂",
+            "created_at": "2026-06-22T22:50:46.986808+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1353,
+              "selected_handler": null,
+              "context_latency_ms": 32,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+        "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-local-real-20260623-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Une carte d’attaque sert à agir avant la tentation ou le problème, pour réduire le risque qu’il arrive.  \nUne carte de défense sert à réagir quand le moment critique est déjà là, pour éviter de céder ou limiter la casse.\n\nEn gros :\n- attaque = prévention\n- défense = réponse sur le moment\n\nSi tu veux, je peux te donner un exemple concret sur ton vendredi avant l’apéro 🙂",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "source_message_id": "61c33ddb-afca-47f3-8285-bee30c53861b",
+              "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_exit_to_global",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "feature_opportunity",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "resume_active",
+                "reason_code": "active_feature_opportunity"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "active_feature_opportunity",
+              "status": "exit",
+              "latency_ms": 3583,
+              "exit_target": "global",
+              "exit_note_information": {
+                "source_flow_id": "feature_opportunity",
+                "handoff_reason": "topic_change",
+                "target_dispatcher": "global",
+                "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"L’utilisateur change de sujet et pose une question de compréhension autonome sur une notion produit qui sort de l’opportunité détectée.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Le vendredi avant l’apéro avec mes collègues\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated context fits initiatives.\",\"trigger_context\":\"Le vendredi avant l’apéro avec mes collègues\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"The user reports a repeated pre-event smoking trigger in a recurring Friday context.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Le user dit explicitement \\\"autre sujet\\\".\",\"La question posée ne porte plus sur le contexte récurrent détecté.\",\"Aucun handoff local n’est prévu depuis feature_opportunity.\"]}",
+                "user_words": [
+                  "Ok, autre sujet : c’est quoi la différence entre une carte d’attaque et une carte de défense ?",
+                  "Le user dit explicitement \"autre sujet\".",
+                  "La question posée ne porte plus sur le contexte récurrent détecté."
+                ],
+                "structured_context": {
+                  "user_message_summary": "L’utilisateur change de sujet et pose une question de compréhension autonome sur une notion produit qui sort de l’opportunité détectée.",
+                  "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+                  "collected_state": {
+                    "feature": "initiatives",
+                    "opportunity_kind": "recurring_context",
+                    "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                    "dispatcher_signal_context": {
+                      "feature": "initiatives",
+                      "priority_reason": "Repeated context fits initiatives.",
+                      "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                      "opportunity_kind": "recurring_context",
+                      "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+                    }
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "global",
+                  "evidence": [
+                    "Le user dit explicitement \"autre sujet\".",
+                    "La question posée ne porte plus sur le contexte récurrent détecté.",
+                    "Aucun handoff local n’est prévu depuis feature_opportunity."
+                  ]
+                },
+                "confidence": "high"
+              }
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+            "source_message_id": "61c33ddb-afca-47f3-8285-bee30c53861b",
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_exit_to_global",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "feature_opportunity",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "resume_active",
+              "reason_code": "active_feature_opportunity"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "active_feature_opportunity",
+            "status": "exit",
+            "latency_ms": 3583,
+            "exit_target": "global",
+            "exit_note_information": {
+              "source_flow_id": "feature_opportunity",
+              "handoff_reason": "topic_change",
+              "target_dispatcher": "global",
+              "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"L’utilisateur change de sujet et pose une question de compréhension autonome sur une notion produit qui sort de l’opportunité détectée.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Le vendredi avant l’apéro avec mes collègues\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated context fits initiatives.\",\"trigger_context\":\"Le vendredi avant l’apéro avec mes collègues\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"The user reports a repeated pre-event smoking trigger in a recurring Friday context.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Le user dit explicitement \\\"autre sujet\\\".\",\"La question posée ne porte plus sur le contexte récurrent détecté.\",\"Aucun handoff local n’est prévu depuis feature_opportunity.\"]}",
+              "user_words": [
+                "Ok, autre sujet : c’est quoi la différence entre une carte d’attaque et une carte de défense ?",
+                "Le user dit explicitement \"autre sujet\".",
+                "La question posée ne porte plus sur le contexte récurrent détecté."
+              ],
+              "structured_context": {
+                "user_message_summary": "L’utilisateur change de sujet et pose une question de compréhension autonome sur une notion produit qui sort de l’opportunité détectée.",
+                "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+                "collected_state": {
+                  "feature": "initiatives",
+                  "opportunity_kind": "recurring_context",
+                  "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                  "dispatcher_signal_context": {
+                    "feature": "initiatives",
+                    "priority_reason": "Repeated context fits initiatives.",
+                    "trigger_context": "Le vendredi avant l’apéro avec mes collègues",
+                    "opportunity_kind": "recurring_context",
+                    "user_problem_summary": "The user reports a repeated pre-event smoking trigger in a recurring Friday context."
+                  }
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "global",
+                "evidence": [
+                  "Le user dit explicitement \"autre sujet\".",
+                  "La question posée ne porte plus sur le contexte récurrent détecté.",
+                  "Aucun handoff local n’est prévu depuis feature_opportunity."
+                ]
+              },
+              "confidence": "high"
+            }
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+      "sent_at": "2026-06-22T22:51:00.059Z",
+      "user_message": "D’ailleurs, dans nos échanges, tu me poses souvent trop de questions. J’aimerais que Sophia soit plus directe quand je bloque.",
+      "http_status": 200,
+      "assistant_message": "Oui, ça relève de tes préférences de coaching. Tu peux régler Sophia pour qu’elle soit plus directe et qu’elle pose moins de questions quand tu bloques.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:51:06.928Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-22T22:51:06.928Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "Tu me poses souvent trop de questions / j’aimerais que Sophia soit plus directe quand je bloque.",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-22T22:51:06.93+00:00",
+            "updated_at": "2026-06-22T22:51:06.931719+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-22T22:51:06.93+00:00",
+            "scope": "qa-feature-opportunity-local-real-20260623-r2",
+            "temp_memory": {
+              "__active_skill_state": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:51:06.928Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-22T22:51:06.928Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 1,
+                    "trigger_context": "Tu me poses souvent trop de questions / j’aimerais que Sophia soit plus directe quand je bloque.",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                      "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+                    }
+                  }
+                }
+              },
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0
+                ],
+                "last_updated_at": "2026-06-22T22:50:46.974Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 1
+              },
+              "__active_conversation_skill_v1": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:51:06.928Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-22T22:51:06.928Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 1,
+                    "trigger_context": "Tu me poses souvent trop de questions / j’aimerais que Sophia soit plus directe quand je bloque.",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                      "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "c8a6bb01-bd53-4f51-9712-7b6bab762954",
+            "role": "user",
+            "content": "Le vendredi avant l’apéro avec mes collègues, je finis presque toujours par reprendre une clope alors que j’avais décidé de ne pas en acheter.",
+            "created_at": "2026-06-22T22:50:06.522139+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "c4f490b2-9db5-4a03-9b03-bd8c363dcb8a",
+            "role": "assistant",
+            "content": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+            "created_at": "2026-06-22T22:50:14.362541+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4085,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3725,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "07a450c6-625c-4318-8d84-df88eb5d5315",
+            "role": "user",
+            "content": "Initiative, ça veut dire quoi concrètement dans Sophia, et où est-ce que je la règle si je veux préparer ce moment moi-même ?",
+            "created_at": "2026-06-22T22:50:25.667737+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "867d046e-89db-4d7d-9744-5f3a77d51264",
+            "role": "assistant",
+            "content": "Concrètement, une initiative sert à préparer à l’avance un moment récurrent ou délicat, comme ton vendredi avant l’apéro.\n\nTu peux la régler dans la section Initiatives de Sophia, avec l’instruction, le contexte, l’heure, les jours actifs et la destination.",
+            "created_at": "2026-06-22T22:50:30.642049+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4934,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "61c33ddb-afca-47f3-8285-bee30c53861b",
+            "role": "user",
+            "content": "Ok, autre sujet : c’est quoi la différence entre une carte d’attaque et une carte de défense ?",
+            "created_at": "2026-06-22T22:50:41.992434+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "fd10df1c-f584-436d-9260-2ea05fbe0e4c",
+            "role": "assistant",
+            "content": "Une carte d’attaque sert à agir avant la tentation ou le problème, pour réduire le risque qu’il arrive.  \nUne carte de défense sert à réagir quand le moment critique est déjà là, pour éviter de céder ou limiter la casse.\n\nEn gros :\n- attaque = prévention\n- défense = réponse sur le moment\n\nSi tu veux, je peux te donner un exemple concret sur ton vendredi avant l’apéro 🙂",
+            "created_at": "2026-06-22T22:50:46.986808+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1353,
+              "selected_handler": null,
+              "context_latency_ms": 32,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "4d66ce26-5526-4b4b-975c-c63bc5b58f63",
+            "role": "user",
+            "content": "D’ailleurs, dans nos échanges, tu me poses souvent trop de questions. J’aimerais que Sophia soit plus directe quand je bloque.",
+            "created_at": "2026-06-22T22:51:00.101478+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "f53a652e-6dd6-41ab-b7fb-7e93f6d96b32",
+            "role": "assistant",
+            "content": "Oui, ça relève de tes préférences de coaching. Tu peux régler Sophia pour qu’elle soit plus directe et qu’elle pose moins de questions quand tu bloques.",
+            "created_at": "2026-06-22T22:51:06.934421+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 3478,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3332,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+        "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-local-real-20260623-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, ça relève de tes préférences de coaching. Tu peux régler Sophia pour qu’elle soit plus directe et qu’elle pose moins de questions quand tu bloques.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+              "source_message_id": "4d66ce26-5526-4b4b-975c-c63bc5b58f63",
+              "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "feature_opportunity": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "coach_preferences_opportunity",
+                  "context": {
+                    "feature": "coach_preferences",
+                    "opportunity_kind": "coach_style_feedback",
+                    "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                    "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif.",
+                    "priority_reason": "Retour explicite sur le style de coaching de Sophia."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "Traitement d’un feedback sur le style d’accompagnement de Sophia.",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.72
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "none",
+                "reason_code": "feature_opportunity_signal"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "feature_opportunity_signal",
+              "status": "continue",
+              "latency_ms": 3478
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+            "source_message_id": "4d66ce26-5526-4b4b-975c-c63bc5b58f63",
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "feature_opportunity": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "coach_preferences_opportunity",
+                "context": {
+                  "feature": "coach_preferences",
+                  "opportunity_kind": "coach_style_feedback",
+                  "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                  "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif.",
+                  "priority_reason": "Retour explicite sur le style de coaching de Sophia."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "Traitement d’un feedback sur le style d’accompagnement de Sophia.",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.72
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "none",
+              "reason_code": "feature_opportunity_signal"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "feature_opportunity_signal",
+            "status": "continue",
+            "latency_ms": 3478
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+      "sent_at": "2026-06-22T22:51:17.738Z",
+      "user_message": "Et je règle ça où exactement ? Je veux juste savoir l’endroit, pas que tu l’appliques depuis le chat.",
+      "http_status": 200,
+      "assistant_message": "Ça se règle dans les préférences de coaching, sur le style d’accompagnement. Cherche l’option liée au ton, à la directivité ou au nombre de questions.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-22T22:51:06.928Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-22T22:51:21.792Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-22T22:51:21.794+00:00",
+            "updated_at": "2026-06-22T22:51:21.796386+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-22T22:51:21.794+00:00",
+            "scope": "qa-feature-opportunity-local-real-20260623-r2",
+            "temp_memory": {
+              "__active_skill_state": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:51:06.928Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-22T22:51:21.792Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 2,
+                    "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                      "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+                    }
+                  }
+                }
+              },
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0
+                ],
+                "last_updated_at": "2026-06-22T22:50:46.974Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 1
+              },
+              "__active_conversation_skill_v1": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-22T22:51:06.928Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-22T22:51:21.792Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 2,
+                    "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "L’utilisateur souhaite que Sophia soit plus directe et moins interrogative quand il bloque.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Retour explicite sur le style de coaching de Sophia.",
+                      "trigger_context": "tu me poses souvent trop de questions / Sophia soit plus directe quand je bloque",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "L’utilisateur souhaite un style d’accompagnement plus direct et moins interrogatif."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "c8a6bb01-bd53-4f51-9712-7b6bab762954",
+            "role": "user",
+            "content": "Le vendredi avant l’apéro avec mes collègues, je finis presque toujours par reprendre une clope alors que j’avais décidé de ne pas en acheter.",
+            "created_at": "2026-06-22T22:50:06.522139+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "c4f490b2-9db5-4a03-9b03-bd8c363dcb8a",
+            "role": "assistant",
+            "content": "Le bon point d’entrée, c’est les initiatives : ton déclencheur est récurrent et très lié à un moment précis. On peut partir du vendredi avant l’apéro pour repérer ce qui te fait craquer juste avant.",
+            "created_at": "2026-06-22T22:50:14.362541+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t01",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4085,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3725,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "07a450c6-625c-4318-8d84-df88eb5d5315",
+            "role": "user",
+            "content": "Initiative, ça veut dire quoi concrètement dans Sophia, et où est-ce que je la règle si je veux préparer ce moment moi-même ?",
+            "created_at": "2026-06-22T22:50:25.667737+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "867d046e-89db-4d7d-9744-5f3a77d51264",
+            "role": "assistant",
+            "content": "Concrètement, une initiative sert à préparer à l’avance un moment récurrent ou délicat, comme ton vendredi avant l’apéro.\n\nTu peux la régler dans la section Initiatives de Sophia, avec l’instruction, le contexte, l’heure, les jours actifs et la destination.",
+            "created_at": "2026-06-22T22:50:30.642049+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t02",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4934,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "61c33ddb-afca-47f3-8285-bee30c53861b",
+            "role": "user",
+            "content": "Ok, autre sujet : c’est quoi la différence entre une carte d’attaque et une carte de défense ?",
+            "created_at": "2026-06-22T22:50:41.992434+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "fd10df1c-f584-436d-9260-2ea05fbe0e4c",
+            "role": "assistant",
+            "content": "Une carte d’attaque sert à agir avant la tentation ou le problème, pour réduire le risque qu’il arrive.  \nUne carte de défense sert à réagir quand le moment critique est déjà là, pour éviter de céder ou limiter la casse.\n\nEn gros :\n- attaque = prévention\n- défense = réponse sur le moment\n\nSi tu veux, je peux te donner un exemple concret sur ton vendredi avant l’apéro 🙂",
+            "created_at": "2026-06-22T22:50:46.986808+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t03",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1353,
+              "selected_handler": null,
+              "context_latency_ms": 32,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "4d66ce26-5526-4b4b-975c-c63bc5b58f63",
+            "role": "user",
+            "content": "D’ailleurs, dans nos échanges, tu me poses souvent trop de questions. J’aimerais que Sophia soit plus directe quand je bloque.",
+            "created_at": "2026-06-22T22:51:00.101478+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "f53a652e-6dd6-41ab-b7fb-7e93f6d96b32",
+            "role": "assistant",
+            "content": "Oui, ça relève de tes préférences de coaching. Tu peux régler Sophia pour qu’elle soit plus directe et qu’elle pose moins de questions quand tu bloques.",
+            "created_at": "2026-06-22T22:51:06.934421+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t04",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 3478,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3332,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "3046284b-053e-4ede-9a07-4dbc7d462b3e",
+            "role": "user",
+            "content": "Et je règle ça où exactement ? Je veux juste savoir l’endroit, pas que tu l’appliques depuis le chat.",
+            "created_at": "2026-06-22T22:51:17.769516+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "17ca3bc6-a9b4-4afb-a743-1be565c2cced",
+            "role": "assistant",
+            "content": "Ça se règle dans les préférences de coaching, sur le style d’accompagnement. Cherche l’option liée au ton, à la directivité ou au nombre de questions.",
+            "created_at": "2026-06-22T22:51:21.79891+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4011,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+        "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-local-real-20260623-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ça se règle dans les préférences de coaching, sur le style d’accompagnement. Cherche l’option liée au ton, à la directivité ou au nombre de questions.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+              "source_message_id": "3046284b-053e-4ede-9a07-4dbc7d462b3e",
+              "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_feature_opportunity",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "feature_opportunity",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "resume_active",
+                "reason_code": "active_feature_opportunity"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "active_feature_opportunity",
+              "status": "continue",
+              "latency_ms": 4011
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+            "source_message_id": "3046284b-053e-4ede-9a07-4dbc7d462b3e",
+            "user_id": "940afdef-8716-410e-86f1-cafb07086ecf",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_feature_opportunity",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "feature_opportunity",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "resume_active",
+              "reason_code": "active_feature_opportunity"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-local-real-20260623-r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "active_feature_opportunity",
+            "status": "continue",
+            "latency_ms": 4011
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "connection_created_this_run": true,
+  "updated_at": "2026-06-22T22:51:21.822Z"
+}

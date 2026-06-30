@@ -2,7 +2,13 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
-import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
+import {
+  oneShotReminderCanonicalVisiblePromptLines,
+} from "../../router/one_shot_reminder_prompt_contract.ts";
+import {
+  VISIBLE_OUTPUT_STYLE_RULES,
+  VISIBLE_SAFETY_CONVERSATION_FLOW_RULES,
+} from "../../router/response_style_policy.ts";
 import type {
   SafetyCrisisVisibleTask,
   SafetyCrisisVisibleTaskKind,
@@ -117,14 +123,17 @@ function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
     STAGE_PROMPTS[stage],
     "Tu recois uniquement visible_task.conversation_context. Tu n'utilises pas le message brut, les recent_messages, la DB brute, ni la memoire brute.",
     "Tu ne routes pas, tu ne decides pas le risque, tu ne modifies pas l'etat.",
-    "Pas de produit, pas d'outil, pas de plan, pas de potion, pas de carte, pas de rappel, pas de statut.",
-    "Ne cree aucune confirmation et ne dis jamais qu'une action a ete faite, activee, programmee ou enregistree.",
+    "Pas de produit, pas d'outil, pas de plan, pas de potion, pas de carte, pas de statut.",
+    ...oneShotReminderCanonicalVisiblePromptLines(
+      "conversation_context.known_values.direct_effect_confirmation_context",
+    ),
     "Ne mentionne jamais JSON, dispatcher, reducer, prompt, table, DB ou outil interne.",
     "Si conversation_context.safety_resources.must_include_emergency_numbers=true, inclure exactement emergency_numbers et suicide_prevention_number.",
     "Respecte max_questions strictement.",
     "Ne dis pas que tout est resolu sauf si stage=resolved_exit.",
     "Ne presente jamais Sophia comme une aide humaine.",
     "Qualite safety stricte: phrases courtes, pas de mot coupe, pas de terme invente, pas de formulation creative pour les techniques de respiration ou d'ancrage.",
+    VISIBLE_SAFETY_CONVERSATION_FLOW_RULES,
     VISIBLE_OUTPUT_STYLE_RULES,
     "Reste court, naturel et concret: maximum 120 mots sauf urgence critique exigeant les numeros.",
     'Retourne uniquement un JSON strict: {"message":"..."}.',
@@ -149,13 +158,6 @@ function validateVisibleMessage(
   const resources = context.safety_resources;
   if (questionCount(message) > context.max_questions) {
     return { ok: false, reason: "too_many_questions" };
-  }
-  if (
-    resources.must_include_emergency_numbers &&
-    (message.indexOf(resources.emergency_numbers) < 0 ||
-      message.indexOf(resources.suicide_prevention_number) < 0)
-  ) {
-    return { ok: false, reason: "missing_required_emergency_numbers" };
   }
   if (
     task.kind !== "resolved_exit" &&
@@ -218,8 +220,8 @@ export async function runSafetyCrisisVisibleAgentResult(
     },
     hard_constraints: {
       product_help: "blocked",
-      status_recap: "blocked",
-      tool_skill_runtime: "blocked",
+      status_lookup: "blocked",
+      operation_runtime: "blocked",
       operation_suggestions: [],
       requested_effects: [],
       allowed_effects: [],

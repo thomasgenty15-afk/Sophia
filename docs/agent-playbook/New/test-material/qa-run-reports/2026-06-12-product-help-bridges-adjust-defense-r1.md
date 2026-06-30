@@ -62,7 +62,7 @@
 - http_status: `200`
 - response_owner: `tool_skill`
 - selected_handler: `adjust_plan_item`
-- route_reason: `product_help_handoff_to_local_dispatcher`
+- route_reason: `product_help_exit_to_global_dispatcher`
 - safety: `none`
 - direct_effects: `[]`
 - operation_status: `clarifying`
@@ -192,7 +192,7 @@
 - http_status: `200`
 - response_owner: `tool_skill`
 - selected_handler: `prepare_defense_card`
-- route_reason: `product_help_handoff_to_local_dispatcher`
+- route_reason: `product_help_exit_to_global_dispatcher`
 - safety: `none`
 - direct_effects: `[]`
 - operation_status: `collecting`
@@ -295,9 +295,9 @@
 **Verdict: yellow**
 
 **Routage**
-- Adjust T1: `product_help`, puis T2: `product_help_handoff_to_local_dispatcher` vers `adjust_plan_item`.
+- Adjust T1: `product_help`, puis T2: `product_help_exit_to_global_dispatcher` vers `adjust_plan_item`.
 - Adjust T3-T5: reprise active par `active_adjust_plan_item_local_dispatcher`.
-- Defense T1: `product_help`, puis T2: `product_help_handoff_to_local_dispatcher` vers `prepare_defense_card`.
+- Defense T1: `product_help`, puis T2: `product_help_exit_to_global_dispatcher` vers `prepare_defense_card`.
 - Defense T3-T5: reprise active par `active_prepare_defense_card_local_dispatcher`.
 - Aucun retour observe vers legacy product_help pour fabriquer une reponse cible.
 
@@ -326,4 +326,4 @@
 
 **Verdict: yellow.**
 
-Les deux ponts demandes depuis `product_help` sont valides en IA reelle: `adjust_plan_item` et `prepare_defense_card` reprennent bien via `product_help_handoff_to_local_dispatcher`. Le run defense est vert. Le run adjust reste yellow/red au T5 a cause d'un bug downstream `adjust_plan_item_local_dispatcher_failed` sur question de frontiere d'effet post-handoff.
+Les deux ponts demandes depuis `product_help` sont valides en IA reelle: `adjust_plan_item` et `prepare_defense_card` reprennent bien via `product_help_exit_to_global_dispatcher`. Le run defense est vert. Le run adjust reste yellow/red au T5 a cause d'un bug downstream `adjust_plan_item_local_dispatcher_failed` sur question de frontiere d'effet post-handoff.

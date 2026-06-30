@@ -9,42 +9,42 @@ export type ProductSurfaceId =
   | "coach_preferences"
   | string;
 
-export type ProductSurfaceHandoffTarget = {
+export type ProductSurfaceDestination = {
   surface_id: ProductSurfaceId;
-  operation_type:
-    | "adjust_plan_item"
-    | "prepare_attack_card"
-    | "prepare_defense_card"
-    | "select_state_potion"
-    | "create_recurring_reminder"
-    | "update_coach_preferences"
+  destination_id:
+    | "plan_adjustment"
+    | "attack_card"
+    | "defense_card"
+    | "state_potion"
+    | "recurring_reminder"
+    | "coach_preferences"
     | string;
   label: string;
   short_destination_label: string;
   user_facing_destination: string;
   platform_steps: string[];
   can_execute_from_chat: false;
-  chat_behavior: "platform_handoff";
+  chat_behavior: "platform_destination";
 };
 
-export const PLATFORM_HANDOFF_OPERATION_TYPES = [
-  "adjust_plan_item",
-  "prepare_attack_card",
-  "prepare_defense_card",
-  "select_state_potion",
-  "create_recurring_reminder",
-  "update_coach_preferences",
+export const PLATFORM_DESTINATION_IDS = [
+  "plan_adjustment",
+  "attack_card",
+  "defense_card",
+  "state_potion",
+  "recurring_reminder",
+  "coach_preferences",
 ] as const;
 
-export function isProductSurfaceHandoffTarget(
+export function isProductSurfaceDestination(
   value: unknown,
-): value is ProductSurfaceHandoffTarget {
+): value is ProductSurfaceDestination {
   const record = value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
     : null;
   return Boolean(
-    record?.chat_behavior === "platform_handoff" &&
-      typeof record.operation_type === "string" &&
+    record?.chat_behavior === "platform_destination" &&
+      typeof record.destination_id === "string" &&
       typeof record.surface_id === "string" &&
       typeof record.label === "string" &&
       typeof record.short_destination_label === "string" &&
@@ -57,46 +57,48 @@ export function isProductSurfaceHandoffTarget(
   );
 }
 
-export function validateProductSurfaceHandoffTarget(
+export function validateProductSurfaceDestination(
   value: unknown,
-): ProductSurfaceHandoffTarget {
-  if (!isProductSurfaceHandoffTarget(value)) {
-    const operation = (value as any)?.operation_type ?? "unknown";
-    throw new Error(`handoff_target_${operation}_invalid`);
+): ProductSurfaceDestination {
+  if (!isProductSurfaceDestination(value)) {
+    const destination = (value as any)?.destination_id ?? "unknown";
+    throw new Error(`platform_destination_${destination}_invalid`);
   }
   return value;
 }
 
-const HANDOFF_TARGETS: ProductSurfaceHandoffTarget[] =
-  PRODUCT_SURFACE_DEFINITIONS.reduce<ProductSurfaceHandoffTarget[]>(
-    (targets, definition) => {
-      if (isProductSurfaceHandoffTarget(definition)) {
-        targets.push(validateProductSurfaceHandoffTarget(definition));
+const PLATFORM_DESTINATIONS: ProductSurfaceDestination[] =
+  PRODUCT_SURFACE_DEFINITIONS.reduce<ProductSurfaceDestination[]>(
+    (destinations, definition) => {
+      if (isProductSurfaceDestination(definition)) {
+        destinations.push(validateProductSurfaceDestination(definition));
       }
-      return targets;
+      return destinations;
     },
     [],
   );
 
-const HANDOFF_TARGETS_BY_OPERATION = new Map(
-  HANDOFF_TARGETS
-    .map((target) => [target.operation_type, target]),
+const PLATFORM_DESTINATIONS_BY_ID = new Map(
+  PLATFORM_DESTINATIONS
+    .map((destination) => [destination.destination_id, destination]),
 );
 
-export function getHandoffTargetForOperation(
-  operationType: string,
-): ProductSurfaceHandoffTarget | null {
-  const target = HANDOFF_TARGETS_BY_OPERATION.get(String(operationType).trim());
-  if (!target) return null;
+export function getPlatformDestination(
+  destinationId: string,
+): ProductSurfaceDestination | null {
+  const destination = PLATFORM_DESTINATIONS_BY_ID.get(
+    String(destinationId).trim(),
+  );
+  if (!destination) return null;
   if (
-    target.can_execute_from_chat !== false ||
-    target.chat_behavior !== "platform_handoff"
+    destination.can_execute_from_chat !== false ||
+    destination.chat_behavior !== "platform_destination"
   ) {
     return null;
   }
-  return target;
+  return destination;
 }
 
-export function allHandoffTargets(): ProductSurfaceHandoffTarget[] {
-  return [...HANDOFF_TARGETS_BY_OPERATION.values()];
+export function allPlatformDestinations(): ProductSurfaceDestination[] {
+  return [...PLATFORM_DESTINATIONS_BY_ID.values()];
 }

@@ -208,7 +208,6 @@ Shape cible:
     "kind": "offer_status_recap",
     "conversation_context": {
       "state_summary": "string",
-      "user_words": [],
       "offer": {},
       "anchor_summary": "string",
       "tone_constraints": [],

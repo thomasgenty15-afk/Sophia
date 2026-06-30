@@ -64,7 +64,7 @@
 - route_reason: `active_product_help_local_dispatcher`
 - active_flow_arbitration: `continue_active`, `active_owner=conversation_skill`
 - blocked_paths: `global_dispatcher`, `global_router`
-- diagnosis: `flow_action=handoff_to_local_dispatcher`
+- diagnosis: `flow_action=exit_to_global_dispatcher`
 - note_information target: `prepare_attack_card`
 - handoff_request target: `prepare_attack_card`
 - executed_tools: `[]`
@@ -161,8 +161,8 @@ Problemes:
 - R2 T2 contient "Preparer le terrain" sans accent; c'est mineur, pas bloquant.
 
 Fix propose:
-- Quand `product_help` retourne `flow_action=handoff_to_local_dispatcher` avec `target_dispatcher=prepare_attack_card`, le runtime doit enchainer vers le dispatcher local cible ou produire une sortie de transition qui garantit la continuation au tour suivant sans obliger l'utilisateur a redemander "commence".
-- Ajouter un test reel ou integration pour `product_help clarify_product_question -> handoff_to_local_dispatcher -> prepare_attack_card` avec cible deja fournie.
+- Quand `product_help` retourne `flow_action=exit_to_global_dispatcher` avec `target_dispatcher=prepare_attack_card`, le runtime doit enchainer vers le dispatcher local cible ou produire une sortie de transition qui garantit la continuation au tour suivant sans obliger l'utilisateur a redemander "commence".
+- Ajouter un test reel ou integration pour `product_help clarify_product_question -> exit_to_global_dispatcher -> prepare_attack_card` avec cible deja fournie.
 
 ## 4. Analyse Systeme
 

@@ -154,5 +154,7 @@ export async function clearActiveSkill(
 ): Promise<void> {
   const tempMemory = await activeSkillRepository.readTempMemory(userId, scope);
   delete tempMemory[ACTIVE_CONVERSATION_SKILL_KEY];
+  delete tempMemory.__active_skill_state;
+  delete tempMemory.active_skill_state;
   await activeSkillRepository.writeTempMemory(userId, scope, tempMemory);
 }

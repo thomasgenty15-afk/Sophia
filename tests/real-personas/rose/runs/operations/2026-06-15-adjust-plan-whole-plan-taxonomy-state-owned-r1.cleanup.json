@@ -5280,7 +5280,7 @@
               "committed_effects": [],
               "last_answer_summary": "Explained plan adjustment principle, now handing off for execution."
             },
-            "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+            "reducer_reason_code": "product_help_exit_to_global_dispatcher",
             "user_intent_summary": "User wants to adjust a plan item to make it more concrete.",
             "handoff_hint_for_global_dispatcher": {
               "why": "Explicit request to modify a plan item.",
@@ -11582,7 +11582,7 @@
               "committed_effects": [],
               "last_answer_summary": "Explained plan adjustment principle, now handing off for execution."
             },
-            "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+            "reducer_reason_code": "product_help_exit_to_global_dispatcher",
             "user_intent_summary": "User wants to adjust a plan item to make it more concrete.",
             "handoff_hint_for_global_dispatcher": {
               "why": "Explicit request to modify a plan item.",

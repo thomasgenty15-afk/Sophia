@@ -342,7 +342,6 @@ Forme cible:
 ```json
 {
   "state_summary": "string",
-  "user_words": ["string"],
   "field_or_stage": "string|null",
   "known_values": {},
   "missing_or_weak_values": [],
@@ -529,7 +528,6 @@ Forme cible:
   "target_dispatcher": "global|safety_crisis|product_help|status_recap|prepare_attack_card|adjust_plan_item|...",
   "handoff_context_for_next_dispatcher": "string",
   "target_local_dispatcher_hint": "string|null",
-  "user_words": ["string"],
   "structured_context": {
     "selected_potion": "string|null",
     "collected_fields": {},

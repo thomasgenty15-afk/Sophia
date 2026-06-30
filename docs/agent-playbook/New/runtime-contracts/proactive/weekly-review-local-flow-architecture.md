@@ -7,7 +7,7 @@ architecture a dispatcher local, sans perdre son role actuel :
 projection factuelle hebdo
 -> reducer strategique weekly
 -> conversation locale courte
--> optional platform_handoff Plan
+-> optional adjust_recommendation non-mutant
 -> no chat plan mutation
 ```
 
@@ -15,7 +15,8 @@ projection factuelle hebdo
 
 `weekly_adaptive_review_v1` est un point de fin de semaine proactif. Il lit les
 preuves daily et dashboard, produit une lecture strategique, clarifie si le
-signal humain manque, puis recommande quoi faire pour la semaine suivante.
+signal humain manque, puis recommande quoi faire pour la semaine suivante ou le
+niveau suivant seulement si le signal est tres fiable.
 
 Le weekly n'est pas :
 
@@ -34,7 +35,9 @@ Il peut recommander :
 - refaire la meme semaine ;
 - creer une semaine plus legere ;
 - ouvrir une revue du niveau ;
-- preparer un handoff plateforme vers Plan.
+- orienter vers `Ajuster mon plan` dans la plateforme ;
+- orienter vers la validation du niveau / les inputs du niveau suivant quand
+  aucune semaine suivante n'est configuree.
 
 Mais il ne doit jamais appliquer un ajustement durable de plan depuis le chat.
 
@@ -63,7 +66,7 @@ weekly active state exists
   -> weekly_adaptive_review.local_dispatcher
   -> reducer/update weekly state
   -> visible prompt stage-specific
-  -> optional platform_handoff.adjust_plan_item
+  -> optional weekly_adjust_recommendation visible
   -> close / continue / exit_to_global_dispatcher
 ```
 
@@ -76,7 +79,7 @@ The following pieces stay conceptually valid :
 - `generateWeeklyAdaptiveReviewOpening(...)` can remain the opening generator,
   with its current guards.
 - `weekly_adaptive_review` active state remains stored in temp memory.
-- `adjust_plan_item` remains the owner of Plan handoff.
+- Plan adjustment remains owned by the platform surface outside weekly chat.
 - `track_progress_plan_item` remains the owner of forgotten progress commits.
 - EffectLedger/guards must still prevent false plan mutation claims.
 
@@ -138,7 +141,7 @@ Rules:
 
 - A global weekly reading can summarize the whole week across plans.
 - Item decisions must preserve original plan/level context.
-- A Plan handoff must specify which plan/item it concerns.
+- Any adjust recommendation must specify the plan/item or clearly stay global.
 - If user says "le deuxieme plan", "celui du sport", "l'autre plan" etc, local
   dispatcher must resolve scope or ask clarification.
 - Never carry over/drop/lighten/repeat an item without preserving
@@ -183,8 +186,8 @@ Recommended active state shape, extending the current `__active_skill_state` :
   "weekly_progress_review": {},
   "weekly_adaptive_review": {},
   "weekly_flow_state": {
-    "stage": "opening|collecting_human_signal|strategy_ready|plan_handoff|closing",
-    "proposal_status": "none|discussed_not_applied|handoff_delivered|apply_attempt|cancelled",
+    "stage": "opening|week_experience|action_review|action_blocker|global_progress|solution_fit|synthesis|closure|closing",
+    "proposal_status": "none|detour_discussed|detour_active|cancelled",
     "validation_unlock_status": "locked_until_weekly_complete|available",
     "human_signals": {
       "objective_delta": "clear_progress|slight_progress|stable|regression|unclear|unknown",
@@ -193,6 +196,28 @@ Recommended active state shape, extending the current `__active_skill_state` :
     "last_user_signal": "string|null",
     "last_visible_summary": "string|null",
     "last_handoff_summary": "string|null",
+    "weekly_planning_context": {
+      "mode": "next_week_configured|next_level_required",
+      "current_week": {},
+      "transformation_objective": {},
+      "plan_rationale": "string|null",
+      "next_week": "object|null",
+      "next_level": "object|null",
+      "adjustment_destination": {
+        "mode": "adjust_plan_platform|level_validation",
+        "label": "Ajuster mon plan|Validation du niveau",
+        "chat_mutation_allowed": false
+      }
+    },
+    "adjust_recommendation": {
+      "status": "none|candidate|ready|surfaced",
+      "confidence": 0,
+      "what_to_adjust": [],
+      "why": [],
+      "evidence": [],
+      "safe_to_surface": false,
+      "surfaced_in_weekly": false
+    },
     "turn_count": 0,
     "max_turns": 6,
     "updated_at": "iso"
@@ -215,9 +240,8 @@ The local dispatcher decides what the user response does to the active weekly :
 - confirms or rejects the weekly reading ;
 - gives missing human signal ;
 - asks for a recap/explanation ;
-- asks to prepare a Plan handoff ;
-- revises a Plan handoff ;
 - attempts to apply from chat ;
+- asks what to do next week / next level ;
 - reports forgotten progress ;
 - stops weekly ;
 - exits to global for a different task.
@@ -225,6 +249,10 @@ The local dispatcher decides what the user response does to the active weekly :
 It does not recompute the factual projection.
 
 It does not apply plan changes.
+
+It may populate `adjust_recommendation` only when confidence is at least 0.95
+with strong daily evidence, coherent past/future context, clear cause and clear
+target action. Otherwise the field stays omitted/default.
 
 ## Reducer Responsibilities
 
@@ -235,22 +263,21 @@ The reducer :
 - calls/reuses `reduceWeeklyReview(...)` when signals change ;
 - keeps completed items from being carried over ;
 - keeps habits as counted, not re-created tasks ;
-- prepares handoff data for `adjust_plan_item` when needed ;
+- injects `weekly_planning_context` from active V2 runtime ;
+- stores `adjust_recommendation` as non-mutant state only ;
 - blocks direct plan mutation ;
-- emits platform_handoff only when handoff is ready ;
 - unlocks next-week validation only when weekly is completed ;
 - requires `exit_memo` for global exit.
 
-## Platform Handoff Policy
+## Adjust Recommendation Policy
 
 Weekly may produce :
 
 ```txt
-platform_handoff.adjust_plan_item
-surface_id = plan
+weekly_flow_state.adjust_recommendation.status = ready|surfaced
+confidence >= 0.95
+safe_to_surface = true
 no_chat_mutation = true
-executedTools = []
-committed_effects = []
 ```
 
 Weekly must not produce :
@@ -259,12 +286,21 @@ Weekly must not produce :
 - committed plan effects ;
 - pending confirmation executable ;
 - confirmation token ;
+- wording "ce qui bougerait / ce qui resterait" ;
 - "c'est applique" ;
 - "j'ai modifie le plan" ;
 - "j'ai reporte l'action".
 
-`ok vas-y`, `applique`, `valide` during a Plan handoff is `apply_attempt`,
-not execution.
+If `weekly_planning_context.mode=next_week_configured`, visible wording can
+say: `Je ne modifie pas le plan ici. En revanche... tu peux aller dans Ajuster
+mon plan avec cette intention precise`.
+
+If `weekly_planning_context.mode=next_level_required`, visible wording must
+orient to validation du niveau / inputs du niveau suivant, not `Ajuster mon
+plan`.
+
+`ok vas-y`, `applique`, `valide` during weekly is never execution. The weekly
+can restate the destination, then global/platform must own any durable change.
 
 ## Forgotten Progress Exception
 
@@ -310,7 +346,7 @@ The local dispatcher starts on the next user reply.
   "user_intent_summary": "string",
   "local_flow_context": {
     "skill_id": "weekly_adaptive_review_v1",
-    "weekly_stage": "opening|collecting_human_signal|strategy_ready|plan_handoff|closing",
+    "weekly_stage": "opening|week_experience|action_review|action_blocker|global_progress|solution_fit|synthesis|closure|closing",
     "week_strategy": "advance|advance_with_caution|advance_with_watch|repeat_week|bridge_week|level_review|hold|null",
     "last_weekly_question": "string|null",
     "last_visible_summary": "string|null",
@@ -320,11 +356,7 @@ The local dispatcher starts on the next user reply.
   },
   "handoff_hint_for_global_dispatcher": {
     "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|adjust_plan_item|product_help|normal_coaching|unknown",
-    "why": "string",
-    "constraints": [
-      "Weekly did not apply a plan change from chat.",
-      "If the user asks to adjust the plan, route to adjust_plan_item as platform_handoff, not execution."
-    ]
+    "why": "string"
   }
 }
 ```
@@ -339,8 +371,9 @@ Trace fields expected :
 - `human_signals`;
 - `week_strategy.decision`;
 - `visible_task.kind`;
-- `platform_handoff_emitted`;
-- `apply_attempt`;
+- `weekly_planning_context.mode`;
+- `adjust_recommendation.status`;
+- `adjust_recommendation.confidence`;
 - `validation_unlock_status`;
 - `global_dispatcher_skipped_due_weekly`;
 - `exit_to_global_dispatcher`;
@@ -357,10 +390,11 @@ Architecture tests :
 - low evidence asks clarification before strategy ;
 - completed mission is never carried over ;
 - done habit is counted, not recreated ;
-- weekly Plan adjustment is platform_handoff only ;
-- `ok applique` is apply_attempt, no mutation ;
-- handoff repeat is short ;
-- handoff revision updates handoff content ;
+- weekly adjust recommendation below 0.95 is not surfaced ;
+- weekly adjust recommendation at 0.95+ is non-mutant ;
+- next-week configured routes wording to Ajuster mon plan ;
+- no next-week configured routes wording to level validation ;
+- `ok applique` has no mutation ;
 - forgotten progress correction commits only via dedicated progress tool ;
 - forgotten progress no commit has no success wording ;
 - explicit potion/card/preference/status request exits with `exit_memo` ;

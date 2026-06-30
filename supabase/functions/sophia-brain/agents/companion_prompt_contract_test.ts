@@ -15,15 +15,23 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.length < 9000);
+  assert(prompt.length < 12000);
   assert(prompt.includes("CORE_COMPANION"));
   assert(prompt.includes("OUTPUT_STYLE"));
   assert(prompt.includes("NORMAL_REPLY_POLICY"));
+  assert(prompt.includes("LOOP_RECOVERY"));
   assert(prompt.includes("CONTEXT_RULES"));
   assert(prompt.includes("TASK_OVERLAYS"));
   assert(prompt.includes("SILENCE_AND_REACTIONS"));
-  assert(prompt.includes("surtout les 5 derniers messages"));
-  assert(prompt.includes("hyperfocus sur le dernier message utilisateur"));
+  assert(prompt.includes("Reconstruis le fil depuis le fil rouge/contexte"));
+  assert(prompt.includes("PLATFORM_SKETCH_FOR_NORMAL_REPLY"));
+  assert(prompt.includes("Plan, Ressources, Inspirations, Initiatives"));
+  assert(
+    prompt.includes(
+      "Ne présente pas Soutien, Missions ou Habitudes comme des sections de destination",
+    ),
+  );
+  assert(prompt.includes("Pour ce cas, dis Initiatives"));
   assert(
     prompt.includes(
       "Ce n'est pas du coaching par défaut",
@@ -40,6 +48,11 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
       "Interdiction des relances coaching non demandées",
     ),
   );
+  assert(prompt.includes("présence d'esprit conversationnelle"));
+  assert(prompt.includes("réponse tourne en rond"));
+  assert(prompt.includes("reconnais une possible perte de fil côté Sophia"));
+  assert(prompt.includes("reprends le dernier point certain"));
+  assert(prompt.includes('ne dis pas "c\'est fait"'));
   assert(prompt.includes("sophia_delivery:reaction_only"));
   assert(prompt.includes("sophia_delivery:no_response"));
   assert(prompt.includes('"exactement"'));
@@ -83,12 +96,127 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
       "Chat normal ne crée, configure, active, prépare, lance ni modifie rien",
     ),
   );
-  assertEquals(prompt.includes("carte d'attaque"), false);
-  assertEquals(prompt.includes("carte de défense"), false);
+  assert(prompt.includes("Frontière plateforme"));
+  assert(prompt.includes("cartes de défense/attaque actives"));
+  assert(prompt.includes("rappels récurrents actifs"));
+  assert(prompt.includes("potion active"));
+  assert(
+    prompt.includes(
+      "Ne propose pas automatiquement une carte, une potion ou un outil Sophia",
+    ),
+  );
+  assert(prompt.includes("Point/récap léger"));
+  assert(prompt.includes("Date/heure"));
+  assert(prompt.includes("Âge"));
+  assert(prompt.includes("Sexe/genre"));
+  assert(prompt.includes("Mémoire"));
+  assert(prompt.includes("Questions sur fonctionnalités"));
   assertEquals(prompt.includes("préparer une nouvelle version"), false);
   assertEquals(prompt.includes("POLYVALENCE ET ASSISTANCE"), false);
   assertEquals(prompt.includes("STYLE ET RYTHME"), false);
   assertEquals(prompt.includes("CONSIGNES CONTEXTUELLES ET ADD-ONS"), false);
+  assertEquals(prompt.includes(["status", "recap"].join("_")), false);
+  assertEquals(prompt.includes(["emotional", "repair"].join("_")), false);
+  assertEquals(prompt.includes(["demotivation", "repair"].join("_")), false);
+});
+
+Deno.test("companion normal reply receives recent visible history for loop recovery", () => {
+  const prompt = buildCompanionSystemPrompt({
+    isWhatsApp: true,
+    lastAssistantMessage: "Parfait, on continue ?",
+    history: [
+      { role: "system", content: "internal state" },
+      { role: "assistant", content: "Parfait, on continue ?" },
+      { role: "user", content: "oui" },
+      { role: "assistant", content: "Ok, on continue ?" },
+      { role: "user", content: "go" },
+    ],
+    context: "",
+    userState: { risk_level: 0, temp_memory: {} },
+  });
+
+  assert(prompt.includes("HISTORIQUE RECENT VISIBLE"));
+  assert(prompt.includes("détection de répétition conversationnelle"));
+  assert(prompt.includes("- Sophia: Parfait, on continue ?"));
+  assert(prompt.includes("- User: oui"));
+  assert(prompt.includes("- Sophia: Ok, on continue ?"));
+  assert(prompt.includes("- User: go"));
+  assertEquals(prompt.includes("internal state"), false);
+  assert(
+    prompt.includes(
+      "Ne les utilise pas pour inventer un effet produit",
+    ),
+  );
+});
+
+Deno.test("companion normal reply explains active action and platform context usage", () => {
+  const prompt = buildCompanionSystemPrompt({
+    isWhatsApp: false,
+    lastAssistantMessage: "Je te suis.",
+    context: [
+      "=== REPÈRES TEMPORELS ===",
+      "Nous sommes mercredi 17 juin 2026, 18:20, Europe/Paris.",
+      "=== SNAPSHOT COURT PLAN / ACTIONS ACTIVES (TOUJOURS DISPONIBLE) ===",
+      "Actions actives/disponibles:",
+      "- Session focus courte (mission; status=active; cadence_cette_semaine=1 fois)",
+      "=== USER MODEL (FACTS) ===",
+      'coach.message_length = {"label":"Courte","value":"short"} (scope=global, conf=1.00, src=system_default)',
+      "age = 17",
+      "genre = feminin",
+    ].join("\n"),
+    userState: { risk_level: 0, temp_memory: {} },
+  });
+
+  assert(prompt.includes("Session focus courte"));
+  assert(prompt.includes("demain, ce soir, cette semaine"));
+  assert(prompt.includes("j'ai quoi à faire ?"));
+  assert(prompt.includes("je suis bloqué sur X"));
+  assert(prompt.includes("Si une action active pertinente est listée"));
+  assert(prompt.includes("Ne le mentionne pas sauf si pertinent ou demandé"));
+  assert(prompt.includes("En cas de doute, reste neutre"));
+  assert(prompt.includes('n\'écris pas "je sais que tu..."'));
+});
+
+Deno.test("companion normal reply requires platform fallback for non-injected Sophia objects", () => {
+  const prompt = buildCompanionSystemPrompt({
+    isWhatsApp: false,
+    lastAssistantMessage: "Je te suis.",
+    context: "",
+    userState: { risk_level: 0, temp_memory: {} },
+  });
+
+  assert(prompt.includes("hors actions actives injectées"));
+  assert(prompt.includes("cartes de défense/attaque actives"));
+  assert(prompt.includes("rappels récurrents actifs"));
+  assert(prompt.includes("préférences configurées"));
+  assert(prompt.includes("vue complète dans la plateforme"));
+  assert(prompt.includes("N'hallucine aucune liste"));
+  assert(prompt.includes("ne dis jamais que tu vas vérifier ailleurs"));
+});
+
+Deno.test("companion visible-answer guard names all forbidden internals", () => {
+  const prompt = buildCompanionSystemPrompt({
+    isWhatsApp: false,
+    lastAssistantMessage: "Je te suis.",
+    context: "",
+    userState: { risk_level: 0, temp_memory: {} },
+  });
+
+  for (
+    const term of [
+      "dispatcher",
+      "route",
+      "JSON",
+      "memory_plan",
+      "prompt",
+      "tool",
+      "DB/table",
+      "handler",
+      "skill",
+    ]
+  ) {
+    assert(prompt.includes(term), term);
+  }
 });
 
 Deno.test("companion delivery directive parser extracts reaction without visible text", () => {

@@ -1,0 +1,50 @@
+{
+  "run_id": "product_help_local_skip_20260622_r1",
+  "turn": 5,
+  "request_id": "product_help_local_skip_20260622_r1-t05",
+  "user": "Et côté produit, cette carte d'attaque libre, je la crée où dans Sophia ?",
+  "http_status": 200,
+  "ok": true,
+  "assistant": "Tu la crées dans Dashboard > Ressources, comme carte d’attaque libre. Si tu veux, je peux aussi te dire quelle technique choisir selon ton blocage.",
+  "trace": {
+    "dispatcher_prompt_version": null,
+    "dispatcher_model_used": null,
+    "dispatcher_tokens_in": null,
+    "response_owner": "coaching_recommendation",
+    "selected_handler": "coaching_recommendation",
+    "route_reason": "active_coaching_recommendation",
+    "active_flow_arbitration": {
+      "decision": "continue_active",
+      "active_owner": "coaching_recommendation",
+      "selected_owner": "coaching_recommendation",
+      "resume_policy": "resume_active",
+      "reason_code": "active_coaching_recommendation"
+    },
+    "safety": {
+      "risk_band": "none",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "direct_effect_lane": null,
+    "skill_run": {
+      "selected_skill_id": "coaching_recommendation",
+      "reason_code": "active_coaching_recommendation",
+      "status": "continue",
+      "latency_ms": 10582
+    },
+    "tool_skill_run": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "minimal",
+      "memory_mode": "none",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "tiny",
+      "targets": [],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    }
+  },
+  "trace_error": null
+}

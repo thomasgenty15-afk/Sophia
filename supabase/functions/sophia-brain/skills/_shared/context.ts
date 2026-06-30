@@ -4,9 +4,10 @@ import type { ActiveConversationSkillWorkingState } from "./active_skill_state.t
 
 export type SkillId =
   | "safety_crisis"
-  | "emotional_repair"
-  | "demotivation_repair"
-  | "product_help";
+  | "product_help"
+  | "coaching_recommendation"
+  | "daily_action_coaching_recommendation_v1"
+  | "feature_opportunity";
 
 export type SkillMemoryItem = {
   id: string;
@@ -28,6 +29,7 @@ export type SkillContext = {
   plan_items: Array<Record<string, unknown>>;
   product_surfaces: Array<Record<string, unknown>>;
   exclusions: string[];
+  precomputed_safety_crisis_local_dispatcher_output?: unknown;
 };
 
 export type LoadSkillContextInput = {
@@ -84,8 +86,7 @@ export async function loadBaseSkillContext(
     }
     return true;
   });
-  const recentLimit = skillId === "emotional_repair" ||
-      skillId === "demotivation_repair" || skillId === "safety_crisis"
+  const recentLimit = skillId === "safety_crisis"
     ? RECENT_MESSAGE_LIMITS.conversationRepair
     : RECENT_MESSAGE_LIMITS.toolFlow;
   return {

@@ -4,17 +4,10 @@ export type MorningNudgeKind =
   | "emotional_presence_nudge"
   | "no_action_greeting";
 
-export type PostMorningNudgeFlowKind =
+export type MorningNudgeLegacyFollowupFlowKind =
   | "action"
   | "suppressed_action"
   | "emotional_presence";
-
-export type PostMorningNudgeStatus =
-  | "active"
-  | "closing"
-  | "closed"
-  | "exit_to_global"
-  | "safety";
 
 export type MorningNudgeCoachIntent =
   | "motivate_action"
@@ -81,7 +74,7 @@ export type MorningNudgePayloadV2 = {
     | "pre_event_grounding"
     | "greeting";
   opens_local_flow: boolean;
-  intended_followup_flow: PostMorningNudgeFlowKind | null;
+  intended_followup_flow: MorningNudgeLegacyFollowupFlowKind | null;
   coach_intent: MorningNudgeCoachIntent;
   target_action_ids: string[];
   target_action_titles: string[];
@@ -97,19 +90,3 @@ export type MorningNudgePayloadV2 = {
   source_grounding: string | null;
   sent_at: string;
 };
-
-export function isPostMorningNudgeFlowKind(
-  value: unknown,
-): value is PostMorningNudgeFlowKind {
-  return value === "action" || value === "suppressed_action" ||
-    value === "emotional_presence";
-}
-
-export function flowKindForMorningNudgeKind(
-  nudgeKind: MorningNudgeKind,
-): PostMorningNudgeFlowKind | null {
-  if (nudgeKind === "action_nudge") return "action";
-  if (nudgeKind === "suppressed_action_nudge") return "suppressed_action";
-  if (nudgeKind === "emotional_presence_nudge") return "emotional_presence";
-  return null;
-}

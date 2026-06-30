@@ -2,7 +2,13 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
-import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
+import {
+  oneShotReminderCanonicalVisiblePromptLines,
+} from "../../router/one_shot_reminder_prompt_contract.ts";
+import {
+  VISIBLE_CONVERSATION_FLOW_RULES,
+  VISIBLE_OUTPUT_STYLE_RULES,
+} from "../../router/response_style_policy.ts";
 import type {
   ProductHelpConversationContext,
   ProductHelpVisibleTaskKind,
@@ -13,6 +19,13 @@ export type ProductHelpVisibleAgentInput = {
   request_id?: string | null;
   stage: ProductHelpVisibleTaskKind;
   conversation_context: ProductHelpConversationContext;
+  visible_runtime_context?: {
+    style_rules: string;
+    recent_user_messages: Array<{
+      role: "user";
+      content: string;
+    }>;
+  };
 };
 
 export type ProductHelpVisibleAgent = (
@@ -49,10 +62,6 @@ function visibleTaskInstruction(stage: ProductHelpVisibleTaskKind): string {
       return "Explique le flow ou la destination utile, sans le lancer ni produire de handoff exécutable.";
     case "repeat_answer":
       return "Redis l'information utile en version courte, sans nouvelle recommandation.";
-    case "apply_attempt":
-      return "Refuse doucement l'exécution depuis product_help et redonne la destination ou le flow à utiliser.";
-    case "inline_tool_return":
-      return "Rends uniquement le résultat filtré du roundtrip inline, puis laisse le flow parent reprendre.";
     case "stop_or_cancel":
       return "Accuse réception très brièvement. Ne pose pas de question et ne propose pas d'outil.";
     case "exit_ack":
@@ -70,14 +79,17 @@ function visibleSystemPrompt(input: ProductHelpVisibleAgentInput): string {
     "Tu es l'agent visible du skill product_help.",
     "Tu écris uniquement le prochain message visible de Sophia.",
     "Tu ne routes pas, tu ne lances aucun flow, tu ne remplis aucun champ d'un autre flow.",
-    "product_help est strictement non-mutant: ne dis jamais que tu as créé, modifié, annulé, activé, programmé, enregistré ou appliqué quelque chose.",
-    "Pour un rappel ponctuel déjà programmé, ne dis pas que le user peut le modifier ou l'annuler depuis le chat. Dis seulement que Sophia peut créer un nouveau rappel ponctuel si le user donne quoi rappeler et quand.",
+    "product_help est strictement non-mutant: ne dis jamais que tu as créé, modifié, annulé, activé, programmé, enregistré ou appliqué quelque chose, sauf confirmation sobre d'un direct effect deja prouve par conversation_context.known_values.direct_effect_confirmation_context.one_shot_reminder.committed=true.",
     "Tu écris seulement à partir de conversation_context. Tu ne lis pas de DB brute, de mémoire brute, ni de contexte hors conversation_context.",
     "N'invente aucun objet réel: pour affirmer qu'un objet existe ou a un état, il faut une source dans conversation_context.known_values.grounded_sources, conversation_context.known_values.grounding.db_sources_used ou active_flow_used.",
-    "Ne rends pas un status recap complet.",
+    "Ne rends pas un inventaire d'etat reel complet.",
     "Si conversation_context indique un mode inline, réponds à la question produit puis laisse naturellement le flow parent reprendre.",
+    ...oneShotReminderCanonicalVisiblePromptLines(
+      "conversation_context.known_values.direct_effect_confirmation_context",
+    ),
     "Ne mentionne jamais JSON, dispatcher, reducer, prompt, DB, table ou outil interne.",
     VISIBLE_OUTPUT_STYLE_RULES,
+    VISIBLE_CONVERSATION_FLOW_RULES,
     "Reste court, naturel et concret.",
     visibleTaskInstruction(input.stage),
     'Retourne uniquement un JSON strict: {"message":"..."}.',
@@ -90,6 +102,10 @@ export async function runProductHelpVisibleAgent(
   const userPrompt = JSON.stringify({
     task: "write_product_help_visible_message",
     stage: input.stage,
+    visible_runtime_context: input.visible_runtime_context ?? {
+      style_rules: VISIBLE_OUTPUT_STYLE_RULES,
+      recent_user_messages: [],
+    },
     conversation_context: input.conversation_context,
     hard_constraints: {
       toolExecution: "none",
@@ -97,9 +113,15 @@ export async function runProductHelpVisibleAgent(
       operation_suggestions: [],
       requested_effects: [],
       allowed_effects: [],
-      committed_effects: [],
+      one_shot_reminder: input.conversation_context.known_values
+          .direct_effect_confirmation_context &&
+          typeof input.conversation_context.known_values
+              .direct_effect_confirmation_context === "object"
+        ? (input.conversation_context.known_values
+          .direct_effect_confirmation_context as any).one_shot_reminder ?? null
+        : null,
       no_durable_claim_without_grounded_fact: true,
-      no_status_recap: true,
+      no_live_status_inventory: true,
       no_parent_flow_mutation:
         input.conversation_context.known_values.mode === "inline" ||
         input.conversation_context.handoff_data.mode === "inline",

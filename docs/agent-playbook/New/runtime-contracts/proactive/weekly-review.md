@@ -4,8 +4,8 @@
 
 `weekly_adaptive_review_v1` est un workflow proactif de décision
 hebdomadaire. Il lit des preuves, produit une lecture stratégique, clarifie si
-le signal humain est faible, puis propose un handoff plateforme si la semaine
-doit être allégée ou réorganisée.
+le signal humain est faible, puis peut formuler une recommandation
+d'ajustement non-mutante si la confiance est très forte.
 
 Il ne modifie plus le plan depuis le chat.
 
@@ -17,7 +17,7 @@ weekly_progress_review projection
   -> weekly_review reducer
   -> strategy / coaching recommendation
   -> clarification si signal faible
-  -> optional adjust_plan platform_handoff
+  -> optional adjust_recommendation non-mutant
   -> renderer no-mutation
 ```
 
@@ -28,11 +28,19 @@ Le weekly peut recommander :
 - alléger une action ;
 - déplacer une charge ;
 - ouvrir une revue du niveau ;
-- créer un handoff `adjust_plan_item` vers la section Plan.
+- orienter vers `Ajuster mon plan` si une semaine suivante est configurée ;
+- orienter vers la validation du niveau / les inputs du niveau suivant si
+  aucune semaine suivante n'est configurée.
 
 Mais il ne prépare plus de patch applicable, ne crée plus de pending
 confirmation exécutable et ne marque plus un ajustement comme appliqué depuis
 le chat.
+
+La recommandation d'ajustement vit dans `weekly_flow_state.adjust_recommendation`.
+Elle est strictement non-mutante et ne peut être `safe_to_surface=true` que si
+`confidence >= 0.95`, avec preuves daily solides, cause claire, action
+concernée claire et cohérence semaine passée / semaine suivante ou niveau
+suivant.
 
 ## Dépend De L'Architecture De X
 
@@ -43,9 +51,12 @@ Ce domaine dépend de :
   `clarification`, `status`, `memory` et `repair` ;
 - `clarification_tool` quand la fatigue, le sens de la demande ou le scope
   weekly est ambigu ;
-- `Active Handoff Arbitration` quand un handoff `adjust_plan_item` est actif ;
-- `Product Surface Registry` pour obtenir la destination canonique `plan` ;
-- `EffectLedger` pour tracer le handoff weekly sans commit ;
+- le contexte runtime V2 actif pour injecter `weekly_planning_context` :
+  semaine courante, semaine suivante si configurée, sinon prochain niveau ;
+- `Product Surface Registry` pour la destination plateforme quand le user va
+  ajuster son plan hors chat ;
+- `EffectLedger` pour tracer les effets non-plan ; l'ajustement weekly n'est
+  pas un commit ;
 - le contrat local de `weekly_adaptive_review` pour l'evidence, le reducer,
   les bridges et le renderer.
 
@@ -59,11 +70,11 @@ Utilisation concrète dans le code actuel :
   `sophia-brain/skills/weekly_review/bridges.ts`.
 - Les fonctions historiques autour de `weeklyReviewAllowsAdjustPlanBridge`,
   `directWeeklyAdjustPlanRuntime` ou
-  `hasPendingOrActiveAdjustPlanOperation` doivent être réinterprétées comme
-  handoff Plan, pas comme exécution.
-- `sophia-brain/tools/operations/adjust_plan_item/weekly_bridge.ts` peut
-  continuer à préparer le contexte weekly pour `adjust_plan_item`, mais son
-  résultat nominal est un `platform_handoff`, jamais un patch committé.
+  `hasPendingOrActiveAdjustPlanOperation` ne sont pas le chemin nominal du
+  weekly local. Le chemin nominal est une recommandation non-mutante, visible
+  uniquement si très fiable.
+- `sophia-brain/tools/operations/adjust_plan_item/weekly_bridge.ts` reste
+  legacy/compatibilité. Le weekly local ne l'utilise pas comme executor.
 
 ## Runtime Shape
 
@@ -79,8 +90,8 @@ conversation turn
   -> skills/weekly_review/runtime.ts facade
   -> evidence / reducer / state / bridges / renderer
   -> optional clarification_tool
-  -> optional adjust_plan_item handoff
-  -> EffectLedger platform_handoff / clarification
+  -> optional adjust_recommendation visible
+  -> EffectLedger for non-plan effects / clarification
   -> final response guards
 ```
 
@@ -116,14 +127,15 @@ doit pas redevenir un fichier de logique métier massif.
 - `sophia-brain/skills/weekly_review/state.ts`
   possède l'état actif runtime.
 - `sophia-brain/skills/weekly_review/bridges.ts`
-  arbitre les sorties vers `adjust_plan_item` handoff.
+  reste compatibilité legacy pour les sorties Plan, mais ne possède pas le
+  chemin nominal `adjust_recommendation`.
 - `sophia-brain/skills/weekly_review/evidence.ts`
   gère la correction "j'avais oublié de cocher" pendant le weekly via
   `track_progress_plan_item`, qui reste un direct effect exécutable seulement
   si le tool retourne un commit.
 - `sophia-brain/tools/operations/adjust_plan_item/weekly_bridge.ts`
-  transforme les demandes weekly explicites en handoff Plan. Il ne doit jamais
-  être l'executor durable.
+  reste legacy pour compatibilité Plan. Il ne doit jamais être l'executor
+  durable ni le chemin nominal du weekly local.
 - `sophia-brain/router/run.ts`
   reste orchestrateur.
 
@@ -135,7 +147,10 @@ doit pas redevenir un fichier de logique métier massif.
   `still_relevant`, `reschedule_decision` et `confidence`.
 - État dashboard/planning hebdomadaire confirmé.
 - Réponse humaine pendant le weekly.
-- État actif weekly et éventuel handoff `adjust_plan_item`.
+- État actif weekly, incluant `weekly_flow_state`.
+- `weekly_planning_context` dérivé du runtime V2 actif :
+  - `next_week_configured` si une semaine suivante est configurée ;
+  - `next_level_required` sinon.
 - Corrections de progression oubliée, traitées via
   `track_progress_plan_item`.
 
@@ -146,21 +161,23 @@ doit pas redevenir un fichier de logique métier massif.
   `constraints`, `state_patch`.
 - Message d'ouverture proactive weekly.
 - Question bloquante si le signal est faible.
-- Recommandation de semaine suivante.
-- `platform_handoff.adjust_plan_item` quand le weekly recommande un changement
-  de plan.
+- Recommandation de semaine suivante ou de prochain niveau, si et seulement si
+  `adjust_recommendation.safe_to_surface=true`.
+- Orientation visible non-mutante :
+  - `Ajuster mon plan` quand `weekly_planning_context.mode=next_week_configured`;
+  - validation du niveau / inputs du niveau suivant quand
+    `weekly_planning_context.mode=next_level_required`.
 - `clarification` quand la demande weekly est ambiguë.
 - Réponse user-facing nettoyée des labels internes et des faux claims de
   succès.
 
-Sortie handoff attendue :
+Sortie recommandation attendue :
 
 ```txt
-toolExecution="platform_handoff"
+weekly_flow_state.adjust_recommendation.safe_to_surface=true
+weekly_flow_state.adjust_recommendation.confidence>=0.95
 executedTools=[]
 committed_effects=[]
-platform_handoff.operation_type="adjust_plan_item"
-platform_handoff.surface_id="plan"
 no_chat_mutation=true
 ```
 
@@ -173,6 +190,11 @@ no_chat_mutation=true
 - Toute décision stratégique passe par `reduceWeeklyReview(...)`.
 - Aucun changement durable de plan ne s'applique depuis weekly chat.
 - Weekly ne crée pas de pending confirmation exécutable pour ajuster le plan.
+- Weekly ne dit jamais "ce qui bougerait" / "ce qui resterait" comme si un
+  patch était prêt à appliquer.
+- Si une recommandation d'ajustement est visible, le wording doit dire que le
+  plan n'est pas modifié ici et que l'action se fait dans la plateforme ou dans
+  la validation du niveau selon `weekly_planning_context.mode`.
 - `approve` / `ok vas-y` pendant un handoff weekly devient `apply_attempt`
   non-mutant.
 - Low/none daily coverage ou low confidence pose une question ou recommande
@@ -199,13 +221,13 @@ no_chat_mutation=true
 - `sophia-brain/router/run.ts`
   appelle les fonctions du runtime weekly, mais ne possède pas leur logique.
 - `adjust_plan_item/router.ts`
-  possède le handoff Plan. Le bridge weekly lui fournit le contexte; il ne lui
-  demande pas d'appliquer un patch.
+  possède les ajustements Plan hors weekly. Le weekly local peut seulement
+  orienter le user vers la surface, jamais demander un patch.
 - `track_progress_plan_item/router.ts`
   possède l'écriture d'une correction de progression oubliée pendant le weekly.
 - `EffectLedger`
-  trace `platform_handoff.adjust_plan_item`, sans `committed` et sans
-  `executedTools`.
+  trace les effets non-plan. Aucun ajustement Plan weekly n'est `committed`
+  depuis le chat.
 - `Product Surface Registry`
   fournit la destination `plan`.
 
@@ -215,8 +237,8 @@ no_chat_mutation=true
   le reducer, le renderer et les tests sont mis à jour ensemble.
 - Renforcer la projection factuelle sans y ajouter de stratégie.
 - Améliorer `reduceWeeklyReview(...)` avec une règle testée.
-- Ajouter une recommandation `adjust_plan_item` seulement si elle sort comme
-  `platform_handoff`.
+- Ajouter une recommandation d'ajustement seulement si elle reste
+  `adjust_recommendation` non-mutante avec confiance >= 0.95.
 - Déplacer des guards legacy de `runtime.ts` vers `guards.ts`, `renderer.ts`,
   `confirmation.ts`, `bridges.ts`, `state.ts` ou `evidence.ts`.
 - Ajouter des tests ciblés sous `skills/weekly_review/*_test.ts` ou
@@ -291,4 +313,5 @@ no_chat_mutation=true
 | --- | --- | --- | --- |
 | 2026-05-30 | `weekly_review_v1` est la source de vérité stratégique ; `_shared/weekly_adaptive_review.ts` reste une façade compatible qui délègue au reducer et au renderer du contrat. | Active | `15-chantiers-log.md` J22 |
 | 2026-05-30 | Le runtime weekly est documenté comme façade de sous-modules `state`, `confirmation`, `effects`, `renderer`, `bridges`, `guards`, `evidence`; `run.ts` ne doit pas reprendre ces responsabilités. | Active | `15-chantiers-log.md` J55 |
-| 2026-06-01 | Weekly ne modifie plus le plan depuis le chat; ses ajustements deviennent `platform_handoff.adjust_plan_item` vers Plan. | Active | Architecture handoff V1 |
+| 2026-06-01 | Weekly ne modifie plus le plan depuis le chat; ses ajustements deviennent une orientation non-mutante vers la plateforme. | Active | Architecture handoff V1 |
+| 2026-06-24 | Le weekly local stocke `weekly_planning_context` et `adjust_recommendation`; si aucune semaine suivante n'est configuree, l'orientation se fait vers validation du niveau / inputs du niveau suivant. | Active | Architecture adjust_recommendation |

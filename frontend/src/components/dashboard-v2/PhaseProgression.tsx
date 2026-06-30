@@ -66,7 +66,7 @@ type PhaseProgressionProps = {
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
+  onCardsChanged: () => Promise<void> | void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
   onLogHeartbeat?: () => void;
   onCompleteLevel?: () => void;
@@ -470,7 +470,7 @@ function ActivePhase({
   unlockStateByItemId,
   busyItemId,
   onComplete,
-  onPrepareCards,
+  onCardsChanged,
   onOpenDefenseResourceEditor,
   onCompleteLevel,
   completeLevelBusy = false,
@@ -489,7 +489,7 @@ function ActivePhase({
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
+  onCardsChanged: () => Promise<void> | void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
   onLogHeartbeat?: () => void;
   onCompleteLevel?: () => void;
@@ -980,7 +980,7 @@ function ActivePhase({
                                   ) ?? null}
                                   isBusy={busyItemId === item.id}
                                   onComplete={onComplete}
-                                  onPrepareCards={onPrepareCards}
+                                  onCardsChanged={onCardsChanged}
                                   onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
                                 />
                               ))
@@ -1068,7 +1068,7 @@ function ActivePhase({
                   unlockState={unlockStateByItemId.get(item.id) ?? null}
                   isBusy={busyItemId === item.id}
                   onComplete={onComplete}
-                  onPrepareCards={onPrepareCards}
+                  onCardsChanged={onCardsChanged}
                   onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
                 />
               ))
@@ -1247,7 +1247,7 @@ export function PhaseProgression({
   unlockStateByItemId,
   busyItemId,
   onComplete,
-  onPrepareCards,
+  onCardsChanged,
   onOpenDefenseResourceEditor,
   onLogHeartbeat,
   onCompleteLevel,
@@ -1384,7 +1384,7 @@ export function PhaseProgression({
                       unlockStateByItemId={unlockStateByItemId}
                       busyItemId={busyItemId}
                       onComplete={onComplete}
-                      onPrepareCards={onPrepareCards}
+                      onCardsChanged={onCardsChanged}
                       onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
                       onLogHeartbeat={onLogHeartbeat}
                       onCompleteLevel={onCompleteLevel}

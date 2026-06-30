@@ -7,6 +7,7 @@ import {
 } from "./action_occurrences.ts";
 import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
+import { loadActiveWeeklyPlanning } from "./weekly_planning_lifecycle.ts";
 
 export const WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT = "weekly_progress_review_v2";
 export const WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT =
@@ -50,7 +51,7 @@ type PlanItemRow = {
 
 type WeekPlanRow = {
   plan_item_id: string;
-  status: "pending_confirmation" | "confirmed" | "auto_applied";
+  status: "pending_confirmation" | "confirmed" | "auto_applied" | "archived";
   planned_days?: DayCode[] | null;
   default_days?: DayCode[] | null;
   confirmed_at?: string | null;
@@ -672,6 +673,12 @@ export async function hasPlanifiableWeekStart(
     weekStartDate: string;
   },
 ): Promise<boolean> {
+  const planning = await loadActiveWeeklyPlanning(supabase, {
+    userId: params.userId,
+    weekStartDate: params.weekStartDate,
+  });
+  if (planning.has_pending) return true;
+
   const { plans } = await loadActivePlansForWeeklyReview(
     supabase,
     params.userId,
@@ -732,7 +739,8 @@ export async function loadWeeklyProgressReview(
         .from("user_habit_week_plans")
         .select("plan_item_id,status,confirmed_at")
         .eq("user_id", params.userId)
-        .eq("week_start_date", weekStartDate),
+        .eq("week_start_date", weekStartDate)
+        .in("plan_id", planIds),
       supabase
         .from("user_habit_week_occurrences")
         .select(
@@ -824,5 +832,5 @@ export function buildWeeklyPlanningValidationMessage(args: {
   nextWeekStartDate: string;
   dashboardUrl: string;
 }): string {
-  return `Le point de fin de semaine est termine, donc la validation de la semaine prochaine est disponible. Tu peux verifier l'organisation proposee et la confirmer ici: ${args.dashboardUrl}`;
+  return `Ta planification de la semaine est disponible. Tu peux verifier l'organisation proposee et la confirmer ici: ${args.dashboardUrl}`;
 }

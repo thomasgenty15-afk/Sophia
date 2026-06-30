@@ -4,7 +4,6 @@ import {
   Compass,
   FileText,
   Flag,
-  Loader2,
   Lock,
   PenLine,
   Repeat,
@@ -23,6 +22,7 @@ import {
 import type { DashboardV2UnlockState } from "../../hooks/useDashboardV2Logic";
 import { ClarificationExerciseModal } from "./ClarificationExerciseModal";
 import { HabitWeekModal } from "./HabitWeekModal";
+import { PlanItemResourceActions } from "./PlanItemResourceActions";
 
 type PlanItemCardProps = {
   item: DashboardV2PlanItemRuntime;
@@ -34,7 +34,7 @@ type PlanItemCardProps = {
   unlockState?: DashboardV2UnlockState | null;
   isBusy: boolean;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
+  onCardsChanged: () => Promise<void> | void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
 };
 
@@ -67,7 +67,7 @@ export function PlanItemCard({
   unlockState,
   isBusy,
   onComplete,
-  onPrepareCards,
+  onCardsChanged,
   onOpenDefenseResourceEditor,
 }: PlanItemCardProps) {
   const [exerciseOpen, setExerciseOpen] = useState(false);
@@ -106,7 +106,7 @@ export function PlanItemCard({
     : null;
   const cardsRequired = item.cards_required;
   const cardsStatus = item.cards_status ?? (cardsRequired ? "not_started" : "not_required");
-  const cardsReady = Boolean(item.linked_defense_card && item.linked_attack_card);
+  const hasAnyCard = Boolean(item.linked_defense_card || item.linked_attack_card);
   const defensePreview = resolveDefensePreview(item.linked_defense_card);
   const attackPreview = resolveAttackPreview(item.linked_attack_card);
   const showPendingLock = isPending && !unlockState?.isReady;
@@ -114,7 +114,10 @@ export function PlanItemCard({
   const futureWeekLabel = weekOrder != null
     ? `Disponible semaine ${weekOrder}`
     : "Disponible pendant sa semaine";
-  const canPrepareCards = !isPending && cardsRequired && !cardsReady;
+  const canPrepareCards =
+    !isPending &&
+    cardsRequired &&
+    (!item.linked_defense_card || !item.linked_attack_card);
   useEffect(() => {
     if (descriptionExpanded) return;
     const element = descriptionRef.current;
@@ -238,7 +241,7 @@ export function PlanItemCard({
         </div>
       ) : null}
 
-      {!isPending && cardsRequired && (cardsStatus === "ready" || cardsReady) ? (
+      {!isPending && cardsRequired && hasAnyCard ? (
         <div className="mb-3 space-y-2">
           {defensePreview ? (
             <details className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-3 py-3">
@@ -349,24 +352,15 @@ export function PlanItemCard({
                 cardsStatus === "failed" ? "text-rose-900" : "text-amber-950/80"
               }`}>
                 {cardsStatus === "failed"
-                  ? "La preparation des cartes a echoue. Tu peux relancer la creation pour cette action."
-                  : "Tu peux faire cette action sans cartes. Si tu veux un appui en plus, Sophia peut te preparer une carte de defense et une carte d'attaque."}
+                  ? "La preparation d'une ressource a echoue. Tu peux relancer une carte adaptee a cette action."
+                  : "Tu peux faire cette action sans carte. Si tu veux un appui en plus, cree une ressource adaptee a cette action."}
               </p>
-              <button
-                type="button"
-                onClick={() => onPrepareCards(item)}
-                disabled={isBusy}
-                className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-3 py-2 text-xs font-semibold text-stone-900 transition hover:bg-amber-50 disabled:cursor-wait disabled:opacity-70"
-              >
-                {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                {cardsStatus === "failed" ? "Relancer" : "Generer"}
-              </button>
-            </div>
-          ) : null}
-          {isBusy && !cardsInfoExpanded ? (
-            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-900/60">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>{cardsStatus === "failed" ? "Relance..." : "Generation..."}</span>
+              <div className="mt-3">
+                <PlanItemResourceActions
+                  item={item}
+                  onCardsChanged={onCardsChanged}
+                />
+              </div>
             </div>
           ) : null}
         </div>

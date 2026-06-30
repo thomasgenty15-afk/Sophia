@@ -21,7 +21,7 @@ The flow must support:
   replaced;
 - adjusting a cluster of actions, a current week, a current level, a whole plan
   or several plans;
-- preserving user constraints, existing cadence, completed work and plan
+- preserving user limits, existing cadence, completed work and plan
   boundaries;
 - answering limited read-only product/status questions while preserving the
   parent flow;
@@ -40,7 +40,7 @@ V1 states should stay compact:
 
 - `collecting_scope`: target plan, level, item or scope is missing/weak.
 - `collecting_adjustment_need`: reason or requested change is missing/weak.
-- `collecting_constraints`: preserve/avoid/cadence boundaries are missing when
+- `collecting_limits`: preserve/avoid/cadence boundaries are missing when
   needed.
 - `handoff_ready`: all required state exists and a Plan handoff draft is
   available.
@@ -65,7 +65,7 @@ Fields owned by the local dispatcher/reducer:
 - `scope.plan_id`, `plan_title`, `level_id`, `level_title`,
   `plan_item_ids`, `target_summary`, confidence/evidence/status.
 - `adjustment_need.reason_change`, `requested_change`, `change_kind`.
-- `constraints`, `preserve`, `avoid`, `missing_or_weak_values`.
+- `limits`, `preserve`, `avoid`, `missing_or_weak_values`.
 - `platform_handoff.destination="Plan"`.
 - `platform_handoff.suggested_platform_input`.
 - `platform_handoff.grouped_by_plan` for multi-plan cases.
@@ -88,7 +88,7 @@ The dispatcher must classify at least:
 - scoped start: "rends l'action du soir plus legere";
 - answer to scope clarification: "le sas de dechargement", "le deuxieme plan";
 - answer to need clarification: "juste noter trois lignes";
-- answer to constraints: "garde la cadence", "ne touche pas au niveau";
+- answer to limits: "garde la cadence", "ne touche pas au niveau";
 - revision: "non, plutot deux minutes", "change juste le titre";
 - repeat: "redis-moi quoi mettre";
 - destination: "ou je fais ca ?";
@@ -142,7 +142,7 @@ Minimum stage prompts:
 
 - `ask_scope`;
 - `ask_adjustment_need`;
-- `ask_constraints`;
+- `ask_limits`;
 - `handoff_ready`;
 - `revise_handoff`;
 - `repeat_handoff`;
@@ -167,7 +167,7 @@ Minimum stage prompts:
 - recent progression/status for candidate actions;
 - plan boundaries: completed items, support items, current week/level markers;
 - user preferences only if directly relevant to the handoff tone or Plan
-  constraints.
+  limits.
 
 ### Micro Memory Use
 
@@ -358,12 +358,11 @@ Recommended shared shape:
 ```json
 {
   "state_summary": "string",
-  "user_words": ["string"],
-  "field_or_stage": "scope|adjustment_need|constraints|handoff|closing",
+  "field_or_stage": "scope|adjustment_need|limits|handoff|closing",
   "known_values": {
     "scope": {},
     "adjustment_need": {},
-    "constraints": [],
+    "limits": [],
     "preserve": [],
     "avoid": []
   },
@@ -448,14 +447,14 @@ A shared transport helper is fine. A single generic visible-agent prompt is not.
     "evidence": []
   },
   "local_state_patch": {
-    "status": "collecting_scope|collecting_adjustment_need|collecting_constraints|handoff_ready|handoff_delivered|revising|inline_roundtrip|stopped|exit_to_global|handoff_to_local_flow|safety_preempted|blocked_contract",
+    "status": "collecting_scope|collecting_adjustment_need|collecting_limits|handoff_ready|handoff_delivered|revising|inline_roundtrip|stopped|exit_to_global|handoff_to_local_flow|safety_preempted|blocked_contract",
     "scope": {},
     "adjustment_need": {},
     "platform_handoff": {},
     "field_status": {}
   },
   "visible_task": {
-    "kind": "ask_scope|ask_adjustment_need|ask_constraints|handoff_ready|revise_handoff|repeat_handoff|destination_followup|explain_handoff|inline_tool_return|apply_attempt|stop_or_cancel|exit_ack|safety_transition|contract_recovery|none",
+    "kind": "ask_scope|ask_adjustment_need|ask_limits|handoff_ready|revise_handoff|repeat_handoff|destination_followup|explain_handoff|inline_tool_return|apply_attempt|stop_or_cancel|exit_ack|safety_transition|contract_recovery|none",
     "conversation_context_seed": {}
   },
   "note_information": {
@@ -536,29 +535,29 @@ Each prompt receives only `conversation_context` and returns strict JSON:
 ### `ask_adjustment_need`
 
 - Called when scope exists but reason or requested change is weak.
-- Receives: selected scope summary, known constraints, missing need fields.
+- Receives: selected scope summary, known limits, missing need fields.
 - Produces: one natural question about what should change and why.
 - Never: invent the change.
 
-### `ask_constraints`
+### `ask_limits`
 
 - Called when the change is clear but preservation/avoid/cadence boundaries are
   needed.
-- Receives: selected scope, proposed change, missing constraints.
+- Receives: selected scope, proposed change, missing limits.
 - Produces: one short question.
 - Never: over-interrogate or assume cadence changes.
 
 ### `handoff_ready`
 
 - Called when `suggested_platform_input` is ready.
-- Receives: destination Plan, handoff text, constraints, evidence summary.
+- Receives: destination Plan, handoff text, limits, evidence summary.
 - Produces: a natural Plan handoff with clear next step.
 - Never: say applied/saved/modified in DB.
 
 ### `revise_handoff`
 
 - Called after user correction.
-- Receives: previous value, revised value, unchanged constraints.
+- Receives: previous value, revised value, unchanged limits.
 - Produces: concise revised handoff.
 - Never: apply or imply persistence.
 
@@ -579,7 +578,7 @@ Each prompt receives only `conversation_context` and returns strict JSON:
 ### `explain_handoff`
 
 - Called when user asks why this adjustment.
-- Receives: evidence, constraints, state summary.
+- Receives: evidence, limits, state summary.
 - Produces: brief reasoning.
 - Never: change scope or draft.
 

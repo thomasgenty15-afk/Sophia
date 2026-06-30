@@ -125,7 +125,6 @@ export async function runTrackProgressPlanItemV2(params: {
   turn_frame: TurnFrame;
   message: string;
   plan_snapshot: unknown;
-  pending_tool_skill_confirmation?: unknown;
   recent_writes_idempotency?:
     DirectEffectGateInput["recent_writes_idempotency"];
   db_idempotency_check?: DirectEffectGateInput["db_idempotency_check"];
@@ -135,7 +134,6 @@ export async function runTrackProgressPlanItemV2(params: {
     turn_frame: params.turn_frame,
     message: params.message,
     plan_snapshot: params.plan_snapshot,
-    pending_tool_skill_confirmation: params.pending_tool_skill_confirmation,
     recent_writes_idempotency: params.recent_writes_idempotency,
     db_idempotency_check: params.db_idempotency_check,
     write_progress: params.write_progress,

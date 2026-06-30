@@ -1,0 +1,101 @@
+import type { AttackCardContent } from "../../types/v2";
+
+export type AttackTechniqueView = AttackCardContent["techniques"][number];
+
+export const ATTACK_TECHNIQUE_PREVIEWS: AttackTechniqueView[] = [
+  {
+    technique_key: "texte_recadrage",
+    title: "Le texte magique",
+    pour_quoi:
+      "Faire disparaitre le combat interieur quand tu commences a te trouver des excuses ou a negocier avec toi-meme.",
+    objet_genere:
+      "Un texte a ecrire jusqu'a ce que le combat baisse et que l'action redevienne evidente.",
+    questions: [
+      "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+      "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+      "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+    ],
+    mode_emploi:
+      "Ecris-le au moment ou tu sens la resistance monter, jusqu'a ce que ce soit moins un combat.",
+    generated_result: null,
+  },
+  {
+    technique_key: "mantra_force",
+    title: "Mantra de force",
+    pour_quoi:
+      "Installer doucement plus de force interieure face a ce que tu as a faire, au lieu d'attendre d'etre fort sur le moment.",
+    objet_genere:
+      "Une phrase a te repeter pour faire evoluer peu a peu ton rapport a l'action.",
+    questions: [
+      "Par rapport a quelle action ou quel effort tu veux devenir plus solide ?",
+      "Pourquoi c'est important pour toi d'arreter de reculer la-dessus ?",
+      "Tu veux un mantra plutot calme, noble ou percutant ?",
+    ],
+    mode_emploi:
+      "Repete-le trois fois le matin, ou matin midi et soir si tu veux l'ancrer plus fort.",
+    generated_result: null,
+  },
+  {
+    technique_key: "ancre_visuelle",
+    title: "Ancre visuelle",
+    pour_quoi:
+      "Utiliser ton environnement consciemment pour qu'il te rappelle les engagements que tu as pris envers toi-meme.",
+    objet_genere:
+      "Un repere visuel simple a utiliser, avec une phrase a te dire quand tu le vois.",
+    questions: [
+      "Quel engagement envers toi-meme tu veux garder vivant ?",
+      "Dans quel lieu ou sur quel objet tu pourrais l'accrocher a ton quotidien ?",
+      "Quelle phrase courte devrait revenir quand tu le vois ?",
+    ],
+    mode_emploi:
+      "Place-la dans ton environnement pour qu'elle te recadre naturellement quand ton regard tombe dessus.",
+    generated_result: null,
+  },
+  {
+    technique_key: "visualisation_matinale",
+    title: "Meditation de 5 minutes",
+    pour_quoi:
+      "Rendre le demarrage tellement simple que tu passes a l'action avant que la resistance ait le temps de grossir.",
+    objet_genere:
+      "Une courte meditation guidee pour te visualiser en train de faire l'action avant que la journee parte dans tous les sens.",
+    questions: [
+      "Quelle action ou habitude tu veux te voir faire naturellement ?",
+      "A quel moment du matin pourrais-tu prendre 5 minutes pour te projeter calmement ?",
+      "Quelles sensations ou images t'aideraient a te voir deja en train de faire l'action ?",
+    ],
+    mode_emploi:
+      "Prends 5 minutes le matin pour te visualiser en train de faire l'action de facon calme, concrete et deja normale pour toi.",
+    generated_result: null,
+  },
+  {
+    technique_key: "preparer_terrain",
+    title: "Preparer le terrain",
+    pour_quoi:
+      "Installer les bonnes conditions avant que la friction n'arrive.",
+    objet_genere:
+      "Un environnement qui t'invite a faire la bonne chose quand le moment arrive.",
+    questions: [
+      "Par rapport a quelle action tu veux te rendre la vie plus simple ?",
+      "Qu'est-ce que tu pourrais preparer en avance pour enlever de la friction ?",
+      "Quand le moment arrive, qu'est-ce qui devrait deja etre pret autour de toi ?",
+    ],
+    mode_emploi:
+      "Prepare le terrain suffisamment tot pour que le bon geste devienne plus simple.",
+    generated_result: null,
+  },
+  {
+    technique_key: "pre_engagement",
+    title: "Mot de bascule",
+    pour_quoi:
+      "Avoir un mot simple a envoyer pour que Sophia comprenne tout de suite que tu es dans un moment ou tu peux craquer et t'aide a tenir.",
+    objet_genere:
+      "Un mot-cle memorisable et un mini protocole de bascule a envoyer seul quand la tension monte.",
+    questions: [
+      "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+      "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+    ],
+    mode_emploi:
+      "Des que tu sens que ca devient tendu, envoie seulement le mot-cle. Sophia recupere le contexte et t'aide immediatement a tenir.",
+    generated_result: null,
+  },
+];

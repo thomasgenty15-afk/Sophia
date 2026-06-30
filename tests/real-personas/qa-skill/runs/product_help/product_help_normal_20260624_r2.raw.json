@@ -1,0 +1,1394 @@
+[
+  {
+    "turn": 1,
+    "request_id": "product_help_normal_20260624_r2-t01",
+    "user": "Je suis un peu perdu dans Sophia : à quoi sert l'onglet Ressources exactement ? Je veux juste comprendre, sans lancer d'action.",
+    "http_status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "product_help_normal_20260624_r2-t01",
+      "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+      "channel": "web",
+      "scope": "qa-product_help_normal_20260624_r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "L’onglet Ressources sert à regrouper les appuis utiles autour de ton plan : cartes de défense, cartes d’attaque, potions et ressources liées aux missions ou habitudes. L’idée, c’est de retrouver plus vite ce qui t’aide sans le laisser dispersé dans le chat.",
+        "mode": "companion",
+        "delivery": null,
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "product_help_normal_20260624_r2-t01",
+            "source_message_id": "97c61493-e51c-4df5-8971-d4a1bf9d9d78",
+            "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "explique_la_surface_produit_demandee",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "product_help_normal_20260624_r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "continue",
+            "latency_ms": 6774
+          }
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_normal_20260624_r2-t01",
+          "source_message_id": "97c61493-e51c-4df5-8971-d4a1bf9d9d78",
+          "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {
+            "product_help": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "product_help_question"
+            }
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "explique_la_surface_produit_demandee",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "force_taxonomy",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "product_help_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "product_help",
+            "resume_policy": "none",
+            "reason_code": "product_help_signal"
+          },
+          "selected_handler": "product_help"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_normal_20260624_r2-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help",
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "product_help_signal",
+          "status": "continue",
+          "latency_ms": 6774
+        }
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "product_help_normal_20260624_r2-t02",
+    "user": "Une carte libre et une carte liée à une action du Plan, c'est la même chose ou il y a une différence ?",
+    "http_status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "product_help_normal_20260624_r2-t02",
+      "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+      "channel": "web",
+      "scope": "qa-product_help_normal_20260624_r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Non, ce n’est pas la même chose.\n\nUne carte libre vit dans Ressources, indépendamment d’une action précise. Une carte liée au Plan est rattachée à une mission ou une habitude, donc elle sert un contexte concret.\n\nEn bref : libre = générique, liée au Plan = contextualisée.",
+        "mode": "companion",
+        "delivery": null,
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "product_help_normal_20260624_r2-t02",
+            "source_message_id": "50dcae34-3116-41bf-b363-194430b773ae",
+            "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_product_help",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "product_help",
+              "selected_owner": "product_help",
+              "resume_policy": "resume_active",
+              "reason_code": "active_product_help"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "product_help_normal_20260624_r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "active_product_help",
+            "status": "complete",
+            "latency_ms": 6044
+          }
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_normal_20260624_r2-t02",
+          "source_message_id": "50dcae34-3116-41bf-b363-194430b773ae",
+          "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "active_product_help",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "product_help",
+            "selected_owner": "product_help",
+            "resume_policy": "resume_active",
+            "reason_code": "active_product_help"
+          },
+          "selected_handler": "product_help"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_normal_20260624_r2-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help",
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "active_product_help",
+          "status": "complete",
+          "latency_ms": 6044
+        }
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "product_help_normal_20260624_r2-t03",
+    "user": "Et les potions, je les trouve aussi dans Ressources ? Elles servent à quoi par rapport aux cartes ?",
+    "http_status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "product_help_normal_20260624_r2-t03",
+      "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+      "channel": "web",
+      "scope": "qa-product_help_normal_20260624_r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, les potions sont aussi dans **Ressources**.\n\nLa différence, c’est surtout le rôle :\n- **Cartes d’attaque / de défense** : elles aident pour une action concrète ou un risque précis.\n- **Potions** : elles servent quand ton état intérieur prend trop de place, par exemple peur, décrochage, manque de clarté ou stress.\n\nEn bref : cartes = l’action ; potions = l’état.",
+        "mode": "companion",
+        "delivery": null,
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "product_help_normal_20260624_r2-t03",
+            "source_message_id": "acc2dc07-4dd4-4f2e-bce8-a1c4ccc91ed5",
+            "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "user asks how potions are found in Resources and how they differ from cards",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "product_help_normal_20260624_r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete",
+            "latency_ms": 4993
+          }
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_normal_20260624_r2-t03",
+          "source_message_id": "acc2dc07-4dd4-4f2e-bce8-a1c4ccc91ed5",
+          "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {
+            "product_help": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "product_help_question"
+            }
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "user asks how potions are found in Resources and how they differ from cards",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "force_taxonomy",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "product_help_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "product_help",
+            "resume_policy": "none",
+            "reason_code": "product_help_signal"
+          },
+          "selected_handler": "product_help"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_normal_20260624_r2-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help",
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "product_help_signal",
+          "status": "complete",
+          "latency_ms": 4993
+        }
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "product_help_normal_20260624_r2-t04",
+    "user": "Si je demande juste la règle générale pour savoir quand utiliser une carte d'attaque, une défense ou une potion, tu restes en explication produit ou tu passes en coaching ?",
+    "http_status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "product_help_normal_20260624_r2-t04",
+      "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+      "channel": "web",
+      "scope": "qa-product_help_normal_20260624_r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ici, je reste en explication produit tant que tu parles des cartes et des potions. Dès que tu me demandes comment t’y prendre pour ton cas précis, je bascule dans du coaching.",
+        "mode": "companion",
+        "delivery": null,
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "product_help_normal_20260624_r2-t04",
+            "source_message_id": "b0ca7011-8b77-4272-95bf-32bf568926bf",
+            "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question_about_when_to_use_features"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "explain_product_rule_for_feature_usage",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_only",
+              "plan_confidence": 0.78
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "product_help_normal_20260624_r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete",
+            "latency_ms": 4861
+          }
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_normal_20260624_r2-t04",
+          "source_message_id": "b0ca7011-8b77-4272-95bf-32bf568926bf",
+          "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {
+            "product_help": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "product_help_question_about_when_to_use_features"
+            }
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "explain_product_rule_for_feature_usage",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_only",
+            "plan_confidence": 0.78
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "product_help_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "product_help",
+            "resume_policy": "none",
+            "reason_code": "product_help_signal"
+          },
+          "selected_handler": "product_help"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_normal_20260624_r2-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help",
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "product_help_signal",
+          "status": "complete",
+          "latency_ms": 4861
+        }
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "request_id": "product_help_normal_20260624_r2-t05",
+    "user": "Ok, résume-moi juste où consulter ces éléments, sans me proposer d'en créer.",
+    "http_status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "product_help_normal_20260624_r2-t05",
+      "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+      "channel": "web",
+      "scope": "qa-product_help_normal_20260624_r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui : tu consultes ça dans **Dashboard > Ressources**. C’est là que tu retrouves les cartes, les potions et les ressources liées au Plan quand elles existent. Le **Dashboard > Plan** sert surtout à voir le lien avec une mission ou une habitude, pas à modifier le Plan.",
+        "mode": "companion",
+        "delivery": null,
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "product_help_normal_20260624_r2-t05",
+            "source_message_id": "58a656d9-55d0-4871-b81c-9459df737d75",
+            "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "answer_product_location_query",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.82
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "product_help_normal_20260624_r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "continue",
+            "latency_ms": 5420
+          }
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_normal_20260624_r2-t05",
+          "source_message_id": "58a656d9-55d0-4871-b81c-9459df737d75",
+          "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {
+            "product_help": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "product_help_question"
+            }
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "answer_product_location_query",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.82
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "product_help_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "product_help",
+            "resume_policy": "none",
+            "reason_code": "product_help_signal"
+          },
+          "selected_handler": "product_help"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_normal_20260624_r2-t05",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help",
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "product_help_signal",
+          "status": "continue",
+          "latency_ms": 5420
+        }
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "request_id": "product_help_normal_20260624_r2-t06",
+    "user": "Merci, c'est bon pour moi.",
+    "http_status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "product_help_normal_20260624_r2-t06",
+      "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+      "channel": "web",
+      "scope": "qa-product_help_normal_20260624_r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Bien noté, je te laisse là-dessus.",
+        "mode": "companion",
+        "delivery": null,
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "product_help_normal_20260624_r2-t06",
+            "source_message_id": "916d8ec3-e42a-4cb3-be79-090132c86aa4",
+            "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_product_help",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "product_help",
+              "selected_owner": "product_help",
+              "resume_policy": "resume_active",
+              "reason_code": "active_product_help"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "product_help_normal_20260624_r2-t06",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "active_product_help",
+            "status": "complete",
+            "latency_ms": 4424
+          }
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_normal_20260624_r2-t06",
+          "source_message_id": "916d8ec3-e42a-4cb3-be79-090132c86aa4",
+          "user_id": "a1e8c7be-464e-4992-88e5-399abffd2a05",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "active_product_help",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "product_help",
+            "selected_owner": "product_help",
+            "resume_policy": "resume_active",
+            "reason_code": "active_product_help"
+          },
+          "selected_handler": "product_help"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_normal_20260624_r2-t06",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help",
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "active_product_help",
+          "status": "complete",
+          "latency_ms": 4424
+        }
+      },
+      "trace_error": null
+    }
+  }
+]

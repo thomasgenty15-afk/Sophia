@@ -14,11 +14,12 @@ import {
   z,
 } from "../_shared/http.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
-import type { LabScopeKind } from "../_shared/v2-types.ts";
+import type { LabScopeKind, UserPlanItemRow } from "../_shared/v2-types.ts";
 
 const REQUEST_SCHEMA = z.object({
   stage: z.enum(["questionnaire", "draft"]),
   transformation_id: z.string().uuid().optional(),
+  plan_item_id: z.string().uuid().optional(),
   scope_kind: z.enum(["transformation", "out_of_plan"]).optional(),
   free_text: z.string().min(1).max(1500),
   answers: z.record(z.string()).optional().default({}),
@@ -73,6 +74,14 @@ type DefenseScopeContext = {
   transformation_title: string;
   transformation_summary: string;
   free_cycle_text: string;
+  action_context: {
+    item_title: string;
+    item_description: string | null;
+    item_kind: string;
+    time_of_day: string | null;
+    cadence_label: string | null;
+    phase_label: string | null;
+  } | null;
 };
 
 class DraftDefenseCardError extends Error {
@@ -83,6 +92,42 @@ class DraftDefenseCardError extends Error {
     this.name = "DraftDefenseCardError";
     this.status = status;
   }
+}
+
+function planItemKindLabel(dimension: UserPlanItemRow["dimension"]): string {
+  if (dimension === "habits") return "habitude";
+  if (dimension === "missions") return "mission";
+  if (dimension === "clarifications") return "clarification";
+  return "support";
+}
+
+async function loadPlanItemContext(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planItemId?: string | null;
+}): Promise<UserPlanItemRow | null> {
+  const planItemId = String(args.planItemId ?? "").trim();
+  if (!planItemId) return null;
+
+  const { data, error } = await args.admin
+    .from("user_plan_items")
+    .select("*")
+    .eq("id", planItemId)
+    .eq("user_id", args.userId)
+    .maybeSingle();
+
+  if (error) throw new DraftDefenseCardError(500, `DB error: ${error.message}`);
+  if (!data) throw new DraftDefenseCardError(404, "Plan item not found");
+
+  const item = data as UserPlanItemRow;
+  if (item.dimension !== "missions" && item.dimension !== "habits") {
+    throw new DraftDefenseCardError(409, "This plan item cannot receive a defense card");
+  }
+  if (item.status === "pending" || item.status === "deactivated" || item.status === "cancelled") {
+    throw new DraftDefenseCardError(409, "This plan item is not available for a defense card");
+  }
+
+  return item;
 }
 
 const QUESTIONNAIRE_SYSTEM_PROMPT = `Tu aides a preparer une carte de defense.
@@ -102,6 +147,7 @@ Ta mission:
 Regles:
 - Pas de jargon psy.
 - Les questions doivent etre courtes, naturelles, et orientees action.
+- Si un contexte d'action du Plan est fourni, les questions doivent aider a proteger CETTE action precise, pas creer une carte generale.
 - Chaque question doit servir a completer une composante differente ou complementaire de la carte.
 - N'essaie pas de resoudre le probleme maintenant.
 - Reponds UNIQUEMENT en JSON valide.`;
@@ -122,6 +168,7 @@ Regles:
 - Ecris en francais simple.
 - Pas de jargon.
 - Le moment doit etre precis et scene-based.
+- Si un contexte d'action du Plan est fourni, la carte doit rester liee a cette action precise.
 - Le piege doit decrire une pensee, sensation ou micro-comportement observable.
 - Mon geste doit etre faisable vite, sans demander trop de volonte.
 - Plan B doit etre un filet de securite concret si le geste principal ne part pas.
@@ -132,11 +179,31 @@ async function loadDefenseScopeContext(args: {
   admin: SupabaseClient;
   userId: string;
   transformationId?: string | null;
+  planItemId?: string | null;
   scopeKind: LabScopeKind;
 }): Promise<DefenseScopeContext> {
   const { admin, userId, scopeKind } = args;
+  const planItem = await loadPlanItemContext({
+    admin,
+    userId,
+    planItemId: args.planItemId,
+  });
+  const effectiveTransformationId = planItem?.transformation_id ?? args.transformationId;
+  const actionContext = planItem
+    ? {
+      item_title: planItem.title,
+      item_description: planItem.description ?? null,
+      item_kind: planItemKindLabel(planItem.dimension),
+      time_of_day: planItem.time_of_day ?? null,
+      cadence_label: planItem.cadence_label ?? null,
+      phase_label: planItem.phase_order != null ? `Niveau ${planItem.phase_order}` : null,
+    }
+    : null;
 
   if (scopeKind === "out_of_plan") {
+    if (planItem) {
+      throw new DraftDefenseCardError(400, "plan_item_id requires transformation scope");
+    }
     const { data: cycle, error: cycleError } = await admin
       .from("user_cycles")
       .select("id, raw_intake_text")
@@ -173,10 +240,11 @@ async function loadDefenseScopeContext(args: {
         .slice(0, 2)
         .join(" ") || "Contexte general hors transformation.",
       free_cycle_text: String(cycle.raw_intake_text ?? "").trim(),
+      action_context: null,
     };
   }
 
-  const transformationId = String(args.transformationId ?? "").trim();
+  const transformationId = String(effectiveTransformationId ?? "").trim();
   if (!transformationId) {
     throw new DraftDefenseCardError(400, "transformation_id is required");
   }
@@ -211,7 +279,23 @@ async function loadDefenseScopeContext(args: {
     transformation_title: String(transformation.title ?? "Transformation"),
     transformation_summary: String(transformation.user_summary ?? "").trim(),
     free_cycle_text: String(cycle.raw_intake_text ?? "").trim(),
+    action_context: actionContext,
   };
+}
+
+function formatActionContext(context: DefenseScopeContext): string {
+  const action = context.action_context;
+  if (!action) return "";
+
+  return [
+    `\n## Action du Plan a proteger`,
+    `- Type: ${action.item_kind}`,
+    `- Titre: ${action.item_title}`,
+    `- Description: ${action.item_description ?? "Aucune"}`,
+    `- Niveau: ${action.phase_label ?? "Non precise"}`,
+    `- Cadence: ${action.cadence_label ?? "Non precise"}`,
+    `- Moment: ${action.time_of_day ?? "Non precise"}`,
+  ].join("\n");
 }
 
 function buildQuestionnairePrompt(args: {
@@ -225,6 +309,7 @@ function buildQuestionnairePrompt(args: {
     args.context.free_cycle_text
       ? `\n## Contexte cycle\n${args.context.free_cycle_text}`
       : "",
+    formatActionContext(args.context),
     `\n## Ce que dit l'utilisateur`,
     args.freeText,
     `\nConstruit maintenant l'explication courte puis EXACTEMENT 3 questions.`,
@@ -248,6 +333,7 @@ function buildDraftPrompt(args: {
     args.context.free_cycle_text
       ? `\n## Contexte cycle\n${args.context.free_cycle_text}`
       : "",
+    formatActionContext(args.context),
     `\n## Besoin libre`,
     args.freeText,
     `\n## Reponses aux 3 questions`,
@@ -427,6 +513,7 @@ async function handleRequest(req: Request): Promise<Response> {
       admin,
       userId: authData.user.id,
       transformationId: parsed.data.transformation_id,
+      planItemId: parsed.data.plan_item_id,
       scopeKind,
     });
 
@@ -454,6 +541,7 @@ async function handleRequest(req: Request): Promise<Response> {
         request_id: requestId,
         scope_kind: scopeKind,
         transformation_id: parsed.data.transformation_id ?? null,
+        plan_item_id: parsed.data.plan_item_id ?? null,
         ...payload,
       });
     }
@@ -491,6 +579,7 @@ async function handleRequest(req: Request): Promise<Response> {
       request_id: requestId,
       scope_kind: scopeKind,
       transformation_id: parsed.data.transformation_id ?? null,
+      plan_item_id: parsed.data.plan_item_id ?? null,
       ...payload,
     });
   } catch (error) {

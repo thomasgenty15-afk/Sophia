@@ -3447,7 +3447,12 @@ export default function OnboardingV2() {
       )}
 
       {draft.stage === "generating_plan" && (
-        <PlanGenerationScreen startedAt={loadingState?.started_at ?? draft.loading_request?.started_at ?? null} />
+        <PlanGenerationScreen
+          startedAt={loadingState?.started_at ?? draft.loading_request?.started_at ?? null}
+          transformationSnapshot={
+            currentTransformation?.plan_type_classification?.transformation_snapshot ?? null
+          }
+        />
       )}
 
       {draft.stage === "plan_review" && draft.plan_review && (

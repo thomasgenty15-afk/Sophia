@@ -1,0 +1,580 @@
+{
+  "run_id": "qa7-global-20260624-r1",
+  "scope": "qa-normal-conversation-qa7-global-20260624-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-qa7-global-20260624-r1-1782256328590@example.com",
+  "user_id": "53bd1cfc-ee88-40ba-8c92-08e55b4751ed",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI1M2JkMWNmYy1lZTg4LTQwYmEtOGM5Mi0wOGU1NWI0NzUxZWQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMjU5OTI4LCJpYXQiOjE3ODIyNTYzMjgsImVtYWlsIjoicWEtbm9ybWFsLXFhNy1nbG9iYWwtMjAyNjA2MjQtcjEtMTc4MjI1NjMyODU5MEBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtcWE3LWdsb2JhbC0yMDI2MDYyNC1yMS0xNzgyMjU2MzI4NTkwQGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJxYTctZ2xvYmFsLTIwMjYwNjI0LXIxIiwic3ViIjoiNTNiZDFjZmMtZWU4OC00MGJhLThjOTItMDhlNTViNDc1MWVkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIyNTYzMjh9XSwic2Vzc2lvbl9pZCI6IjI1MWRjZjU1LTBmNWYtNGNkNy05ODUwLTcxNzRmOTJiYjkyOCIsImlzX2Fub255bW91cyI6ZmFsc2V9.wdb44Y1Ql54gSTQ83lQZpKNtZLUjBe9lil6ji2H41nM",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-23T23:12:08.924Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-23T23:12:34.726Z",
+      "user": "Je me sens un peu eparpille ce matin, aide-moi juste a remettre de l'ordre dans ma tete sans lancer d'outil.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je te propose une potion de clarté : quand tu te sens éparpillé, elle aide à retrouver le fil et remettre de l’ordre dans ta tête. Si tu veux, je peux aussi te résumer en une phrase à quoi elle sert.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-23T23:12:34.697Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-23T23:12:34.697Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user demande surtout un soutien pour remettre de l'ordre dans sa tête, sans action de plan ni besoin d'outil.",
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin décrit est un état intérieur global d'éparpillement, sans action concrète à préparer, tenir ou terminer. Dans ce cas, la potion de clarte est la meilleure aide pour retrouver du sens et remettre les idées en ordre."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande surtout un soutien pour remettre de l'ordre dans sa tête, sans action de plan ni besoin d'outil.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                          "feature": "state_potion",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "state_potion",
+                        "reason": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": "clarte"
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User primarily asks for help organizing an internal state ('remettre de l'ordre dans ma tete') and not for a product explanation or a concrete action blocker."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                        "feature": "state_potion",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; section=Potions; object_type=potion; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis aller dans la section Potions"
+                        },
+                        "user_facing_next_step": "Je peux te proposer une potion de clarté pour t'aider à remettre de l'ordre dans ta tête."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User primarily asks for help organizing an internal state ('remettre de l'ordre dans ma tete') and not for a product explanation or a concrete action blocker.",
+                        "category": "emotional_state_coaching",
+                        "confidence": 0.92,
+                        "failure_mode": "unclear",
+                        "coaching_type": "emotional",
+                        "action_context": null,
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": true,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": {
+                          "intensity": "medium",
+                          "state_hint": "éparpillé"
+                        }
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-23T23:12:34.697Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-23T23:12:34.697Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user demande surtout un soutien pour remettre de l'ordre dans sa tête, sans action de plan ni besoin d'outil.",
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin décrit est un état intérieur global d'éparpillement, sans action concrète à préparer, tenir ou terminer. Dans ce cas, la potion de clarte est la meilleure aide pour retrouver du sens et remettre les idées en ordre."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande surtout un soutien pour remettre de l'ordre dans sa tête, sans action de plan ni besoin d'outil.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                          "feature": "state_potion",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "state_potion",
+                        "reason": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": "clarte"
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User primarily asks for help organizing an internal state ('remettre de l'ordre dans ma tete') and not for a product explanation or a concrete action blocker."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                        "feature": "state_potion",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "État intérieur global d’éparpillement, sans action concrète à lancer, tenir ou terminer. La potion de clarté est la plus adaptée pour retrouver le sens et la structure mentale.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; section=Potions; object_type=potion; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis aller dans la section Potions"
+                        },
+                        "user_facing_next_step": "Je peux te proposer une potion de clarté pour t'aider à remettre de l'ordre dans ta tête."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User primarily asks for help organizing an internal state ('remettre de l'ordre dans ma tete') and not for a product explanation or a concrete action blocker.",
+                        "category": "emotional_state_coaching",
+                        "confidence": 0.92,
+                        "failure_mode": "unclear",
+                        "coaching_type": "emotional",
+                        "action_context": null,
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": true,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": {
+                          "intensity": "medium",
+                          "state_hint": "éparpillé"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-23T23:12:34.700673+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa7-global-20260624-r1-t01",
+        "user_id": "53bd1cfc-ee88-40ba-8c92-08e55b4751ed",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa7-global-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose une potion de clarté : quand tu te sens éparpillé, elle aide à retrouver le fil et remettre de l’ordre dans ta tête. Si tu veux, je peux aussi te résumer en une phrase à quoi elle sert.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa7-global-20260624-r1-t01",
+              "source_message_id": "1503a6f5-fca0-4abd-8d55-78f43c125cf9",
+              "user_id": "53bd1cfc-ee88-40ba-8c92-08e55b4751ed",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "emotional_state_coaching_need",
+                  "context": {
+                    "coaching_type": "emotional",
+                    "confidence": 0.92,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": true,
+                      "has_concrete_plan_action": false,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "none",
+                      "plan_item_id": null,
+                      "action_title": null,
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "éparpillé",
+                      "intensity": "medium"
+                    },
+                    "reason": "User primarily asks for help organizing an internal state ('remettre de l'ordre dans ma tete') and not for a product explanation or a concrete action blocker."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "help_user_organize_thoughts_now",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "qa7-global-20260624-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 12388
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa7-global-20260624-r1-t01",
+            "source_message_id": "1503a6f5-fca0-4abd-8d55-78f43c125cf9",
+            "user_id": "53bd1cfc-ee88-40ba-8c92-08e55b4751ed",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "emotional_state_coaching_need",
+                "context": {
+                  "coaching_type": "emotional",
+                  "confidence": 0.92,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": true,
+                    "has_concrete_plan_action": false,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "none",
+                    "plan_item_id": null,
+                    "action_title": null,
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "éparpillé",
+                    "intensity": "medium"
+                  },
+                  "reason": "User primarily asks for help organizing an internal state ('remettre de l'ordre dans ma tete') and not for a product explanation or a concrete action blocker."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "help_user_organize_thoughts_now",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "qa7-global-20260624-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 12388
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-23T23:12:34.726Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-23T23:20:06.289Z"
+}

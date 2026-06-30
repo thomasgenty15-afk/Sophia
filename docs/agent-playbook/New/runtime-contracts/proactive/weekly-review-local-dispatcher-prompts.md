@@ -21,15 +21,15 @@ Routes non visibles :
 
 - `exit_to_global_dispatcher` ne produit pas de message local si le global doit
   reanalyser le meme message.
-- `safety_preempt` laisse la pipeline safety reprendre.
+- les signaux safety utilisent `exit_to_global_dispatcher` vers `global`; le
+  dispatcher global reprend ensuite le meme message et route safety.
 
 ## Cross-Dispatcher Note Information
 
 Use `09-note-information-contract.md`.
 
-Produce `note_information` for `exit_to_global_dispatcher`,
-`safety_preempt`, direct handoff to `adjust_plan_item`, and inline
-product/status roundtrips if enabled. Use
+Produce `note_information` for every `exit_to_global_dispatcher`, including
+`target_dispatcher=global` and `target_dispatcher=coaching_recommendation`. Use
 `source_flow_id="weekly_adaptive_review_v1"` and copy the catalog presentation.
 
 Do not produce it for `stop_weekly`, `complete_weekly_no_change`,
@@ -37,12 +37,11 @@ Do not produce it for `stop_weekly`, `complete_weekly_no_change`,
 dispatcher is called. Those actions close/continue locally and global must not
 run on the same turn.
 
-Choose `target_dispatcher` as `global` for explicit other tool/product/status
-or topic change when not inline, `safety_crisis` for safety,
-`adjust_plan_item` for a direct Plan handoff, and `product_help`/`status_recap`
-for inline info. The handoff context must include weekly stage, strategy, human
-signals, last weekly summary, Plan handoff summary, validation status, and
-no-plan-mutation constraint.
+Choose `target_dispatcher` only as `global` or `coaching_recommendation`.
+Use `global` for explicit other tool/product/status, safety, or topic change.
+Use `coaching_recommendation` only for the recommendation bridge. The handoff
+context must include weekly stage, strategy, human signals, last weekly summary,
+Plan handoff summary, validation status, and no-plan-mutation constraint.
 
 ## Dispatcher Output Contract
 
@@ -50,7 +49,7 @@ Le dispatcher local retourne uniquement ce JSON :
 
 ```json
 {
-  "flow_action": "answer_weekly_question|confirm_weekly_reading|reject_weekly_reading|clarify_human_signal|recap_weekly|explain_weekly_reasoning|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_correction|clarify_forgotten_progress|complete_weekly_no_change|stop_weekly|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_weekly_question|confirm_weekly_reading|reject_weekly_reading|clarify_human_signal|recap_weekly|explain_weekly_reasoning|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_correction|clarify_forgotten_progress|complete_weekly_no_change|stop_weekly|exit_to_global_dispatcher",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "weekly_intent": {
@@ -84,14 +83,14 @@ Le dispatcher local retourne uniquement ce JSON :
     "evidence": "string|null"
   },
   "state_updates": {
-    "status": "open|proposal_discussed|handoff_ready|completed|stopped|exit_to_global|safety",
+    "status": "open|proposal_discussed|handoff_ready|completed|stopped|exit_to_global",
     "weekly_stage": "opening|collecting_human_signal|strategy_ready|plan_handoff|closing",
     "validation_unlock_status": "locked_until_weekly_complete|available",
     "turn_count_increment": 1,
     "close_after_visible": false
   },
   "visible_task": {
-    "kind": "answer_weekly_question|clarify_human_signal|weekly_reading|weekly_recap|explain_reasoning|plan_handoff_ready|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_clarify|forgotten_progress_ack|forgotten_progress_blocked|complete_no_change|stop_close|exit_or_cancel|safety",
+    "kind": "answer_weekly_question|clarify_human_signal|weekly_reading|weekly_recap|explain_reasoning|plan_handoff_ready|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_clarify|forgotten_progress_ack|forgotten_progress_blocked|complete_no_change|stop_close|exit_or_cancel",
     "instruction": "string"
   },
   "exit_memo": {
@@ -109,12 +108,8 @@ Le dispatcher local retourne uniquement ce JSON :
       "committed_effects": []
     },
     "handoff_hint_for_global_dispatcher": {
-      "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|adjust_plan_item|product_help|normal_coaching|unknown",
-      "why": "string|null",
-      "constraints": [
-        "Weekly did not apply a plan change from chat.",
-        "If the user asks to adjust the plan, route to adjust_plan_item as platform_handoff, not execution."
-      ]
+      "likely_intent": "create_one_shot_reminder|coaching_recommendation|product_help|normal_coaching|unknown",
+      "why": "string|null"
     }
   },
   "evidence": ["string"]
@@ -123,8 +118,7 @@ Le dispatcher local retourne uniquement ce JSON :
 
 Rules :
 
-- `exit_memo.needed=true` only for `exit_to_global_dispatcher` or
-  `safety_preempt`.
+- `exit_memo.needed=true` only for `exit_to_global_dispatcher`.
 - `apply_attempt` never mutates the plan.
 - `prepare_plan_handoff` can produce platform handoff data, not execution.
 - `forgotten_progress_correction` is not a plan adjustment; it may route to the
@@ -225,8 +219,9 @@ Le user demande autre chose : carte, potion, preference, status global, product
 help, coaching general, autre outil non weekly.
 Tu dois fournir un exit_memo utile pour la seconde analyse globale.
 
-16. safety_preempt
-Signal safety. Fournis un exit_memo reason=safety.
+16. Safety
+Signal safety. Utilise `exit_to_global_dispatcher` avec
+`target_dispatcher=global` et `exit_memo.reason=safety`.
 
 Regles :
 
@@ -252,7 +247,7 @@ Regles :
 
 Sortie JSON :
 {
-  "flow_action": "answer_weekly_question|confirm_weekly_reading|reject_weekly_reading|clarify_human_signal|recap_weekly|explain_weekly_reasoning|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_correction|clarify_forgotten_progress|complete_weekly_no_change|stop_weekly|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_weekly_question|confirm_weekly_reading|reject_weekly_reading|clarify_human_signal|recap_weekly|explain_weekly_reasoning|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_correction|clarify_forgotten_progress|complete_weekly_no_change|stop_weekly|exit_to_global_dispatcher",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "weekly_intent": {
@@ -286,14 +281,14 @@ Sortie JSON :
     "evidence": "string|null"
   },
   "state_updates": {
-    "status": "open|proposal_discussed|handoff_ready|completed|stopped|exit_to_global|safety",
+    "status": "open|proposal_discussed|handoff_ready|completed|stopped|exit_to_global",
     "weekly_stage": "opening|collecting_human_signal|strategy_ready|plan_handoff|closing",
     "validation_unlock_status": "locked_until_weekly_complete|available",
     "turn_count_increment": 1,
     "close_after_visible": false
   },
   "visible_task": {
-    "kind": "answer_weekly_question|clarify_human_signal|weekly_reading|weekly_recap|explain_reasoning|plan_handoff_ready|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_clarify|forgotten_progress_ack|forgotten_progress_blocked|complete_no_change|stop_close|exit_or_cancel|safety",
+    "kind": "answer_weekly_question|clarify_human_signal|weekly_reading|weekly_recap|explain_reasoning|plan_handoff_ready|revise_plan_handoff|repeat_plan_handoff|apply_attempt|forgotten_progress_clarify|forgotten_progress_ack|forgotten_progress_blocked|complete_no_change|stop_close|exit_or_cancel",
     "instruction": "string"
   },
   "exit_memo": {
@@ -311,12 +306,8 @@ Sortie JSON :
       "committed_effects": []
     },
     "handoff_hint_for_global_dispatcher": {
-      "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|adjust_plan_item|product_help|normal_coaching|unknown",
-      "why": "string|null",
-      "constraints": [
-        "Weekly did not apply a plan change from chat.",
-        "If the user asks to adjust the plan, route to adjust_plan_item as platform_handoff, not execution."
-      ]
+      "likely_intent": "create_one_shot_reminder|coaching_recommendation|product_help|normal_coaching|unknown",
+      "why": "string|null"
     }
   },
   "evidence": ["string"]
@@ -711,14 +702,15 @@ Regles :
 Retourne uniquement le message visible.
 ```
 
-## Prompt 17 - Visible Safety
+## Prompt 17 - Safety Exit
 
 ```txt
-Tu ecris uniquement si la pipeline safety demande un message visible local
-minimal avant reprise safety.
+Le weekly n'ecrit pas de message visible safety local dans le chemin nominal.
+Ce prompt est garde uniquement comme compatibilite/fallback.
 
 Contexte :
-Le dispatcher local a detecte un signal safety.
+Le dispatcher local a detecte un signal safety et a sorti via
+`exit_to_global_dispatcher` vers `global`.
 
 Objectif :
 Ne pas continuer le weekly. Laisser la pipeline safety reprendre.

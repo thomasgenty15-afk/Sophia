@@ -19,6 +19,20 @@ type LevelCompletionModalProps = {
   onSubmit: (answers: LevelReviewAnswerMap) => Promise<void> | void;
 };
 
+const LEVEL_DESIGN_PROGRESS_INTERVAL_MS = 10_000;
+const LEVEL_DESIGN_PROGRESS_LABELS = [
+  "5% - Validation du bilan...",
+  "15% - Lecture des signaux...",
+  "25% - Cadrage du niveau...",
+  "35% - Design des actions...",
+  "45% - Réglage du rythme...",
+  "55% - Construction des semaines...",
+  "65% - Ajustement du cap...",
+  "75% - Vérification du niveau...",
+  "90% - Préparation de l'affichage...",
+  "Finalisation du niveau...",
+];
+
 export function LevelCompletionModal({
   isOpen,
   levelOrder,
@@ -29,29 +43,96 @@ export function LevelCompletionModal({
   onClose,
   onSubmit,
 }: LevelCompletionModalProps) {
-  const [answers, setAnswers] = useState<LevelReviewAnswerMap>({});
+  if (!isOpen) return null;
+
+  const resetKey = questions.map((question) => question.id).join("|");
+
+  return createPortal(
+    <LevelCompletionModalContent
+      key={resetKey}
+      levelOrder={levelOrder}
+      levelTitle={levelTitle}
+      questions={questions}
+      busy={busy}
+      error={error}
+      onClose={onClose}
+      onSubmit={onSubmit}
+    />,
+    document.body,
+  );
+}
+
+function BusyProgressLabel() {
+  const [busyProgressStep, setBusyProgressStep] = useState(0);
 
   useEffect(() => {
-    if (!isOpen) return;
-    setAnswers({});
-  }, [isOpen, questions]);
+    const intervalId = window.setInterval(() => {
+      setBusyProgressStep((current) =>
+        Math.min(current + 1, LEVEL_DESIGN_PROGRESS_LABELS.length - 1)
+      );
+    }, LEVEL_DESIGN_PROGRESS_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  return (
+    <span className="truncate">
+      {LEVEL_DESIGN_PROGRESS_LABELS[busyProgressStep] ??
+        LEVEL_DESIGN_PROGRESS_LABELS[0]}
+    </span>
+  );
+}
+
+function LevelCompletionModalContent({
+  levelOrder,
+  levelTitle,
+  questions,
+  busy,
+  error,
+  onClose,
+  onSubmit,
+}: Omit<LevelCompletionModalProps, "isOpen">) {
+  const [answers, setAnswers] = useState<LevelReviewAnswerMap>({});
+
+  const visibleQuestions = useMemo(
+    () =>
+      questions.filter((question) =>
+        (
+          question.id !== "coherence_reason" ||
+          answers.next_plan_coherence === "no"
+        ) &&
+        (
+          question.id !== "difficulty_details" ||
+          answers.difficulty_signal === "blocking"
+        )
+      ),
+    [answers.difficulty_signal, answers.next_plan_coherence, questions],
+  );
+
+  const visibleAnswers = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(answers).filter(([questionId]) =>
+          visibleQuestions.some((question) => question.id === questionId)
+        ),
+      ) as LevelReviewAnswerMap,
+    [answers, visibleQuestions],
+  );
 
   const isValid = useMemo(
     () =>
-      questions.every((question) =>
+      visibleQuestions.every((question) =>
         !question.required || String(answers[question.id] ?? "").trim().length > 0
       ),
-    [answers, questions],
+    [answers, visibleQuestions],
   );
 
-  if (!isOpen) return null;
-
-  return createPortal(
+  return (
     <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-950/55 p-4 backdrop-blur-sm">
       <div className="absolute inset-0" onClick={busy ? undefined : onClose} />
 
-      <div className="relative z-[1] w-full max-w-3xl overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-[0_36px_120px_-48px_rgba(17,24,39,0.55)]">
-        <div className="border-b border-blue-100 bg-gradient-to-r from-blue-950 to-stone-900 px-6 py-5 text-white">
+      <div className="relative z-[1] flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-[0_36px_120px_-48px_rgba(17,24,39,0.55)]">
+        <div className="shrink-0 border-b border-blue-100 bg-gradient-to-r from-blue-950 to-stone-900 px-6 py-5 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-200">
@@ -76,18 +157,17 @@ export function LevelCompletionModal({
           </div>
         </div>
 
-        <div className="space-y-5 px-6 py-6">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-6">
           <div className="rounded-[24px] border border-blue-100 bg-blue-50/70 p-5">
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-5 w-5 text-blue-600" />
               <p className="text-sm leading-6 text-stone-700">
-                Ce bilan sert à valider le prochain niveau sans relancer toute la roadmap.
-                Sophia garde le cap, mais ajuste la suite selon ce que tu viens de vivre.
+                Ce bilan sert à valider le prochain niveau. Sophia garde le cap et ajuste la suite si besoin.
               </p>
             </div>
           </div>
 
-          {questions.map((question) => (
+          {visibleQuestions.map((question) => (
             <section
               key={question.id}
               className="rounded-[24px] border border-stone-200 bg-stone-50/60 p-5"
@@ -113,7 +193,16 @@ export function LevelCompletionModal({
                         key={option.value}
                         type="button"
                         onClick={() =>
-                          setAnswers((current) => ({ ...current, [question.id]: option.value }))}
+                          setAnswers((current) => {
+                            const next = { ...current, [question.id]: option.value };
+                            if (question.id === "next_plan_coherence" && option.value !== "no") {
+                              delete next.coherence_reason;
+                            }
+                            if (question.id === "difficulty_signal" && option.value !== "blocking") {
+                              delete next.difficulty_details;
+                            }
+                            return next;
+                          })}
                         className={`rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${
                           isSelected
                             ? "border-blue-500 bg-blue-50 text-blue-900"
@@ -148,7 +237,7 @@ export function LevelCompletionModal({
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-white px-6 py-4">
+        <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-white px-6 py-4">
           <button
             type="button"
             onClick={onClose}
@@ -160,14 +249,14 @@ export function LevelCompletionModal({
 
           <button
             type="button"
-            onClick={() => void onSubmit(answers)}
+            onClick={() => void onSubmit(visibleAnswers)}
             disabled={!isValid || busy}
-            className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:opacity-50"
+            className="inline-flex max-w-full items-center justify-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:opacity-50"
           >
             {busy ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Génération...
+                <BusyProgressLabel />
               </>
             ) : (
               <>
@@ -178,7 +267,6 @@ export function LevelCompletionModal({
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

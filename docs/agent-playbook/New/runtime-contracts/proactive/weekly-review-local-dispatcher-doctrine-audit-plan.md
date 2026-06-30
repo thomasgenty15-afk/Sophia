@@ -367,7 +367,6 @@ Le prompt visible recoit uniquement :
 ```json
 {
   "state_summary": "string",
-  "user_words": ["string"],
   "week_window": {
     "start_date": "YYYY-MM-DD",
     "end_date": "YYYY-MM-DD"
@@ -499,7 +498,6 @@ Champs requis :
 - `target_dispatcher`
 - `handoff_context_for_next_dispatcher`
 - `target_local_dispatcher_hint`
-- `user_words`
 - `structured_context`
 - `risk_score`
 - `no_chat_mutation`

@@ -1,0 +1,170 @@
+{
+  "run_id": "feature-opportunity-normal-local-real-20260624-r1",
+  "persona": "qa-skill",
+  "connection_name": "feature_opportunity_feature-opportunity-normal-local-real-20260624-r1",
+  "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-normal-local-real-20260624-r@example.com",
+  "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+  "updated_at": "2026-06-23T23:12:50.229Z",
+  "raw_path": "tests/real-personas/qa-skill/runs/feature_opportunity/feature-opportunity-normal-local-real-20260624-r1.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+      "user_message": "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+      "http_status": 200,
+      "assistant_message": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_exit_to_global",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 2
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+      "user_message": "Quand tu dis Soutien / Habitudes, tu veux dire la fonctionnalité Initiatives ? Quels réglages je dois prévoir si je veux le faire moi-même dans la plateforme ?",
+      "http_status": 200,
+      "assistant_message": "Pas exactement. \n\n- Habitudes, dans le Dashboard > Plan, sert à ancrer une répétition dans ton quotidien.\n- Initiatives, dans Dashboard > Initiatives, sert à planifier un message récurrent que je t’envoie.\n\nSi tu veux le faire toi-même, prévois surtout : quoi dire, pourquoi c’est utile, l’heure, les jours actifs, et la destination du message. \n\nSi tu veux, je peux aussi te dire lequel des deux colle le mieux à ton besoin du lundi matin.",
+      "short_trace": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "product_help_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 4
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+      "user_message": "Autre chose : quand je bloque, ça me frustre que Sophia pose trop de questions. J’aimerais qu’elle soit plus directe et moins interrogative.",
+      "http_status": 200,
+      "assistant_message": "Le bon réglage ici, c’est Preferences coach : baisse la tendance à poser des questions et mets un ton plus direct. Tu peux viser un style plus franc, avec moins d’interrogations quand tu bloques.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T23:12:15.551Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-23T23:12:15.551Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "trop de questions / plus directe / moins interrogative",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User is frustrated with Sophia's style when blocked and wants her to be more direct and less interrogative.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Style feedback maps directly to coach preferences.",
+                "trigger_context": "trop de questions / plus directe / moins interrogative",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 6
+    },
+    {
+      "turn": 4,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+      "user_message": "Et dans Preferences coach, je peux régler quoi exactement ? Je veux juste savoir les options, pas que tu l’appliques.",
+      "http_status": 200,
+      "assistant_message": "Dans Preferences coach, tu peux régler 3 choses :\n- le ton : plus doux, chaleureux/direct ou direct\n- le niveau de challenge : faible, équilibré ou élevé\n- la tendance à poser des questions : peu de questions, normal ou très questionnant\n\nSi tu veux, je peux aussi te dire lequel colle le mieux à ton besoin “plus directe et moins interrogative”.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T23:12:15.551Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-23T23:12:34.004Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "Question about available coach preference options, not an application request.",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User wants to know what options are available in coach preferences, without applying any change.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Style feedback maps directly to coach preferences.",
+                "trigger_context": "trop de questions / plus directe / moins interrogative",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 8
+    },
+    {
+      "turn": 5,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+      "user_message": "Ok merci. Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.",
+      "http_status": 200,
+      "assistant_message": "Une carte d’attaque sert à te pousser vers l’action, à créer de l’élan ou à te challenger.  \nUne carte de défense sert à te protéger, à réduire la pression ou à t’aider à tenir un cadre quand ça secoue 🛡️",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_exit_to_global",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 10
+    }
+  ]
+}

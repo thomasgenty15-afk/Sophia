@@ -2,9 +2,9 @@
 
 ## Scope
 
-This catalog lists flows that already have, or are explicitly planned to have,
-a local dispatcher or local owner able to suspend the global dispatcher while
-the flow is active.
+This catalog lists flows that already have, or are explicitly planned to have, a
+local dispatcher or local owner able to suspend the global dispatcher while the
+flow is active.
 
 Reference doctrine:
 
@@ -15,8 +15,8 @@ Reference doctrine:
 
 Cross-dispatcher rule:
 
-- Any ownership transfer from one dispatcher to another must carry a
-  non-visible `note_information`.
+- Any ownership transfer from one dispatcher to another must carry a non-visible
+  `note_information`.
 - The note helps the next dispatcher fill its JSON from context; it is never a
   user-visible message and never a deterministic routing shortcut.
 - Internal `select_state_potion -> potion subskill` routing remains the explicit
@@ -45,26 +45,27 @@ Allowed non-visible metadata:
 
 Action taxonomy used below:
 
-- `exit_to_global_dispatcher / acknowledge after global routing`: the local flow closes,
-  pauses, or acknowledges the user without reprocessing the same message through
-  global.
+- `exit_to_global_dispatcher / acknowledge after global routing`: the local flow
+  closes, pauses, or acknowledges the user without reprocessing the same message
+  through global.
 - `exit_to_global_dispatcher`: the same user message may be reanalyzed by the
   global dispatcher, with `note_information`.
-- `handoff_to_local_dispatcher`: ownership transfers directly to another local
-  dispatcher, with `note_information`.
+- specialized local transition: ownership transfers directly to another local
+  dispatcher only when the source flow has a named, documented transition. This
+  must not be represented as `exit_to_global_dispatcher`.
 - `safety_preempt`: safety takes priority, with `note_information` for
   `safety_crisis`.
-- `inline_tool_roundtrip`: a parent flow calls `product_help` or
-  `status_recap` for information, then keeps ownership unless safety or an
-  explicit exit changes that.
+- `inline_tool_roundtrip`: a parent flow calls `product_help` or `status_recap`
+  for information, then keeps ownership unless safety or an explicit exit
+  changes that.
 
 Important stop-local rule:
 
-If the user says something like "laisse tomber", "arrete tes questions", or
-"ca me saoule tes questions" without a clear new topic, this is not
-automatically `exit_to_global_dispatcher`. The local dispatcher can return a
-local stop/cancel/ack action, close or defer its state, and avoid calling global
-on the same turn.
+If the user says something like "laisse tomber", "arrete tes questions", or "ca
+me saoule tes questions" without a clear new topic, this is not automatically
+`exit_to_global_dispatcher`. The local dispatcher can return a local
+stop/cancel/ack action, close or defer its state, and avoid calling global on
+the same turn.
 
 ## adjust_plan_item
 
@@ -74,7 +75,8 @@ on the same turn.
 - Local dispatcher: `adjust_plan_item.local_dispatcher` exists in docs and code.
 - Active state key: `__adjust_plan_handoff_state` / active platform handoff
   frame loaded by `adjust_plan_item/state.ts`.
-- Active state status: `collecting|clarifying|handoff_ready|handoff_delivered|revising|apply_attempt|cancelled|exit_to_global|safety`.
+- Active state status:
+  `collecting|clarifying|handoff_ready|handoff_delivered|revising|apply_attempt|cancelled|exit_to_global|safety`.
 - Can handoff to:
   - global dispatcher: yes, for topic change, explicit other tool, status,
     product help, preference update, normal coaching.
@@ -105,7 +107,8 @@ on the same turn.
 - Local dispatcher: `prepare_attack_card.local_dispatcher` exists in docs and
   code.
 - Active state key: `__active_attack_card_handoff`.
-- Active state status: `target_intake|blocker_intake|technique_selection|platform_field_intake|handoff_ready|handoff_delivered|exit`.
+- Active state status:
+  `target_intake|blocker_intake|technique_selection|platform_field_intake|handoff_ready|handoff_delivered|exit`.
 - Can handoff to:
   - global dispatcher: yes, for topic change, cancellation with new topic, or
     explicit request for another owner.
@@ -133,7 +136,8 @@ on the same turn.
   code.
 - Active state key: `__active_tool_skill_intake` when
   `operation_type=prepare_defense_card`.
-- Active state status: `tool_fit|attachment_intake|risk_intake|support_need_intake|handoff_ready|handoff_delivered|exit`.
+- Active state status:
+  `tool_fit|attachment_intake|risk_intake|support_need_intake|handoff_ready|handoff_delivered|exit`.
 - Can handoff to:
   - global dispatcher: yes, for topic change or another explicit owner.
   - safety_crisis: yes, via `safety_preempt`.
@@ -163,7 +167,8 @@ on the same turn.
   and code.
 - Active state key: `__active_tool_skill_intake` when
   `operation_type=select_state_potion`.
-- Active state status: `collecting|clarifying|handoff_ready|handoff_delivered|revise_handoff|repeat_handoff|apply_attempt|cancelled|topic_change|blocked`.
+- Active state status:
+  `collecting|clarifying|handoff_ready|handoff_delivered|revise_handoff|repeat_handoff|apply_attempt|cancelled|topic_change|blocked`.
 - Can handoff to:
   - global dispatcher: yes, for topic change, status DB, one-shot, track
     progress, or explicit other tool.
@@ -179,9 +184,9 @@ on the same turn.
 - Required note_information on ownership transfer: source should include chosen
   potion/state summary, collected fields, weak/missing fields, constraints like
   `no_followup`, and no-potion-session invariant.
-- Notes already present or missing: can receive `operation_input.context.handoff_summary`;
-  demotivation bridge already carries note; generalized note still missing for
-  all exits.
+- Notes already present or missing: can receive
+  `operation_input.context.handoff_summary`; demotivation bridge already carries
+  note; generalized note still missing for all exits.
 - Missing work: accept and persist canonical note for every inbound ownership
   transfer; keep internal subskill exception explicit.
 
@@ -193,7 +198,8 @@ on the same turn.
 - Local dispatcher: planned/partial; no dedicated local dispatcher prompt found,
   but intake/router/state own active handoff continuation.
 - Active state key: `__recurring_reminder_handoff_state`.
-- Active state status: `collecting|clarifying|handoff_ready|handoff_delivered|revise_handoff|repeat_handoff|apply_attempt|handoff_to_one_shot|cancelled|topic_change|blocked`.
+- Active state status:
+  `collecting|clarifying|handoff_ready|handoff_delivered|revise_handoff|repeat_handoff|apply_attempt|handoff_to_one_shot|cancelled|topic_change|blocked`.
 - Can handoff to:
   - global dispatcher: yes, for topic change or unsupported request.
   - safety_crisis: yes through global/safety pregate.
@@ -202,8 +208,7 @@ on the same turn.
   - status_recap inline: not yet explicit; status questions should go to
     status_recap.
   - one_shot_reminder direct effect: yes, via `handoff_to_one_shot`.
-- Stop local actions: `cancelled`, `blocked`, `apply_attempt`,
-  `repeat_handoff`.
+- Stop local actions: `cancelled`, `blocked`, `apply_attempt`, `repeat_handoff`.
 - Exits without handoff: cancel/no-create/draft-only can close locally without
   global.
 - Required note_information on ownership transfer: source should include
@@ -224,14 +229,15 @@ on the same turn.
   and code.
 - Active state key: `__coach_preference_flow_state_v1` and legacy
   `__coach_preference_handoff_state_v1`.
-- Active state status: `collecting|proposed|write_ready|written|blocked|cancelled|exit`.
+- Active state status:
+  `collecting|proposed|write_ready|written|blocked|cancelled|exit`.
 - Can handoff to:
   - global dispatcher: yes, for topic change or unsupported other flow.
   - safety_crisis: yes, via `safety_preempt`.
   - product_help inline: yes, `visible_task.kind=get_info_product`.
   - status_recap inline: yes, `visible_task.kind=get_info_db`.
-  - select_state_potion: yes via global/local handoff if user asks state
-    support instead of preferences.
+  - select_state_potion: yes via global/local handoff if user asks state support
+    instead of preferences.
 - Stop local actions: `cancel_flow`, `punctual_instruction`,
   `unsupported_preference`, `repeat_saved_preferences`.
 - Exits without handoff: fatigue with questions can be handled locally if it is
@@ -247,14 +253,15 @@ on the same turn.
 ## whatsapp_onboarding
 
 - Presentation: Manages WhatsApp onboarding, plan readiness, preference
-  calibration, and first-topic handoff. It blocks normal product exits until
-  the plan is ready.
+  calibration, and first-topic handoff. It blocks normal product exits until the
+  plan is ready.
 - Type: `tool_flow`, onboarding flow.
 - Local dispatcher: `whatsapp_onboarding.local_dispatcher` exists in docs and
   code under `whatsapp-webhook/onboarding`.
 - Active state key: WhatsApp onboarding state and local onboarding state in the
   webhook runtime.
-- Active state status: `awaiting_plan_finalization|awaiting_plan_finalization_support|onboarding_pref_tone|onboarding_pref_challenge|onboarding_pref_questions|onboarding_plan_creation_feedback|onboarding_topic_choice`.
+- Active state status:
+  `awaiting_plan_finalization|awaiting_plan_finalization_support|onboarding_pref_tone|onboarding_pref_challenge|onboarding_pref_questions|onboarding_plan_creation_feedback|onboarding_topic_choice`.
 - Can handoff to:
   - global dispatcher: yes, only when plan is `ready_pending_activation` or
     `active`, or after completion/defer; not for normal product exits before
@@ -273,8 +280,8 @@ on the same turn.
 - Required note_information on ownership transfer: source should include plan
   readiness, onboarding stage, saved/skipped preferences, exit justification,
   and any first-topic hint.
-- Notes already present or missing: `exit_memo_request` exists; generalized
-  note missing.
+- Notes already present or missing: `exit_memo_request` exists; generalized note
+  missing.
 - Missing work: map `exit_memo_request` to canonical `note_information`.
 
 ## demotivation_repair
@@ -292,20 +299,19 @@ on the same turn.
   - product_help inline: possible but not core; should be inline for product
     questions if added.
   - status_recap inline: possible but not core.
-  - select_state_potion: yes, confirmed bridge to `clarte|courage|rappel`
-    mapped visibly to Potion de clarte, Potion de courage, Potion
-    anti-decrochage.
+  - select_state_potion: yes, confirmed bridge to `clarte|courage|rappel` mapped
+    visibly to Potion de clarte, Potion de courage, Potion anti-decrochage.
   - prepare_attack_card / prepare_defense_card: suggested with consent, not
     direct execution.
-- Stop local actions: `cancel_flow`, `repeat_last_repair`,
-  `answer_repair`, `smaller_step`.
-- Exits without handoff: refusal/no questions/no tool support can stay local
-  and close/defer.
+- Stop local actions: `cancel_flow`, `repeat_last_repair`, `answer_repair`,
+  `smaller_step`.
+- Exits without handoff: refusal/no questions/no tool support can stay local and
+  close/defer.
 - Required note_information on ownership transfer: source should include
   diagnosed motivation source, durable need, selected potion if any, prefill
   candidates, weak/missing context, and no-chat-mutation.
-- Notes already present or missing: `note_information` already exists for
-  potion bridge and global exit in docs/code.
+- Notes already present or missing: `note_information` already exists for potion
+  bridge and global exit in docs/code.
 - Missing work: align the existing note with the global canonical metadata
   fields and ensure all transfers use it.
 
@@ -315,8 +321,7 @@ on the same turn.
   or acute emotional pressure. It can bridge to limited state potions after
   consent.
 - Type: `conversation_skill`.
-- Local dispatcher: `emotional_repair.local_dispatcher` exists in docs and
-  code.
+- Local dispatcher: `emotional_repair.local_dispatcher` exists in docs and code.
 - Active state key: `__active_skill_state` with `skill_id=emotional_repair`.
 - Active state status: local repair state with phases
   `stabilize|de_shame|separate_fact_from_identity|repair_relationship|action_card_ready|exit`.
@@ -349,8 +354,8 @@ on the same turn.
 - Active state status: reducer phase
   `entry|immediate_risk_check|acute_grounding|support_contact|stabilizing|exit_check|resolved`.
 - Can handoff to:
-  - global dispatcher: only after reducer-confirmed `resolved_exit_to_global`
-    or equivalent resolved state, not merely because user asks.
+  - global dispatcher: only after reducer-confirmed `resolved_exit_to_global` or
+    equivalent resolved state, not merely because user asks.
   - safety_crisis: already owner.
   - product_help inline: no.
   - status_recap inline: no.
@@ -383,12 +388,11 @@ on the same turn.
   - product_help inline: already itself.
   - status_recap inline: no direct status recap; object status should exit or
     route to parent/global/status.
-  - select_state_potion: only via explicit handoff/global, never by product
-    explanation alone.
-- Stop local actions: `close_product_help`, `return_to_parent_flow`,
-  `apply_attempt` as non-mutant explanation.
-- Exits without handoff: in inline mode, `return_to_parent_flow` is a
-  roundtrip, not global exit.
+  - select_state_potion: no direct product_help target; exit to global if the
+    user is no longer asking a product question.
+- Stop local actions: `close_product_help`, `return_to_parent_flow`.
+- Exits without handoff: in inline mode, `return_to_parent_flow` is a roundtrip,
+  not global exit.
 - Required note_information on ownership transfer: source should include
   answered question, grounded surface/catalog ids, mode, parent flow if any, and
   no-mutation constraints.
@@ -399,8 +403,8 @@ on the same turn.
 
 ## status_recap
 
-- Presentation: Answers DB-grounded questions about what exists, is active,
-  was cancelled, or recently happened. It is read-only and never mutates.
+- Presentation: Answers DB-grounded questions about what exists, is active, was
+  cancelled, or recently happened. It is read-only and never mutates.
 - Type: `conversation_skill`, `inline_info_flow`.
 - Local dispatcher: `status_recap.local_dispatcher` exists in docs and code.
 - Active state key: `__status_recap_flow_state_v1`.
@@ -417,9 +421,9 @@ on the same turn.
   `human_recap_no_db` when handled as redirect/close.
 - Exits without handoff: "stop the recap" closes locally without global if no
   new action is requested.
-- Required note_information on ownership transfer: source should include last
-  DB intent, target objects, projection summary, answer summary, and the
-  constraint not to treat facts as a create/modify request.
+- Required note_information on ownership transfer: source should include last DB
+  intent, target objects, projection summary, answer summary, and the constraint
+  not to treat facts as a create/modify request.
 - Notes already present or missing: `exit_memo` exists; inline status helper
   creates context; canonical note missing.
 - Missing work: standardize `exit_memo` and inline context as
@@ -427,15 +431,16 @@ on the same turn.
 
 ## flow_opportunity_verification
 
-- Presentation: Verifies an implicit opportunity chosen by the global
-  dispatcher while preserving the original confirmation anchor. It can answer
+- Presentation: Verifies an implicit opportunity chosen by the global dispatcher
+  while preserving the original confirmation anchor. It can answer
   product/status questions inline before launching the accepted target flow.
 - Type: `conversation_skill`, `inline_info_flow`.
 - Local dispatcher: `flow_opportunity_verification.local_dispatcher` exists in
   docs and code.
 - Active state key: `__active_skill_state` with
   `skill_id=flow_opportunity_verification`.
-- Active state status: `offered|explaining|waiting_confirmation|accepted|declined|launched|cancelled|exit|blocked`.
+- Active state status:
+  `offered|explaining|waiting_confirmation|accepted|declined|launched|cancelled|exit|blocked`.
 - Can handoff to:
   - global dispatcher: yes, for topic change, direct command other flow,
     unsupported request, stale flow, or cancellation needing reprocess.
@@ -466,7 +471,8 @@ on the same turn.
   code under `_shared/daily_action_review`.
 - Active state key: daily review pending state created by proactive daily
   opening.
-- Active state status: `collecting|needs_clarification|complete|stopped|blocked`.
+- Active state status:
+  `collecting|needs_clarification|complete|stopped|blocked`.
 - Can handoff to:
   - global dispatcher: yes, for explicit tool request, product help, status
     question, preference update, normal coaching, topic change.
@@ -487,13 +493,14 @@ on the same turn.
 
 ## weekly_adaptive_review_v1
 
-- Presentation: Runs the weekly strategic review, updates human signals, and
-  may prepare a Plan handoff. It never applies plan changes from chat.
+- Presentation: Runs the weekly strategic review, updates human signals, and may
+  prepare a Plan handoff. It never applies plan changes from chat.
 - Type: `proactive_followup`.
 - Local dispatcher: `weekly_adaptive_review.local_dispatcher` exists in docs and
   code under `skills/weekly_review`.
 - Active state key: weekly review active state in `weekly_review/state.ts`.
-- Active state status: `open|proposal_discussed|handoff_ready|completed|stopped|exit_to_global|safety`.
+- Active state status:
+  `open|proposal_discussed|handoff_ready|completed|stopped|exit_to_global|safety`.
 - Can handoff to:
   - global dispatcher: yes, for explicit other tool, product help, status,
     preference update, normal coaching, topic change.
@@ -516,114 +523,25 @@ on the same turn.
 
 ## morning_nudge_v2
 
-- Presentation: Proactive send surface that may open a post-morning local flow
-  depending on structured nudge payload. It is not itself a free-form local
-  conversation dispatcher.
-- Type: `proactive_followup` source event.
-- Local dispatcher: no direct dispatcher; resolver selects one of the
-  `post_morning_nudge.*` dispatchers from structured payload.
-- Active state key: persisted `morning_nudge_v2` payload and optional
-  `post_morning_nudge` state.
-- Active state status: `opens_local_flow=true|false` with
-  `intended_followup_flow=action|suppressed_action|emotional_presence|null`.
-- Can handoff to:
-  - global dispatcher: yes when no local flow opens or after post flow explicit
-    exit.
-  - safety_crisis: yes through post flow or global pregate.
-  - product_help inline: only inside post flow if added.
-  - status_recap inline: only inside post flow if added.
-  - select_state_potion: via post flow exit or local handoff.
-- Stop local actions: `no_action_greeting` opens no local flow; no stop action
-  is needed.
-- Exits without handoff: celebratory/greeting payload can leave next user turn
-  to global without note because no dispatcher ownership was active.
-- Required note_information on ownership transfer: if a post flow exits, note
-  belongs to that post flow, not to the send event.
-- Notes already present or missing: structured source payload exists; not a
-  dispatcher-owner note source except through post flows.
-- Missing work: none for catalog except keeping payload structured.
-
-## post_morning_nudge.action
-
-- Presentation: Handles the first reply to a morning action nudge. It helps the
-  user start, reduce scope, handle a blocker, or close quickly.
-- Type: `proactive_followup`.
-- Local dispatcher: `post_morning_nudge.action_dispatcher` exists in docs and
-  code.
-- Active state key: `post_morning_nudge` state with `flow_kind=action`.
-- Active state status: `active|closing|closed|exit_to_global|safety`.
-- Can handoff to:
-  - global dispatcher: yes, for other tool, product help, status, preference,
-    new goal, topic change.
-  - safety_crisis: yes, via `safety_preempt`.
-  - product_help inline: planned/possible; currently exit reason.
-  - status_recap inline: planned/possible; currently exit reason.
-  - select_state_potion: yes via global/local handoff if explicit potion need.
-- Stop local actions: `quick_close_ready`, `cancel_flow`,
-  `negative_nudge_feedback`, `support_not_today`.
-- Exits without handoff: ready/ack/cancel/not-today can close locally with an
-  ack and no global.
-- Required note_information on ownership transfer: source should include source
-  nudge summary, target actions/items, last local assessment, and no-mutation
-  constraints.
-- Notes already present or missing: `exit_memo` exists; canonical note missing.
-- Missing work: map `exit_memo` to canonical note and add inline info if needed.
-
-## post_morning_nudge.suppressed_action
-
-- Presentation: Handles the first reply to a protective morning nudge where an
-  action was deliberately not pushed. It preserves protection unless the user
-  asks to reopen action.
-- Type: `proactive_followup`.
-- Local dispatcher: `post_morning_nudge.suppressed_action_dispatcher` exists in
-  docs and code.
-- Active state key: `post_morning_nudge` state with
-  `flow_kind=suppressed_action`.
-- Active state status: `active|closing|closed|exit_to_global|safety`.
-- Can handoff to:
-  - global dispatcher: yes, for other tool, product help, status, preference,
-    new goal, topic change.
-  - safety_crisis: yes, via `safety_preempt`.
-  - product_help inline: planned/possible; currently exit reason.
-  - status_recap inline: planned/possible; currently exit reason.
-  - select_state_potion: yes if the user explicitly asks for potion/state
-    support beyond local soft support.
-- Stop local actions: `protective_close`, `confirm_no_action_today`,
-  `negative_nudge_feedback`, `cancel_flow`.
-- Exits without handoff: no-action-today/cancel can close locally; no global
-  unless there is a distinct new request.
-- Required note_information on ownership transfer: source should include source
-  nudge summary, suppressed actions, suppression reason, last local assessment,
-  and protection constraint.
-- Notes already present or missing: `exit_memo` exists; canonical note missing.
-- Missing work: map `exit_memo` to canonical note and add inline info if needed.
-
-## post_morning_nudge.emotional_presence
-
-- Presentation: Handles the first reply to a non-action morning presence nudge.
-  It can hold space, clarify support, offer a soft next step, or close quickly.
-- Type: `proactive_followup`.
-- Local dispatcher: `post_morning_nudge.emotional_presence_dispatcher` exists in
-  docs and code.
-- Active state key: `post_morning_nudge` state with
-  `flow_kind=emotional_presence`.
-- Active state status: `active|closing|closed|exit_to_global|safety`.
-- Can handoff to:
-  - global dispatcher: yes, for other tool, product help, status, preference,
-    action-specific request, new goal, topic change.
-  - safety_crisis: yes, via `safety_preempt`.
-  - product_help inline: planned/possible; currently exit reason.
-  - status_recap inline: planned/possible; currently exit reason.
-  - select_state_potion: yes if the user asks for state/potion support.
-- Stop local actions: `presence_ack_close`, `negative_nudge_feedback`,
-  `cancel_flow`.
-- Exits without handoff: acknowledgement/cancel/negative feedback can close
-  locally with no global.
-- Required note_information on ownership transfer: source should include source
-  nudge summary, no-hidden-action constraint, main emotion/context, soft next
-  step if any, and last local assessment.
-- Notes already present or missing: `exit_memo` exists; canonical note missing.
-- Missing work: map `exit_memo` to canonical note and add inline info if needed.
+- Presentation: Proactive send surface only. The scheduler may send a morning
+  nudge, but the nudge never opens a local conversation dispatcher.
+- Type: proactive source event, not a local dispatcher flow.
+- Local dispatcher: none.
+- Active state key: none. Do not create `__active_skill_state`,
+  `active_skill_state`, or dedicated post-morning state from a morning nudge
+  payload.
+- Active state status: not applicable. Payload compatibility fields must remain
+  `opens_local_flow=false` and `intended_followup_flow=null`.
+- Next user turn: routes through the normal global dispatcher and safety
+  routing, using conversation history as context when available.
+- Can handoff to: not applicable; the send event does not own the next turn.
+- Stop local actions: none. There is no local flow to stop or exit.
+- Required note_information on ownership transfer: none, because no ownership
+  transfer is created by the nudge.
+- Notes already present or missing: structured source payload may be logged for
+  observability only.
+- Missing work: keep scheduler payload structured without reintroducing local
+  ownership.
 
 ## Not Local Dispatcher Flows
 
@@ -642,8 +560,8 @@ on the same turn.
 - Presentation: Direct effect owner for explicit plan item progress logging. It
   is not a multi-turn local dispatcher.
 - Type: direct effect, not catalogued as local dispatcher flow.
-- Can receive handoff from: weekly forgotten progress correction, active
-  handoff interruption, or global direct effect.
+- Can receive handoff from: weekly forgotten progress correction, active handoff
+  interruption, or global direct effect.
 - Note requirement: if a local dispatcher transfers to progress tracking, pass
   target item, outcome/status hint, evidence, and no-double-write constraints.
 
@@ -655,19 +573,18 @@ on the same turn.
 
 ## Coverage Checklist
 
-- Local prompt files covered:
-  `adjust-plan-item`, `prepare-attack-card`, `prepare-defense-card`,
-  `whatsapp-onboarding`, `demotivation-repair`, `emotional-repair`,
-  `product-help`, `safety-crisis`, `status-recap`,
+- Local prompt files covered: `adjust-plan-item`, `prepare-attack-card`,
+  `prepare-defense-card`, `whatsapp-onboarding`, `demotivation-repair`,
+  `emotional-repair`, `product-help`, `safety-crisis`, `status-recap`,
   `flow-opportunity-verification`, `daily-action-review`, `weekly-review`,
   `post-morning-nudge.action`, `post-morning-nudge.suppressed_action`,
   `post-morning-nudge.emotional_presence`.
 - Tool flows without local dispatcher prompt but with active handoff state:
   `create_recurring_reminder`.
-- Inline info flows covered:
-  `product_help / get_info_product`, `status_recap / get_info_db`,
-  `flow_opportunity_verification` inline roundtrips.
+- Inline info flows covered: `product_help / get_info_product`,
+  `status_recap / get_info_db`, `flow_opportunity_verification` inline
+  roundtrips.
 - Safety preemption covered for every active local flow.
 - Stop-local actions are separated from `exit_to_global_dispatcher`.
-- `select_state_potion -> potion subskill` is marked as the explicit
-  specialized exception.
+- `select_state_potion -> potion subskill` is marked as the explicit specialized
+  exception.

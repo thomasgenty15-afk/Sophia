@@ -10,7 +10,10 @@ import {
   PROACTIVE_TEMPLATE_CANDIDATE_KIND,
   proactiveTemplatePriorityForPurpose,
 } from "../_shared/proactive_template_queue.ts";
-import { evaluateWhatsAppWinback } from "../_shared/whatsapp_winback.ts";
+import {
+  evaluateWhatsAppWinback,
+  type WinbackStep,
+} from "../_shared/whatsapp_winback.ts";
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts";
 import {
   ACCESS_ENDED_NOTIFICATION_KIND,
@@ -35,6 +38,7 @@ import {
   ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
   buildLightMorningFallbackMessage,
   buildLightMorningInstruction,
+  loadTodayActionOccurrences,
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
 import {
@@ -77,6 +81,15 @@ import {
   type WeeklyPlanningConfirmationPayload,
 } from "../_shared/weekly_planning_confirmation.ts";
 import {
+  addDaysYmd,
+  autoApplyWeeklyPlanning,
+  buildWeeklyPlanningAutoValidationMessage,
+  loadActiveWeeklyPlanning,
+  WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
+  weeklyPlanningAutoValidationScheduledFor,
+  weeklyPlanningPromptScheduledFor,
+} from "../_shared/weekly_planning_lifecycle.ts";
+import {
   autoConfirmOnboardingWeek1Planning,
   buildOnboardingWeek1AutoValidationMessage,
   buildOnboardingWeek1ValidationPromptMessage,
@@ -102,10 +115,6 @@ import {
   resolveMorningNudgePlanV2,
 } from "../sophia-brain/momentum_morning_nudge.ts";
 import {
-  createPostMorningNudgeActiveState,
-  writePostMorningNudgeActiveState,
-} from "../sophia-brain/post_morning_nudge.ts";
-import {
   getUserState,
   updateUserState,
 } from "../sophia-brain/state-manager.ts";
@@ -129,6 +138,14 @@ const RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT = 5;
 const RECURRING_REMINDER_TEMPLATE_QUOTA_KEY = "recurring_reminder_template";
 const RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000;
 const RECURRING_REMINDER_LIVE_TARGET_STATUSES = ["active", "in_maintenance"];
+const DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS = Math.max(
+  1,
+  Number.parseInt(
+    (Deno.env.get("WHATSAPP_BILAN_WINBACK_PLATFORM_ACTIVE_HOURS") ?? "")
+      .trim() || "48",
+    10,
+  ),
+);
 
 function cleanText(value: unknown): string {
   return String(value ?? "").trim();
@@ -147,6 +164,7 @@ type ActionEveningReviewTarget = {
   plan_id: string;
   plan_item_id: string;
   title: string;
+  description?: string | null;
   dimension: string | null;
   kind: string;
   tracking_type: string | null;
@@ -473,6 +491,175 @@ async function createOnboardingWeek1AutoValidationAfterPrompt(params: {
   if (error) throw error;
 }
 
+async function hasActiveWeeklyPlanningCheckin(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  eventContext: string;
+  targetWeekStartDate: string;
+}): Promise<boolean> {
+  const { data, error } = await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .select("id,message_payload")
+    .eq("user_id", params.userId)
+    .eq("event_context", params.eventContext)
+    .in("status", ["pending", "retrying", "awaiting_user", "sent"])
+    .limit(50);
+  if (error) throw error;
+
+  return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
+    const payload = (row as any)?.message_payload ?? {};
+    return cleanText(payload?.target_week_start_date) ===
+        params.targetWeekStartDate ||
+      cleanText(payload?.week_start_date) === params.targetWeekStartDate ||
+      cleanText(payload?.next_week_start_date) === params.targetWeekStartDate;
+  });
+}
+
+async function createWeeklyPlanningPromptAfterWeeklyReview(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  timezone: string;
+  dashboardUrl: string;
+  weeklyCheckinId: string;
+  weeklySentAtIso: string;
+  completedWeekStartDate: string;
+  completedWeekEndDate: string;
+  requestId: string;
+}): Promise<boolean> {
+  const completedWeekStartDate = cleanText(params.completedWeekStartDate);
+  if (!completedWeekStartDate) return false;
+  const targetWeekStartDate = addDaysYmd(completedWeekStartDate, 7);
+  const planning = await loadActiveWeeklyPlanning(params.supabaseAdmin as any, {
+    userId: params.userId,
+    weekStartDate: targetWeekStartDate,
+  });
+  if (!planning.has_pending) return false;
+
+  const alreadyActive = await hasActiveWeeklyPlanningCheckin({
+    supabaseAdmin: params.supabaseAdmin,
+    userId: params.userId,
+    eventContext: WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
+    targetWeekStartDate,
+  });
+  if (alreadyActive) return false;
+
+  const scheduledFor = weeklyPlanningPromptScheduledFor(
+    params.weeklySentAtIso,
+  );
+  const draftMessage = buildWeeklyPlanningValidationMessage({
+    nextWeekStartDate: targetWeekStartDate,
+    dashboardUrl: params.dashboardUrl,
+  });
+  const { error } = await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .insert({
+      user_id: params.userId,
+      origin: "weekly_planning",
+      event_context: WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
+      draft_message: draftMessage,
+      message_mode: "static",
+      message_payload: {
+        source: "process_checkins_weekly_review_sent",
+        version: 1,
+        timezone: params.timezone,
+        dashboard_url: params.dashboardUrl,
+        week_start_date: planning.week_start_date,
+        week_end_date: planning.week_end_date,
+        target_week_start_date: targetWeekStartDate,
+        next_week_start_date: targetWeekStartDate,
+        previous_week_start_date: completedWeekStartDate,
+        previous_week_end_date: cleanText(params.completedWeekEndDate),
+        weekly_checkin_id: params.weeklyCheckinId,
+        weekly_sent_at: params.weeklySentAtIso,
+        summary_lines: planning.summary_lines,
+        created_from: "weekly_progress_review_delivered",
+        generated_at: new Date().toISOString(),
+      },
+      scheduled_for: scheduledFor,
+      status: "pending",
+    } as any);
+  if (error) {
+    console.warn(
+      `[process-checkins] request_id=${params.requestId} weekly_planning_prompt_enqueue_failed user_id=${params.userId}`,
+      error,
+    );
+    throw error;
+  }
+  return true;
+}
+
+async function createWeeklyPlanningAutoValidationAfterPrompt(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  timezone: string;
+  dashboardUrl: string;
+  promptCheckinId: string;
+  promptSentAtIso: string;
+  targetWeekStartDate: string;
+  requestId: string;
+}): Promise<boolean> {
+  const targetWeekStartDate = cleanText(params.targetWeekStartDate).slice(
+    0,
+    10,
+  );
+  if (!targetWeekStartDate) return false;
+  const planning = await loadActiveWeeklyPlanning(params.supabaseAdmin as any, {
+    userId: params.userId,
+    weekStartDate: targetWeekStartDate,
+  });
+  if (!planning.has_pending) return false;
+
+  const alreadyActive = await hasActiveWeeklyPlanningCheckin({
+    supabaseAdmin: params.supabaseAdmin,
+    userId: params.userId,
+    eventContext: WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
+    targetWeekStartDate,
+  });
+  if (alreadyActive) return false;
+
+  const scheduledFor = weeklyPlanningAutoValidationScheduledFor({
+    timezone: params.timezone,
+    promptSentAt: new Date(params.promptSentAtIso),
+  });
+  const { error } = await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .insert({
+      user_id: params.userId,
+      origin: "weekly_planning",
+      event_context: WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
+      draft_message: buildWeeklyPlanningAutoValidationMessage({
+        summaryLines: planning.summary_lines,
+      }),
+      message_mode: "static",
+      message_payload: {
+        source: "process_checkins_weekly_planning_prompt_sent",
+        version: 1,
+        timezone: params.timezone,
+        dashboard_url: params.dashboardUrl,
+        week_start_date: planning.week_start_date,
+        week_end_date: planning.week_end_date,
+        target_week_start_date: targetWeekStartDate,
+        active_plan_ids: planning.active_plan_ids,
+        summary_lines: planning.summary_lines,
+        validation_prompt_checkin_id: params.promptCheckinId,
+        validation_prompt_sent_at: params.promptSentAtIso,
+        created_from: "weekly_planning_prompt_delivered",
+        prompt_kind: "auto_validation",
+        generated_at: new Date().toISOString(),
+      },
+      scheduled_for: scheduledFor,
+      status: "pending",
+    } as any);
+  if (error) {
+    console.warn(
+      `[process-checkins] request_id=${params.requestId} weekly_planning_auto_validation_enqueue_failed user_id=${params.userId}`,
+      error,
+    );
+    throw error;
+  }
+  return true;
+}
+
 async function markScheduledCheckinAwaitingTemplateUser(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
   checkin: Record<string, unknown>;
@@ -562,7 +749,9 @@ async function loadActionEveningReviewTargets(params: {
   const [itemsResult, entriesResult] = await Promise.all([
     params.supabaseAdmin
       .from("user_plan_items")
-      .select("id,title,dimension,kind,tracking_type,status,time_of_day")
+      .select(
+        "id,title,description,dimension,kind,tracking_type,status,time_of_day",
+      )
       .eq("user_id", params.userId)
       .in("id", planItemIds),
     params.supabaseAdmin
@@ -609,6 +798,7 @@ async function loadActionEveningReviewTargets(params: {
       plan_id: cleanText(occurrence.plan_id),
       plan_item_id: planItemId,
       title: cleanText(item.title) || "Action",
+      description: cleanText(item.description) || null,
       dimension: cleanText(item.dimension) || null,
       kind: cleanText(item.kind),
       tracking_type: cleanText(item.tracking_type) || null,
@@ -677,6 +867,7 @@ async function generateDailyActionReviewOpening(params: {
   scheduledFor: string;
   requestId: string;
   allowGreeting: boolean;
+  includeConversationContext?: boolean;
 }): Promise<DailyActionReviewOpeningPlan> {
   const provisionalState = buildInitialDailyActionReviewState(params.targets);
   const provisionalFocusTargets = dailyActionReviewFocusTargets(
@@ -781,6 +972,7 @@ async function generateDailyActionReviewOpening(params: {
         : "process-checkins:daily_action_review_opening_repair",
       requestId: params.requestId,
       fallbackMessage: null,
+      includeConversationContext: params.includeConversationContext,
     });
     attempts.push(body);
     if (
@@ -1192,11 +1384,54 @@ function parseIsoMs(value: unknown): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
-function likelyHasDailyBilanWinbackCandidateToday(
+function dailyBilanWinbackTemplateName(step: WinbackStep): string {
+  if (step === 1) {
+    return cleanText(
+      Deno.env.get("WHATSAPP_BILAN_WINBACK_STEP1_TEMPLATE_NAME"),
+    ) ||
+      "sophia_winback_step1_soft";
+  }
+  if (step === 2) {
+    return cleanText(
+      Deno.env.get("WHATSAPP_BILAN_WINBACK_STEP2_TEMPLATE_NAME"),
+    ) ||
+      "sophia_winback_step2_refocus";
+  }
+  return cleanText(
+    Deno.env.get("WHATSAPP_BILAN_WINBACK_STEP3_TEMPLATE_NAME"),
+  ) ||
+    "sophia_winback_step3_opendoor";
+}
+
+function dailyBilanWinbackTemplateLang(): string {
+  return cleanText(Deno.env.get("WHATSAPP_BILAN_WINBACK_TEMPLATE_LANG")) ||
+    "fr";
+}
+
+function localYmdInTimezone(timezoneRaw: unknown, now = new Date()): string {
+  const timezone = cleanText(timezoneRaw) || "Europe/Paris";
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+  } catch {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Paris",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+  }
+}
+
+function evaluateDailyBilanWinbackForProfile(
   profile: Record<string, unknown> | null | undefined,
-): boolean {
+) {
   if (!profile) return false;
-  const decision = evaluateWhatsAppWinback({
+  return evaluateWhatsAppWinback({
     whatsappBilanOptedIn: profile.whatsapp_bilan_opted_in,
     whatsappBilanPausedUntil: profile.whatsapp_bilan_paused_until,
     whatsappCoachingPausedUntil: profile.whatsapp_coaching_paused_until,
@@ -1204,7 +1439,166 @@ function likelyHasDailyBilanWinbackCandidateToday(
     whatsappBilanWinbackStep: profile.whatsapp_bilan_winback_step,
     whatsappBilanLastWinbackAt: (profile as any).whatsapp_bilan_last_winback_at,
   });
-  return decision.decision === "send" || decision.suppress_other_proactives;
+}
+
+async function loadRecentPlatformActivity(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  sinceIso: string;
+}): Promise<{ recent: boolean; source: string | null; lastAt: string | null }> {
+  const [messagesResult, stateResult] = await Promise.all([
+    params.supabaseAdmin
+      .from("chat_messages")
+      .select("created_at,scope")
+      .eq("user_id", params.userId)
+      .eq("role", "user")
+      .neq("scope", "whatsapp")
+      .gte("created_at", params.sinceIso)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    params.supabaseAdmin
+      .from("user_chat_states")
+      .select("updated_at,scope")
+      .eq("user_id", params.userId)
+      .neq("scope", "whatsapp")
+      .gte("updated_at", params.sinceIso)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  if (messagesResult.error) throw messagesResult.error;
+  if (stateResult.error) throw stateResult.error;
+
+  const messageAt = cleanText((messagesResult.data as any)?.created_at);
+  const stateAt = cleanText((stateResult.data as any)?.updated_at);
+  const messageMs = parseIsoMs(messageAt);
+  const stateMs = parseIsoMs(stateAt);
+  if (messageMs === null && stateMs === null) {
+    return { recent: false, source: null, lastAt: null };
+  }
+  if ((messageMs ?? 0) >= (stateMs ?? 0)) {
+    return {
+      recent: true,
+      source: `chat_messages:${cleanText((messagesResult.data as any)?.scope)}`,
+      lastAt: messageAt,
+    };
+  }
+  return {
+    recent: true,
+    source: `user_chat_states:${cleanText((stateResult.data as any)?.scope)}`,
+    lastAt: stateAt,
+  };
+}
+
+async function shouldSuppressRecurringReminderForDailyBilanWinback(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  profile: Record<string, unknown> | null | undefined;
+}): Promise<boolean> {
+  const decision = evaluateDailyBilanWinbackForProfile(params.profile);
+  if (
+    !decision ||
+    (!decision.suppress_other_proactives && decision.decision !== "send")
+  ) {
+    return false;
+  }
+  const sinceIso = new Date(
+    Date.now() -
+      DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS * 60 * 60 * 1000,
+  ).toISOString();
+  const platformActivity = await loadRecentPlatformActivity({
+    supabaseAdmin: params.supabaseAdmin,
+    userId: params.userId,
+    sinceIso,
+  });
+  return !platformActivity.recent;
+}
+
+async function processDueDailyBilanWinbacks(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  requestId: string;
+}): Promise<number> {
+  const now = new Date();
+  const winbackStep1CutoffIso = new Date(
+    now.getTime() - 2 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  const platformActivityCutoffIso = new Date(
+    now.getTime() -
+      DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS * 60 * 60 * 1000,
+  ).toISOString();
+
+  const { data: profiles, error } = await params.supabaseAdmin
+    .from("profiles")
+    .select(
+      "id,locale,timezone,whatsapp_bilan_opted_in,whatsapp_last_inbound_at,whatsapp_bilan_paused_until,whatsapp_coaching_paused_until,whatsapp_bilan_winback_step,whatsapp_bilan_last_winback_at",
+    )
+    .eq("whatsapp_bilan_opted_in", true)
+    .not("whatsapp_last_inbound_at", "is", null)
+    .lt("whatsapp_last_inbound_at", winbackStep1CutoffIso)
+    .lt("whatsapp_bilan_winback_step", 3)
+    .limit(100);
+  if (error) throw error;
+  if (!profiles || profiles.length === 0) return 0;
+
+  let enqueued = 0;
+  for (const profile of profiles as Array<Record<string, unknown>>) {
+    const userId = cleanText(profile.id);
+    if (!userId) continue;
+
+    const decision = evaluateDailyBilanWinbackForProfile(profile);
+    if (!decision || decision.decision !== "send" || !decision.step) continue;
+
+    const platformActivity = await loadRecentPlatformActivity({
+      supabaseAdmin: params.supabaseAdmin,
+      userId,
+      sinceIso: platformActivityCutoffIso,
+    });
+    if (platformActivity.recent) {
+      console.log(
+        `[process-checkins] request_id=${params.requestId} daily_bilan_winback_skipped_platform_activity user_id=${userId} source=${
+          platformActivity.source ?? "unknown"
+        } last_at=${platformActivity.lastAt ?? "unknown"}`,
+      );
+      continue;
+    }
+
+    const localDay = localYmdInTimezone(profile.timezone, now);
+    await enqueueProactiveTemplateCandidate(params.supabaseAdmin as any, {
+      userId,
+      purpose: "daily_bilan_winback",
+      message: {
+        type: "template",
+        name: dailyBilanWinbackTemplateName(decision.step),
+        language: dailyBilanWinbackTemplateLang(),
+      },
+      requireOptedIn: true,
+      forceTemplate: true,
+      metadataExtra: {
+        source: "process_checkins",
+        winback_step: decision.step,
+        winback_reason: decision.reason,
+        inactivity_days: decision.inactivity_days,
+        platform_activity_window_hours:
+          DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS,
+      },
+      dedupeKey: `daily_bilan_winback:${userId}:${decision.step}:${localDay}`,
+    });
+
+    const { error: updateError } = await params.supabaseAdmin
+      .from("profiles")
+      .update({
+        whatsapp_bilan_missed_streak: 0,
+        whatsapp_bilan_winback_step: decision.step,
+        whatsapp_bilan_last_winback_at: now.toISOString(),
+      })
+      .eq("id", userId);
+    if (updateError) throw updateError;
+
+    enqueued++;
+  }
+  return enqueued;
 }
 
 async function consumeMonthlyWhatsappQuota(params: {
@@ -2057,6 +2451,13 @@ Deno.serve(async (req) => {
       requestId,
     });
 
+    const enqueuedDailyBilanWinbacksBefore = await processDueDailyBilanWinbacks(
+      {
+        supabaseAdmin,
+        requestId,
+      },
+    );
+
     const processedQueuedBefore =
       await processPendingProactiveTemplateCandidates({
         supabaseAdmin,
@@ -2095,6 +2496,7 @@ Deno.serve(async (req) => {
           delivered_rendez_vous: deliveredRendezVous,
           processed_access_notifications: processedAccessBefore +
             processedAccessAfter,
+          enqueued_daily_bilan_winbacks: enqueuedDailyBilanWinbacksBefore,
           processed_proactive_candidates: processedQueuedBefore +
             processedQueuedAfter,
           request_id: requestId,
@@ -2122,6 +2524,8 @@ Deno.serve(async (req) => {
         eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT;
       const isWeeklyPlanningValidationPrompt =
         eventContext === WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT;
+      const isWeeklyPlanningAutoValidation =
+        eventContext === WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT;
       const isWeeklyPlanningConfirmation =
         eventContext === WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT;
       const isWeeklyProgressReview =
@@ -2147,6 +2551,17 @@ Deno.serve(async (req) => {
       let recurringReminderLiveTargetPayload: Record<string, unknown> | null =
         null;
       let forceDynamicRecurringReminder = false;
+
+      if (isActionMorningFollowup) {
+        await markScheduledCheckinDeliveryState({
+          supabaseAdmin,
+          checkinId: checkin.id,
+          status: "cancelled",
+          errorMessage: "action_morning_followup_removed",
+          requestId,
+        });
+        continue;
+      }
 
       // Recurring reminders: if previous consent probes were unanswered, count them.
       // After 2 unanswered probes, auto-pause the reminder and stop future sends.
@@ -2351,6 +2766,65 @@ Deno.serve(async (req) => {
             })
             .eq("id", checkin.id);
           continue;
+        }
+        if (isMomentumMorningNudge || isMorningLightGreeting) {
+          try {
+            const todayActionSchedule = await loadTodayActionOccurrences(
+              supabaseAdmin as any,
+              {
+                userId: String(checkin.user_id),
+                timezone: userTimezone,
+                localTimeHHMM: "08:00",
+              },
+            );
+            const todayActionCount = todayActionSchedule.transformations
+              .reduce(
+                (total, transformation) =>
+                  total + transformation.occurrences.length,
+                0,
+              );
+            if (todayActionCount > 0) {
+              if (isMomentumMorningNudge) {
+                await logMomentumObservabilityEvent({
+                  supabase: supabaseAdmin as any,
+                  userId: checkin.user_id,
+                  requestId,
+                  channel: "whatsapp",
+                  scope: "whatsapp",
+                  sourceComponent: "process_checkins",
+                  eventName: "momentum_morning_nudge_cancelled",
+                  payload: buildMomentumMorningDeliveryPayload(checkin, {
+                    delivery_status: "cancelled",
+                    transport: "priority_guard",
+                    skip_reason: "morning_action_priority_active_today",
+                    plan_item_ids_targeted: todayActionSchedule
+                      .transformations.flatMap((entry) =>
+                        entry.occurrences.map((occurrence) =>
+                          occurrence.plan_item_id
+                        )
+                      ),
+                    plan_item_titles_targeted: todayActionSchedule
+                      .transformations.flatMap((entry) =>
+                        entry.occurrences.map((occurrence) => occurrence.title)
+                      ),
+                  }),
+                });
+              }
+              await markScheduledCheckinDeliveryState({
+                supabaseAdmin,
+                checkinId: checkin.id,
+                status: "cancelled",
+                errorMessage: "morning_action_priority_active_today",
+                requestId,
+              });
+              continue;
+            }
+          } catch (error) {
+            console.warn(
+              `[process-checkins] request_id=${requestId} morning_action_priority_guard_failed checkin_id=${checkin.id}`,
+              error,
+            );
+          }
         }
         const lastInbound = profile?.whatsapp_last_inbound_at
           ? new Date(profile.whatsapp_last_inbound_at).getTime()
@@ -3030,6 +3504,7 @@ Deno.serve(async (req) => {
             scheduledFor: String((checkin as any)?.scheduled_for ?? ""),
             requestId,
             allowGreeting: allowRelaunchGreeting,
+            includeConversationContext: in24hConversationWindow,
           });
           reviewBody = openingPlan.opening_message;
           const alreadyResolvedAck =
@@ -3119,6 +3594,7 @@ Deno.serve(async (req) => {
             });
             continue;
           }
+          const usedTemplate = Boolean((resp as any)?.used_template);
 
           const initialDailyReviewNoteInformation = {
             source_flow_id: "process_checkins.action_evening_review_v2",
@@ -3150,8 +3626,8 @@ Deno.serve(async (req) => {
               ) => target.occurrence_id),
             },
             unresolved_questions: [
-              "Which selected actions were completed, partial, or missed today.",
-              "If partial or missed, the evidence/reason needed by the reducer.",
+              "Which selected actions were done or not done today.",
+              "If not done, the reason and whether the action remains relevant.",
             ],
             confidence: "high",
             evidence: [
@@ -3169,19 +3645,43 @@ Deno.serve(async (req) => {
                 occurrence_id: target.occurrence_id,
                 plan_item_id: target.plan_item_id,
                 title: target.title,
+                description: target.description ?? null,
                 kind: target.kind ?? null,
                 dimension: target.dimension ?? null,
               })),
             },
             risk_score: 0,
-            no_chat_mutation: {
-              db_write_committed: false,
-              potion_session_created: false,
-              scheduled_checkin_created: false,
-              recurring_reminder_created: false,
-              executable_confirmation_generated: false,
-            },
           };
+
+          if (usedTemplate) {
+            await markScheduledCheckinAwaitingTemplateUser({
+              supabaseAdmin,
+              checkin: checkin as Record<string, unknown>,
+              attemptCount,
+              draftMessage: reviewBody,
+              requestId: String((resp as any)?.request_id ?? requestId),
+              extraPayload: {
+                action_evening_review: true,
+                event_context: checkin.event_context,
+                message_mode: "template_gate",
+                chat_capability: "daily_action_review",
+                occurrence_ids: targets.map((target) => target.occurrence_id),
+                targets,
+                already_resolved_targets: alreadyResolvedTargets,
+                initial_note_information: initialDailyReviewNoteInformation,
+                review_state: openingPlan?.initial_skill_state ?? null,
+                asked_occurrence_ids: openingPlan?.asked_occurrence_ids ?? [],
+                not_yet_asked_occurrence_ids:
+                  openingPlan?.not_yet_asked_occurrence_ids ?? [],
+                grouping_reason: openingPlan?.grouping_reason ?? null,
+                local_date: cleanText(payload?.local_date),
+                week_start_date: cleanText(payload?.week_start_date),
+                timezone: userTimezone,
+              },
+            });
+            processedCount++;
+            continue;
+          }
 
           const { error: pendErr } = await supabaseAdmin
             .from("whatsapp_pending_actions")
@@ -3353,6 +3853,152 @@ Deno.serve(async (req) => {
           continue;
         }
       }
+      if (isWeeklyPlanningAutoValidation) {
+        const attemptCount = Math.max(
+          1,
+          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
+        );
+        const dashboardUrl = cleanText(payload?.dashboard_url) ||
+          weeklyPlanningDashboardUrl(publicSiteUrl());
+        const targetWeekStartDate = cleanText(
+          payload?.target_week_start_date,
+        ) || cleanText(payload?.week_start_date);
+        if (!targetWeekStartDate) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            attemptCount,
+            errorMessage: "weekly_planning_auto_validation_week_missing",
+            requestId,
+          });
+          continue;
+        }
+
+        try {
+          const alreadyAppliedByThisCheckin = Boolean(
+            payload?.weekly_auto_validation_applied,
+          );
+          const confirmation = alreadyAppliedByThisCheckin
+            ? {
+              changed: true,
+              planning: await loadActiveWeeklyPlanning(supabaseAdmin as any, {
+                userId: String(checkin.user_id),
+                weekStartDate: targetWeekStartDate,
+              }),
+            }
+            : await autoApplyWeeklyPlanning(
+              supabaseAdmin as any,
+              {
+                userId: String(checkin.user_id),
+                weekStartDate: targetWeekStartDate,
+                nowIso: new Date().toISOString(),
+              },
+            );
+          if (!confirmation.changed) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              attemptCount,
+              errorMessage: confirmation.planning.already_confirmed
+                ? "weekly_planning_already_confirmed"
+                : "weekly_planning_no_pending_active_rows",
+              requestId,
+            });
+            continue;
+          }
+
+          const autoBody = buildWeeklyPlanningAutoValidationMessage({
+            summaryLines: confirmation.planning.summary_lines.length > 0
+              ? confirmation.planning.summary_lines
+              : Array.isArray(payload?.summary_lines)
+              ? payload.summary_lines.map((line: unknown) => cleanText(line))
+                .filter(Boolean)
+              : [],
+          });
+          if (!alreadyAppliedByThisCheckin) {
+            const { error: appliedPayloadError } = await supabaseAdmin
+              .from("scheduled_checkins")
+              .update({
+                message_payload: {
+                  ...payload,
+                  weekly_auto_validation_applied: true,
+                  weekly_auto_validation_applied_at: new Date().toISOString(),
+                  weekly_auto_validation_summary_lines:
+                    confirmation.planning.summary_lines,
+                },
+              } as any)
+              .eq("id", checkin.id);
+            if (appliedPayloadError) throw appliedPayloadError;
+          }
+          const message = in24hConversationWindow
+            ? { type: "text" as const, body: autoBody }
+            : weeklyPlanningTemplateMessage(dashboardUrl) ??
+              { type: "text" as const, body: autoBody };
+          const resp = await callWhatsappSend({
+            user_id: checkin.user_id,
+            message,
+            purpose: "weekly_planning_auto_validation",
+            require_opted_in: true,
+            force_template: !in24hConversationWindow,
+            metadata_extra: {
+              source: "scheduled_checkin",
+              event_context: checkin.event_context,
+              original_checkin_id: checkin.id,
+              purpose: "weekly_planning_auto_validation",
+              dashboard_url: dashboardUrl,
+              week_start_date: confirmation.planning.week_start_date,
+              week_end_date: confirmation.planning.week_end_date,
+              auto_validated: confirmation.changed,
+            },
+          });
+          if (Boolean((resp as any)?.skipped)) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              attemptCount,
+              draftMessage: autoBody,
+              errorMessage: String(
+                (resp as any)?.skip_reason ??
+                  "weekly_planning_auto_validation_skipped",
+              ),
+              requestId: String((resp as any)?.request_id ?? requestId),
+            });
+            continue;
+          }
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "sent",
+            attemptCount,
+            draftMessage: autoBody,
+            errorMessage: null,
+            requestId: String((resp as any)?.request_id ?? requestId),
+          });
+          processedCount++;
+          continue;
+        } catch (e) {
+          const status = (e as any)?.status;
+          const msg = e instanceof Error ? e.message : String(e);
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: shouldRetryScheduledCheckinDelivery(status)
+              ? "retrying"
+              : "failed",
+            attemptCount,
+            scheduledFor: shouldRetryScheduledCheckinDelivery(status)
+              ? computeNextRetryAtIso(attemptCount)
+              : null,
+            draftMessage: cleanText(bodyText) || null,
+            errorMessage: msg,
+            requestId,
+          });
+          continue;
+        }
+      }
       if (isWeeklyPlanningValidationPrompt) {
         const attemptCount = Math.max(
           1,
@@ -3403,20 +4049,30 @@ Deno.serve(async (req) => {
             continue;
           }
           if (Boolean((resp as any)?.used_template)) {
-            await markScheduledCheckinAwaitingTemplateUser({
+            const promptSentAtIso = new Date().toISOString();
+            await markScheduledCheckinDeliveryState({
               supabaseAdmin,
-              checkin: checkin as Record<string, unknown>,
+              checkinId: checkin.id,
+              status: "sent",
               attemptCount,
               draftMessage: reviewBody,
+              errorMessage: null,
               requestId: String((resp as any)?.request_id ?? requestId),
-              extraPayload: {
-                dashboard_url: dashboardUrl,
-                next_week_start_date: nextWeekStartDate || null,
-              },
+            });
+            await createWeeklyPlanningAutoValidationAfterPrompt({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+              timezone: userTimezone,
+              dashboardUrl,
+              promptCheckinId: String(checkin.id),
+              promptSentAtIso,
+              targetWeekStartDate: nextWeekStartDate,
+              requestId,
             });
             processedCount++;
             continue;
           }
+          const promptSentAtIso = new Date().toISOString();
           await markScheduledCheckinDeliveryState({
             supabaseAdmin,
             checkinId: checkin.id,
@@ -3425,6 +4081,16 @@ Deno.serve(async (req) => {
             draftMessage: reviewBody,
             errorMessage: null,
             requestId: String((resp as any)?.request_id ?? requestId),
+          });
+          await createWeeklyPlanningAutoValidationAfterPrompt({
+            supabaseAdmin,
+            userId: String(checkin.user_id),
+            timezone: userTimezone,
+            dashboardUrl,
+            promptCheckinId: String(checkin.id),
+            promptSentAtIso,
+            targetWeekStartDate: nextWeekStartDate,
+            requestId,
           });
           processedCount++;
           continue;
@@ -3743,6 +4409,7 @@ Deno.serve(async (req) => {
                   .toISOString(),
               });
             if (pendErr) throw pendErr;
+            const weeklySentAtIso = new Date().toISOString();
             await markScheduledCheckinDeliveryState({
               supabaseAdmin,
               checkinId: checkin.id,
@@ -3751,6 +4418,22 @@ Deno.serve(async (req) => {
               draftMessage: reviewBody,
               errorMessage: null,
               requestId: String((resp as any)?.request_id ?? requestId),
+            });
+            await createWeeklyPlanningPromptAfterWeeklyReview({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+              timezone: userTimezone,
+              dashboardUrl,
+              weeklyCheckinId: String(checkin.id),
+              weeklySentAtIso,
+              completedWeekStartDate: review.week_start_date,
+              completedWeekEndDate: review.week_end_date,
+              requestId,
+            }).catch((error) => {
+              console.warn(
+                `[process-checkins] request_id=${requestId} weekly_planning_prompt_enqueue_after_template_failed checkin_id=${checkin.id}`,
+                error,
+              );
             });
             processedCount++;
             continue;
@@ -3892,7 +4575,13 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        if (likelyHasDailyBilanWinbackCandidateToday(userProfileSnapshot)) {
+        if (
+          await shouldSuppressRecurringReminderForDailyBilanWinback({
+            supabaseAdmin,
+            userId: String(checkin.user_id),
+            profile: userProfileSnapshot,
+          })
+        ) {
           await supabaseAdmin
             .from("scheduled_checkins")
             .update({
@@ -4087,26 +4776,6 @@ Deno.serve(async (req) => {
                 tempMemory,
               });
             }
-          }
-          const postMorningState = payload?.morning_nudge_v2
-            ? createPostMorningNudgeActiveState({
-              sourceNudge: payload.morning_nudge_v2,
-              nowIso: new Date().toISOString(),
-            })
-            : null;
-          if (postMorningState) {
-            tempMemory = writePostMorningNudgeActiveState(
-              tempMemory,
-              postMorningState,
-            );
-            await persistWhatsappTempMemory({
-              supabaseAdmin,
-              userId: String(checkin.user_id),
-              tempMemory,
-            });
-            console.log(
-              `[process-checkins] request_id=${requestId} post_morning_nudge.flow_kind=${postMorningState.flow_kind} status=${postMorningState.status}`,
-            );
           }
         }
       } catch (e) {
@@ -4436,11 +5105,43 @@ Deno.serve(async (req) => {
             }),
           });
         }
+        if (isWeeklyProgressReview) {
+          const weeklyProgressReview = payload?.weekly_progress_review as
+            | { week_start_date?: unknown; week_end_date?: unknown }
+            | null
+            | undefined;
+          const weeklySentAtIso = new Date().toISOString();
+          await createWeeklyPlanningPromptAfterWeeklyReview({
+            supabaseAdmin,
+            userId: String(checkin.user_id),
+            timezone: userTimezone,
+            dashboardUrl: cleanText(payload?.dashboard_url) ||
+              weeklyPlanningDashboardUrl(publicSiteUrl()),
+            weeklyCheckinId: String(checkin.id),
+            weeklySentAtIso,
+            completedWeekStartDate: cleanText(
+              weeklyProgressReview?.week_start_date,
+            ) || cleanText(payload?.week_start_date),
+            completedWeekEndDate: cleanText(
+              weeklyProgressReview?.week_end_date,
+            ) || cleanText(payload?.week_end_date),
+            requestId,
+          }).catch((error) => {
+            console.warn(
+              `[process-checkins] request_id=${requestId} weekly_planning_prompt_enqueue_after_sent_failed checkin_id=${checkin.id}`,
+              error,
+            );
+          });
+        }
         processedCount++;
       }
     }
 
     const processedAccessAfter = await processPendingAccessEndedNotifications({
+      supabaseAdmin,
+      requestId,
+    });
+    const enqueuedDailyBilanWinbacksAfter = await processDueDailyBilanWinbacks({
       supabaseAdmin,
       requestId,
     });
@@ -4459,6 +5160,8 @@ Deno.serve(async (req) => {
         delivered_rendez_vous: deliveredRendezVous,
         processed_access_notifications: processedAccessBefore +
           processedAccessAfter,
+        enqueued_daily_bilan_winbacks: enqueuedDailyBilanWinbacksBefore +
+          enqueuedDailyBilanWinbacksAfter,
         processed_proactive_candidates: processedQueuedBefore +
           processedQueuedAfter,
         request_id: requestId,

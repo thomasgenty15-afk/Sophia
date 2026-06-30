@@ -37,13 +37,9 @@ The dispatcher returns only this JSON :
     "motivation_state": "fatigue|loss_of_meaning|failure_accumulation|avoidance|overwhelm|unclear",
     "action_readiness": "none|hypothetical|ready|already_chosen",
     "summary": "string",
-    "user_words": ["string"],
     "identity_freeze_risk": true,
     "motivation_source_diagnosed": false
   },
-  "constraints": [
-    "no_potion|no_tool|no_plan_edit|no_questions|one_question_max|concrete_before_question|short_reply|do_not_moralize|do_not_modify_plan_yet|prefer_smallest_action"
-  ],
   "response_contract": {
     "max_questions": 0,
     "allow_plan_edit": false,
@@ -89,7 +85,6 @@ The dispatcher returns only this JSON :
     "kind": "diagnose|reduce_friction|restore_meaning|stabilize_energy|smaller_step|action_card_candidate|potion_bridge_offer|potion_bridge_choice|potion_bridge_handoff|ask_gentle_clarification|repeat_repair|exit_or_cancel|safety",
     "required_data": {
       "repair_summary": "string",
-      "user_words": ["string"],
       "selected_potion": "clarte|courage|rappel|null",
       "potion_label": "Potion de clarté|Potion de courage|Potion anti-décrochage|null",
       "bridge_context_summary": "string|null"

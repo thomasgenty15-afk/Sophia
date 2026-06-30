@@ -5,14 +5,13 @@ Document de prompts pour `product_help.local_dispatcher`.
 `product_help` est un conversation skill produit non-mutant. Il peut etre
 standalone ou appele inline par un flow parent.
 
-Inventaire retenu : **11 prompts au total**.
+Inventaire retenu : **10 prompts au total**.
 
 - 1 prompt dispatcher local structure.
-- 10 prompts conversationnels visibles.
+- 9 prompts conversationnels visibles.
 
 Routes non visibles :
 
-- `return_to_parent_flow` rend la main au flow parent apres la reponse visible.
 - `exit_to_global_dispatcher` ne produit pas de message local si le global doit
   reanalyser le meme message.
 - `safety_preempt` laisse la pipeline safety reprendre.
@@ -29,11 +28,11 @@ owner.
 
 When standalone `product_help` exits to global or safety, produce
 `note_information` with `source_flow_id="product_help"` and the catalog
-presentation. Do not produce it for `close_product_help` or
-`return_to_parent_flow` when the parent remains owner. `target_dispatcher` is
-`global` for off-topic or explicit other-flow requests and `safety_crisis` for
-safety preemption. The handoff context must include the answered question,
-grounding ids, mode, parent flow if any, and no-mutation constraints.
+presentation. Do not produce it for `close_product_help` or inline return when
+the parent remains owner. `target_dispatcher` is `global` for off-topic or
+explicit other-flow requests and `safety_crisis` for safety preemption. The
+handoff context must include the answered question, grounding ids, mode, parent
+flow if any, and no-mutation constraints.
 
 ## Prompt 01 - Dispatcher Local Product Help
 
@@ -87,25 +86,21 @@ Actions possibles :
 - explain_limit
 - bridge_explanation_only
 - repeat_answer
-- apply_attempt
 - close_product_help
-- return_to_parent_flow
 - exit_to_global_dispatcher
 - safety_preempt
 
 Priorite des actions :
 1. safety_preempt
-2. apply_attempt
-3. return_to_parent_flow si mode=inline et la question produit est repondable
-4. exit_to_global_dispatcher si le message quitte clairement product_help
-5. close_product_help
-6. repeat_answer
-7. answer_destination
-8. compare_features
-9. explain_limit
-10. bridge_explanation_only
-11. clarify_product_question
-12. answer_product_question
+2. exit_to_global_dispatcher si le message quitte clairement product_help
+3. close_product_help
+4. repeat_answer
+5. answer_destination
+6. compare_features
+7. explain_limit
+8. bridge_explanation_only
+9. clarify_product_question
+10. answer_product_question
 
 Definitions :
 - answer_product_question : explication produit generale ou specifique.
@@ -115,9 +110,7 @@ Definitions :
 - explain_limit : le user demande ce qui est possible/impossible depuis le chat ou la plateforme.
 - bridge_explanation_only : le user demande une action tool mais product_help explique le flow/destination sans le lancer.
 - repeat_answer : le user demande de redire.
-- apply_attempt : le user demande de faire/creer/modifier/activer depuis le chat.
 - close_product_help : le user indique que l'explication suffit.
-- return_to_parent_flow : mode inline, reponse produit livree, le parent reprend.
 - exit_to_global_dispatcher : le user demande autre chose qui n'est plus product_help.
 - safety_preempt : signal safety.
 
@@ -130,7 +123,7 @@ Regles standalone :
 Regles inline :
 - Le parent flow reste owner.
 - Reponds seulement a la question produit.
-- Apres reponse, retourne return_to_parent_flow.
+- Apres reponse, remplis `return_to_parent.needed=true`; le parent reprend.
 - Ne modifie pas parent_flow_context sauf trace diagnostique.
 - Ne remplis pas les slots du parent.
 - Ne fais pas d'exit global depuis inline sauf safety ou demande clairement hors parent et hors product_help; dans ce cas l'exit_memo doit mentionner le parent.
@@ -143,7 +136,7 @@ Regles de grounding :
 
 Sortie JSON :
 {
-  "flow_action": "answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|apply_attempt|close_product_help|return_to_parent_flow|exit_to_global_dispatcher|safety_preempt",
+  "flow_action": "answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|close_product_help|exit_to_global_dispatcher|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "mode": "standalone|inline",
@@ -152,7 +145,7 @@ Sortie JSON :
     "summary": "string"
   },
   "target": {
-    "kind": "feature_catalog|user_object|recent_effect|pending_draft|tool_flow|unknown",
+    "kind": "feature_catalog|user_object|recent_effect|pending_draft|unknown",
     "feature_id": "string|null",
     "object_type": "attack_card|defense_card|one_shot_reminder|recurring_reminder|potion|plan_item|preference|initiative|null",
     "object_ref": "string|null",
@@ -168,8 +161,8 @@ Sortie JSON :
   },
   "bridge": {
     "needed": false,
-    "operation_type": "prepare_attack_card|prepare_defense_card|select_state_potion|create_recurring_reminder|one_shot_reminder|adjust_plan_item|update_coach_preferences|null",
-    "kind": "explain_only|offer_with_consent|handoff_needed|null",
+    "operation_type": null,
+    "kind": "explain_only|null",
     "executable": false,
     "why": "string|null"
   },
@@ -181,7 +174,7 @@ Sortie JSON :
     "preserve_parent_flow": true
   },
   "visible_task": {
-    "kind": "answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|apply_attempt|close_product_help|safety",
+    "kind": "answer_product_question|clarify_product_question|answer_destination|compare_features|explain_limit|bridge_explanation_only|repeat_answer|stop_or_cancel|exit_ack|close_product_help|safety_transition",
     "instruction": "string"
   },
   "return_to_parent": {
@@ -204,11 +197,7 @@ Sortie JSON :
     },
     "handoff_hint_for_global_dispatcher": {
       "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|adjust_plan_item|one_shot_reminder|create_recurring_reminder|normal_coaching|unknown",
-      "why": "string|null",
-      "constraints": [
-        "product_help did not execute or mutate anything.",
-        "Global dispatcher is allowed only because product_help.local_dispatcher returned exit_to_global_dispatcher."
-      ]
+      "why": "string|null"
     }
   },
   "evidence": ["string"]
@@ -464,7 +453,8 @@ Checks interdits :
 
 - classifier le message par regex ;
 - mapper des mots utilisateur vers `flow_action` cote code ;
-- produire une reponse visible par renderer deterministe dans le chemin nominal ;
+- produire une reponse visible par renderer deterministe dans le chemin nominal
+  ;
 - convertir `bridge` en operation ;
 - remplir les champs d'un flow parent.
 
@@ -475,7 +465,7 @@ Checks interdits :
 - Inline product_help does not mutate parent fields.
 - Product help never creates operation suggestions.
 - Product help never creates requested/allowed/committed effects.
-- Product help apply_attempt is non-mutant.
+- Product help exits to global for operational requests outside product help.
 - Product help bridge is explanatory only.
 - Real object status requires grounding.
 - Destination answer is short.

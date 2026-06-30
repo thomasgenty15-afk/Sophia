@@ -121,7 +121,7 @@ Deno.test("memorizer bridge invalidates immediate payload on correction notes", 
 
 Deno.test("operation action observations are valid memorizer candidates", () => {
   const observation = buildOperationActionObservationCandidate({
-    operation_type: "adjust_plan_item",
+    operation_type: "track_progress_plan_item",
     source_message_id: "message-3",
     summary: "plan item marche moved to demain matin",
     topic_hint: "execution.walk",

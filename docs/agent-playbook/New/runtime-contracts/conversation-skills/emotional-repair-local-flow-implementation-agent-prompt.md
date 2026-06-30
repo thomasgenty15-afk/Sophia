@@ -89,7 +89,7 @@ Implementation attendue :
      - previous repair summary ;
      - previous potion bridge offer if any ;
      - turn_frame safety/risk ;
-     - explicit constraints ;
+     - explicit user limits and refusal flags as runtime-owned context ;
      - possible potion bridge targets and fields.
    - Le dispatcher ne produit jamais de message visible.
 
@@ -120,7 +120,6 @@ Implementation attendue :
      - origin_flow="emotional_repair"
      - origin_turn_summary
      - emotional_episode.summary
-     - emotional_episode.user_words
      - durable_need.kind
      - selected_potion
      - selection_reason
@@ -197,7 +196,7 @@ Bridge context :
 - guerison context fills recent_hurt and dominant_feeling candidate.
 - apaisement context fills pressure_source and pressure_state candidate.
 - origin_flow is emotional_repair.
-- user_words are carried without identity-freeze persistence.
+- Raw user snippets are runtime-owned and must not be requested from the local dispatcher.
 - no_chat_mutation flags remain false.
 
 select_state_potion consumption :
@@ -246,4 +245,3 @@ Definition of done :
 - No durable effect is possible.
 - Tests and a short QA report are added.
 ```
-

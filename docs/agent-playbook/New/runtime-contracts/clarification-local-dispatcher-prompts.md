@@ -52,7 +52,6 @@ The dispatcher returns only this JSON :
     "selected_candidate_id": "string|null",
     "selected_candidate_label": "string|null",
     "why_selected_or_not": "string",
-    "user_words": ["string"],
     "turn_count": 0
   },
   "inline_tool": {
@@ -67,8 +66,7 @@ The dispatcher returns only this JSON :
       "conflict_summary": "string",
       "candidate_labels": ["string"],
       "selected_candidate_label": "string|null",
-      "question": "string|null",
-      "user_words": ["string"]
+      "question": "string|null"
     }
   },
   "note_information": {
@@ -262,7 +260,6 @@ Le prochain dispatcher va reprendre avec une note_information.
 
 Donnees :
 - selected_candidate_label
-- user_words
 
 Objectif :
 Acknowledgement naturel, sans executer l'action.
@@ -394,4 +391,3 @@ Regles :
 
 Retourne uniquement le message visible.
 ```
-

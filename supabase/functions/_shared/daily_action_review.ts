@@ -87,6 +87,7 @@ export type DailyActionReviewTarget = {
   plan_label?: string | null;
   plan_item_id: string;
   title: string;
+  description?: string | null;
   dimension?: string | null;
   kind?: string | null;
   tracking_type?: string | null;
@@ -591,12 +592,14 @@ export function buildDailyActionReviewGrounding(
 ): string {
   const lines = ["event=daily_action_review_v1"];
   targets.forEach((target, index) => {
+    const description = cleanText(target.description);
     lines.push(
       [
         `target_${index + 1}:`,
         `occurrence_id=${cleanText(target.occurrence_id)}`,
         `plan_item_id=${cleanText(target.plan_item_id)}`,
         `title=${cleanText(target.title) || "Action"}`,
+        `description=${description ? description.slice(0, 500) : "unknown"}`,
         `dimension=${cleanText(target.dimension) || "unknown"}`,
         `kind=${cleanText(target.kind) || "unknown"}`,
         `time_of_day=${cleanText(target.time_of_day) || "unknown"}`,

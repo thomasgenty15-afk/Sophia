@@ -1,7 +1,4 @@
-import type {
-  ConversationSkillEffectLedger,
-  ConversationSkillOperationSuggestion,
-} from "../../contracts/skill_output.v1.ts";
+import type { ConversationSkillEffectLedger } from "../../contracts/skill_output.v1.ts";
 import type { MemoryWriteCandidate } from "../../contracts/memory_write_candidate.v1.ts";
 
 export type StandardConversationSkillIntent =
@@ -40,7 +37,6 @@ export type StandardConversationSkillDecision = {
 };
 
 export type ConversationSkillEffectDraftInput = {
-  operation_suggestions?: ConversationSkillOperationSuggestion[];
   memory_write_candidates?: MemoryWriteCandidate[];
   handoff_request?: unknown;
   intake_failed?: boolean;
@@ -71,25 +67,6 @@ export function conversationEffectsFromCandidates(
     effects.blocked.push({
       type: "durable_effect",
       reason_code: "missing_slots",
-    });
-  }
-  for (const suggestion of input.operation_suggestions ?? []) {
-    effects.requested.push({
-      type: "operation_suggestion",
-      operation_type: suggestion.operation_type,
-      requires_user_consent: suggestion.requires_user_consent,
-    });
-    if (suggestion.requires_user_consent !== true) {
-      effects.blocked.push({
-        type: "operation_suggestion",
-        reason_code: "user_consent_required",
-      });
-      continue;
-    }
-    effects.allowed.push({
-      type: "operation_suggestion_candidate",
-      operation_type: suggestion.operation_type,
-      reason_code: "conversation_suggestion_only",
     });
   }
   for (const candidate of input.memory_write_candidates ?? []) {

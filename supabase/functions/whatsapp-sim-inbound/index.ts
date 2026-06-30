@@ -6,10 +6,11 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { extractHiddenFilRougeNote } from "../sophia-brain/chat_text.ts";
 import { processMessage } from "../sophia-brain/router/run.ts";
-import type { CoachPreferenceLocalUpdate } from "../sophia-brain/tools/operations/update_coach_preferences/contract.ts";
-import { upsertCoachPreferencesFromLockedUpdates } from "../sophia-brain/tools/operations/update_coach_preferences/status.ts";
 
-type CoachPreferenceKey = CoachPreferenceLocalUpdate["key"];
+type CoachPreferenceKey =
+  | "coach.tone"
+  | "coach.challenge_level"
+  | "coach.question_tendency";
 
 type Body = {
   text?: string;
@@ -150,35 +151,33 @@ function coachPreferenceUserFacingValue(key: string, value: string): string {
   return value;
 }
 
-async function persistCoachPreferenceViaOperation(params: {
+async function persistCoachPreferenceFromSimulation(params: {
   admin: ReturnType<typeof createClient>;
   userId: string;
   key: CoachPreferenceKey;
   value: string;
   requestId: string;
 }) {
+  const nowIso = new Date().toISOString();
   const label = coachPreferenceUserFacingValue(params.key, params.value);
-  const update: CoachPreferenceLocalUpdate = {
+  const { error } = await params.admin.from("user_profile_facts").upsert({
+    user_id: params.userId,
+    scope: "global",
     key: params.key,
-    value: params.value as CoachPreferenceLocalUpdate["value"],
-    status: "locked",
-    user_facing_label: label,
-    user_facing_value: label,
-    reason: "Réglage onboarding WhatsApp explicite.",
-    needs_user_confirmation: false,
-    source: "user_message",
-    confidence: "high",
-    evidence: [`${params.key}=${params.value}`],
-  };
-
-  const { error } = await upsertCoachPreferencesFromLockedUpdates({
-    supabase: params.admin,
-    userId: params.userId,
-    updates: [update],
-    sourceMessageId: params.requestId,
+    value: {
+      value: params.value,
+      label,
+      notes: null,
+    },
+    status: "active",
+    confidence: 1,
+    source_type: "explicit_user",
+    last_source_message_id: null,
     reason:
-      `operation:update_coach_preferences:Réglage onboarding WhatsApp ${params.key}=${params.value}; source=whatsapp_web_sim`,
-  });
+      `whatsapp_web_sim_onboarding_preference:${params.key}=${params.value}; request_id=${params.requestId}`,
+    updated_at: nowIso,
+    last_confirmed_at: nowIso,
+  } as never, { onConflict: "user_id,scope,key" });
   if (error) throw error;
 }
 
@@ -294,7 +293,7 @@ async function prepareWhatsAppSimOnboardingTurn(args: {
 
   if (st === "onboarding_pref_tone") {
     const value = inferTonePreference(args.text);
-    await persistCoachPreferenceViaOperation({
+    await persistCoachPreferenceFromSimulation({
       admin: args.admin,
       userId: args.userId,
       key: "coach.tone",
@@ -324,7 +323,7 @@ async function prepareWhatsAppSimOnboardingTurn(args: {
 
   if (st === "onboarding_pref_challenge") {
     const value = inferChallengePreference(args.text);
-    await persistCoachPreferenceViaOperation({
+    await persistCoachPreferenceFromSimulation({
       admin: args.admin,
       userId: args.userId,
       key: "coach.challenge_level",
@@ -354,7 +353,7 @@ async function prepareWhatsAppSimOnboardingTurn(args: {
 
   if (st === "onboarding_pref_questions") {
     const value = inferQuestionPreference(args.text);
-    await persistCoachPreferenceViaOperation({
+    await persistCoachPreferenceFromSimulation({
       admin: args.admin,
       userId: args.userId,
       key: "coach.question_tendency",

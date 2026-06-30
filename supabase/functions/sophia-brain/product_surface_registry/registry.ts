@@ -1,6 +1,6 @@
 import {
-  type ProductSurfaceHandoffTarget,
-  validateProductSurfaceHandoffTarget,
+  type ProductSurfaceDestination,
+  validateProductSurfaceDestination,
 } from "./contract.ts";
 import { PRODUCT_SURFACE_DEFINITIONS } from "./surfaces_data.ts";
 
@@ -21,7 +21,7 @@ export type ProductSurfaceDefinition = {
   contraindications: string[];
   requires_consent: boolean;
   can_execute_from_chat: boolean;
-  executor_tool_id?: string | null;
+  feature_id?: string | null;
   default_level_cap: 1 | 2 | 3 | 4 | 5;
   content_source: string;
   aliases: string[];
@@ -31,8 +31,8 @@ export type ProductSurfaceDefinition = {
 export type ProductSurfaceRegistry = {
   surfaces: ProductSurfaceDefinition[];
   by_id: Map<string, ProductSurfaceDefinition>;
-  handoff_targets: ProductSurfaceHandoffTarget[];
-  handoff_targets_by_operation: Map<string, ProductSurfaceHandoffTarget>;
+  platform_destinations: ProductSurfaceDestination[];
+  platform_destinations_by_id: Map<string, ProductSurfaceDestination>;
 };
 
 const REQUIRED_SURFACE_IDS = [
@@ -46,13 +46,13 @@ const REQUIRED_SURFACE_IDS = [
   "dashboard.personal_actions",
 ] as const;
 
-const REQUIRED_HANDOFF_OPERATION_TYPES = [
-  "adjust_plan_item",
-  "prepare_attack_card",
-  "prepare_defense_card",
-  "select_state_potion",
-  "create_recurring_reminder",
-  "update_coach_preferences",
+const REQUIRED_PLATFORM_DESTINATION_IDS = [
+  "plan_adjustment",
+  "attack_card",
+  "defense_card",
+  "state_potion",
+  "recurring_reminder",
+  "coach_preferences",
 ] as const;
 
 export function validateProductSurfaceDefinition(
@@ -117,16 +117,16 @@ export function validateProductSurfaceDefinition(
 export function buildProductSurfaceRegistry(
   values: unknown[],
 ): ProductSurfaceRegistry {
-  const handoffTargets = values
+  const platformDestinations = values
     .filter((value) =>
       (value as Record<string, unknown> | null)?.chat_behavior ===
-        "platform_handoff"
+        "platform_destination"
     )
-    .map(validateProductSurfaceHandoffTarget);
+    .map(validateProductSurfaceDestination);
   const surfaces = values
     .filter((value) =>
       (value as Record<string, unknown> | null)?.chat_behavior !==
-        "platform_handoff"
+        "platform_destination"
     )
     .map(validateProductSurfaceDefinition);
   const ids = new Set<string>();
@@ -137,24 +137,29 @@ export function buildProductSurfaceRegistry(
   for (const requiredId of REQUIRED_SURFACE_IDS) {
     if (!ids.has(requiredId)) throw new Error(`surface_${requiredId}_missing`);
   }
-  const handoffOperations = new Set<string>();
-  for (const target of handoffTargets) {
-    if (handoffOperations.has(target.operation_type)) {
-      throw new Error(`handoff_target_${target.operation_type}_duplicate`);
+  const destinationIds = new Set<string>();
+  for (const destination of platformDestinations) {
+    if (destinationIds.has(destination.destination_id)) {
+      throw new Error(
+        `platform_destination_${destination.destination_id}_duplicate`,
+      );
     }
-    handoffOperations.add(target.operation_type);
+    destinationIds.add(destination.destination_id);
   }
-  for (const operation of REQUIRED_HANDOFF_OPERATION_TYPES) {
-    if (!handoffOperations.has(operation)) {
-      throw new Error(`handoff_target_${operation}_missing`);
+  for (const destinationId of REQUIRED_PLATFORM_DESTINATION_IDS) {
+    if (!destinationIds.has(destinationId)) {
+      throw new Error(`platform_destination_${destinationId}_missing`);
     }
   }
   return {
     surfaces,
     by_id: new Map(surfaces.map((surface) => [surface.id, surface])),
-    handoff_targets: handoffTargets,
-    handoff_targets_by_operation: new Map(
-      handoffTargets.map((target) => [target.operation_type, target]),
+    platform_destinations: platformDestinations,
+    platform_destinations_by_id: new Map(
+      platformDestinations.map((destination) => [
+        destination.destination_id,
+        destination,
+      ]),
     ),
   };
 }
@@ -188,5 +193,5 @@ export function filterSurfacesByContraindications(
 }
 
 export const PRODUCT_SURFACE_REGISTRY_REQUIRED_IDS = REQUIRED_SURFACE_IDS;
-export const PRODUCT_SURFACE_REGISTRY_REQUIRED_HANDOFF_OPERATION_TYPES =
-  REQUIRED_HANDOFF_OPERATION_TYPES;
+export const PRODUCT_SURFACE_REGISTRY_REQUIRED_PLATFORM_DESTINATION_IDS =
+  REQUIRED_PLATFORM_DESTINATION_IDS;

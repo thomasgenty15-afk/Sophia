@@ -1,0 +1,252 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "51cd7ae8-a670-4620-bd04-fe7b2d0cd395",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T06:50:00+00:00",
+      "event_context": "one_shot_reminder:ecrire_juste_les_deux_premieres_lignes",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: écrire juste les deux premières lignes.",
+        "local_label": "demain à 8h50",
+        "parse_source": "payload_utc_time",
+        "request_text": "rappelle-moi demain à 8h50 d’écrire juste les deux premières lignes",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: écrire juste les deux premières lignes.",
+        "source_message_id": "3890a49f-a186-430f-b15d-e29956f07125",
+        "reminder_instruction": "écrire juste les deux premières lignes"
+      },
+      "created_at": "2026-06-24T17:19:03.810752+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je repousse encore le mail à Camille ; aide-moi à choisir une mini attaque pour démarrer, et rappelle-moi demain à 8h50 d’écrire juste les deux premières lignes.",
+      "created_at": "2026-06-24T17:19:00.655564+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-r5-coaching-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour demain à 8h50 : je te ferai un rappel pour écrire juste les deux premières lignes.\nJe partirais sur une carte d’attaque libre, technique texte magique : une phrase courte pour couper le blocage du mail, par exemple « J’écris juste le début, pas le mail parfait ».",
+      "created_at": "2026-06-24T17:19:28.005003+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-r5-coaching-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "b897f69c-e825-4921-9af5-e18e25631a3f",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T17:19:27.989Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T17:19:27.989Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user repousse un mail concret hors plan et demande une mini attaque pour démarrer; il ajoute aussi une demande de rappel ponctuel deja traitée par la lane directe.",
+              "target_kind": "free_action",
+              "action_title": "écrire le mail à Camille",
+              "action_source": "free"
+            },
+            "turn_count": 1,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le besoin principal est de lancer une action concrete hors plan qui bloque au demarrage; une carte d'attaque aide a preparer l'entree dans l'action et a reduire le cout du premier geste."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user repousse un mail concret hors plan et demande une mini attaque pour démarrer; il ajoute aussi une demande de rappel ponctuel deja traitée par la lane directe.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks for help starting a concrete non-plan action (the email to Camille) and also asks for a reminder."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks for help starting a concrete non-plan action (the email to Camille) and also asks for a reminder.",
+              "category": "free_action_coaching",
+              "confidence": 0.82,
+              "failure_mode": "unclear",
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "plan_id": null,
+                "action_title": "écrire le mail à Camille",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T17:19:27.989Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T17:19:27.989Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user repousse un mail concret hors plan et demande une mini attaque pour démarrer; il ajoute aussi une demande de rappel ponctuel deja traitée par la lane directe.",
+              "target_kind": "free_action",
+              "action_title": "écrire le mail à Camille",
+              "action_source": "free"
+            },
+            "turn_count": 1,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le besoin principal est de lancer une action concrete hors plan qui bloque au demarrage; une carte d'attaque aide a preparer l'entree dans l'action et a reduire le cout du premier geste."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user repousse un mail concret hors plan et demande une mini attaque pour démarrer; il ajoute aussi une demande de rappel ponctuel deja traitée par la lane directe.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks for help starting a concrete non-plan action (the email to Camille) and also asks for a reminder."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Le mail à Camille bloque surtout au démarrage sur une action concrète hors plan; un texte magique recadre l’élan mental et facilite le premier geste. Le rappel ponctuel a déjà été confirmé.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks for help starting a concrete non-plan action (the email to Camille) and also asks for a reminder.",
+              "category": "free_action_coaching",
+              "confidence": 0.82,
+              "failure_mode": "unclear",
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "plan_id": null,
+                "action_title": "écrire le mail à Camille",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T17:19:27.996966+00:00"
+  }
+}

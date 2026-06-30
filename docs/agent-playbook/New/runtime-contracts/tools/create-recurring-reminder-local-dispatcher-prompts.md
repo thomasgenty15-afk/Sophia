@@ -33,7 +33,6 @@ The dispatcher returns only this JSON :
     "phase": "intake|recurrence_resolution|content_intake|destination_binding|handoff_ready|handoff_delivered|revision|inline_tool|exit",
     "user_intent": "start|provide_slot|draft_only|create|cancel|reject|revise|explain|topic_change|status_question|one_shot_handoff|clarify|unknown",
     "summary": "string",
-    "user_words": ["string"],
     "one_shot_conflict": "none|ambiguous|clear_one_shot",
     "minimum_fields_ready": true
   },

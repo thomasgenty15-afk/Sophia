@@ -21,6 +21,8 @@ import {
   RECENT_MESSAGE_LIMITS,
   trimRecentChatMessages,
 } from "../../context/recent_messages_policy.ts";
+import { buildDirectEffectConfirmationContext } from "../../router/direct_effect_local_context.ts";
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 
 export type ProductHelpRunSkillInput = RunSkillInput & {
   local_dispatcher?: ProductHelpLocalDispatcher;
@@ -90,12 +92,20 @@ function compactParentFlowForNote(
 }
 
 function recentCommittedEffects(turnFrame: unknown): unknown[] {
-  const frame = turnFrame as any;
-  const direct = Array.isArray(frame?.direct_effects)
-    ? frame.direct_effects
+  const context = buildDirectEffectConfirmationContext(turnFrame);
+  return Array.isArray(context?.committed_effects)
+    ? context.committed_effects.slice(0, 8)
     : [];
-  return direct.filter((effect: any) => effect?.target_status === "identified")
-    .slice(0, 8);
+}
+
+function visibleRuntimeContext(input: ProductHelpRunSkillInput) {
+  return {
+    style_rules: VISIBLE_OUTPUT_STYLE_RULES,
+    recent_user_messages: recentMessagesFromContext(input)
+      .filter((message) => message.role === "user")
+      .slice(-5)
+      .map((message) => ({ role: "user" as const, content: message.content })),
+  };
 }
 
 function productHelpReducerTrace(args: {
@@ -116,9 +126,7 @@ function productHelpReducerTrace(args: {
     selected_option: args.decision.bridge?.operation_type ??
       args.decision.target?.feature_id ?? null,
     pending_state_present: Boolean(args.previous),
-    direct_handoff_flag:
-      args.decision.flow_action === "handoff_to_local_dispatcher" &&
-      Boolean(args.reduced.note_information),
+    exit_note_present: Boolean(args.reduced.note_information),
     candidate_list_summary: args.candidates.slice(0, 6).map((candidate) => ({
       id: candidate.id,
       label: candidate.label,
@@ -271,6 +279,9 @@ function fallbackSkillOutput(reason: string) {
 
 export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
   const candidates = retrieveProductHelpCandidates(input.user_message);
+  const directEffectContext = buildDirectEffectConfirmationContext(
+    input.context.turn_frame,
+  );
   const previous = readProductHelpFlowState(
     input.context.active_skill_working_state,
   );
@@ -300,6 +311,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     parent_flow_context: mode === "inline" ? activeFlow : null,
     inbound_note_information: inboundNote,
     recent_committed_effects: recentCommittedEffects(input.context.turn_frame),
+    direct_effect_confirmation_context: directEffectContext,
     product_surfaces: input.context.product_surfaces ?? [],
   };
   console.info("[ProductHelp] db_context_pack_loaded", {
@@ -338,7 +350,6 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       plan_snapshot: { items: input.context.plan_items ?? [] },
     },
     risk_context: { turn_safety: (input.context.turn_frame as any)?.safety },
-    available_inline_tools: ["status_recap"],
     active_flow_context: activeFlow,
     mode,
     turn_frame: input.context.turn_frame,
@@ -356,11 +367,6 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     note_information_target: decision.note_information?.target_dispatcher ??
       null,
   });
-  if (decision.flow_action === "apply_attempt") {
-    console.info("[ProductHelp] apply_attempt_no_mutation", {
-      bridge: decision.bridge,
-    });
-  }
   const reduced = reduceProductHelpLocalDispatcherOutput({
     previous,
     output: decision,
@@ -368,6 +374,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     parentFlowContext: mode === "inline" ? activeFlow : null,
     productSurfaces: input.context.product_surfaces ?? [],
     recentCommittedEffects: recentCommittedEffects(input.context.turn_frame),
+    directEffectConfirmationContext: directEffectContext,
     userMessage: input.user_message,
   });
   const reducerTrace = productHelpReducerTrace({
@@ -446,18 +453,14 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       },
     });
   }
-  if (reduced.handoff_to_local_dispatcher) {
-    const targetDispatcher = String(
-      reduced.note_information?.target_dispatcher ?? "",
-    );
-    console.info("[ProductHelp] handoff_to_local_dispatcher", {
-      target_dispatcher: targetDispatcher || null,
+  if (reduced.status === "safety") {
+    console.info("[ProductHelp] safety_transition", {
       note_information_target: reduced.note_information?.target_dispatcher ??
         null,
     });
     return baseOutput("product_help", {
-      status: "handoff",
-      response_intent: decision.product_help_intent.kind,
+      status: "exit",
+      response_intent: "safety_preempt",
       reply: "",
       diagnosis: {
         local_flow: true,
@@ -468,7 +471,6 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
         bridge: decision.bridge,
         visible_task: reduced.visible_task,
         return_to_parent_flow: reduced.return_to_parent_flow,
-        handoff_to_local_dispatcher: true,
         note_information: reduced.note_information,
         reason_code: reduced.reason_code,
         reducer_trace: reducerTrace,
@@ -481,18 +483,11 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
         urgency: "none",
         constraints: [
           "product_help_does_not_execute_operations",
-          "local_handoff_with_note_information",
+          "safety_preempt_with_note_information",
           "requested_allowed_committed_effects_empty",
         ],
       },
       operation_suggestions: [],
-      handoff_request: targetDispatcher
-        ? {
-          target_skill_id: targetDispatcher,
-          reason: reduced.reason_code,
-          confidence_band: decision.confidence,
-        }
-        : undefined,
       memory_write_candidates: [],
       effects: {
         requested: [],
@@ -514,7 +509,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
         product_help_parent_flow_control: parentFlowControl,
         summary: noteInformationSummary(reduced.note_information) ??
           decision.exit_memo.user_intent_summary ??
-          "Product help handed off to a local dispatcher.",
+          "Product help stopped for safety.",
       },
     });
   }
@@ -528,6 +523,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
     stage: reduced.visible_task,
     conversation_context: reduced.conversation_context,
+    visible_runtime_context: visibleRuntimeContext(input),
   });
   const reply = String(visible ?? "").trim();
   if (!reply) return fallbackSkillOutput("product_help_visible_agent_failed");
@@ -540,17 +536,9 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       returned_to_parent: true,
     });
   }
-  const targetDispatcher = String(
-    reduced.note_information?.target_dispatcher ?? "",
-  );
-  const handoffTarget = targetDispatcher && targetDispatcher !== "global"
-    ? targetDispatcher
-    : null;
   return baseOutput("product_help", {
-    status: reduced.status === "handoff" || reduced.status === "safety"
-      ? "handoff"
-      : reduced.status === "closing" || reduced.status === "closed" ||
-          mode === "inline"
+    status: reduced.status === "closing" || reduced.status === "closed" ||
+        mode === "inline"
       ? "complete"
       : "continue",
     response_intent: decision.product_help_intent.kind,
@@ -564,7 +552,6 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       bridge: decision.bridge,
       visible_task: reduced.visible_task,
       return_to_parent_flow: reduced.return_to_parent_flow,
-      handoff_to_local_dispatcher: reduced.handoff_to_local_dispatcher,
       note_information: reduced.note_information,
       reason_code: reduced.reason_code,
       reducer_trace: reducerTrace,
@@ -582,13 +569,6 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
       ],
     },
     operation_suggestions: [],
-    handoff_request: handoffTarget
-      ? {
-        target_skill_id: handoffTarget,
-        reason: reduced.reason_code,
-        confidence_band: decision.confidence,
-      }
-      : undefined,
     memory_write_candidates: [],
     effects: {
       requested: [],
@@ -599,14 +579,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     state_patch: {
       product_help_local_state: reduced.local_state,
       product_help_note_information: reduced.note_information,
-      product_help_exit_memo: reduced.handoff_to_local_dispatcher
-        ? {
-          ...decision.exit_memo,
-          note_information: reduced.note_information,
-          at: new Date().toISOString(),
-          reducer_reason_code: reduced.reason_code,
-        }
-        : null,
+      product_help_exit_memo: null,
       product_help_subskill_trace: mode === "inline" ? subskillTrace : null,
       product_help_state_mutation_audit: reduced.state_mutation_audit,
       product_help_parent_flow_control: parentFlowControl,

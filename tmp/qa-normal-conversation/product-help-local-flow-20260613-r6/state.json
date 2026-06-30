@@ -559,7 +559,7 @@
                   },
                   "visible_task": "answer_product_question",
                   "return_to_parent_flow": false,
-                  "handoff_to_local_dispatcher": false,
+                  "exit_to_global_dispatcher": false,
                   "note_information": null,
                   "reason_code": "product_help_local_answer_product_question",
                   "evidence": [
@@ -973,7 +973,7 @@
                 },
                 "visible_task": "answer_product_question",
                 "return_to_parent_flow": false,
-                "handoff_to_local_dispatcher": false,
+                "exit_to_global_dispatcher": false,
                 "note_information": null,
                 "reason_code": "product_help_local_answer_product_question",
                 "evidence": [
@@ -1077,7 +1077,7 @@
       "trace_short": {
         "response_owner": "tool_skill",
         "selected_handler": "adjust_plan_item",
-        "route_reason": "product_help_handoff_to_local_dispatcher",
+        "route_reason": "product_help_exit_to_global_dispatcher",
         "safety": "none",
         "skill_entry_ids": [],
         "tool_skill_intents": [],
@@ -1305,7 +1305,7 @@
                     "committed_effects": [],
                     "last_answer_summary": "Explained how to refine vague plan items using Plan Adjustment."
                   },
-                  "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+                  "reducer_reason_code": "product_help_exit_to_global_dispatcher",
                   "user_intent_summary": "User wants to adjust a plan item to make it more concrete.",
                   "handoff_hint_for_global_dispatcher": {
                     "why": "Explicit request to adjust a plan item following a product explanation.",
@@ -1426,11 +1426,11 @@
                 },
                 {
                   "path": "global_dispatcher",
-                  "reason_code": "product_help_handoff_to_local_dispatcher_skips_global"
+                  "reason_code": "product_help_exit_to_global_dispatcher_skips_global"
                 }
               ],
               "direct_effects_to_run": [],
-              "reason_code": "product_help_handoff_to_local_dispatcher",
+              "reason_code": "product_help_exit_to_global_dispatcher",
               "memory_used_for_route": false,
               "memory_item_ids_used_for_route": [],
               "memory_use_kind": "none",
@@ -1825,11 +1825,11 @@
               },
               {
                 "path": "global_dispatcher",
-                "reason_code": "product_help_handoff_to_local_dispatcher_skips_global"
+                "reason_code": "product_help_exit_to_global_dispatcher_skips_global"
               }
             ],
             "direct_effects_to_run": [],
-            "reason_code": "product_help_handoff_to_local_dispatcher",
+            "reason_code": "product_help_exit_to_global_dispatcher",
             "memory_used_for_route": false,
             "memory_item_ids_used_for_route": [],
             "memory_use_kind": "none",
@@ -2389,7 +2389,7 @@
                     "committed_effects": [],
                     "last_answer_summary": "Explained how to refine vague plan items using Plan Adjustment."
                   },
-                  "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+                  "reducer_reason_code": "product_help_exit_to_global_dispatcher",
                   "user_intent_summary": "User wants to adjust a plan item to make it more concrete.",
                   "handoff_hint_for_global_dispatcher": {
                     "why": "Explicit request to adjust a plan item following a product explanation.",
@@ -3333,7 +3333,7 @@
                     "committed_effects": [],
                     "last_answer_summary": "Explained how to refine vague plan items using Plan Adjustment."
                   },
-                  "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+                  "reducer_reason_code": "product_help_exit_to_global_dispatcher",
                   "user_intent_summary": "User wants to adjust a plan item to make it more concrete.",
                   "handoff_hint_for_global_dispatcher": {
                     "why": "Explicit request to adjust a plan item following a product explanation.",
@@ -4317,7 +4317,7 @@
                     "committed_effects": [],
                     "last_answer_summary": "Explained how to refine vague plan items using Plan Adjustment."
                   },
-                  "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+                  "reducer_reason_code": "product_help_exit_to_global_dispatcher",
                   "user_intent_summary": "User wants to adjust a plan item to make it more concrete.",
                   "handoff_hint_for_global_dispatcher": {
                     "why": "Explicit request to adjust a plan item following a product explanation.",
@@ -4664,7 +4664,7 @@
                   },
                   "visible_task": "compare_features",
                   "return_to_parent_flow": true,
-                  "handoff_to_local_dispatcher": false,
+                  "exit_to_global_dispatcher": false,
                   "note_information": null,
                   "reason_code": "product_help_local_compare_features",
                   "evidence": [
@@ -5228,7 +5228,7 @@
                 },
                 "visible_task": "compare_features",
                 "return_to_parent_flow": true,
-                "handoff_to_local_dispatcher": false,
+                "exit_to_global_dispatcher": false,
                 "note_information": null,
                 "reason_code": "product_help_local_compare_features",
                 "evidence": [

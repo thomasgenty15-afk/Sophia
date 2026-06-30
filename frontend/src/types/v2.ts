@@ -1070,6 +1070,10 @@ export type PlanTypeClassificationV1 = {
     pace: "gentle" | "steady" | "assertive";
     rationale: string;
   };
+  transformation_snapshot?: {
+    starting_point: string;
+    arrival_point: string;
+  };
   journey_strategy?: {
     mode: "single_transformation" | "two_transformations";
     rationale: string;

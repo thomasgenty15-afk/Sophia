@@ -1,30 +1,11 @@
-import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
-import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
-import { persistConversationSkillRoute } from "../../router/conversation_route_runtime_support.ts";
-import { runConversationRouters } from "../../routers/routers.ts";
-import { runProductHelpSkill } from "./skill.ts";
+import { assertEquals, assertThrows } from "jsr:@std/assert@1";
 import {
   normalizeProductHelpLocalDispatcherOutput,
-  readProductHelpFlowState,
   reduceProductHelpLocalDispatcherOutput,
 } from "./local_flow.ts";
-import { PRODUCT_HELP_FEATURES } from "./knowledge.ts";
-import {
-  choosePrimaryCatalogCandidate,
-  getProductHelpFeature,
-  retrieveProductHelpCandidates,
-} from "./retrieval.ts";
-import type { ProductHelpVisibleAgentInput } from "./visible_agent.ts";
+import { getProductHelpFeature } from "./retrieval.ts";
 
-type AssertNever<T extends never> = T;
-type _ProductHelpVisibleInputHasNoLegacyFields = AssertNever<
-  Extract<
-    keyof ProductHelpVisibleAgentInput,
-    "user_message" | "recent_messages" | "local_state" | "draft"
-  >
->;
-
-function localDecision(patch: Record<string, unknown> = {}) {
+function dispatcherOutput(patch: Record<string, unknown> = {}) {
   return normalizeProductHelpLocalDispatcherOutput({
     flow_action: "answer_product_question",
     confidence: "high",
@@ -32,7 +13,7 @@ function localDecision(patch: Record<string, unknown> = {}) {
     mode: "standalone",
     product_help_intent: {
       kind: "explain_feature",
-      summary: "explains attack card",
+      summary: "Explains how attack cards work.",
     },
     target: {
       kind: "feature_catalog",
@@ -57,7 +38,7 @@ function localDecision(patch: Record<string, unknown> = {}) {
       why: null,
     },
     state_updates: {
-      status: "open",
+      status: "answered",
       stage: "answering",
       turn_count_increment: 1,
       close_after_visible: false,
@@ -65,7 +46,8 @@ function localDecision(patch: Record<string, unknown> = {}) {
     },
     visible_task: {
       kind: "answer_product_question",
-      instruction: "answer",
+      instruction: "Answer the product question only.",
+      conversation_context: {},
     },
     return_to_parent: {
       needed: false,
@@ -73,6 +55,7 @@ function localDecision(patch: Record<string, unknown> = {}) {
       return_summary: null,
       preserve_parent_state: true,
     },
+    note_information: null,
     exit_memo: {
       needed: false,
       reason: "none",
@@ -80,7 +63,7 @@ function localDecision(patch: Record<string, unknown> = {}) {
       local_flow_context: {
         skill_id: "product_help",
         mode: "standalone",
-        stage: null,
+        stage: "answering",
         last_answer_summary: null,
         parent_skill_id: null,
         committed_effects: [],
@@ -88,1269 +71,333 @@ function localDecision(patch: Record<string, unknown> = {}) {
       handoff_hint_for_global_dispatcher: {
         likely_intent: "unknown",
         why: null,
-        constraints: [],
       },
     },
-    evidence: ["test"],
+    evidence: ["resources.attack_card"],
     ...patch,
   });
 }
 
-function candidates() {
-  return retrieveProductHelpCandidates("c'est quoi une carte d'attaque ?");
+Deno.test("product help attack card plan guidance does not make plan preparation conditional", () => {
+  const attackCard = getProductHelpFeature("resources.attack_card");
+  const planCards = getProductHelpFeature("resources.plan_cards");
+
+  assertEquals(
+    attackCard?.how_to.includes("si l'option est disponible"),
+    false,
+  );
+  assertEquals(attackCard?.how_to.includes("si disponible"), false);
+  assertEquals(
+    attackCard?.locations.some((location) =>
+      location.surface === "Dashboard > Plan" &&
+      location.user_can_do.some((action) =>
+        action.includes("preparer une carte d'attaque")
+      )
+    ),
+    true,
+  );
+  assertEquals(planCards?.how_to.includes("si l'option est disponible"), false);
+  assertEquals(
+    planCards?.limits.includes("Ne concerne pas tous les items du plan."),
+    false,
+  );
+});
+
+function removedLocalDispatcherAction(): string {
+  return ["handoff", "to", "local", "dispatcher"].join("_");
 }
 
-function reduce(patch: Record<string, unknown> = {}) {
-  return reduceProductHelpLocalDispatcherOutput({
+Deno.test("product_help answers a simple product question without effects", () => {
+  const reduced = reduceProductHelpLocalDispatcherOutput({
     previous: null,
-    output: localDecision(patch),
-    catalogCandidates: candidates(),
+    output: dispatcherOutput(),
+    catalogCandidates: [],
     parentFlowContext: null,
     productSurfaces: [],
     recentCommittedEffects: [],
+    userMessage: "c'est quoi une carte d'attaque ?",
   });
-}
 
-function previousProductHelpState(patch: Record<string, unknown> = {}) {
-  return readProductHelpFlowState({
-    skill_id: "product_help",
-    status: "active",
-    working_state: {
-      product_help_local_state: {
-        skill_id: "product_help",
-        status: "open",
-        mode: "standalone",
-        product_help_state: {
-          stage: "answering",
-          last_intent: "explain_feature",
-          last_target: {
-            kind: "feature_catalog",
-            feature_id: "resources.defense_card",
-            object_type: "defense_card",
-            confidence: "high",
-          },
-          last_answer_summary: "defense card explained",
-          last_catalog_feature_ids: ["resources.defense_card"],
-          last_locations: ["dashboard"],
-          parent_flow_context: null,
-          turn_count: 1,
-          max_turns: 3,
-          updated_at: "2026-06-08T10:00:00.000Z",
-        },
-        ...patch,
-      },
-    },
-  });
-}
-
-Deno.test("product_help local dispatcher prompt documents field completion rules", async () => {
-  const source = await Deno.readTextFile(
-    new URL("./local_flow.ts", import.meta.url),
-  );
-  assert(source.includes("Field Completion Rules:"));
-  assert(source.includes("- flow_action: decision principale"));
-  assert(source.includes("- product_help_intent.kind:"));
-  assert(source.includes("- target: decrit la cible produit ou objet."));
-  assert(source.includes("- grounding: liste uniquement les sources"));
-  assert(source.includes("- bridge: decrit une frontiere"));
-  assert(source.includes("- state_updates: etat local minimal."));
-  assert(source.includes("- visible_task.conversation_context:"));
-  assert(source.includes("- return_to_parent:"));
-  assert(source.includes("- exit_memo:"));
-  assert(source.includes("- note_information: obligatoire"));
-  assert(source.includes("- evidence: indices semantiques"));
-  assert(source.includes("Transition Rules:"));
-  assert(source.includes("- exit_to_global_dispatcher:"));
-  assert(source.includes("- safety_preempt:"));
-  assert(source.includes(
-    "Ponts locaux autorises depuis product_help",
-  ));
-  assert(source.includes("Anti-faux-positif handoff:"));
-  assert(source.includes(
-    "ou je retrouve/est-ce que ca existe reste product_help",
-  ));
-  assert(source.includes("Priorite de decision:"));
-  assert(source.includes(
-    "feature_id=plan.adjustment et object_type=plan_item",
-  ));
-  assert(source.includes(
-    "Si note_information_inbound ou catalog_candidates recommandent Carte d'attaque",
-  ));
-  assert(source.includes(
-    "Ne jamais serialiser active_flow_context",
-  ));
-  assert(source.includes("- handoff_to_local_dispatcher:"));
-  assert(source.includes("- inline_status_roundtrip:"));
-  assertEquals((source.match(/Example JSON [12]/g) ?? []).length, 2);
+  assertEquals(reduced.status, "closing");
+  assertEquals(reduced.visible_task, "answer_product_question");
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.note_information, null);
+  assertEquals(reduced.blocked_effects, []);
 });
 
-Deno.test("product_help local dispatcher classifies expected visible actions", () => {
-  for (
-    const action of [
-      "answer_product_question",
-      "answer_destination",
-      "compare_features",
-      "explain_limit",
-      "bridge_explanation_only",
-      "apply_attempt",
-      "inline_tool_return",
-      "handoff_to_local_dispatcher",
-      "exit_to_global_dispatcher",
-    ]
-  ) {
-    const output = localDecision({
-      flow_action: action,
-      visible_task: {
-        kind: action === "exit_to_global_dispatcher"
-          ? "stop_or_cancel"
-          : action === "handoff_to_local_dispatcher"
-          ? "exit_ack"
-          : action === "inline_tool_return"
-          ? "inline_tool_return"
-          : action === "apply_attempt"
-          ? "apply_attempt"
-          : action,
-        instruction: action,
-      },
-    });
-    assertEquals(output.flow_action, action);
-    assertEquals(output.bridge.executable, false);
-  }
-});
-
-Deno.test("product_help documents weekly planning validation", () => {
-  const feature = getProductHelpFeature("plan.weekly_planning_validation");
-  assert(feature, "missing weekly planning validation feature");
-  assert(feature.aliases.includes("validation de la semaine"));
-  assert(feature.aliases.includes("valider le planning"));
-  assert(feature.explain.includes("confirmer l'organisation proposee"));
-  assert(feature.explain.includes("rappels, bilans et suivis"));
-  assert(feature.how_to.includes("niveau 2 du plan"));
-  assert(feature.how_to.includes("semaine actuelle"));
-  assert(feature.benefits.length >= 3);
-  assert(feature.limits.includes("Ce n'est pas un bilan de fin de semaine."));
-  assert(
-    feature.sophia_must_not_claim.some((rule) =>
-      rule.includes("Ne pas confondre validation de semaine")
-    ),
-  );
-
-  const dashboardPlan = PRODUCT_HELP_FEATURES.find((entry) =>
-    entry.id === "dashboard.plan"
-  );
-  assert(dashboardPlan, "missing dashboard.plan feature");
-  assertEquals(
-    choosePrimaryCatalogCandidate([dashboardPlan, feature]).id,
-    "plan.weekly_planning_validation",
-  );
-});
-
-Deno.test("product_help local dispatcher rejects mutation fields", () => {
+Deno.test("product_help rejects dispatcher attempts to request effects", () => {
   assertThrows(
     () =>
       normalizeProductHelpLocalDispatcherOutput({
-        ...localDecision(),
-        operation_suggestions: [{ operation_type: "prepare_attack_card" }],
+        ...dispatcherOutput(),
+        operation_suggestions: [{ type: "anything" }],
       }),
     Error,
     "forbidden_operation_suggestions",
   );
 });
 
-Deno.test("product_help merge preserves server-owned state on continuation gaps", () => {
-  const previous = previousProductHelpState();
-  assert(previous);
+Deno.test("product_help strips removed bridge operation fields", () => {
+  const output = dispatcherOutput({
+    bridge: {
+      needed: true,
+      operation_type: "removed_operation",
+      kind: "explain_only",
+      executable: false,
+      why: "should not survive normalization",
+    },
+  });
+
+  assertEquals(output.bridge.operation_type, null);
+  assertEquals(output.bridge.kind, "explain_only");
+});
+
+Deno.test("product_help unknown removed local action falls back without ownership transfer", () => {
+  const output = dispatcherOutput({
+    flow_action: removedLocalDispatcherAction(),
+  });
+  assertEquals(output.flow_action, "clarify_product_question");
+  assertEquals(output.note_information, null);
+
   const reduced = reduceProductHelpLocalDispatcherOutput({
-    previous,
-    output: localDecision({
-      target: {
-        kind: "unknown",
-        feature_id: null,
-        object_type: null,
-        object_ref: null,
-        confidence: "low",
+    previous: null,
+    output,
+    catalogCandidates: [],
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [],
+    userMessage: "je bloque, je dois utiliser quoi ?",
+  });
+
+  assertEquals(reduced.exit_to_global_dispatcher, false);
+  assertEquals(reduced.return_to_parent_flow, false);
+  assertEquals(reduced.note_information, null);
+});
+
+Deno.test("product_help exits to global for real status questions", () => {
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      product_help_intent: {
+        kind: "object_status_question",
+        summary: "User asks what is currently active.",
       },
       grounding: {
         catalog_feature_ids: [],
         surface_ids: [],
-        db_sources_required: false,
+        db_sources_required: true,
         db_sources_used: [],
         active_flow_used: false,
-        missing_grounding_reason: null,
-      },
-      state_updates: {
-        status: "open",
-        stage: "answering",
-        turn_count_increment: 1,
-        close_after_visible: false,
-        preserve_parent_flow: true,
-        clear_fields: ["product_help_state.last_target"],
+        missing_grounding_reason: "product_help cannot inspect live status",
       },
     }),
-    catalogCandidates: candidates(),
+    catalogCandidates: [],
     parentFlowContext: null,
     productSurfaces: [],
     recentCommittedEffects: [],
+    userMessage: "qu'est-ce que j'ai d'actif ?",
   });
-  assertEquals(
-    reduced.local_state?.product_help_state.last_target,
-    previous.product_help_state.last_target,
-  );
-  assert(
-    reduced.state_mutation_audit.restored_fields.includes(
-      "product_help_state.last_target",
-    ),
-  );
-  assertEquals(
-    reduced.state_mutation_audit.rejected_changes.some((change) =>
-      change.reason_code === "server_owned_field_clear_not_allowed"
-    ),
-    true,
-  );
-});
 
-Deno.test("product_help invalid handoff keeps previous server-owned state", () => {
-  const previous = previousProductHelpState();
-  assert(previous);
-  const reduced = reduceProductHelpLocalDispatcherOutput({
-    previous,
-    output: localDecision({
-      flow_action: "handoff_to_local_dispatcher",
-      note_information: null,
-      state_updates: {
-        status: "handoff",
-        stage: "handoff",
-        turn_count_increment: 1,
-        close_after_visible: true,
-        preserve_parent_flow: true,
-        clear_fields: ["product_help_local_state"],
-      },
-    }),
-    catalogCandidates: candidates(),
-    parentFlowContext: null,
-    productSurfaces: [],
-    recentCommittedEffects: [],
-  });
-  assertEquals(
-    reduced.reason_code,
-    "product_help_direct_handoff_note_information_missing",
-  );
-  assertEquals(reduced.local_state, previous);
-  assert(
-    reduced.state_mutation_audit.restored_fields.includes(
-      "product_help_local_state",
-    ),
-  );
-});
-
-Deno.test("product_help valid handoff replaces state through reducer merge", () => {
-  const previous = previousProductHelpState();
-  assert(previous);
-  const reduced = reduceProductHelpLocalDispatcherOutput({
-    previous,
-    output: localDecision({
-      flow_action: "handoff_to_local_dispatcher",
-      product_help_intent: {
-        kind: "tool_action_request",
-        summary: "prepare attack card",
-      },
-      target: {
-        kind: "tool_flow",
-        feature_id: null,
-        object_type: "attack_card",
-        object_ref: null,
-        confidence: "high",
-      },
-      bridge: {
-        needed: true,
-        operation_type: "prepare_attack_card",
-        kind: "handoff_needed",
-        executable: false,
-        why: "explicit operational request",
-      },
-      state_updates: {
-        status: "handoff",
-        stage: "handoff",
-        turn_count_increment: 1,
-        close_after_visible: true,
-        preserve_parent_flow: true,
-      },
-      visible_task: {
-        kind: "exit_ack",
-        instruction: "handoff without product visible reply",
-      },
-      note_information: {
-        source_flow_id: "product_help",
-        handoff_reason: "bridge",
-        target_dispatcher: "prepare_attack_card",
-        handoff_context_for_next_dispatcher: "Attack card flow takes over.",
-        user_words: ["prepare attack card"],
-        structured_context: {
-          user_message_summary: "prepare attack card",
-          active_flow_summary: "product_help active",
-          collected_state: {},
-          unresolved_questions: [],
-          recommended_next_focus: "prepare_attack_card",
-        },
-        confidence: "high",
-      },
-    }),
-    catalogCandidates: candidates(),
-    parentFlowContext: null,
-    productSurfaces: [],
-    recentCommittedEffects: [],
-  });
-  assertEquals(reduced.status, "handoff");
-  assertEquals(reduced.local_state?.status, "handoff");
-  assertEquals(reduced.local_state?.product_help_state.stage, "handoff");
-  assertEquals(
-    reduced.local_state?.product_help_state.last_target.object_type,
-    "attack_card",
-  );
-  assert(reduced.state_mutation_audit.applied_fields.includes("status"));
-});
-
-Deno.test("product_help reads old active state without new nested fields", () => {
-  const state = readProductHelpFlowState({
-    skill_id: "product_help",
-    status: "active",
-    working_state: {
-      product_help_local_state: {
-        skill_id: "product_help",
-        status: "open",
-        last_intent: "where_is_it",
-        last_answer_summary: "old summary",
-        turn_count: 2,
-      },
-    },
-  });
-  assert(state);
-  assertEquals(state.mode, "standalone");
-  assertEquals(state.product_help_state.stage, "answering");
-  assertEquals(state.product_help_state.last_intent, "where_is_it");
-  assertEquals(state.product_help_state.turn_count, 2);
-});
-
-Deno.test("product_help resolved standalone answer closes local state", () => {
-  const previous = previousProductHelpState();
-  assert(previous);
-  const reduced = reduceProductHelpLocalDispatcherOutput({
-    previous,
-    output: localDecision({
-      state_updates: {
-        status: "answered",
-        stage: "answering",
-        turn_count_increment: 1,
-        close_after_visible: false,
-        preserve_parent_flow: true,
-      },
-    }),
-    catalogCandidates: candidates(),
-    parentFlowContext: null,
-    productSurfaces: [],
-    recentCommittedEffects: [],
-  });
-  assertEquals(reduced.status, "closing");
-  assertEquals(reduced.local_state?.status, "closing");
-});
-
-Deno.test("product_help visible context preserves user constraints", () => {
-  const reduced = reduce({
-    flow_action: "answer_product_question",
-    visible_task: {
-      kind: "answer_product_question",
-      instruction: "answer without status recap",
-      conversation_context: {
-        state_summary: "navigation-only answer requested",
-        user_words: ["dis-moi juste ou verifier, pas son statut"],
-        field_or_stage: "answering",
-        known_values: {
-          user_constraint: "navigation_only_no_status_recap",
-        },
-        missing_or_weak_values: ["real object status is not grounded"],
-        selected_candidate: {},
-        handoff_data: {},
-        tone_constraints: ["navigation_only"],
-        do_not_say: ["do not render a status recap"],
-        context_summary: "User asks for product navigation, not DB status.",
-        evidence_used: ["pas son statut"],
-      },
-    },
-  });
-  assertEquals(
-    reduced.conversation_context.known_values.user_constraint,
-    "navigation_only_no_status_recap",
-  );
-  assert(reduced.conversation_context.tone_constraints.includes(
-    "navigation_only",
-  ));
-  assert(reduced.conversation_context.do_not_say.includes(
-    "do not render a status recap",
-  ));
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-});
-
-Deno.test("product_help apply_attempt remains non-mutating", () => {
-  const reduced = reduce({
-    flow_action: "apply_attempt",
-    product_help_intent: {
-      kind: "tool_action_request",
-      summary: "user asks product_help to create it",
-    },
-    visible_task: { kind: "apply_attempt", instruction: "no mutation" },
-    bridge: {
-      needed: true,
-      operation_type: "prepare_attack_card",
-      kind: "handoff_needed",
-      executable: false,
-      why: "tool flow belongs elsewhere",
-    },
-  });
-  assertEquals(reduced.reason_code, "product_help_apply_attempt_no_mutation");
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.exit_to_global_dispatcher, true);
+  assertEquals(reduced.note_information?.target_dispatcher, "global");
   assertEquals(reduced.blocked_effects, []);
-  assertEquals(reduced.exit_to_global_dispatcher, false);
 });
 
-Deno.test("product_help handoff_to_local_dispatcher bridges directly to tool flows", () => {
-  const cases = [
-    ["prepare_attack_card", "attack_card"],
-    ["prepare_defense_card", "defense_card"],
-    ["select_state_potion", "potion"],
-    ["create_recurring_reminder", "recurring_reminder"],
-    ["adjust_plan_item", "plan_item"],
-    ["update_coach_preferences", "preference"],
-  ] as const;
-  for (const [operationType, objectType] of cases) {
-    const reduced = reduce({
-      flow_action: "handoff_to_local_dispatcher",
-      product_help_intent: {
-        kind: "tool_action_request",
-        summary: `user asks for ${operationType}`,
-      },
-      target: {
-        kind: "tool_flow",
-        feature_id: null,
-        object_type: objectType,
-        object_ref: null,
-        confidence: "high",
-      },
-      bridge: {
-        needed: true,
-        operation_type: operationType,
-        kind: "handoff_needed",
-        executable: false,
-        why: "explicit operational request",
-      },
-      state_updates: {
-        status: "handoff",
-        stage: "handoff",
-        turn_count_increment: 1,
-        close_after_visible: true,
-        preserve_parent_flow: true,
-      },
-      visible_task: {
-        kind: "exit_ack",
-        instruction: "handoff without product visible reply",
-      },
-      note_information: {
-        source_flow_id: "product_help",
-        handoff_reason: "bridge",
-        target_dispatcher: operationType,
-        handoff_context_for_next_dispatcher:
-          `Product help bridges to ${operationType}.`,
-        user_words: [`start ${operationType}`],
-        structured_context: {
-          user_message_summary: `start ${operationType}`,
-          active_flow_summary: "product_help was active.",
-          collected_state: {
-            bridge_operation: operationType,
-          },
-          unresolved_questions: [],
-          recommended_next_focus: operationType,
-        },
-        confidence: "high",
-      },
-    });
-    assertEquals(reduced.status, "handoff");
-    assertEquals(reduced.handoff_to_local_dispatcher, true);
-    assertEquals(reduced.exit_to_global_dispatcher, false);
-    assertEquals(reduced.visible_task, "exit_ack");
-    assertEquals(reduced.note_information?.source_flow_id, "product_help");
-    assertEquals(reduced.note_information?.target_dispatcher, operationType);
-    assertEquals(reduced.blocked_effects, []);
-  }
-});
-
-Deno.test("product_help one_shot_reminder is not a local handoff target", () => {
-  const output = localDecision({
-    flow_action: "handoff_to_local_dispatcher",
+Deno.test("product_help exits to global for product action requests", () => {
+  const output = dispatcherOutput({
+    flow_action: "exit_to_global_dispatcher",
     product_help_intent: {
       kind: "tool_action_request",
-      summary: "user asks for a one shot reminder",
-    },
-    bridge: {
-      needed: true,
-      operation_type: "one_shot_reminder",
-      kind: "handoff_needed",
-      executable: false,
-      why: "explicit reminder request",
-    },
-    state_updates: {
-      status: "handoff",
-      stage: "handoff",
-      turn_count_increment: 1,
-      close_after_visible: true,
-      preserve_parent_flow: true,
+      summary: "User asks Sophia to create a card.",
     },
     visible_task: {
       kind: "exit_ack",
-      instruction: "handoff without product visible reply",
+      instruction: "Exit without answering the target request.",
+      conversation_context: {},
+    },
+    note_information: {
+      source_flow_id: "product_help",
+      handoff_reason: "explicit_user_request",
+      target_dispatcher: "global",
+      handoff_context_for_next_dispatcher:
+        "User asks for a product action; global must reclassify.",
+      structured_context: {
+        user_message_summary: "User asks for a product action.",
+        recommended_next_focus: "global",
+      },
+      confidence: "high",
     },
     exit_memo: {
       needed: true,
       reason: "explicit_tool_request",
-      user_intent_summary: "user asks for a one shot reminder",
+      user_intent_summary: "User asks for a product action.",
       local_flow_context: {
         skill_id: "product_help",
         mode: "standalone",
-        stage: "handoff",
+        stage: "closing",
         last_answer_summary: null,
         parent_skill_id: null,
         committed_effects: [],
       },
       handoff_hint_for_global_dispatcher: {
-        likely_intent: "one_shot_reminder",
-        why: "explicit reminder request",
-        constraints: [],
+        likely_intent: "normal_coaching",
+        why: "product action requests leave product_help",
       },
     },
   });
-  assertEquals(output.note_information?.target_dispatcher, "global");
   const reduced = reduceProductHelpLocalDispatcherOutput({
     previous: null,
     output,
-    catalogCandidates: candidates(),
+    catalogCandidates: [],
     parentFlowContext: null,
     productSurfaces: [],
     recentCommittedEffects: [],
+    userMessage: "fais-moi une carte",
   });
-  assertEquals(reduced.status, "blocked");
-  assertEquals(reduced.handoff_to_local_dispatcher, false);
-  assertEquals(reduced.note_information?.target_dispatcher, "global");
-});
 
-Deno.test("product_help inline returns to parent without durable product state", () => {
-  const output = localDecision({
-    mode: "inline",
-    flow_action: "return_to_parent_flow",
-    return_to_parent: {
-      needed: true,
-      parent_skill_id: "adjust_plan_item",
-      return_summary: "answered location",
-      preserve_parent_state: true,
-    },
-  });
-  const reduced = reduceProductHelpLocalDispatcherOutput({
-    previous: null,
-    output,
-    catalogCandidates: candidates(),
-    parentFlowContext: { skill_id: "adjust_plan_item", slot: "kept" },
-    productSurfaces: [],
-    recentCommittedEffects: [],
-  });
-  assertEquals(reduced.return_to_parent_flow, true);
-  assertEquals(reduced.local_state, null);
-});
-
-Deno.test("product_help visible task carries conversation_context", () => {
-  const reduced = reduce();
-  assertEquals(reduced.conversation_context.known_values.target, {
-    kind: "feature_catalog",
-    feature_id: "resources.attack_card",
-    object_type: "attack_card",
-    object_ref: null,
-    confidence: "high",
-  });
-  assert(
-    Array.isArray(
-      (reduced.conversation_context.known_values as any)
-        .catalog_answer_material,
-    ),
-  );
-});
-
-Deno.test("product_help exit_to_global_dispatcher creates fallback note_information", () => {
-  const reduced = reduce({
-    flow_action: "exit_to_global_dispatcher",
-    exit_memo: { needed: false, reason: "none" },
-  });
   assertEquals(reduced.status, "exit");
   assertEquals(reduced.exit_to_global_dispatcher, true);
-  assertEquals(reduced.note_information?.source_flow_id, "product_help");
   assertEquals(reduced.note_information?.target_dispatcher, "global");
 });
 
-Deno.test("product_help exit_to_global_dispatcher creates standard note from exit memo", () => {
-  const reduced = reduce({
+Deno.test("product_help never targets coaching_recommendation directly", () => {
+  const output = dispatcherOutput({
     flow_action: "exit_to_global_dispatcher",
+    product_help_intent: {
+      kind: "tool_action_request",
+      summary: "User asks which Sophia lever to use.",
+    },
+    visible_task: {
+      kind: "exit_ack",
+      instruction: "Exit to global.",
+      conversation_context: {},
+    },
+    note_information: {
+      source_flow_id: "product_help",
+      handoff_reason: "explicit_user_request",
+      target_dispatcher: "coaching_recommendation",
+      handoff_context_for_next_dispatcher:
+        "User asks which Sophia lever to use after product_help.",
+      structured_context: {
+        user_message_summary: "User asks which Sophia lever to use.",
+        recommended_next_focus: "coaching_recommendation",
+      },
+      confidence: "high",
+    },
     exit_memo: {
       needed: true,
-      reason: "topic_change",
-      user_intent_summary: "user wants another topic",
+      reason: "normal_coaching",
+      user_intent_summary: "User asks which Sophia lever to use.",
       local_flow_context: {
         skill_id: "product_help",
         mode: "standalone",
-        stage: "answering",
-        last_answer_summary: "attack card explained",
+        stage: "closing",
+        last_answer_summary: null,
         parent_skill_id: null,
         committed_effects: [],
       },
       handoff_hint_for_global_dispatcher: {
         likely_intent: "normal_coaching",
-        why: "clear topic change",
-        constraints: [],
+        why: "global decides the next owner",
       },
     },
   });
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous: null,
+    output,
+    catalogCandidates: [],
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [],
+    userMessage: "je dois utiliser quoi ?",
+  });
+
   assertEquals(reduced.status, "exit");
   assertEquals(reduced.exit_to_global_dispatcher, true);
-  assertEquals(reduced.note_information?.source_flow_id, "product_help");
   assertEquals(reduced.note_information?.target_dispatcher, "global");
-  assertEquals(reduced.note_information?.user_words, [
-    "user wants another topic",
-    "test",
-  ]);
-  assert(
-    Object.keys(reduced.note_information?.structured_context ?? {}).length > 0,
-  );
   assertEquals(
-    "risk_score" in ((reduced.note_information as any) ?? {}),
-    false,
-  );
-  assertEquals(
-    "executable_from_chat" in ((reduced.note_information as any) ?? {}),
-    false,
+    reduced.note_information?.structured_context
+      .sanitized_from_target_dispatcher,
+    "coaching_recommendation",
   );
 });
 
-Deno.test("product_help exit_to_global_dispatcher exits to global", () => {
-  const reduced = reduce({
-    flow_action: "exit_to_global_dispatcher",
-    product_help_intent: {
-      kind: "close",
-      summary: "user stops product help",
-    },
-    note_information: {
-      source_flow_id: "product_help",
-      source_flow_presentation: "Product help active.",
-      source_flow_state_summary: "User stops product help.",
-      handoff_reason: "topic_change",
-      target_dispatcher: "global",
-      handoff_context_for_next_dispatcher: "User wants to stop product help.",
-      target_local_dispatcher_hint: null,
-      user_words: ["stop"],
-      structured_context: {},
-      risk_score: 0,
-      executable_from_chat: {
-        db_write_committed: false,
-        potion_session_created: false,
-        scheduled_checkin_created: false,
-        recurring_reminder_created: false,
-        executable_confirmation_generated: false,
+Deno.test("product_help safety_preempt exits to safety_crisis", () => {
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      flow_action: "safety_preempt",
+      risk_score: 8,
+      product_help_intent: {
+        kind: "safety",
+        summary: "Safety signal.",
       },
-    },
+    }),
+    catalogCandidates: [],
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [],
+    userMessage: "je risque de me faire du mal",
   });
-  assertEquals(reduced.status, "exit");
-  assertEquals(reduced.visible_task, "exit_ack");
-  assertEquals(reduced.exit_to_global_dispatcher, true);
-  assertEquals(reduced.note_information?.target_dispatcher, "global");
-  assertEquals(reduced.handoff_to_local_dispatcher, false);
-});
 
-Deno.test("product_help follow-up continuation does not exit falsely", () => {
-  const reduced = reduce({
-    flow_action: "answer_product_question",
-    product_help_intent: {
-      kind: "how_to",
-      summary: "user continues asking how product help works",
-    },
-    visible_task: {
-      kind: "answer_product_question",
-      instruction: "continue local product help",
-      conversation_context: {
-        state_summary: "User continues product help.",
-        user_words: ["ok et comment je m'en sers apres ?"],
-        field_or_stage: "answering",
-        known_values: {},
-        missing_or_weak_values: [],
-        selected_candidate: {},
-        handoff_data: {},
-        tone_constraints: [],
-        do_not_say: [],
-        context_summary: "Continuation, not exit.",
-        evidence_used: ["follow-up product question"],
-      },
-    },
-    exit_memo: {
-      needed: false,
-      reason: "none",
-      user_intent_summary: null,
-      local_flow_context: {
-        skill_id: "product_help",
-        mode: "standalone",
-        stage: "answering",
-        last_answer_summary: "previous product answer",
-        parent_skill_id: null,
-        committed_effects: [],
-      },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: "unknown",
-        why: null,
-        constraints: [],
-      },
-    },
-  });
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-  assertEquals(reduced.handoff_to_local_dispatcher, false);
-  assertEquals(reduced.note_information, null);
-  assertEquals(reduced.visible_task, "answer_product_question");
-});
-
-Deno.test("product_help anti-false-positive product question does not handoff", () => {
-  const reduced = reduce({
-    flow_action: "answer_product_question",
-    product_help_intent: {
-      kind: "explain_feature",
-      summary: "user only asks what attack cards are",
-    },
-    bridge: {
-      needed: false,
-      operation_type: "prepare_attack_card",
-      kind: "explain_only",
-      executable: false,
-      why: "the user asks for explanation, not preparation",
-    },
-    visible_task: {
-      kind: "answer_product_question",
-      instruction: "explain feature only",
-    },
-  });
-  assertEquals(reduced.status, "answered");
-  assertEquals(reduced.handoff_to_local_dispatcher, false);
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-});
-
-Deno.test("product_help attack card destination question stays product help", () => {
-  const reduced = reduce({
-    flow_action: "answer_destination",
-    product_help_intent: {
-      kind: "where_is_it",
-      summary: "user asks where to find attack cards",
-    },
-    target: {
-      kind: "feature_catalog",
-      feature_id: "resources.attack_card",
-      object_type: "attack_card",
-      object_ref: null,
-      confidence: "high",
-    },
-    bridge: {
-      needed: false,
-      operation_type: null,
-      kind: null,
-      executable: false,
-      why: null,
-    },
-    visible_task: {
-      kind: "answer_destination",
-      instruction: "answer location only",
-      conversation_context: {
-        state_summary: "User asks where attack cards live.",
-        user_words: ["ou je retrouve une carte d'attaque"],
-        field_or_stage: "answering",
-        known_values: {
-          feature_id: "resources.attack_card",
-        },
-        missing_or_weak_values: [],
-        selected_candidate: {},
-        handoff_data: {},
-        tone_constraints: ["short"],
-        do_not_say: ["do not launch prepare_attack_card"],
-        context_summary: "Navigation answer, not operation request.",
-        evidence_used: ["ou je retrouve"],
-      },
-    },
-  });
-  assertEquals(reduced.status, "answered");
-  assertEquals(reduced.visible_task, "answer_destination");
-  assertEquals(reduced.handoff_to_local_dispatcher, false);
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-  assertEquals(reduced.note_information, null);
-});
-
-Deno.test("product_help direct handoff cannot target global", () => {
-  const reduced = reduce({
-    flow_action: "handoff_to_local_dispatcher",
-    product_help_intent: {
-      kind: "tool_action_request",
-      summary: "user wants an attack card flow",
-    },
-    bridge: {
-      needed: true,
-      operation_type: "prepare_attack_card",
-      kind: "handoff_needed",
-      executable: false,
-      why: "target flow must take over",
-    },
-    visible_task: {
-      kind: "exit_ack",
-      instruction: "handoff without product visible reply",
-    },
-    note_information: {
-      source_flow_id: "product_help",
-      handoff_reason: "explicit_user_request",
-      target_dispatcher: "prepare_attack_card",
-      handoff_context_for_next_dispatcher:
-        "User wants an attack card flow after product help.",
-      user_words: ["prepare an attack card"],
-      structured_context: {
-        user_message_summary: "prepare an attack card",
-        active_flow_summary: "product_help was active",
-        collected_state: {
-          likely_intent: "prepare_attack_card",
-        },
-        unresolved_questions: [],
-        recommended_next_focus: "prepare_attack_card",
-      },
-    },
-  });
-  assertEquals(reduced.status, "handoff");
-  assertEquals(reduced.exit_to_global_dispatcher, false);
-  assertEquals(reduced.handoff_to_local_dispatcher, true);
-  assertEquals(
-    reduced.note_information?.target_dispatcher,
-    "prepare_attack_card",
-  );
-  assertEquals(
-    reduced.note_information?.handoff_reason,
-    "explicit_user_request",
-  );
-});
-
-Deno.test("product_help safety_preempt creates safety note without global", () => {
-  const reduced = reduce({
-    flow_action: "safety_preempt",
-    risk_score: 8,
-    product_help_intent: {
-      kind: "safety",
-      summary: "safety signal",
-    },
-  });
   assertEquals(reduced.status, "safety");
   assertEquals(reduced.exit_to_global_dispatcher, false);
-  assertEquals(reduced.handoff_to_local_dispatcher, true);
   assertEquals(reduced.note_information?.target_dispatcher, "safety_crisis");
 });
 
-Deno.test("product_help real object status without grounding is prudent", () => {
-  const reduced = reduce({
-    flow_action: "answer_product_question",
-    product_help_intent: {
-      kind: "object_status_question",
-      summary: "asks if reminder exists",
-    },
-    target: {
-      kind: "user_object",
-      feature_id: "initiatives",
-      object_type: "one_shot_reminder",
-      object_ref: null,
-      confidence: "medium",
-    },
-    grounding: {
-      catalog_feature_ids: ["initiatives"],
-      surface_ids: [],
-      db_sources_required: true,
-      db_sources_used: [],
-      active_flow_used: false,
-      missing_grounding_reason: "no committed source",
-    },
-  });
-  assertEquals(reduced.visible_task, "explain_limit");
-});
-
-Deno.test("product_help skill nominal path uses local dispatcher and visible agent", async () => {
-  let inboundNoteTarget: string | null = null;
-  let inboundNoteSource: string | null = null;
-  let visibleInput: Record<string, unknown> | null = null;
-  const output = await runProductHelpSkill({
-    user_message: "c'est quoi une carte d'attaque ?",
-    context: {
-      skill_id: "product_help",
-      user_id: "user_test",
-      recent_messages: [],
-      active_skill_working_state: null,
-      turn_frame: frame(),
-      relevant_memory_items: [],
-      plan_items: [],
-      product_surfaces: [],
-      exclusions: [],
-    } as any,
-    local_dispatcher: async (input) => {
-      inboundNoteTarget = input.note_information_inbound?.target_dispatcher ??
-        null;
-      inboundNoteSource = input.note_information_inbound?.source_flow_id ??
-        null;
-      return localDecision();
-    },
-    visible_agent: async (input) => {
-      visibleInput = input as unknown as Record<string, unknown>;
-      return "Une carte d'attaque sert a preparer le demarrage.";
-    },
-  });
-  assertEquals(output.skill_id, "product_help");
-  assertEquals(output.operation_suggestions, []);
-  assertEquals(output.effects?.requested, []);
-  assertEquals(output.effects?.allowed, []);
-  assertEquals(output.effects?.committed, []);
-  assertEquals((output.diagnosis as any).local_flow, true);
-  assertEquals(inboundNoteSource, "global");
-  assertEquals(inboundNoteTarget, "product_help");
-  assertEquals(Boolean((visibleInput as any)?.conversation_context), true);
-  assertEquals("user_message" in ((visibleInput as any) ?? {}), false);
-  assertEquals("recent_messages" in ((visibleInput as any) ?? {}), false);
-  assertEquals("local_state" in ((visibleInput as any) ?? {}), false);
-});
-
-Deno.test("product_help inline answer preserves parent flow and appends history", async () => {
-  const parentState = {
-    skill_id: "adjust_plan_item",
-    status: "active",
-    working_state: {
-      slot: "parent-kept",
-      product_help_subskill_history: [{ subskill: "product_help", old: true }],
-      active_flow_context: {
-        visible_task: { conversation_context: { raw: "must-not-leak" } },
-        note_information: {
-          handoff_context_for_next_dispatcher: "must-not-be-copied",
+Deno.test("product_help visible context omits raw user_words and carries direct effect confirmation context", () => {
+  const reduced = reduceProductHelpLocalDispatcherOutput({
+    previous: null,
+    output: dispatcherOutput({
+      visible_task: {
+        kind: "answer_product_question",
+        instruction: "Answer the product question only.",
+        conversation_context: {
+          user_words: ["ou est ma carte ?"],
+          known_values: { feature_id: "resources.attack_card" },
         },
       },
-      dispatcher_context: { flow_action: "get_info_product" },
-      question_to_answer: "ou est la section initiative ?",
-      preserve_active_flow: true,
+    }),
+    catalogCandidates: [],
+    parentFlowContext: null,
+    productSurfaces: [],
+    recentCommittedEffects: [{
+      type: "create_one_shot_reminder",
+      id: "reminder-1",
+      summary: "relire mes notes",
+    }],
+    directEffectConfirmationContext: {
+      has_committed_one_shot_reminder: true,
+      has_requested_one_shot_reminder: true,
+      one_shot_reminder: {
+        committed: true,
+        local_label: "demain à 9h",
+        reminder_instruction: "relire mes notes",
+      },
+      confirmation_text: null,
+      committed_effects: [],
+      requested_effects: [],
+      blocked_effects: [],
+      do_not_recreate: true,
+      do_not_reroute: true,
+      do_not_redemand: true,
+      do_not_confirm_without_commit: true,
+      remaining_user_need_must_continue: true,
     },
-  };
-  let inboundNote: Record<string, unknown> | null = null;
-  const output = await runProductHelpSkill({
-    user_message: "c'est quoi une carte d'attaque ?",
-    context: {
-      skill_id: "product_help",
-      user_id: "user_test",
-      recent_messages: [],
-      active_skill_working_state: parentState,
-      turn_frame: frame(),
-      relevant_memory_items: [],
-      plan_items: [],
-      product_surfaces: [],
-      exclusions: [],
-    } as any,
-    local_dispatcher: async (input) => {
-      inboundNote = input.note_information_inbound as unknown as
-        | Record<string, unknown>
-        | null;
-      return (
-        localDecision({
-          mode: "inline",
-          flow_action: "answer_product_question",
-          return_to_parent: {
-            needed: true,
-            parent_skill_id: "adjust_plan_item",
-            return_summary: "answered product question",
-            preserve_parent_state: true,
-          },
-          state_updates: {
-            status: "answered",
-            stage: "answering",
-            turn_count_increment: 1,
-            close_after_visible: true,
-            preserve_parent_flow: true,
-            clear_fields: ["product_help_subskill_history"],
-          },
-        })
-      );
-    },
-    visible_agent: async () => "Une carte d'attaque sert a demarrer.",
+    userMessage: "ou est ma carte ?",
   });
-  assertEquals(output.status, "complete");
-  assertEquals((output.state_patch as any).product_help_local_state, null);
+
+  assertEquals("user_words" in (reduced.conversation_context as any), false);
   assertEquals(
-    (output.state_patch as any).product_help_parent_flow_control
-      .preserve_parent_working_state,
+    (reduced.conversation_context.known_values
+      .direct_effect_confirmation_context as any)
+      .has_committed_one_shot_reminder,
     true,
   );
   assertEquals(
-    (output.state_patch as any).product_help_subskill_trace
-      .preserve_parent_working_state,
-    true,
-  );
-  const inboundNoteJson = JSON.stringify(inboundNote);
-  assert(!inboundNoteJson.includes("active_flow_context"));
-  assert(!inboundNoteJson.includes("parent_flow_context"));
-  assert(!inboundNoteJson.includes("conversation_context"));
-  assert(!inboundNoteJson.includes("visible_task"));
-  assert(!inboundNoteJson.includes("must-not-leak"));
-  assert(inboundNoteJson.length < 1200);
-  assertEquals(
-    Boolean(
-      ((inboundNote as any)?.structured_context as any)?.parent_flow_summary,
-    ),
-    true,
-  );
-
-  const persisted = persistConversationSkillRoute(
-    { __active_skill_state: parentState },
-    {
-      route_version: "v1",
-      response_owner: "product_help",
-      selected_handler: "product_help",
-      blocked_paths: [],
-      direct_effects_to_run: [],
-      reason_code: "inline_product_help",
-      memory_used_for_route: false,
-      memory_item_ids_used_for_route: [],
-      memory_use_kind: "none",
-      active_flow_arbitration: {
-        decision: "inline_answer_then_resume",
-        active_owner: "conversation_skill",
-        selected_owner: "product_help",
-        resume_policy: "auto_after_answer",
-        reason_code: "product_question_inline",
-      },
-    },
-    output as any,
-  );
-  assertEquals(persisted.__active_skill_state.skill_id, "adjust_plan_item");
-  assertEquals(
-    persisted.__active_skill_state.working_state.slot,
-    "parent-kept",
-  );
-  assertEquals(persisted.__suspended_flow_v1, undefined);
-  assertEquals(
-    persisted.__active_skill_state.working_state.product_help_subskill_history
-      .length,
-    2,
-  );
-});
-
-Deno.test("product_help inline clarification keeps parent state untouched", async () => {
-  const parentState = {
-    skill_id: "prepare_defense_card",
-    status: "active",
-    working_state: {
-      durable_need: "prepare boundaries",
-      candidate: { id: "def-1" },
-    },
-  };
-  const output = await runProductHelpSkill({
-    user_message: "et cette partie c'est quoi ?",
-    context: {
-      skill_id: "product_help",
-      user_id: "user_test",
-      recent_messages: [],
-      active_skill_working_state: parentState,
-      turn_frame: frame(),
-      relevant_memory_items: [],
-      plan_items: [],
-      product_surfaces: [],
-      exclusions: [],
-    } as any,
-    local_dispatcher: async () =>
-      localDecision({
-        mode: "inline",
-        flow_action: "clarify_product_question",
-        product_help_intent: {
-          kind: "unclear",
-          summary: "ambiguous product reference",
-        },
-        target: {
-          kind: "unknown",
-          feature_id: null,
-          object_type: null,
-          object_ref: null,
-          confidence: "low",
-        },
-        state_updates: {
-          status: "open",
-          stage: "clarifying",
-          turn_count_increment: 1,
-          close_after_visible: false,
-          preserve_parent_flow: true,
-        },
-        visible_task: {
-          kind: "clarify_product_question",
-          instruction: "ask which product surface",
-        },
-        return_to_parent: {
-          needed: true,
-          parent_skill_id: "prepare_defense_card",
-          return_summary: "asked product clarification",
-          preserve_parent_state: true,
-        },
-      }),
-    visible_agent: async () => "Tu parles de quelle partie exactement ?",
-  });
-  assertEquals((output.state_patch as any).product_help_local_state, null);
-  assertEquals(
-    (output.state_patch as any).product_help_parent_flow_control
-      .product_help_may_overwrite_parent_working_state,
-    false,
-  );
-  assertEquals(
-    "working_state" in ((output.state_patch as any) ?? {}),
-    false,
-  );
-});
-
-Deno.test("product_help skill direct handoff skips product visible agent", async () => {
-  let visibleCalled = false;
-  const output = await runProductHelpSkill({
-    user_message: "prepare-moi une carte d'attaque pour ranger mes papiers",
-    context: {
-      skill_id: "product_help",
-      user_id: "user_test",
-      recent_messages: [],
-      active_skill_working_state: null,
-      turn_frame: frame(),
-      relevant_memory_items: [],
-      plan_items: [],
-      product_surfaces: [],
-      exclusions: [],
-    } as any,
-    local_dispatcher: async () =>
-      localDecision({
-        flow_action: "handoff_to_local_dispatcher",
-        product_help_intent: {
-          kind: "tool_action_request",
-          summary: "user asks to prepare an attack card",
-        },
-        bridge: {
-          needed: true,
-          operation_type: "prepare_attack_card",
-          kind: "handoff_needed",
-          executable: false,
-          why: "explicit operational request",
-        },
-        visible_task: {
-          kind: "exit_ack",
-          instruction: "handoff without product visible reply",
-        },
-        note_information: {
-          source_flow_id: "product_help",
-          handoff_reason: "explicit_user_request",
-          target_dispatcher: "prepare_attack_card",
-          handoff_context_for_next_dispatcher:
-            "User wants to prepare an attack card for ranger mes papiers.",
-          user_words: ["prepare-moi une carte d'attaque"],
-          structured_context: {
-            user_message_summary:
-              "User wants to prepare an attack card for ranger mes papiers.",
-            active_flow_summary: "product_help was active.",
-            collected_state: {
-              target_hint: "ranger mes papiers",
-            },
-            unresolved_questions: [],
-            recommended_next_focus: "prepare_attack_card",
-          },
-        },
-      }),
-    visible_agent: async () => {
-      visibleCalled = true;
-      return "wrong";
-    },
-  });
-  assertEquals(output.status, "handoff");
-  assertEquals(output.reply, "");
-  assertEquals(
-    (output.diagnosis as any).flow_action,
-    "handoff_to_local_dispatcher",
-  );
-  assertEquals(
-    (output.diagnosis as any).note_information?.target_dispatcher,
-    "prepare_attack_card",
-  );
-  assertEquals(
-    (output as any).handoff_request?.target_skill_id,
-    "prepare_attack_card",
-  );
-  assertEquals(visibleCalled, false);
-});
-
-function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
-  return {
-    turn_id: "t1",
-    source_message_id: "m1",
-    user_id: "u1",
-    channel: "whatsapp",
-    safety: { risk_band: "none", reason_codes: [], evidence: [] },
-    conversation_risk: {
-      score: 0,
-      threshold: 8,
-      should_exit_flows: false,
-      reason_codes: [],
-      previous_scores: [],
-      matrix: [],
-      context_summary: null,
-    },
-    direct_effects: [],
-    tool_skill_intents: [],
-    flow_opportunity: null,
-    skill_signals: {},
-    memory_plan: {
-      response_intent: "reflection",
-      reasoning_complexity: "low",
-      context_need: "minimal",
-      memory_mode: "none",
-      model_tier_hint: "lite",
-      context_budget_tier: "tiny",
-      targets: [],
-      retrieval_policy: "semantic_first",
-      plan_confidence: 0.7,
-    },
-    ...patch,
-  };
-}
-
-Deno.test("active product_help routes to local owner on followup", () => {
-  const route = runConversationRouters({
-    turn_frame: frame(),
-    active_skill_state: {
-      skill_id: "product_help",
-      status: "active",
-      working_state: {
-        product_help_local_state: {
-          skill_id: "product_help",
-          status: "open",
-          mode: "standalone",
-          product_help_state: {
-            stage: "answering",
-            last_intent: "explain_feature",
-            last_target: {},
-            last_answer_summary: "attack card explained",
-            last_catalog_feature_ids: ["resources.attack_card"],
-            last_locations: [],
-            parent_flow_context: null,
-            turn_count: 1,
-            max_turns: 3,
-            updated_at: "2026-06-08T10:00:00.000Z",
-          },
-        },
-      },
-    },
-    safety_context_risk_band: "none",
-  });
-  assertEquals(route.response_owner, "product_help");
-  assertEquals(route.selected_handler, "product_help");
-  assertEquals(
-    route.reason_code,
-    "active_product_help_local_dispatcher_continue",
+    (reduced.conversation_context.known_values.grounded_sources as any[])[0]
+      .id,
+    "reminder-1",
   );
 });

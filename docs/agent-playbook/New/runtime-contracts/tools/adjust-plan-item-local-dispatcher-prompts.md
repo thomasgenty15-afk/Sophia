@@ -13,8 +13,7 @@ global_dispatcher
 ```
 
 Le dispatcher global ne doit pas fonctionner quand `adjust_plan_item` est actif,
-sauf si le dispatcher local retourne explicitement
-`exit_to_global_dispatcher`.
+sauf si le dispatcher local retourne explicitement `exit_to_global_dispatcher`.
 
 Inventaire retenu : **12 prompts au total**.
 
@@ -79,22 +78,21 @@ Le chat doit :
 
 Use `09-note-information-contract.md`.
 
-Produce `note_information` for `exit_to_global_dispatcher`,
-`safety_preempt`, any direct `handoff_to_local_dispatcher`, and inline
-product/status roundtrips. Use `source_flow_id="adjust_plan_item"` and copy the
-catalog presentation.
+Produce `note_information` for `exit_to_global_dispatcher`, `safety_preempt`,
+any named specialized local transition, and inline product/status roundtrips.
+Use `source_flow_id="adjust_plan_item"` and copy the catalog presentation.
 
 Do not produce it for local actions such as `cancel_flow`, `apply_attempt`,
-`repeat_plan_handoff`, `explain_handoff`, or
-`platform_destination_followup` when no new dispatcher is called. Those are
-`exit_to_global_dispatcher` or local continuation actions, and global must not run
-on the same turn.
+`repeat_plan_handoff`, `explain_handoff`, or `platform_destination_followup`
+when no new dispatcher is called. Those are local continuation actions, and
+global must not run on the same turn.
 
 Choose `target_dispatcher` as `global` for a clear out-of-flow request,
 `safety_crisis` for safety, `product_help`/`status_recap` for inline
 information, and `other_local` with `target_local_dispatcher_hint` for a direct
-local bridge. The handoff context must include Plan scope, requested adjustment,
-constraints, last handoff summary, and no-plan-mutation status.
+specialized local transition. The handoff context must include Plan scope,
+  requested adjustment, preserved/avoided limits, last handoff summary, and no-plan-mutation
+status.
 
 ## Scope Et Champs Structurels
 
@@ -131,7 +129,7 @@ Champs structurels recommandés :
     "reason_change": "string|null",
     "requested_change": "string|null",
     "change_kind": "reduce|increase|pause|resume|replace|split|reschedule|copy_forward|bridge_action|clarify|unknown|null",
-    "constraints": [],
+    "limits": [],
     "preserve": [],
     "avoid": [],
     "missing": []
@@ -152,7 +150,7 @@ Champs structurels recommandés :
 But : interpréter chaque message utilisateur dans le flow actif, remplir ou
 mettre à jour l'état structuré, choisir la prochaine tâche visible.
 
-```txt
+````txt
 Tu es le dispatcher local structure du flow adjust_plan_item.
 
 Tu ne reponds jamais directement au user.
@@ -217,7 +215,7 @@ Actions possibles :
 - answer_current_field
 - clarify_scope
 - clarify_adjustment_need
-- clarify_constraints
+- clarify_limits
 - prepare_plan_handoff
 - revise_plan_handoff
 - repeat_plan_handoff
@@ -249,7 +247,7 @@ Priorite des actions :
 10. explain_handoff
 11. clarify_scope
 12. clarify_adjustment_need
-13. clarify_constraints
+13. clarify_limits
 14. answer_current_field
 15. prepare_plan_handoff
 
@@ -270,7 +268,9 @@ Regles de completion :
 - Si le user dit "ok applique", "vas-y", "valide", c'est apply_attempt, jamais execution.
 
 Regles de sortie :
-- Si le user demande une carte d'attaque ou de defense directement liee a l'action collectee, retourne handoff_to_local_flow avec note_information vers le flow local cible.
+- Si le user demande une carte d'attaque ou de defense directement liee a
+  l'action collectee, utilise seulement une transition specialisee nommee et
+  documentee pour ce flow; sinon sors vers global.
 - Si le user pose une question DB temporaire utile a l'ajustement, retourne get_info_db avec subskill_call.status_recap.
 - Si le user pose une question produit/navigation limitee a Plan, retourne get_info_product avec subskill_call.product_help.
 - Si le user demande une potion, une preference, un rappel ou un autre sujet clair hors flow, retourne exit_to_global_dispatcher.
@@ -306,7 +306,7 @@ Ces regles concernent le JSON reel `AdjustPlanLocalDispatcherOutput`.
   pourquoi ajuster, `requested_change` le resultat voulu, `change_kind` la
   nature du mouvement (`reduce`, `increase`, `pause`, `resume`, `replace`,
   `split`, `reschedule`, `copy_forward`, `bridge_action`). `clarify`, `unknown`
-  ou `null` signifient que le handoff n'est pas pret. `constraints`, `preserve`
+  ou `null` signifient que le handoff n'est pas pret. `limits`, `preserve`
   et `avoid` doivent conserver les limites explicites du user et influencer
   `visible_task.conversation_context`. Ne pas creer de preference durable ou de
   profil global.
@@ -377,7 +377,7 @@ Continuation normale :
     "reason_change": "trop lourd cette semaine",
     "requested_change": "passer en version 5 minutes",
     "change_kind": "reduce",
-    "constraints": ["cette semaine"],
+    "limits": ["cette semaine"],
     "preserve": ["signal de pause"],
     "avoid": ["abandonner"],
     "missing": []
@@ -401,7 +401,6 @@ Continuation normale :
     "instruction": "Donner la proposition a reprendre dans Plan.",
     "conversation_context": {
       "state_summary": "Action du soir a alleger cette semaine.",
-      "user_words": ["version 5 minutes"],
       "field_or_stage": "handoff",
       "known_values": {},
       "missing_or_weak_values": [],
@@ -435,7 +434,7 @@ Continuation normale :
   "note_information": {"needed": false, "value": null},
   "evidence": ["version 5 minutes", "sans abandonner"]
 }
-```
+````
 
 Transition critique :
 
@@ -463,7 +462,7 @@ Transition critique :
     "reason_change": null,
     "requested_change": null,
     "change_kind": null,
-    "constraints": [],
+    "limits": [],
     "preserve": [],
     "avoid": [],
     "missing": []
@@ -518,98 +517,56 @@ Transition critique :
       "target_dispatcher": "global",
       "handoff_context_for_next_dispatcher": "Le user demande un rappel hors ajustement Plan.",
       "target_local_dispatcher_hint": null,
-      "user_words": ["fais-moi un rappel"],
       "structured_context": {
         "source_flow": "adjust_plan_item",
         "no_chat_mutation": true
       },
       "risk_score": 0,
-      "no_chat_mutation": {"db_write_committed": false}
+      "no_chat_mutation": { "db_write_committed": false }
     }
   },
   "evidence": ["demande un rappel"]
 }
 ```
 
-Sortie JSON :
-{
-  "flow_action": "answer_current_field|clarify_scope|clarify_adjustment_need|clarify_constraints|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|platform_destination_followup|explain_handoff|get_info_db|get_info_product|inline_tool_roundtrip|handoff_to_local_flow|apply_attempt|exit_to_global_dispatcher|cancel_flow|defer_flow|complete_flow|exit_to_global_dispatcher|safety_preempt|contract_recovery",
-  "confidence": "low|medium|high",
-  "risk_score": 0,
-  "adjust_plan_intent": {
-    "kind": "start_or_continue|scope_answer|need_answer|constraint_answer|handoff_request|handoff_revision|repeat|destination|explain|apply_attempt|cancel|off_topic|safety|unclear",
-    "summary": "string"
-  },
-  "scope": {
-    "kind": "specific_plan_item|action_cluster|current_week|current_level|whole_plan|multi_plan|unknown",
-    "confidence": "low|medium|high",
-    "plan_id": "string|null",
-    "plan_title": "string|null",
-    "level_id": "string|null",
-    "level_title": "string|null",
-    "plan_item_ids": [],
-    "target_summary": "string|null",
-    "needs_scope_clarification": true
-  },
-  "adjustment_need": {
-    "reason_change": "string|null",
-    "requested_change": "string|null",
-    "change_kind": "reduce|increase|pause|resume|replace|split|reschedule|copy_forward|bridge_action|clarify|unknown|null",
-    "constraints": [],
-    "preserve": [],
-    "avoid": [],
-    "missing": []
-  },
-  "platform_handoff": {
-    "status": "none|draft_ready|delivered|revised|repeat|apply_attempt|cancelled",
-    "destination": "Plan|null",
-    "suggested_platform_input": "string|null",
-    "grouped_by_plan": [],
-    "previous_value": "string|null",
-    "revised_value": "string|null"
-  },
-  "state_updates": {
-    "status": "collecting|clarifying|handoff_ready|handoff_delivered|revising|apply_attempt|cancelled|exit_to_global|safety",
-    "stage": "scope|adjustment_need|constraints|handoff|closing",
-    "turn_count_increment": 1,
-    "close_after_visible": false
-  },
-  "visible_task": {
-    "kind": "clarify_scope|clarify_adjustment_need|clarify_constraints|plan_handoff_ready|revise_plan_handoff|repeat_plan_handoff|destination_short|explain_handoff|inline_tool_return|apply_attempt|cancel_close|exit_or_cancel|safety|contract_recovery|none",
-    "instruction": "string",
-    "conversation_context": {}
-  },
-  "subskill_call": {
-    "needed": false,
-    "skill_id": "status_recap|product_help|null",
-    "reason": "string|null",
-    "context_for_subskill": {}
-  },
-  "exit_memo": {
-    "needed": true,
-    "reason": "topic_change|explicit_tool_request|product_help|status_question|preference_update|normal_coaching|safety|unknown|none",
-    "user_intent_summary": "string|null",
-    "local_flow_context": {
-      "skill_id": "adjust_plan_item",
-      "stage": "string|null",
-      "scope_summary": "string|null",
-      "last_handoff_summary": "string|null",
-      "no_chat_mutation": true,
-      "committed_effects": []
-    },
-    "handoff_hint_for_global_dispatcher": {
-      "likely_intent": "prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|product_help|normal_coaching|unknown",
-      "why": "string|null",
-      "constraints": [
-        "adjust_plan_item did not modify the plan from chat.",
-        "Global dispatcher is allowed only because local dispatcher returned exit_to_global_dispatcher."
-      ]
-    }
-  },
-  "evidence": ["string"]
-}
-```
+Sortie JSON : { "flow_action":
+"answer_current_field|clarify_scope|clarify_adjustment_need|clarify_limits|prepare_plan_handoff|revise_plan_handoff|repeat_plan_handoff|platform_destination_followup|explain_handoff|get_info_db|get_info_product|inline_tool_roundtrip|specialized_local_transition|apply_attempt|exit_to_global_dispatcher|cancel_flow|defer_flow|complete_flow|safety_preempt|contract_recovery",
+"confidence": "low|medium|high", "risk_score": 0, "adjust_plan_intent": {
+"kind":
+"start_or_continue|scope_answer|need_answer|constraint_answer|handoff_request|handoff_revision|repeat|destination|explain|apply_attempt|cancel|off_topic|safety|unclear",
+"summary": "string" }, "scope": { "kind":
+"specific_plan_item|action_cluster|current_week|current_level|whole_plan|multi_plan|unknown",
+"confidence": "low|medium|high", "plan_id": "string|null", "plan_title":
+"string|null", "level_id": "string|null", "level_title": "string|null",
+"plan_item_ids": [], "target_summary": "string|null",
+"needs_scope_clarification": true }, "adjustment_need": { "reason_change":
+"string|null", "requested_change": "string|null", "change_kind":
+"reduce|increase|pause|resume|replace|split|reschedule|copy_forward|bridge_action|clarify|unknown|null",
+"limits": [], "preserve": [], "avoid": [], "missing": [] },
+"platform_handoff": { "status":
+"none|draft_ready|delivered|revised|repeat|apply_attempt|cancelled",
+"destination": "Plan|null", "suggested_platform_input": "string|null",
+"grouped_by_plan": [], "previous_value": "string|null", "revised_value":
+"string|null" }, "state_updates": { "status":
+"collecting|clarifying|handoff_ready|handoff_delivered|revising|apply_attempt|cancelled|exit_to_global|safety",
+"stage": "scope|adjustment_need|limits|handoff|closing",
+"turn_count_increment": 1, "close_after_visible": false }, "visible_task": {
+"kind":
+"clarify_scope|clarify_adjustment_need|clarify_limits|plan_handoff_ready|revise_plan_handoff|repeat_plan_handoff|destination_short|explain_handoff|inline_tool_return|apply_attempt|cancel_close|exit_or_cancel|safety|contract_recovery|none",
+"instruction": "string", "conversation_context": {} }, "subskill_call": {
+"needed": false, "skill_id": "status_recap|product_help|null", "reason":
+"string|null", "context_for_subskill": {} }, "exit_memo": { "needed": true,
+"reason":
+"topic_change|explicit_tool_request|product_help|status_question|preference_update|normal_coaching|safety|unknown|none",
+"user_intent_summary": "string|null", "local_flow_context": { "skill_id":
+"adjust_plan_item", "stage": "string|null", "scope_summary": "string|null",
+"last_handoff_summary": "string|null", "no_chat_mutation": true,
+"committed_effects": [] }, "handoff_hint_for_global_dispatcher": {
+"likely_intent":
+"prepare_attack_card|prepare_defense_card|select_state_potion|update_coach_preferences|status_recap|product_help|normal_coaching|unknown",
+"why": "string|null" } }, "evidence": ["string"] }
 
+````
 ## Prompt 02 - Visible Clarify Scope
 
 ```txt
@@ -635,7 +592,7 @@ Regles :
 - Ne dis pas que tu vas modifier le plan.
 
 Retourne uniquement le message visible.
-```
+````
 
 ## Prompt 03 - Visible Clarify Adjustment Need
 
@@ -911,7 +868,8 @@ Checks interdits :
 
 - classifier le message par regex ;
 - mapper des mots utilisateur vers `flow_action` cote code ;
-- produire une reponse visible par renderer deterministe dans le chemin nominal ;
+- produire une reponse visible par renderer deterministe dans le chemin nominal
+  ;
 - remplir le scope ou le draft depuis le visible prompt.
 
 ## Invariants QA

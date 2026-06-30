@@ -8,40 +8,17 @@ import type {
   OneShotReminderToolOutcome,
 } from "./contract.ts";
 import { buildOneShotReminderIntake } from "./intake.ts";
-import { buildToolConfirmationDecision } from "../../operations/_shared/confirmation_adapter.ts";
 import type { maybeCancelOneShotReminder } from "./executor.ts";
-import { maybeCreateOneShotReminder } from "./executor.ts";
+import {
+  maybeCreateOneShotReminder,
+  maybeCreateOneShotReminderFromStructuredEffect,
+} from "./executor.ts";
 export {
   buildMinuteByMinuteSequenceAddonForOneShotReminder
     as buildMinuteByMinuteSequenceAddon,
   localTextAddonForOneShotReminder as localTextAddonForOneShotReminder,
   oneShotReminderManagementReply,
 } from "./renderer.ts";
-
-export function hasExplicitOneShotReminderDirectEffectOverride(args: {
-  directEffectsToRun: string[];
-  directEffects:
-    | Array<{
-      effect_type?: string;
-      explicitness?: string;
-      target_status?: string;
-      confidence_band?: string;
-    }>
-    | null
-    | undefined;
-  pendingToolSkillConfirmation: unknown;
-}): boolean {
-  if (!args.pendingToolSkillConfirmation) return false;
-  if (!args.directEffectsToRun.includes("create_one_shot_reminder")) {
-    return false;
-  }
-  return (args.directEffects ?? []).some((effect) =>
-    effect.effect_type === "create_one_shot_reminder" &&
-    effect.explicitness === "explicit" &&
-    effect.target_status === "identified" &&
-    effect.confidence_band === "high"
-  );
-}
 
 export function classifyOneShotReminderDirectIntent(
   message: string,
@@ -157,18 +134,101 @@ function createReminderSuccessReply(args: {
   ].filter(Boolean).join(" ");
 }
 
-function canonicalInstructionHintFromTurnFrame(
+function createEffectFromTurnFrame(
   turnFrame?: TurnFrame | null,
-): string | undefined {
-  const effect = (turnFrame?.direct_effects ?? []).find((candidate) =>
+): TurnFrame["direct_effects"][number] | undefined {
+  return (turnFrame?.direct_effects ?? []).find((candidate) =>
     candidate.effect_type === "create_one_shot_reminder"
   );
+}
+
+function payloadText(
+  effect: TurnFrame["direct_effects"][number] | undefined,
+  key: string,
+): string | undefined {
   const hint = effect?.payload_hint &&
       typeof effect.payload_hint === "object" &&
       !Array.isArray(effect.payload_hint)
-    ? (effect.payload_hint as Record<string, unknown>).instruction_hint
+    ? (effect.payload_hint as Record<string, unknown>)[key]
     : undefined;
-  return typeof hint === "string" ? hint : undefined;
+  const text = typeof hint === "string" ? hint.trim() : "";
+  return text || undefined;
+}
+
+function canonicalInstructionHintFromTurnFrame(
+  turnFrame?: TurnFrame | null,
+): string | undefined {
+  return payloadText(createEffectFromTurnFrame(turnFrame), "instruction_hint");
+}
+
+function canonicalRawTextFromTurnFrame(
+  turnFrame?: TurnFrame | null,
+): string | undefined {
+  return payloadText(createEffectFromTurnFrame(turnFrame), "raw_text");
+}
+
+function canonicalUtcTimeFromTurnFrame(
+  turnFrame?: TurnFrame | null,
+): string | undefined {
+  return payloadText(createEffectFromTurnFrame(turnFrame), "UTC_time");
+}
+
+function canonicalWhenHintFromTurnFrame(
+  turnFrame?: TurnFrame | null,
+): string | undefined {
+  return payloadText(createEffectFromTurnFrame(turnFrame), "when_hint");
+}
+
+function canonicalLocalLabelFromTurnFrame(
+  turnFrame?: TurnFrame | null,
+): string | undefined {
+  return payloadText(createEffectFromTurnFrame(turnFrame), "local_label");
+}
+
+function isValidIsoDate(value: string | undefined): value is string {
+  if (!value) return false;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime());
+}
+
+function looksTemporalLabel(value: string | undefined): value is string {
+  const text = String(value ?? "").trim().toLowerCase();
+  if (!text) return false;
+  return /\d/.test(text) ||
+    /\b(dans|demain|aujourd|apres|après|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|matin|midi|soir|minute|heure)\b/
+      .test(text);
+}
+
+function compileStructuredCreatePayload(args: {
+  turnFrame?: TurnFrame | null;
+  message: string;
+}): {
+  scheduledFor: string | null;
+  localLabel: string | null;
+  instruction: string | null;
+  rawText: string;
+  parseSource: "payload_utc_time" | "payload";
+} {
+  const whenHint = canonicalWhenHintFromTurnFrame(args.turnFrame);
+  const utcTime = canonicalUtcTimeFromTurnFrame(args.turnFrame);
+  const scheduledFor = isValidIsoDate(utcTime) ? utcTime : null;
+  const instruction = canonicalInstructionHintFromTurnFrame(args.turnFrame) ??
+    null;
+  const rawText = canonicalRawTextFromTurnFrame(args.turnFrame) ??
+    args.message;
+  const localLabelHint = canonicalLocalLabelFromTurnFrame(args.turnFrame);
+  const localLabel = looksTemporalLabel(localLabelHint)
+    ? localLabelHint
+    : looksTemporalLabel(whenHint)
+    ? whenHint
+    : null;
+  return {
+    scheduledFor,
+    localLabel,
+    instruction,
+    rawText,
+    parseSource: isValidIsoDate(utcTime) ? "payload_utc_time" : "payload",
+  };
 }
 
 /**
@@ -180,142 +240,121 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
   supabase: SupabaseClient;
   userId: string;
   message: string;
+  sourceMessageId?: string | null;
   requestId?: string;
   now?: Date;
-  pendingToolSkillConfirmation?: unknown;
+  userTimezone?: string | null;
+  locale?: string | null;
   turnFrame?: TurnFrame | null;
   noMutationRequested?: boolean;
   contextMessages?: string[];
   createReminder?: typeof maybeCreateOneShotReminder;
   cancelReminder?: typeof maybeCancelOneShotReminder;
 }): Promise<OneShotReminderDirectEffectResult> {
-  const classified = classifyOneShotReminderDirectIntent(
-    args.message,
-    (args.turnFrame?.direct_effects ?? []).map((effect) => effect.effect_type),
-  );
-  const hasExplicitCreateDirectEffect = (args.turnFrame?.direct_effects ?? [])
-    .some((effect) =>
-      effect.effect_type === "create_one_shot_reminder" &&
-      effect.explicitness === "explicit" &&
-      effect.confidence_band !== "low"
-    );
-  const intent = classified.intent;
-  if (!classified.detected || intent === "off_topic") {
+  const createEffect = createEffectFromTurnFrame(args.turnFrame);
+  const now = args.now && Number.isFinite(args.now.getTime())
+    ? args.now
+    : new Date();
+  const compiledPayload = compileStructuredCreatePayload({
+    turnFrame: args.turnFrame,
+    message: args.message,
+  });
+  const hasExplicitCreateDirectEffect =
+    createEffect?.explicitness === "explicit" &&
+    createEffect.confidence_band !== "low";
+  const effectType: OneShotReminderDirectEffectTool =
+    "create_one_shot_reminder";
+  if (!hasExplicitCreateDirectEffect) {
     return baseDirectEffectResult({
       detected: false,
       intent: "off_topic",
       status: "ignored",
-      reason_code: "not_one_shot_reminder",
+      reason_code: "missing_explicit_direct_effect",
     });
   }
-
-  if (intent === "product_help" || intent === "status_question") {
+  if (args.noMutationRequested) {
     return {
       ...baseDirectEffectResult({
         detected: true,
-        intent,
-        status: "ignored",
-        reason_code: classified.reason_code,
-      }),
-      constraints: intent === "product_help"
-        ? ["product_help", "do_not_mutate"]
-        : ["status_only", "do_not_mutate"],
-    };
-  }
-
-  if (intent === "ignore") {
-    return {
-      ...baseDirectEffectResult({
-        detected: true,
-        intent,
-        status: "ignored",
-        reason_code: classified.reason_code,
-      }),
-      blocked_effects: [{
-        type: "create_one_shot_reminder",
-        reason_code: "one_shot_only",
-      }],
-    };
-  }
-
-  const effectType: OneShotReminderDirectEffectTool = intent === "cancel"
-    ? "cancel_one_shot_reminder"
-    : intent === "replace"
-    ? "replace_one_shot_reminder"
-    : "create_one_shot_reminder";
-  if (intent === "cancel" || intent === "replace") {
-    const requested_effects = intent === "replace"
-      ? [
-        requestedEffect("cancel_one_shot_reminder", "replace"),
-        requestedEffect("create_one_shot_reminder", "replace"),
-      ]
-      : [requestedEffect("cancel_one_shot_reminder", "cancel")];
-    return {
-      ...baseDirectEffectResult({
-        detected: true,
-        intent,
+        intent: "create",
         status: "blocked",
-        reason_code: "one_shot_reminder_cancel_unsupported",
-        reply: intent === "replace"
-          ? "Je ne peux pas modifier ou annuler un rappel ponctuel déjà programmé. Je peux seulement créer un nouveau rappel ponctuel si tu me dis quoi rappeler et quand."
-          : "Je ne peux pas annuler un rappel ponctuel déjà programmé. Je peux seulement créer un nouveau rappel ponctuel si tu me dis quoi rappeler et quand.",
+        reason_code: "no_mutation_requested",
       }),
-      requested_effects,
-      blocked_effects: requested_effects.map((effect) => ({
-        type: effect.type,
-        reason_code: "one_shot_reminder_cancel_unsupported",
-      })),
-      constraints: ["do_not_mutate"],
-    };
-  }
-  const pendingConfirmationDecision = args.pendingToolSkillConfirmation
-    ? buildToolConfirmationDecision({
-      user_message: args.message,
-      turn_frame: args.turnFrame ?? null,
-      pending_confirmation: args.pendingToolSkillConfirmation,
-      operation_type: effectType,
-      request_id: args.requestId ?? null,
-      no_tool_requested: args.noMutationRequested === true,
-    })
-    : null;
-  if (args.noMutationRequested || args.pendingToolSkillConfirmation) {
-    return {
-      ...baseDirectEffectResult({
-        detected: true,
-        intent,
-        status: "blocked",
-        reason_code: pendingConfirmationDecision?.blocked_by[0] ??
-          (args.noMutationRequested
-            ? "no_mutation_requested"
-            : "pending_tool_skill_confirmation"),
-      }),
-      requested_effects: [{ type: effectType, reason_code: intent }],
+      requested_effects: [{ type: effectType, reason_code: "create" }],
       blocked_effects: [{
         type: effectType,
-        reason_code: args.noMutationRequested
-          ? "no_mutation_requested"
-          : "pending_confirmation_active",
+        reason_code: "no_mutation_requested",
       }],
     };
   }
-
-  const createReminder = args.createReminder ?? maybeCreateOneShotReminder;
-  const outcome = await createReminder({
+  const missingPayloadSlots: OneShotReminderDirectEffectResult["missing_slots"] =
+    [];
+  if (!compiledPayload.scheduledFor || !compiledPayload.localLabel) {
+    missingPayloadSlots.push("scheduled_for");
+  }
+  if (!compiledPayload.instruction) {
+    missingPayloadSlots.push("reminder_instruction");
+  }
+  if (missingPayloadSlots.length > 0) {
+    const reasonCode = !compiledPayload.scheduledFor
+      ? "missing_time"
+      : "missing_instruction";
+    return {
+      ...baseDirectEffectResult({
+        detected: true,
+        intent: "create",
+        status: "needs_clarify",
+        reason_code: reasonCode,
+        reply: !compiledPayload.scheduledFor
+          ? "Il me manque le moment exact pour programmer ce rappel."
+          : "Il me manque ce qu'il faut rappeler.",
+      }),
+      requested_effects: [{ type: effectType, reason_code: "create" }],
+      blocked_effects: [{
+        type: effectType,
+        reason_code: reasonCode,
+      }],
+      constraints: !compiledPayload.scheduledFor
+        ? ["requires_explicit_time"]
+        : ["requires_instruction"],
+      missing_slots: missingPayloadSlots,
+    };
+  }
+  const scheduledFor = compiledPayload.scheduledFor;
+  const reminderInstruction = compiledPayload.instruction;
+  if (!scheduledFor || !reminderInstruction) {
+    return {
+      ...baseDirectEffectResult({
+        detected: true,
+        intent: "create",
+        status: "needs_clarify",
+        reason_code: "missing_payload",
+      }),
+      requested_effects: [{ type: effectType, reason_code: "create" }],
+      blocked_effects: [{ type: effectType, reason_code: "missing_payload" }],
+    };
+  }
+  const outcome = await maybeCreateOneShotReminderFromStructuredEffect({
+    effect: {
+      type: "create_one_shot_reminder",
+      scheduled_for: scheduledFor,
+      local_label: compiledPayload.localLabel ?? undefined,
+      reminder_instruction: reminderInstruction,
+      request_text: compiledPayload.rawText,
+      reason_code: compiledPayload.parseSource,
+    },
     supabase: args.supabase,
     userId: args.userId,
-    message: args.message,
+    sourceMessageId: args.sourceMessageId ?? args.requestId ?? null,
     requestId: args.requestId,
-    now: args.now,
-    contextMessages: args.contextMessages,
-    forceCreate: hasExplicitCreateDirectEffect,
-    canonicalReminderInstruction: canonicalInstructionHintFromTurnFrame(
-      args.turnFrame,
-    ),
+    now,
+    timezone: args.userTimezone,
+    locale: args.locale,
   });
   if (!outcome.detected) {
     return baseDirectEffectResult({
       detected: false,
-      intent,
+      intent: "create",
       status: "ignored",
       reason_code: "create_not_detected",
     });
@@ -326,7 +365,7 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       return {
         ...baseDirectEffectResult({
           detected: true,
-          intent,
+          intent: "create",
           status: "failed",
           reason_code: "missing_create_commit",
           reply: "Je n'ai pas réussi à programmer ce rappel.",
@@ -355,7 +394,7 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     return {
       ...baseDirectEffectResult({
         detected: true,
-        intent,
+        intent: "create",
         status: "success",
         reason_code: outcome.parse_source ?? "created",
         reply: createReminderSuccessReply({
@@ -389,14 +428,16 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
   return {
     ...baseDirectEffectResult({
       detected: true,
-      intent,
+      intent: "create",
       status: outcome.status === "needs_clarify" ? "needs_clarify" : "failed",
-      reason_code: outcome.status,
+      reason_code: outcome.status === "needs_clarify"
+        ? outcome.reason
+        : outcome.status,
       reply: outcome.status === "needs_clarify"
         ? "Il me manque le moment exact pour programmer ce rappel."
         : "Je n'ai pas réussi à programmer ce rappel.",
     }),
-    requested_effects: [{ type: effectType, reason_code: outcome.status }],
+    requested_effects: [{ type: effectType, reason_code: "create" }],
     attempted_effects: outcome.status === "failed" ? [effectType] : [],
     blocked_effects: outcome.status === "needs_clarify"
       ? [{ type: effectType, reason_code: outcome.reason }]

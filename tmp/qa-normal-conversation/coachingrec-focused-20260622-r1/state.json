@@ -1,0 +1,3045 @@
+{
+  "run_id": "coachingrec-focused-20260622-r1",
+  "scope": "qa-normal-conversation-coachingrec-focused-20260622-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-focused-20260622-r1-1782148565619@example.com",
+  "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJmNzVmNWJjMi03MDQ3LTQyZDQtODJlMy03MjEwMWU0YjFmMzkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMTUyMTY1LCJpYXQiOjE3ODIxNDg1NjUsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLWZvY3VzZWQtMjAyNjA2MjItcjEtMTc4MjE0ODU2NTYxOUBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtY29hY2hpbmdyZWMtZm9jdXNlZC0yMDI2MDYyMi1yMS0xNzgyMTQ4NTY1NjE5QGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJjb2FjaGluZ3JlYy1mb2N1c2VkLTIwMjYwNjIyLXIxIiwic3ViIjoiZjc1ZjViYzItNzA0Ny00MmQ0LTgyZTMtNzIxMDFlNGIxZjM5In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIxNDg1NjV9XSwic2Vzc2lvbl9pZCI6IjQ0MWYwOWU2LWQ5ODItNGM2ZS05NjU1LTY5ODVkYTM4YzRjYiIsImlzX2Fub255bW91cyI6ZmFsc2V9.REcjnUnLkmnGd8wjthcBhlqpr-1LbadkOY2RYq9sdfE",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-22T17:16:05.919Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-22T17:16:43.122Z",
+      "user": "J'ai un mail à envoyer à Camille, ça fait trois jours que je l'évite. Dès que j'ouvre le brouillon je bloque, je relis deux mots et je pars faire autre chose. Tu m'aiderais comment ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque libre, technique Préparer le terrain : ferme le brouillon, enlève les distractions, et ne te donne comme objectif que d’écrire la première phrase du mail. Comme tu bloques dès l’ouverture, cette technique réduit la friction avant même de relire.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-22T17:16:43.057Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-22T17:16:43.057Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est au démarrage et à la reprise du brouillon; une carte d’attaque libre en Préparer le terrain aide à rendre l’entrée dans l’action plus simple et plus nette.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "dans Ressources, comme carte d'attaque libre"
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-22T17:16:43.062606+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-focused-20260622-r1-t01",
+        "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-focused-20260622-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque libre, technique Préparer le terrain : ferme le brouillon, enlève les distractions, et ne te donne comme objectif que d’écrire la première phrase du mail. Comme tu bloques dès l’ouverture, cette technique réduit la friction avant même de relire.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-focused-20260622-r1-t01",
+              "source_message_id": "5009351c-8828-4491-91db-e25bde3fd1b3",
+              "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "free_action_coaching_need",
+                  "context": {
+                    "coaching_type": "no_plan_action",
+                    "confidence": 0.82,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": false,
+                      "is_about_non_plan_action": true,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "envoyer un mail à Camille",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "help_user_with_blocked_non_plan_action",
+                "reasoning_complexity": "medium",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.82
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-focused-20260622-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 16317
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-focused-20260622-r1-t01",
+            "source_message_id": "5009351c-8828-4491-91db-e25bde3fd1b3",
+            "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "free_action_coaching_need",
+                "context": {
+                  "coaching_type": "no_plan_action",
+                  "confidence": 0.82,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "is_about_non_plan_action": true,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "envoyer un mail à Camille",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "help_user_with_blocked_non_plan_action",
+              "reasoning_complexity": "medium",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.82
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-focused-20260622-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 16317
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-22T17:17:34.291Z",
+      "user": "Attends, je connais pas ces mots. C'est quoi une carte d'attaque libre et Préparer le terrain ? Je ne te demande pas encore de choisir à ma place.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Bien sûr.\n\nUne **carte d’attaque libre**, c’est juste une aide pour **rendre le démarrage plus facile** quand tu bloques avant d’ouvrir ou de reprendre le mail.\n\n**Préparer le terrain**, c’est la technique où tu **fais tomber la friction avant de commencer** : fermer les distractions, ouvrir le brouillon, laisser juste ce qu’il faut sous les yeux, et rendre le premier geste très simple.\n\nDonc ici, ça veut dire : pas “travailler le mail”, mais **préparer le contexte pour que tu puisses t’y remettre sans forcer**.\n\nSi tu veux, je peux aussi te comparer **Préparer le terrain** avec **Mot de bascule** en une phrase chacun.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-22T17:17:34.232Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande la définition de deux termes de recommandation, sans demander encore qu'on choisisse à sa place.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification des termes et dit explicitement ne pas vouloir que je choisisse pour lui maintenant. Je réponds donc en explication simple sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification des termes et dit explicitement ne pas vouloir que je choisisse pour lui maintenant. Je réponds donc en explication simple sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification des termes et dit explicitement ne pas vouloir que je choisisse pour lui maintenant. Je réponds donc en explication simple sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-22T17:17:34.232Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande la définition de deux termes de recommandation, sans demander encore qu'on choisisse à sa place.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification des termes et dit explicitement ne pas vouloir que je choisisse pour lui maintenant. Je réponds donc en explication simple sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification des termes et dit explicitement ne pas vouloir que je choisisse pour lui maintenant. Je réponds donc en explication simple sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification des termes et dit explicitement ne pas vouloir que je choisisse pour lui maintenant. Je réponds donc en explication simple sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-22T17:17:34.237264+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-focused-20260622-r1-t02",
+        "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-focused-20260622-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Bien sûr.\n\nUne **carte d’attaque libre**, c’est juste une aide pour **rendre le démarrage plus facile** quand tu bloques avant d’ouvrir ou de reprendre le mail.\n\n**Préparer le terrain**, c’est la technique où tu **fais tomber la friction avant de commencer** : fermer les distractions, ouvrir le brouillon, laisser juste ce qu’il faut sous les yeux, et rendre le premier geste très simple.\n\nDonc ici, ça veut dire : pas “travailler le mail”, mais **préparer le contexte pour que tu puisses t’y remettre sans forcer**.\n\nSi tu veux, je peux aussi te comparer **Préparer le terrain** avec **Mot de bascule** en une phrase chacun.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-focused-20260622-r1-t02",
+              "source_message_id": "7c384b69-4604-469d-b5d7-8ca67732e8e4",
+              "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify_product_terms",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-focused-20260622-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 15979
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-focused-20260622-r1-t02",
+            "source_message_id": "7c384b69-4604-469d-b5d7-8ca67732e8e4",
+            "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify_product_terms",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-focused-20260622-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 15979
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-22T17:18:03.718Z",
+      "user": "Oui compare, mais juste pour comprendre. C'est quoi la différence entre Préparer le terrain et Mot de bascule ? Je ne prépare rien maintenant.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Bien sûr.\n\n- **Préparer le terrain** : tu agis sur l’environnement pour que commencer soit plus facile. Exemple simple : ouvrir le brouillon, fermer les onglets qui distraient, poser juste le mail sous les yeux.\n- **Mot de bascule** : tu choisis **un seul mot** qui déclenche le passage à l’action. Exemple : **Go** ou **Départ**. Ce mot sert à lancer, pas à préparer.\n\nDonc ici : si le blocage vient surtout du démarrage, **Préparer le terrain** aide à réduire la friction. Si tu veux un déclencheur ultra simple au moment d’y aller, **Mot de bascule** est plus direct.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-22T17:18:03.676Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "compare_options",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut juste comprendre la différence entre deux techniques de carte d'attaque, sans demander qu'on choisisse pour lui.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-22T17:18:03.676Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "compare_options",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut juste comprendre la différence entre deux techniques de carte d'attaque, sans demander qu'on choisisse pour lui.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-22T17:18:03.680415+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-focused-20260622-r1-t03",
+        "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-focused-20260622-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Bien sûr.\n\n- **Préparer le terrain** : tu agis sur l’environnement pour que commencer soit plus facile. Exemple simple : ouvrir le brouillon, fermer les onglets qui distraient, poser juste le mail sous les yeux.\n- **Mot de bascule** : tu choisis **un seul mot** qui déclenche le passage à l’action. Exemple : **Go** ou **Départ**. Ce mot sert à lancer, pas à préparer.\n\nDonc ici : si le blocage vient surtout du démarrage, **Préparer le terrain** aide à réduire la friction. Si tu veux un déclencheur ultra simple au moment d’y aller, **Mot de bascule** est plus direct.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-focused-20260622-r1-t03",
+              "source_message_id": "19b05e88-5424-408e-a15f-53fb3911eb5e",
+              "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_followup_comparison"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "compare two product concepts for understanding",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.74
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-focused-20260622-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 12067
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-focused-20260622-r1-t03",
+            "source_message_id": "19b05e88-5424-408e-a15f-53fb3911eb5e",
+            "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_followup_comparison"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "compare two product concepts for understanding",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.74
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-focused-20260622-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 12067
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-22T17:18:43.134Z",
+      "user": "Ok. En fait je me rends compte que j'arrive à ouvrir le brouillon. Le problème c'est quand je vois une phrase froide, je panique et je ferme. Là c'est encore attaque ou autre chose ?",
+      "http_status": 502,
+      "ok": false,
+      "empty_response": true,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "",
+      "trace_short": {
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": null
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-22T17:18:03.676Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "compare_options",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut juste comprendre la différence entre deux techniques de carte d'attaque, sans demander qu'on choisisse pour lui.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-22T17:18:03.676Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "compare_options",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut juste comprendre la différence entre deux techniques de carte d'attaque, sans demander qu'on choisisse pour lui.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-22T17:18:03.680415+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "message": "An invalid response was received from the upstream server"
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-22T17:19:11.111Z",
+      "user": "Ok. En fait je me rends compte que j'arrive à ouvrir le brouillon. Le problème c'est quand je vois une phrase froide, je panique et je ferme. Là c'est encore attaque ou autre chose ?",
+      "http_status": 502,
+      "ok": false,
+      "empty_response": true,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "",
+      "trace_short": {
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": null
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-22T17:18:03.676Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "compare_options",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut juste comprendre la différence entre deux techniques de carte d'attaque, sans demander qu'on choisisse pour lui.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:16:43.057Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-22T17:18:03.676Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "compare_options",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user évite un mail concret hors plan et bloque au démarrage quand il ouvre le brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "envoyer un mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème principal est un blocage au moment de démarrer et de rester dans l'action. Une carte d'attaque aide à préparer l'entrée dans le mail pour réduire la friction avant ouverture et reprise."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut juste comprendre la différence entre deux techniques de carte d'attaque, sans demander qu'on choisisse pour lui.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "coaching_only",
+                        "reason": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "variant": null,
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une clarification et dit explicitement ne rien préparer maintenant; je compare simplement les options sans pousser une carte.",
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "User asks for help on a concrete action outside the plan: sending an email, with avoidance and blocking.",
+                        "category": "free_action_coaching",
+                        "confidence": 0.82,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "envoyer un mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-22T17:18:03.680415+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "message": "An invalid response was received from the upstream server"
+      }
+    },
+    {
+      "turn": 6,
+      "sent_at": "2026-06-22T17:20:20.451Z",
+      "user": "Ok. En fait je me rends compte que j'arrive à ouvrir le brouillon. Le problème c'est quand je vois une phrase froide, je panique et je ferme. Là c'est encore attaque ou autre chose ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, là c’est plutôt une **défense** qu’une attaque. \n\n- **Attaque** = tu prépares avant d’agir, pour rendre le démarrage plus facile.\n- **Défense** = tu gères le moment où ça déraille, ici quand la phrase froide te fait paniquer et fermer.\n\nDonc ton blocage n’est pas “ouvrir le brouillon”, mais “tenir quand tu vois la phrase froide”.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {},
+              "updated_at": "2026-06-22T17:20:20.368763+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-focused-20260622-r1-t06",
+        "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-focused-20260622-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, là c’est plutôt une **défense** qu’une attaque. \n\n- **Attaque** = tu prépares avant d’agir, pour rendre le démarrage plus facile.\n- **Défense** = tu gères le moment où ça déraille, ici quand la phrase froide te fait paniquer et fermer.\n\nDonc ton blocage n’est pas “ouvrir le brouillon”, mais “tenir quand tu vois la phrase froide”.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-focused-20260622-r1-t06",
+              "source_message_id": "62349aa2-ce93-48d1-b789-dbf7e5975430",
+              "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "action_linked_emotional_friction",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.87,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": false,
+                      "needs_type_confirmation": true
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": null,
+                      "action_title": "répondre au brouillon / écrire le mail",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "panique face à une phrase froide",
+                      "intensity": "medium"
+                    },
+                    "reason": "The user describes a concrete blocked action from the plan context: opening the draft works, but seeing a cold sentence triggers panic and closing. This is action-linked emotional friction, so it stays in plan_action_coaching rather than gl"
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "Clarify whether the issue is still action coaching and route as plan-linked emotional friction.",
+                "reasoning_complexity": "medium",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.83
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-focused-20260622-r1-t06",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "complete",
+              "latency_ms": 19649
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-focused-20260622-r1-t06",
+            "source_message_id": "62349aa2-ce93-48d1-b789-dbf7e5975430",
+            "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "action_linked_emotional_friction",
+                "context": {
+                  "coaching_type": "plan_action",
+                  "confidence": 0.87,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": false,
+                    "needs_type_confirmation": true
+                  },
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": null,
+                    "action_title": "répondre au brouillon / écrire le mail",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "panique face à une phrase froide",
+                    "intensity": "medium"
+                  },
+                  "reason": "The user describes a concrete blocked action from the plan context: opening the draft works, but seeing a cold sentence triggers panic and closing. This is action-linked emotional friction, so it stays in plan_action_coaching rather than gl"
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "Clarify whether the issue is still action coaching and route as plan-linked emotional friction.",
+              "reasoning_complexity": "medium",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.83
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-focused-20260622-r1-t06",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "complete",
+            "latency_ms": 19649
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 7,
+      "sent_at": "2026-06-22T17:20:49.285Z",
+      "user": "Ok, et si je veux préparer cette défense moi-même dans Sophia, je vais où ? Ne crée rien depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Va dans Dashboard > Ressources. C’est là que tu peux préparer une carte de défense. Limite : ce n’est pas l’endroit pour modifier le plan.",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "product_help_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {},
+              "updated_at": "2026-06-22T17:20:49.258945+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-focused-20260622-r1-t07",
+        "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-focused-20260622-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Va dans Dashboard > Ressources. C’est là que tu peux préparer une carte de défense. Limite : ce n’est pas l’endroit pour modifier le plan.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-focused-20260622-r1-t07",
+              "source_message_id": "3f0563e2-ac18-4bb6-b4c6-881da6d07aaa",
+              "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "product_help_about_where_to_find_defense_creation",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "product_help_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "product_help",
+                "resume_policy": "none",
+                "reason_code": "product_help_signal"
+              },
+              "selected_handler": "product_help"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-focused-20260622-r1-t07",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help",
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "product_help_signal",
+              "status": "complete",
+              "latency_ms": 4089
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-focused-20260622-r1-t07",
+            "source_message_id": "3f0563e2-ac18-4bb6-b4c6-881da6d07aaa",
+            "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "product_help_about_where_to_find_defense_creation",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-focused-20260622-r1-t07",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete",
+            "latency_ms": 4089
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 8,
+      "sent_at": "2026-06-22T17:21:40.437Z",
+      "user": "Et concrètement pour mon mail à Camille, la défense devrait m'aider sur quel moment précis ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Plutôt le moment où tu vois la phrase froide et que tu as envie de fermer, ou un autre moment précis dans ton mail ?",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:21:40.397Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-22T17:21:40.397Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L'utilisateur veut préciser le moment exact dans l'action du mail où la carte de défense doit intervenir.",
+                        "target_kind": "plan_action",
+                        "action_title": "mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L'utilisateur veut préciser le moment exact dans l'action du mail où la carte de défense doit intervenir.",
+                      "candidate_features": [],
+                      "last_answer_summary": "L'utilisateur veut préciser le moment exact dans l'action du mail où la carte de défense doit intervenir.",
+                      "parent_return_focus": null,
+                      "pending_type_change": {
+                        "reason": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action.",
+                        "candidate_coaching_type": "unclear"
+                      },
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": null,
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": null
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action.",
+                        "confidence": 0.86,
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "emotional_state_context": {
+                          "intensity": "medium",
+                          "state_hint": "panic when seeing a cold sentence"
+                        }
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-22T17:21:40.397Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-22T17:21:40.397Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L'utilisateur veut préciser le moment exact dans l'action du mail où la carte de défense doit intervenir.",
+                        "target_kind": "plan_action",
+                        "action_title": "mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L'utilisateur veut préciser le moment exact dans l'action du mail où la carte de défense doit intervenir.",
+                      "candidate_features": [],
+                      "last_answer_summary": "L'utilisateur veut préciser le moment exact dans l'action du mail où la carte de défense doit intervenir.",
+                      "parent_return_focus": null,
+                      "pending_type_change": {
+                        "reason": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action.",
+                        "candidate_coaching_type": "unclear"
+                      },
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": null,
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": null
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action.",
+                        "confidence": 0.86,
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": "mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "emotional_state_context": {
+                          "intensity": "medium",
+                          "state_hint": "panic when seeing a cold sentence"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-22T17:21:40.400812+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-focused-20260622-r1-t08",
+        "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-focused-20260622-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Plutôt le moment où tu vois la phrase froide et que tu as envie de fermer, ou un autre moment précis dans ton mail ?",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-focused-20260622-r1-t08",
+              "source_message_id": "b8195b76-c04b-442b-af0d-4c9fec248e3a",
+              "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "action_linked_coaching_followup_about_defense_timing",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.86,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "mail à Camille",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "panic when seeing a cold sentence",
+                      "intensity": "medium"
+                    },
+                    "reason": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "answer_followup_about_defense_timing_for_specific_mail_action",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.84
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-focused-20260622-r1-t08",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 11611
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-focused-20260622-r1-t08",
+            "source_message_id": "b8195b76-c04b-442b-af0d-4c9fec248e3a",
+            "user_id": "f75f5bc2-7047-42d4-82e3-72101e4b1f39",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "action_linked_coaching_followup_about_defense_timing",
+                "context": {
+                  "coaching_type": "plan_action",
+                  "confidence": 0.86,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "mail à Camille",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "panic when seeing a cold sentence",
+                    "intensity": "medium"
+                  },
+                  "reason": "The user asks concretely which moment inside the mail-writing action the defense should help with; this remains plan-action coaching anchored to the identified mail action."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "answer_followup_about_defense_timing_for_specific_mail_action",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.84
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-focused-20260622-r1-t08",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 11611
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-22T17:21:40.438Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-22T17:22:35.956Z"
+}

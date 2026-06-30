@@ -211,10 +211,16 @@ Deno.test("dashboard capability addons: describe V2 surfaces instead of old V1 s
     intents: ["plan_item_discussion"],
   });
 
-  assert(lite.includes("Sections dimensions: Soutien, Missions, Habitudes"));
+  assert(lite.includes("Plan: actions, missions, habitudes"));
+  assert(lite.includes("Ressources: cartes d'attaque"));
+  assert(lite.includes("Inspirations: contenus"));
+  assert(lite.includes("Initiatives: messages récurrents"));
+  assert(!lite.includes("Sections dimensions: Soutien, Missions, Habitudes"));
   assert(!lite.includes("Construction du Temple"));
-  assert(full.includes("Unlock preview"));
-  assert(full.includes("Mission cards"));
+  assert(full.includes("Plan: pour actions, missions, habitudes"));
+  assert(full.includes("Ressources: pour cartes d'attaque"));
+  assert(full.includes("Initiatives: pour planifier un message récurrent"));
+  assert(!full.includes("Mission cards"));
   assert(!full.includes("Actions Personnelles"));
 });
 

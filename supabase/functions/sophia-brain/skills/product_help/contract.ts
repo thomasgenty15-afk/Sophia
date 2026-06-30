@@ -1,4 +1,5 @@
 import type { NoteInformation } from "../../contracts/note_information.v1.ts";
+import type { LocalOneShotDirectEffectRequest } from "../../router/one_shot_local_direct_effect.ts";
 
 export type ProductHelpIntent =
   | "explain_feature"
@@ -22,7 +23,6 @@ export type ProductHelpTargetKind =
   | "user_object"
   | "recent_effect"
   | "pending_draft"
-  | "tool_flow"
   | "unknown";
 
 export type ProductHelpObjectType =
@@ -36,15 +36,6 @@ export type ProductHelpObjectType =
   | "initiative"
   | "unknown";
 
-export type ProductHelpBridgeOperationType =
-  | "prepare_attack_card"
-  | "prepare_defense_card"
-  | "select_state_potion"
-  | "create_recurring_reminder"
-  | "one_shot_reminder"
-  | "adjust_plan_item"
-  | "update_coach_preferences";
-
 export type ProductHelpLocalFlowAction =
   | "answer_product_question"
   | "clarify_product_question"
@@ -53,13 +44,8 @@ export type ProductHelpLocalFlowAction =
   | "explain_limit"
   | "bridge_explanation_only"
   | "repeat_answer"
-  | "apply_attempt"
-  | "inline_status_roundtrip"
-  | "inline_tool_return"
-  | "handoff_to_local_dispatcher"
   | "exit_to_global_dispatcher"
   | "close_product_help"
-  | "return_to_parent_flow"
   | "safety_preempt";
 
 export type ProductHelpVisibleTaskKind =
@@ -70,8 +56,6 @@ export type ProductHelpVisibleTaskKind =
   | "explain_limit"
   | "bridge_explanation_only"
   | "repeat_answer"
-  | "apply_attempt"
-  | "inline_tool_return"
   | "stop_or_cancel"
   | "exit_ack"
   | "close_product_help"
@@ -80,7 +64,6 @@ export type ProductHelpVisibleTaskKind =
 
 export type ProductHelpConversationContext = {
   state_summary: string;
-  user_words: string[];
   field_or_stage: string | null;
   known_values: Record<string, unknown>;
   missing_or_weak_values: string[];
@@ -99,7 +82,6 @@ export type ProductHelpLocalFlowState = {
     | "answered"
     | "closing"
     | "stopped"
-    | "handoff"
     | "exit_to_global"
     | "safety";
   mode: "standalone";
@@ -108,8 +90,6 @@ export type ProductHelpLocalFlowState = {
       | "answering"
       | "clarifying"
       | "bridge_explained"
-      | "status_inline"
-      | "handoff"
       | "closing";
     last_intent: string | null;
     last_target: Record<string, unknown>;
@@ -149,11 +129,12 @@ export type ProductHelpLocalDispatcherOutput = {
   };
   bridge: {
     needed: boolean;
-    operation_type: ProductHelpBridgeOperationType | null;
-    kind: "explain_only" | "offer_with_consent" | "handoff_needed" | null;
+    operation_type: null;
+    kind: "explain_only" | null;
     executable: false;
     why: string | null;
   };
+  direct_effect_request: LocalOneShotDirectEffectRequest;
   state_updates: {
     status: ProductHelpLocalFlowState["status"];
     stage: ProductHelpLocalFlowState["product_help_state"]["stage"];
@@ -194,19 +175,8 @@ export type ProductHelpLocalDispatcherOutput = {
       committed_effects: unknown[];
     };
     handoff_hint_for_global_dispatcher: {
-      likely_intent:
-        | "prepare_attack_card"
-        | "prepare_defense_card"
-        | "select_state_potion"
-        | "update_coach_preferences"
-        | "status_recap"
-        | "adjust_plan_item"
-        | "one_shot_reminder"
-        | "create_recurring_reminder"
-        | "normal_coaching"
-        | "unknown";
+      likely_intent: "one_shot_reminder" | "normal_coaching" | "unknown";
       why: string | null;
-      constraints: string[];
     };
   };
   note_information: NoteInformation | null;

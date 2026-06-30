@@ -365,7 +365,7 @@
                 },
                 "visible_task": "clarify_product_question",
                 "return_to_parent_flow": false,
-                "handoff_to_local_dispatcher": false,
+                "exit_to_global_dispatcher": false,
                 "note_information": null,
                 "reason_code": "product_help_local_clarify_product_question",
                 "evidence": [
@@ -800,7 +800,7 @@
               },
               "visible_task": "clarify_product_question",
               "return_to_parent_flow": false,
-              "handoff_to_local_dispatcher": false,
+              "exit_to_global_dispatcher": false,
               "note_information": null,
               "reason_code": "product_help_local_clarify_product_question",
               "evidence": [
@@ -1335,7 +1335,7 @@
               "reply": "Ça marche, on s'occupe de préparer ta carte d'attaque pour demain matin.",
               "diagnosis": {
                 "local_flow": true,
-                "flow_action": "handoff_to_local_dispatcher",
+                "flow_action": "exit_to_global_dispatcher",
                 "mode": "standalone",
                 "target": {
                   "kind": "tool_flow",
@@ -1365,7 +1365,7 @@
                 },
                 "visible_task": "exit_ack",
                 "return_to_parent_flow": false,
-                "handoff_to_local_dispatcher": true,
+                "exit_to_global_dispatcher": true,
                 "note_information": {
                   "source_flow_id": "product_help",
                   "handoff_reason": "explicit_user_request",
@@ -1383,7 +1383,7 @@
                   },
                   "confidence": "high"
                 },
-                "reason_code": "product_help_handoff_to_local_dispatcher",
+                "reason_code": "product_help_exit_to_global_dispatcher",
                 "evidence": [
                   "On la prépare",
                   "demain matin",
@@ -1403,7 +1403,7 @@
               "operation_suggestions": [],
               "handoff_request": {
                 "target_skill_id": "prepare_attack_card",
-                "reason": "product_help_handoff_to_local_dispatcher",
+                "reason": "product_help_exit_to_global_dispatcher",
                 "confidence_band": "high"
               },
               "memory_write_candidates": [],
@@ -1500,7 +1500,7 @@
                     "confidence": "high"
                   },
                   "at": "2026-06-11T23:17:28.212Z",
-                  "reducer_reason_code": "product_help_handoff_to_local_dispatcher"
+                  "reducer_reason_code": "product_help_exit_to_global_dispatcher"
                 },
                 "product_help_subskill_trace": null,
                 "summary": "User wants to proceed with preparing an attack card for a specific morning blockage."
@@ -1950,7 +1950,7 @@
             "reply": "Ça marche, on s'occupe de préparer ta carte d'attaque pour demain matin.",
             "diagnosis": {
               "local_flow": true,
-              "flow_action": "handoff_to_local_dispatcher",
+              "flow_action": "exit_to_global_dispatcher",
               "mode": "standalone",
               "target": {
                 "kind": "tool_flow",
@@ -1980,7 +1980,7 @@
               },
               "visible_task": "exit_ack",
               "return_to_parent_flow": false,
-              "handoff_to_local_dispatcher": true,
+              "exit_to_global_dispatcher": true,
               "note_information": {
                 "source_flow_id": "product_help",
                 "handoff_reason": "explicit_user_request",
@@ -1998,7 +1998,7 @@
                 },
                 "confidence": "high"
               },
-              "reason_code": "product_help_handoff_to_local_dispatcher",
+              "reason_code": "product_help_exit_to_global_dispatcher",
               "evidence": [
                 "On la prépare",
                 "demain matin",
@@ -2018,7 +2018,7 @@
             "operation_suggestions": [],
             "handoff_request": {
               "target_skill_id": "prepare_attack_card",
-              "reason": "product_help_handoff_to_local_dispatcher",
+              "reason": "product_help_exit_to_global_dispatcher",
               "confidence_band": "high"
             },
             "memory_write_candidates": [],
@@ -2115,7 +2115,7 @@
                   "confidence": "high"
                 },
                 "at": "2026-06-11T23:17:28.212Z",
-                "reducer_reason_code": "product_help_handoff_to_local_dispatcher"
+                "reducer_reason_code": "product_help_exit_to_global_dispatcher"
               },
               "product_help_subskill_trace": null,
               "summary": "User wants to proceed with preparing an attack card for a specific morning blockage."

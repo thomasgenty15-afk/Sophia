@@ -11,8 +11,10 @@ Principe cible :
 - elle aide le prochain dispatcher a remplir son JSON sans repartir a froid ;
 - elle n'est jamais un message visible user ;
 - elle ne doit jamais devenir un raccourci deterministe de routing ;
-- exception explicite : le passage interne `select_state_potion -> sous-skill
-  potion` peut rester sur son contrat specialise deja structure.
+- exception explicite : le passage interne
+  `select_state_potion -> sous-skill
+  potion` peut rester sur son contrat
+  specialise deja structure.
 
 La `note_information` canonique contient toujours :
 
@@ -35,7 +37,7 @@ La `note_information` canonique contient toujours :
 
 ## Agent 1 - Catalogue Des Flows Et Presentations
 
-```txt
+````txt
 Mission : construire le catalogue source des flows qui peuvent avoir un dispatcher local, avec une presentation standardisee de chaque flow et les sorties qui changent d'ownership.
 
 Repo :
@@ -62,7 +64,6 @@ Code a inventorier :
 - supabase/functions/sophia-brain/router/*
 - supabase/functions/sophia-brain/skills/**/*
 - supabase/functions/sophia-brain/tools/operations/**/*
-- supabase/functions/sophia-brain/post_morning_nudge.ts
 - supabase/functions/sophia-brain/*daily*
 - supabase/functions/sophia-brain/*weekly*
 
@@ -86,8 +87,8 @@ Tache :
    - outils inline disponibles ;
    - notes deja presentes ou manquantes.
 5. Distinguer clairement :
-   - exit_to_global_dispatcher ;
-   - handoff_to_local_dispatcher ;
+   - exit_to_global_dispatcher vers global ;
+   - transition specialisee documentee vers dispatcher local non-product_help ;
    - safety_preempt ;
    - inline_tool_roundtrip.
 
@@ -119,24 +120,28 @@ Format recommande :
 - Local non-transfer actions:
 - Required note_information on ownership transfer:
 - Missing work:
-```
+````
 
 Contraintes :
+
 - Pas de regex metier.
 - Pas de modele deterministe de routing.
 - Pas de renderer visible.
 - Pas de correction code dans cette mission.
-- Ne pas inventer un flow absent du repo : si un flow est seulement prevu en docs, le marquer comme planned.
+- Ne pas inventer un flow absent du repo : si un flow est seulement prevu en
+  docs, le marquer comme planned.
 - Ne pas modifier la logique runtime.
 
 Validation :
+
 - Le catalogue couvre tous les fichiers de prompts locaux trouves.
 - Chaque flow a une presentation de deux lignes maximum.
 - Chaque changement potentiel de dispatcher est visible.
 - Les continuations locales sont distinguees des sorties globales.
-- Le passage select_state_potion -> sous-skill potion est marque comme exception deja specialisee.
-```
+- Le passage select_state_potion -> sous-skill potion est marque comme exception
+  deja specialisee.
 
+````
 ## Agent 2 - Contrat Transverse Note Information
 
 ```txt
@@ -189,30 +194,34 @@ Contrat JSON cible recommande :
     "confidence": "low|medium|high"
   }
 }
-```
+````
 
 `confidence` est optionnel si le flow n'a pas de champ equivalent.
 `structured_context` est obligatoire.
 
 Tache :
+
 1. Mettre a jour la doctrine docs pour rendre la note_information transverse.
-2. Mettre a jour la note existante ou creer un contrat plus propre qui la remplace sans perdre son sens.
+2. Mettre a jour la note existante ou creer un contrat plus propre qui la
+   remplace sans perdre son sens.
 3. Pour chaque dispatcher local documente, ajouter :
    - quand produire note_information ;
    - quand ne pas la produire ;
    - comment choisir target_dispatcher ;
    - quoi mettre dans handoff_context_for_next_dispatcher.
    - quoi mettre dans structured_context obligatoire.
-4. Ajouter explicitement les actions locales qui ne changent pas d'ownership
-   et ne doivent pas etre utilisees pour arreter un flow actif.
+4. Ajouter explicitement les actions locales qui ne changent pas d'ownership et
+   ne doivent pas etre utilisees pour arreter un flow actif.
 5. Standardiser les exits :
    - exit_to_global_dispatcher = autre sujet clair ou demande hors flow ;
    - safety_preempt = passage a safety_crisis ;
-   - handoff_to_local_dispatcher = bridge vers un flow local cible ;
+   - transition locale specialisee = exception documentee, jamais un simple
+     renommage de sortie globale ;
    - inline_tool_roundtrip = product/help/status puis retour au flow parent ;
    - exit_to_global_dispatcher = arret local sans rerouting.
 
 Contraintes non negociables :
+
 - Pas de regex metier.
 - Pas de message.includes metier.
 - Pas de routing deterministe depuis une note.
@@ -224,23 +233,26 @@ Contraintes non negociables :
 - La note_information ne doit pas devenir un second dispatcher cache.
 
 Livrables attendus :
+
 1. Un document de contrat transverse, par exemple :
    docs/agent-playbook/New/runtime-contracts/09-note-information-contract.md
 2. Patches docs sur les contrats locaux existants pour mentionner la note.
-3. Une matrice des transitions :
-   source_flow -> target_dispatcher -> note required yes/no -> source ownership.
+3. Une matrice des transitions : source_flow -> target_dispatcher -> note
+   required yes/no -> source ownership.
 4. Une liste de questions ouvertes si certains flows sont ambigus.
 
 Validation :
+
 - Tous les changements de dispatcher ont note_information required.
 - Les arrets de flow local actif passent par `exit_to_global_dispatcher` avec
   `note_information` avant toute reprise globale.
 - Safety local recoit une note quand il est pickup par un dispatcher local.
 - Product help/status recap recoivent une note quand appeles inline.
-- Emotional repair et demotivation repair transmettent une note a select_state_potion.
+- Emotional repair et demotivation repair transmettent une note a
+  select_state_potion.
 - L'exception select_state_potion -> sous-skill potion est documentee.
-```
 
+````
 ## Agent 3 - Implementation Runtime Et QA
 
 ```txt
@@ -265,7 +277,6 @@ Code a etudier avant modification :
 - supabase/functions/sophia-brain/skills/safety_crisis/**/*
 - supabase/functions/sophia-brain/skills/emotional_repair/**/*
 - supabase/functions/sophia-brain/skills/demotivation_repair/**/*
-- supabase/functions/sophia-brain/post_morning_nudge.ts
 - tous les reducers de flows locaux identifies par le catalogue.
 
 Objectif runtime :
@@ -410,4 +421,4 @@ Livrable final :
   - aucun renderer visible deterministe ajoute ;
   - global dispatcher normal non appele pendant active flow sauf exit_to_global_dispatcher ;
   - note_information presente sur chaque changement de dispatcher.
-```
+````

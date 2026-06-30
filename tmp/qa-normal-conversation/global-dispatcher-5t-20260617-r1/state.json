@@ -1,0 +1,1655 @@
+{
+  "run_id": "global-dispatcher-5t-20260617-r1",
+  "scope": "qa-normal-conversation-global-dispatcher-5t-20260617-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-global-dispatcher-5t-20260617-r1-1781718241939@example.com",
+  "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIxNmRkMWEzMS05NjgwLTQzN2ItODdiZi1iZWQ2MTY1Y2U2YjgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxNzIxODQyLCJpYXQiOjE3ODE3MTgyNDIsImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbC1kaXNwYXRjaGVyLTV0LTIwMjYwNjE3LXIxLTE3ODE3MTgyNDE5MzlAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbC1kaXNwYXRjaGVyLTV0LTIwMjYwNjE3LXIxLTE3ODE3MTgyNDE5MzlAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6Imdsb2JhbC1kaXNwYXRjaGVyLTV0LTIwMjYwNjE3LXIxIiwic3ViIjoiMTZkZDFhMzEtOTY4MC00MzdiLTg3YmYtYmVkNjE2NWNlNmI4In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE3MTgyNDJ9XSwic2Vzc2lvbl9pZCI6IjhmYjUzNGRkLTc1ZGEtNDFjZS05ZGIxLTg3YjUxY2YwNTBjMCIsImlzX2Fub255bW91cyI6ZmFsc2V9.-M_ks2pX0IpvMFzD25BC4EjYigKuzcuEK47YehNSkuI",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-17T17:44:02.240Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-17T17:44:29.538Z",
+      "user": "J'arrive un peu dispersé. J'ai une tâche administrative à ouvrir, mais là je veux juste poser ce qui bloque, pas lancer d'outil tout de suite.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je te conseille de commencer par state_potion : c’est le plus utile quand tu te sens dispersé et que tu veux juste déposer ce qui bloque avant d’agir. Ensuite, si tu en as besoin, ajuste le plan avec adjust_plan pour rendre la tâche administrative plus simple dans l’espace Sophia.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-17T17:44:29.501Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-17T17:44:29.501Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "turn_count": 1,
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut ouvrir une tâche administrative mais se sent dispersé et souhaite d'abord déposer ce qui bloque sans lancer d'outil.",
+                      "candidate_features": [],
+                      "last_answer_summary": "La priorité est de clarifier et externaliser ce qui bloque avant toute action. state_potion correspond à un moment de dispersion ou de blocage interne.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "secondary_recommendation": null
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-17T17:44:29.504463+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global-dispatcher-5t-20260617-r1-t01",
+        "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global-dispatcher-5t-20260617-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te conseille de commencer par state_potion : c’est le plus utile quand tu te sens dispersé et que tu veux juste déposer ce qui bloque avant d’agir. Ensuite, si tu en as besoin, ajuste le plan avec adjust_plan pour rendre la tâche administrative plus simple dans l’espace Sophia.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t01",
+              "source_message_id": "f18be062-5ece-4393-8fa1-b26571cdf0f2",
+              "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_wants_to_surface_a_blocker_without_executing_any_action"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "support_blocker_before_action",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.74
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t01",
+            "source_message_id": "f18be062-5ece-4393-8fa1-b26571cdf0f2",
+            "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_wants_to_surface_a_blocker_without_executing_any_action"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "support_blocker_before_action",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.74
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-17T17:44:46.371Z",
+      "user": "Non, ne me parle pas en noms de modules. Dis-le-moi comme à un humain : qu'est-ce que tu comprends de mon blocage ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je te recommande surtout **state_potion** : c’est le plus adapté si tu veux d’abord déposer la dispersion, clarifier ce qui te bloque, puis repartir plus posé avant d’ouvrir ta tâche.\n\nEn second choix, **coach_preferences** si tu veux que je t’accompagne dans un style plus calme, plus direct ou plus guidé quand tu passes à l’action.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-17T17:44:29.501Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-17T17:44:46.313Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "understand_need",
+                      "max_turns": 4,
+                      "turn_count": 2,
+                      "parent_flow_id": null,
+                      "user_need_summary": "La personne veut ouvrir une tâche administrative, mais se sent dispersée et préfère d'abord verbaliser ce qui bloque avant de passer à l'action.",
+                      "candidate_features": [],
+                      "last_answer_summary": "La personne veut ouvrir une tâche administrative, mais se sent dispersée et préfère d'abord verbaliser ce qui bloque avant de passer à l'action.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "secondary_recommendation": null
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-17T17:44:46.322323+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global-dispatcher-5t-20260617-r1-t02",
+        "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global-dispatcher-5t-20260617-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te recommande surtout **state_potion** : c’est le plus adapté si tu veux d’abord déposer la dispersion, clarifier ce qui te bloque, puis repartir plus posé avant d’ouvrir ta tâche.\n\nEn second choix, **coach_preferences** si tu veux que je t’accompagne dans un style plus calme, plus direct ou plus guidé quand tu passes à l’action.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t02",
+              "source_message_id": "50c4f4e0-852f-4084-b44c-befec8622bbd",
+              "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "The user is asking for a human interpretation of their blockage, which is a coaching-oriented clarification of what to do with a personal obstacle rather than a product feature question."
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "Clarify the user's blockage in human terms and reflect the underlying difficulty without invoking module names.",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.72
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t02",
+            "source_message_id": "50c4f4e0-852f-4084-b44c-befec8622bbd",
+            "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "The user is asking for a human interpretation of their blockage, which is a coaching-oriented clarification of what to do with a personal obstacle rather than a product feature question."
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "Clarify the user's blockage in human terms and reflect the underlying difficulty without invoking module names.",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.72
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-17T17:45:08.990Z",
+      "user": "Stoppe cette recommandation. Question produit simple : où est-ce que je retrouve mes rappels dans l'application ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Tu les retrouves dans l’onglet Initiatives, depuis le Dashboard. Si ton initiative vit hors plan, c’est aussi dans Base de vie > Initiatives.",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "product_help_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {},
+              "updated_at": "2026-06-17T17:45:08.968283+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global-dispatcher-5t-20260617-r1-t03",
+        "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global-dispatcher-5t-20260617-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Tu les retrouves dans l’onglet Initiatives, depuis le Dashboard. Si ton initiative vit hors plan, c’est aussi dans Base de vie > Initiatives.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t03",
+              "source_message_id": "42e28d5c-5a48-4b02-8eaf-a93c270de667",
+              "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_destination"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "find_where_reminders_are_in_app",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.92
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "product_help_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "product_help",
+                "resume_policy": "none",
+                "reason_code": "product_help_signal"
+              },
+              "selected_handler": "product_help"
+            },
+            "effect_ledger": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help",
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "product_help_signal",
+              "status": "complete"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t03",
+            "source_message_id": "42e28d5c-5a48-4b02-8eaf-a93c270de667",
+            "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_destination"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "find_where_reminders_are_in_app",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.92
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-17T17:45:27.616Z",
+      "user": "Ok, crée-moi un rappel dans 25 minutes : ouvrir le dossier administratif sans chercher à le finir.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est programmé pour vendredi 22 mai à 10:25: je te ferai un rappel pour ouvrir le dossier administratif sans chercher à le finir.",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "direct_effects_then_normal_reply",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {},
+              "updated_at": "2026-06-17T17:45:27.5869+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f945a40e-18cd-4894-ba7c-df1505ca44d6",
+              "status": "pending",
+              "event_context": "one_shot_reminder:ouvrir_le_dossier_administratif_sans_chercher_a_le_finir",
+              "draft_message": null,
+              "scheduled_for": "2026-05-22T08:25:00+00:00",
+              "created_at": "2026-06-17T17:45:27.554121+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global-dispatcher-5t-20260617-r1-t04",
+        "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global-dispatcher-5t-20260617-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est programmé pour vendredi 22 mai à 10:25: je te ferai un rappel pour ouvrir le dossier administratif sans chercher à le finir.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t04",
+              "source_message_id": "0970eafe-b77b-4d1f-95ad-3782f9fb53d1",
+              "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "Ok, crée-moi un rappel dans 25 minutes : ouvrir le dossier administratif sans chercher à le finir.",
+                    "delay_minutes": 25,
+                    "reminder_text": "ouvrir le dossier administratif sans chercher à le finir"
+                  }
+                }
+              ],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "create one-shot reminder for the user",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.97
+              },
+              "direct_effect_lane": {
+                "selected_handler": "create_one_shot_reminder",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-22T08:25:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:25",
+                    "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                    "reason_code": "local_parser"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-22T08:25:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:25",
+                    "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                    "reason_code": "local_parser"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "f945a40e-18cd-4894-ba7c-df1505ca44d6",
+                    "scheduled_for": "2026-05-22T08:25:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:25",
+                    "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir"
+                  }
+                ],
+                "blocked_effects": [],
+                "visible_confirmation_hint": "C'est programmé pour vendredi 22 mai à 10:25: je te ferai un rappel pour ouvrir le dossier administratif sans chercher à le finir."
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "direct_effects_then_normal_reply",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "normal_reply",
+                "resume_policy": "none",
+                "reason_code": "direct_effects_then_normal_reply"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "tool_skill_run": {
+              "selected_handler": "create_one_shot_reminder",
+              "status": "success",
+              "reason": "local_parser",
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:25:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:25",
+                  "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:25:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:25",
+                  "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "f945a40e-18cd-4894-ba7c-df1505ca44d6",
+                  "scheduled_for": "2026-05-22T08:25:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:25",
+                  "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir"
+                }
+              ],
+              "blocked_effects": []
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t04",
+            "source_message_id": "0970eafe-b77b-4d1f-95ad-3782f9fb53d1",
+            "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "Ok, crée-moi un rappel dans 25 minutes : ouvrir le dossier administratif sans chercher à le finir.",
+                  "delay_minutes": 25,
+                  "reminder_text": "ouvrir le dossier administratif sans chercher à le finir"
+                }
+              }
+            ],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "create one-shot reminder for the user",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.97
+            },
+            "direct_effect_lane": {
+              "selected_handler": "create_one_shot_reminder",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:25:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:25",
+                  "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:25:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:25",
+                  "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "f945a40e-18cd-4894-ba7c-df1505ca44d6",
+                  "scheduled_for": "2026-05-22T08:25:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:25",
+                  "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir"
+                }
+              ],
+              "blocked_effects": [],
+              "visible_confirmation_hint": "C'est programmé pour vendredi 22 mai à 10:25: je te ferai un rappel pour ouvrir le dossier administratif sans chercher à le finir."
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "direct_effects_then_normal_reply",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "direct_effects_then_normal_reply"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply",
+          "tool_skill_run": {
+            "selected_handler": "create_one_shot_reminder",
+            "status": "success",
+            "reason": "local_parser",
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-22T08:25:00+00:00",
+                "local_label": "vendredi 22 mai à 10:25",
+                "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                "reason_code": "local_parser"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-22T08:25:00+00:00",
+                "local_label": "vendredi 22 mai à 10:25",
+                "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir",
+                "reason_code": "local_parser"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "f945a40e-18cd-4894-ba7c-df1505ca44d6",
+                "scheduled_for": "2026-05-22T08:25:00+00:00",
+                "local_label": "vendredi 22 mai à 10:25",
+                "reminder_instruction": "ouvrir le dossier administratif sans chercher à le finir"
+              }
+            ],
+            "blocked_effects": []
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-17T17:45:39.634Z",
+      "user": "Juste pour vérifier, qu'est-ce qui a vraiment été créé ou modifié depuis le début de cet échange ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Depuis le début de cet échange, il y a un seul effet durable visible : un rappel ponctuel a été créé.\n\n- vendredi 22 mai à 10:25 : ouvrir le dossier administratif sans chercher à le finir\n\nJe ne vois rien d’autre de créé ou modifié dans ce chat. 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "normal_reply_default",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-17T17:45:39.597Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-17T17:45:39.606888+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "f945a40e-18cd-4894-ba7c-df1505ca44d6",
+              "status": "pending",
+              "event_context": "one_shot_reminder:ouvrir_le_dossier_administratif_sans_chercher_a_le_finir",
+              "draft_message": null,
+              "scheduled_for": "2026-05-22T08:25:00+00:00",
+              "created_at": "2026-06-17T17:45:27.554121+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global-dispatcher-5t-20260617-r1-t05",
+        "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global-dispatcher-5t-20260617-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Depuis le début de cet échange, il y a un seul effet durable visible : un rappel ponctuel a été créé.\n\n- vendredi 22 mai à 10:25 : ouvrir le dossier administratif sans chercher à le finir\n\nJe ne vois rien d’autre de créé ou modifié dans ce chat. 🙂",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t05",
+              "source_message_id": "697c677b-0961-4710-bd69-0fde7bdbf839",
+              "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "recap of what was created or modified in this exchange",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "normal_reply_default",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "normal_reply",
+                "resume_policy": "none",
+                "reason_code": "normal_reply_default"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "global-dispatcher-5t-20260617-r1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t05",
+            "source_message_id": "697c677b-0961-4710-bd69-0fde7bdbf839",
+            "user_id": "16dd1a31-9680-437b-87bf-bed6165ce6b8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "recap of what was created or modified in this exchange",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.86
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "global-dispatcher-5t-20260617-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-17T17:45:39.635Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-17T17:46:12.272Z"
+}

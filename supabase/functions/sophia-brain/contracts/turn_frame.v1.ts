@@ -16,28 +16,12 @@ export type DirectEffectType =
   | "create_one_shot_reminder"
   | "track_progress_plan_item";
 
-export type FlowOpportunity = {
-  opportunity_id: string;
-  target_kind: "skill" | "tool_skill" | "direct_effect";
-  target_flow:
-    | "status_recap"
-    | "product_help"
-    | "update_coach_preferences"
-    | "emotional_repair"
-    | "demotivation_repair"
-    | "prepare_attack_card"
-    | "prepare_defense_card"
-    | "select_state_potion"
-    | "one_shot_reminder"
-    | "create_recurring_reminder"
-    | "adjust_plan_item"
-    | "unknown";
-  confidence: Exclude<ConfidenceBand, "critical">;
-  score?: number;
-  priority: number;
-  reason: string;
-  evidence: string[];
-  seed_context: Record<string, unknown>;
+export type DirectEffectTimeContext = {
+  now_utc: string;
+  user_timezone: string;
+  user_locale: string;
+  user_local_datetime: string;
+  user_local_human: string;
 };
 
 export type SkillSignal = {
@@ -45,6 +29,72 @@ export type SkillSignal = {
   confidence_band: ConfidenceBand;
   score?: number;
   reason?: string;
+};
+
+export type CoachingRecommendationCategory =
+  | "plan_action_coaching"
+  | "free_action_coaching"
+  | "emotional_state_coaching"
+  | "ambiguous_coaching_need";
+
+export type CoachingRecommendationType =
+  | "plan_action"
+  | "no_plan_action"
+  | "emotional"
+  | "ambiguous";
+
+export type CoachingFailureMode =
+  | "forgetting"
+  | "launch_blocker"
+  | "avoidance"
+  | "risk_moment"
+  | "too_hard"
+  | "rhythm_mismatch"
+  | "misaligned_action"
+  | "unclear";
+
+export type CoachingRecommendationPriorityFeature =
+  | "attack_card"
+  | "defense_card"
+  | "adjust_plan"
+  | "state_potion";
+
+export type CoachingRecommendationSignalContext = {
+  coaching_type: CoachingRecommendationType;
+  confidence: number;
+  reason: string;
+  action_context: {
+    source: "plan" | "free" | "none" | "ambiguous";
+    plan_item_id?: string | null;
+    action_title?: string | null;
+  } | null;
+  needs_type_confirmation?: boolean;
+};
+
+export type FeatureOpportunityKind =
+  | "initiatives"
+  | "coach_preferences";
+
+export type FeatureOpportunitySignalContext = {
+  feature: FeatureOpportunityKind;
+  opportunity_kind:
+    | "recurring_context"
+    | "ritual_or_initiative"
+    | "coach_style_feedback"
+    | "coach_interaction_preference";
+  trigger_context?: string | null;
+  user_problem_summary: string;
+  priority_reason: string;
+};
+
+export type DispatcherSkillSignals = {
+  product_help?: SkillSignal;
+  coaching_recommendation?: SkillSignal & {
+    context?: CoachingRecommendationSignalContext;
+  };
+  feature_opportunity?: SkillSignal & {
+    context?: FeatureOpportunitySignalContext;
+  };
 };
 
 export type DispatcherMemoryTargetType =
@@ -141,20 +191,6 @@ export type ConversationRisk = {
   previous_scores: number[];
   matrix: ConversationRiskMatrixRow[];
   context_summary: string | null;
-  flow_exit_context?: {
-    interrupted_flow_type:
-      | "tool_skill"
-      | "conversation_skill"
-      | "pending_confirmation"
-      | "none";
-    restart_scope: "tool_subskill" | "conversation_skill" | "silent_reset";
-    active_tool_skill_type?: string | null;
-    active_conversation_skill_id?: string | null;
-    known_slots?: Record<string, unknown> | null;
-    pending_confirmation?: unknown;
-    last_user_message: string;
-    reason_codes: string[];
-  } | null;
 };
 
 export type TurnFrame = {
@@ -176,21 +212,6 @@ export type TurnFrame = {
     confidence_band: ConfidenceBand;
   };
 
-  active_handoff_action?: {
-    type:
-      | "handoff_apply_attempt"
-      | "repeat_handoff"
-      | "platform_destination_followup"
-      | "revise_handoff"
-      | "field_confirmation"
-      | "cancel_handoff"
-      | "clarify_handoff"
-      | "topic_change";
-    confidence: "low" | "medium" | "high";
-    evidence: string[];
-    target_skill_id?: string | null;
-  } | null;
-
   direct_effects: Array<{
     effect_type: DirectEffectType;
     explicitness: Explicitness;
@@ -199,38 +220,11 @@ export type TurnFrame = {
     payload_hint: Record<string, unknown>;
   }>;
 
-  tool_skill_intents: Array<{
-    operation_type: string;
-    explicitness: Explicitness;
-    target_hint?: string;
-    operation_input?: Record<string, unknown>;
-    payload_hint?: Record<string, unknown>;
-    adjust_plan_scope?: "specific_action" | "current_level" | "whole_plan";
-    rejected_operations?: string[];
-    confidence_band: ConfidenceBand;
-    score?: number;
-    ambiguity: Ambiguity;
-    user_intent:
-      | "create"
-      | "update"
-      | "adjust"
-      | "select"
-      | "explain_only"
-      | "none";
-  }>;
-
-  flow_opportunity?: FlowOpportunity | null;
-
-  normal_reply_fit_score?: number;
-  normal_reply_fit_evidence?: string[];
+  direct_effect_time_context?: DirectEffectTimeContext;
 
   note_information?: NoteInformation | null;
 
-  skill_signals: {
-    entry?: Record<string, SkillSignal>;
-    lifecycle?: Record<string, SkillSignal>;
-    exit?: Record<string, SkillSignal>;
-  };
+  skill_signals: DispatcherSkillSignals;
 
   needs_research?: DispatcherResearchSignal;
 

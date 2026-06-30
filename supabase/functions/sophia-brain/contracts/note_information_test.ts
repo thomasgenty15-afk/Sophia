@@ -6,15 +6,16 @@ import {
 import {
   createNoteInformation,
   normalizeNoteInformation,
+  sanitizeLocalExitNoteInformation,
 } from "./note_information.v1.ts";
 
 Deno.test("createNoteInformation keeps simplified contract shape", () => {
   const note = createNoteInformation({
-    source_flow_id: "demotivation_repair",
+    source_flow_id: "removed_local_flow",
     handoff_reason: "topic_change",
     target_dispatcher: "global",
     handoff_context_for_next_dispatcher:
-      "Close the demotivation flow without adding another step.",
+      "Close the removed local flow without adding another step.",
     user_words: ["j'arrete la", "deux objets"],
     structured_context: {
       user_message_summary: "User stops after a small step.",
@@ -43,13 +44,13 @@ Deno.test("createNoteInformation keeps simplified contract shape", () => {
 
 Deno.test("normalizeNoteInformation completes poor transition note from fallback", () => {
   const note = normalizeNoteInformation({
-    source_flow_id: "demotivation_repair",
+    source_flow_id: "removed_local_flow",
     handoff_reason: "topic_change",
     target_dispatcher: "global",
     user_words: [],
     structured_context: {},
   }, {
-    source_flow_id: "demotivation_repair",
+    source_flow_id: "removed_local_flow",
     handoff_reason: "topic_change",
     target_dispatcher: "global",
     handoff_context_for_next_dispatcher:
@@ -95,4 +96,38 @@ Deno.test("normalizeNoteInformation builds minimal structured context when none 
   assert(note.handoff_context_for_next_dispatcher.length > 0);
   assert(Object.keys(note.structured_context).length > 0);
   assertEquals(note.structured_context.target_dispatcher, "global");
+});
+
+Deno.test("sanitizeLocalExitNoteInformation maps legacy local targets to global", () => {
+  const removedTarget = ["prepare", "attack", "card"].join("_");
+  const removedFocus = ["adjust", "plan", "item"].join("_");
+  const removedFlow = ["select", "state", "potion"].join("_");
+  const note = sanitizeLocalExitNoteInformation({
+    source_flow_id: "weekly_adaptive_review_v1",
+    handoff_reason: "bridge",
+    target_dispatcher: removedTarget as any,
+    handoff_context_for_next_dispatcher:
+      "User asked for a card while weekly was active.",
+    user_words: ["prepare une carte"],
+    structured_context: {
+      target_dispatcher: removedTarget,
+      recommended_next_focus: removedFocus,
+      target_flow: removedFlow,
+      target_local_dispatcher_hint: removedTarget,
+      source_flow_state_summary: "legacy detour",
+    },
+    confidence: "high",
+  });
+
+  assertEquals(note.target_dispatcher, "global");
+  assertEquals(note.handoff_reason, "explicit_user_request");
+  assertEquals(note.structured_context.target_dispatcher, "global");
+  assertEquals(note.structured_context.recommended_next_focus, "global");
+  assertEquals(note.structured_context.target_flow, "global");
+  assertEquals(
+    note.structured_context.sanitized_from_target_dispatcher,
+    removedTarget,
+  );
+  assertFalse("target_local_dispatcher_hint" in note.structured_context);
+  assertFalse("source_flow_state_summary" in note.structured_context);
 });

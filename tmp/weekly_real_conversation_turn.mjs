@@ -179,6 +179,7 @@ const result = await jsonFetch(testSendMessageUrl, {
     content: text,
     force_full_ai: true,
     disable_debounce: true,
+    client_timezone: process.env.QA_CLIENT_TIMEZONE || "Europe/Paris",
   }),
 });
 

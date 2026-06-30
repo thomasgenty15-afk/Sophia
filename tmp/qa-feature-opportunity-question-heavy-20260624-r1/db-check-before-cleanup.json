@@ -1,0 +1,41 @@
+{
+  "user_id": "c66b759f-ca3e-47c7-b4bc-33a7761eabfd",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-question-heavy-20260624-r1@example.com",
+  "tables": {
+    "chat_messages": {
+      "http_status": 200,
+      "count": 12,
+      "error": null
+    },
+    "user_chat_states": {
+      "http_status": 200,
+      "count": 1,
+      "error": null
+    },
+    "conversation_turn_traces": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    },
+    "scheduled_checkins": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    },
+    "user_plan_item_entries": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    },
+    "system_runtime_snapshots": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    },
+    "memory_items": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    }
+  }
+}

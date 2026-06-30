@@ -59,6 +59,7 @@ export type PreparePlanDistributionV3Params = {
   content: PlanContentV3;
   now?: string;
   idFactory?: () => string;
+  activePhaseOrder?: number;
 };
 
 export type DistributePlanItemsV3Params = PreparePlanDistributionV3Params & {
@@ -202,6 +203,7 @@ export function preparePlanDistributionV3(
   const { userId, planId, content } = params;
   const now = params.now ?? new Date().toISOString();
   const idFactory = params.idFactory ?? (() => crypto.randomUUID());
+  const activePhaseOrder = params.activePhaseOrder ?? 1;
 
   assertNonEmptyString(userId, "userId");
   assertNonEmptyString(planId, "planId");
@@ -220,7 +222,7 @@ export function preparePlanDistributionV3(
     const phaseTempIdMap = Object.fromEntries(
       phase.items.map((item) => [item.temp_id, tempIdMap[item.temp_id]]),
     );
-    const phaseStartsActive = phase.phase_order === 1;
+    const phaseStartsActive = phase.phase_order === activePhaseOrder;
 
     return phase.items.map((item) =>
       buildUserPlanItemRow({
@@ -240,6 +242,85 @@ export function preparePlanDistributionV3(
   });
 
   return { items, tempIdMap };
+}
+
+export async function distributeMissingPlanPhaseItemsV3(
+  params: DistributePlanItemsV3Params & {
+    phaseId: string;
+    phaseOrder: number;
+  },
+): Promise<DistributePlanItemsResult> {
+  let prepared: PreparedPlanDistribution;
+
+  try {
+    prepared = preparePlanDistributionV3({
+      ...params,
+      activePhaseOrder: params.phaseOrder,
+    });
+  } catch (error) {
+    throw new PlanDistributionError(
+      "prepare",
+      `Failed to prepare V3 phase distribution for plan ${params.planId}`,
+      { cause: error },
+    );
+  }
+
+  const warnings: string[] = [];
+  const existingItems = await loadExistingPlanItems(
+    params.supabase,
+    params.planId,
+  )
+    .catch((error) => {
+      throw new PlanDistributionError(
+        "load_existing",
+        `Failed to load existing V3 phase items for plan ${params.planId}`,
+        { cause: error },
+      );
+    });
+
+  const existingPhaseItems = existingItems.filter((item) =>
+    item.phase_id === params.phaseId
+  );
+  if (existingPhaseItems.length > 0) {
+    warnings.push(
+      `Plan ${params.planId} already had ${existingPhaseItems.length} items for phase ${params.phaseId}; insert skipped.`,
+    );
+    return {
+      items: existingPhaseItems,
+      tempIdMap: extractTempIdMap(existingItems),
+      eventLogged: false,
+      warnings,
+    };
+  }
+
+  const phaseItems = prepared.items.filter((item) =>
+    item.phase_id === params.phaseId
+  );
+  if (phaseItems.length === 0) {
+    throw new PlanDistributionError(
+      "prepare",
+      `No prepared V3 items found for phase ${params.phaseId} in plan ${params.planId}`,
+    );
+  }
+
+  const { error } = await params.supabase
+    .from("user_plan_items")
+    .insert(phaseItems);
+
+  if (error) {
+    throw new PlanDistributionError(
+      "insert_items",
+      `Failed to insert distributed V3 phase items for plan ${params.planId}`,
+      { cause: error },
+    );
+  }
+
+  return {
+    items: phaseItems,
+    tempIdMap: extractTempIdMap([...existingItems, ...phaseItems]),
+    eventLogged: false,
+    warnings,
+  };
 }
 
 export async function distributePlanItemsV3(

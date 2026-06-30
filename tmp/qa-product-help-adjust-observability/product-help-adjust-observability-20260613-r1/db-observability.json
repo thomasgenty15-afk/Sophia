@@ -917,7 +917,7 @@
       "request_id": "product-help-adjust-observability-20260613-r1-t02",
       "source": "brain-trace",
       "level": "info",
-      "event": "brain:product_help_handoff_to_local_dispatcher",
+      "event": "brain:product_help_exit_to_global_dispatcher",
       "phase": "routing",
       "payload": {
         "phase": "routing",
@@ -925,15 +925,15 @@
           "local_runtime": {
             "status": "handoff",
             "skill_id": "product_help",
-            "flow_action": "handoff_to_local_dispatcher",
-            "reason_code": "product_help_handoff_to_local_dispatcher",
+            "flow_action": "exit_to_global_dispatcher",
+            "reason_code": "product_help_exit_to_global_dispatcher",
             "response_intent": "tool_action_request"
           },
           "target_dispatcher": "adjust_plan_item",
           "source_dispatcher_local": "product_help.local_dispatcher",
           "note_information_present": true,
           "skipped_global_dispatcher_before_local": true,
-          "same_user_message_handoff_to_local_dispatcher": true
+          "same_user_message_exit_to_global_dispatcher": true
         }
       }
     },

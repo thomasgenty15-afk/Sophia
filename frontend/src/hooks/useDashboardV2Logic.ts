@@ -706,38 +706,6 @@ export function useDashboardV2Logic({
     })();
   }, [autoActivatablePendingSignature, itemsById, mutatingItemId, refetch]);
 
-  const prepareItemCards = async (item: DashboardV2PlanItemRuntime) => {
-    if (
-      item.dimension !== "missions" &&
-      item.dimension !== "habits"
-    ) {
-      return;
-    }
-    if (item.status === "pending") {
-      return;
-    }
-
-    setMutatingItemId(item.id);
-    setActionError(null);
-
-    try {
-      const { error } = await supabase.functions.invoke("prepare-plan-item-cards-v2", {
-        body: { plan_item_id: item.id },
-      });
-      if (error) throw error;
-      await refetch();
-    } catch (error) {
-      console.error("[useDashboardV2Logic] prepare item cards failed", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de préparer les cartes pour cet élément.",
-      );
-    } finally {
-      setMutatingItemId(null);
-    }
-  };
-
   return {
     dimensionGroups,
     phases,
@@ -746,6 +714,5 @@ export function useDashboardV2Logic({
     mutatingItemId,
     actionError,
     completeItem,
-    prepareItemCards,
   };
 }

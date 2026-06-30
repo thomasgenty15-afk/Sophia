@@ -83,7 +83,7 @@
 - route_reason: `skill_entry_signal`
 - active_flow_arbitration: `decision=none`, `active_owner=none`, `reason_code=no_active_flow`
 - note_information: `source_flow_id=global_dispatcher`, `target_dispatcher=product_help`, `handoff_reason=explicit_user_request`
-- product_help diagnosis: `mode=standalone`, `active_flow_used=false`, `return_to_parent_flow=false`, `handoff_to_local_dispatcher=false`, `note_information=null`
+- product_help diagnosis: `mode=standalone`, `active_flow_used=false`, `return_to_parent_flow=false`, `exit_to_global_dispatcher=false`, `note_information=null`
 - safety: `none`
 - direct_effects: `[]`
 - operation: `none`

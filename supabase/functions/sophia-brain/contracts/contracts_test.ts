@@ -3,7 +3,6 @@ import type {
   ConversationSkillOutput,
   DirectEffectGateOutcome,
   MemoryWriteCandidate,
-  OperationDraftRequest,
   RouteDecision,
   TurnFrame,
 } from "./index.ts";
@@ -31,8 +30,6 @@ Deno.test("conversation contracts accept canonical sample payloads", () => {
       confidence_band: "high",
       payload_hint: { plan_item_id: "item-1" },
     }],
-    tool_skill_intents: [],
-    flow_opportunity: null,
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -70,7 +67,7 @@ Deno.test("conversation contracts accept canonical sample payloads", () => {
   };
 
   const skillOutput: ConversationSkillOutput = {
-    skill_id: "emotional_repair",
+    skill_id: "safety_crisis",
     status: "continue",
     response_intent: "validate_pain",
     memory_write_candidates: [memoryCandidate],
@@ -79,34 +76,6 @@ Deno.test("conversation contracts accept canonical sample payloads", () => {
       memory_item_ids_used: [],
       correction_detected: false,
       correction_target_item_ids: [],
-    },
-  };
-
-  const operationDraft: OperationDraftRequest = {
-    operation_id: "operation-1",
-    operation_type: "prepare_attack_card",
-    source: {
-      skill_id: "demotivation_repair",
-      recommendation_id: "recommendation-1",
-      trigger_message_id: "message-1",
-    },
-    user_context: {
-      user_id: "user-1",
-      timezone: "Europe/Paris",
-      channel: "whatsapp",
-      locale: "fr",
-    },
-    diagnosis: { confidence: 0.82, constraints: [] },
-    target: { plan_item_id: "item-1", plan_item_title: "Marche" },
-    evidence: {
-      current_user_message: "fais-moi une carte d'attaque pour ma marche",
-      relevant_memory_items: [],
-    },
-    product_constraints: {
-      allowed_operations: ["prepare_attack_card"],
-      forbidden_operations: [],
-      requires_confirmation: true,
-      max_intrusiveness: 3,
     },
   };
 
@@ -120,6 +89,5 @@ Deno.test("conversation contracts accept canonical sample payloads", () => {
   assertEquals(turnFrame.channel, "whatsapp");
   assertEquals(routeDecision.response_owner, "normal_reply");
   assertEquals(skillOutput.memory_write_candidates?.[0], memoryCandidate);
-  assertEquals(operationDraft.product_constraints.requires_confirmation, true);
   assertEquals(gateOutcome.decision, "allow");
 });

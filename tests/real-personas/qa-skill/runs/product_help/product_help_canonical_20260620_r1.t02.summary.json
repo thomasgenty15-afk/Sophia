@@ -1,0 +1,35 @@
+{
+  "run_id": "product_help_canonical_20260620_r1",
+  "turn": 2,
+  "user_message": "Et si je veux juste me débloquer maintenant sans toucher au plan, c'est lequel ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "Tu veux qu’on le prenne comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+  "response_owner": "coaching_recommendation",
+  "selected_handler": "coaching_recommendation",
+  "reason_code": "coaching_recommendation_signal",
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "reason_code": "coaching_recommendation_signal",
+    "status": "continue",
+    "latency_ms": 12356
+  },
+  "effect_ledger": {
+    "turn_id": "f62344e8-5d64-439c-ab8d-4c8433645e2c",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  }
+}

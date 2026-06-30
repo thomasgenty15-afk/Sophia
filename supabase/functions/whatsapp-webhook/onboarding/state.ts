@@ -95,8 +95,6 @@ function isVisibleTask(
     "blocked_exit_before_plan_ready",
     "stop_after_plan_ready",
     "progress_attempt_blocked",
-    "inline_product_return",
-    "inline_status_return",
     "repeat_question",
     "technical_blocked",
     "safety",
@@ -120,9 +118,6 @@ function isFlowAction(
     "blocked_exit_before_plan_ready",
     "exit_to_global_dispatcher",
     "complete_onboarding",
-    "get_info_product",
-    "get_info_db",
-    "handoff_to_local_flow",
     "safety_preempt",
     "technical_blocked",
   ].includes(String(value ?? ""));
@@ -149,7 +144,6 @@ function isReducerStatus(
     "owned",
     "exit_to_global_dispatcher",
     "inline_tool",
-    "handoff_to_local_flow",
     "safety_preempt",
     "technical_blocked",
   ].includes(String(value ?? ""));
@@ -357,7 +351,6 @@ export function mergeWhatsAppOnboardingLocalState(params: {
     null;
   const transitionAllowsNote =
     transitionStatus === "exit_to_global_dispatcher" ||
-    transitionStatus === "handoff_to_local_flow" ||
     transitionStatus === "safety_preempt";
   const transitionAllowsExitMemo = Boolean(params.output.exit_memo);
   const transitionAllowsSubflow = transitionAllowsNote;
@@ -588,31 +581,6 @@ function reduceWhatsAppOnboardingDecisionCore(
   }
 
   if (
-    decision.flow_action === "get_info_product" ||
-    decision.flow_action === "get_info_db"
-  ) {
-    return {
-      status: "inline_tool",
-      reason_code: decision.flow_action === "get_info_product"
-        ? "whatsapp_onboarding_inline_product_info"
-        : "whatsapp_onboarding_inline_status_info",
-      next_whatsapp_state: input.whatsappState,
-      visible_task: decision.flow_action === "get_info_product"
-        ? "inline_product_return"
-        : "inline_status_return",
-      preference_writes: [],
-      mark_done: false,
-      completion_mode: "not_done",
-      exit_memo: null,
-      note_information: null,
-      allow_global_dispatcher: false,
-      allow_track_progress_plan_item: false,
-      blocked_effects: blockedEffects,
-      risk_assessment: decision.risk_assessment,
-    };
-  }
-
-  if (
     (input.whatsappState === "awaiting_plan_finalization" ||
       input.whatsappState === "awaiting_plan_finalization_support") &&
     input.planProjection.status === "draft_pending_confirmation"
@@ -635,9 +603,7 @@ function reduceWhatsAppOnboardingDecisionCore(
   }
 
   const requestedExit = decision.flow_action === "exit_to_global_dispatcher";
-  const requestedLocalHandoff =
-    decision.flow_action === "handoff_to_local_flow";
-  if ((requestedExit || requestedLocalHandoff) && !planReady) {
+  if (requestedExit && !planReady) {
     return {
       status: "owned",
       reason_code: "whatsapp_onboarding_exit_blocked_before_plan_ready",
@@ -655,16 +621,14 @@ function reduceWhatsAppOnboardingDecisionCore(
     };
   }
 
-  if ((requestedExit || requestedLocalHandoff) && planReady) {
+  if (requestedExit && planReady) {
     const targetDispatcher = String(
       decision.note_information?.target_dispatcher ?? "",
     ).trim();
     if (!targetDispatcher) {
       return {
         status: "owned",
-        reason_code: requestedLocalHandoff
-          ? "direct_handoff_note_information_missing"
-          : "exit_note_information_missing",
+        reason_code: "exit_note_information_missing",
         next_whatsapp_state: input.whatsappState,
         visible_task: "repeat_question",
         preference_writes: [],
@@ -676,9 +640,7 @@ function reduceWhatsAppOnboardingDecisionCore(
         allow_track_progress_plan_item: false,
         blocked_effects: [
           {
-            type: requestedLocalHandoff
-              ? "handoff_to_local_flow"
-              : "global_dispatcher",
+            type: "global_dispatcher",
             reason_code: "note_information_missing",
           },
           ...blockedEffects,
@@ -686,39 +648,6 @@ function reduceWhatsAppOnboardingDecisionCore(
         risk_assessment: decision.risk_assessment,
       };
     }
-  }
-
-  if (requestedLocalHandoff && planReady) {
-    return {
-      status: "handoff_to_local_flow",
-      reason_code: "whatsapp_onboarding_handoff_to_local_flow",
-      next_whatsapp_state: null,
-      visible_task: "complete_to_global",
-      preference_writes: [],
-      mark_done: true,
-      completion_mode: "deferred_after_plan_ready",
-      exit_memo: {
-        reason: decision.exit_memo_request.exit_reason === "none"
-          ? "topic_change"
-          : decision.exit_memo_request.exit_reason,
-        flow_summary: decision.exit_memo_request.flow_summary,
-        handoff_hint_for_global_dispatcher:
-          decision.exit_memo_request.handoff_hint_for_global_dispatcher ||
-          decision.topic_choice.handoff_hint_for_global_dispatcher,
-        handoff_justification_for_global_dispatcher: decision.exit_memo_request
-          .handoff_justification_for_global_dispatcher ||
-          decision.topic_choice.handoff_justification_for_global_dispatcher,
-        at: nowIso,
-      },
-      note_information: decision.note_information,
-      allow_global_dispatcher: false,
-      allow_track_progress_plan_item: false,
-      blocked_effects: [
-        { type: "track_progress_plan_item", reason_code: "onboarding_handoff" },
-        { type: "global_dispatcher", reason_code: "handoff_to_local_flow" },
-      ],
-      risk_assessment: decision.risk_assessment,
-    };
   }
 
   if (requestedExit && planReady) {

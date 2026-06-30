@@ -7584,3 +7584,42 @@ Tests / verifications :
   : 13 passed;
 - `/usr/local/bin/deno check supabase/functions/sophia-brain/tools/operations/select_state_potion/contract.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/visible_agents/agent.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/subskills/state_potion_subskill_flow_test.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/local_runtime_contract_test.ts`
   : vert.
+
+---
+
+### J84 — Weekly local: adjust_recommendation non-mutant et contexte semaine/niveau
+
+Couche. `weekly_adaptive_review_v1` / dispatcher local / reducer / visible
+agents / contrats runtime.
+
+Symptome :
+
+- le weekly pouvait encore laisser croire a une proposition de changement de
+  plan prete a appliquer;
+- le flow ne distinguait pas assez le cas "semaine suivante configuree" du cas
+  "pas de semaine suivante, validation du niveau requise";
+- les visibles n'avaient pas de canal dedie pour conseiller le user sur quoi
+  envisager ensuite sans muter le plan.
+
+Fix :
+
+- ajout de `weekly_planning_context` dans `weekly_flow_state`, injecte depuis
+  le runtime V2 actif;
+- mode deterministe `next_week_configured` si une semaine suivante existe,
+  sinon `next_level_required`;
+- ajout de `adjust_recommendation`, strictement non-mutant, surface seulement
+  avec `confidence >= 0.95`, preuves solides, cause claire et cible claire;
+- ajout du visible `weekly_adjust_recommendation`;
+- `weekly_synthesis_closure` peut restituer une recommandation sure non encore
+  abordee;
+- suppression de la preservation legacy `plan_patch` /
+  `pending_confirmation` dans l'adaptive review weekly locale;
+- wording visible interdit pour "ce qui bougerait / ce qui resterait" et toute
+  formulation de patch pret a appliquer.
+
+Tests / verifications :
+
+- `deno check supabase/functions/sophia-brain/skills/weekly_review/local_flow.ts supabase/functions/sophia-brain/skills/weekly_review/visible_agent.ts supabase/functions/sophia-brain/skills/weekly_review/visible_agents.ts supabase/functions/sophia-brain/skills/weekly_review/weekly_review_local_flow_test.ts`
+  : vert;
+- `deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/skills/weekly_review/weekly_review_local_flow_test.ts`
+  : 22 passed.

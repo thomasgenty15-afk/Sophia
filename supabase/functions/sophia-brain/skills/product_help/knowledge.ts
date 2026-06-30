@@ -6,14 +6,14 @@ export type ProductHelpLocation = {
   user_can_do: string[];
 };
 
-export type ProductHelpOperationBridge = {
-  skill_or_operation:
+export type ProductHelpFeatureGuidance = {
+  feature_id:
     | "adjust_plan"
-    | "prepare_attack_card"
-    | "prepare_defense_card"
-    | "activate_potion"
-    | "create_or_update_initiative"
-    | "update_coach_preferences";
+    | "attack_card"
+    | "defense_card"
+    | "state_potion"
+    | "initiative"
+    | "coach_preferences";
   trigger_phrases: string[];
   requires_confirmation: boolean;
 };
@@ -28,7 +28,7 @@ export type ProductHelpFeature = {
   locations: ProductHelpLocation[];
   limits: string[];
   sophia_must_not_claim: string[];
-  operation_bridge?: ProductHelpOperationBridge;
+  feature_guidance?: ProductHelpFeatureGuidance;
 };
 
 export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
@@ -303,8 +303,8 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     sophia_must_not_claim: [
       "Ne pas dire que le plan a ete ajuste sans confirmation d'application.",
     ],
-    operation_bridge: {
-      skill_or_operation: "adjust_plan",
+    feature_guidance: {
+      feature_id: "adjust_plan",
       trigger_phrases: [
         "ajuste mon plan",
         "modifie cette action",
@@ -406,9 +406,9 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "technique",
     ],
     explain:
-      "Une carte d'attaque sert a preparer l'action en amont. Elle rend le bon geste plus simple, plus naturel et moins couteux au moment de passer a l'action. Elle peut s'appuyer sur 6 techniques: Le texte magique, Mantra de force, Ancre visuelle, Meditation de 5 minutes, Preparer le terrain, Mot de bascule.",
+      "Une carte d'attaque sert a preparer l'action en amont. Elle rend le bon geste plus simple, plus naturel et moins couteux au moment de passer a l'action. Elle peut s'appuyer sur 6 techniques: Le texte magique, une phrase courte qui recadre l'action; Mantra de force, une phrase d'appui a se repeter; Ancre visuelle, un repere visuel prepare; Meditation de 5 minutes, une visualisation calme du demarrage; Preparer le terrain, l'organisation de l'environnement avant l'action; Mot de bascule, un seul mot declencheur.",
     how_to:
-      "Depuis une mission ou une habitude, tu peux generer des cartes liees au plan si l'option est disponible. La carte d'attaque se retrouve ensuite dans Ressources, rangee par niveau. Processus: choisir la technique adaptee, repondre a son mini-questionnaire, generer l'objet concret, puis l'utiliser selon son mode d'emploi.",
+      "Depuis une mission ou une habitude du Plan, tu peux preparer une carte d'attaque liee a cette action. La carte d'attaque se retrouve ensuite dans Ressources, rangee par niveau. Processus: choisir la technique adaptee, repondre a son mini-questionnaire, generer l'objet concret, puis l'utiliser selon son mode d'emploi.",
     benefits: [
       "Reduit la friction avant l'action.",
       "Clarifie le premier geste et le mode d'emploi.",
@@ -418,16 +418,18 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     locations: [
       {
         surface: "Dashboard > Plan",
-        when_visible:
-          "Quand une mission ou une habitude a des cartes liees pretes.",
-        user_can_do: ["voir un apercu de la carte"],
+        when_visible: "Depuis la mission ou l'habitude concernee.",
+        user_can_do: [
+          "preparer une carte d'attaque liee a l'action",
+          "voir un apercu de la carte generee",
+        ],
       },
       {
         surface: "Dashboard > Ressources",
         when_visible: "Quand une carte d'attaque du plan a ete generee.",
         user_can_do: [
           "consulter la carte rangee par niveau",
-          "gerer les cartes libres si disponible",
+          "gerer les cartes libres",
         ],
       },
     ],
@@ -440,8 +442,8 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Ne pas dire qu'une carte d'attaque a ete creee sans succes outil ou flow.",
       "Ne pas dire qu'une carte d'attaque peut etre modifiee librement.",
     ],
-    operation_bridge: {
-      skill_or_operation: "prepare_attack_card",
+    feature_guidance: {
+      feature_id: "attack_card",
       trigger_phrases: [
         "prepare une carte d'attaque",
         "aide-moi a preparer cette action",
@@ -500,8 +502,8 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Ne pas dire qu'une carte de defense a ete creee ou modifiee sans succes outil ou flow.",
       "Ne pas dire qu'une carte de defense peut etre modifiee directement depuis le chat.",
     ],
-    operation_bridge: {
-      skill_or_operation: "prepare_defense_card",
+    feature_guidance: {
+      feature_id: "defense_card",
       trigger_phrases: [
         "prepare une carte de defense",
         "j'ai besoin d'un plan b",
@@ -528,7 +530,7 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     explain:
       "Les cartes liees au plan sont des cartes d'attaque et de defense creees pour une mission ou une habitude precise.",
     how_to:
-      "Dans le Plan, certaines missions ou habitudes proposent de generer des ressources. Une fois generees, les cartes apparaissent sur l'item et dans Ressources par niveau.",
+      "Dans le Plan, ouvre la mission ou l'habitude concernee pour preparer une carte d'attaque ou de defense liee a cette action. Une fois generees, les cartes apparaissent sur l'item et dans Ressources par niveau.",
     benefits: [
       "Relie directement une ressource a une action concrete.",
       "Evite de chercher une carte hors contexte.",
@@ -537,9 +539,8 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     locations: [
       {
         surface: "Dashboard > Plan",
-        when_visible:
-          "Quand l'item de plan supporte des cartes et qu'elles sont generees ou generables.",
-        user_can_do: ["generer les cartes", "voir les apercus"],
+        when_visible: "Depuis la mission ou l'habitude concernee.",
+        user_can_do: ["preparer les cartes liees", "voir les apercus"],
       },
       {
         surface: "Dashboard > Ressources",
@@ -548,7 +549,6 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       },
     ],
     limits: [
-      "Ne concerne pas tous les items du plan.",
       "Les clarifications ne sont pas le cas principal de generation de cartes.",
     ],
     sophia_must_not_claim: [
@@ -579,7 +579,7 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Aide a redescendre ou se recentrer rapidement.",
       "Repond a un etat du moment sans refaire tout le plan.",
       "Cree un suivi de 7 jours via une initiative automatique.",
-      "Peut soutenir une action quand l'etat interieur bloque l'execution.",
+      "Sert quand l'etat interieur global prend trop de place, sans etre d'abord rattache a une action concrete.",
       "Aide a choisir la potion selon l'etat: decrochage, peur, honte/blessure, perte de sens du plan, durete envers soi, ou stress.",
     ],
     locations: [{
@@ -598,14 +598,15 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Ne remplace pas demotivation_repair quand le user a d'abord besoin de retrouver pourquoi il agit ou pourquoi ca compte.",
       "Ne remplace pas emotional_repair quand honte, culpabilite, auto-attaque ou detresse dominent le tour.",
       "La potion de clarte ne remplace pas les cartes d'action pour trouver un premier pas, prioriser une tache ou decouper une action.",
+      "Ne remplace pas les cartes d'attaque ou de defense quand l'emotion est liee a une action concrete.",
       "Ne remplace pas l'ajustement du plan si le probleme est structurel.",
       "Le suivi cree est une initiative de soutien sur 7 jours, pas une modification du plan.",
     ],
     sophia_must_not_claim: [
       "Ne pas dire qu'une potion est activee sans succes outil ou flow.",
     ],
-    operation_bridge: {
-      skill_or_operation: "activate_potion",
+    feature_guidance: {
+      feature_id: "state_potion",
       trigger_phrases: [
         "active une potion",
         "j'ai besoin d'une potion",
@@ -708,8 +709,8 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Ne pas dire qu'une initiative a ete programmee sans succes outil ou flow.",
       "Ne pas confondre initiative dashboard et outil conversationnel hors plateforme.",
     ],
-    operation_bridge: {
-      skill_or_operation: "create_or_update_initiative",
+    feature_guidance: {
+      feature_id: "initiative",
       trigger_phrases: [
         "cree une initiative",
         "programme un rendez-vous recurrent",
@@ -761,8 +762,8 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Ne pas dire qu'une preference est sauvegardee sans succes outil ou UI.",
       "Ne pas dire que le chat a applique ou enregistre une preference coach.",
     ],
-    operation_bridge: {
-      skill_or_operation: "update_coach_preferences",
+    feature_guidance: {
+      feature_id: "coach_preferences",
       trigger_phrases: [
         "change ton ton",
         "sois plus directe",

@@ -4,6 +4,7 @@ import {
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   buildDailyActionReviewActionIntelligence,
+  buildDailyActionReviewGrounding,
   buildDailyActionReviewInstruction,
   buildInitialDailyActionReviewState,
   dailyActionReviewFocusTargets,
@@ -21,6 +22,7 @@ function target(
   planId: string,
   title: string,
   dimension: "habits" | "missions" | "clarifications",
+  description?: string,
 ): DailyActionReviewTarget {
   return {
     occurrence_id: id,
@@ -29,6 +31,7 @@ function target(
     plan_id: planId,
     plan_item_id: `item-${id}`,
     title,
+    description: description ?? `${title} description`,
     dimension,
     kind: dimension === "habits"
       ? "habit"
@@ -105,11 +108,31 @@ Deno.test("opening mentions only focus targets and forbids solution/tool languag
   assertEquals(instruction.includes("Marche rapide"), false);
   assertStringIncludes(instruction, "une seule question principale");
   assertStringIncludes(instruction, "Ne propose pas de solution");
+  assertStringIncludes(instruction, "Varie fortement l'ouverture");
+  assertStringIncludes(instruction, "bilan du jour");
   assertEquals(
     dailyActionReviewOpeningHasForbiddenCoaching(
       "Je te propose une potion pour ajuster le plan.",
     ),
     true,
+  );
+});
+
+Deno.test("daily action review grounding includes target descriptions", () => {
+  const grounding = buildDailyActionReviewGrounding([
+    target(
+      "c1",
+      "plan-c",
+      "Cibler le joint reflexe",
+      "clarifications",
+      "Identifier le moment exact qui declenche le geste automatique.",
+    ),
+  ]);
+
+  assertStringIncludes(grounding, "title=Cibler le joint reflexe");
+  assertStringIncludes(
+    grounding,
+    "description=Identifier le moment exact qui declenche le geste automatique.",
   );
 });
 

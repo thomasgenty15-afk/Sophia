@@ -146,6 +146,18 @@ function getFallbackTemplate(purpose: string | undefined) {
       injectBodyNameParam: true,
     };
   }
+  if (
+    p === "action_evening_review" ||
+    p === "action_evening_review_already_resolved"
+  ) {
+    return {
+      name: (Deno.env.get("WHATSAPP_DAILY_BILAN_TEMPLATE_NAME") ??
+        "sophia_bilan_v2").trim(),
+      language: (Deno.env.get("WHATSAPP_DAILY_BILAN_TEMPLATE_LANG") ?? "fr")
+        .trim(),
+      injectBodyNameParam: true,
+    };
+  }
   return {
     name: (Deno.env.get("WHATSAPP_GLOBAL_REACH_TEMPLATE_NAME") ??
       "global_reach_template").trim(),
@@ -524,8 +536,10 @@ Deno.serve(async (req) => {
         fallbackParams: [String((profile as any)?.full_name ?? "").trim()],
       })
       : null;
-    const contentForLog = body.message.type === "text" ||
-        body.message.type === "interactive_buttons"
+    const contentForLog = graphPayload?.type === "template"
+      ? renderedTemplate?.content ?? `[TEMPLATE:${graphTemplateName}]`
+      : body.message.type === "text" ||
+          body.message.type === "interactive_buttons"
       ? body.message.body
       : renderedTemplate?.content ?? `[TEMPLATE:${body.message.name}]`;
 

@@ -9,11 +9,7 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import {
   ACTION_EVENING_REVIEW_EVENT_CONTEXT,
   ACTION_MORNING_EVENT_CONTEXT,
-  ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
   buildActionMorningFallbackMessage,
-  buildActionMorningFollowupFallbackMessage,
-  buildActionMorningFollowupGrounding,
-  buildActionMorningFollowupInstruction,
   buildActionMorningGrounding,
   buildActionMorningInstruction,
   buildLightMorningFallbackMessage,
@@ -58,6 +54,8 @@ const MORNING_ENCOURAGEMENT_START_LOCAL_TIME = "08:00";
 const WEEKLY_PLANNING_PROMPT_LOCAL_TIME = "10:30";
 const WEEKLY_PROGRESS_REVIEW_LOCAL_TIME = "18:30";
 const MORNING_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
+const LEGACY_ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT =
+  "action_morning_followup_v2";
 const EVENING_REVIEW_SUPPRESSES_MORNING_FOLLOWUP_STATUSES = [
   "pending",
   "retrying",
@@ -180,6 +178,29 @@ async function hasActiveBirthdayGreetingForEvent(params: {
   return (data ?? []).length > 0;
 }
 
+async function hasActiveWeeklyPlanningPromptForWeek(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  targetWeekStartDate: string;
+}): Promise<boolean> {
+  const { data, error } = await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .select("id,message_payload")
+    .eq("user_id", params.userId)
+    .eq("event_context", WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT)
+    .in("status", ["pending", "retrying", "awaiting_user", "sent"])
+    .limit(50);
+  if (error) throw error;
+
+  return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
+    const payload = (row as any)?.message_payload ?? {};
+    return cleanText(payload?.target_week_start_date) ===
+        params.targetWeekStartDate ||
+      cleanText(payload?.next_week_start_date) === params.targetWeekStartDate ||
+      cleanText(payload?.week_start_date) === params.targetWeekStartDate;
+  });
+}
+
 async function cancelFutureMorningCheckins(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
   userId: string;
@@ -193,7 +214,7 @@ async function cancelFutureMorningCheckins(params: {
     .in("event_context", [
       ...listMorningNudgeEventContexts(),
       ACTION_MORNING_EVENT_CONTEXT,
-      ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
+      LEGACY_ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
       MORNING_LIGHT_GREETING_EVENT_CONTEXT,
     ])
     .in("status", MORNING_PENDING_STATUSES)
@@ -424,7 +445,6 @@ Deno.serve(async (req) => {
       const hasOpenActionsFromYesterday = yesterdaySchedule.transformations
         .some((entry) => entry.occurrences.length > 0);
       const shouldSendLightGreeting = !hasActionsToday &&
-        !hasOpenActionsFromYesterday &&
         allowsMorning &&
         await shouldScheduleLightMorningGreeting(supabaseAdmin as any, {
           userId,
@@ -450,8 +470,7 @@ Deno.serve(async (req) => {
       const shouldTryBirthdayGreeting = birthdayMatch.matches &&
         (allowsMorning || allowsEvening);
       const hasAnyCandidate = (allowsMorning &&
-        (hasOpenActionsFromYesterday || hasActionsToday ||
-          shouldSendLightGreeting)) ||
+        (hasActionsToday || shouldSendLightGreeting)) ||
         (allowsEvening && (hasActionsToday || hasOpenActionsFromYesterday)) ||
         shouldTryWeeklyPlanningPrompt ||
         shouldTryWeeklyProgressReview ||
@@ -523,8 +542,7 @@ Deno.serve(async (req) => {
 
       if (
         allowsMorning &&
-        (hasOpenActionsFromYesterday || hasActionsToday ||
-          shouldSendLightGreeting)
+        (hasActionsToday || shouldSendLightGreeting)
       ) {
         await cancelFutureMorningCheckins({
           supabaseAdmin,
@@ -534,61 +552,38 @@ Deno.serve(async (req) => {
 
         const eventContext = hasActionsToday
           ? ACTION_MORNING_EVENT_CONTEXT
-          : hasOpenActionsFromYesterday
-          ? ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT
           : MORNING_LIGHT_GREETING_EVENT_CONTEXT;
         const draftMessage = hasActionsToday
           ? buildActionMorningFallbackMessage(todaySchedule)
-          : hasOpenActionsFromYesterday
-          ? buildActionMorningFollowupFallbackMessage(yesterdaySchedule)
           : buildLightMorningFallbackMessage();
         const instruction = hasActionsToday
           ? buildActionMorningInstruction(todaySchedule)
-          : hasOpenActionsFromYesterday
-          ? buildActionMorningFollowupInstruction(yesterdaySchedule)
           : buildLightMorningInstruction();
         const eventGrounding = hasActionsToday
           ? buildActionMorningGrounding(todaySchedule)
-          : hasOpenActionsFromYesterday
-          ? buildActionMorningFollowupGrounding(yesterdaySchedule)
           : `local_date=${todaySchedule.local_date}\nweekday=${todaySchedule.weekday}\nno_confirmed_action_occurrence=true`;
-        const selectedSchedule = hasActionsToday
-          ? todaySchedule
-          : yesterdaySchedule;
+        const selectedSchedule = todaySchedule;
 
         const { error: upsertErr } = await supabaseAdmin
           .from("scheduled_checkins")
           .upsert(
             {
               user_id: userId,
-              origin: hasActionsToday
-                ? "action_morning"
-                : hasOpenActionsFromYesterday
-                ? "action_followup"
-                : "action_morning",
+              origin: "action_morning",
               event_context: eventContext,
               draft_message: draftMessage,
               message_mode: "dynamic",
               message_payload: {
-                source: hasActionsToday
-                  ? "schedule_action_morning_v2"
-                  : hasOpenActionsFromYesterday
-                  ? "schedule_action_morning_followup_v2"
-                  : "schedule_action_morning_v2",
+                source: "schedule_action_morning_v2",
                 version: 1,
                 checkin_kind: hasActionsToday
                   ? "action_morning_encouragement"
-                  : hasOpenActionsFromYesterday
-                  ? "action_morning_followup"
                   : "morning_light_greeting",
                 timezone,
                 local_date: selectedSchedule.local_date,
                 week_start_date: selectedSchedule.week_start_date,
                 weekday: selectedSchedule.weekday,
-                reviewed_local_date: !hasActionsToday &&
-                    hasOpenActionsFromYesterday
-                  ? yesterdaySchedule.local_date
-                  : null,
+                reviewed_local_date: null,
                 morning_encouragement_local_time: morningEncouragementLocalTime,
                 transformations: selectedSchedule.transformations,
                 occurrence_ids: selectedSchedule.transformations.flatMap((
@@ -622,8 +617,6 @@ Deno.serve(async (req) => {
           scheduled++;
           if (hasActionsToday) {
             actionMorningScheduled++;
-          } else if (hasOpenActionsFromYesterday) {
-            actionMorningFollowupScheduled++;
           } else {
             lightGreetingScheduled++;
           }
@@ -756,6 +749,15 @@ Deno.serve(async (req) => {
           },
         );
         if (!hasTargetPlanifiableWeek) {
+          continue;
+        }
+        const hasExistingPlanningPrompt =
+          await hasActiveWeeklyPlanningPromptForWeek({
+            supabaseAdmin,
+            userId,
+            targetWeekStartDate,
+          });
+        if (hasExistingPlanningPrompt) {
           continue;
         }
         const scheduledFor = computeScheduledForFromLocal({

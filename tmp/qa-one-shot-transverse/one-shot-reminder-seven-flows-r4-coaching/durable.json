@@ -1,0 +1,252 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "474846fa-2021-4d3a-830f-241309e61424",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T06:55:00+00:00",
+      "event_context": "one_shot_reminder:envoyer_les_trois_premieres_lignes",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: envoyer les trois premières lignes.",
+        "local_label": "demain à 8h55",
+        "parse_source": "payload_utc_time",
+        "request_text": "rappelle-moi demain à 8h55 d’envoyer les trois premières lignes",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: envoyer les trois premières lignes.",
+        "source_message_id": "bb3e0315-9bc0-4279-8e66-121c73543010",
+        "reminder_instruction": "envoyer les trois premières lignes"
+      },
+      "created_at": "2026-06-24T15:25:49.946212+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je bloque sur le mail à Camille, je sens que je vais encore l’éviter ; aide-moi à trouver une petite attaque, et rappelle-moi demain à 8h55 d’envoyer les trois premières lignes.",
+      "created_at": "2026-06-24T15:25:46.960786+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-coaching-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Je partirais sur une carte d'attaque, technique Le texte magique : Je partirais sur une carte d’attaque libre, technique texte magique : une phrase courte pour couper le scénario “je vais encore l’éviter” et lancer juste les trois premières lignes. Exemple : « Je n’écris pas tout, j’ouvre et je commence. »",
+      "created_at": "2026-06-24T15:26:11.231207+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r4-coaching-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "01d9dbbf-357f-4370-b510-613687e5c95f",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T15:26:11.215Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T15:26:11.215Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user bloque sur un mail hors plan, avec évitement anticipé, et demande une petite attaque pour démarrer.",
+              "target_kind": "free_action",
+              "action_title": "écrire le mail à Camille",
+              "action_source": "free"
+            },
+            "turn_count": 1,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le problème est un démarrage évité sur une action concrète hors plan. Une carte d'attaque est le bon levier pour préparer le premier geste et réduire la friction avant l'envoi des trois premières lignes."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user bloque sur un mail hors plan, avec évitement anticipé, et demande une petite attaque pour démarrer.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks for help around a concrete non-plan action (mail to Camille) with avoidance/friction."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks for help around a concrete non-plan action (mail to Camille) with avoidance/friction.",
+              "category": "free_action_coaching",
+              "confidence": 0.86,
+              "failure_mode": "unclear",
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "plan_id": null,
+                "action_title": "écrire le mail à Camille",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T15:26:11.215Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-24T15:26:11.215Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "Le user bloque sur un mail hors plan, avec évitement anticipé, et demande une petite attaque pour démarrer.",
+              "target_kind": "free_action",
+              "action_title": "écrire le mail à Camille",
+              "action_source": "free"
+            },
+            "turn_count": 1,
+            "coaching_type": "no_plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "Le problème est un démarrage évité sur une action concrète hors plan. Une carte d'attaque est le bon levier pour préparer le premier geste et réduire la friction avant l'envoi des trois premières lignes."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "Le user bloque sur un mail hors plan, avec évitement anticipé, et demande une petite attaque pour démarrer.",
+            "candidate_features": [
+              {
+                "fit": "high",
+                "why": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+                "feature": "attack_card",
+                "destination_hint": "Dashboard > Ressources"
+              }
+            ],
+            "last_answer_summary": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+            "parent_return_focus": null,
+            "pending_type_change": null,
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "last_visible_decision": {
+              "lever": "free_attack_card",
+              "reason": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+              "variant": "texte_magique",
+              "confidence": "high",
+              "potion_type": null
+            },
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks for help around a concrete non-plan action (mail to Camille) with avoidance/friction."
+            ],
+            "current_recommendation": {
+              "fit": "high",
+              "why": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+              "feature": "attack_card",
+              "destination_hint": "Dashboard > Ressources"
+            },
+            "last_visible_task_kind": "no_plan_coaching",
+            "recommendation_decision": {
+              "why_primary": "Action concrète hors plan avec évitement anticipé et blocage du démarrage; le texte magique recadre la pensée qui fait obstacle au premier geste.",
+              "why_not_others": {},
+              "primary_feature": "attack_card",
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": "carte d'attaque libre",
+                "surface_hint": "Dashboard > Ressources",
+                "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+              },
+              "user_facing_next_step": "Prepare la carte comme aide libre, sans la rattacher a une action du Plan."
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks for help around a concrete non-plan action (mail to Camille) with avoidance/friction.",
+              "category": "free_action_coaching",
+              "confidence": 0.86,
+              "failure_mode": "unclear",
+              "coaching_type": "no_plan_action",
+              "action_context": {
+                "source": "free",
+                "plan_id": null,
+                "action_title": "écrire le mail à Camille",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": false,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": true
+              },
+              "priority_features": [],
+              "emotional_state_context": null
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T15:26:11.223505+00:00"
+  }
+}

@@ -1508,14 +1508,16 @@ export function formatDashboardCapabilitiesLiteAddon(): string {
     `\n\n=== ADDON TABLEAU DE BORD (LITE / ALWAYS-ON) ===\n` +
     `- Support de connaissance global: utilise ces infos seulement si c'est pertinent pour la question du user.\n` +
     `- Cartographie dashboard:\n` +
-    `  - Header & stratégie: focus actuel, intention identitaire, mantra.\n` +
-    `  - Sections dimensions: Soutien, Missions, Habitudes.\n` +
-    `  - Cartes plan item: statut, progression, accès au détail.\n` +
-    `  - Habit maintenance strip: habitudes déjà ancrées, repliées par défaut.\n` +
-    `  - Unlock preview: aperçu discret de ce qui se débloquera ensuite.\n` +
+    `  - Plan: actions, missions, habitudes, ajustements du plan, statut/progression.\n` +
+    `  - Ressources: cartes d'attaque, cartes de défense, potions/état et outils consultables/préparables selon disponibilité.\n` +
+    `  - Inspirations: contenus ou idées utiles pour nourrir la transformation.\n` +
+    `  - Initiatives: messages récurrents Sophia, avec contenu, contexte, horaire, jours actifs/rythme, destination et statut.\n` +
     `- Règles d'usage:\n` +
     `  - Réponds d'abord au besoin immédiat du user, sans réciter toute la liste.\n` +
-    `  - Si la demande concerne un item du plan, oriente vers la bonne section dimensionnelle (Soutien, Missions, Habitudes).\n` +
+    `  - Si la demande concerne une action, une mission, une habitude ou un ajustement du plan, oriente vers Plan.\n` +
+    `  - Si la demande concerne une carte, une potion ou un outil consultable/préparable, oriente vers Ressources.\n` +
+    `  - Si la demande concerne un soutien ou message récurrent, utilise Initiatives.\n` +
+    `  - Ne présente pas Soutien, Missions ou Habitudes comme des sections de destination actuelles.\n` +
     `  - Toute reconfiguration du plan doit être faite dans le dashboard.\n` +
     `  - Si c'est pertinent ET confiance > 0.9, tu peux pousser UNE surface dashboard complémentaire.\n` +
     `- Interdiction: aucune modification réelle du plan n'est exécutée dans le chat.\n`
@@ -1566,17 +1568,17 @@ export function formatDashboardCapabilitiesAddon(addon: any): string {
     `- Objectif: réponse CONSISTANTE, fidèle à l'UI réelle, sans exécution dans le chat.\n` +
     `\n` +
     `- CARTOGRAPHIE DASHBOARD:\n` +
-    `  1) Header & stratégie: titre de transformation, user summary, intention identitaire, mantra.\n` +
-    `  2) Soutien: boîte à outils, avec cartes useful now / always available / unlockable.\n` +
-    `  3) Missions: cartes de missions actives et jalons clés.\n` +
-    `  4) Habitudes: en construction, à adapter, habitudes ancrées.\n` +
-    `  5) Anticipation & suite: aperçus de déblocage / prochain focus.\n` +
+    `  1) Plan: actions, missions, habitudes, ajustements du plan, statut/progression.\n` +
+    `  2) Ressources: cartes d'attaque, cartes de défense, potions/état et outils consultables/préparables selon disponibilité.\n` +
+    `  3) Inspirations: contenus ou idées utiles pour nourrir la transformation.\n` +
+    `  4) Initiatives: messages récurrents Sophia, avec contenu, contexte, horaire, jours actifs/rythme, destination et statut.\n` +
+    `  5) Préférences coach: ton, niveau de challenge, tendance à poser des questions.\n` +
     `\n` +
     `- DÉTAILS PAR SURFACE:\n` +
-    `  - Support section: pour les outils utiles maintenant, les ressources toujours disponibles et les supports déblocables.\n` +
-    `  - Mission cards: pour les tâches/jalons actifs et leur progression.\n` +
-    `  - Habit cards: pour suivre l'ancrage, voir ce qui est à adapter, ou ouvrir le strip de maintenance.\n` +
-    `  - Unlock preview: pour montrer ce qui arrive ensuite sans surcharger.\n` +
+    `  - Plan: pour actions, missions, habitudes et ajustements.\n` +
+    `  - Ressources: pour cartes d'attaque, cartes de défense, potions/état et outils.\n` +
+    `  - Inspirations: pour contenus/idees de transformation.\n` +
+    `  - Initiatives: pour planifier un message récurrent Sophia; ne pas appeler cela Soutien ou Habitudes.\n` +
     `\n` +
     `- STRATÉGIE DE LONGUEUR (anti-réponse trop longue):\n` +
     `  - Niveau 1 (par défaut): donner une vue d'ensemble courte et structurée des surfaces V2.\n` +

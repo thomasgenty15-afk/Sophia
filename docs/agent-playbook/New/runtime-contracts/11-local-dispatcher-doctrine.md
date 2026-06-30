@@ -9,8 +9,8 @@ But V1 : fiabilite et efficacite.
 
 Cette doctrine ne cherche pas a produire une architecture parfaite ou
 exhaustive. Elle sert a rendre les flows locaux plus fiables, plus rapides a
-stabiliser, et moins rigides. Les agents doivent eviter de sur-compliquer :
-si un flow fonctionne avec un dispatcher local clair, quelques prompts
+stabiliser, et moins rigides. Les agents doivent eviter de sur-compliquer : si
+un flow fonctionne avec un dispatcher local clair, quelques prompts
 stage-specific, un contexte compact et des transitions explicites, c'est
 suffisant pour la V1.
 
@@ -127,7 +127,7 @@ sortie, meme si les noms exacts varient par flow :
 
 ```json
 {
-  "flow_action": "continue_local|missing_info|confirm_candidate|handoff_ready|revise|repeat|apply_attempt|inline_tool|get_info_product|get_info_db|handoff_to_local_dispatcher|exit_to_global_dispatcher|cancel_flow|complete_flow|defer_flow|safety_preempt",
+  "flow_action": "continue_local|missing_info|confirm_candidate|handoff_ready|revise|repeat|apply_attempt|inline_tool|get_info_product|get_info_db|exit_to_global_dispatcher|cancel_flow|complete_flow|defer_flow|safety_preempt",
   "confidence": "low|medium|high",
   "risk_score": 0,
   "local_state_patch": {},
@@ -174,13 +174,15 @@ dispatcher local parent
 
 Le parent flow ne doit pas perdre son etat.
 
-### Handoff Vers Dispatcher Local
+### Transition Specialisee Vers Dispatcher Local
 
-Pour un bridge vers un autre flow local :
+Pour une exception specialisee vers un autre flow local, le contrat doit etre
+nomme par le flow source et documente explicitement. Ne pas utiliser
+`exit_to_global_dispatcher` comme bridge renomme.
 
 ```txt
 dispatcher local source
--> flow_action=handoff_to_local_dispatcher
+-> flow_action specifique documentee
 -> note_information
 -> dispatcher local cible
 ```
@@ -195,16 +197,16 @@ Exemples :
 
 La premiere activation d'un dispatcher local doit aussi recevoir une
 `note_information` quand elle vient d'un autre dispatcher, y compris depuis le
-dispatcher global. Le premier tour local ne doit pas etre un demarrage nu :
-la note explique pourquoi ce flow a ete choisi, quel signal a declenche
+dispatcher global. Le premier tour local ne doit pas etre un demarrage nu : la
+note explique pourquoi ce flow a ete choisi, quel signal a declenche
 l'activation, et quel contexte initial le dispatcher local doit prendre en
 compte.
 
 ### Exit Vers Global
 
-`exit_to_global_dispatcher` est utilise des que le flow local arrete de
-posseder le tour et que le dispatcher global doit reprendre, y compris quand le
-user demande simplement d'arreter le flow actif.
+`exit_to_global_dispatcher` est utilise des que le flow local arrete de posseder
+le tour et que le dispatcher global doit reprendre, y compris quand le user
+demande simplement d'arreter le flow actif.
 
 Exemple :
 
@@ -246,7 +248,7 @@ Tous les dispatchers locaux doivent savoir classer au minimum :
 - `complete_flow` : flow suffisamment fini, pas de suite immediate ;
 - `exit_to_global_dispatcher` : user veut arreter le flow actif ou apporte un
   nouveau sujet clair ;
-- `handoff_to_local_dispatcher` : autre flow cible explicite ou structure ;
+- transition specialisee documentee : autre flow cible explicite ou structure ;
 - `inline_tool_roundtrip` : question produit/status temporaire ;
 - `repeat_current_state` : user demande de redire ;
 - `revise_current_state` : user corrige une valeur deja produite.
@@ -269,13 +271,14 @@ Elle contient toujours :
   "target_dispatcher": "global|safety_crisis|product_help|status_recap|select_state_potion|...",
   "handoff_reason": "topic_change|safety|inline_tool|bridge|clarification_resolved|flow_interruption|explicit_user_request",
   "handoff_context_for_next_dispatcher": "string",
-  "user_words": ["string"],
   "structured_context": {},
   "confidence": "low|medium|high"
 }
 ```
 
 `confidence` est optionnel si le flow n'a pas de champ equivalent.
+`user_words`, si requis par un contrat legacy, est ajoute par le runtime et non
+demande au dispatcher local.
 `structured_context` est obligatoire. Il peut etre minimal, mais il ne doit pas
 etre omis. Les champs retires du contrat canonique sont
 `source_flow_presentation`, `source_flow_state_summary`,
@@ -300,8 +303,8 @@ La note ne doit jamais devenir :
 - un second dispatcher cache ;
 - une decision deterministe imposee au prochain dispatcher.
 
-Le dispatcher cible traite la note comme contexte source, pas comme ordre
-metier irrevisable.
+Le dispatcher cible traite la note comme contexte source, pas comme ordre metier
+irrevisable.
 
 ## Conversation Context
 
@@ -364,7 +367,6 @@ Schema recommande :
 ```json
 {
   "state_summary": "string",
-  "user_words": ["string"],
   "field_or_stage": "string|null",
   "known_values": {},
   "missing_or_weak_values": [],
@@ -420,8 +422,8 @@ Un unique prompt visible du type `conversation_agent` est un red flag
 architectural.
 
 Exception possible : flow trivial one-turn sans etat actif, sans changement de
-dispatcher, sans revision, sans abandon. Si un flow a un etat actif ou
-plusieurs tours possibles, l'exception ne s'applique pas.
+dispatcher, sans revision, sans abandon. Si un flow a un etat actif ou plusieurs
+tours possibles, l'exception ne s'applique pas.
 
 ## Completeness De `visible_task`
 
@@ -457,7 +459,6 @@ Attendu :
       "known_goal": "string",
       "candidate_targets": [],
       "why_target_is_missing": "string",
-      "user_words": [],
       "db_context_summary": "string"
     }
   }
@@ -598,9 +599,9 @@ Cas particulier `demotivation_repair` :
 
 - la micro memoire peut aider a relier la demotivation a une action active, un
   blocage recent ou une pression de plan deja connue ;
-- elle ne doit pas transformer une hypothese de cause en fait verrouille :
-  si le lien action/plan/motivation n'est pas clair, le dispatcher doit demander
-  ou proposer, pas affirmer.
+- elle ne doit pas transformer une hypothese de cause en fait verrouille : si le
+  lien action/plan/motivation n'est pas clair, le dispatcher doit demander ou
+  proposer, pas affirmer.
 
 Exemples ou ce n'est pas toujours utile :
 
@@ -613,27 +614,24 @@ Exemples ou ce n'est pas toujours utile :
 
 ## Matrice Contextuelle Par Flow
 
-| Flow cible | Contexte a injecter |
-| --- | --- |
-| `clarification` | Contexte compose dynamiquement selon les familles candidates : produit, plan, actions, rappels, cartes, potions, preferences, statut DB, flow parent. Micro memoire non chargee par defaut, sauf si une famille candidate l'exige. |
-| `prepare_attack_card` | Actions actives, plans actifs, cartes d'attaque existantes, action candidate, contexte de friction, contraintes du plan. Micro memoire action-linked si une action active/candidate est identifiee. |
-| `prepare_defense_card` | Actions actives, risques actifs, cartes de defense existantes, situations recurrentes, contexte d'environnement/pulsion. Micro memoire action/risk-linked si utile. |
-| `adjust_plan_item` | Plans complets, niveaux, actions, statut des actions, historique recent de progression, contraintes utilisateur. Micro memoire liee aux actions/niveaux concernes si pertinente. |
-| `select_state_potion` | Etat du flow, origin bridge context, champs deja collectes, potions actives/historique si utile. Micro memoire seulement si elle soutient le champ courant sans polluer. |
-| `emotional_repair` | Recent messages, active flow state, plan context gradue seulement si relevant, micro memoire minimale liee au dernier message, aux actions actives ou au thread relationnel. Pas de profil emotionnel lourd invente. |
-| `demotivation_repair` | Recent messages, active flow state, actions actives/candidates, plan context gradue, micro memoire action-linked et semantic match minimal autour du dernier message. Pas d'historique motivationnel lourd par defaut. |
-| `create_recurring_reminder` | Rappels recurrents existants, plans/actions/habitudes actifs, contexte d'action_family, timezone. Micro memoire seulement si le rappel vise une action/habitude connue. |
-| `one_shot_reminder` | Calendrier/checkins recents si utile, timezone, contexte du message source, note depuis recurring si boundary. |
-| `status_recap` | Snapshot DB cible : cartes, rappels, potions, preferences, plan, effets recents selon question. |
-| `product_help` | Surface produit demandee, flow actif parent, question exacte, objet/surface cible. |
-| `verification_opportunities` | Flow ou opportunite a verifier, contexte DB du flow cible, actions/plans/cartes/potions selon candidate. Micro memoire non chargee par defaut, sauf si le flow verifie cible en a besoin. |
-| `update_coach_preferences` | Preferences actuelles, historique de preferences, contexte conversationnel recent, consentement d'ecriture si applicable. |
-| `daily_action_review` | Actions a checker par plan, plusieurs plans actifs, statuts du jour, contexte intro daily. |
-| `weekly_review` | Actions et progression par plan, plusieurs plans actifs, resultats de la semaine, signaux d'ajustement. |
-| `post_morning_nudge.action_flow` | Action du nudge, plan lie, statut action, contexte emotionnel leger, dernier nudge. |
-| `post_morning_nudge.suppressed_action_flow` | Action supprimee, raison de suppression, etat emotionnel/fatigue, alternative douce. |
-| `post_morning_nudge.emotional_presence_flow` | Besoin emotionnel du nudge, contexte relationnel/emotionnel recent, aucun plan force. |
-| `safety_crisis` | Message safety, flow source, contexte de risque, note_information source, pas de contexte produit inutile. |
+| Flow cible                   | Contexte a injecter                                                                                                                                                                                                                |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clarification`              | Contexte compose dynamiquement selon les familles candidates : produit, plan, actions, rappels, cartes, potions, preferences, statut DB, flow parent. Micro memoire non chargee par defaut, sauf si une famille candidate l'exige. |
+| `prepare_attack_card`        | Actions actives, plans actifs, cartes d'attaque existantes, action candidate, contexte de friction, contraintes du plan. Micro memoire action-linked si une action active/candidate est identifiee.                                |
+| `prepare_defense_card`       | Actions actives, risques actifs, cartes de defense existantes, situations recurrentes, contexte d'environnement/pulsion. Micro memoire action/risk-linked si utile.                                                                |
+| `adjust_plan_item`           | Plans complets, niveaux, actions, statut des actions, historique recent de progression, contraintes utilisateur. Micro memoire liee aux actions/niveaux concernes si pertinente.                                                   |
+| `select_state_potion`        | Etat du flow, origin bridge context, champs deja collectes, potions actives/historique si utile. Micro memoire seulement si elle soutient le champ courant sans polluer.                                                           |
+| `emotional_repair`           | Recent messages, active flow state, plan context gradue seulement si relevant, micro memoire minimale liee au dernier message, aux actions actives ou au thread relationnel. Pas de profil emotionnel lourd invente.               |
+| `demotivation_repair`        | Recent messages, active flow state, actions actives/candidates, plan context gradue, micro memoire action-linked et semantic match minimal autour du dernier message. Pas d'historique motivationnel lourd par defaut.             |
+| `create_recurring_reminder`  | Rappels recurrents existants, plans/actions/habitudes actifs, contexte d'action_family, timezone. Micro memoire seulement si le rappel vise une action/habitude connue.                                                            |
+| `one_shot_reminder`          | Calendrier/checkins recents si utile, timezone, contexte du message source, note depuis recurring si boundary.                                                                                                                     |
+| `status_recap`               | Snapshot DB cible : cartes, rappels, potions, preferences, plan, effets recents selon question.                                                                                                                                    |
+| `product_help`               | Surface produit demandee, flow actif parent, question exacte, objet/surface cible.                                                                                                                                                 |
+| `verification_opportunities` | Flow ou opportunite a verifier, contexte DB du flow cible, actions/plans/cartes/potions selon candidate. Micro memoire non chargee par defaut, sauf si le flow verifie cible en a besoin.                                          |
+| `update_coach_preferences`   | Preferences actuelles, historique de preferences, contexte conversationnel recent, consentement d'ecriture si applicable.                                                                                                          |
+| `daily_action_review`        | Actions a checker par plan, plusieurs plans actifs, statuts du jour, contexte intro daily.                                                                                                                                         |
+| `weekly_review`              | Actions et progression par plan, plusieurs plans actifs, resultats de la semaine, signaux d'ajustement.                                                                                                                            |
+| `safety_crisis`              | Message safety, flow source, contexte de risque, note_information source, pas de contexte produit inutile.                                                                                                                         |
 
 Si un flow manque dans cette matrice, l'agent doit l'ajouter avant
 implementation.
@@ -646,7 +644,7 @@ Tout champ structure important doit pouvoir etre explique par :
 - `evidence` ;
 - `confidence` ;
 - `status` ;
-- `user_words` si disponible.
+- evidence runtime si disponible.
 
 Exemple :
 
@@ -754,7 +752,8 @@ Avant de considerer un dispatcher local conforme, verifier :
 - [ ] Il n'y a pas un unique agent conversationnel generaliste.
 - [ ] `visible_task.conversation_context` est suffisant.
 - [ ] Les exits communs sont presents.
-- [ ] Aucun `exit_to_global_dispatcher` legacy ne reste dans les contrats actifs.
+- [ ] Aucun `exit_to_global_dispatcher` legacy ne reste dans les contrats
+      actifs.
 - [ ] Un arret de flow passe par `exit_to_global_dispatcher` avec
       `note_information` avant toute reprise globale.
 - [ ] `exit_to_global_dispatcher` produit une `note_information`.

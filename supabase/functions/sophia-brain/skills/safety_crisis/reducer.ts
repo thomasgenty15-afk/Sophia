@@ -66,16 +66,6 @@ function nextConsecutiveDeescalatedTurns(args: {
   return Number(args.previous.consecutive_deescalated_turns ?? 0) + 1;
 }
 
-function noChatMutation() {
-  return {
-    db_write_committed: false,
-    potion_session_created: false,
-    scheduled_checkin_created: false,
-    recurring_reminder_created: false,
-    executable_confirmation_generated: false,
-  };
-}
-
 const SAFETY_SERVER_OWNED_FIELDS = [
   "phase",
   "risk_band",

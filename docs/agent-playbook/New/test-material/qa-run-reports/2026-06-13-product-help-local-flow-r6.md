@@ -58,7 +58,7 @@ Artefacts:
 - http_status: `200`
 - response_owner: `tool_skill`
 - selected_handler: `adjust_plan_item`
-- route_reason: `product_help_handoff_to_local_dispatcher`
+- route_reason: `product_help_exit_to_global_dispatcher`
 - safety: `none`
 - direct_effects: `[]`
 - operation: `adjust_plan_item`
@@ -168,7 +168,7 @@ Artefacts:
 
 **Routage**
 - T1: `response_owner=product_help`, `selected_handler=product_help`, pas de tool.
-- T2: `product_help_handoff_to_local_dispatcher` vers `adjust_plan_item` avec `note_information` presente.
+- T2: `product_help_exit_to_global_dispatcher` vers `adjust_plan_item` avec `note_information` presente.
 - T3-T5: `active_adjust_plan_item_local_dispatcher`; le `global_dispatcher` est bloque pendant le flow actif.
 - T5: la question produit comparative est traitee inline sans lancer `prepare_defense_card`.
 

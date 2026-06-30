@@ -4,6 +4,7 @@ import type { ConversationSkillOutput } from "../../contracts/skill_output.v1.ts
 import {
   emptySafetySignal,
   normalizeSafetyRiskBand,
+  type SafetyCrisisLocalDispatcherOutput,
   type SafetyCrisisDecision,
   type SafetyCrisisSnapshot,
   safetyResponseContract,
@@ -33,42 +34,57 @@ function buildSafetySnapshot(input: RunSkillInput): SafetyCrisisSnapshot {
   };
 }
 
+function directEffectLane(input: RunSkillInput) {
+  const lane = (input.context.turn_frame as any)?.direct_effect_lane;
+  return lane && typeof lane === "object" && !Array.isArray(lane)
+    ? lane as Record<string, unknown>
+    : null;
+}
+
 export async function runSafetyCrisisSkill(
   input: RunSkillInput,
 ): Promise<ConversationSkillOutput> {
   const snapshot = buildSafetySnapshot(input);
   const workingState = snapshot.previous_state;
-  const localDispatcherOutput = await runSafetyCrisisLocalDispatcher({
-    user_id: input.context.user_id,
-    request_id: input.context.turn_frame.source_message_id,
-    user_message: input.user_message,
-    recent_messages: input.context.recent_messages,
-    source_safety_context: {
-      risk_band: snapshot.source_risk_band,
-      reason_codes: input.context.turn_frame.safety.reason_codes ?? [],
-      evidence: input.context.turn_frame.safety.evidence ?? [],
-    },
-    previous_active_safety_state: input.context.active_skill_working_state,
-    note_information_inbound: input.context.turn_frame.note_information ?? null,
-    prior_phase: typeof workingState.phase === "string"
-      ? workingState.phase
-      : null,
-    prior_known_facts: {
-      immediate_danger: workingState.immediate_danger ?? null,
-      has_means_nearby: workingState.has_means_nearby ?? null,
-      user_not_alone: workingState.user_not_alone ?? null,
-      emergency_help_mentioned: workingState.emergency_help_mentioned ?? null,
-      human_support_mentioned: workingState.human_support_mentioned ?? null,
-      consecutive_deescalated_turns:
-        workingState.consecutive_deescalated_turns ?? 0,
-      last_user_safety_signal: workingState.last_user_safety_signal ?? null,
-      last_assistant_safety_step: workingState.last_assistant_safety_step ??
+  const precomputedLocalDispatcherOutput = (input.context as any)
+    ?.precomputed_safety_crisis_local_dispatcher_output as
+      | SafetyCrisisLocalDispatcherOutput
+      | null
+      | undefined;
+  const localDispatcherOutput = precomputedLocalDispatcherOutput ??
+    await runSafetyCrisisLocalDispatcher({
+      user_id: input.context.user_id,
+      request_id: input.context.turn_frame.source_message_id,
+      user_message: input.user_message,
+      recent_messages: input.context.recent_messages,
+      source_safety_context: {
+        risk_band: snapshot.source_risk_band,
+        reason_codes: input.context.turn_frame.safety.reason_codes ?? [],
+        evidence: input.context.turn_frame.safety.evidence ?? [],
+      },
+      previous_active_safety_state: input.context.active_skill_working_state,
+      note_information_inbound: input.context.turn_frame.note_information ??
         null,
-    },
-    channel: input.context.turn_frame.channel,
-    timezone: null,
-    turn_frame: input.context.turn_frame,
-  });
+      prior_phase: typeof workingState.phase === "string"
+        ? workingState.phase
+        : null,
+      prior_known_facts: {
+        immediate_danger: workingState.immediate_danger ?? null,
+        has_means_nearby: workingState.has_means_nearby ?? null,
+        user_not_alone: workingState.user_not_alone ?? null,
+        emergency_help_mentioned: workingState.emergency_help_mentioned ??
+          null,
+        human_support_mentioned: workingState.human_support_mentioned ?? null,
+        consecutive_deescalated_turns:
+          workingState.consecutive_deescalated_turns ?? 0,
+        last_user_safety_signal: workingState.last_user_safety_signal ?? null,
+        last_assistant_safety_step: workingState.last_assistant_safety_step ??
+          null,
+      },
+      channel: input.context.turn_frame.channel,
+      timezone: null,
+      turn_frame: input.context.turn_frame,
+    });
   const dispatcherResult = localDispatcherOutput
     ? {
       ok: true,
@@ -132,10 +148,23 @@ export async function runSafetyCrisisSkill(
     riskBand: reduction.riskBand,
     signals: safetySignals,
   });
+  const visibleTask = {
+    ...reduction.visibleTask,
+    conversation_context: {
+      ...reduction.visibleTask.conversation_context,
+      known_values: {
+        ...reduction.visibleTask.conversation_context.known_values,
+        direct_effect_lane: directEffectLane(input),
+        direct_effect_confirmation_context:
+          (input.context.turn_frame as any)?.direct_effect_confirmation_context ??
+            null,
+      },
+    },
+  };
   const visibleAgentResult = await runSafetyCrisisVisibleAgentResult({
     user_id: input.context.user_id,
     request_id: input.context.turn_frame.source_message_id,
-    visible_task: reduction.visibleTask,
+    visible_task: visibleTask,
   });
   const visibleGenerationFailed = !visibleAgentResult.message;
   if (visibleGenerationFailed) {
@@ -152,7 +181,10 @@ export async function runSafetyCrisisSkill(
     safety_signals: safetySignals,
     response_contract: responseContract,
     reply: visibleAgentResult.message ?? "",
-    state_patch: reduction.statePatch,
+    state_patch: {
+      ...reduction.statePatch,
+      visible_task: visibleTask,
+    },
   };
   const status = decision.phase === "resolved" ||
       reduction.visibleTask.kind === "stop_or_cancel"
@@ -192,7 +224,15 @@ export async function runSafetyCrisisSkill(
             localDispatcherOutput.direct_effect_request.explicitness ===
               "explicit" &&
             localDispatcherOutput.direct_effect_request.target_status ===
-              "identified",
+              "identified" &&
+            Boolean(
+              localDispatcherOutput.direct_effect_request.payload_hint
+                .when_hint,
+            ) &&
+            Boolean(
+              localDispatcherOutput.direct_effect_request.payload_hint
+                .instruction_hint,
+            ),
         ),
         selected_option: (reduction.statePatch as any).last_selected_option ??
           null,
@@ -238,7 +278,6 @@ export async function runSafetyCrisisSkill(
         "no_memory_persistence_by_default",
       ],
     },
-    operation_suggestions: [],
     memory_write_candidates: memoryWriteCandidates,
     effects: emptyConversationEffects(),
     state_patch: decision.state_patch,

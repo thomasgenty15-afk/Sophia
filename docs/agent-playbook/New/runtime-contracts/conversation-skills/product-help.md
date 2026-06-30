@@ -31,9 +31,10 @@ Utilisation actuelle dans le code :
   `skills/_shared/skill_helpers.ts` et `context_loader.ts`, avec `turn_frame`,
   `recent_messages`, `active_skill_working_state`, `product_surfaces`,
   plan/memory projections et exclusions ;
-- `local reducer contract` reste propriétaire des conflits globaux. `product_help` ne décide
-  pas seul de prendre le tour contre safety, status ou un tool explicite. Dans
-  `router/run.ts`, `runConversationSkillForRecommendation` appelle seulement
+- `local reducer contract` reste propriétaire des conflits globaux.
+  `product_help` ne décide pas seul de prendre le tour contre safety, status ou
+  un tool explicite. Dans `router/run.ts`,
+  `runConversationSkillForRecommendation` appelle seulement
   `runProductHelpSkill(input)` quand le route owner sélectionné est
   `product_help` ;
 - `Confirmation Contract` n'est pas appliqué par `product_help`, car ce skill ne
@@ -85,7 +86,7 @@ active parent flow
   -> get_info_product
   -> product_help.local_dispatcher(mode=inline)
   -> visible_agent answer
-  -> return_to_parent_flow
+  -> return_to_parent.needed=true
 ```
 
 Il n'y a pas de reducer mutatif pour ce domaine. `reducer.ts` possède seulement
@@ -223,20 +224,11 @@ pas de confirmation et ne convertit pas `decision.bridge` en effet.
 
 ## Effects Preparation
 
-`product_help` ne prépare aucun effet exécutable. Le seul mécanisme proche d'un
-effet est `decision.bridge`, qui décrit un flow possible :
-
-- `prepare_attack_card`
-- `prepare_defense_card`
-- `select_state_potion`
-- `create_recurring_reminder`
-- `one_shot_reminder`
-- `adjust_plan_item`
-- `update_coach_preferences`
-
-Ce bridge reste explicatif. Pour les flows complexes, il indique la destination
-plateforme et ne doit jamais être converti en `operation_suggestions`,
-`handoff_request`, `requested_effect` ou `allowed_effect` par `product_help`.
+`product_help` ne prépare aucun effet exécutable. `decision.bridge` reste
+explicatif : il peut décrire une frontière produit ou une destination
+plateforme, mais il ne cible pas un flow local et ne doit jamais être converti
+en `operation_suggestions`, `handoff_request`, `requested_effect` ou
+`allowed_effect` par `product_help`.
 
 ## Effects Application
 
@@ -244,10 +236,10 @@ Aucune application d'effet n'appartient à ce domaine. Les effets directs sont
 appliqués uniquement par les chat executable tool skills propriétaires. Les
 flows complexes deviennent des platform handoff skills sans mutation chat.
 
-Si le user demande "crée/annule/programme/active/modifie", le dispatcher local
-doit classer `apply_attempt` ou `bridge_explanation_only` selon le contexte. La
-réponse visible doit rester non-mutante et donner seulement la destination
-plateforme ou expliquer le flow propriétaire. Le skill ne doit pas faire plus.
+Si le user demande "crée/annule/programme/active/modifie" hors aide produit, le
+dispatcher local doit sortir via `exit_to_global_dispatcher` avec
+`note_information.target_dispatcher="global"`. Le dispatcher global décide
+ensuite l'owner éventuel.
 
 ## Visible Response
 
@@ -265,9 +257,10 @@ Prompts visibles cibles :
 - explain_limit ;
 - bridge_explanation_only ;
 - repeat_answer ;
-- apply_attempt ;
+- stop_or_cancel ;
+- exit_ack ;
 - close_product_help ;
-- safety.
+- safety_transition.
 
 `renderer.ts` peut rester temporairement comme fallback/guard legacy :
 
@@ -295,7 +288,8 @@ encore disponible ou qu'un guard final est nécessaire.
 - Un `bridge` reste diagnostique et visible seulement : il ne remplit pas
   `effects.requested`, `effects.allowed`, `operation_suggestions` ni
   `handoff_request`.
-- `tool_action_request` ne déclenche pas le tool ; il explique le handoff.
+- `tool_action_request` ne déclenche pas le tool ; hors question produit, il
+  sort vers global.
 - `object_status_question` ne devient pas une réponse catalogue générique.
 - `db_sources_required=true` sans source récente/DB/active flow produit une
   réponse prudente, pas une affirmation d'existence.
@@ -314,10 +308,10 @@ encore disponible ou qu'un guard final est nécessaire.
 
 - `router/run.ts::runConversationSkillForRecommendation` attend
   `runProductHelpSkill`.
-- `router/run.ts` ne réoriente pas hors `product_help` depuis le texte brut.
-  Une opération concurrente doit déjà exister dans `TurnFrame.tool_skill_intents`
-  ou `direct_effects`; en conflit avec product_help, l'arbitrage global clarifie
-  ou bloque au lieu de deviner.
+- `router/run.ts` ne réoriente pas hors `product_help` depuis le texte brut. Une
+  opération concurrente doit déjà exister dans `TurnFrame.tool_skill_intents` ou
+  `direct_effects`; en conflit avec product_help, l'arbitrage global clarifie ou
+  bloque au lieu de deviner.
 - `status_recap` reste propriétaire des états réels et des blocs recap.
 - Les chat executable tool skills restent propriétaires des effets directs.
 - Les platform handoff skills restent propriétaires des recommandations
@@ -362,8 +356,9 @@ Tests principaux dans `supabase/functions/sophia-brain/skills/skills_s3.test.ts`
 - `product_help intake failure uses non-mutating conservative fallback`
 - `product_help prompt does not force emoji`
 - `product_help scenarios never start operations`
-- `product_help tool action requests are bridge only, never execution` (incluant
-  `effects.requested=[]`, `effects.allowed=[]` et aucun `handoff_request`)
+- `product_help tool action requests exit to global, never direct execution`
+  (incluant `effects.requested=[]`, `effects.allowed=[]` et aucun
+  `handoff_request`)
 - `product_help status question is not rendered as generic catalog help`
 - `product_help modify/cancel location stays product help and non-mutating`
 - `product_help catalog covers defense free creation and potion follow-up`

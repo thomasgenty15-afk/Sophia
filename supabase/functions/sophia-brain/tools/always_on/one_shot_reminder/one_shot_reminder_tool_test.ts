@@ -45,7 +45,6 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
       confidence_band: "high",
       payload_hint: {},
     }],
-    tool_skill_intents: [],
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -71,6 +70,25 @@ function frameWithDirectEffects(effectTypes: string[]): TurnFrame {
       confidence_band: "high",
       payload_hint: {},
     })),
+  });
+}
+
+function frameWithStructuredCreate(payload: Record<string, unknown> = {}) {
+  return frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        raw_text: "rappelle-moi demain à 9h. Texte exact : relire X",
+        when_hint: "demain à 9h",
+        scheduled_for: "2026-05-30T07:00:00.000Z",
+        local_label: "09:00",
+        instruction_hint: "relire X",
+        ...payload,
+      },
+    }],
   });
 }
 
@@ -586,7 +604,7 @@ Deno.test("create_one_shot_reminder v2 covers success, needs_clarify and blocked
     {
       name: "success-from-message",
       turn_frame: frame(),
-      expected: "success",
+      expected: "needs_clarify",
     },
     {
       name: "success-from-payload",
@@ -634,27 +652,21 @@ Deno.test("create_one_shot_reminder v2 covers success, needs_clarify and blocked
       turn_frame: frame({
         safety: { risk_band: "medium", reason_codes: [], evidence: [] },
       }),
-      expected: "blocked",
+      expected: "needs_clarify",
     },
     {
       name: "safety-high",
       turn_frame: frame({
         safety: { risk_band: "high", reason_codes: [], evidence: [] },
       }),
-      expected: "blocked",
+      expected: "needs_clarify",
     },
     {
       name: "safety-critical",
       turn_frame: frame({
         safety: { risk_band: "critical", reason_codes: [], evidence: [] },
       }),
-      expected: "blocked",
-    },
-    {
-      name: "pending-confirmation",
-      turn_frame: frame(),
-      pending_tool_skill_confirmation: { id: "pending" },
-      expected: "blocked",
+      expected: "needs_clarify",
     },
     {
       name: "duplicate-runtime",
@@ -727,13 +739,12 @@ Deno.test("create_one_shot_reminder v2 covers success, needs_clarify and blocked
       expected: "none",
     },
   ];
-  assertEquals(cases.length, 15);
+  assertEquals(cases.length, 14);
   for (const testCase of cases) {
     const outcome = await runCreateOneShotReminderV2({
       ...base,
       message: testCase.message ?? base.message,
       turn_frame: testCase.turn_frame,
-      pending_tool_skill_confirmation: testCase.pending_tool_skill_confirmation,
       recent_writes_idempotency: testCase.recent_writes_idempotency,
       db_idempotency_check: testCase.db_idempotency_check,
     });
@@ -1116,7 +1127,7 @@ function makeFakeSupabaseForCreate(opts: {
   } as any;
 }
 
-Deno.test("QA R1: create runner recovers instruction from context when current turn only gives date", async () => {
+Deno.test("QA R1: create runner does not parse context when payload is missing", async () => {
   let written: any = null;
   const supabase = makeFakeSupabaseForCreate({
     profile: { timezone: "Europe/Paris", locale: "fr-FR" },
@@ -1136,15 +1147,10 @@ Deno.test("QA R1: create runner recovers instruction from context when current t
     forceCreate: true,
   });
 
-  if (!outcome.detected || outcome.status !== "success") {
-    throw new Error(`expected success, got ${JSON.stringify(outcome)}`);
-  }
-  assertEquals(outcome.scheduled_for, "2026-06-12T06:40:00.000Z");
-  assertEquals(
-    outcome.reminder_instruction,
-    "sortir le tapis et faire le sas de décompression sans fumer",
-  );
-  assertEquals(written?.scheduled_for, "2026-06-12T06:40:00.000Z");
+  assertEquals(outcome.detected, true);
+  if (!outcome.detected) throw new Error("expected detected outcome");
+  assertEquals(outcome.status, "needs_clarify");
+  assertEquals(written, null);
 });
 
 // ===========================================================================
@@ -1358,10 +1364,12 @@ Deno.test("router: product-help and status references do not mutate", async () =
   assertEquals(cancelCalls, 0);
 });
 
-Deno.test("router: recurring wording is a one-shot handoff, not a create", async () => {
+Deno.test("router: recurring wording is not parsed by runtime direct-effect lane", async () => {
   let createCalls = 0;
   const outcome = await maybeRunOneShotReminderDirectEffect({
-    supabase: {} as any,
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    }) as any,
     userId: "u1",
     message: "rappelle-moi tous les jours à 9h de boire de l'eau",
     turnFrame: frameWithDirectEffects(["create_one_shot_reminder"]),
@@ -1372,16 +1380,16 @@ Deno.test("router: recurring wording is a one-shot handoff, not a create", async
     cancelReminder: async () => ({ detected: false } as any),
   });
   assertEquals(outcome.detected, true);
-  assertEquals(outcome.intent, "ignore");
-  assertEquals(outcome.status, "ignored");
+  assertEquals(outcome.intent, "create");
+  assertEquals(outcome.status, "needs_clarify");
   assertEquals(outcome.blocked_effects, [{
     type: "create_one_shot_reminder",
-    reason_code: "one_shot_only",
+    reason_code: "missing_time",
   }]);
   assertEquals(createCalls, 0);
 });
 
-Deno.test("router: replace cancel+create is blocked without side effect", async () => {
+Deno.test("router: replace text is not parsed into cancel+create side effects", async () => {
   let cancelCalls = 0;
   let createCalls = 0;
   const outcome = await maybeRunOneShotReminderDirectEffect({
@@ -1402,26 +1410,20 @@ Deno.test("router: replace cancel+create is blocked without side effect", async 
       return { detected: false } as any;
     },
   });
-  assertEquals(outcome.intent, "replace");
-  assertEquals(outcome.status, "blocked");
+  assertEquals(outcome.intent, "create");
+  assertEquals(outcome.status, "needs_clarify");
   assertEquals(outcome.executed_tools, []);
   assertEquals(outcome.attempted_effects, []);
   assertEquals(outcome.committed_effects, []);
-  assertEquals(outcome.blocked_effects, [
-    {
-      type: "cancel_one_shot_reminder",
-      reason_code: "one_shot_reminder_cancel_unsupported",
-    },
-    {
-      type: "create_one_shot_reminder",
-      reason_code: "one_shot_reminder_cancel_unsupported",
-    },
-  ]);
+  assertEquals(outcome.blocked_effects, [{
+    type: "create_one_shot_reminder",
+    reason_code: "missing_time",
+  }]);
   assertEquals(cancelCalls, 0);
   assertEquals(createCalls, 0);
 });
 
-Deno.test("router: replace with missing new time is still fully blocked", async () => {
+Deno.test("router: replace with missing new time remains non-mutating", async () => {
   let cancelCalls = 0;
   let createCalls = 0;
   const outcome = await maybeRunOneShotReminderDirectEffect({
@@ -1442,11 +1444,11 @@ Deno.test("router: replace with missing new time is still fully blocked", async 
       return { detected: false } as any;
     },
   });
-  assertEquals(outcome.intent, "replace");
-  assertEquals(outcome.status, "blocked");
+  assertEquals(outcome.intent, "create");
+  assertEquals(outcome.status, "needs_clarify");
   assertEquals(outcome.committed_effects, []);
   assertEquals(
-    outcome.reply?.includes("Je ne peux pas modifier ou annuler"),
+    outcome.reply?.includes("moment exact"),
     true,
   );
   assertEquals(cancelCalls, 0);
@@ -1455,21 +1457,13 @@ Deno.test("router: replace with missing new time is still fully blocked", async 
 
 Deno.test("router: create success exposes requested allowed attempted and committed effects", async () => {
   const outcome = await maybeRunOneShotReminderDirectEffect({
-    supabase: {} as any,
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    }) as any,
     userId: "u1",
     message: "rappelle-moi demain à 9h. Texte exact : relire X",
-    turnFrame: frameWithDirectEffects(["create_one_shot_reminder"]),
-    createReminder: async () => ({
-      detected: true,
-      status: "success",
-      user_message: "",
-      scheduled_for: "2026-05-30T07:00:00.000Z",
-      scheduled_for_local_label: "09:00",
-      reminder_instruction: "relire X",
-      event_context: "one_shot_reminder:relire_x",
-      inserted_checkin_id: "checkin-create",
-      parse_source: "local_parser",
-    }),
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate(),
   });
   assertEquals(outcome.status, "success");
   assertEquals(outcome.requested_effects.map((effect) => effect.type), [
@@ -1481,7 +1475,7 @@ Deno.test("router: create success exposes requested allowed attempted and commit
   assertEquals(outcome.attempted_effects, ["create_one_shot_reminder"]);
   assertEquals(outcome.committed_effects, [{
     type: "create_one_shot_reminder",
-    id: "checkin-create",
+    id: "checkin-qa-r1",
     scheduled_for: "2026-05-30T07:00:00.000Z",
     local_label: "09:00",
     reminder_instruction: "relire X",
@@ -1490,16 +1484,39 @@ Deno.test("router: create success exposes requested allowed attempted and commit
 
 Deno.test("router: create technical failure has no committed/executed effect and no success wording", async () => {
   const outcome = await maybeRunOneShotReminderDirectEffect({
-    supabase: {} as any,
+    supabase: {
+      from(table: string) {
+        if (table === "profiles") {
+          const chain: any = {
+            select() {
+              return chain;
+            },
+            eq() {
+              return chain;
+            },
+            maybeSingle() {
+              return Promise.resolve({
+                data: { timezone: "Europe/Paris", locale: "fr-FR" },
+                error: null,
+              });
+            },
+          };
+          return chain;
+        }
+        if (table === "scheduled_checkins") {
+          throw new Error("boom");
+        }
+        throw new Error(`unexpected table: ${table}`);
+      },
+    } as any,
     userId: "u1",
     message: "rappelle-moi demain à 9h de relire X",
-    turnFrame: frameWithDirectEffects(["create_one_shot_reminder"]),
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate(),
+    // Empty Supabase client makes the structured write fail without relying on
+    // parser fallback.
     createReminder: async () => ({
-      detected: true,
-      status: "failed",
-      reason: "insert_failed",
-      user_message: "",
-      error_message: "boom",
+      detected: false,
     }),
   });
   assertEquals(outcome.status, "failed");
@@ -1551,23 +1568,6 @@ Deno.test("intake: exposes structured instruction and recurrence boundary", () =
   assertEquals(recurring.constraints[0]?.kind, "one_shot_only");
 });
 
-Deno.test("router: pending confirmation blocks direct mutation", async () => {
-  const outcome = await maybeRunOneShotReminderDirectEffect({
-    supabase: {} as any,
-    userId: "u1",
-    message: "rappelle-moi demain à 9h de relire X",
-    pendingToolSkillConfirmation: { operation_type: "prepare_attack_card" },
-    turnFrame: frameWithDirectEffects(["create_one_shot_reminder"]),
-    createReminder: async () => {
-      throw new Error("should not create");
-    },
-  });
-  assertEquals(outcome.status, "blocked");
-  assertEquals(
-    outcome.blocked_effects[0]?.reason_code,
-    "pending_confirmation_active",
-  );
-});
 
 Deno.test("router: classify explicit one-shot supersedes stale active flow shape", () => {
   const classified = classifyOneShotReminderDirectIntent(

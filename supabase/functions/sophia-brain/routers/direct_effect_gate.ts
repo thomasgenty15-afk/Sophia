@@ -8,7 +8,6 @@ import { blocksDirectEffects } from "../safety/safety_thresholds.ts";
 export type DirectEffectGateInput = {
   effect_type: DirectEffectType;
   turn_frame: TurnFrame;
-  pending_tool_skill_confirmation?: unknown;
   recent_writes_idempotency: { source_message_ids: string[] };
   db_idempotency_check: (key: string) => Promise<boolean>;
 };
@@ -79,13 +78,6 @@ export async function runDirectEffectGate(
         "Safety risk blocks direct effects.",
       );
     }
-  }
-  if (input.pending_tool_skill_confirmation) {
-    return blocked(
-      toolId,
-      "pending_confirmation_active",
-      "Pending confirmation blocks direct effects.",
-    );
   }
   if (effect.explicitness !== "explicit") {
     return needsClarify(

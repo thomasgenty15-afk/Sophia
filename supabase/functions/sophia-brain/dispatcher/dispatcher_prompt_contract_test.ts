@@ -4,276 +4,188 @@ import {
   DISPATCHER_V2_SYSTEM_PROMPT,
 } from "./dispatcher.prompts.ts";
 
-Deno.test("dispatcher prompt keeps product_help notes from recommending attack card for Plan refinement", () => {
+Deno.test("dispatcher prompt contract is minimal V1", () => {
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Priorites de decision:"),
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Contrat effectif unique"),
     true,
   );
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Frontieres critiques:"),
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("skill_signals.product_help"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Daily/weekly ne sont pas routes"),
     true,
   );
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Rédaction des note_information vers product_help:",
+      "ancien champ de scoring est toujours present",
+    ),
+    false,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("opportunite de flow signale"),
+    false,
+  );
+});
+
+Deno.test("dispatcher prompt separates product help from coaching recommendation", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "product_help repond aux questions produit",
     ),
     true,
   );
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("ne recommande pas Carte d'attaque"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Sans toucher au reste du Plan"),
-    true,
-  );
-  assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Regle stricte product_help/Plan:",
+      "coaching_recommendation n'est pas un clarificateur generique",
     ),
     true,
   );
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "N'ecris jamais Attack Card, Carte d'attaque ou prepare_attack_card",
+      "follow-up immediat d'une explication/comparaison produit",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "blocage personnel identifiable",
     ),
     true,
   );
 });
 
-Deno.test("dispatcher prompt requires reminder intent beyond duration or time", () => {
+Deno.test("dispatcher prompt defines feature opportunity entry signals", () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Une duree, une heure ou un delai ne suffit jamais",
+      "Axes coach_preferences supportes: coach.tone",
     ),
     true,
   );
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("parler deux minutes"),
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "des qu'il y a une frustration sur le style de Sophia",
+    ),
     true,
   );
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("direct_effects doit rester vide"),
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "un soutien recurrent, un message regulier",
+    ),
     true,
   );
-});
 
-Deno.test("dispatcher prompt requires two card intents for attack defense creation ambiguity", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Ne compresse pas ce cas en un seul intent target_ambiguous",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "prepare_attack_card et prepare_defense_card",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt reserves lite model tier for trivial interactions only", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "model_tier_hint=lite est reserve aux interactions vraiment triviales",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("salutations"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("quoi de beau ?"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Par defaut, utilise model_tier_hint=standard pour tout le reste",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "N'utilise pas lite simplement parce que reasoning_complexity semble low",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt keeps plan status questions out of lite reflection", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Questions planning/actions:"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "ce n'est pas une simple normal_reply/reflection",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Route status_recap quand la reponse depend de donnees Sophia",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("ne mets jamais model_tier_hint=lite"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Utilise model_tier_hint=standard"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("j'ai quoi a faire aujourd'hui ?"),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt documents flow_opportunity as implicit opportunities", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "flow_opportunity signale une occasion implicite a verifier",
-    ),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Ce champ ne lance rien"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("J'oublie tous les matins de boire de l'eau"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Je tourne autour du dossier depuis trois jours"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("create_recurring_reminder"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("prepare_attack_card"),
-    true,
-  );
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "select_state_potion: pas d'opportunite implicite par defaut",
-    ),
-    true,
-  );
-});
-
-Deno.test("dispatcher prompt examples keep Plan refinement product_help focused on plan.adjustment", () => {
-  const promptJson = buildDispatcherPrompt({
+  const parsed = JSON.parse(buildDispatcherPrompt({
     user_message: "test",
     recent_messages: [],
-  });
-  const parsed = JSON.parse(promptJson) as {
-    critical_routing_examples: Array<{
+  })) as {
+    doctrine_examples: Array<{
       user_message: string;
       expected: {
-        direct_effects?: unknown[];
-        tool_skill_intents?: Array<{ operation_type?: string }>;
-        flow_opportunity?: unknown;
         skill_signals?: {
-          entry?: Record<string, { detected?: boolean }>;
-        };
-        note_information?: {
-          target_dispatcher?: string;
-          structured_context?: {
-            product_feature_id?: string;
-            related_tool_flow?: string;
-            recommended_next_focus?: string;
+          feature_opportunity?: {
+            detected?: boolean;
+            context?: {
+              feature?: string;
+              priority_reason?: string;
+            };
           };
         };
       };
     }>;
   };
-
-  const example = parsed.critical_routing_examples.find((candidate) =>
-    candidate.user_message.includes("sans toucher au reste du Plan") &&
-    candidate.user_message.includes("ranger mes papiers")
+  const recurring = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("un truc recurrent de Sophia pourrait m'aider")
   );
-  if (!example) {
-    throw new Error("few-shot product_help plan.adjustment manquant");
-  }
-
-  assertEquals(example.expected.direct_effects?.length ?? 0, 0);
-  assertEquals(example.expected.tool_skill_intents?.length ?? 0, 0);
-  assertEquals(example.expected.flow_opportunity, null);
-  assertEquals(
-    example.expected.skill_signals?.entry?.product_help?.detected,
-    true,
+  const tone = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("Sophia soit trop douce")
   );
-  assertEquals(
-    example.expected.note_information?.target_dispatcher,
-    "product_help",
-  );
-  assertEquals(
-    example.expected.note_information?.structured_context?.product_feature_id,
-    "plan.adjustment",
-  );
-  assertEquals(
-    example.expected.note_information?.structured_context?.related_tool_flow,
-    "adjust_plan_item",
+  const challenge = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("challenges trop fort")
   );
 
-  const recommendedNextFocus =
-    example.expected.note_information?.structured_context
-      ?.recommended_next_focus ?? "";
-  assertEquals(recommendedNextFocus.includes("Ajustement du plan"), true);
-  assertEquals(recommendedNextFocus.includes("attack"), false);
-  assertEquals(recommendedNextFocus.includes("attaque"), false);
-  assertEquals(recommendedNextFocus.includes("prepare_attack_card"), false);
+  assertEquals(recurring?.expected.skill_signals?.feature_opportunity?.context
+    ?.feature, "initiatives");
+  assertEquals(tone?.expected.skill_signals?.feature_opportunity?.context
+    ?.feature, "coach_preferences");
+  assertEquals(challenge?.expected.skill_signals?.feature_opportunity?.context
+    ?.feature, "coach_preferences");
 });
 
-Deno.test("dispatcher prompt examples keep natural attack defense card ambiguity as two tool intents", () => {
-  const promptJson = buildDispatcherPrompt({
-    user_message: "test",
-    recent_messages: [],
-  });
-  const parsed = JSON.parse(promptJson) as {
-    critical_routing_examples: Array<{
-      user_message: string;
-      expected: {
-        direct_effects?: unknown[];
-        tool_skill_intents?: Array<{
-          operation_type?: string;
-          ambiguity?: string;
-          user_intent?: string;
-          operation_input?: Record<string, unknown>;
-        }>;
-        skill_signals?: {
-          entry?: Record<string, { detected?: boolean }>;
-        };
-      };
-    }>;
-  };
-
-  const example = parsed.critical_routing_examples.find((candidate) =>
-    candidate.user_message.includes("sortir du lit") &&
-    candidate.user_message.includes("téléphone au réveil")
-  );
-  if (!example) {
-    throw new Error("few-shot ambiguite carte attaque/defense manquant");
-  }
-
-  assertEquals(example.expected.direct_effects?.length ?? 0, 0);
+Deno.test("dispatcher prompt preserves product help plus one-shot reminder multi-intent", () => {
   assertEquals(
-    example.expected.tool_skill_intents?.map((intent) => intent.operation_type),
-    ["prepare_attack_card", "prepare_defense_card"],
-  );
-  assertEquals(
-    example.expected.tool_skill_intents?.every((intent) =>
-      intent.ambiguity === "target_ambiguous" &&
-      intent.user_intent === "create" &&
-      Boolean(intent.operation_input)
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "question produit et une demande explicite de rappel ponctuel",
     ),
     true,
   );
+
+  const parsed = JSON.parse(buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+  })) as {
+    doctrine_examples: Array<{
+      user_message: string;
+      expected: {
+        direct_effects?: Array<Record<string, unknown>>;
+        skill_signals?: Record<string, unknown>;
+      };
+    }>;
+  };
+  const example = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("Question produit") &&
+    item.user_message.includes("rappelle-moi demain a 9h")
+  );
+
+  assertEquals(Boolean(example), true);
+  assertEquals(
+    example?.expected.direct_effects?.[0]?.effect_type,
+    "create_one_shot_reminder",
+  );
+  assertEquals(
+    (example?.expected.skill_signals?.product_help as { detected?: boolean })
+      ?.detected,
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt uses canonical one-shot reminder rules", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "direct_effects.create_one_shot_reminder",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.instruction_hint doit contenir uniquement ce qu'il faut rappeler",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "la lane globale gere le direct effect",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt examples do not teach legacy routing", () => {
+  const parsed = JSON.parse(buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+  })) as { doctrine_examples: Array<{ expected: Record<string, unknown> }> };
+
+  for (const example of parsed.doctrine_examples) {
+    assertEquals(
+      ["tool", "skill", "intents"].join("_") in example.expected,
+      false,
+    );
+    assertEquals(["flow", "opportunity"].join("_") in example.expected, false);
+    assertEquals(
+      ["normal", "reply", "fit", "score"].join("_") in example.expected,
+      false,
+    );
+  }
 });

@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ToastProvider } from "./components/ui/Toast";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthProvider";
 import LandingPage from "./pages/LandingPage";
 import DashboardV2 from "./pages/DashboardV2";
 import AddTransformationPage from "./pages/AddTransformationPage";

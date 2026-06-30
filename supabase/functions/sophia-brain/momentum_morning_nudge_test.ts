@@ -329,8 +329,8 @@ Deno.test("V2 morning nudge: soutien_emotionnel + high emotional → protective_
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "protective_pause");
   assertEquals(plan.nudge_kind, "suppressed_action_nudge");
-  assertEquals(plan.opens_local_flow, true);
-  assertEquals(plan.intended_followup_flow, "suppressed_action");
+  assertEquals(plan.opens_local_flow, false);
+  assertEquals(plan.intended_followup_flow, null);
   assertEquals(plan.suppressed_plan_item_titles, ["Marcher 10 min"]);
   assertStringIncludes(
     String(plan.instruction ?? ""),
@@ -504,7 +504,7 @@ Deno.test("V2 morning nudge: medium emotional load → support_softly", () => {
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "support_softly");
   assertEquals(plan.nudge_kind, "suppressed_action_nudge");
-  assertEquals(plan.intended_followup_flow, "suppressed_action");
+  assertEquals(plan.intended_followup_flow, null);
   assertStringIncludes(
     String(plan.instruction ?? ""),
     "PAS dans un nudge d'actions",
@@ -581,7 +581,7 @@ Deno.test("V2 morning nudge: upcoming_event in pulse → pre_event_grounding", (
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "pre_event_grounding");
   assertEquals(plan.nudge_kind, "action_nudge");
-  assertEquals(plan.intended_followup_flow, "action");
+  assertEquals(plan.intended_followup_flow, null);
   assertEquals(plan.morning_anchor?.kind, "upcoming_event");
   assertEquals(plan.morning_anchor?.specificity, "explicit");
   assertEquals(plan.morning_anchor?.label, "Entretien d'embauche vendredi");
@@ -616,7 +616,7 @@ Deno.test("V2 morning nudge: reactivation + silence → open_door", () => {
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "open_door");
   assertEquals(plan.nudge_kind, "action_nudge");
-  assertEquals(plan.intended_followup_flow, "action");
+  assertEquals(plan.intended_followup_flow, null);
   assertEquals(plan.relevance, "low");
   assertStringIncludes(
     String(plan.instruction ?? ""),
@@ -643,7 +643,7 @@ Deno.test("V2 morning nudge: friction_legere + blocker → simplify_today", () =
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "simplify_today");
   assertEquals(plan.nudge_kind, "action_nudge");
-  assertEquals(plan.opens_local_flow, true);
+  assertEquals(plan.opens_local_flow, false);
   assertEquals(plan.relevance, "high");
   assertStringIncludes(
     String(plan.fallback_text ?? ""),
@@ -680,7 +680,7 @@ Deno.test("V2 morning nudge: momentum + items → focus_today", () => {
   assertEquals(plan.decision, "send");
   assertEquals(plan.posture, "focus_today");
   assertEquals(plan.nudge_kind, "action_nudge");
-  assertEquals(plan.intended_followup_flow, "action");
+  assertEquals(plan.intended_followup_flow, null);
   assertEquals(plan.relevance, "high");
   assertStringIncludes(String(plan.instruction ?? ""), "cap clair");
   assertStringIncludes(
@@ -1002,8 +1002,8 @@ Deno.test("V2 morning nudge: high emotional load with no item becomes emotional 
   const plan = buildMorningNudgePlanV2(input);
   assertEquals(plan.decision, "send");
   assertEquals(plan.nudge_kind, "emotional_presence_nudge");
-  assertEquals(plan.opens_local_flow, true);
-  assertEquals(plan.intended_followup_flow, "emotional_presence");
+  assertEquals(plan.opens_local_flow, false);
+  assertEquals(plan.intended_followup_flow, null);
   assertEquals(plan.target_plan_item_titles, []);
 });
 
@@ -1019,8 +1019,8 @@ Deno.test("V2 morning nudge payload is canonical and not V1 nominal", () => {
   assertEquals(payload?.event_context, "morning_nudge_v2");
   assertEquals(String(payload?.event_context), "morning_nudge_v2");
   assertEquals(payload?.nudge_kind, "action_nudge");
-  assertEquals(payload?.opens_local_flow, true);
-  assertEquals(payload?.intended_followup_flow, "action");
+  assertEquals(payload?.opens_local_flow, false);
+  assertEquals(payload?.intended_followup_flow, null);
   assertEquals(payload?.target_item_titles, ["Marcher 10 min"]);
   assertEquals(payload?.morning_anchor?.kind, "none");
   assertEquals(payload?.sent_at, NOW_ISO);

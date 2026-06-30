@@ -33,6 +33,7 @@ import type {
 } from "../_shared/v2-types.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
+import { archivePendingWeekPlansForPlans } from "../_shared/week_plan_lifecycle.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
   badRequest,
@@ -158,7 +159,7 @@ type PlanAdjustmentGenerationContext = {
   assistantMessage: string | null;
 };
 
-type PlanScheduleAnchor = {
+export type PlanScheduleAnchor = {
   version: 1;
   timezone: string;
   generated_at_utc: string;
@@ -235,7 +236,7 @@ function buildScheduleAnchor(args: {
   };
 }
 
-function buildScheduleAnchorFromUserTimeContext(args: {
+export function buildScheduleAnchorFromUserTimeContext(args: {
   userTimeContext: Awaited<ReturnType<typeof getUserTimeContext>>;
   effectiveStartDate?: string | null;
 }): PlanScheduleAnchor {
@@ -407,7 +408,7 @@ function buildRuntimeWeekItems(args: {
   );
 }
 
-async function materializeCurrentLevelWeekPlanning(args: {
+export async function materializeCurrentLevelWeekPlanning(args: {
   admin: SupabaseClient;
   userId: string;
   planId: string;
@@ -861,19 +862,18 @@ export async function generatePlanV2ForTransformation(params: {
   const lockedPlan = context.existingPlans.find((plan) =>
     plan.status === "active" || plan.status === "paused"
   );
-  const shouldRegenerateFromLockedPlan =
-    params.mode === "preview" &&
+  const shouldRegenerateFromLockedPlan = params.mode === "preview" &&
     lockedPlan != null &&
     (params.forceRegenerate || Boolean(params.feedback?.trim()));
   const isActivePlanReplacement = isActivePlanAdjustment ||
     shouldRegenerateFromLockedPlan;
   const activeAdjustmentBasePlanRow =
     (isActivePlanAdjustment || shouldRegenerateFromLockedPlan) && lockedPlan
-    ? await loadPlanById({
-      admin: params.admin,
-      planId: lockedPlan.id,
-    })
-    : null;
+      ? await loadPlanById({
+        admin: params.admin,
+        planId: lockedPlan.id,
+      })
+      : null;
   const activeAdjustmentBasePlan = activeAdjustmentBasePlanRow
     ?.content as unknown as PlanContentV3 | null;
   if (lockedPlan && !isActivePlanAdjustment) {
@@ -1987,7 +1987,10 @@ async function loadDraftPlanById(args: {
   }
 
   if (!data) {
-    throw new GeneratePlanV2Error(404, "Requested draft preview plan not found");
+    throw new GeneratePlanV2Error(
+      404,
+      "Requested draft preview plan not found",
+    );
   }
 
   return data as UserPlanV2Row;
@@ -2043,7 +2046,7 @@ async function archiveDraftPlans(args: {
   transformationId: string;
   now: string;
 }): Promise<void> {
-  const { error } = await args.admin
+  const { data, error } = await args.admin
     .from("user_plans_v2")
     .update({
       status: "archived",
@@ -2051,7 +2054,8 @@ async function archiveDraftPlans(args: {
       updated_at: args.now,
     } as any)
     .eq("transformation_id", args.transformationId)
-    .eq("status", "draft");
+    .eq("status", "draft")
+    .select("id");
 
   if (error) {
     throw new GeneratePlanV2Error(
@@ -2060,6 +2064,13 @@ async function archiveDraftPlans(args: {
       { cause: error },
     );
   }
+
+  await archivePendingWeekPlansForPlans(args.admin, {
+    planIds: ((data ?? []) as Array<{ id?: string | null }>).map((row) =>
+      String(row.id ?? "")
+    ),
+    nowIso: args.now,
+  });
 }
 
 async function archiveLockedPlansForTransformation(args: {
@@ -2067,7 +2078,7 @@ async function archiveLockedPlansForTransformation(args: {
   transformationId: string;
   now: string;
 }): Promise<void> {
-  const { error } = await args.admin
+  const { data, error } = await args.admin
     .from("user_plans_v2")
     .update({
       status: "archived",
@@ -2075,7 +2086,8 @@ async function archiveLockedPlansForTransformation(args: {
       updated_at: args.now,
     } as any)
     .eq("transformation_id", args.transformationId)
-    .in("status", ["active", "paused"]);
+    .in("status", ["active", "paused"])
+    .select("id");
 
   if (error) {
     throw new GeneratePlanV2Error(
@@ -2084,6 +2096,13 @@ async function archiveLockedPlansForTransformation(args: {
       { cause: error },
     );
   }
+
+  await archivePendingWeekPlansForPlans(args.admin, {
+    planIds: ((data ?? []) as Array<{ id?: string | null }>).map((row) =>
+      String(row.id ?? "")
+    ),
+    nowIso: args.now,
+  });
 }
 
 function scheduleActivationEnrichment(args: {
@@ -3370,43 +3389,42 @@ function normalizeGeneratedPlanForValidation(raw: unknown): unknown {
       currentPhaseId: currentLevelPhaseId || null,
     })
     : blueprint;
-  const normalizedCurrentLevelRuntime =
-    currentLevelRuntime
-      ? {
-        ...currentLevelRuntime,
-        ...(runtimeLevelOrder != null ? { level_order: runtimeLevelOrder } : {}),
-        ...(Array.isArray(currentLevelRuntime.weeks)
-          ? {
-            weeks: currentLevelRuntime.weeks.map((week) => {
-              if (!week || typeof week !== "object" || Array.isArray(week)) {
-                return week;
-              }
+  const normalizedCurrentLevelRuntime = currentLevelRuntime
+    ? {
+      ...currentLevelRuntime,
+      ...(runtimeLevelOrder != null ? { level_order: runtimeLevelOrder } : {}),
+      ...(Array.isArray(currentLevelRuntime.weeks)
+        ? {
+          weeks: currentLevelRuntime.weeks.map((week) => {
+            if (!week || typeof week !== "object" || Array.isArray(week)) {
+              return week;
+            }
 
-              const weekRecord = week as Record<string, unknown>;
-              const missionDays = Array.isArray(weekRecord.mission_days)
-                ? weekRecord.mission_days
-                  .filter((day): day is string => typeof day === "string")
-                  .map((day) => day.trim())
-                  .filter((day, index, array) =>
-                    day.length > 0 && array.indexOf(day) === index
-                  )
-                : [];
-              const oneShotAssignmentCount = countOneShotAssignments({
-                week: weekRecord,
-                phaseItemsByTempId: currentLevelPhaseItemsByTempId,
-              });
+            const weekRecord = week as Record<string, unknown>;
+            const missionDays = Array.isArray(weekRecord.mission_days)
+              ? weekRecord.mission_days
+                .filter((day): day is string => typeof day === "string")
+                .map((day) => day.trim())
+                .filter((day, index, array) =>
+                  day.length > 0 && array.indexOf(day) === index
+                )
+              : [];
+            const oneShotAssignmentCount = countOneShotAssignments({
+              week: weekRecord,
+              phaseItemsByTempId: currentLevelPhaseItemsByTempId,
+            });
 
-              return {
-                ...weekRecord,
-                mission_days: oneShotAssignmentCount > 0
-                  ? missionDays.slice(0, oneShotAssignmentCount)
-                  : [],
-              };
-            }),
-          }
-          : {}),
-      }
-      : currentLevelRuntime;
+            return {
+              ...weekRecord,
+              mission_days: oneShotAssignmentCount > 0
+                ? missionDays.slice(0, oneShotAssignmentCount)
+                : [],
+            };
+          }),
+        }
+        : {}),
+    }
+    : currentLevelRuntime;
   const metadata =
     candidate.metadata && typeof candidate.metadata === "object" &&
       !Array.isArray(candidate.metadata)

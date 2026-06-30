@@ -28,7 +28,7 @@
     "trace": {
       "response_owner": "tool_skill",
       "selected_handler": "prepare_defense_card",
-      "route_reason": "product_help_handoff_to_local_dispatcher",
+      "route_reason": "product_help_exit_to_global_dispatcher",
       "safety": "none",
       "direct_effects": [],
       "operation_status": "collecting",

@@ -21,7 +21,6 @@ import {
   getLevelReviewUnlockDateYmd,
   LEVEL_AUTO_GENERATED_LOCAL_TIME,
   LEVEL_REVIEW_ORIGIN,
-  LEVEL_REVIEW_REMINDER_LOCAL_TIME,
   levelReviewDashboardUrl,
 } from "../_shared/level_review_checkins.ts";
 import { completeLevelV1 } from "../complete-level-v1/index.ts";
@@ -121,6 +120,22 @@ async function cancelPendingReminderCheckins(params: {
   if (error) throw error;
 }
 
+async function hasActiveReminderCheckin(params: {
+  admin: ReturnType<typeof createClient>;
+  userId: string;
+  eventContext: string;
+}): Promise<boolean> {
+  const { data, error } = await params.admin
+    .from("scheduled_checkins")
+    .select("id")
+    .eq("user_id", params.userId)
+    .eq("event_context", params.eventContext)
+    .in("status", PENDING_CHECKIN_STATUSES)
+    .limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
+}
+
 async function loadProfile(params: {
   admin: ReturnType<typeof createClient>;
   userId: string;
@@ -147,12 +162,7 @@ async function scheduleLevelReviewReminder(params: {
   nowIso: string;
   dashboardUrl: string;
 }) {
-  const scheduledFor = computeScheduledForFromLocal({
-    timezone: params.timezone,
-    dayOffset: 0,
-    localTimeHHMM: LEVEL_REVIEW_REMINDER_LOCAL_TIME,
-    now: params.now,
-  });
+  const scheduledFor = params.now.toISOString();
   const eventContext = buildLevelReviewReminderEventContext({
     planId: params.planId,
     phaseId: params.phaseId,
@@ -330,7 +340,7 @@ Deno.serve(async (req) => {
           pauseUntilMs > effectiveNow.getTime());
       const allowsMorning = whatsappAllowed;
 
-      if (localDate > endDate) {
+      if (localDate >= endDate) {
         actions.push({
           action: "auto_generate",
           user_id: row.user_id,
@@ -385,6 +395,15 @@ Deno.serve(async (req) => {
           end_date: endDate,
         });
         if (dryRun || !allowsMorning) continue;
+        if (
+          await hasActiveReminderCheckin({
+            admin,
+            userId: row.user_id,
+            eventContext: reminderEventContext,
+          })
+        ) {
+          continue;
+        }
         await scheduleLevelReviewReminder({
           admin,
           userId: row.user_id,

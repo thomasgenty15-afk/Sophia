@@ -8,7 +8,7 @@ export {
   isWeeklyLightRepeatRequest,
   isWeeklyMissionCarryOverRequest,
   weeklyMissionCarryOverContext,
-} from "../../tools/operations/adjust_plan_item/weekly_bridge.ts";
+} from "./bridges.ts";
 
 export {
   clearWeeklyReviewState,
@@ -50,6 +50,8 @@ export type { WeeklyRuntimeEffectMarker } from "./effects.ts";
 
 export {
   normalizeWeeklyReviewLocalDispatcherOutput,
+  oneShotDirectEffectFromWeeklyReviewLocalDispatcherOutput,
+  recentMessagesFromHistory,
   reduceWeeklyReviewLocalDispatcherOutput,
   runWeeklyReviewLocalDispatcher,
   runWeeklyReviewLocalRuntime,

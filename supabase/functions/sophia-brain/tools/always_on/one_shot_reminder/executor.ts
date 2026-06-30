@@ -22,9 +22,7 @@ import type {
 import {
   compactText,
   errorText,
-  extractReminderInstruction,
   isDegenerateReminderInstruction,
-  loadLastReminderInstructionForUser,
   slugify,
 } from "./instruction_parser.ts";
 import { readPendingOneShotReminderRows } from "./persistence.ts";
@@ -33,9 +31,6 @@ import {
   extractTargetHHMMFromMessage,
   formatLocalReminderLabel,
   localHHMMForScheduledFor,
-  parseOneShotReminderRequest,
-  parseReminderFromMessage,
-  parseScheduledForFromMessage,
 } from "./time_parser.ts";
 let reminderWriteClient: SupabaseClient | null = null;
 
@@ -53,6 +48,7 @@ function cleanReminderInstructionForStorage(value: string): string {
 export function buildOneShotReminderMessagePayload(args: {
   instruction: string;
   requestText?: string | null;
+  localLabel?: string | null;
   timezone: string;
   parseSource?: string | null;
   sourceMessageId?: string | null;
@@ -69,6 +65,7 @@ export function buildOneShotReminderMessagePayload(args: {
       240,
     ),
     request_text: compactText(args.requestText ?? "", 500),
+    local_label: compactText(args.localLabel ?? "", 160) || null,
     user_timezone: args.timezone,
     parse_source: args.parseSource ?? "router",
     source_message_id: args.sourceMessageId ?? null,
@@ -120,10 +117,17 @@ async function signLocalServiceRoleJwt(secret: string): Promise<string> {
 async function getReminderWriteClient(
   fallback: SupabaseClient,
 ): Promise<SupabaseClient> {
-  const url = Deno.env.get("SUPABASE_URL") ?? "";
-  let serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const optionalEnv = (name: string) => {
+    try {
+      return Deno.env.get(name) ?? "";
+    } catch {
+      return "";
+    }
+  };
+  const url = optionalEnv("SUPABASE_URL");
+  let serviceRoleKey = optionalEnv("SUPABASE_SERVICE_ROLE_KEY");
   if (url && isLocalSupabaseUrl(url) && !isJwtLike(serviceRoleKey)) {
-    const jwtSecret = Deno.env.get("JWT_SECRET") ??
+    const jwtSecret = optionalEnv("JWT_SECRET") ||
       "super-secret-jwt-token-with-at-least-32-characters-long";
     serviceRoleKey = await signLocalServiceRoleJwt(jwtSecret);
   }
@@ -165,6 +169,36 @@ async function createReminderFromEffect(args: {
   const eventContext = `one_shot_reminder:${slugify(instruction) || "generic"}`;
   try {
     const writeClient = await getReminderWriteClient(args.supabase);
+    const sourceMessageId = String(args.sourceMessageId ?? "").trim();
+    if (sourceMessageId) {
+      const { data: existing, error: existingError } = await writeClient
+        .from("scheduled_checkins")
+        .select("id,scheduled_for,event_context")
+        .eq("user_id", args.userId)
+        .eq("event_context", eventContext)
+        .eq("status", "pending")
+        .eq("message_payload->>source_message_id", sourceMessageId)
+        .limit(1)
+        .maybeSingle();
+      if (existingError) throw existingError;
+      if (existing) {
+        const actualScheduledFor = String(
+          (existing as any)?.scheduled_for ?? scheduledFor,
+        );
+        return {
+          type: "create_one_shot_reminder",
+          id: String((existing as any)?.id ?? ""),
+          scheduled_for: actualScheduledFor,
+          local_label: args.effect.local_label ??
+            formatLocalReminderLabel({
+              scheduledFor: actualScheduledFor,
+              timezone: args.timezone,
+              locale: args.locale,
+            }),
+          reminder_instruction: instruction,
+        };
+      }
+    }
     const { data, error } = await writeClient
       .from("scheduled_checkins")
       .upsert({
@@ -176,6 +210,7 @@ async function createReminderFromEffect(args: {
         message_payload: buildOneShotReminderMessagePayload({
           instruction,
           requestText: args.effect.request_text,
+          localLabel: args.effect.local_label ?? null,
           timezone: args.timezone,
           parseSource: args.effect.reason_code ?? "router",
           sourceMessageId: args.sourceMessageId ?? null,
@@ -283,6 +318,94 @@ export async function executeOneShotReminderEffects(args: {
 export type OneShotReminderCreateRunner = typeof maybeCreateOneShotReminder;
 export type OneShotReminderCancelRunner = typeof maybeCancelOneShotReminder;
 
+export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
+  effect: OneShotReminderEffect;
+  supabase: SupabaseClient;
+  userId: string;
+  sourceMessageId?: string | null;
+  requestId?: string;
+  now?: Date;
+  timezone?: string | null;
+  locale?: string | null;
+}): Promise<OneShotReminderToolOutcome> {
+  const tctx = await getUserTimeContext({
+    supabase: params.supabase,
+    userId: params.userId,
+    now: params.now,
+  });
+  const timezone = String(params.timezone ?? "").trim() || tctx.user_timezone;
+  const locale = String(params.locale ?? "").trim() || tctx.user_locale;
+  const scheduledFor = String(params.effect.scheduled_for ?? "").trim();
+  if (!scheduledFor) {
+    return {
+      detected: true,
+      status: "needs_clarify",
+      reason: "missing_time",
+      user_message: compactText(params.effect.request_text ?? "", 500),
+    };
+  }
+  const scheduledMs = new Date(scheduledFor).getTime();
+  const nowMs = new Date(tctx.now_utc).getTime();
+  if (!Number.isFinite(scheduledMs)) {
+    return {
+      detected: true,
+      status: "needs_clarify",
+      reason: "unsupported_time",
+      user_message: compactText(params.effect.request_text ?? "", 500),
+    };
+  }
+  if (scheduledMs <= nowMs + 30_000) {
+    return {
+      detected: true,
+      status: "needs_clarify",
+      reason: "past_time",
+      user_message: compactText(params.effect.request_text ?? "", 500),
+    };
+  }
+  const committed = await createReminderFromEffect({
+    effect: {
+      ...params.effect,
+      scheduled_for: scheduledFor,
+      local_label: params.effect.local_label ??
+        formatLocalReminderLabel({
+          scheduledFor,
+          timezone,
+          locale,
+        }),
+      reason_code: params.effect.reason_code ?? "payload",
+    },
+    supabase: params.supabase,
+    userId: params.userId,
+    sourceMessageId: params.sourceMessageId ?? params.requestId ?? null,
+    requestId: params.requestId,
+    timezone,
+    locale,
+    instructionIsCanonical: true,
+  });
+  if ("reason_code" in committed) {
+    return {
+      detected: true,
+      status: "failed",
+      reason: "insert_failed",
+      user_message: compactText(params.effect.request_text ?? "", 500),
+      error_message: committed.error_message ?? committed.reason_code,
+    };
+  }
+  const instruction = committed.reminder_instruction ??
+    String(params.effect.reminder_instruction ?? "").trim();
+  return {
+    detected: true,
+    status: "success",
+    user_message: compactText(params.effect.request_text ?? "", 500),
+    scheduled_for: committed.scheduled_for ?? scheduledFor,
+    scheduled_for_local_label: committed.local_label ?? "",
+    reminder_instruction: instruction,
+    event_context: `one_shot_reminder:${slugify(instruction) || "generic"}`,
+    inserted_checkin_id: committed.id ?? "",
+    parse_source: "payload",
+  };
+}
+
 export async function maybeCreateOneShotReminder(params: {
   supabase: SupabaseClient;
   userId: string;
@@ -293,152 +416,18 @@ export async function maybeCreateOneShotReminder(params: {
   forceCreate?: boolean;
   canonicalReminderInstruction?: string;
 }): Promise<OneShotReminderToolOutcome> {
-  const canRecoverFromContext = params.forceCreate === true &&
-    (params.contextMessages?.length ?? 0) > 0;
+  void params.supabase;
+  void params.userId;
+  void params.requestId;
+  void params.now;
+  void params.contextMessages;
+  void params.canonicalReminderInstruction;
   if (!params.forceCreate) return { detected: false };
-
-  const tctx = await getUserTimeContext({
-    supabase: params.supabase,
-    userId: params.userId,
-    now: params.now,
-  });
-  let parsed = parseReminderFromMessage({
-    message: params.message,
-    timezone: tctx.user_timezone,
-    nowIso: tctx.now_utc,
-  });
-  const hasCanonicalInstruction =
-    typeof params.canonicalReminderInstruction === "string";
-  const canonicalInstruction = hasCanonicalInstruction
-    ? params.canonicalReminderInstruction as string
-    : null;
-  if (!parsed && hasCanonicalInstruction) {
-    const scheduledFor = parseScheduledForFromMessage({
-      message: params.message,
-      timezone: tctx.user_timezone,
-      nowIso: tctx.now_utc,
-    });
-    if (scheduledFor) {
-      parsed = {
-        scheduledFor,
-        reminderInstruction: canonicalInstruction ?? "",
-        eventContext: `one_shot_reminder:${
-          slugify(canonicalInstruction) || "generic"
-        }`,
-        parseSource: "payload",
-      };
-    }
-  }
-  if (!parsed && canRecoverFromContext) {
-    const scheduledFor = parseScheduledForFromMessage({
-      message: params.message,
-      timezone: tctx.user_timezone,
-      nowIso: tctx.now_utc,
-    });
-    if (scheduledFor) {
-      for (const ctx of params.contextMessages ?? []) {
-        const instruction = extractReminderInstruction(ctx);
-        if (instruction && !isDegenerateReminderInstruction(instruction)) {
-          parsed = {
-            scheduledFor,
-            reminderInstruction: instruction,
-            eventContext: `one_shot_reminder:${
-              slugify(instruction) || "generic"
-            }`,
-            parseSource: "local_parser",
-          };
-          break;
-        }
-      }
-    }
-  }
-  if (!parsed) {
-    return {
-      detected: true,
-      status: "needs_clarify",
-      reason: "missing_time",
-      user_message: compactText(params.message, 500),
-    };
-  }
-
-  let instruction = hasCanonicalInstruction
-    ? canonicalInstruction ?? ""
-    : parsed.reminderInstruction;
-  if (
-    !hasCanonicalInstruction &&
-    isDegenerateReminderInstruction(instruction) &&
-    canRecoverFromContext
-  ) {
-    for (const ctx of params.contextMessages ?? []) {
-      const candidate = extractReminderInstruction(ctx);
-      if (candidate && !isDegenerateReminderInstruction(candidate)) {
-        instruction = candidate;
-        break;
-      }
-    }
-  }
-  if (
-    !hasCanonicalInstruction && isDegenerateReminderInstruction(instruction)
-  ) {
-    const fromDb = await loadLastReminderInstructionForUser(
-      params.supabase,
-      params.userId,
-    );
-    if (fromDb) instruction = fromDb;
-  }
-
-  const scheduledMs = new Date(parsed.scheduledFor).getTime();
-  const nowMs = new Date(tctx.now_utc).getTime();
-  if (!Number.isFinite(scheduledMs) || scheduledMs <= nowMs + 30_000) {
-    return {
-      detected: true,
-      status: "needs_clarify",
-      reason: "past_time",
-      user_message: compactText(params.message, 500),
-    };
-  }
-
-  const committed = await createReminderFromEffect({
-    effect: {
-      type: "create_one_shot_reminder",
-      scheduled_for: parsed.scheduledFor,
-      local_label: formatLocalReminderLabel({
-        scheduledFor: parsed.scheduledFor,
-        timezone: tctx.user_timezone,
-        locale: tctx.user_locale,
-      }),
-      reminder_instruction: instruction,
-      request_text: params.message,
-      reason_code: hasCanonicalInstruction ? "payload" : parsed.parseSource,
-    },
-    supabase: params.supabase,
-    userId: params.userId,
-    requestId: params.requestId,
-    timezone: tctx.user_timezone,
-    locale: tctx.user_locale,
-    instructionIsCanonical: hasCanonicalInstruction,
-  });
-  if ("reason_code" in committed) {
-    return {
-      detected: true,
-      status: "failed",
-      reason: "insert_failed",
-      user_message: compactText(params.message, 500),
-      error_message: committed.error_message ?? committed.reason_code,
-    };
-  }
   return {
     detected: true,
-    status: "success",
+    status: "needs_clarify",
+    reason: "missing_time",
     user_message: compactText(params.message, 500),
-    scheduled_for: committed.scheduled_for ?? parsed.scheduledFor,
-    scheduled_for_local_label: committed.local_label ?? "",
-    reminder_instruction: committed.reminder_instruction ?? instruction,
-    event_context: `one_shot_reminder:${slugify(instruction) || "generic"}`,
-    inserted_checkin_id: committed.id ?? "",
-    parse_source: hasCanonicalInstruction
-      ? "payload"
-      : parsed.parseSource ?? "unknown",
   };
 }
 
@@ -543,7 +532,6 @@ export async function runCreateOneShotReminderV2(params: {
   timezone: string;
   locale?: string;
   nowIso: string;
-  pending_tool_skill_confirmation?: unknown;
   recent_writes_idempotency?:
     DirectEffectGateInput["recent_writes_idempotency"];
   db_idempotency_check?: DirectEffectGateInput["db_idempotency_check"];
@@ -557,7 +545,6 @@ export async function runCreateOneShotReminderV2(params: {
   const gate = await runDirectEffectGate({
     effect_type: "create_one_shot_reminder",
     turn_frame: params.turn_frame,
-    pending_tool_skill_confirmation: params.pending_tool_skill_confirmation,
     recent_writes_idempotency: params.recent_writes_idempotency ??
       { source_message_ids: [] },
     db_idempotency_check: params.db_idempotency_check ?? (async () => false),
@@ -592,12 +579,7 @@ export async function runCreateOneShotReminderV2(params: {
       parseSource: "payload" as const,
     }
     : null;
-  const parsed = parsedFromPayload ?? parseOneShotReminderRequest({
-    message: params.message,
-    timezone: params.timezone,
-    nowIso: params.nowIso,
-  });
-  if (!parsed) {
+  if (!parsedFromPayload) {
     return {
       detected: true,
       status: "needs_clarify",
@@ -606,7 +588,7 @@ export async function runCreateOneShotReminderV2(params: {
     };
   }
 
-  const scheduledMs = new Date(parsed.scheduledFor).getTime();
+  const scheduledMs = new Date(parsedFromPayload.scheduledFor).getTime();
   const nowMs = new Date(params.nowIso).getTime();
   if (!Number.isFinite(scheduledMs) || scheduledMs <= nowMs + 30_000) {
     return {
@@ -620,14 +602,15 @@ export async function runCreateOneShotReminderV2(params: {
   try {
     const written = await params.write_reminder({
       user_id: params.turn_frame.user_id,
-      scheduled_for: parsed.scheduledFor,
-      reminder_instruction: parsed.reminderInstruction,
-      event_context: parsed.eventContext,
+      scheduled_for: parsedFromPayload.scheduledFor,
+      reminder_instruction: parsedFromPayload.reminderInstruction,
+      event_context: parsedFromPayload.eventContext,
       request_text: compactText(params.message, 500),
       timezone: params.timezone,
       idempotency_key: gate.idempotency_key,
     });
-    const scheduledFor = written.scheduled_for ?? parsed.scheduledFor;
+    const scheduledFor = written.scheduled_for ??
+      parsedFromPayload.scheduledFor;
     return {
       detected: true,
       status: "success",
@@ -638,10 +621,10 @@ export async function runCreateOneShotReminderV2(params: {
         timezone: params.timezone,
         locale: params.locale ?? "fr-FR",
       }),
-      reminder_instruction: parsed.reminderInstruction,
-      event_context: written.event_context ?? parsed.eventContext,
+      reminder_instruction: parsedFromPayload.reminderInstruction,
+      event_context: written.event_context ?? parsedFromPayload.eventContext,
       inserted_checkin_id: written.inserted_checkin_id,
-      parse_source: parsed.parseSource ?? "unknown",
+      parse_source: parsedFromPayload.parseSource,
     };
   } catch (error) {
     return {

@@ -12,7 +12,6 @@ import { runDirectEffectGate } from "./direct_effect_gate.ts";
 export type EffectGateOrchestratorInput = {
   turn_frame: TurnFrame;
   direct_effects_to_run: ReadonlyArray<string>;
-  pending_tool_skill_confirmation?: unknown;
   recent_writes_idempotency?: { source_message_ids: string[] };
   db_idempotency_check?: (key: string) => Promise<boolean>;
 };
@@ -94,7 +93,6 @@ export async function runEffectGateOrchestrator(
     const outcome = await runDirectEffectGate({
       effect_type: effectType,
       turn_frame: input.turn_frame,
-      pending_tool_skill_confirmation: input.pending_tool_skill_confirmation,
       recent_writes_idempotency: input.recent_writes_idempotency ??
         DEFAULT_RECENT_WRITES,
       db_idempotency_check: input.db_idempotency_check ?? DEFAULT_DB_CHECK,

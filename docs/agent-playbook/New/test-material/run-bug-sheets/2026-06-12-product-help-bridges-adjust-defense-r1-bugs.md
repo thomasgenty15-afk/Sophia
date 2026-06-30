@@ -21,13 +21,13 @@
 
 | Bug id | Tours | Famille | Domaine owner | Source amont | Symptome visible | Preuve systeme | Correction attendue | Statut | Fix reference | Tests requis |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `PH-BRIDGES-ADJDEF-R1-B01` | Adjust T5 | `BF-STATE-01` | `adjust_plan_item` local dispatcher / reducer | Continuation post-handoff, question de frontiere d'effet | Sophia affiche un fallback d'echec: `je n'arrive pas a traiter correctement ce tour` au lieu de dire si le Plan a ete modifie | `selected_handler=adjust_plan_item`, `route_reason=active_adjust_plan_item_local_dispatcher`, `operation_status=blocked`, `operation_reason=adjust_plan_item_local_dispatcher_failed`, `direct_effects=[]`, `executed_tools=[]` | Ajouter une action/stage local pour `effect_boundary_question` ou mapper vers `repeat_handoff`: reponse courte "non, rien n'a ete modifie depuis le chat; voici ou le faire" | `open` | Rapport `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-12-product-help-bridges-adjust-defense-r1.md` | Positif: "tu l'as deja modifie ?" apres handoff; paraphrase: "c'est applique ?", "je dois le faire moi-meme ?"; anti-FP: demande claire de nouveau sujet sort global; integration: product_help -> adjust conserve `product_help_handoff_to_local_dispatcher` |
+| `PH-BRIDGES-ADJDEF-R1-B01` | Adjust T5 | `BF-STATE-01` | `adjust_plan_item` local dispatcher / reducer | Continuation post-handoff, question de frontiere d'effet | Sophia affiche un fallback d'echec: `je n'arrive pas a traiter correctement ce tour` au lieu de dire si le Plan a ete modifie | `selected_handler=adjust_plan_item`, `route_reason=active_adjust_plan_item_local_dispatcher`, `operation_status=blocked`, `operation_reason=adjust_plan_item_local_dispatcher_failed`, `direct_effects=[]`, `executed_tools=[]` | Ajouter une action/stage local pour `effect_boundary_question` ou mapper vers `repeat_handoff`: reponse courte "non, rien n'a ete modifie depuis le chat; voici ou le faire" | `open` | Rapport `docs/agent-playbook/New/test-material/qa-run-reports/2026-06-12-product-help-bridges-adjust-defense-r1.md` | Positif: "tu l'as deja modifie ?" apres handoff; paraphrase: "c'est applique ?", "je dois le faire moi-meme ?"; anti-FP: demande claire de nouveau sujet sort global; integration: product_help -> adjust conserve `product_help_exit_to_global_dispatcher` |
 
 ## Decisions / Arbitrages
 
 | Date | Decision | Pourquoi | Owner | Reference |
 | --- | --- | --- | --- | --- |
-| 2026-06-12 | Ne pas modifier product_help | Les deux ponts demandes sont verts: `product_help_handoff_to_local_dispatcher` vers `adjust_plan_item` et `prepare_defense_card` | `product_help` | Runs A2 et B2 |
+| 2026-06-12 | Ne pas modifier product_help | Les deux ponts demandes sont verts: `product_help_exit_to_global_dispatcher` vers `adjust_plan_item` et `prepare_defense_card` | `product_help` | Runs A2 et B2 |
 | 2026-06-12 | Classer le bug adjust en downstream | Le bug apparait apres reprise active du dispatcher `adjust_plan_item`, au T5 | `adjust_plan_item` | Run A5 |
 
 ## Verification

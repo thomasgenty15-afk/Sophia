@@ -84,6 +84,7 @@ function turnFrameWithDirectEffect(
     | "create_one_shot_reminder"
     | "cancel_one_shot_reminder"
     | "replace_one_shot_reminder" = "create_one_shot_reminder",
+  payload_hint: Record<string, unknown> = {},
 ) {
   return {
     turn_id: "t",
@@ -96,10 +97,8 @@ function turnFrameWithDirectEffect(
       explicitness: "explicit",
       target_status: "identified",
       confidence_band: "high",
-      payload_hint: {},
+      payload_hint,
     }],
-    tool_skill_intents: [],
-    flow_opportunity: null,
     skill_signals: { entry: {}, lifecycle: {}, exit: {} },
     memory_plan: {
       context_need: "minimal",
@@ -112,26 +111,71 @@ function turnFrameWithDirectEffect(
 }
 
 Deno.test("create_with_time_and_instruction_commits_success", async () => {
+  const message = "rappelle-moi demain à 16h05 de fermer le doc";
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase(),
     userId: "user-1",
-    message: "rappelle-moi demain à 16h05 de fermer le doc",
+    message,
     now: new Date("2026-05-29T10:00:00.000Z"),
-    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "demain à 16h05",
+      UTC_time: "2026-05-30T14:05:00.000Z",
+      local_label: "demain à 16:05",
+      instruction_hint: "fermer le doc",
+    }),
   });
   assertEquals(result.status, "success");
   assertEquals(result.committed_effects.length, 1);
   assertEquals(result.executed_tools, ["create_one_shot_reminder"]);
 });
 
+Deno.test("create writes dispatcher UTC_time as scheduled_for and keeps local label", async () => {
+  let writtenRow: any = null;
+  const message = "rappelle-moi demain à 09h10 de relire le plan";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onUpsert: (row) => {
+        writtenRow = row;
+      },
+    }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-06-24T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "demain à 09h10",
+      UTC_time: "2026-06-25T07:10:00.000Z",
+      local_label: "demain à 09h10",
+      instruction_hint: "relire le plan",
+    }),
+  });
+
+  assertEquals(result.status, "success");
+  assertEquals(writtenRow?.scheduled_for, "2026-06-25T07:10:00.000Z");
+  assertEquals(result.local_label, "demain à 09h10");
+  assertEquals(
+    writtenRow?.message_payload?.user_timezone,
+    "Europe/Paris",
+  );
+});
+
 Deno.test("create success reply keeps safety context after committed reminder", async () => {
-  const turnFrame = turnFrameWithDirectEffect("create_one_shot_reminder");
+  const message =
+    "rappelle-moi dans 30 minutes de vérifier que je reste en sécurité";
+  const turnFrame = turnFrameWithDirectEffect("create_one_shot_reminder", {
+    raw_text: message,
+    when_hint: "dans 30 minutes",
+    UTC_time: "2026-05-29T10:30:00.000Z",
+    local_label: "dans 30 minutes",
+    instruction_hint: "vérifier que je reste en sécurité",
+  });
   turnFrame.safety = { risk_band: "medium", reason_codes: [], evidence: [] };
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase(),
     userId: "user-1",
-    message:
-      "rappelle-moi dans 30 minutes de vérifier que je reste en sécurité",
+    message,
     now: new Date("2026-05-29T10:00:00.000Z"),
     turnFrame,
   });
@@ -165,6 +209,21 @@ Deno.test("text_only_create_request_is_ignored_without_structured_direct_effect"
   assertEquals(result.executed_tools, []);
 });
 
+Deno.test("structured create without scheduled payload needs clarification", async () => {
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase(),
+    userId: "user-1",
+    message: "rappelle-moi demain à 16h05 de fermer le doc",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder"),
+  });
+
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.debug.reason_code, "missing_time");
+  assertEquals(result.executed_tools, []);
+  assertEquals(result.committed_effects, []);
+});
+
 Deno.test("explicit unique reminder phrasing commits from active handoff exit", async () => {
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase(),
@@ -185,10 +244,12 @@ Deno.test("explicit unique reminder phrasing commits from active handoff exit", 
         payload_hint: {
           raw_text:
             "Un rappel unique demain à 17h pour envoyer mon bilan rapide.",
+          when_hint: "demain à 17h",
+          UTC_time: "2026-06-02T15:00:00.000Z",
+          local_label: "demain à 17:00",
+          instruction_hint: "envoyer mon bilan rapide",
         },
       }],
-      tool_skill_intents: [],
-      flow_opportunity: null,
       skill_signals: { entry: {}, lifecycle: {}, exit: {} },
       memory_plan: {
         context_need: "minimal",
@@ -230,6 +291,8 @@ Deno.test("create uses dispatcher instruction_hint as canonical reminder payload
           raw_text:
             "rappelle-moi dans 25 minutes : ouvrir le fichier, sans essayer de régler tout le dossier.",
           when_hint: "dans 25 minutes",
+          UTC_time: "2026-06-13T08:25:00.000Z",
+          local_label: "dans 25 minutes",
           instruction_hint: instructionHint,
         },
       }],
@@ -249,6 +312,48 @@ Deno.test("create uses dispatcher instruction_hint as canonical reminder payload
   assertEquals(
     writtenRow?.event_context,
     "one_shot_reminder:ouvrir_le_fichier_sans_essayer_de_regler_tout_le_dossier",
+  );
+});
+
+Deno.test("create uses bounded structured dispatcher payload instead of full composite message", async () => {
+  let writtenRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onUpsert: (row) => {
+        writtenRow = row;
+      },
+    }),
+    userId: "user-1",
+    message:
+      "Dans 40 minutes, rappelle-moi de rouvrir le dossier banque, et aide-moi aussi a comprendre pourquoi je bloque a ecrire le mail a Camille.",
+    now: new Date("2026-06-18T13:44:05.364Z"),
+    turnFrame: {
+      ...turnFrameWithDirectEffect("create_one_shot_reminder"),
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          raw_text: "Dans 40 minutes, rappelle-moi de rouvrir le dossier banque",
+          when_hint: "dans 40 minutes",
+          UTC_time: "2026-06-18T14:24:05.364Z",
+          local_label: "dans 40 minutes",
+          instruction_hint: "rouvrir le dossier banque",
+        },
+      }],
+    } as any,
+  });
+
+  assertEquals(result.status, "success");
+  assertEquals(result.reminder_instruction, "rouvrir le dossier banque");
+  assertEquals(
+    result.committed_effects[0]?.reminder_instruction,
+    "rouvrir le dossier banque",
+  );
+  assertEquals(
+    writtenRow?.message_payload?.reminder_instruction,
+    "rouvrir le dossier banque",
   );
 });
 
@@ -272,10 +377,12 @@ Deno.test("one-shot exit with demain matin explicit hour commits", async () => {
         payload_hint: {
           raw_text:
             "Non finalement juste demain matin à 9h pour préparer ma semaine.",
+          when_hint: "demain matin à 9h",
+          UTC_time: "2026-06-02T07:00:00.000Z",
+          local_label: "demain à 09:00",
+          instruction_hint: "préparer ma semaine",
         },
       }],
-      tool_skill_intents: [],
-      flow_opportunity: null,
       skill_signals: { entry: {}, lifecycle: {}, exit: {} },
       memory_plan: {
         context_need: "minimal",
@@ -294,27 +401,35 @@ Deno.test("one-shot exit with demain matin explicit hour commits", async () => {
 });
 
 Deno.test("create_missing_time_blocks", async () => {
+  const message = "rappelle-moi de fermer le doc";
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase(),
     userId: "user-1",
-    message: "rappelle-moi de fermer le doc",
+    message,
     now: new Date("2026-05-29T10:00:00.000Z"),
-    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      instruction_hint: "fermer le doc",
+    }),
   });
   assertEquals(result.committed_effects.length, 0);
   assert(result.status === "needs_clarify" || result.status === "ignored");
 });
 
 Deno.test("create_missing_time_does_not_reuse_previous_context_commit", async () => {
+  const message = "Rappelle-moi de vérifier le fichier.";
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase(),
     userId: "user-1",
-    message: "Rappelle-moi de vérifier le fichier.",
+    message,
     contextMessages: [
       "Je suis un peu tendu là. Rappelle-moi dans 20 minutes de respirer doucement et de boire un verre d'eau.",
     ],
     now: new Date("2026-06-13T08:00:00.000Z"),
-    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      instruction_hint: "vérifier le fichier",
+    }),
   });
 
   assertEquals(result.status, "needs_clarify");
@@ -326,7 +441,7 @@ Deno.test("create_missing_time_does_not_reuse_previous_context_commit", async ()
   }]);
 });
 
-Deno.test("cancel_request_is_blocked_without_mutation", async () => {
+Deno.test("cancel_request_is_ignored_by_create_direct_effect_lane", async () => {
   const result = await maybeRunOneShotReminderDirectEffect({
     supabase: fakeSupabase({ pending: [] }),
     userId: "user-1",
@@ -337,15 +452,12 @@ Deno.test("cancel_request_is_blocked_without_mutation", async () => {
   assertEquals(result.committed_effects.length, 0);
   assertEquals(result.executed_tools, []);
   assertEquals(result.attempted_effects, []);
-  assertEquals(result.status, "blocked");
+  assertEquals(result.status, "ignored");
   assertEquals(
     result.debug.reason_code,
-    "one_shot_reminder_cancel_unsupported",
+    "missing_explicit_direct_effect",
   );
-  assertEquals(result.blocked_effects, [{
-    type: "cancel_one_shot_reminder",
-    reason_code: "one_shot_reminder_cancel_unsupported",
-  }]);
+  assertEquals(result.blocked_effects, []);
 });
 
 Deno.test("no_tool_blocks_create", async () => {
@@ -364,7 +476,6 @@ Deno.test("no_tool_blocks_create", async () => {
 Deno.test("legacy_tool_not_used_by_prod_runtime", async () => {
   const files = [
     "supabase/functions/sophia-brain/router/run.ts",
-    "supabase/functions/sophia-brain/router/turn_intent_arbitrator.ts",
     "supabase/functions/sophia-brain/agents/companion.ts",
   ];
   for (const file of files) {

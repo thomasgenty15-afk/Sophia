@@ -1,14 +1,23 @@
 import type { RouteDecision } from "../../contracts/route_decision.v1.ts";
-import {
-  isWeeklyAdaptiveReviewActive as isWeeklyAdaptiveReviewActiveFromBridge,
-  weeklyAdaptiveReviewStateForTurn
-    as weeklyAdaptiveReviewStateForTurnFromBridge,
-} from "../../tools/operations/adjust_plan_item/weekly_bridge.ts";
+import { ACTIVE_CONVERSATION_SKILL_KEY } from "../_shared/active_skill_state.ts";
+
+function isWeeklyAdaptiveReviewState(value: unknown): value is Record<
+  string,
+  unknown
+> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const skillId = String((value as any).skill_id ?? "").trim();
+  const flowId = String((value as any).flow_id ?? "").trim();
+  return skillId === "weekly_adaptive_review_v1" ||
+    flowId === "weekly_adaptive_review_v1";
+}
 
 export function isWeeklyAdaptiveReviewActive(
   activeSkillState: unknown,
 ): boolean {
-  return isWeeklyAdaptiveReviewActiveFromBridge(activeSkillState);
+  return isWeeklyAdaptiveReviewState(activeSkillState);
 }
 
 export function isWeeklyReviewActive(args: {
@@ -22,14 +31,37 @@ export function weeklyAdaptiveReviewStateForTurn(args: {
   activeSkillState: unknown;
   tempMemory?: unknown;
 }): unknown {
-  return weeklyAdaptiveReviewStateForTurnFromBridge(args);
+  if (isWeeklyAdaptiveReviewState(args.activeSkillState)) {
+    return args.activeSkillState;
+  }
+  const temp = args.tempMemory && typeof args.tempMemory === "object"
+    ? args.tempMemory as Record<string, unknown>
+    : {};
+  if (isWeeklyAdaptiveReviewState(temp[ACTIVE_CONVERSATION_SKILL_KEY])) {
+    return temp[ACTIVE_CONVERSATION_SKILL_KEY];
+  }
+  if (isWeeklyAdaptiveReviewState(temp.__active_skill_state)) {
+    return temp.__active_skill_state;
+  }
+  if (isWeeklyAdaptiveReviewState(temp.active_skill_state)) {
+    return temp.active_skill_state;
+  }
+  const suspended = temp.__suspended_flow_v1;
+  if (
+    suspended &&
+    typeof suspended === "object" &&
+    isWeeklyAdaptiveReviewState((suspended as any).state_snapshot)
+  ) {
+    return (suspended as any).state_snapshot;
+  }
+  return null;
 }
 
 export function readWeeklyReviewState(args: {
   activeSkillState?: unknown;
   tempMemory?: unknown;
 }): unknown {
-  return weeklyAdaptiveReviewStateForTurnFromBridge({
+  return weeklyAdaptiveReviewStateForTurn({
     activeSkillState: args.activeSkillState,
     tempMemory: args.tempMemory,
   });
@@ -40,12 +72,13 @@ export function writeWeeklyReviewState(
   weeklyState: Record<string, unknown>,
 ): any {
   const next = { ...(tempMemory ?? {}) };
+  next[ACTIVE_CONVERSATION_SKILL_KEY] = weeklyState;
   next.__active_skill_state = weeklyState;
   delete next.active_skill_state;
   if (
     next.__suspended_flow_v1 &&
     typeof next.__suspended_flow_v1 === "object" &&
-    isWeeklyAdaptiveReviewActiveFromBridge(
+    isWeeklyAdaptiveReviewState(
       (next.__suspended_flow_v1 as any).state_snapshot,
     )
   ) {
@@ -56,16 +89,19 @@ export function writeWeeklyReviewState(
 
 export function clearWeeklyReviewState(tempMemory: any): any {
   const next = { ...(tempMemory ?? {}) };
-  if (isWeeklyAdaptiveReviewActiveFromBridge(next.__active_skill_state)) {
+  if (isWeeklyAdaptiveReviewState(next[ACTIVE_CONVERSATION_SKILL_KEY])) {
+    delete next[ACTIVE_CONVERSATION_SKILL_KEY];
+  }
+  if (isWeeklyAdaptiveReviewState(next.__active_skill_state)) {
     delete next.__active_skill_state;
   }
-  if (isWeeklyAdaptiveReviewActiveFromBridge(next.active_skill_state)) {
+  if (isWeeklyAdaptiveReviewState(next.active_skill_state)) {
     delete next.active_skill_state;
   }
   if (
     next.__suspended_flow_v1 &&
     typeof next.__suspended_flow_v1 === "object" &&
-    isWeeklyAdaptiveReviewActiveFromBridge(
+    isWeeklyAdaptiveReviewState(
       (next.__suspended_flow_v1 as any).state_snapshot,
     )
   ) {

@@ -11,6 +11,8 @@ import {
   normalizeNoteInformation,
   type NoteInformation,
   type NoteInformationTargetDispatcher,
+  sanitizeLocalExitNoteInformation,
+  sanitizeLocalExitTargetDispatcher,
 } from "../../contracts/note_information.v1.ts";
 import {
   RECENT_MESSAGE_LIMITS,
@@ -19,9 +21,21 @@ import {
 import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.ts";
 import {
   type ActiveActionCandidateForDirectEffects,
+  buildDirectEffectConfirmationContext,
+  type DirectEffectConfirmationContext,
   directEffectLocalDispatcherPromptLines,
+  directEffectTimeContextFromTurnFrame,
   withDirectEffectLocalContext,
 } from "../../router/direct_effect_local_context.ts";
+import {
+  localOneShotDirectEffectPromptLines,
+  type LocalOneShotDirectEffectRequest,
+  normalizeLocalOneShotDirectEffectRequest,
+  oneShotDirectEffectFromLocalRequest,
+} from "../../router/one_shot_local_direct_effect.ts";
+import type {
+  TurnFrame,
+} from "../../contracts/turn_frame.v1.ts";
 import {
   clearWeeklyReviewState,
   readWeeklyReviewState,
@@ -45,8 +59,6 @@ export type WeeklyReviewLocalFlowAction =
   | "complete_flow"
   | "exit_to_global_dispatcher"
   | "defer_flow"
-  | "inline_tool_roundtrip"
-  | "handoff_to_local_flow"
   | "safety_preempt";
 
 export type WeeklyReviewFeltProgress =
@@ -68,7 +80,7 @@ export type WeeklyReviewVisibleTaskKind =
   | "deepen_global_progress"
   | "qualify_solution_fit"
   | "offer_child_detour"
-  | "return_from_child_flow"
+  | "weekly_adjust_recommendation"
   | "weekly_synthesis"
   | "weekly_closure"
   | "answer_weekly_question"
@@ -91,6 +103,8 @@ export type WeeklyReviewGateStatus =
   | "needs_deeper"
   | "complete";
 
+export type WeeklySynthesisVisibleStatus = "not_rendered" | "rendered";
+
 export type WeeklyReviewGates = {
   week_experience_status: WeeklyReviewGateStatus;
   action_review_status: WeeklyReviewGateStatus;
@@ -101,16 +115,7 @@ export type WeeklyReviewGates = {
   closure_status: WeeklyReviewGateStatus;
 };
 
-export type WeeklyReviewDetourKind =
-  | "none"
-  | "attack_card"
-  | "defense_card"
-  | "adjust_plan_item"
-  | "select_state_potion"
-  | "create_one_shot_reminder"
-  | "create_recurring_reminder"
-  | "product_help"
-  | "status_recap";
+export type WeeklyReviewDetourKind = "none";
 
 export type WeeklyReviewDetourReadiness =
   | "none"
@@ -138,9 +143,67 @@ export type WeeklyReviewActionStatusCorrection = {
   source_turn_summary: string | null;
 };
 
+export type WeeklyReviewDirectEffectRequest = LocalOneShotDirectEffectRequest;
+
+export type WeeklyPlanningContextMode =
+  | "next_week_configured"
+  | "next_level_required";
+
+export type WeeklyPlanningContext = {
+  mode: WeeklyPlanningContextMode;
+  current_week: {
+    start_date: string | null;
+    end_date: string | null;
+  };
+  transformation_objective: {
+    title: string | null;
+    user_summary: string | null;
+    success_definition: string | null;
+    main_constraint: string | null;
+  };
+  plan_rationale: string | null;
+  next_week: {
+    available: boolean;
+    week_order: number | null;
+    title: string | null;
+    focus: string | null;
+    action_focus: string[];
+    progression_note: string | null;
+    success_signal: string | null;
+    reps_summary: string | null;
+  } | null;
+  next_level: {
+    available: boolean;
+    level_order: number | null;
+    title: string | null;
+    intention: string | null;
+    preview_summary: string | null;
+    validation_input_destination: string;
+  } | null;
+  adjustment_destination: {
+    mode: "adjust_plan_platform" | "level_validation";
+    label: string;
+    instruction: string;
+    chat_mutation_allowed: false;
+  };
+};
+
+export type WeeklyAdjustRecommendation = {
+  status: "none" | "candidate" | "ready" | "surfaced";
+  confidence: number;
+  mode: WeeklyPlanningContextMode | null;
+  what_to_adjust: string[];
+  why: string[];
+  evidence: string[];
+  target_scope: "next_week_plan" | "next_level_inputs" | null;
+  destination_instruction: string | null;
+  safe_to_surface: boolean;
+  surfaced_in_weekly: boolean;
+  updated_at: string | null;
+};
+
 export type WeeklyReviewConversationContext = {
   state_summary: string;
-  user_words: string[];
   week_window: {
     start_date: string | null;
     end_date: string | null;
@@ -153,6 +216,8 @@ export type WeeklyReviewConversationContext = {
     reason_human: string | null;
     confidence: "low" | "medium" | "high";
   };
+  weekly_planning_context: WeeklyPlanningContext;
+  adjust_recommendation: WeeklyAdjustRecommendation;
   plan_contexts: Array<Record<string, unknown>>;
   item_summaries: Array<Record<string, unknown>>;
   handoff_data: Record<string, unknown>;
@@ -196,6 +261,7 @@ export type WeeklyReviewLocalFlowState = {
   felt_progress: WeeklyReviewFeltProgress;
   weekly_gates: WeeklyReviewGates;
   detour_candidate: WeeklyReviewDetourCandidate;
+  synthesis_visible_status: WeeklySynthesisVisibleStatus;
   last_user_signal: string | null;
   last_visible_summary: string | null;
   last_handoff_summary: string | null;
@@ -207,6 +273,8 @@ export type WeeklyReviewLocalFlowState = {
     result_summary: string | null;
     result_details?: Record<string, unknown> | null;
   };
+  weekly_planning_context: WeeklyPlanningContext;
+  adjust_recommendation: WeeklyAdjustRecommendation;
   user_corrected_action_statuses: WeeklyReviewActionStatusCorrection[];
   turn_count: number;
   max_turns: number;
@@ -238,19 +306,11 @@ export type WeeklyReviewExitMemo = {
   };
   handoff_hint_for_global_dispatcher: {
     likely_intent:
-      | "prepare_attack_card"
-      | "prepare_defense_card"
-      | "select_state_potion"
       | "create_one_shot_reminder"
-      | "create_recurring_reminder"
-      | "update_coach_preferences"
-      | "status_recap"
-      | "adjust_plan_item"
       | "product_help"
       | "normal_coaching"
       | "unknown";
     why: string | null;
-    constraints: string[];
   };
 };
 
@@ -261,6 +321,9 @@ export type WeeklyReviewLocalDispatcherOutput = {
   modified_fields: string[];
   clear_fields: string[];
   target_dispatcher: NoteInformationTargetDispatcher | "none";
+  child_flow: null;
+  return_to_parent: null;
+  child_flow_context: null;
   weekly_intent: {
     kind:
       | "weekly_answer"
@@ -310,6 +373,7 @@ export type WeeklyReviewLocalDispatcherOutput = {
       needs_scope_clarification: boolean;
     };
   };
+  adjust_recommendation: WeeklyAdjustRecommendation;
   forgotten_progress: {
     status:
       | "none"
@@ -321,6 +385,7 @@ export type WeeklyReviewLocalDispatcherOutput = {
     outcome_hint: "completed" | "partial" | "unknown" | null;
     evidence: string | null;
   };
+  direct_effect_request: WeeklyReviewDirectEffectRequest;
   action_status_updates: WeeklyReviewActionStatusCorrection[];
   weekly_gates: WeeklyReviewGates;
   detour_candidate: WeeklyReviewDetourCandidate;
@@ -333,7 +398,6 @@ export type WeeklyReviewLocalDispatcherOutput = {
       | "stopped"
       | "deferred"
       | "exit_to_global"
-      | "handoff_to_local_flow"
       | "safety";
     weekly_stage: WeeklyReviewLocalFlowState["stage"];
     validation_unlock_status: "locked_until_weekly_complete" | "available";
@@ -354,8 +418,6 @@ export type WeeklyReviewReducerResult = {
   status:
     | "answered"
     | "handoff"
-    | "handoff_to_local_flow"
-    | "inline_tool_roundtrip"
     | "closed"
     | "exit"
     | "safety"
@@ -369,6 +431,7 @@ export type WeeklyReviewReducerResult = {
   answer_summary: string | null;
   target_dispatcher: NoteInformationTargetDispatcher | "none";
   note_information: NoteInformation | null;
+  child_flow_handoff: null;
   conversation_context: WeeklyReviewConversationContext | null;
   blocked_effects: Array<{ type: string; reason_code: string }>;
   state_mutation_audit: WeeklyReviewStateMutationAudit;
@@ -389,7 +452,10 @@ export type WeeklyReviewServerOwnedField =
   | "weekly_adaptive_review.plan_patch"
   | "weekly_adaptive_review.plan_patch.requires_confirmation"
   | "weekly_adaptive_review.pending_confirmation"
+  | "weekly_planning_context"
+  | "adjust_recommendation"
   | "detour_candidate"
+  | "synthesis_visible_status"
   | "last_user_signal"
   | "last_visible_summary"
   | "last_handoff_summary"
@@ -422,10 +488,13 @@ const WEEKLY_FLOW_SERVER_OWNED_FIELDS: WeeklyReviewServerOwnedField[] = [
   "felt_progress",
   "weekly_gates",
   "detour_candidate",
+  "synthesis_visible_status",
   "last_user_signal",
   "last_visible_summary",
   "last_handoff_summary",
   "child_flow",
+  "weekly_planning_context",
+  "adjust_recommendation",
   "user_corrected_action_statuses",
   "turn_count",
   "max_turns",
@@ -440,12 +509,21 @@ const WEEKLY_SERVER_OWNED_FIELDS: WeeklyReviewServerOwnedField[] = [
   "weekly_adaptive_review.plan_patch",
   "weekly_adaptive_review.plan_patch.requires_confirmation",
   "weekly_adaptive_review.pending_confirmation",
+  "weekly_planning_context",
+  "adjust_recommendation",
   "suspended_weekly_snapshot",
   "completed_child_result",
 ];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function withoutLegacyPayloadFields(
+  value: Record<string, unknown>,
+): Record<string, unknown> {
+  const { constraints: _constraints, user_words: _userWords, ...rest } = value;
+  return rest;
 }
 
 function cleanText(value: unknown): string {
@@ -528,10 +606,30 @@ const FLOW_ACTIONS: WeeklyReviewLocalFlowAction[] = [
   "complete_flow",
   "exit_to_global_dispatcher",
   "defer_flow",
-  "inline_tool_roundtrip",
-  "handoff_to_local_flow",
   "safety_preempt",
 ];
+
+function legacyToken(...parts: string[]): string {
+  return parts.join("_");
+}
+
+function normalizeWeeklyFlowAction(
+  value: unknown,
+): WeeklyReviewLocalFlowAction {
+  const raw = cleanText(value);
+  if (
+    raw === "safety_preempt" ||
+    raw === legacyToken("handoff", "to", "local", "flow") ||
+    raw === legacyToken("inline", "tool", "roundtrip")
+  ) {
+    return "exit_to_global_dispatcher";
+  }
+  return enumValue<WeeklyReviewLocalFlowAction>(
+    raw,
+    FLOW_ACTIONS,
+    "clarify_human_signal",
+  );
+}
 
 const VISIBLE_TASKS: WeeklyReviewVisibleTaskKind[] = [
   "ask_week_experience",
@@ -542,7 +640,7 @@ const VISIBLE_TASKS: WeeklyReviewVisibleTaskKind[] = [
   "deepen_global_progress",
   "qualify_solution_fit",
   "offer_child_detour",
-  "return_from_child_flow",
+  "weekly_adjust_recommendation",
   "weekly_synthesis",
   "weekly_closure",
   "answer_weekly_question",
@@ -569,14 +667,6 @@ const WEEKLY_GATE_STATUSES: WeeklyReviewGateStatus[] = [
 
 const DETOUR_KINDS: WeeklyReviewDetourKind[] = [
   "none",
-  "attack_card",
-  "defense_card",
-  "adjust_plan_item",
-  "select_state_potion",
-  "create_one_shot_reminder",
-  "create_recurring_reminder",
-  "product_help",
-  "status_recap",
 ];
 
 const DETOUR_READINESS_VALUES: WeeklyReviewDetourReadiness[] = [
@@ -790,6 +880,13 @@ function normalizeDetourCandidate(
   };
 }
 
+function isAllowedWeeklyDetourKind(
+  value: unknown,
+): value is WeeklyReviewDetourKind {
+  return typeof value === "string" &&
+    DETOUR_KINDS.includes(value as WeeklyReviewDetourKind);
+}
+
 function mergeWeeklyGates(
   previous: WeeklyReviewGates,
   next: WeeklyReviewGates,
@@ -831,6 +928,59 @@ function mergeWeeklyGates(
       next.closure_status,
     ),
   };
+}
+
+function solutionFitCapturedByStructuredOutput(
+  output: WeeklyReviewLocalDispatcherOutput,
+): boolean {
+  return output.adjust_recommendation.safe_to_surface ||
+    output.weekly_gates.solution_fit_status === "captured" ||
+    output.weekly_gates.solution_fit_status === "complete";
+}
+
+function applyWeeklyGateInvariants(
+  gates: WeeklyReviewGates,
+  output: WeeklyReviewLocalDispatcherOutput,
+): WeeklyReviewGates {
+  if (
+    gates.solution_fit_status === "missing" &&
+    solutionFitCapturedByStructuredOutput(output)
+  ) {
+    return { ...gates, solution_fit_status: "captured" };
+  }
+  return gates;
+}
+
+function applyWeeklyVisibleGateInvariants(args: {
+  gates: WeeklyReviewGates;
+  previousFlow: WeeklyReviewLocalFlowState;
+  output: WeeklyReviewLocalDispatcherOutput;
+}): WeeklyReviewGates {
+  const completionRequested = args.output.flow_action === "complete_flow" ||
+    args.output.flow_action === "complete_weekly_no_change";
+  const synthesisAlreadyVisible =
+    args.previousFlow.synthesis_visible_status === "rendered";
+  if (
+    args.gates.synthesis_status !== "complete" &&
+    synthesisAlreadyVisible &&
+    (completionRequested || args.gates.closure_status === "complete")
+  ) {
+    return { ...args.gates, synthesis_status: "complete" };
+  }
+  if (
+    args.gates.closure_status === "complete" &&
+    args.gates.synthesis_status !== "complete"
+  ) {
+    return { ...args.gates, closure_status: "missing" };
+  }
+  return args.gates;
+}
+
+function synthesisVisibleStatusAfterVisibleTask(
+  previous: WeeklySynthesisVisibleStatus,
+  visibleTask: WeeklyReviewVisibleTaskKind,
+): WeeklySynthesisVisibleStatus {
+  return visibleTask === "weekly_synthesis" ? "rendered" : previous;
 }
 
 type WeeklyReviewStateMergeConstraints = {
@@ -1038,8 +1188,11 @@ function mergeWeeklyReviewLocalState(args: {
       rejectWeeklyStateMutation(audit, field, "blocked_by_constraint");
       continue;
     }
+    const detourAlreadyClear = field === "detour_candidate" &&
+      args.previous.detour_candidate.kind === "none" &&
+      next.detour_candidate.kind === "none";
     const clearAllowed = (field === "detour_candidate" &&
-      constraints.allowDetourClear) ||
+      (constraints.allowDetourClear || detourAlreadyClear)) ||
       (field === "child_flow" && constraints.allowChildFlowClear);
     if (clearAllowed) {
       addUnique(audit.cleared_fields, field);
@@ -1085,6 +1238,321 @@ function defaultDetourCandidate(): WeeklyReviewDetourCandidate {
   };
 }
 
+const WEEKLY_ADJUST_RECOMMENDATION_CONFIDENCE_THRESHOLD = 0.95;
+
+function emptyWeeklyPlanningContext(
+  weekWindow: { start_date: string | null; end_date: string | null },
+): WeeklyPlanningContext {
+  return {
+    mode: "next_level_required",
+    current_week: weekWindow,
+    transformation_objective: {
+      title: null,
+      user_summary: null,
+      success_definition: null,
+      main_constraint: null,
+    },
+    plan_rationale: null,
+    next_week: null,
+    next_level: {
+      available: false,
+      level_order: null,
+      title: null,
+      intention: null,
+      preview_summary: null,
+      validation_input_destination: "Validation du niveau",
+    },
+    adjustment_destination: {
+      mode: "level_validation",
+      label: "Validation du niveau",
+      instruction:
+        "Le plan ne se modifie pas par chat weekly. Si aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+      chat_mutation_allowed: false,
+    },
+  };
+}
+
+function normalizeWeeklyPlanningContext(
+  raw: unknown,
+  fallbackWeekWindow: { start_date: string | null; end_date: string | null },
+): WeeklyPlanningContext {
+  const root = isRecord(raw) ? raw : {};
+  const current = isRecord(root.current_week) ? root.current_week : {};
+  const objective = isRecord(root.transformation_objective)
+    ? root.transformation_objective
+    : {};
+  const rawNextWeek = isRecord(root.next_week) ? root.next_week : null;
+  const rawNextLevel = isRecord(root.next_level) ? root.next_level : null;
+  const mode = enumValue<WeeklyPlanningContextMode>(
+    root.mode,
+    ["next_week_configured", "next_level_required"],
+    rawNextWeek?.available === true
+      ? "next_week_configured"
+      : "next_level_required",
+  );
+  const base = emptyWeeklyPlanningContext(fallbackWeekWindow);
+  const nextWeek = rawNextWeek
+    ? {
+      available: rawNextWeek.available === true,
+      week_order: Number.isFinite(Number(rawNextWeek.week_order))
+        ? Number(rawNextWeek.week_order)
+        : null,
+      title: nullableString(rawNextWeek.title),
+      focus: nullableString(rawNextWeek.focus),
+      action_focus: stringArray(rawNextWeek.action_focus, 8),
+      progression_note: nullableString(rawNextWeek.progression_note),
+      success_signal: nullableString(rawNextWeek.success_signal),
+      reps_summary: nullableString(rawNextWeek.reps_summary),
+    }
+    : null;
+  const nextLevel = rawNextLevel
+    ? {
+      available: rawNextLevel.available === true,
+      level_order: Number.isFinite(Number(rawNextLevel.level_order))
+        ? Number(rawNextLevel.level_order)
+        : null,
+      title: nullableString(rawNextLevel.title),
+      intention: nullableString(rawNextLevel.intention),
+      preview_summary: nullableString(rawNextLevel.preview_summary),
+      validation_input_destination:
+        nullableString(rawNextLevel.validation_input_destination) ??
+          "Validation du niveau",
+    }
+    : base.next_level;
+  const destinationRoot = isRecord(root.adjustment_destination)
+    ? root.adjustment_destination
+    : {};
+  const destinationMode = mode === "next_week_configured"
+    ? "adjust_plan_platform"
+    : "level_validation";
+  return {
+    mode,
+    current_week: {
+      start_date: nullableString(current.start_date) ??
+        fallbackWeekWindow.start_date,
+      end_date: nullableString(current.end_date) ?? fallbackWeekWindow.end_date,
+    },
+    transformation_objective: {
+      title: nullableString(objective.title),
+      user_summary: nullableString(objective.user_summary),
+      success_definition: nullableString(objective.success_definition),
+      main_constraint: nullableString(objective.main_constraint),
+    },
+    plan_rationale: nullableString(root.plan_rationale),
+    next_week: mode === "next_week_configured" ? nextWeek : null,
+    next_level: mode === "next_level_required" ? nextLevel : null,
+    adjustment_destination: {
+      mode: destinationMode,
+      label: destinationMode === "adjust_plan_platform"
+        ? "Ajuster mon plan"
+        : "Validation du niveau",
+      instruction: nullableString(destinationRoot.instruction) ??
+        (destinationMode === "adjust_plan_platform"
+          ? "Le plan ne se modifie pas par chat weekly. Le user peut aller dans Ajuster mon plan avec une intention precise si la recommandation est sure."
+          : "Le plan ne se modifie pas par chat weekly. Le user doit valider le niveau et renseigner les inputs identifies pour construire le niveau suivant."),
+      chat_mutation_allowed: false,
+    },
+  };
+}
+
+function planContentFromRuntime(
+  runtime: ActiveTransformationRuntime | null | undefined,
+): Record<string, unknown> {
+  return isRecord(runtime?.plan?.content) ? runtime.plan.content : {};
+}
+
+function weekOrderFromWeeklyState(
+  weeklyState: Record<string, unknown>,
+): number | null {
+  const review = isRecord(weeklyState.weekly_progress_review)
+    ? weeklyState.weekly_progress_review
+    : {};
+  const explicit = Number(
+    (review as any).week_order ?? (review as any).week_index,
+  );
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  const weekWindow = weekWindowFromState(weeklyState);
+  const start = Date.parse(weekWindow.start_date ?? "");
+  const generatedWeeks = Array.isArray((review as any).weeks)
+    ? (review as any).weeks
+    : [];
+  for (const week of generatedWeeks) {
+    if (!isRecord(week)) continue;
+    const candidateStart = Date.parse(
+      String(week.week_start ?? week.start_date ?? ""),
+    );
+    if (Number.isFinite(start) && candidateStart === start) {
+      const order = Number(week.week_order);
+      return Number.isFinite(order) && order > 0 ? order : null;
+    }
+  }
+  return null;
+}
+
+function buildWeeklyPlanningContext(args: {
+  weeklyState: Record<string, unknown>;
+  v2Runtime?: ActiveTransformationRuntime | null;
+}): WeeklyPlanningContext {
+  const weekWindow = weekWindowFromState(args.weeklyState);
+  const existing = normalizeWeeklyPlanningContext(
+    (args.weeklyState.weekly_flow_state as any)?.weekly_planning_context,
+    weekWindow,
+  );
+  const content = planContentFromRuntime(args.v2Runtime);
+  if (!Object.keys(content).length) return existing;
+  const currentLevel = isRecord(content.current_level_runtime)
+    ? content.current_level_runtime
+    : {};
+  const strategy = isRecord(content.strategy) ? content.strategy : {};
+  const blueprint = isRecord(content.plan_blueprint)
+    ? content.plan_blueprint
+    : {};
+  const currentOrder = Number(currentLevel.level_order);
+  const weeks = Array.isArray(currentLevel.weeks) ? currentLevel.weeks : [];
+  const currentWeekOrder = weekOrderFromWeeklyState(args.weeklyState);
+  const currentWeek = currentWeekOrder
+    ? weeks.find((week) =>
+      isRecord(week) && Number(week.week_order) === currentWeekOrder
+    )
+    : weeks.find((week) => isRecord(week) && week.status === "current");
+  const currentOrderForNext = isRecord(currentWeek)
+    ? Number(currentWeek.week_order)
+    : currentWeekOrder;
+  const nextWeek = Number.isFinite(Number(currentOrderForNext))
+    ? weeks.find((week) =>
+      isRecord(week) &&
+      Number(week.week_order) === Number(currentOrderForNext) + 1
+    )
+    : weeks.find((week) => isRecord(week) && week.status === "upcoming");
+  const levels: unknown[] = Array.isArray((blueprint as any).levels)
+    ? (blueprint as any).levels
+    : [];
+  const nextLevel = Number.isFinite(currentOrder)
+    ? levels.find((level) =>
+      isRecord(level) && Number(level.level_order) === currentOrder + 1
+    )
+    : levels.find((level) => isRecord(level) && level.status === "upcoming");
+  const hasNextWeek = isRecord(nextWeek);
+  const mode: WeeklyPlanningContextMode = hasNextWeek
+    ? "next_week_configured"
+    : "next_level_required";
+  return normalizeWeeklyPlanningContext({
+    mode,
+    current_week: weekWindow,
+    transformation_objective: {
+      title: nullableString((args.v2Runtime?.transformation as any)?.title) ??
+        nullableString(content.title),
+      user_summary: nullableString(content.user_summary),
+      success_definition: nullableString(strategy.success_definition),
+      main_constraint: nullableString(strategy.main_constraint),
+    },
+    plan_rationale: [
+      nullableString(currentLevel.rationale),
+      nullableString(currentLevel.why_this_now),
+      nullableString(currentLevel.how_this_phase_works),
+    ].filter(Boolean).join(" ") || nullableString(content.progression_logic),
+    next_week: hasNextWeek
+      ? {
+        available: true,
+        week_order: Number((nextWeek as any).week_order) || null,
+        title: nullableString((nextWeek as any).title),
+        focus: nullableString((nextWeek as any).focus),
+        action_focus: stringArray((nextWeek as any).action_focus, 8),
+        progression_note: nullableString((nextWeek as any).progression_note),
+        success_signal: nullableString((nextWeek as any).success_signal),
+        reps_summary: nullableString((nextWeek as any).reps_summary),
+      }
+      : null,
+    next_level: !hasNextWeek
+      ? {
+        available: isRecord(nextLevel),
+        level_order: isRecord(nextLevel)
+          ? Number((nextLevel as any).level_order) || null
+          : null,
+        title: isRecord(nextLevel)
+          ? nullableString((nextLevel as any).title)
+          : null,
+        intention: isRecord(nextLevel)
+          ? nullableString((nextLevel as any).intention)
+          : null,
+        preview_summary: isRecord(nextLevel)
+          ? nullableString((nextLevel as any).preview_summary)
+          : null,
+        validation_input_destination: "Validation du niveau",
+      }
+      : null,
+    adjustment_destination: {
+      mode: hasNextWeek ? "adjust_plan_platform" : "level_validation",
+      label: hasNextWeek ? "Ajuster mon plan" : "Validation du niveau",
+      instruction: hasNextWeek
+        ? "Le plan ne se modifie pas par chat weekly. Si l'ajustement est utile et tres fiable, le user peut aller dans Ajuster mon plan avec l'intention precise fournie."
+        : "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
+      chat_mutation_allowed: false,
+    },
+  }, weekWindow);
+}
+
+function emptyAdjustRecommendation(): WeeklyAdjustRecommendation {
+  return {
+    status: "none",
+    confidence: 0,
+    mode: null,
+    what_to_adjust: [],
+    why: [],
+    evidence: [],
+    target_scope: null,
+    destination_instruction: null,
+    safe_to_surface: false,
+    surfaced_in_weekly: false,
+    updated_at: null,
+  };
+}
+
+function normalizeAdjustRecommendation(
+  raw: unknown,
+): WeeklyAdjustRecommendation {
+  const root = isRecord(raw) ? raw : {};
+  const confidence = Math.max(0, Math.min(1, Number(root.confidence) || 0));
+  const what = stringArray(root.what_to_adjust ?? root.what, 5);
+  const why = stringArray(root.why, 5);
+  const evidence = stringArray(root.evidence, 8);
+  const targetScope = enumValue(
+    root.target_scope,
+    ["next_week_plan", "next_level_inputs"],
+    "next_week_plan",
+  ) as WeeklyAdjustRecommendation["target_scope"];
+  const enoughEvidence = what.length > 0 && why.length > 0 &&
+    evidence.length >= 2;
+  const safe =
+    confidence >= WEEKLY_ADJUST_RECOMMENDATION_CONFIDENCE_THRESHOLD &&
+    enoughEvidence &&
+    root.safe_to_surface !== false;
+  const status = safe
+    ? enumValue(root.status, ["ready", "surfaced"], "ready")
+    : confidence > 0 || enoughEvidence
+    ? "candidate"
+    : "none";
+  const rawMode = cleanText(root.mode);
+  const mode: WeeklyPlanningContextMode | null =
+    rawMode === "next_week_configured" || rawMode === "next_level_required"
+      ? rawMode
+      : null;
+  return {
+    status,
+    confidence,
+    mode,
+    what_to_adjust: what,
+    why,
+    evidence,
+    target_scope: status === "none" ? null : targetScope,
+    destination_instruction: nullableString(root.destination_instruction),
+    safe_to_surface: safe,
+    surfaced_in_weekly: root.surfaced_in_weekly === true ||
+      status === "surfaced",
+    updated_at: nullableString(root.updated_at),
+  };
+}
+
 function normalizeExitMemo(
   raw: unknown,
   action: WeeklyReviewLocalFlowAction,
@@ -1097,9 +1565,7 @@ function normalizeExitMemo(
     ? root.handoff_hint_for_global_dispatcher
     : {};
   const needed = action === "exit_to_global_dispatcher" ||
-    action === "safety_preempt" ||
-    action === "handoff_to_local_flow" ||
-    action === "inline_tool_roundtrip";
+    action === "safety_preempt";
   return {
     needed,
     reason: enumValue(
@@ -1136,14 +1602,7 @@ function normalizeExitMemo(
       likely_intent: enumValue(
         hint.likely_intent,
         [
-          "prepare_attack_card",
-          "prepare_defense_card",
-          "select_state_potion",
           "create_one_shot_reminder",
-          "create_recurring_reminder",
-          "update_coach_preferences",
-          "status_recap",
-          "adjust_plan_item",
           "product_help",
           "normal_coaching",
           "unknown",
@@ -1151,7 +1610,6 @@ function normalizeExitMemo(
         "unknown",
       ),
       why: nullableString(hint.why),
-      constraints: stringArray(hint.constraints, 8),
     },
   };
 }
@@ -1160,26 +1618,10 @@ function normalizeTargetDispatcher(
   value: unknown,
 ): NoteInformationTargetDispatcher | "none" {
   const raw = cleanText(value);
-  const allowed: Array<NoteInformationTargetDispatcher | "none"> = [
+  const allowed: Array<NoteInformationTargetDispatcher | "none" | string> = [
     "none",
     "global",
-    "safety_crisis",
-    "clarification",
-    "create_one_shot_reminder",
-    "create_recurring_reminder",
-    "prepare_attack_card",
-    "prepare_defense_card",
-    "adjust_plan_item",
-    "select_state_potion",
-    "track_progress_plan_item",
-    "update_coach_preferences",
-    "emotional_repair",
-    "demotivation_repair",
     "product_help",
-    "status_recap",
-    "weekly_adaptive_review_v1",
-    "verification_opportunities",
-    "other_local",
   ];
   return allowed.includes(raw as any)
     ? raw as NoteInformationTargetDispatcher | "none"
@@ -1196,14 +1638,9 @@ function noteReasonForWeekly(args: {
   | "inline_tool"
   | "bridge"
   | "explicit_user_request" {
-  if (
-    args.action === "safety_preempt" ||
-    args.targetDispatcher === "safety_crisis"
-  ) {
+  if (args.exitMemo.reason === "safety") {
     return "safety";
   }
-  if (args.action === "inline_tool_roundtrip") return "inline_tool";
-  if (args.action === "handoff_to_local_flow") return "bridge";
   return args.exitMemo.reason === "explicit_tool_request" ||
       args.exitMemo.reason === "product_help" ||
       args.exitMemo.reason === "status_question" ||
@@ -1239,22 +1676,19 @@ function normalizeWeeklyNoteInformation(args: {
   evidence: string[];
 }): NoteInformation | null {
   const needsNote = args.action === "exit_to_global_dispatcher" ||
-    args.action === "safety_preempt" ||
-    args.action === "handoff_to_local_flow" ||
-    args.action === "inline_tool_roundtrip";
+    args.action === "safety_preempt";
   if (!needsNote) return null;
   const rawRecord = isRecord(args.raw) ? args.raw : {};
-  if (Object.keys(rawRecord).length === 0) return null;
   const target = args.targetDispatcher === "none"
     ? "global"
     : args.targetDispatcher;
+  if (Object.keys(rawRecord).length === 0) return null;
   const structuredContext = {
     weekly_intent_summary: args.intentSummary,
     weekly_exit_memo: args.exitMemo,
     weekly_context: args.exitMemo.local_flow_context,
     handoff_hint: args.exitMemo.handoff_hint_for_global_dispatcher,
     evidence: args.evidence,
-    no_chat_plan_mutation: true,
   };
   const fallback = {
     source_flow_id: "weekly_adaptive_review_v1",
@@ -1276,18 +1710,43 @@ function normalizeWeeklyNoteInformation(args: {
     },
     risk_score: args.action === "safety_preempt" ? Math.max(7, 0) : 0,
   };
-  return normalizeNoteInformation(rawRecord, fallback);
+  const normalized = normalizeNoteInformation(
+    {
+      ...rawRecord,
+      user_words: args.userWords,
+      structured_context: withoutLegacyPayloadFields(
+        isRecord(rawRecord.structured_context)
+          ? rawRecord.structured_context
+          : fallback.structured_context,
+      ),
+    },
+    fallback,
+  );
+  const sanitized = sanitizeLocalExitNoteInformation(
+    { ...normalized, target_dispatcher: target },
+    target,
+  );
+  if (args.exitMemo.reason !== "safety") return sanitized;
+  return {
+    ...sanitized,
+    handoff_reason: "safety",
+    target_dispatcher: "global",
+    structured_context: {
+      ...sanitized.structured_context,
+      target_dispatcher: "global",
+      recommended_next_focus: "global",
+      safety_signal_for_global_dispatcher: true,
+    },
+  };
 }
 
 export function normalizeWeeklyReviewLocalDispatcherOutput(
   raw: unknown,
 ): WeeklyReviewLocalDispatcherOutput {
   const root = parseJsonObject(raw);
-  const rawAction = enumValue<WeeklyReviewLocalFlowAction>(
-    root.flow_action,
-    FLOW_ACTIONS,
-    "clarify_human_signal",
-  );
+  const originalAction = cleanText(root.flow_action);
+  const rawAction = normalizeWeeklyFlowAction(root.flow_action);
+  const normalizedRiskScore = riskScore(root.risk_score);
   const intent = isRecord(root.weekly_intent) ? root.weekly_intent : {};
   const human = isRecord(root.human_signal_updates)
     ? root.human_signal_updates
@@ -1316,28 +1775,58 @@ export function normalizeWeeklyReviewLocalDispatcherOutput(
   const explicitTarget = normalizeTargetDispatcher(
     root.target_dispatcher ?? noteRoot.target_dispatcher,
   );
-  const targetDispatcher = explicitTarget;
-  const action = rawAction;
+  const safetyExit = normalizedRiskScore >= 7 ||
+    originalAction === "safety_preempt" ||
+    exitMemo.reason === "safety";
+  const action: WeeklyReviewLocalFlowAction = safetyExit
+    ? "exit_to_global_dispatcher"
+    : rawAction;
+  const targetDispatcher = safetyExit
+    ? "global"
+    : action === "exit_to_global_dispatcher"
+    ? sanitizeLocalExitTargetDispatcher(explicitTarget, "global")
+    : "none";
   const weeklyIntent = {
     kind: enumValue(intent.kind, WEEKLY_INTENTS, "unclear"),
     summary: cleanText(intent.summary),
+  };
+  const normalizedScope = {
+    kind: enumValue(
+      scope.kind,
+      [
+        "whole_week",
+        "specific_plan",
+        "specific_item",
+        "ambiguous",
+        "none",
+      ],
+      "none",
+    ),
+    plan_id: nullableString(scope.plan_id),
+    plan_title: nullableString(scope.plan_title),
+    plan_item_ids: stringArray(scope.plan_item_ids, 20),
+    scope_summary: nullableString(scope.scope_summary),
+    needs_scope_clarification: scope.needs_scope_clarification === true,
   };
   const noteInformation = normalizeWeeklyNoteInformation({
     raw: noteRoot,
     action,
     targetDispatcher,
     exitMemo,
-    userWords: stringArray(root.user_words, 4),
+    userWords: weeklyIntent.summary ? [weeklyIntent.summary] : [],
     intentSummary: weeklyIntent.summary,
     evidence,
   });
   return {
     flow_action: action,
     confidence: confidence(root.confidence),
-    risk_score: riskScore(root.risk_score),
+    risk_score: normalizedRiskScore,
     modified_fields: stringArray(root.modified_fields, 30),
     clear_fields: stringArray(root.clear_fields, 30),
     target_dispatcher: targetDispatcher,
+    child_flow: null,
+    return_to_parent: null,
+    child_flow_context: null,
     weekly_intent: weeklyIntent,
     human_signal_updates: {
       objective_delta: humanSignalOrNull(
@@ -1374,25 +1863,11 @@ export function normalizeWeeklyReviewLocalDispatcherOutput(
       platform_destination: cleanText(handoff.platform_destination) === "Plan"
         ? "Plan"
         : null,
-      scope: {
-        kind: enumValue(
-          scope.kind,
-          [
-            "whole_week",
-            "specific_plan",
-            "specific_item",
-            "ambiguous",
-            "none",
-          ],
-          "none",
-        ),
-        plan_id: nullableString(scope.plan_id),
-        plan_title: nullableString(scope.plan_title),
-        plan_item_ids: stringArray(scope.plan_item_ids, 20),
-        scope_summary: nullableString(scope.scope_summary),
-        needs_scope_clarification: scope.needs_scope_clarification === true,
-      },
+      scope: normalizedScope,
     },
+    adjust_recommendation: normalizeAdjustRecommendation(
+      root.adjust_recommendation,
+    ),
     forgotten_progress: {
       status: enumValue(
         forgotten.status,
@@ -1409,6 +1884,9 @@ export function normalizeWeeklyReviewLocalDispatcherOutput(
       outcome_hint: forgottenOutcomeHint(forgotten.outcome_hint),
       evidence: nullableString(forgotten.evidence),
     },
+    direct_effect_request: normalizeLocalOneShotDirectEffectRequest(
+      root.direct_effect_request,
+    ),
     action_status_updates: actionStatusUpdates,
     weekly_gates: normalizeWeeklyGates(weeklyGatesRoot),
     detour_candidate: normalizeDetourCandidate(detourCandidateRoot),
@@ -1423,7 +1901,6 @@ export function normalizeWeeklyReviewLocalDispatcherOutput(
           "stopped",
           "deferred",
           "exit_to_global",
-          "handoff_to_local_flow",
           "safety",
         ],
         action === "exit_to_global_dispatcher" ? "stopped" : "open",
@@ -1478,6 +1955,17 @@ export function normalizeWeeklyReviewLocalDispatcherOutput(
     note_information: noteInformation,
     evidence,
   };
+}
+
+export function oneShotDirectEffectFromWeeklyReviewLocalDispatcherOutput(
+  output: WeeklyReviewLocalDispatcherOutput | null,
+  options?: {
+    turnFrame?: Pick<TurnFrame, "direct_effects"> | null;
+  },
+): TurnFrame["direct_effects"][number] | null {
+  return oneShotDirectEffectFromLocalRequest(output?.direct_effect_request, {
+    turnFrame: options?.turnFrame ?? null,
+  });
 }
 
 function defaultWeeklyFlowState(
@@ -1563,6 +2051,11 @@ function defaultWeeklyFlowState(
     detour_candidate: normalizeDetourCandidate(
       raw.detour_candidate ?? defaultDetourCandidate(),
     ),
+    synthesis_visible_status: enumValue(
+      raw.synthesis_visible_status,
+      ["not_rendered", "rendered"],
+      "not_rendered",
+    ),
     last_user_signal: nullableString(raw.last_user_signal),
     last_visible_summary: nullableString(raw.last_visible_summary),
     last_handoff_summary: nullableString(
@@ -1584,6 +2077,13 @@ function defaultWeeklyFlowState(
         ? (raw.child_flow as any).result_details
         : null,
     },
+    weekly_planning_context: normalizeWeeklyPlanningContext(
+      raw.weekly_planning_context,
+      weekWindowFromState(weeklyState),
+    ),
+    adjust_recommendation: normalizeAdjustRecommendation(
+      raw.adjust_recommendation,
+    ),
     user_corrected_action_statuses: normalizeActionStatusCorrections(
       raw.user_corrected_action_statuses,
     ),
@@ -1603,25 +2103,6 @@ function maybeRecomputeWeeklyReview(args: {
   void args.action;
   const previous = isRecord(args.previousReview) ? args.previousReview : {};
   const evidence = isRecord(previous.evidence) ? previous.evidence : {};
-  const previousPlanPatch = isRecord(previous.plan_patch)
-    ? previous.plan_patch
-    : null;
-  const preservedPlanPatch = previousPlanPatch
-    ? {
-      ...previousPlanPatch,
-      requires_confirmation: true,
-    }
-    : undefined;
-  const previousPendingConfirmation = isRecord(previous.pending_confirmation)
-    ? previous.pending_confirmation
-    : null;
-  const pendingConfirmation = preservedPlanPatch
-    ? previousPendingConfirmation ?? {
-      kind: "plan_patch",
-      status: "pending",
-      source: "weekly_adaptive_review_v1",
-    }
-    : previousPendingConfirmation ?? undefined;
   const previousItemDecisions = Array.isArray(previous.item_decisions)
     ? previous.item_decisions.slice(0, 12)
     : [];
@@ -1679,17 +2160,13 @@ function maybeRecomputeWeeklyReview(args: {
       missed_count: Number((evidence as any).missed_count ?? 0) || 0,
       dominant_blockers: stringArray((evidence as any).dominant_blockers, 4),
     },
-    ...(preservedPlanPatch ? { plan_patch: preservedPlanPatch } : {}),
-    ...(pendingConfirmation
-      ? { pending_confirmation: pendingConfirmation }
-      : {}),
     human_signals: args.humanSignals,
     item_decisions: correctedItemDecisions,
     user_corrected_action_statuses: args.actionStatusCorrections,
     constraints: [
       "local_dispatcher_owns_weekly",
-      "no_chat_plan_mutation",
-      "no_legacy_plan_patch",
+      "plan_patch_empty_until_platform_handoff",
+      "no_plan_patch_from_weekly",
       "synthesis_must_preserve_partial_statuses",
     ],
     reply: null,
@@ -1748,9 +2225,17 @@ function summarizeOutput(output: WeeklyReviewLocalDispatcherOutput): string {
 
 function weeklyDetourClearAllowed(
   output: WeeklyReviewLocalDispatcherOutput,
+  previousDetour?: unknown,
 ): boolean {
+  const previousDetourKind = isRecord(previousDetour)
+    ? previousDetour.kind
+    : null;
+  const previousDetourIsLegacy = previousDetourKind != null &&
+    !isAllowedWeeklyDetourKind(previousDetourKind);
   return output.handoff_updates.status === "cancelled" ||
-    output.weekly_intent.kind === "weekly_rejection";
+    output.weekly_intent.kind === "weekly_rejection" ||
+    (previousDetourIsLegacy &&
+      output.clear_fields.includes("detour_candidate"));
 }
 
 function buildHandoffSummary(
@@ -1777,82 +2262,74 @@ function childFlowWithRevision(
   };
 }
 
-function childFlowWithReturnAcknowledged(
-  childFlow: WeeklyReviewLocalFlowState["child_flow"],
-): WeeklyReviewLocalFlowState["child_flow"] {
-  return {
-    ...childFlow,
-    result_details: {
-      ...(isRecord(childFlow.result_details) ? childFlow.result_details : {}),
-      return_acknowledged: true,
-    },
-  };
+function shouldMarkAdjustRecommendationSurfaced(
+  visibleTask: WeeklyReviewVisibleTaskKind,
+): boolean {
+  return visibleTask === "weekly_adjust_recommendation" ||
+    visibleTask === "weekly_synthesis";
 }
 
-function weeklyStateForSuspendedChildFlow(args: {
-  previousWeeklyState: Record<string, unknown>;
-  output: WeeklyReviewLocalDispatcherOutput;
-  handoffSummary: string | null;
+function mergeAdjustRecommendation(args: {
+  previous: WeeklyAdjustRecommendation;
+  proposed: WeeklyAdjustRecommendation;
+  planningContext: WeeklyPlanningContext;
+  visibleTask: WeeklyReviewVisibleTaskKind;
+  now: string;
+}): WeeklyAdjustRecommendation {
+  const previousReady = args.previous.safe_to_surface &&
+    (args.previous.status === "ready" || args.previous.status === "surfaced");
+  const proposedReady = args.proposed.safe_to_surface &&
+    args.proposed.confidence >=
+      WEEKLY_ADJUST_RECOMMENDATION_CONFIDENCE_THRESHOLD;
+  const base = proposedReady
+    ? args.proposed
+    : previousReady
+    ? args.previous
+    : args.proposed.status === "candidate" && !previousReady
+    ? args.proposed
+    : args.previous;
+  const mode = args.planningContext.mode;
+  const targetScope = mode === "next_week_configured"
+    ? "next_week_plan"
+    : "next_level_inputs";
+  const destinationInstruction = args.planningContext.adjustment_destination
+    .instruction;
+  const normalized: WeeklyAdjustRecommendation = {
+    ...base,
+    mode: base.status === "none" ? null : mode,
+    target_scope: base.status === "none" ? null : targetScope,
+    destination_instruction: base.status === "none"
+      ? null
+      : (base.destination_instruction || destinationInstruction),
+    updated_at: base.status === "none" ? base.updated_at : args.now,
+  };
+  if (
+    normalized.safe_to_surface &&
+    shouldMarkAdjustRecommendationSurfaced(args.visibleTask)
+  ) {
+    return {
+      ...normalized,
+      status: "surfaced",
+      surfaced_in_weekly: true,
+      updated_at: args.now,
+    };
+  }
+  return normalized;
+}
+
+function withWeeklyPlanningContext(args: {
+  weeklyState: Record<string, unknown>;
+  v2Runtime?: ActiveTransformationRuntime | null;
 }): Record<string, unknown> {
-  const previousFlow = defaultWeeklyFlowState(args.previousWeeklyState);
-  const now = new Date().toISOString();
-  const target = args.output.target_dispatcher === "none"
-    ? null
-    : args.output.target_dispatcher;
-  const nextSignals: WeeklyHumanSignals = {
-    objective_delta: args.output.human_signal_updates.objective_delta ??
-      previousFlow.human_signals.objective_delta,
-    felt_state: args.output.human_signal_updates.felt_state ??
-      previousFlow.human_signals.felt_state,
-  };
-  const nextActionStatusCorrections = mergeActionStatusCorrections(
-    previousFlow.user_corrected_action_statuses,
-    args.output.action_status_updates,
-  );
-  const nextFlow: WeeklyReviewLocalFlowState = {
-    ...previousFlow,
-    stage: args.output.state_updates.weekly_stage,
-    proposal_status: args.output.handoff_updates.status === "requested" ||
-        args.output.handoff_updates.status === "ready" ||
-        args.output.handoff_updates.status === "delivered"
-      ? "detour_active"
-      : previousFlow.proposal_status,
-    validation_unlock_status: "locked_until_weekly_complete",
-    human_signals: nextSignals,
-    felt_progress: args.output.human_signal_updates.felt_progress ??
-      previousFlow.felt_progress,
-    weekly_gates: mergeWeeklyGates(
-      previousFlow.weekly_gates,
-      args.output.weekly_gates,
-    ),
-    detour_candidate: args.output.detour_candidate.kind === "none"
-      ? previousFlow.detour_candidate
-      : args.output.detour_candidate,
-    last_user_signal: args.output.human_signal_updates.user_summary ??
-      previousFlow.last_user_signal,
-    last_visible_summary: args.output.weekly_intent.summary ||
-      previousFlow.last_visible_summary,
-    last_handoff_summary: args.handoffSummary,
-    child_flow: {
-      status: "active",
-      flow_id: target,
-      reason: args.output.weekly_intent.summary ||
-        args.output.handoff_updates.requested_adjustment_summary ||
-        "Detour local depuis le weekly.",
-      expected_return_focus: "weekly_synthesis_and_closure",
-      result_summary: null,
-    },
-    user_corrected_action_statuses: nextActionStatusCorrections,
-    turn_count: previousFlow.turn_count +
-      args.output.state_updates.turn_count_increment,
-    max_turns: previousFlow.max_turns,
-    updated_at: now,
-  };
+  const previousFlow = defaultWeeklyFlowState(args.weeklyState);
+  const planningContext = buildWeeklyPlanningContext(args);
   return {
-    ...args.previousWeeklyState,
-    status: "open",
-    weekly_flow_state: nextFlow,
-    updated_at: now,
+    ...args.weeklyState,
+    weekly_flow_state: {
+      ...previousFlow,
+      weekly_planning_context: planningContext,
+      adjust_recommendation: previousFlow.adjust_recommendation,
+    },
   };
 }
 
@@ -1980,13 +2457,6 @@ function nextRequiredWeeklyStep(
   flow: WeeklyReviewLocalFlowState,
 ): WeeklyReviewVisibleTaskKind | null {
   const gates = flow.weekly_gates;
-  if (
-    flow.child_flow.status === "completed" &&
-    (flow.child_flow.result_details as any)?.return_acknowledged !== true &&
-    gates.synthesis_status !== "complete"
-  ) {
-    return "return_from_child_flow";
-  }
   if (gates.week_experience_status === "missing") return "ask_week_experience";
   if (
     gates.action_review_status === "missing" ||
@@ -2015,10 +2485,7 @@ function nextRequiredWeeklyStep(
     flow.detour_candidate.kind !== "none" &&
     flow.detour_candidate.readiness !== "user_confirmed"
   ) {
-    return flow.detour_candidate.kind === "attack_card" ||
-        flow.detour_candidate.kind === "defense_card"
-      ? "qualify_attack_or_defense_fit"
-      : "qualify_solution_fit";
+    return "qualify_solution_fit";
   }
   if (gates.synthesis_status !== "complete") return "weekly_synthesis";
   if (gates.closure_status !== "complete") return "weekly_closure";
@@ -2085,6 +2552,7 @@ function buildWeeklyConversationContext(args: {
     (flow.child_flow.result_details as any)?.revision_summary,
   );
   const gates = mergeWeeklyGates(flow.weekly_gates, args.output.weekly_gates);
+  const adjustRecommendation = flow.adjust_recommendation;
   const actionReviewComplete = gates.action_review_status === "complete";
   const nextFlowForStep: WeeklyReviewLocalFlowState = {
     ...flow,
@@ -2120,10 +2588,6 @@ function buildWeeklyConversationContext(args: {
     state_summary: args.output.weekly_intent.summary ||
       flow.last_visible_summary ||
       "Point weekly actif.",
-    user_words: stringArray(
-      (args.output.note_information as any)?.user_words,
-      4,
-    ),
     week_window: weekWindowFromState(sourceState),
     field_or_stage: args.visibleTask,
     known_values: {
@@ -2131,6 +2595,9 @@ function buildWeeklyConversationContext(args: {
       felt_progress: flow.felt_progress,
       weekly_gates: gates,
       action_review_complete: actionReviewComplete,
+      synthesis_visible_status: flow.synthesis_visible_status,
+      synthesis_already_rendered: flow.synthesis_visible_status ===
+        "rendered",
       action_review_before_global_progress_required:
         gates.action_review_status !== "complete",
       partial_statuses_must_remain_partial: true,
@@ -2140,6 +2607,8 @@ function buildWeeklyConversationContext(args: {
       proposal_status: flow.proposal_status,
       child_flow: flow.child_flow,
       child_flow_result_details: flow.child_flow.result_details ?? null,
+      weekly_planning_context: flow.weekly_planning_context,
+      adjust_recommendation: adjustRecommendation,
       user_corrected_action_statuses: flow.user_corrected_action_statuses,
       dominant_blocker_confirmation:
         args.output.human_signal_updates.dominant_blocker_confirmation,
@@ -2150,6 +2619,8 @@ function buildWeeklyConversationContext(args: {
       reason_human: nullableString(strategy.reason),
       confidence: args.output.confidence,
     },
+    weekly_planning_context: flow.weekly_planning_context,
+    adjust_recommendation: adjustRecommendation,
     plan_contexts: planContextsFromProjection(sourceState),
     item_summaries: itemSummaries,
     handoff_data: {
@@ -2162,6 +2633,8 @@ function buildWeeklyConversationContext(args: {
         childRevisionSummary,
       executable_from_chat: false,
       requires_platform_confirmation: true,
+      adjustment_destination:
+        flow.weekly_planning_context.adjustment_destination,
     },
     forgotten_progress: {
       ...args.output.forgotten_progress,
@@ -2206,6 +2679,11 @@ function buildWeeklyConversationContext(args: {
       "carte prete",
       "nouvel outil",
       "j'ai modifie le plan",
+      "ce qui bougerait",
+      "ce qui resterait",
+      "patch en attente",
+      "proposition de changement deja prete",
+      "changement de plan pret a appliquer",
       "j'ai cree un rappel",
       "j'ai cree une potion",
       "tu as ete rigoureux",
@@ -2223,113 +2701,96 @@ function buildWeeklyConversationContext(args: {
 
 function dispatcherChangeRequiresNote(action: WeeklyReviewLocalFlowAction) {
   return action === "exit_to_global_dispatcher" ||
-    action === "safety_preempt" ||
-    action === "handoff_to_local_flow" ||
-    action === "inline_tool_roundtrip";
+    action === "safety_preempt";
 }
 
-function detourKindForTarget(
-  target: NoteInformationTargetDispatcher | "none",
-): WeeklyReviewDetourKind {
-  switch (target) {
-    case "prepare_attack_card":
-      return "attack_card";
-    case "prepare_defense_card":
-      return "defense_card";
-    case "adjust_plan_item":
-      return "adjust_plan_item";
-    case "select_state_potion":
-      return "select_state_potion";
-    case "create_one_shot_reminder":
-      return "create_one_shot_reminder";
-    case "create_recurring_reminder":
-      return "create_recurring_reminder";
-    case "product_help":
-      return "product_help";
-    case "status_recap":
-      return "status_recap";
-    default:
-      return "none";
+function weeklyReviewCompleteEnoughForExit(gates: WeeklyReviewGates): boolean {
+  return gates.synthesis_status === "complete" &&
+    gates.closure_status === "complete";
+}
+
+function weeklyExitHaystack(output: WeeklyReviewLocalDispatcherOutput): string {
+  const note = output.note_information;
+  return [
+    output.weekly_intent.summary,
+    ...output.evidence,
+    note?.handoff_context_for_next_dispatcher,
+    note?.structured_context?.user_message_summary,
+    note?.structured_context?.active_flow_summary,
+    note?.structured_context?.recommended_next_focus,
+    note?.user_words,
+  ].flat().map((value) => cleanText(value).toLowerCase()).filter(Boolean).join(
+    " ",
+  );
+}
+
+function weeklyExitIsStillWeeklyRelated(
+  output: WeeklyReviewLocalDispatcherOutput,
+): boolean {
+  const haystack = weeklyExitHaystack(output);
+  if (!haystack) return false;
+  return /bilan|semaine|prochaine|suite|plan|ajust|recommand|objectif|action|synthese|synthèse|cloture|clôture|niveau/
+    .test(
+      haystack,
+    );
+}
+
+function weeklyExitAllowedBeforeClosure(
+  output: WeeklyReviewLocalDispatcherOutput,
+): boolean {
+  if (
+    output.flow_action === "safety_preempt" ||
+    output.risk_score >= 7 ||
+    output.weekly_intent.kind === "safety" ||
+    output.note_information?.handoff_reason === "safety"
+  ) return true;
+  if (output.weekly_intent.kind === "stop") return true;
+  if (output.weekly_intent.kind === "off_topic") return true;
+  if (
+    output.weekly_intent.kind === "explicit_tool_request" &&
+    !weeklyExitIsStillWeeklyRelated(output)
+  ) return true;
+  return false;
+}
+
+function visibleTaskForBlockedWeeklyExit(args: {
+  output: WeeklyReviewLocalDispatcherOutput;
+  flow: WeeklyReviewLocalFlowState;
+}): WeeklyReviewVisibleTaskKind {
+  if (weeklyExitIsStillWeeklyRelated(args.output)) {
+    const haystack = weeklyExitHaystack(args.output);
+    if (/synthese|synthèse|recap|résum|resume/.test(haystack)) {
+      return "weekly_synthesis";
+    }
+    if (/cloture|clôture|termin/.test(haystack)) {
+      return "weekly_closure";
+    }
   }
+  return nextRequiredWeeklyStep(args.flow) ?? "weekly_synthesis";
 }
 
-function childHandoffGuard(output: WeeklyReviewLocalDispatcherOutput): {
+function completionGuard(args: {
+  output: WeeklyReviewLocalDispatcherOutput;
+  gates: WeeklyReviewGates;
+}): {
   reason_code: string;
   visible_task: WeeklyReviewVisibleTaskKind;
   stage: WeeklyReviewLocalFlowState["stage"];
 } | null {
-  if (output.flow_action !== "handoff_to_local_flow") return null;
-  const targetKind = detourKindForTarget(output.target_dispatcher);
-  const detour = output.detour_candidate.kind === "none"
-    ? { ...output.detour_candidate, kind: targetKind }
-    : output.detour_candidate;
-  if (targetKind === "none") {
-    return {
-      reason_code: "weekly_review_child_handoff_unknown_target",
-      visible_task: "qualify_solution_fit",
-      stage: "solution_fit",
-    };
-  }
-  if (
-    detour.readiness !== "user_confirmed" ||
-    detour.user_consent !== true
-  ) {
-    return {
-      reason_code: "weekly_review_child_handoff_requires_user_confirmed_fit",
-      visible_task: detour.kind === "attack_card" ||
-          detour.kind === "defense_card"
-        ? "qualify_attack_or_defense_fit"
-        : "offer_child_detour",
-      stage: detour.kind === "attack_card" || detour.kind === "defense_card"
-        ? "action_blocker"
-        : "solution_fit",
-    };
-  }
-  if (
-    (detour.kind === "attack_card" || detour.kind === "defense_card") &&
-    !detour.target_action_or_plan
-  ) {
-    return {
-      reason_code: "weekly_review_card_handoff_requires_action_focus",
-      visible_task: "explore_action_blocker",
-      stage: "action_blocker",
-    };
-  }
-  if (
-    detour.kind === "adjust_plan_item" &&
-    (output.handoff_updates.scope.kind === "none" ||
-      output.handoff_updates.scope.kind === "ambiguous" ||
-      output.handoff_updates.scope.needs_scope_clarification)
-  ) {
-    return {
-      reason_code: "weekly_review_adjust_plan_detour_requires_clear_scope",
-      visible_task: "qualify_solution_fit",
-      stage: "solution_fit",
-    };
-  }
-  return null;
-}
-
-function completionGuard(output: WeeklyReviewLocalDispatcherOutput): {
-  reason_code: string;
-  visible_task: WeeklyReviewVisibleTaskKind;
-  stage: WeeklyReviewLocalFlowState["stage"];
-} | null {
+  const output = args.output;
   if (
     output.flow_action !== "complete_flow" &&
     output.flow_action !== "complete_weekly_no_change"
   ) return null;
-  if (output.weekly_gates.synthesis_status !== "complete") {
+  const gates = args.gates;
+  if (gates.synthesis_status !== "complete") {
     return {
       reason_code: "weekly_review_completion_requires_synthesis",
       visible_task: "weekly_synthesis",
       stage: "synthesis",
     };
   }
-  if (
-    output.weekly_gates.closure_status !== "complete" ||
-    output.visible_task.kind !== "weekly_closure"
-  ) {
+  if (gates.closure_status !== "complete") {
     return {
       reason_code: "weekly_review_completion_requires_closure",
       visible_task: "weekly_closure",
@@ -2356,7 +2817,7 @@ function weeklyStageForVisibleTask(
     case "qualify_solution_fit":
     case "offer_child_detour":
       return "solution_fit";
-    case "return_from_child_flow":
+    case "weekly_adjust_recommendation":
     case "weekly_synthesis":
       return "synthesis";
     case "weekly_closure":
@@ -2364,6 +2825,89 @@ function weeklyStageForVisibleTask(
     default:
       return "strategy_ready";
   }
+}
+
+function visibleTaskAfterStructuredReducerGuards(args: {
+  output: WeeklyReviewLocalDispatcherOutput;
+  nextGates: WeeklyReviewGates;
+  previousFlow: WeeklyReviewLocalFlowState;
+}): WeeklyReviewVisibleTaskKind {
+  if (
+    proposedAdjustRecommendationNeedsVisibleSurface(args.output) &&
+    args.output.flow_action !== "complete_flow" &&
+    args.output.flow_action !== "complete_weekly_no_change"
+  ) {
+    return "weekly_adjust_recommendation";
+  }
+  if (
+    adjustRecommendationNeedsVisibleSurface({
+      previousFlow: args.previousFlow,
+      output: args.output,
+    }) &&
+    args.output.visible_task.kind === "weekly_closure"
+  ) {
+      return "weekly_adjust_recommendation";
+  }
+  if (
+    args.output.visible_task.kind === "weekly_adjust_recommendation" &&
+    !adjustRecommendationReadyForVisibleTask({
+      previousFlow: args.previousFlow,
+      output: args.output,
+    })
+  ) {
+    return nextRequiredWeeklyStep({
+      ...args.previousFlow,
+      weekly_gates: args.nextGates,
+    }) ?? "weekly_synthesis";
+  }
+  if (
+    (args.output.flow_action === "complete_flow" ||
+      args.output.flow_action === "complete_weekly_no_change") &&
+    args.nextGates.closure_status === "complete"
+  ) {
+    return "weekly_closure";
+  }
+  return args.output.visible_task.kind;
+}
+
+function adjustRecommendationReadyForVisibleTask(args: {
+  previousFlow: WeeklyReviewLocalFlowState;
+  output: WeeklyReviewLocalDispatcherOutput;
+}): boolean {
+  const proposed = args.output.adjust_recommendation;
+  const previous = args.previousFlow.adjust_recommendation;
+  return (
+    proposed.safe_to_surface &&
+    proposed.confidence >= WEEKLY_ADJUST_RECOMMENDATION_CONFIDENCE_THRESHOLD &&
+    (proposed.status === "ready" || proposed.status === "surfaced")
+  ) || (
+    previous.safe_to_surface &&
+    previous.confidence >= WEEKLY_ADJUST_RECOMMENDATION_CONFIDENCE_THRESHOLD &&
+    (previous.status === "ready" || previous.status === "surfaced")
+  );
+}
+
+function proposedAdjustRecommendationNeedsVisibleSurface(
+  output: WeeklyReviewLocalDispatcherOutput,
+): boolean {
+  const proposed = output.adjust_recommendation;
+  return proposed.safe_to_surface &&
+    proposed.confidence >= WEEKLY_ADJUST_RECOMMENDATION_CONFIDENCE_THRESHOLD &&
+    !proposed.surfaced_in_weekly &&
+    (proposed.status === "ready" || proposed.status === "surfaced");
+}
+
+function adjustRecommendationNeedsVisibleSurface(args: {
+  previousFlow: WeeklyReviewLocalFlowState;
+  output: WeeklyReviewLocalDispatcherOutput;
+}): boolean {
+  const previous = args.previousFlow.adjust_recommendation;
+  const previousReady = previous.safe_to_surface &&
+    previous.confidence >= WEEKLY_ADJUST_RECOMMENDATION_CONFIDENCE_THRESHOLD &&
+    !previous.surfaced_in_weekly &&
+    (previous.status === "ready" || previous.status === "surfaced");
+  return previousReady ||
+    proposedAdjustRecommendationNeedsVisibleSurface(args.output);
 }
 
 function weeklyGateOrderGuard(args: {
@@ -2380,14 +2924,13 @@ function weeklyGateOrderGuard(args: {
   if (
     action === "defer_flow" ||
     action === "exit_to_global_dispatcher" ||
-    action === "safety_preempt" ||
-    action === "handoff_to_local_flow" ||
-    action === "inline_tool_roundtrip"
+    action === "safety_preempt"
   ) return null;
   const task = args.output.visible_task.kind;
   const guardedTasks = new Set<WeeklyReviewVisibleTaskKind>([
     "qualify_solution_fit",
     "offer_child_detour",
+    "weekly_adjust_recommendation",
     "weekly_synthesis",
     "weekly_closure",
   ]);
@@ -2403,8 +2946,7 @@ function weeklyGateOrderGuard(args: {
     required === "review_action_gaps" ||
     required === "explore_action_blocker" ||
     required === "ask_global_progress_feeling" ||
-    required === "deepen_global_progress" ||
-    required === "return_from_child_flow"
+    required === "deepen_global_progress"
   ) {
     return {
       reason_code: `weekly_review_gate_order_requires_${required}`,
@@ -2423,6 +2965,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
   const output = args.output;
   const summary = summarizeOutput(output);
   const now = new Date().toISOString();
+  const planningContext = previousFlow.weekly_planning_context;
   const baseAudit = createWeeklyStateMutationAudit(output);
   const nextSignals: WeeklyHumanSignals = {
     objective_delta: output.human_signal_updates.objective_delta ??
@@ -2436,23 +2979,42 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     previousFlow.weekly_gates,
     output.weekly_gates,
   );
-  const visibleClosureShouldComplete =
+  const adjustSurfaceRequired = adjustRecommendationNeedsVisibleSurface({
+    previousFlow,
+    output,
+  });
+  const visibleClosureShouldComplete = !adjustSurfaceRequired &&
     output.visible_task.kind === "weekly_closure" &&
-    nextGatesBase.synthesis_status === "complete" &&
-    output.weekly_intent.kind === "weekly_confirmation" &&
     (
-      output.flow_action === "confirm_weekly_diagnostic" ||
-      output.flow_action === "answer_weekly_question" ||
-      output.flow_action === "recap_weekly"
+      nextGatesBase.synthesis_status === "complete" ||
+      previousFlow.synthesis_visible_status === "rendered"
     );
-  const nextGates: WeeklyReviewGates = visibleClosureShouldComplete
+  const nextGatesWithClosure: WeeklyReviewGates = adjustSurfaceRequired
+    ? {
+      ...nextGatesBase,
+      closure_status: previousFlow.weekly_gates.closure_status === "complete"
+        ? "complete"
+        : "missing",
+    }
+    : visibleClosureShouldComplete
     ? { ...nextGatesBase, closure_status: "complete" }
     : nextGatesBase;
+  const nextGates = applyWeeklyVisibleGateInvariants({
+    gates: applyWeeklyGateInvariants(
+      nextGatesWithClosure,
+      output,
+    ),
+    previousFlow,
+    output,
+  });
   const nextActionStatusCorrections = mergeActionStatusCorrections(
     previousFlow.user_corrected_action_statuses,
     output.action_status_updates,
   );
-  const detourClearAllowed = weeklyDetourClearAllowed(output);
+  const detourClearAllowed = weeklyDetourClearAllowed(
+    output,
+    previousFlow.detour_candidate,
+  );
   const nextDetour = output.detour_candidate.kind === "none"
     ? detourClearAllowed
       ? output.detour_candidate
@@ -2468,18 +3030,122 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
   const maxTurns = previousFlow.max_turns || 6;
   const turnLimitReached = turnCount >= maxTurns &&
     output.flow_action !== "exit_to_global_dispatcher" &&
-    output.flow_action !== "safety_preempt" &&
-    output.flow_action !== "handoff_to_local_flow" &&
-    output.flow_action !== "inline_tool_roundtrip";
+    output.flow_action !== "safety_preempt";
   const turnLimitCloseAllowed = turnLimitReached &&
     nextGates.synthesis_status === "complete" &&
     nextGates.closure_status === "complete" &&
     output.visible_task.kind === "weekly_closure";
+  const weeklySafetyExit = output.flow_action === "safety_preempt" ||
+    output.risk_score >= 7 ||
+    output.weekly_intent.kind === "safety" ||
+    output.note_information?.handoff_reason === "safety";
 
-  if (dispatcherChangeRequiresNote(output.flow_action)) {
+  if (
+    output.flow_action === "exit_to_global_dispatcher" &&
+    !weeklySafetyExit &&
+    !weeklyReviewCompleteEnoughForExit(nextGates) &&
+    !weeklyExitAllowedBeforeClosure(output)
+  ) {
+    const guardedVisibleTask = visibleTaskForBlockedWeeklyExit({
+      output,
+      flow: {
+        ...previousFlow,
+        weekly_gates: nextGates,
+        detour_candidate: nextDetour,
+      },
+    });
+    const guardedFlow: WeeklyReviewLocalFlowState = {
+      ...previousFlow,
+      stage: weeklyStageForVisibleTask(guardedVisibleTask),
+      proposal_status: previousFlow.proposal_status,
+      validation_unlock_status: "locked_until_weekly_complete",
+      human_signals: nextSignals,
+      felt_progress: nextFeltProgress,
+      weekly_gates: nextGates,
+      detour_candidate: nextDetour,
+      synthesis_visible_status: synthesisVisibleStatusAfterVisibleTask(
+        previousFlow.synthesis_visible_status,
+        guardedVisibleTask,
+      ),
+      child_flow: childFlowForTurn,
+      weekly_planning_context: planningContext,
+      adjust_recommendation: mergeAdjustRecommendation({
+        previous: previousFlow.adjust_recommendation,
+        proposed: output.adjust_recommendation,
+        planningContext,
+        visibleTask: guardedVisibleTask,
+        now,
+      }),
+      user_corrected_action_statuses: nextActionStatusCorrections,
+      last_user_signal: output.human_signal_updates.user_summary ??
+        previousFlow.last_user_signal,
+      last_visible_summary: output.weekly_intent.summary ||
+        previousFlow.last_visible_summary,
+      last_handoff_summary: handoffSummary,
+      turn_count: turnCount,
+      max_turns: maxTurns,
+      updated_at: now,
+    };
+    const guardedMerge = mergeWeeklyReviewLocalState({
+      previous: previousFlow,
+      proposed: guardedFlow,
+      output,
+      transition: "weekly_review_exit_blocked_until_synthesis_closure",
+      now,
+      constraints: {
+        allowDetourChange: output.detour_candidate.kind !== "none",
+        allowDetourClear: detourClearAllowed,
+        allowChildFlowChange: Boolean(output.handoff_updates.revision_summary),
+      },
+    });
+    const guardedState = {
+      ...args.previousWeeklyState,
+      status: "open",
+      weekly_flow_state: guardedMerge.state,
+      updated_at: now,
+    };
+    return {
+      status: "answered",
+      reason_code: "weekly_review_exit_blocked_until_synthesis_closure",
+      weekly_state: guardedState,
+      visible_task: guardedVisibleTask,
+      exit_to_global_dispatcher: false,
+      tool_execution: "none",
+      handoff_summary: handoffSummary,
+      answer_summary: summary,
+      target_dispatcher: "none",
+      note_information: null,
+      child_flow_handoff: null,
+      conversation_context: buildWeeklyConversationContext({
+        weeklyState: args.previousWeeklyState,
+        output,
+        reducedState: guardedState,
+        handoffSummary,
+        visibleTask: guardedVisibleTask,
+      }),
+      blocked_effects: [{
+        type: "weekly_adaptive_review_v1",
+        reason_code: "weekly_exit_requires_synthesis_and_closure",
+      }],
+      state_mutation_audit: guardedMerge.audit,
+      evidence: output.evidence,
+    };
+  }
+
+  if (
+    dispatcherChangeRequiresNote(output.flow_action) || output.risk_score >= 7
+  ) {
     if (!output.note_information) {
       const blockedFlow = {
         ...previousFlow,
+        weekly_planning_context: planningContext,
+        adjust_recommendation: mergeAdjustRecommendation({
+          previous: previousFlow.adjust_recommendation,
+          proposed: output.adjust_recommendation,
+          planningContext,
+          visibleTask: "exit_or_cancel",
+          now,
+        }),
         turn_count: turnCount,
         updated_at: now,
       };
@@ -2506,6 +3172,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
         answer_summary: null,
         target_dispatcher: output.target_dispatcher,
         note_information: null,
+        child_flow_handoff: null,
         conversation_context: buildWeeklyConversationContext({
           weeklyState: args.previousWeeklyState,
           output,
@@ -2523,6 +3190,29 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     }
   }
 
+  if (weeklySafetyExit) {
+    return {
+      status: "exit",
+      reason_code: "weekly_review_safety_exit_to_global_dispatcher",
+      weekly_state: null,
+      visible_task: "exit_or_cancel",
+      exit_to_global_dispatcher: true,
+      tool_execution: "none",
+      handoff_summary: handoffSummary,
+      answer_summary: null,
+      target_dispatcher: "global",
+      note_information: output.note_information,
+      child_flow_handoff: null,
+      conversation_context: null,
+      blocked_effects: [{
+        type: "weekly_adaptive_review_v1",
+        reason_code: "safety_rerouted_to_global_dispatcher",
+      }],
+      state_mutation_audit: baseAudit,
+      evidence: output.evidence,
+    };
+  }
+
   if (output.flow_action === "exit_to_global_dispatcher") {
     return {
       status: "exit",
@@ -2533,142 +3223,12 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       tool_execution: "none",
       handoff_summary: handoffSummary,
       answer_summary: null,
-      target_dispatcher: "global",
+      target_dispatcher: output.target_dispatcher === "none"
+        ? "global"
+        : output.target_dispatcher,
       note_information: output.note_information,
+      child_flow_handoff: null,
       conversation_context: null,
-      blocked_effects: [],
-      state_mutation_audit: baseAudit,
-      evidence: output.evidence,
-    };
-  }
-
-  if (output.flow_action === "safety_preempt" || output.risk_score >= 7) {
-    return {
-      status: "safety",
-      reason_code: "weekly_review_safety_preempt",
-      weekly_state: null,
-      visible_task: "safety",
-      exit_to_global_dispatcher: false,
-      tool_execution: "none",
-      handoff_summary: handoffSummary,
-      answer_summary: null,
-      target_dispatcher: "safety_crisis",
-      note_information: output.note_information,
-      conversation_context: null,
-      blocked_effects: [{
-        type: "weekly_adaptive_review_v1",
-        reason_code: "safety_preempt",
-      }],
-      state_mutation_audit: baseAudit,
-      evidence: output.evidence,
-    };
-  }
-
-  const childGuard = childHandoffGuard(output);
-  if (childGuard) {
-    const guardedFlow: WeeklyReviewLocalFlowState = {
-      ...previousFlow,
-      stage: childGuard.stage,
-      proposal_status: previousFlow.proposal_status,
-      validation_unlock_status: "locked_until_weekly_complete",
-      human_signals: nextSignals,
-      felt_progress: nextFeltProgress,
-      weekly_gates: nextGates,
-      detour_candidate: nextDetour,
-      user_corrected_action_statuses: nextActionStatusCorrections,
-      child_flow: childFlowForTurn,
-      last_user_signal: output.human_signal_updates.user_summary ??
-        previousFlow.last_user_signal,
-      last_visible_summary: output.weekly_intent.summary ||
-        previousFlow.last_visible_summary,
-      last_handoff_summary: handoffSummary,
-      turn_count: turnCount,
-      max_turns: maxTurns,
-      updated_at: now,
-    };
-    const guardedMerge = mergeWeeklyReviewLocalState({
-      previous: previousFlow,
-      proposed: guardedFlow,
-      output,
-      transition: childGuard.reason_code,
-      now,
-      constraints: {
-        allowDetourChange: output.detour_candidate.kind !== "none",
-        allowDetourClear: detourClearAllowed,
-        allowChildFlowChange: Boolean(output.handoff_updates.revision_summary),
-      },
-    });
-    const guardedState = {
-      ...args.previousWeeklyState,
-      status: "open",
-      weekly_flow_state: guardedMerge.state,
-      updated_at: now,
-    };
-    return {
-      status: "answered",
-      reason_code: childGuard.reason_code,
-      weekly_state: guardedState,
-      visible_task: childGuard.visible_task,
-      exit_to_global_dispatcher: false,
-      tool_execution: "blocked",
-      handoff_summary: handoffSummary,
-      answer_summary: summary,
-      target_dispatcher: "none",
-      note_information: null,
-      conversation_context: buildWeeklyConversationContext({
-        weeklyState: args.previousWeeklyState,
-        output,
-        reducedState: guardedState,
-        handoffSummary,
-        visibleTask: childGuard.visible_task,
-      }),
-      blocked_effects: [{
-        type: "weekly_adaptive_review_v1",
-        reason_code: childGuard.reason_code,
-      }],
-      state_mutation_audit: guardedMerge.audit,
-      evidence: output.evidence,
-    };
-  }
-
-  if (output.flow_action === "handoff_to_local_flow") {
-    return {
-      status: "handoff_to_local_flow",
-      reason_code: "weekly_review_local_handoff_to_local_flow",
-      weekly_state: null,
-      visible_task: "exit_or_cancel",
-      exit_to_global_dispatcher: false,
-      tool_execution: "none",
-      handoff_summary: handoffSummary,
-      answer_summary: null,
-      target_dispatcher: output.target_dispatcher,
-      note_information: output.note_information,
-      conversation_context: null,
-      blocked_effects: [],
-      state_mutation_audit: baseAudit,
-      evidence: output.evidence,
-    };
-  }
-
-  if (output.flow_action === "inline_tool_roundtrip") {
-    return {
-      status: "inline_tool_roundtrip",
-      reason_code: "weekly_review_local_inline_tool_roundtrip",
-      weekly_state: args.previousWeeklyState,
-      visible_task: "inline_tool_return",
-      exit_to_global_dispatcher: false,
-      tool_execution: "none",
-      handoff_summary: handoffSummary,
-      answer_summary: null,
-      target_dispatcher: output.target_dispatcher,
-      note_information: output.note_information,
-      conversation_context: buildWeeklyConversationContext({
-        weeklyState: args.previousWeeklyState,
-        output,
-        reducedState: args.previousWeeklyState,
-        handoffSummary,
-        visibleTask: "inline_tool_return",
-      }),
       blocked_effects: [],
       state_mutation_audit: baseAudit,
       evidence: output.evidence,
@@ -2685,10 +3245,6 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     nextDetour,
   });
   if (gateOrderGuard) {
-    const guardedChildFlow = gateOrderGuard.visible_task ===
-        "return_from_child_flow"
-      ? childFlowWithReturnAcknowledged(childFlowForTurn)
-      : childFlowForTurn;
     const guardedFlow: WeeklyReviewLocalFlowState = {
       ...previousFlow,
       stage: gateOrderGuard.stage,
@@ -2698,7 +3254,19 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       felt_progress: nextFeltProgress,
       weekly_gates: nextGates,
       detour_candidate: nextDetour,
-      child_flow: guardedChildFlow,
+      synthesis_visible_status: synthesisVisibleStatusAfterVisibleTask(
+        previousFlow.synthesis_visible_status,
+        gateOrderGuard.visible_task,
+      ),
+      child_flow: childFlowForTurn,
+      weekly_planning_context: planningContext,
+      adjust_recommendation: mergeAdjustRecommendation({
+        previous: previousFlow.adjust_recommendation,
+        proposed: output.adjust_recommendation,
+        planningContext,
+        visibleTask: gateOrderGuard.visible_task,
+        now,
+      }),
       user_corrected_action_statuses: nextActionStatusCorrections,
       last_user_signal: output.human_signal_updates.user_summary ??
         previousFlow.last_user_signal,
@@ -2718,9 +3286,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       constraints: {
         allowDetourChange: output.detour_candidate.kind !== "none",
         allowDetourClear: detourClearAllowed,
-        allowChildFlowChange: gateOrderGuard.visible_task ===
-            "return_from_child_flow" ||
-          Boolean(output.handoff_updates.revision_summary),
+        allowChildFlowChange: Boolean(output.handoff_updates.revision_summary),
       },
     });
     const guardedState = {
@@ -2740,6 +3306,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       answer_summary: summary,
       target_dispatcher: "none",
       note_information: null,
+      child_flow_handoff: null,
       conversation_context: buildWeeklyConversationContext({
         weeklyState: args.previousWeeklyState,
         output,
@@ -2756,7 +3323,9 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     };
   }
 
-  const finishGuard = completionGuard(output);
+  const finishGuard = adjustSurfaceRequired
+    ? null
+    : completionGuard({ output, gates: nextGates });
   const continuationGuard = finishGuard;
   if (continuationGuard) {
     const guardedGates = finishGuard?.visible_task === "weekly_synthesis"
@@ -2776,7 +3345,19 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       felt_progress: nextFeltProgress,
       weekly_gates: guardedGates,
       detour_candidate: nextDetour,
+      synthesis_visible_status: synthesisVisibleStatusAfterVisibleTask(
+        previousFlow.synthesis_visible_status,
+        continuationGuard.visible_task,
+      ),
       child_flow: childFlowForTurn,
+      weekly_planning_context: planningContext,
+      adjust_recommendation: mergeAdjustRecommendation({
+        previous: previousFlow.adjust_recommendation,
+        proposed: output.adjust_recommendation,
+        planningContext,
+        visibleTask: continuationGuard.visible_task,
+        now,
+      }),
       user_corrected_action_statuses: nextActionStatusCorrections,
       last_user_signal: output.human_signal_updates.user_summary ??
         previousFlow.last_user_signal,
@@ -2816,6 +3397,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       answer_summary: summary,
       target_dispatcher: "none",
       note_information: null,
+      child_flow_handoff: null,
       conversation_context: buildWeeklyConversationContext({
         weeklyState: args.previousWeeklyState,
         output,
@@ -2829,23 +3411,38 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     };
   }
 
-  const closeAfterVisible = output.state_updates.close_after_visible ||
-    visibleClosureShouldComplete ||
-    turnLimitCloseAllowed ||
-    output.flow_action === "complete_weekly_no_change" ||
-    output.flow_action === "complete_flow" ||
-    output.flow_action === "defer_flow";
+  const visibleTask = output.flow_action === "defer_flow"
+    ? "stop_or_cancel"
+    : visibleTaskAfterStructuredReducerGuards({
+      output,
+      nextGates,
+      previousFlow,
+    });
+  const closeAfterVisible = output.flow_action === "defer_flow" ||
+    (!adjustSurfaceRequired && (
+      output.state_updates.close_after_visible ||
+      visibleClosureShouldComplete ||
+      turnLimitCloseAllowed ||
+      output.flow_action === "complete_weekly_no_change" ||
+      output.flow_action === "complete_flow"
+    ));
   const nextStatus = output.flow_action === "defer_flow"
     ? "stopped"
     : closeAfterVisible
     ? "completed"
+    : adjustSurfaceRequired
+    ? "open"
     : output.state_updates.status;
   const validationUnlockStatus = nextStatus === "completed"
     ? "available"
     : output.state_updates.validation_unlock_status;
   const nextFlow: WeeklyReviewLocalFlowState = {
     ...previousFlow,
-    stage: closeAfterVisible ? "closing" : output.state_updates.weekly_stage,
+    stage: closeAfterVisible
+      ? "closing"
+      : visibleTask !== output.visible_task.kind
+      ? weeklyStageForVisibleTask(visibleTask)
+      : output.state_updates.weekly_stage,
     proposal_status: output.handoff_updates.status === "requested" ||
         output.handoff_updates.status === "ready" ||
         output.handoff_updates.status === "delivered"
@@ -2858,9 +3455,19 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     felt_progress: nextFeltProgress,
     weekly_gates: nextGates,
     detour_candidate: nextDetour,
-    child_flow: output.visible_task.kind === "return_from_child_flow"
-      ? childFlowWithReturnAcknowledged(childFlowForTurn)
-      : childFlowForTurn,
+    synthesis_visible_status: synthesisVisibleStatusAfterVisibleTask(
+      previousFlow.synthesis_visible_status,
+      visibleTask,
+    ),
+    child_flow: childFlowForTurn,
+    weekly_planning_context: planningContext,
+    adjust_recommendation: mergeAdjustRecommendation({
+      previous: previousFlow.adjust_recommendation,
+      proposed: output.adjust_recommendation,
+      planningContext,
+      visibleTask,
+      now,
+    }),
     user_corrected_action_statuses: nextActionStatusCorrections,
     last_user_signal: output.human_signal_updates.user_summary ??
       previousFlow.last_user_signal,
@@ -2880,9 +3487,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       allowValidationUnlock: nextStatus === "completed",
       allowDetourChange: output.detour_candidate.kind !== "none",
       allowDetourClear: detourClearAllowed,
-      allowChildFlowChange: output.visible_task.kind ===
-          "return_from_child_flow" ||
-        Boolean(output.handoff_updates.revision_summary),
+      allowChildFlowChange: Boolean(output.handoff_updates.revision_summary),
     },
   });
   const effectiveValidationUnlockStatus =
@@ -2915,13 +3520,6 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
       : args.previousWeeklyState.validation_unlock,
     updated_at: now,
   };
-  const visibleTask = output.flow_action === "defer_flow"
-    ? "stop_or_cancel"
-    : (output.flow_action === "complete_flow" ||
-        output.flow_action === "complete_weekly_no_change") &&
-        output.visible_task.kind === "weekly_closure"
-    ? "weekly_closure"
-    : output.visible_task.kind;
   const conversationContext = buildWeeklyConversationContext({
     weeklyState: args.previousWeeklyState,
     output,
@@ -2940,6 +3538,7 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
     answer_summary: summary,
     target_dispatcher: "none",
     note_information: null,
+    child_flow_handoff: null,
     conversation_context: conversationContext,
     blocked_effects: [],
     state_mutation_audit: nextMerge.audit,
@@ -2950,13 +3549,15 @@ export function reduceWeeklyReviewLocalDispatcherOutput(args: {
 function dispatcherSystemPrompt(): string {
   return [
     "Tu es le dispatcher local du flow weekly_adaptive_review_v1.",
-    "Contexte: Sophia a envoye un point weekly de fin de semaine. Le weekly lit les preuves daily/dashboard, mene un bilan coaching, qualifie les detours utiles, revient au weekly apres tout detour, puis produit une synthese et une cloture.",
-    "Le weekly ne modifie jamais le plan depuis le chat.",
-    "Frontiere chat/outils: Sophia n'a jamais deja une carte, une potion, un rappel ou un ajustement Plan disponible depuis le chat; elle peut seulement proposer ou lancer un detour local qui prepare un handoff plateforme ou un flow dedie.",
+    "Contexte: Sophia a envoye un point weekly de fin de semaine. Le weekly lit les preuves daily/dashboard, mene un bilan coaching, clarifie les signaux humains, accepte les corrections de progression, produit une synthese et une cloture.",
+    "Le weekly ne modifie jamais le plan depuis le chat et ne lance aucun child flow coaching.",
+    "Frontiere chat/outils: Sophia n'a jamais deja une carte, une potion, un rappel recurrent, un status detaille ou un ajustement Plan disponible depuis le chat. Ces demandes sortent vers global avec contexte.",
     "Tu n'es pas le dispatcher global. Tu ne reponds jamais directement au user.",
     "Tu retournes uniquement un JSON conforme au contrat.",
+    "Sortie sparse obligatoire: fournis seulement les champs utiles a la decision courante. Omet les champs null, false, 0, tableaux vides ou objets par defaut; le reducer/runtime reconstruit les defaults.",
+    "weekly_state.weekly_flow_state.weekly_planning_context est deterministe et fait autorite: mode next_week_configured => recommandation eventuelle vers Ajuster mon plan dans la plateforme; mode next_level_required => recommandation eventuelle vers validation du niveau/prochains inputs, jamais vers Ajuster mon plan.",
     "",
-    "Actions possibles: answer_weekly_question, confirm_weekly_diagnostic, reject_weekly_diagnostic, clarify_human_signal, recap_weekly, explain_weekly_reasoning, forgotten_progress_correction, clarify_forgotten_progress, complete_weekly_no_change, complete_flow, exit_to_global_dispatcher, defer_flow, inline_tool_roundtrip, handoff_to_local_flow, safety_preempt.",
+    "Actions possibles: answer_weekly_question, confirm_weekly_diagnostic, reject_weekly_diagnostic, clarify_human_signal, recap_weekly, explain_weekly_reasoning, forgotten_progress_correction, clarify_forgotten_progress, complete_weekly_no_change, complete_flow, exit_to_global_dispatcher, defer_flow.",
     "",
     "Regles:",
     ...directEffectLocalDispatcherPromptLines(),
@@ -2965,63 +3566,63 @@ function dispatcherSystemPrompt(): string {
     "- Interprete le message par rapport au weekly actif.",
     "- Ne recalcule pas la projection factuelle.",
     "- Ne dis jamais qu'un changement de plan est applique.",
-    "- Ordre sain obligatoire: ask_week_experience -> review_action_gaps -> explore_action_blocker si necessaire -> ask_global_progress_feeling/deepen_global_progress -> qualify_solution_fit -> offer_child_detour/handoff_to_local_flow si confirme -> return_from_child_flow si detour -> weekly_synthesis -> weekly_closure.",
+    "- Ne construis jamais de patch Plan, de pending confirmation Plan, ni de formulation type ce qui bougerait / ce qui resterait.",
+    "- Tant que weekly_synthesis et weekly_closure ne sont pas completes, ne sors pas du weekly pour une demande liee au bilan, a la semaine suivante, a la suite, au plan, a l'ajustement, a une recommandation, a la synthese ou a la cloture. Ces demandes restent dans weekly_adaptive_review_v1.",
+    "- Ordre sain obligatoire: ask_week_experience -> review_action_gaps -> explore_action_blocker si necessaire -> ask_global_progress_feeling/deepen_global_progress -> qualify_solution_fit si utile -> weekly_synthesis -> weekly_closure.",
     "- Sophia mene le weekly: ne laisse pas le user conduire directement vers un outil si les gates obligatoires sont manquants.",
-    "- Tant que global_progress_status ou felt_progress_status est missing, ne choisis pas qualify_solution_fit, offer_child_detour, weekly_synthesis ou weekly_closure. Utilise ask_global_progress_feeling ou deepen_global_progress, sauf si le message courant donne deja clairement le ressenti d'avancee vers l'objectif global.",
+    "- Tant que global_progress_status ou felt_progress_status est missing, ne choisis pas qualify_solution_fit, weekly_synthesis ou weekly_closure. Utilise ask_global_progress_feeling ou deepen_global_progress, sauf si le message courant donne deja clairement le ressenti d'avancee vers l'objectif global.",
+    "- Ne redemande pas un signal deja donne. Si le user fournit une cause claire, un contexte clair et un impact clair sur les actions, marque solution_fit_status=captured et avance vers weekly_adjust_recommendation ou weekly_synthesis au lieu de reposer une clarification equivalente.",
     "- Le weekly est un flow parent de bilan strategique: il comprend l'objectif global, l'avancee ressentie, l'energie, les actions et les blocages avant de conclure.",
-    "- Fais de la resistance: une mention de carte, potion, rappel ou Plan est d'abord une hypothese de solution dans le weekly; ne lance un child flow que si le fit est qualifie et que le user consent explicitement.",
-    "- Si un child flow est lance, il est un detour au service du weekly: il doit revenir au weekly ensuite pour synthese et cloture.",
-    "- Si le user demande un ajustement Plan, traite adjust_plan_item comme un child flow/detour avec scope clair, pas comme une fin du weekly ni une execution directe.",
-    "- Fatigue ou frustration ne suffit jamais a ajuster le Plan. Il faut demande explicite et perimetre clair.",
-    "- Carte d'attaque/defense: action precise obligatoire. Attaque = aider a demarrer, franchir une friction d'execution ou produire l'action choisie. Defense = proteger un moment critique, une pulsion, un derapage probable, un contexte a risque, une fatigue qui fait relacher, ou une fenetre a proteger. En cas de fatigue/soir/risque de relache, penche defense ou clarifie; ne choisis pas attack_card par facilite.",
-    "- Potion: seulement si l'etat emotionnel/energie est le sujet principal. Rappel: seulement si le probleme est rythme, relance ou cadre externe.",
+    "- Si le user repond au bilan weekly, reste dans weekly.",
+    "- Si le user demande une carte, une potion, un rappel recurrent, une preference, un status, une verification d'opportunite ou une reparation emotionnelle/demotivation comme capacite distincte et hors bilan weekly, ne lance aucun bridge parent-child: retourne exit_to_global_dispatcher avec target_dispatcher=global. Une demande d'ajustement Plan liee a la semaine ou a la suite reste dans weekly.",
+    "- Si le user demande un rappel ponctuel one-shot avec payload_hint complet tout en continuant le bilan weekly, ne sors pas vers global: reste dans weekly et laisse la lane directe standard gerer le rappel.",
+    "- Si le user quitte vraiment le weekly pour une recommandation Sophia generale hors bilan, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global. Le dispatcher global decidera la suite. S'il demande quoi utiliser, quoi faire la semaine prochaine, quel ajustement envisager, une synthese ou une cloture dans le cadre du weekly, reste dans weekly.",
+    "- Si le user pose une question produit explicite sur Sophia ou une fonctionnalite, retourne exit_to_global_dispatcher avec target_dispatcher=global et handoff_hint_for_global_dispatcher.likely_intent=product_help. Le global decidera product_help; le weekly ne lance aucun sous-flow produit.",
+    "- Si le user pose une question factuelle/status pendant le weekly, retourne exit_to_global_dispatcher target_dispatcher=global avec le contexte; ne fais pas de status inline.",
     "- Si plusieurs plans/actions sont dans le weekly, preserve toujours le contexte plan/action.",
     "- Si le scope plan/action est ambigu, clarifie au lieu de melanger les plans.",
     "- Si le user corrige une progression oubliee, ne l'assimile pas a un ajustement Plan.",
     "- Si le user mentionne une progression passee, par exemple une action faite jeudi, stocke-la comme correction weekly a clarifier/valider; ne dis pas que c'est corrige sans commit dedie.",
-    "- Si le user revise une formulation ou un champ apres un child flow livre, reste dans le weekly, mets handoff_updates.status=delivered ou revised, remplis handoff_updates.revision_summary, puis utilise return_from_child_flow avant une synthese finale.",
-    "- Child flows autorises seulement comme detours: adjust_plan_item, prepare_attack_card, prepare_defense_card, select_state_potion, create_one_shot_reminder, create_recurring_reminder.",
-    "- Si le user pose une question produit temporaire pendant le weekly, retourne inline_tool_roundtrip target_dispatcher=product_help.",
-    "- Si le user pose une question DB/status temporaire pendant le weekly, retourne inline_tool_roundtrip target_dispatcher=status_recap.",
     "- Si le user change de sujet sans dispatcher local cible clair, retourne exit_to_global_dispatcher target_dispatcher=global.",
-    "- Si le user veut arreter le weekly, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global. Le message est ensuite réanalysé par le dispatcher global.",
+    "- Si le user veut arreter le weekly, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=global. Le message est ensuite reanalyse par le dispatcher global.",
     "- Si le user veut seulement reporter le weekly sans changer de dispatcher, retourne defer_flow.",
-    "- Pour handoff_to_local_flow, inline_tool_roundtrip, safety_preempt ou exit_to_global_dispatcher, fournis note_information canonique.",
+    "- Si le message contient un vrai signal safety, retourne exit_to_global_dispatcher avec target_dispatcher=global et note_information.handoff_reason=safety. Le global dispatcher reprend le message et doit router safety.",
+    "- Pour exit_to_global_dispatcher, fournis note_information canonique.",
     "",
     "Field Completion Rules:",
-    "- flow_action: decision principale du tour courant. Choisis une action de continuation weekly si le user repond au bilan, parle de son objectif global, de son ressenti d'avancee, d'une action, d'un blocage, d'une hypothese de solution, demande un recap ou corrige une progression. Choisis exit_to_global_dispatcher si le user arrete le weekly, quitte vraiment le weekly ou demande un sujet hors bilan. Choisis defer_flow seulement pour reporter localement. Choisis safety_preempt pour safety reelle. Choisis handoff_to_local_flow seulement pour lancer un child flow utile et suffisamment clair, avec retour weekly attendu. Choisis inline_tool_roundtrip seulement pour une question produit/status temporaire pendant le weekly. Ne base jamais l'action sur l'etat precedent seul.",
+    "- flow_action: decision principale du tour courant. Choisis une action de continuation weekly si le user repond au bilan, parle de son objectif global, de son ressenti d'avancee, d'une action, d'un blocage, d'une hypothese de solution, demande quoi faire la semaine prochaine, demande si le plan peut etre ajuste ici, demande un recap, une synthese, une cloture, corrige une progression ou ajoute un rappel ponctuel one-shot a un besoin weekly restant. Choisis exit_to_global_dispatcher seulement si le user arrete/abandonne clairement le weekly, quitte vraiment le weekly pour une capacite hors weekly, une question status/produit, un rappel recurrent, une preference, un sujet hors bilan ou un vrai signal safety. Choisis defer_flow seulement pour reporter localement. Ne base jamais l'action sur l'etat precedent seul.",
     "- confidence: high si l'intention du message courant est claire et compatible avec le weekly; medium si probable mais incomplete; low si clarification ou prudence necessaire. N'utilise pas high pour masquer un scope Plan ambigu.",
-    "- risk_score: score local 0-10. Reste bas pour fatigue, hesitation ou frustration ordinaire. N'invente pas de safety. Si le message contient un vrai risque safety, augmente le score et choisis safety_preempt avec note_information target_dispatcher=safety_crisis.",
-    "- target_dispatcher: none pour toute continuation weekly, defer_flow ou completion. global uniquement avec exit_to_global_dispatcher. safety_crisis uniquement avec safety_preempt. product_help/status_recap uniquement avec inline_tool_roundtrip. adjust_plan_item, prepare_attack_card, prepare_defense_card, select_state_potion, create_one_shot_reminder ou create_recurring_reminder uniquement avec handoff_to_local_flow comme child flow avec retour weekly. N'utilise pas track_progress_plan_item pour une correction retrospective datee sans contrat de date explicite.",
-    "- weekly_intent: resume l'intention weekly du message courant. kind doit suivre flow_action: weekly_answer pour reponse au bilan, weekly_confirmation/rejection pour validation ou rejet, detour_request/detour_revision pour piste outil, forgotten_progress pour correction retrospective, stop/off_topic/explicit_tool_request/safety/unclear selon le cas. summary doit rester court et ne pas inventer de fait.",
+    "- risk_score: score local 0-10 uniquement si non nul ou safety. Reste bas pour fatigue, hesitation ou frustration ordinaire. N'invente pas de safety. Si le message contient un vrai risque safety, augmente le score et choisis exit_to_global_dispatcher avec note_information target_dispatcher=global.",
+    "- target_dispatcher: none pour toute continuation weekly, rappel ponctuel one-shot traite par lane directe, demande d'ajustement liee au weekly, synthese, cloture, defer_flow ou completion. global avec exit_to_global_dispatcher pour les sorties globales, questions produit, status, rappel recurrent, coaching hors weekly et safety.",
+    "- weekly_intent: resume l'intention weekly du message courant. kind doit suivre flow_action: weekly_answer pour reponse au bilan, weekly_confirmation/rejection pour validation ou rejet, forgotten_progress pour correction retrospective, stop/off_topic/explicit_tool_request/safety/unclear selon le cas. summary doit rester court et ne pas inventer de fait.",
     "- human_signal_updates: remplis seulement les signaux humains explicitement fournis ou fortement confirmes dans ce tour. objective_delta = avancee par rapport a l'objectif global. felt_progress = ressenti subjectif sur cette avancee (aligned, encouraged, neutral, frustrated, disconnected, worried, unclear, unknown). felt_state = energie/charge. Mets null quand le message ne parle pas de progression, energie, blocage ou ressenti weekly. Ne transforme pas une hypothese du bilan en fait confirme.",
-    "- handoff_updates: utilise status none si aucun detour Plan n'est en jeu. requested/ready pour preparer le contexte a donner a adjust_plan_item, revised pour modifier la proposition, delivered seulement si le child flow cible indique un retour livre, cancelled si le user refuse ce detour. platform_destination vaut Plan seulement pour adjust_plan_item. scope doit rester none ou ambiguous si le plan/action cible n'est pas clair; ne fabrique pas d'id.",
+    "- handoff_updates: garde status none sauf compatibilite avec un retour deja stocke. Ne prepare pas de handoff Plan depuis ce champ. scope doit rester none ou ambiguous si le plan/action cible n'est pas clair; ne fabrique pas d'id.",
+    "- adjust_recommendation: omets sauf si la confiance est au moins 0.95 avec preuves daily solides, coherence semaine passee/semaine suivante ou niveau suivant, cause claire, action concernee claire, et utilite forte. Ce champ est strictement non-mutant: il ne modifie pas le plan, ne cree pas de patch et ne promet aucun changement. Remplis uniquement what_to_adjust, why, evidence, confidence, target_scope, safe_to_surface=true. Si mode next_week_configured, target_scope=next_week_plan et destination_instruction doit orienter vers Ajuster mon plan. Si mode next_level_required, target_scope=next_level_inputs et destination_instruction doit orienter vers validation du niveau / bilan du niveau suivant. Si le user demande quoi faire la semaine prochaine et que ce champ est deja ready ou peut etre rempli avec ce seuil, choisis visible_task.kind=weekly_adjust_recommendation; sinon continue la collecte ou la synthese.",
     "- forgotten_progress: none par defaut. candidate si le user mentionne une progression oubliee sans cible suffisante. needs_target si la cible manque. ready_for_progress_tool seulement si la cible et l'issue sont assez claires pour le reducer. blocked si la correction est contradictoire ou impossible. Ne confonds pas correction retrospective et ajustement de plan futur.",
+    ...localOneShotDirectEffectPromptLines("le weekly"),
     "- action_status_updates: liste les corrections utilisateur action par action quand le user contredit ou precise la projection DB. Utilise plan_item_id/occurrence_id depuis le contexte si disponible, sinon title exact; corrected_status completed/partial/missed/unknown; user_evidence reprend les mots du user. Laisse [] si aucune correction. Ces corrections battent la projection dans item_summaries et la synthese visible. N'en fais pas un ajustement Plan.",
-    "- weekly_gates: etat de progression du weekly. week_experience_status capture comment la semaine a ete vecue. action_review_status capture la verification actions/gaps. global_progress_status capture le lien a l'objectif global. felt_progress_status capture le ressenti sur cette avancee. solution_fit_status capture la qualification d'une solution. synthesis_status et closure_status doivent etre complete avant completion. Utilise missing si absent, captured si compris, needs_deeper si une precision coaching est necessaire, complete si le gate est suffisamment stable.",
-    "- detour_candidate: hypothese d'outil au service du weekly. kind none par defaut; attack_card/defense_card seulement avec action cible; adjust_plan_item seulement avec demande explicite et scope; select_state_potion pour etat emotionnel/energie; create_one_shot_reminder/create_recurring_reminder pour rappel/cadre. readiness none/explore_fit/offer/user_confirmed. user_consent true seulement si le user accepte clairement de lancer le detour. return_focus doit rappeler que le weekly reprend apres.",
-    "- state_updates: patch d'etat weekly, pas profil global. weekly_stage suit la suite logique du flow: opening, week_experience, action_review, action_blocker, global_progress, solution_fit, child_detour, synthesis, closure, ou anciennes valeurs de compatibilite. status open/completed/stopped/deferred/handoff_to_local_flow/exit_to_global/safety doit correspondre a flow_action. validation_unlock_status devient available seulement apres weekly_closure. close_after_visible true seulement pour stop/defer ou completion apres synthesis+closure.",
-    "- visible_task.kind: stage visible exact pour le prochain prompt local. Priorise ask_week_experience, review_action_gaps, explore_action_blocker, qualify_attack_or_defense_fit, ask_global_progress_feeling, deepen_global_progress, qualify_solution_fit, offer_child_detour, return_from_child_flow, weekly_synthesis, weekly_closure. En defer, utilise stop_or_cancel. En safety, utilise safety_transition ou safety. En transition dispatcher, le message visible source est normalement vide ou exit_or_cancel selon reducer. Si le user confirme la cloture apres une synthese complete, utilise weekly_closure avec weekly_intent.kind=weekly_confirmation.",
+    "- weekly_gates: etat de progression du weekly. week_experience_status capture comment la semaine a ete vecue. action_review_status capture la verification actions/gaps. global_progress_status capture le lien a l'objectif global. felt_progress_status capture le ressenti sur cette avancee. solution_fit_status capture la qualification d'une solution. Si une recommandation d'ajustement safe_to_surface=true est fournie, solution_fit_status doit etre captured ou complete. Ne capture pas solution_fit_status seulement parce que visible_task.kind=weekly_adjust_recommendation si adjust_recommendation n'est pas safe_to_surface. synthesis_status et closure_status doivent etre complete avant completion. Utilise missing si absent, captured si compris, needs_deeper si une precision coaching est necessaire, complete si le gate est suffisamment stable.",
+    "- detour_candidate: champ de compatibilite. kind none par defaut. Product_help et one-shot reminder ne sont pas des child flows weekly.",
+    "- state_updates: patch d'etat weekly, pas profil global. weekly_stage suit la suite logique du flow: opening, week_experience, action_review, action_blocker, global_progress, solution_fit, synthesis, closure, ou anciennes valeurs de compatibilite. status open/completed/stopped/deferred/exit_to_global doit correspondre a flow_action. validation_unlock_status devient available seulement apres weekly_closure. close_after_visible true seulement pour stop/defer ou completion apres synthesis+closure.",
+    "- visible_task.kind: stage visible exact pour le prochain prompt local. Kinds actifs autorises: ask_week_experience, review_action_gaps, explore_action_blocker, ask_global_progress_feeling, deepen_global_progress, qualify_solution_fit, weekly_adjust_recommendation, weekly_synthesis, weekly_closure, clarify_human_signal, forgotten_progress_clarify, forgotten_progress_ack, forgotten_progress_blocked. Ne choisis pas answer_weekly_question, weekly_recap, explain_reasoning, exit_or_cancel, safety, stop_close ou stop_or_cancel comme visible actif. Si le user confirme la cloture apres une synthese complete, utilise weekly_closure avec weekly_intent.kind=weekly_confirmation.",
     "- visible_task.instruction: instruction courte au prompt visible, sans texte final utilisateur. Ne construis jamais la reponse visible ici.",
     "- visible_task.conversation_context: ce champ existe dans le contrat mais le reducer weekly reconstruit la version finale visible-agent-safe. Si tu le fournis, garde-le compact et filtre: contraintes, valeurs connues, incertitudes, ton, limites. Pas de DB brute, memoire brute, note_information brute, ids inventes, ni decision a refaire par l'agent visible.",
-    "- note_information: obligatoire pour exit_to_global_dispatcher, safety_preempt, handoff_to_local_flow et inline_tool_roundtrip. Elle est consommee par le dispatcher cible, jamais transmise brute au prompt visible. Garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, user_words, structured_context, confidence si utile. structured_context doit etre succinct et non vide avec etat weekly utile, acquis, contraintes, incertitudes et recommended_next_focus. Ne mets pas source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note.",
-    "- exit_memo: champ secondaire de compatibilite runtime. Ne l'utilise jamais a la place de note_information. needed false et reason none pour continuation/defer/completion. Si transition, garde-le coherent avec note_information mais ne mets pas de decision visible dedans.",
+    "- note_information: obligatoire pour exit_to_global_dispatcher. Elle est consommee par le dispatcher cible, jamais transmise brute au prompt visible. Garde strictement la structure source_flow_id, target_dispatcher, handoff_reason, handoff_context_for_next_dispatcher, structured_context, confidence si utile. Ne fournis pas user_words. structured_context doit etre succinct et non vide avec etat weekly utile, acquis, incertitudes et recommended_next_focus. Ne mets pas constraints, source_flow_state_summary, target_local_dispatcher_hint, risk_score ou committed_effects dans la note.",
+    "- exit_memo: champ secondaire de compatibilite runtime. Ne l'utilise jamais a la place de note_information. Omet-le pour continuation/defer/completion sans transition; le runtime reconstruit needed=false/reason=none. Si transition, garde-le coherent avec note_information mais ne mets pas de decision visible dedans.",
     "- evidence: indices semantiques vraiment utilises depuis le message courant ou le contexte weekly. Pas de pseudo-preuves, pas de mots-cles isoles sans interpretation.",
     "",
     "Transition Rules:",
     "- defer_flow: le user reporte le weekly sans changement de dispatcher; target_dispatcher none; visible_task.kind stop_or_cancel.",
-    "- exit_to_global_dispatcher: le user arrete le weekly, apporte un nouveau sujet hors weekly ou quitte le flow; target_dispatcher global; note_information obligatoire.",
-    "- safety_preempt: safety prioritaire; target_dispatcher safety_crisis; note_information obligatoire; le global normal ne reprend pas.",
-    "- handoff_to_local_flow: seulement si le contrat cible est autorise par target_dispatcher, detour_candidate.readiness=user_confirmed, user_consent=true, et les preconditions de scope/action sont satisfaites; note_information obligatoire; explique dans structured_context ce qui est acquis, pourquoi le detour aide le weekly, et quel resume doit revenir au weekly pour conclure.",
-    "- inline_tool_roundtrip: seulement product_help ou status_recap temporaire; note_information obligatoire; conserve l'etat weekly parent.",
+    "- exit_to_global_dispatcher: le user abandonne clairement le weekly, apporte un nouveau sujet hors weekly, demande une recommandation Sophia/coaching hors bilan, status, carte, potion, preference, question produit, rappel recurrent, ou donne un vrai signal safety; target_dispatcher=global; note_information obligatoire. Une demande d'ajustement ou de recommandation pour la semaine suivante ne sort pas du weekly.",
+    "- Safety: ne sors jamais directement vers un flow safety depuis weekly. Utilise exit_to_global_dispatcher target_dispatcher=global avec handoff_reason=safety; le global dispatcher reprend et route safety.",
     "- complete_flow ou complete_weekly_no_change: seulement apres weekly_synthesis puis weekly_closure. Le reducer bloque toute completion prematuree.",
     "",
-    "Exemple JSON 1 - continuation normale non visible:",
-    '{"flow_action":"confirm_weekly_diagnostic","confidence":"high","risk_score":0,"target_dispatcher":"none","weekly_intent":{"kind":"weekly_confirmation","summary":"Le user confirme le diagnostic et se sent fatigue mais d accord."},"human_signal_updates":{"objective_delta":"slight_progress","felt_progress":"encouraged","felt_state":"tired_but_ok","dominant_blocker_confirmation":"confirmed","user_summary":"fatigue mais progression legere"},"handoff_updates":{"status":"none","requested_adjustment_summary":null,"revision_summary":null,"platform_destination":null,"scope":{"kind":"none","plan_id":null,"plan_title":null,"plan_item_ids":[],"scope_summary":null,"needs_scope_clarification":false}},"forgotten_progress":{"status":"none","target_hint":null,"outcome_hint":null,"evidence":null},"action_status_updates":[{"plan_item_id":"item-1","occurrence_id":null,"title":"rangement","corrected_status":"partial","user_evidence":"je l ai fait trois jours puis j ai relache","source_turn_summary":"rangement partiel"}],"weekly_gates":{"week_experience_status":"captured","action_review_status":"captured","global_progress_status":"captured","felt_progress_status":"captured","solution_fit_status":"missing","synthesis_status":"missing","closure_status":"missing"},"detour_candidate":{"kind":"none","source_stage":null,"target_action_or_plan":null,"fit_hypothesis":null,"readiness":"none","user_consent":false,"scope":{},"return_focus":null},"state_updates":{"status":"open","weekly_stage":"global_progress","validation_unlock_status":"locked_until_weekly_complete","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"qualify_solution_fit","instruction":"Reformuler le diagnostic weekly et qualifier la prochaine piste sans lancer d outil.","conversation_context":{"state_summary":"Diagnostic confirme, fatigue presente.","known_values":{"felt_state":"tired_but_ok","felt_progress":"encouraged"},"missing_or_weak_values":[],"tone_constraints":["compact"],"do_not_say":["applique","modifie le plan"]}},"exit_memo":{"needed":false,"reason":"none","user_intent_summary":null,"local_flow_context":{"skill_id":"weekly_adaptive_review_v1","weekly_stage":"global_progress","week_strategy":null,"last_weekly_question":null,"last_visible_summary":null,"last_handoff_summary":null,"validation_unlock_status":"locked_until_weekly_complete","committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"unknown","why":null,"constraints":[]}},"note_information":null,"evidence":["confirme le diagnostic","fatigue mais progression"]}',
-    "Exemple JSON 2 - transition critique non visible:",
-    '{"flow_action":"handoff_to_local_flow","confidence":"high","risk_score":0,"target_dispatcher":"adjust_plan_item","weekly_intent":{"kind":"detour_request","summary":"Le user confirme que modifier l action du matin aiderait a conclure le weekly."},"human_signal_updates":{"objective_delta":null,"felt_progress":"frustrated","felt_state":"tired_but_ok","dominant_blocker_confirmation":"confirmed","user_summary":"avancee reelle mais action du matin trop fragile"},"handoff_updates":{"status":"requested","requested_adjustment_summary":"Alleger l action du matin pour garder le cap sans surcharger la semaine.","revision_summary":null,"platform_destination":"Plan","scope":{"kind":"specific_item","plan_id":"plan-1","plan_title":"Plan principal","plan_item_ids":["item-1"],"scope_summary":"action du matin","needs_scope_clarification":false}},"forgotten_progress":{"status":"none","target_hint":null,"outcome_hint":null,"evidence":null},"action_status_updates":[],"weekly_gates":{"week_experience_status":"complete","action_review_status":"complete","global_progress_status":"complete","felt_progress_status":"complete","solution_fit_status":"complete","synthesis_status":"missing","closure_status":"missing"},"detour_candidate":{"kind":"adjust_plan_item","source_stage":"solution_fit","target_action_or_plan":"action du matin","fit_hypothesis":"Le user demande explicitement d alleger cette action pour garder le cap.","readiness":"user_confirmed","user_consent":true,"scope":{"kind":"specific_item","plan_item_ids":["item-1"],"scope_summary":"action du matin"},"return_focus":"Revenir au weekly pour synthese et cloture."},"state_updates":{"status":"handoff_to_local_flow","weekly_stage":"child_detour","validation_unlock_status":"locked_until_weekly_complete","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"exit_or_cancel","instruction":"Lancer le detour Plan, puis revenir au weekly.","conversation_context":{"state_summary":"Detour Plan utile avant synthese weekly.","known_values":{"return_to_weekly":true},"missing_or_weak_values":[],"tone_constraints":["compact"],"do_not_say":["applique","modifie le plan"]}},"exit_memo":{"needed":true,"reason":"explicit_tool_request","user_intent_summary":"ajuster l action du matin","local_flow_context":{"skill_id":"weekly_adaptive_review_v1","weekly_stage":"child_detour","week_strategy":null,"last_weekly_question":null,"last_visible_summary":"avancee mais charge trop couteuse","last_handoff_summary":null,"validation_unlock_status":"locked_until_weekly_complete","committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"adjust_plan_item","why":"detour Plan utile pour conclure le weekly","constraints":["Return to weekly after child flow.","Weekly did not apply a plan change from chat."]}},"note_information":{"source_flow_id":"weekly_adaptive_review_v1","handoff_reason":"bridge","target_dispatcher":"adjust_plan_item","handoff_context_for_next_dispatcher":"Prepare a Plan adjustment as a child flow, then return to weekly synthesis.","user_words":["alleger l action du matin"],"structured_context":{"user_message_summary":"detour Plan demande","active_flow_summary":"weekly parent remains active","collected_state":{"return_to_weekly":true,"weekly_stage":"child_detour"},"unresolved_questions":[],"recommended_next_focus":"prepare adjust_plan_item child flow then return weekly"},"confidence":"high"},"evidence":["action du matin fragile","demande d ajustement Plan"]}',
+    "Exemple JSON 1 - continuation sparse:",
+    '{"flow_action":"confirm_weekly_diagnostic","confidence":"high","weekly_intent":{"kind":"weekly_confirmation","summary":"Le user confirme le diagnostic et se sent fatigue mais d accord."},"human_signal_updates":{"objective_delta":"slight_progress","felt_progress":"encouraged","felt_state":"tired_but_ok","dominant_blocker_confirmation":"confirmed","user_summary":"fatigue mais progression legere"},"action_status_updates":[{"plan_item_id":"item-1","title":"rangement","corrected_status":"partial","user_evidence":"je l ai fait trois jours puis j ai relache","source_turn_summary":"rangement partiel"}],"weekly_gates":{"global_progress_status":"captured","felt_progress_status":"captured"},"state_updates":{"status":"open","weekly_stage":"solution_fit"},"visible_task":{"kind":"qualify_solution_fit","instruction":"Reformuler le diagnostic weekly et qualifier la prochaine piste sans lancer d outil."},"evidence":["confirme le diagnostic","fatigue mais progression"]}',
+    "Exemple JSON 2 - sortie globale sparse:",
+    '{"flow_action":"exit_to_global_dispatcher","confidence":"high","target_dispatcher":"global","weekly_intent":{"kind":"explicit_tool_request","summary":"Le user demande une carte au lieu de continuer le weekly."},"state_updates":{"status":"exit_to_global","weekly_stage":"solution_fit","close_after_visible":true},"exit_memo":{"needed":true,"reason":"explicit_tool_request","user_intent_summary":"demande de carte hors weekly","handoff_hint_for_global_dispatcher":{"likely_intent":"normal_coaching","why":"demande hors weekly; global reprend"}},"note_information":{"source_flow_id":"weekly_adaptive_review_v1","handoff_reason":"explicit_user_request","target_dispatcher":"global","handoff_context_for_next_dispatcher":"Le user quitte le point weekly pour une demande hors perimetre. Global reprend avec le contexte weekly.","structured_context":{"user_message_summary":"demande de carte hors weekly","active_flow_summary":"weekly parent exits to global","recommended_next_focus":"global"},"confidence":"high"},"evidence":["demande explicite hors weekly"]}',
     "",
-    'Retourne exactement ce JSON: {"flow_action":"answer_weekly_question|confirm_weekly_diagnostic|reject_weekly_diagnostic|clarify_human_signal|recap_weekly|explain_weekly_reasoning|forgotten_progress_correction|clarify_forgotten_progress|complete_weekly_no_change|complete_flow|exit_to_global_dispatcher|defer_flow|inline_tool_roundtrip|handoff_to_local_flow|safety_preempt","confidence":"low|medium|high","risk_score":0,"target_dispatcher":"none|global|safety_crisis|product_help|status_recap|adjust_plan_item|prepare_attack_card|prepare_defense_card|select_state_potion|create_one_shot_reminder|create_recurring_reminder","weekly_intent":{"kind":"weekly_answer|weekly_confirmation|weekly_rejection|weekly_recap|weekly_explain|detour_request|detour_revision|forgotten_progress|stop|off_topic|explicit_tool_request|safety|unclear","summary":"string"},"human_signal_updates":{"objective_delta":"clear_progress|slight_progress|stable|regression|unclear|unknown|null","felt_progress":"aligned|encouraged|neutral|frustrated|disconnected|worried|unclear|unknown|null","felt_state":"energized|stable|tired_but_ok|frustrated|overloaded|lost|unknown|null","dominant_blocker_confirmation":"confirmed|rejected|unclear|null","user_summary":"string|null"},"handoff_updates":{"status":"none|requested|ready|delivered|revised|cancelled","requested_adjustment_summary":"string|null","revision_summary":"string|null","platform_destination":"Plan|null","scope":{"kind":"whole_week|specific_plan|specific_item|ambiguous|none","plan_id":"string|null","plan_title":"string|null","plan_item_ids":[],"scope_summary":"string|null","needs_scope_clarification":false}},"forgotten_progress":{"status":"none|candidate|needs_target|ready_for_progress_tool|blocked","target_hint":"string|null","outcome_hint":"completed|partial|unknown|null","evidence":"string|null"},"action_status_updates":[{"plan_item_id":"string|null","occurrence_id":"string|null","title":"string|null","corrected_status":"completed|partial|missed|unknown","user_evidence":"string|null","source_turn_summary":"string|null"}],"weekly_gates":{"week_experience_status":"missing|captured|needs_deeper|complete","action_review_status":"missing|captured|needs_deeper|complete","global_progress_status":"missing|captured|needs_deeper|complete","felt_progress_status":"missing|captured|needs_deeper|complete","solution_fit_status":"missing|captured|needs_deeper|complete","synthesis_status":"missing|captured|needs_deeper|complete","closure_status":"missing|captured|needs_deeper|complete"},"detour_candidate":{"kind":"none|attack_card|defense_card|adjust_plan_item|select_state_potion|create_one_shot_reminder|create_recurring_reminder|product_help|status_recap","source_stage":"string|null","target_action_or_plan":"string|null","fit_hypothesis":"string|null","readiness":"none|explore_fit|offer|user_confirmed","user_consent":false,"scope":{},"return_focus":"string|null"},"state_updates":{"status":"open|proposal_discussed|handoff_ready|completed|stopped|deferred|handoff_to_local_flow|exit_to_global|safety","weekly_stage":"opening|week_experience|action_review|action_blocker|global_progress|solution_fit|child_detour|synthesis|closure|collecting_human_signal|strategy_ready|closing","validation_unlock_status":"locked_until_weekly_complete|available","turn_count_increment":1,"close_after_visible":false},"visible_task":{"kind":"ask_week_experience|review_action_gaps|explore_action_blocker|qualify_attack_or_defense_fit|ask_global_progress_feeling|deepen_global_progress|qualify_solution_fit|offer_child_detour|return_from_child_flow|weekly_synthesis|weekly_closure|answer_weekly_question|clarify_human_signal|weekly_recap|explain_reasoning|forgotten_progress_clarify|forgotten_progress_ack|forgotten_progress_blocked|stop_or_cancel|inline_tool_return|exit_or_cancel|safety_transition|safety","instruction":"string","conversation_context":{}},"exit_memo":{"needed":false,"reason":"topic_change|explicit_tool_request|product_help|status_question|preference_update|normal_coaching|safety|unknown|none","user_intent_summary":"string|null","local_flow_context":{"skill_id":"weekly_adaptive_review_v1","weekly_stage":"string|null","week_strategy":"string|null","last_weekly_question":"string|null","last_visible_summary":"string|null","last_handoff_summary":"string|null","validation_unlock_status":"string|null","committed_effects":[]},"handoff_hint_for_global_dispatcher":{"likely_intent":"prepare_attack_card|prepare_defense_card|select_state_potion|create_one_shot_reminder|create_recurring_reminder|update_coach_preferences|status_recap|adjust_plan_item|product_help|normal_coaching|unknown","why":"string|null","constraints":[]}},"note_information":{"source_flow_id":"weekly_adaptive_review_v1","handoff_reason":"topic_change|safety|inline_tool|bridge|explicit_user_request","target_dispatcher":"global|safety_crisis|product_help|status_recap|adjust_plan_item|prepare_attack_card|prepare_defense_card|select_state_potion|create_one_shot_reminder|create_recurring_reminder","handoff_context_for_next_dispatcher":"string","user_words":["string"],"structured_context":{},"confidence":"low|medium|high"},"evidence":["string"]}',
+    "Schema sparse autorise: flow_action, confidence, target_dispatcher si sortie globale, weekly_intent, human_signal_updates, handoff_updates, adjust_recommendation, forgotten_progress, direct_effect_request, action_status_updates, weekly_gates, detour_candidate, state_updates, visible_task, exit_memo, note_information, risk_score si non nul/safety, evidence. Omet tout champ inutile/default. Pour exit_to_global_dispatcher, note_information est obligatoire. Pour continuation weekly, note_information et exit_memo doivent etre omis.",
   ].join("\n");
 }
 
@@ -3065,7 +3666,11 @@ export async function runWeeklyReviewLocalDispatcher(input: {
   user_message: string;
   recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
   weekly_state: Record<string, unknown>;
+  turn_frame?: unknown;
 }): Promise<WeeklyReviewLocalDispatcherOutput | null> {
+  const directEffectConfirmationContext = buildDirectEffectConfirmationContext(
+    input.turn_frame,
+  );
   const userPrompt = JSON.stringify({
     task: "dispatch_weekly_adaptive_review_local_flow",
     weekly_state_json: input.weekly_state,
@@ -3076,10 +3681,14 @@ export async function runWeeklyReviewLocalDispatcher(input: {
     user_message: input.user_message,
     conversation_excerpt: input.recent_messages,
     platform_context: withDirectEffectLocalContext(
-      {},
+      {
+        direct_effect_confirmation_context: directEffectConfirmationContext,
+      },
       null,
       weeklyActiveActionCandidates(input.weekly_state),
+      directEffectTimeContextFromTurnFrame(input.turn_frame),
     ),
+    turn_frame_direct_effect_context: directEffectConfirmationContext,
   });
   const raw = await generateWithGemini(
     dispatcherSystemPrompt(),
@@ -3102,7 +3711,7 @@ export async function runWeeklyReviewLocalDispatcher(input: {
   return normalizeWeeklyReviewLocalDispatcherOutput(raw);
 }
 
-function recentMessagesFromHistory(history: unknown) {
+export function recentMessagesFromHistory(history: unknown) {
   return recentChatMessagesFromHistory(history, RECENT_MESSAGE_LIMITS.toolFlow);
 }
 
@@ -3187,11 +3796,10 @@ function weeklyReviewShortTrace(args: {
     selected_target: args.output.detour_candidate.target_action_or_plan ??
       args.output.handoff_updates.scope.scope_summary,
     pending_state_present: pendingStatePresent,
-    direct_handoff_flag: args.output.flow_action === "handoff_to_local_flow" &&
-      args.output.detour_candidate.user_consent === true,
+    direct_handoff_flag: false,
     candidate_summary: candidateSummary,
     constraint_list: [
-      "no_chat_plan_mutation",
+      "plan_patch_empty_until_platform_handoff",
       "weekly_parent_returns_after_child_flow",
     ],
     readiness: args.output.detour_candidate.readiness,
@@ -3208,6 +3816,24 @@ function fallbackWeeklyVisibleMessage(args: {
   return "Je garde le point weekly, mais je n'arrive pas a formuler correctement ce tour. Reessaie dans un instant.";
 }
 
+function directEffectRequestedEffects(
+  context: DirectEffectConfirmationContext | null,
+): unknown[] {
+  return context?.requested_effects ?? [];
+}
+
+function directEffectCommittedEffects(
+  context: DirectEffectConfirmationContext | null,
+): unknown[] {
+  return context?.committed_effects ?? [];
+}
+
+function directEffectBlockedEffects(
+  context: DirectEffectConfirmationContext | null,
+): unknown[] {
+  return context?.blocked_effects ?? [];
+}
+
 export async function runWeeklyReviewLocalRuntime(args: {
   supabase: SupabaseClient;
   userId: string;
@@ -3218,14 +3844,23 @@ export async function runWeeklyReviewLocalRuntime(args: {
   requestId?: string | null;
   v2Runtime?: ActiveTransformationRuntime | null;
   loggedMessageId?: string | null;
+  turnFrame?: unknown;
   dispatcher?: typeof runWeeklyReviewLocalDispatcher;
+  precomputedDispatcherOutput?: WeeklyReviewLocalDispatcherOutput | null;
   visibleAgent?: typeof runWeeklyReviewVisibleAgent;
 }): Promise<OperationRuntimeResult | null> {
-  const weeklyState = readWeeklyReviewState({
+  const rawWeeklyState = readWeeklyReviewState({
     activeSkillState: args.activeSkillState,
     tempMemory: args.tempMemory,
   });
-  if (!isRecord(weeklyState)) return null;
+  if (!isRecord(rawWeeklyState)) return null;
+  const weeklyState = withWeeklyPlanningContext({
+    weeklyState: rawWeeklyState,
+    v2Runtime: args.v2Runtime,
+  });
+  const directEffectConfirmationContext = buildDirectEffectConfirmationContext(
+    args.turnFrame,
+  );
   const dispatcher = args.dispatcher ?? runWeeklyReviewLocalDispatcher;
   let dispatcherFailure: {
     kind: WeeklyReviewDispatcherFailureKind;
@@ -3234,12 +3869,13 @@ export async function runWeeklyReviewLocalRuntime(args: {
   } | null = null;
   let output: WeeklyReviewLocalDispatcherOutput | null = null;
   try {
-    output = await dispatcher({
+    output = args.precomputedDispatcherOutput ?? await dispatcher({
       user_id: args.userId,
       request_id: args.requestId ?? null,
       user_message: args.userMessage,
       recent_messages: recentMessagesFromHistory(args.history),
       weekly_state: weeklyState,
+      turn_frame: args.turnFrame,
     });
     if (!output) {
       dispatcherFailure = {
@@ -3281,15 +3917,20 @@ export async function runWeeklyReviewLocalRuntime(args: {
         dispatcher_failure_kind: dispatcherFailure?.kind ?? "unknown",
         dispatcher_error_name: dispatcherFailure?.error_name ?? null,
         dispatcher_error_message: dispatcherFailure?.error_message ?? null,
-        requested_effects: [],
+        requested_effects: directEffectRequestedEffects(
+          directEffectConfirmationContext,
+        ),
         allowed_effects: [],
-        committed_effects: [],
+        committed_effects: directEffectCommittedEffects(
+          directEffectConfirmationContext,
+        ),
+        direct_effect_confirmation_context: directEffectConfirmationContext,
         visible_fallback_used: true,
         qa_green_eligible: false,
         blocked_effects: [{
           type: "weekly_adaptive_review_v1",
           reason_code: blockedReason,
-        }],
+        }, ...directEffectBlockedEffects(directEffectConfirmationContext)],
       },
     };
   }
@@ -3299,33 +3940,17 @@ export async function runWeeklyReviewLocalRuntime(args: {
   });
   if (
     reduced.exit_to_global_dispatcher ||
-    reduced.status === "safety" ||
-    reduced.status === "handoff_to_local_flow"
+    reduced.status === "safety"
   ) {
+    const memoryWithWeeklyState = clearWeeklyReviewState(args.tempMemory);
     const nextTempMemory: Record<string, unknown> = {
-      ...clearWeeklyReviewState(args.tempMemory),
+      ...memoryWithWeeklyState,
       [WEEKLY_REVIEW_EXIT_MEMO_KEY]: exitMemoForTempMemory({
         reduced,
         output,
         previousWeeklyState: weeklyState,
       }),
     };
-    if (reduced.status === "handoff_to_local_flow") {
-      nextTempMemory.__suspended_flow_v1 = {
-        owner: "conversation_skill",
-        state_snapshot: weeklyStateForSuspendedChildFlow({
-          previousWeeklyState: weeklyState,
-          output,
-          handoffSummary: reduced.handoff_summary,
-        }),
-        suspended_by: "weekly_review_local_handoff_to_local_flow",
-        resume_policy: "return_after_child_flow",
-        target_flow: reduced.target_dispatcher,
-        note_information: reduced.note_information,
-        turn_ttl: 8,
-        created_at: new Date().toISOString(),
-      };
-    }
     return {
       content: "",
       nextTempMemory,
@@ -3333,11 +3958,7 @@ export async function runWeeklyReviewLocalRuntime(args: {
       executedTools: [],
       toolSkillRun: {
         selected_handler: "weekly_adaptive_review_v1",
-        status: reduced.status === "safety"
-          ? "safety"
-          : reduced.status === "handoff_to_local_flow"
-          ? "handoff_to_local_flow"
-          : "exit_to_global",
+        status: reduced.status === "safety" ? "safety" : "exit_to_global",
         reason_code: reduced.reason_code,
         flow_action: output.flow_action,
         visible_task: reduced.visible_task,
@@ -3346,10 +3967,18 @@ export async function runWeeklyReviewLocalRuntime(args: {
         exit_memo: nextTempMemory[WEEKLY_REVIEW_EXIT_MEMO_KEY],
         short_trace: weeklyReviewShortTrace({ reduced, output }),
         state_mutation_audit: reduced.state_mutation_audit,
-        requested_effects: [],
+        requested_effects: directEffectRequestedEffects(
+          directEffectConfirmationContext,
+        ),
         allowed_effects: [],
-        committed_effects: [],
-        blocked_effects: reduced.blocked_effects,
+        committed_effects: directEffectCommittedEffects(
+          directEffectConfirmationContext,
+        ),
+        direct_effect_confirmation_context: directEffectConfirmationContext,
+        blocked_effects: [
+          ...reduced.blocked_effects,
+          ...directEffectBlockedEffects(directEffectConfirmationContext),
+        ],
       },
     };
   }
@@ -3376,6 +4005,7 @@ export async function runWeeklyReviewLocalRuntime(args: {
     user_message: args.userMessage,
     recent_messages: recentMessagesFromHistory(args.history),
     conversation_context: conversationContext,
+    direct_effect_confirmation_context: directEffectConfirmationContext,
   });
   const visibleText = cleanText(visible);
   const visibleFallbackUsed = !visibleText;
@@ -3417,10 +4047,18 @@ export async function runWeeklyReviewLocalRuntime(args: {
       conversation_context: conversationContext,
       short_trace: weeklyReviewShortTrace({ reduced, output }),
       state_mutation_audit: reduced.state_mutation_audit,
-      requested_effects: [],
+      requested_effects: directEffectRequestedEffects(
+        directEffectConfirmationContext,
+      ),
       allowed_effects: [],
-      committed_effects: [],
-      blocked_effects: reduced.blocked_effects,
+      committed_effects: directEffectCommittedEffects(
+        directEffectConfirmationContext,
+      ),
+      direct_effect_confirmation_context: directEffectConfirmationContext,
+      blocked_effects: [
+        ...reduced.blocked_effects,
+        ...directEffectBlockedEffects(directEffectConfirmationContext),
+      ],
       visible_fallback_used: visibleFallbackUsed,
       qa_green_eligible: !visibleFallbackUsed,
       no_durable_plan_mutation: true,

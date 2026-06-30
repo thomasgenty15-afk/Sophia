@@ -1,0 +1,2188 @@
+{
+  "run_id": "feature-opportunity-normal-local-real-20260624-r1",
+  "persona": "qa-skill",
+  "connection_name": "feature_opportunity_feature-opportunity-normal-local-real-20260624-r1",
+  "connection_file": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/connections/feature_opportunity_feature-opportunity-normal-local-real-20260624-r1.json",
+  "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-normal-local-real-20260624-r@example.com",
+  "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+  "started_at": "2026-06-23T23:11:15.964Z",
+  "constraints": {
+    "endpoint": "/functions/v1/test-send-message",
+    "force_full_ai": true,
+    "local_supabase_only": true,
+    "no_code_changes_during_run": true
+  },
+  "supabase_services_note": "supabase status reported some stopped ancillary services before the run; API/auth/functions/db were reachable.",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+      "sent_at": "2026-06-23T23:11:15.964Z",
+      "user_message": "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+      "http_status": 200,
+      "assistant_message": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_exit_to_global",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-23T23:11:24.285+00:00",
+            "updated_at": "2026-06-23T23:11:24.287735+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-23T23:11:24.285+00:00",
+            "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+            "temp_memory": {
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0
+                ],
+                "last_updated_at": "2026-06-23T23:11:24.259Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 1
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "1810544d-1b42-4c36-ab04-bfe600e1319f",
+            "role": "user",
+            "content": "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+            "created_at": "2026-06-23T23:11:16.586721+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "e1850444-7e56-42e9-ab9d-3ff8d08e08fe",
+            "role": "assistant",
+            "content": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+            "created_at": "2026-06-23T23:11:24.291642+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1441,
+              "selected_handler": null,
+              "context_latency_ms": 60,
+              "dispatcher_latency_ms": 3407,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+        "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "source_message_id": "1810544d-1b42-4c36-ab04-bfe600e1319f",
+              "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "feature_opportunity": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "initiative_opportunity",
+                  "context": {
+                    "feature": "initiatives",
+                    "opportunity_kind": "recurring_context",
+                    "trigger_context": "Le lundi matin, avant d’ouvrir mes mails",
+                    "user_problem_summary": "L'utilisateur perd le fil de ses priorités dans un contexte récurrent et pense qu'un soutien récurrent de Sophia pourrait aider.",
+                    "priority_reason": "Le message décrit un moment répété et un soutien récurrent utile, sans demander un levier de coaching immédiat."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "feature_opportunity_initiatives",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.92
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_exit_to_global",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "none",
+                "reason_code": "feature_opportunity_signal"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "feature_opportunity_signal",
+              "status": "exit",
+              "latency_ms": 2716,
+              "exit_target": "global",
+              "exit_note_information": {
+                "source_flow_id": "feature_opportunity",
+                "handoff_reason": "topic_change",
+                "target_dispatcher": "global",
+                "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"L'utilisateur perd le fil de ses priorités dans un moment récurrent et cherche un soutien récurrent de Sophia pour reprendre le bon contexte.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Le lundi matin, avant d’ouvrir mes mails\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Le lundi matin, avant d’ouvrir mes mails\",\"user_problem_summary\":\"L'utilisateur perd le fil de ses priorités dans un contexte récurrent et pense qu'un soutien récurrent de Sophia pourrait aider.\",\"priority_reason\":\"Le message décrit un moment répété et un soutien récurrent utile, sans demander un levier de coaching immédiat.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Le lundi matin\",\"avant d’ouvrir mes mails\",\"soutien récurrent\",\"sans créer un rappel ponctuel\"]}",
+                "user_words": [
+                  "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+                  "Le lundi matin",
+                  "avant d’ouvrir mes mails"
+                ],
+                "structured_context": {
+                  "user_message_summary": "L'utilisateur perd le fil de ses priorités dans un moment récurrent et cherche un soutien récurrent de Sophia pour reprendre le bon contexte.",
+                  "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+                  "collected_state": {
+                    "feature": "initiatives",
+                    "opportunity_kind": "recurring_context",
+                    "trigger_context": "Le lundi matin, avant d’ouvrir mes mails",
+                    "dispatcher_signal_context": {
+                      "feature": "initiatives",
+                      "opportunity_kind": "recurring_context",
+                      "trigger_context": "Le lundi matin, avant d’ouvrir mes mails",
+                      "user_problem_summary": "L'utilisateur perd le fil de ses priorités dans un contexte récurrent et pense qu'un soutien récurrent de Sophia pourrait aider.",
+                      "priority_reason": "Le message décrit un moment répété et un soutien récurrent utile, sans demander un levier de coaching immédiat."
+                    }
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "global",
+                  "evidence": [
+                    "Le lundi matin",
+                    "avant d’ouvrir mes mails",
+                    "soutien récurrent",
+                    "sans créer un rappel ponctuel"
+                  ]
+                },
+                "confidence": "high"
+              }
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+            "source_message_id": "1810544d-1b42-4c36-ab04-bfe600e1319f",
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "feature_opportunity": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "initiative_opportunity",
+                "context": {
+                  "feature": "initiatives",
+                  "opportunity_kind": "recurring_context",
+                  "trigger_context": "Le lundi matin, avant d’ouvrir mes mails",
+                  "user_problem_summary": "L'utilisateur perd le fil de ses priorités dans un contexte récurrent et pense qu'un soutien récurrent de Sophia pourrait aider.",
+                  "priority_reason": "Le message décrit un moment répété et un soutien récurrent utile, sans demander un levier de coaching immédiat."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "feature_opportunity_initiatives",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.92
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_exit_to_global",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "none",
+              "reason_code": "feature_opportunity_signal"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "feature_opportunity_signal",
+            "status": "exit",
+            "latency_ms": 2716,
+            "exit_target": "global",
+            "exit_note_information": {
+              "source_flow_id": "feature_opportunity",
+              "handoff_reason": "topic_change",
+              "target_dispatcher": "global",
+              "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"L'utilisateur perd le fil de ses priorités dans un moment récurrent et cherche un soutien récurrent de Sophia pour reprendre le bon contexte.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Le lundi matin, avant d’ouvrir mes mails\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"Le lundi matin, avant d’ouvrir mes mails\",\"user_problem_summary\":\"L'utilisateur perd le fil de ses priorités dans un contexte récurrent et pense qu'un soutien récurrent de Sophia pourrait aider.\",\"priority_reason\":\"Le message décrit un moment répété et un soutien récurrent utile, sans demander un levier de coaching immédiat.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Le lundi matin\",\"avant d’ouvrir mes mails\",\"soutien récurrent\",\"sans créer un rappel ponctuel\"]}",
+              "user_words": [
+                "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+                "Le lundi matin",
+                "avant d’ouvrir mes mails"
+              ],
+              "structured_context": {
+                "user_message_summary": "L'utilisateur perd le fil de ses priorités dans un moment récurrent et cherche un soutien récurrent de Sophia pour reprendre le bon contexte.",
+                "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+                "collected_state": {
+                  "feature": "initiatives",
+                  "opportunity_kind": "recurring_context",
+                  "trigger_context": "Le lundi matin, avant d’ouvrir mes mails",
+                  "dispatcher_signal_context": {
+                    "feature": "initiatives",
+                    "opportunity_kind": "recurring_context",
+                    "trigger_context": "Le lundi matin, avant d’ouvrir mes mails",
+                    "user_problem_summary": "L'utilisateur perd le fil de ses priorités dans un contexte récurrent et pense qu'un soutien récurrent de Sophia pourrait aider.",
+                    "priority_reason": "Le message décrit un moment répété et un soutien récurrent utile, sans demander un levier de coaching immédiat."
+                  }
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "global",
+                "evidence": [
+                  "Le lundi matin",
+                  "avant d’ouvrir mes mails",
+                  "soutien récurrent",
+                  "sans créer un rappel ponctuel"
+                ]
+              },
+              "confidence": "high"
+            }
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+      "sent_at": "2026-06-23T23:11:44.999Z",
+      "user_message": "Quand tu dis Soutien / Habitudes, tu veux dire la fonctionnalité Initiatives ? Quels réglages je dois prévoir si je veux le faire moi-même dans la plateforme ?",
+      "http_status": 200,
+      "assistant_message": "Pas exactement. \n\n- Habitudes, dans le Dashboard > Plan, sert à ancrer une répétition dans ton quotidien.\n- Initiatives, dans Dashboard > Initiatives, sert à planifier un message récurrent que je t’envoie.\n\nSi tu veux le faire toi-même, prévois surtout : quoi dire, pourquoi c’est utile, l’heure, les jours actifs, et la destination du message. \n\nSi tu veux, je peux aussi te dire lequel des deux colle le mieux à ton besoin du lundi matin.",
+      "short_trace": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "product_help_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-23T23:11:56.138+00:00",
+            "updated_at": "2026-06-23T23:11:56.142964+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-23T23:11:56.138+00:00",
+            "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+            "temp_memory": {
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0
+                ],
+                "last_updated_at": "2026-06-23T23:11:24.259Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 1
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "1810544d-1b42-4c36-ab04-bfe600e1319f",
+            "role": "user",
+            "content": "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+            "created_at": "2026-06-23T23:11:16.586721+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "e1850444-7e56-42e9-ab9d-3ff8d08e08fe",
+            "role": "assistant",
+            "content": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+            "created_at": "2026-06-23T23:11:24.291642+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1441,
+              "selected_handler": null,
+              "context_latency_ms": 60,
+              "dispatcher_latency_ms": 3407,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "645ba54b-26cb-45e6-97e6-f5d622b50a3d",
+            "role": "user",
+            "content": "Quand tu dis Soutien / Habitudes, tu veux dire la fonctionnalité Initiatives ? Quels réglages je dois prévoir si je veux le faire moi-même dans la plateforme ?",
+            "created_at": "2026-06-23T23:11:45.034739+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "92b05fa6-80b9-4d61-9ef7-86af914a3e10",
+            "role": "assistant",
+            "content": "Pas exactement. \n\n- Habitudes, dans le Dashboard > Plan, sert à ancrer une répétition dans ton quotidien.\n- Initiatives, dans Dashboard > Initiatives, sert à planifier un message récurrent que je t’envoie.\n\nSi tu veux le faire toi-même, prévois surtout : quoi dire, pourquoi c’est utile, l’heure, les jours actifs, et la destination du message. \n\nSi tu veux, je peux aussi te dire lequel des deux colle le mieux à ton besoin du lundi matin.",
+            "created_at": "2026-06-23T23:11:56.150811+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "route_owner": "product_help",
+              "agent_latency_ms": 7741,
+              "selected_handler": "product_help",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3346,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+        "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Pas exactement. \n\n- Habitudes, dans le Dashboard > Plan, sert à ancrer une répétition dans ton quotidien.\n- Initiatives, dans Dashboard > Initiatives, sert à planifier un message récurrent que je t’envoie.\n\nSi tu veux le faire toi-même, prévois surtout : quoi dire, pourquoi c’est utile, l’heure, les jours actifs, et la destination du message. \n\nSi tu veux, je peux aussi te dire lequel des deux colle le mieux à ton besoin du lundi matin.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "source_message_id": "645ba54b-26cb-45e6-97e6-f5d622b50a3d",
+              "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "The user is asking whether Soutien / Habitudes corresponds to the Initiatives feature and what settings to prepare in the platform."
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "answer_product_help_about_initiatives_and_platform_settings",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "product_help_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "product_help",
+                "resume_policy": "none",
+                "reason_code": "product_help_signal"
+              },
+              "selected_handler": "product_help"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help",
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "product_help_signal",
+              "status": "complete",
+              "latency_ms": 7741
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+            "source_message_id": "645ba54b-26cb-45e6-97e6-f5d622b50a3d",
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "The user is asking whether Soutien / Habitudes corresponds to the Initiatives feature and what settings to prepare in the platform."
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "answer_product_help_about_initiatives_and_platform_settings",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.86
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete",
+            "latency_ms": 7741
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+      "sent_at": "2026-06-23T23:12:08.743Z",
+      "user_message": "Autre chose : quand je bloque, ça me frustre que Sophia pose trop de questions. J’aimerais qu’elle soit plus directe et moins interrogative.",
+      "http_status": 200,
+      "assistant_message": "Le bon réglage ici, c’est Preferences coach : baisse la tendance à poser des questions et mets un ton plus direct. Tu peux viser un style plus franc, avec moins d’interrogations quand tu bloques.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T23:12:15.551Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-23T23:12:15.551Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "trop de questions / plus directe / moins interrogative",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User is frustrated with Sophia's style when blocked and wants her to be more direct and less interrogative.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Style feedback maps directly to coach preferences.",
+                "trigger_context": "trop de questions / plus directe / moins interrogative",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-23T23:12:15.554+00:00",
+            "updated_at": "2026-06-23T23:12:15.555654+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-23T23:12:15.554+00:00",
+            "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+            "temp_memory": {
+              "__active_skill_state": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-23T23:12:15.551Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-23T23:12:15.551Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 1,
+                    "trigger_context": "trop de questions / plus directe / moins interrogative",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "User is frustrated with Sophia's style when blocked and wants her to be more direct and less interrogative.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Style feedback maps directly to coach preferences.",
+                      "trigger_context": "trop de questions / plus directe / moins interrogative",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+                    }
+                  }
+                }
+              },
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0
+                ],
+                "last_updated_at": "2026-06-23T23:11:24.259Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 1
+              },
+              "__active_conversation_skill_v1": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-23T23:12:15.551Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-23T23:12:15.551Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 1,
+                    "trigger_context": "trop de questions / plus directe / moins interrogative",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "User is frustrated with Sophia's style when blocked and wants her to be more direct and less interrogative.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Style feedback maps directly to coach preferences.",
+                      "trigger_context": "trop de questions / plus directe / moins interrogative",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "1810544d-1b42-4c36-ab04-bfe600e1319f",
+            "role": "user",
+            "content": "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+            "created_at": "2026-06-23T23:11:16.586721+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "e1850444-7e56-42e9-ab9d-3ff8d08e08fe",
+            "role": "assistant",
+            "content": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+            "created_at": "2026-06-23T23:11:24.291642+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1441,
+              "selected_handler": null,
+              "context_latency_ms": 60,
+              "dispatcher_latency_ms": 3407,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "645ba54b-26cb-45e6-97e6-f5d622b50a3d",
+            "role": "user",
+            "content": "Quand tu dis Soutien / Habitudes, tu veux dire la fonctionnalité Initiatives ? Quels réglages je dois prévoir si je veux le faire moi-même dans la plateforme ?",
+            "created_at": "2026-06-23T23:11:45.034739+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "92b05fa6-80b9-4d61-9ef7-86af914a3e10",
+            "role": "assistant",
+            "content": "Pas exactement. \n\n- Habitudes, dans le Dashboard > Plan, sert à ancrer une répétition dans ton quotidien.\n- Initiatives, dans Dashboard > Initiatives, sert à planifier un message récurrent que je t’envoie.\n\nSi tu veux le faire toi-même, prévois surtout : quoi dire, pourquoi c’est utile, l’heure, les jours actifs, et la destination du message. \n\nSi tu veux, je peux aussi te dire lequel des deux colle le mieux à ton besoin du lundi matin.",
+            "created_at": "2026-06-23T23:11:56.150811+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "route_owner": "product_help",
+              "agent_latency_ms": 7741,
+              "selected_handler": "product_help",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3346,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "46fc0c6d-88e9-4fb1-8496-245942210169",
+            "role": "user",
+            "content": "Autre chose : quand je bloque, ça me frustre que Sophia pose trop de questions. J’aimerais qu’elle soit plus directe et moins interrogative.",
+            "created_at": "2026-06-23T23:12:08.803952+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "ad765e26-749e-4fdb-a80b-1ec363c10a42",
+            "role": "assistant",
+            "content": "Le bon réglage ici, c’est Preferences coach : baisse la tendance à poser des questions et mets un ton plus direct. Tu peux viser un style plus franc, avec moins d’interrogations quand tu bloques.",
+            "created_at": "2026-06-23T23:12:15.559301+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4106,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 2625,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+        "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Le bon réglage ici, c’est Preferences coach : baisse la tendance à poser des questions et mets un ton plus direct. Tu peux viser un style plus franc, avec moins d’interrogations quand tu bloques.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "source_message_id": "46fc0c6d-88e9-4fb1-8496-245942210169",
+              "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "feature_opportunity": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "coach_preferences_opportunity",
+                  "context": {
+                    "feature": "coach_preferences",
+                    "opportunity_kind": "coach_style_feedback",
+                    "trigger_context": "trop de questions / plus directe / moins interrogative",
+                    "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style.",
+                    "priority_reason": "Style feedback maps directly to coach preferences."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "user_feedback_on_coach_style",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "none",
+                "reason_code": "feature_opportunity_signal"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "feature_opportunity_signal",
+              "status": "continue",
+              "latency_ms": 4106
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+            "source_message_id": "46fc0c6d-88e9-4fb1-8496-245942210169",
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "feature_opportunity": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "coach_preferences_opportunity",
+                "context": {
+                  "feature": "coach_preferences",
+                  "opportunity_kind": "coach_style_feedback",
+                  "trigger_context": "trop de questions / plus directe / moins interrogative",
+                  "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style.",
+                  "priority_reason": "Style feedback maps directly to coach preferences."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "user_feedback_on_coach_style",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.86
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "none",
+              "reason_code": "feature_opportunity_signal"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "feature_opportunity_signal",
+            "status": "continue",
+            "latency_ms": 4106
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+      "sent_at": "2026-06-23T23:12:28.936Z",
+      "user_message": "Et dans Preferences coach, je peux régler quoi exactement ? Je veux juste savoir les options, pas que tu l’appliques.",
+      "http_status": 200,
+      "assistant_message": "Dans Preferences coach, tu peux régler 3 choses :\n- le ton : plus doux, chaleureux/direct ou direct\n- le niveau de challenge : faible, équilibré ou élevé\n- la tendance à poser des questions : peu de questions, normal ou très questionnant\n\nSi tu veux, je peux aussi te dire lequel colle le mieux à ton besoin “plus directe et moins interrogative”.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T23:12:15.551Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-23T23:12:34.004Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "Question about available coach preference options, not an application request.",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User wants to know what options are available in coach preferences, without applying any change.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Style feedback maps directly to coach preferences.",
+                "trigger_context": "trop de questions / plus directe / moins interrogative",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-23T23:12:34.008+00:00",
+            "updated_at": "2026-06-23T23:12:34.010717+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-23T23:12:34.008+00:00",
+            "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+            "temp_memory": {
+              "__active_skill_state": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-23T23:12:15.551Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-23T23:12:34.004Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 2,
+                    "trigger_context": "Question about available coach preference options, not an application request.",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "User wants to know what options are available in coach preferences, without applying any change.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Style feedback maps directly to coach preferences.",
+                      "trigger_context": "trop de questions / plus directe / moins interrogative",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+                    }
+                  }
+                }
+              },
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0
+                ],
+                "last_updated_at": "2026-06-23T23:11:24.259Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 1
+              },
+              "__active_conversation_skill_v1": {
+                "status": "active",
+                "version": 1,
+                "skill_id": "feature_opportunity",
+                "started_at": "2026-06-23T23:12:15.551Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-23T23:12:34.004Z",
+                "working_state": {
+                  "feature_opportunity_local_state": {
+                    "feature": "coach_preferences",
+                    "max_turns": 3,
+                    "turn_count": 2,
+                    "trigger_context": "Question about available coach preference options, not an application request.",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "User wants to know what options are available in coach preferences, without applying any change.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Style feedback maps directly to coach preferences.",
+                      "trigger_context": "trop de questions / plus directe / moins interrogative",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "1810544d-1b42-4c36-ab04-bfe600e1319f",
+            "role": "user",
+            "content": "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+            "created_at": "2026-06-23T23:11:16.586721+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "e1850444-7e56-42e9-ab9d-3ff8d08e08fe",
+            "role": "assistant",
+            "content": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+            "created_at": "2026-06-23T23:11:24.291642+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1441,
+              "selected_handler": null,
+              "context_latency_ms": 60,
+              "dispatcher_latency_ms": 3407,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "645ba54b-26cb-45e6-97e6-f5d622b50a3d",
+            "role": "user",
+            "content": "Quand tu dis Soutien / Habitudes, tu veux dire la fonctionnalité Initiatives ? Quels réglages je dois prévoir si je veux le faire moi-même dans la plateforme ?",
+            "created_at": "2026-06-23T23:11:45.034739+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "92b05fa6-80b9-4d61-9ef7-86af914a3e10",
+            "role": "assistant",
+            "content": "Pas exactement. \n\n- Habitudes, dans le Dashboard > Plan, sert à ancrer une répétition dans ton quotidien.\n- Initiatives, dans Dashboard > Initiatives, sert à planifier un message récurrent que je t’envoie.\n\nSi tu veux le faire toi-même, prévois surtout : quoi dire, pourquoi c’est utile, l’heure, les jours actifs, et la destination du message. \n\nSi tu veux, je peux aussi te dire lequel des deux colle le mieux à ton besoin du lundi matin.",
+            "created_at": "2026-06-23T23:11:56.150811+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "route_owner": "product_help",
+              "agent_latency_ms": 7741,
+              "selected_handler": "product_help",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3346,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "46fc0c6d-88e9-4fb1-8496-245942210169",
+            "role": "user",
+            "content": "Autre chose : quand je bloque, ça me frustre que Sophia pose trop de questions. J’aimerais qu’elle soit plus directe et moins interrogative.",
+            "created_at": "2026-06-23T23:12:08.803952+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "ad765e26-749e-4fdb-a80b-1ec363c10a42",
+            "role": "assistant",
+            "content": "Le bon réglage ici, c’est Preferences coach : baisse la tendance à poser des questions et mets un ton plus direct. Tu peux viser un style plus franc, avec moins d’interrogations quand tu bloques.",
+            "created_at": "2026-06-23T23:12:15.559301+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4106,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 2625,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "54702d26-67c1-42bd-90c4-6232334ae959",
+            "role": "user",
+            "content": "Et dans Preferences coach, je peux régler quoi exactement ? Je veux juste savoir les options, pas que tu l’appliques.",
+            "created_at": "2026-06-23T23:12:28.997706+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "5282d495-2883-47af-af88-62a002f60c88",
+            "role": "assistant",
+            "content": "Dans Preferences coach, tu peux régler 3 choses :\n- le ton : plus doux, chaleureux/direct ou direct\n- le niveau de challenge : faible, équilibré ou élevé\n- la tendance à poser des questions : peu de questions, normal ou très questionnant\n\nSi tu veux, je peux aussi te dire lequel colle le mieux à ton besoin “plus directe et moins interrogative”.",
+            "created_at": "2026-06-23T23:12:34.015464+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4988,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+        "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Dans Preferences coach, tu peux régler 3 choses :\n- le ton : plus doux, chaleureux/direct ou direct\n- le niveau de challenge : faible, équilibré ou élevé\n- la tendance à poser des questions : peu de questions, normal ou très questionnant\n\nSi tu veux, je peux aussi te dire lequel colle le mieux à ton besoin “plus directe et moins interrogative”.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+              "source_message_id": "54702d26-67c1-42bd-90c4-6232334ae959",
+              "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "feature_opportunity",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_feature_opportunity",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "feature_opportunity",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "resume_active",
+                "reason_code": "active_feature_opportunity"
+              },
+              "selected_handler": "feature_opportunity"
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "feature_opportunity",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "active_feature_opportunity",
+              "status": "continue",
+              "latency_ms": 4988
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+            "source_message_id": "54702d26-67c1-42bd-90c4-6232334ae959",
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "feature_opportunity",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_feature_opportunity",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "feature_opportunity",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "resume_active",
+              "reason_code": "active_feature_opportunity"
+            },
+            "selected_handler": "feature_opportunity"
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "feature_opportunity",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "active_feature_opportunity",
+            "status": "continue",
+            "latency_ms": 4988
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+      "sent_at": "2026-06-23T23:12:45.599Z",
+      "user_message": "Ok merci. Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.",
+      "http_status": 200,
+      "assistant_message": "Une carte d’attaque sert à te pousser vers l’action, à créer de l’élan ou à te challenger.  \nUne carte de défense sert à te protéger, à réduire la pression ou à t’aider à tenir un cadre quand ça secoue 🛡️",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_exit_to_global",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "state_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "current_mode": "companion",
+            "risk_level": 0,
+            "investigation_state": null,
+            "short_term_context": "",
+            "last_interaction_at": "2026-06-23T23:12:50.208+00:00",
+            "updated_at": "2026-06-23T23:12:50.209107+00:00",
+            "unprocessed_msg_count": 0,
+            "last_processed_at": "2026-06-23T23:12:50.208+00:00",
+            "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+            "temp_memory": {
+              "companion_question_rhythm": {
+                "preference": "normal",
+                "recent_turns": [
+                  0,
+                  0
+                ],
+                "last_updated_at": "2026-06-23T23:12:50.199Z",
+                "last_turn_had_question": false,
+                "turns_since_last_question": 2
+              }
+            }
+          }
+        ]
+      },
+      "messages_after": {
+        "ok": true,
+        "status": 200,
+        "body": [
+          {
+            "id": "1810544d-1b42-4c36-ab04-bfe600e1319f",
+            "role": "user",
+            "content": "Le lundi matin, avant d’ouvrir mes mails, je perds souvent le fil de mes priorités. Je me dis qu’un soutien récurrent de Sophia pourrait m’aider à reprendre le bon contexte sans créer un rappel ponctuel.",
+            "created_at": "2026-06-23T23:11:16.586721+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "e1850444-7e56-42e9-ab9d-3ff8d08e08fe",
+            "role": "assistant",
+            "content": "Oui, c’est exactement le bon type de soutien à viser : un point de reprise récurrent, pas un rappel isolé 🙂  \nDans la plateforme, ça se pense côté Soutien / Habitudes, pour t’aider à retrouver le contexte du lundi matin avant les mails.",
+            "created_at": "2026-06-23T23:11:24.291642+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t01",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1441,
+              "selected_handler": null,
+              "context_latency_ms": 60,
+              "dispatcher_latency_ms": 3407,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "645ba54b-26cb-45e6-97e6-f5d622b50a3d",
+            "role": "user",
+            "content": "Quand tu dis Soutien / Habitudes, tu veux dire la fonctionnalité Initiatives ? Quels réglages je dois prévoir si je veux le faire moi-même dans la plateforme ?",
+            "created_at": "2026-06-23T23:11:45.034739+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "92b05fa6-80b9-4d61-9ef7-86af914a3e10",
+            "role": "assistant",
+            "content": "Pas exactement. \n\n- Habitudes, dans le Dashboard > Plan, sert à ancrer une répétition dans ton quotidien.\n- Initiatives, dans Dashboard > Initiatives, sert à planifier un message récurrent que je t’envoie.\n\nSi tu veux le faire toi-même, prévois surtout : quoi dire, pourquoi c’est utile, l’heure, les jours actifs, et la destination du message. \n\nSi tu veux, je peux aussi te dire lequel des deux colle le mieux à ton besoin du lundi matin.",
+            "created_at": "2026-06-23T23:11:56.150811+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t02",
+              "route_owner": "product_help",
+              "agent_latency_ms": 7741,
+              "selected_handler": "product_help",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 3346,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "46fc0c6d-88e9-4fb1-8496-245942210169",
+            "role": "user",
+            "content": "Autre chose : quand je bloque, ça me frustre que Sophia pose trop de questions. J’aimerais qu’elle soit plus directe et moins interrogative.",
+            "created_at": "2026-06-23T23:12:08.803952+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "ad765e26-749e-4fdb-a80b-1ec363c10a42",
+            "role": "assistant",
+            "content": "Le bon réglage ici, c’est Preferences coach : baisse la tendance à poser des questions et mets un ton plus direct. Tu peux viser un style plus franc, avec moins d’interrogations quand tu bloques.",
+            "created_at": "2026-06-23T23:12:15.559301+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t03",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4106,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 2625,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "54702d26-67c1-42bd-90c4-6232334ae959",
+            "role": "user",
+            "content": "Et dans Preferences coach, je peux régler quoi exactement ? Je veux juste savoir les options, pas que tu l’appliques.",
+            "created_at": "2026-06-23T23:12:28.997706+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "5282d495-2883-47af-af88-62a002f60c88",
+            "role": "assistant",
+            "content": "Dans Preferences coach, tu peux régler 3 choses :\n- le ton : plus doux, chaleureux/direct ou direct\n- le niveau de challenge : faible, équilibré ou élevé\n- la tendance à poser des questions : peu de questions, normal ou très questionnant\n\nSi tu veux, je peux aussi te dire lequel colle le mieux à ton besoin “plus directe et moins interrogative”.",
+            "created_at": "2026-06-23T23:12:34.015464+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t04",
+              "route_owner": "feature_opportunity",
+              "agent_latency_ms": 4988,
+              "selected_handler": "feature_opportunity",
+              "context_latency_ms": 0,
+              "dispatcher_latency_ms": 0,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          },
+          {
+            "id": "bcb3072f-2f22-4e8e-9d70-092e18c33a77",
+            "role": "user",
+            "content": "Ok merci. Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.",
+            "created_at": "2026-06-23T23:12:45.640876+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+              "test_persona": true,
+              "force_full_ai": true,
+              "test_endpoint": "test-send-message"
+            },
+            "agent_used": null
+          },
+          {
+            "id": "eec51eec-d455-4268-86dc-9176098343e3",
+            "role": "assistant",
+            "content": "Une carte d’attaque sert à te pousser vers l’action, à créer de l’élan ou à te challenger.  \nUne carte de défense sert à te protéger, à réduire la pression ou à t’aider à tenir un cadre quand ça secoue 🛡️",
+            "created_at": "2026-06-23T23:12:50.21116+00:00",
+            "metadata": {
+              "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+              "route_owner": "normal_reply",
+              "agent_latency_ms": 1115,
+              "selected_handler": null,
+              "context_latency_ms": 25,
+              "dispatcher_latency_ms": 1,
+              "runtime_safety_risk_band": "none"
+            },
+            "agent_used": "companion"
+          }
+        ]
+      },
+      "response_body": {
+        "ok": true,
+        "request_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+        "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+        "channel": "web",
+        "scope": "qa-feature-opportunity-normal-local-real-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Une carte d’attaque sert à te pousser vers l’action, à créer de l’élan ou à te challenger.  \nUne carte de défense sert à te protéger, à réduire la pression ou à t’aider à tenir un cadre quand ça secoue 🛡️",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+              "source_message_id": "bcb3072f-2f22-4e8e-9d70-092e18c33a77",
+              "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "feature_opportunity_exit_to_global",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "feature_opportunity",
+                "selected_owner": "feature_opportunity",
+                "resume_policy": "resume_active",
+                "reason_code": "active_feature_opportunity"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "skill_run": {
+              "selected_skill_id": "feature_opportunity",
+              "reason_code": "active_feature_opportunity",
+              "status": "exit",
+              "latency_ms": 3387,
+              "exit_target": "global",
+              "exit_note_information": {
+                "source_flow_id": "feature_opportunity",
+                "handoff_reason": "topic_change",
+                "target_dispatcher": "global",
+                "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User had previously expressed frustration that Sophia asks too many questions and wants a more direct, less interrogative style, but has now switched to an unrelated topic.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"coach_preferences\",\"opportunity_kind\":\"coach_style_feedback\",\"trigger_context\":\"The current message asks an unrelated conceptual question about attack and defense cards, outside the detected coach_preferences opportunity.\",\"dispatcher_signal_context\":{\"feature\":\"coach_preferences\",\"priority_reason\":\"Style feedback maps directly to coach preferences.\",\"trigger_context\":\"trop de questions / plus directe / moins interrogative\",\"opportunity_kind\":\"coach_style_feedback\",\"user_problem_summary\":\"User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Current message: 'Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.'\",\"Previous opportunity: coach_preferences / style feedback\"]}",
+                "user_words": [
+                  "Ok merci. Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.",
+                  "Current message: 'Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.'",
+                  "Previous opportunity: coach_preferences / style feedback"
+                ],
+                "structured_context": {
+                  "user_message_summary": "User had previously expressed frustration that Sophia asks too many questions and wants a more direct, less interrogative style, but has now switched to an unrelated topic.",
+                  "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+                  "collected_state": {
+                    "feature": "coach_preferences",
+                    "opportunity_kind": "coach_style_feedback",
+                    "trigger_context": "The current message asks an unrelated conceptual question about attack and defense cards, outside the detected coach_preferences opportunity.",
+                    "dispatcher_signal_context": {
+                      "feature": "coach_preferences",
+                      "priority_reason": "Style feedback maps directly to coach preferences.",
+                      "trigger_context": "trop de questions / plus directe / moins interrogative",
+                      "opportunity_kind": "coach_style_feedback",
+                      "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+                    }
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "global",
+                  "evidence": [
+                    "Current message: 'Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.'",
+                    "Previous opportunity: coach_preferences / style feedback"
+                  ]
+                },
+                "confidence": "high"
+              }
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+            "source_message_id": "bcb3072f-2f22-4e8e-9d70-092e18c33a77",
+            "user_id": "9344e8d4-aa7c-4bd2-b729-7879bfb46109",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "feature_opportunity_exit_to_global",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "feature_opportunity",
+              "selected_owner": "feature_opportunity",
+              "resume_policy": "resume_active",
+              "reason_code": "active_feature_opportunity"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-feature-opportunity-normal-local-real-20260624-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply",
+          "skill_run": {
+            "selected_skill_id": "feature_opportunity",
+            "reason_code": "active_feature_opportunity",
+            "status": "exit",
+            "latency_ms": 3387,
+            "exit_target": "global",
+            "exit_note_information": {
+              "source_flow_id": "feature_opportunity",
+              "handoff_reason": "topic_change",
+              "target_dispatcher": "global",
+              "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User had previously expressed frustration that Sophia asks too many questions and wants a more direct, less interrogative style, but has now switched to an unrelated topic.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"coach_preferences\",\"opportunity_kind\":\"coach_style_feedback\",\"trigger_context\":\"The current message asks an unrelated conceptual question about attack and defense cards, outside the detected coach_preferences opportunity.\",\"dispatcher_signal_context\":{\"feature\":\"coach_preferences\",\"priority_reason\":\"Style feedback maps directly to coach preferences.\",\"trigger_context\":\"trop de questions / plus directe / moins interrogative\",\"opportunity_kind\":\"coach_style_feedback\",\"user_problem_summary\":\"User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Current message: 'Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.'\",\"Previous opportunity: coach_preferences / style feedback\"]}",
+              "user_words": [
+                "Ok merci. Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.",
+                "Current message: 'Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.'",
+                "Previous opportunity: coach_preferences / style feedback"
+              ],
+              "structured_context": {
+                "user_message_summary": "User had previously expressed frustration that Sophia asks too many questions and wants a more direct, less interrogative style, but has now switched to an unrelated topic.",
+                "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+                "collected_state": {
+                  "feature": "coach_preferences",
+                  "opportunity_kind": "coach_style_feedback",
+                  "trigger_context": "The current message asks an unrelated conceptual question about attack and defense cards, outside the detected coach_preferences opportunity.",
+                  "dispatcher_signal_context": {
+                    "feature": "coach_preferences",
+                    "priority_reason": "Style feedback maps directly to coach preferences.",
+                    "trigger_context": "trop de questions / plus directe / moins interrogative",
+                    "opportunity_kind": "coach_style_feedback",
+                    "user_problem_summary": "User is frustrated with Sophia's questioning style and wants a more direct, less interrogative coaching style."
+                  }
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "global",
+                "evidence": [
+                  "Current message: 'Autre sujet : explique-moi en deux phrases la différence entre une carte d’attaque et une carte de défense.'",
+                  "Previous opportunity: coach_preferences / style feedback"
+                ]
+              },
+              "confidence": "high"
+            }
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "connection_created_this_run": true,
+  "updated_at": "2026-06-23T23:12:50.229Z"
+}

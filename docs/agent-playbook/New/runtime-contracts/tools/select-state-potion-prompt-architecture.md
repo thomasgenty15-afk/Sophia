@@ -746,12 +746,7 @@ Sortie JSON stricte :
       "summary": "string|null",
       "is_stale_due_to_revision": false
     },
-    "handoff_hint_for_global_dispatcher": "string",
-    "constraints": {
-      "no_chat_mutation": true,
-      "no_confirmation_token": true,
-      "no_db_effect": true
-    }
+    "handoff_hint_for_global_dispatcher": "string"
   }
 }
 ```

@@ -546,7 +546,7 @@
                   },
                   "visible_task": "compare_features",
                   "return_to_parent_flow": false,
-                  "handoff_to_local_dispatcher": false,
+                  "exit_to_global_dispatcher": false,
                   "note_information": null,
                   "reason_code": "product_help_local_compare_features",
                   "evidence": [
@@ -961,7 +961,7 @@
                 },
                 "visible_task": "compare_features",
                 "return_to_parent_flow": false,
-                "handoff_to_local_dispatcher": false,
+                "exit_to_global_dispatcher": false,
                 "note_information": null,
                 "reason_code": "product_help_local_compare_features",
                 "evidence": [
@@ -1721,7 +1721,7 @@
                   },
                   "visible_task": "answer_destination",
                   "return_to_parent_flow": false,
-                  "handoff_to_local_dispatcher": false,
+                  "exit_to_global_dispatcher": false,
                   "note_information": null,
                   "reason_code": "product_help_local_answer_destination",
                   "evidence": [
@@ -2269,7 +2269,7 @@
                 },
                 "visible_task": "answer_destination",
                 "return_to_parent_flow": false,
-                "handoff_to_local_dispatcher": false,
+                "exit_to_global_dispatcher": false,
                 "note_information": null,
                 "reason_code": "product_help_local_answer_destination",
                 "evidence": [
@@ -2541,7 +2541,7 @@
                     "committed_effects": [],
                     "last_answer_summary": "Explained attack vs defense cards and their location."
                   },
-                  "reducer_reason_code": "product_help_handoff_to_local_dispatcher",
+                  "reducer_reason_code": "product_help_exit_to_global_dispatcher",
                   "user_intent_summary": "User wants to create an attack card for a specific task.",
                   "handoff_hint_for_global_dispatcher": {
                     "why": "User explicitly asked to prepare a card.",
@@ -3000,7 +3000,7 @@
                 "reply": "C'est entendu, on s'occupe de préparer ta carte d'attaque pour ranger tes papiers demain matin.",
                 "diagnosis": {
                   "local_flow": true,
-                  "flow_action": "handoff_to_local_dispatcher",
+                  "flow_action": "exit_to_global_dispatcher",
                   "mode": "standalone",
                   "target": {
                     "kind": "tool_flow",
@@ -3030,7 +3030,7 @@
                   },
                   "visible_task": "exit_ack",
                   "return_to_parent_flow": false,
-                  "handoff_to_local_dispatcher": true,
+                  "exit_to_global_dispatcher": true,
                   "note_information": {
                     "source_flow_id": "product_help",
                     "handoff_reason": "explicit_user_request",
@@ -3048,7 +3048,7 @@
                     },
                     "confidence": "high"
                   },
-                  "reason_code": "product_help_handoff_to_local_dispatcher",
+                  "reason_code": "product_help_exit_to_global_dispatcher",
                   "evidence": [
                     "user message: prépare-moi une carte d'attaque pour ranger mes papiers demain matin",
                     "resources.attack_card"
@@ -3067,7 +3067,7 @@
                 "operation_suggestions": [],
                 "handoff_request": {
                   "target_skill_id": "prepare_attack_card",
-                  "reason": "product_help_handoff_to_local_dispatcher",
+                  "reason": "product_help_exit_to_global_dispatcher",
                   "confidence_band": "high"
                 },
                 "memory_write_candidates": [],
@@ -3164,7 +3164,7 @@
                       "confidence": "high"
                     },
                     "at": "2026-06-11T23:15:16.798Z",
-                    "reducer_reason_code": "product_help_handoff_to_local_dispatcher"
+                    "reducer_reason_code": "product_help_exit_to_global_dispatcher"
                   },
                   "product_help_subskill_trace": null,
                   "summary": "User wants to prepare an attack card for tidying papers tomorrow morning."
@@ -3614,7 +3614,7 @@
               "reply": "C'est entendu, on s'occupe de préparer ta carte d'attaque pour ranger tes papiers demain matin.",
               "diagnosis": {
                 "local_flow": true,
-                "flow_action": "handoff_to_local_dispatcher",
+                "flow_action": "exit_to_global_dispatcher",
                 "mode": "standalone",
                 "target": {
                   "kind": "tool_flow",
@@ -3644,7 +3644,7 @@
                 },
                 "visible_task": "exit_ack",
                 "return_to_parent_flow": false,
-                "handoff_to_local_dispatcher": true,
+                "exit_to_global_dispatcher": true,
                 "note_information": {
                   "source_flow_id": "product_help",
                   "handoff_reason": "explicit_user_request",
@@ -3662,7 +3662,7 @@
                   },
                   "confidence": "high"
                 },
-                "reason_code": "product_help_handoff_to_local_dispatcher",
+                "reason_code": "product_help_exit_to_global_dispatcher",
                 "evidence": [
                   "user message: prépare-moi une carte d'attaque pour ranger mes papiers demain matin",
                   "resources.attack_card"
@@ -3681,7 +3681,7 @@
               "operation_suggestions": [],
               "handoff_request": {
                 "target_skill_id": "prepare_attack_card",
-                "reason": "product_help_handoff_to_local_dispatcher",
+                "reason": "product_help_exit_to_global_dispatcher",
                 "confidence_band": "high"
               },
               "memory_write_candidates": [],
@@ -3778,7 +3778,7 @@
                     "confidence": "high"
                   },
                   "at": "2026-06-11T23:15:16.798Z",
-                  "reducer_reason_code": "product_help_handoff_to_local_dispatcher"
+                  "reducer_reason_code": "product_help_exit_to_global_dispatcher"
                 },
                 "product_help_subskill_trace": null,
                 "summary": "User wants to prepare an attack card for tidying papers tomorrow morning."

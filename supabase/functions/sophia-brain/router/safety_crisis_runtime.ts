@@ -7,6 +7,7 @@ import {
   createNoteInformation,
   type NoteInformation,
 } from "../contracts/note_information.v1.ts";
+import { clearActiveConversationSkillState } from "./active_flow_state.ts";
 
 export function isSafetyRoute(routeDecision: RouteDecision | null): boolean {
   return routeDecision?.response_owner === "safety";
@@ -141,9 +142,6 @@ export function selectedConversationSkillForRoute(
 ): string {
   if (isSafetyRoute(routeDecision)) return "safety_crisis";
   if (routeDecision?.response_owner === "product_help") return "product_help";
-  if (routeDecision?.response_owner === "conversation_handler") {
-    return String(routeDecision?.selected_handler ?? "").trim();
-  }
   return "";
 }
 
@@ -213,9 +211,7 @@ export function applySafetyCrisisExitStateIfNeeded(args: {
       exit_memo: exitMemo,
     },
   };
-  delete next.__active_skill_state;
-  delete next.active_skill_state;
-  return next;
+  return clearActiveConversationSkillState(next);
 }
 
 export function directSafetyCrisisReplyOverride(args: {
@@ -267,14 +263,11 @@ export function suppressToolSignalsForSafetyRoute(args: {
     },
     turnFrame: {
       ...args.turnFrame,
-      tool_skill_intents: [],
       direct_effects: oneShotDirectEffects,
-      flow_opportunity: null,
     },
-    changed: args.turnFrame.tool_skill_intents.length > 0 ||
+    changed:
       args.turnFrame.direct_effects.length !== oneShotDirectEffects.length ||
       args.routeDecision.direct_effects_to_run.length !==
-        directEffectsToRun.length ||
-      Boolean(args.turnFrame.flow_opportunity),
+        directEffectsToRun.length,
   };
 }

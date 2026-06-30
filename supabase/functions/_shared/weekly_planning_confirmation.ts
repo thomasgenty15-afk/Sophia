@@ -17,7 +17,11 @@ export type PlanningItemSnapshot = {
   };
   week: {
     plan: {
-      status: "pending_confirmation" | "confirmed" | "auto_applied";
+      status:
+        | "pending_confirmation"
+        | "confirmed"
+        | "auto_applied"
+        | "archived";
     };
     occurrences: Array<{
       planned_day: DayCode;

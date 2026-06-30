@@ -363,7 +363,6 @@ Il recoit seulement :
 ```json
 {
   "state_summary": "string",
-  "user_words": ["string"],
   "stage": "string",
   "plan": {
     "status": "active|missing|...",
@@ -522,7 +521,7 @@ Il recoit seulement :
 ### `plan_wait`
 
 - Appele quand le plan n'est pas pret et le flow attend.
-- Recoit : `plan.status`, `state_summary`, `user_words`, `do_not_say`.
+- Recoit : `plan.status`, `state_summary`, `do_not_say`.
 - Produit : message court d'attente/synchronisation.
 - Ne doit jamais : parler de preferences, router global, logguer une action.
 

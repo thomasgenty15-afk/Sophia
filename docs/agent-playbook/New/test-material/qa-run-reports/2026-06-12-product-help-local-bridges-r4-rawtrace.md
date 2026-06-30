@@ -60,7 +60,7 @@
 - http_status: `200`
 - response_owner: `tool_skill`
 - selected_handler: `prepare_attack_card`
-- route_reason: `product_help_handoff_to_local_dispatcher`
+- route_reason: `product_help_exit_to_global_dispatcher`
 - safety: `none`
 - direct_effects: `[]`
 - operation: `null`
@@ -158,7 +158,7 @@
 
 **Routage**
 - T1: entree correcte dans `product_help` via `skill_entry_signal`.
-- T2: bridge product_help conforme: `route_reason=product_help_handoff_to_local_dispatcher`, `selected_handler=prepare_attack_card`.
+- T2: bridge product_help conforme: `route_reason=product_help_exit_to_global_dispatcher`, `selected_handler=prepare_attack_card`.
 - T3/T4: reprise active correcte par `active_prepare_attack_card_local_dispatcher`.
 - Aucun signal de retour au legacy product_help ni de creation deterministe par product_help.
 
@@ -184,7 +184,7 @@
 **Fix propose**
 - Source amont: `prepare_attack_card` local dispatcher / visible agent, pas product_help.
 - Correction recommandee: renforcer la regle de rendu de `candidate_options` et la politique de recommandation de technique. Garder le bridge product_help tel quel.
-- Tests d'invariant attendus: product_help -> attack reste `product_help_handoff_to_local_dispatcher`; T3 variantes de blocker papier/surcharge proposent une option restreinte; le visible ne liste pas des techniques absentes de `conversation_context`; raw IA trace presente en DB quand le flag est actif.
+- Tests d'invariant attendus: product_help -> attack reste `product_help_exit_to_global_dispatcher`; T3 variantes de blocker papier/surcharge proposent une option restreinte; le visible ne liste pas des techniques absentes de `conversation_context`; raw IA trace presente en DB quand le flag est actif.
 
 ## 5. Verdict Global
 

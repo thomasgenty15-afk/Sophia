@@ -1,0 +1,64 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "b5cfe203-01a6-4829-8838-8d41b705c1f0",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T09:10:00+00:00",
+      "event_context": "one_shot_reminder:preparer_mon_sac_de_sport",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: préparer mon sac de sport.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi demain à 09h10 de préparer mon sac de sport",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: préparer mon sac de sport.",
+        "source_message_id": null,
+        "reminder_instruction": "préparer mon sac de sport"
+      },
+      "created_at": "2026-06-24T13:12:15.855521+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Rappelle-moi demain à 09h10 de préparer mon sac de sport, et sinon réponds-moi juste normalement : je veux garder ça simple.",
+      "created_at": "2026-06-24T13:12:05.978931+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-global-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est noté pour demain à 09:10 : préparer ton sac de sport 🙂  \nJe te réponds simplement, comme demandé.",
+      "created_at": "2026-06-24T13:12:17.821857+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r2-global-t01",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "d74876ab-c046-4785-b73c-61ab328d4f67",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "companion_question_rhythm": {
+        "preference": "normal",
+        "recent_turns": [
+          0
+        ],
+        "last_updated_at": "2026-06-24T13:12:17.790Z",
+        "last_turn_had_question": false,
+        "turns_since_last_question": 1
+      }
+    },
+    "updated_at": "2026-06-24T13:12:17.815133+00:00"
+  }
+}

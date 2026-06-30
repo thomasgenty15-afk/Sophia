@@ -1,0 +1,905 @@
+{
+  "run_id": "one_shot_7flows_20260626_daily_r1",
+  "created_at": "2026-06-26T10:57:33.681Z",
+  "started_at": "2026-06-26T10:57:30.465Z",
+  "persona": "qa-skill",
+  "persona_conversationnel": "qa-skill",
+  "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+  "email": "qa-daily-actions-one-shot-7flows-20260626-daily-r1@example.com",
+  "connection_name": "daily_actions_one-shot-7flows-20260626-daily-r1",
+  "connection_path": "tests/real-personas/qa-skill/connections/daily_actions_one-shot-7flows-20260626-daily-r1.json",
+  "constraints": {
+    "local_supabase": "http://127.0.0.1:54321",
+    "force_full_ai": "non applicable: proactive process-checkins, not test-send-message",
+    "deterministic_renderer": false,
+    "direct_executor": false,
+    "cleanup_destructive_db": false
+  },
+  "fixture": {
+    "timezone": "Europe/Paris",
+    "localDate": "2026-06-26",
+    "weekday": "fri",
+    "weekStart": "2026-06-22",
+    "cycle": {
+      "id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+      "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+      "status": "active",
+      "raw_intake_text": "QA dynamique: tester les encouragements d'actions du jour et le daily.",
+      "intake_language": "fr",
+      "duration_months": 1,
+      "birth_date_snapshot": null,
+      "gender_snapshot": null,
+      "active_transformation_id": null,
+      "version": 1,
+      "created_at": "2026-06-26T10:57:30.721984+00:00",
+      "updated_at": "2026-06-26T10:57:30.721984+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "validated_structure": null,
+      "requested_pace": null
+    },
+    "transformation": {
+      "id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+      "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+      "priority_order": 1,
+      "status": "active",
+      "title": "QA actions du jour",
+      "internal_summary": "Fixture QA locale pour actions planifiées aujourd'hui.",
+      "user_summary": "Tester que Sophia encourage et demande le bilan.",
+      "success_definition": null,
+      "main_constraint": null,
+      "questionnaire_schema": null,
+      "questionnaire_answers": null,
+      "completion_summary": null,
+      "handoff_payload": null,
+      "created_at": "2026-06-26T10:57:30.727411+00:00",
+      "updated_at": "2026-06-26T10:57:30.727411+00:00",
+      "activated_at": "2026-06-25T10:57:30.726+00:00",
+      "completed_at": null,
+      "ordering_rationale": null,
+      "unlocked_principles": {
+        "kaizen": true
+      },
+      "base_de_vie_payload": null
+    },
+    "plan": {
+      "id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+      "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+      "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+      "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+      "status": "active",
+      "version": 1,
+      "title": "Plan QA actions du jour",
+      "content": {
+        "run_id": "one_shot_7flows_20260626_daily_r1",
+        "source": "qa_dynamic_fixture"
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": "2026-06-25T10:57:30.738+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-06-26T10:57:30.740687+00:00",
+      "updated_at": "2026-06-26T10:57:30.740687+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "items": [
+      {
+        "item": {
+          "id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+          "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+          "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+          "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+          "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+          "dimension": "habits",
+          "kind": "habit",
+          "status": "active",
+          "title": "Faire dix minutes de rangement ciblé",
+          "description": "Action QA planifiée pour aujourd'hui.",
+          "tracking_type": "boolean",
+          "activation_order": 1,
+          "activation_condition": null,
+          "current_habit_state": "active_building",
+          "support_mode": null,
+          "support_function": null,
+          "target_reps": 1,
+          "current_reps": 0,
+          "cadence_label": "Aujourd'hui",
+          "scheduled_days": [
+            "fri"
+          ],
+          "time_of_day": "morning",
+          "start_after_item_id": null,
+          "payload": {
+            "run_id": "one_shot_7flows_20260626_daily_r1",
+            "source": "qa_dynamic_fixture"
+          },
+          "created_at": "2026-06-26T10:57:30.748416+00:00",
+          "updated_at": "2026-06-26T10:57:30.748416+00:00",
+          "activated_at": "2026-06-25T10:57:30.747+00:00",
+          "completed_at": null,
+          "phase_id": null,
+          "phase_order": null,
+          "defense_card_id": null,
+          "attack_card_id": null,
+          "cards_status": "not_required",
+          "cards_generated_at": null
+        },
+        "occurrence": {
+          "id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+          "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+          "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+          "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+          "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+          "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+          "week_start_date": "2026-06-22",
+          "ordinal": 1,
+          "planned_day": "fri",
+          "original_planned_day": "fri",
+          "actual_day": null,
+          "status": "planned",
+          "source": "weekly_confirmed",
+          "validated_at": null,
+          "created_at": "2026-06-26T10:57:30.762893+00:00",
+          "updated_at": "2026-06-26T10:57:30.762893+00:00",
+          "default_day": "fri"
+        }
+      },
+      {
+        "item": {
+          "id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+          "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+          "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+          "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+          "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+          "dimension": "habits",
+          "kind": "habit",
+          "status": "active",
+          "title": "Préparer le premier bloc de travail sans téléphone",
+          "description": "Action QA planifiée pour aujourd'hui.",
+          "tracking_type": "boolean",
+          "activation_order": 2,
+          "activation_condition": null,
+          "current_habit_state": "active_building",
+          "support_mode": null,
+          "support_function": null,
+          "target_reps": 1,
+          "current_reps": 0,
+          "cadence_label": "Aujourd'hui",
+          "scheduled_days": [
+            "fri"
+          ],
+          "time_of_day": "afternoon",
+          "start_after_item_id": null,
+          "payload": {
+            "run_id": "one_shot_7flows_20260626_daily_r1",
+            "source": "qa_dynamic_fixture"
+          },
+          "created_at": "2026-06-26T10:57:30.768583+00:00",
+          "updated_at": "2026-06-26T10:57:30.768583+00:00",
+          "activated_at": "2026-06-25T10:57:30.768+00:00",
+          "completed_at": null,
+          "phase_id": null,
+          "phase_order": null,
+          "defense_card_id": null,
+          "attack_card_id": null,
+          "cards_status": "not_required",
+          "cards_generated_at": null
+        },
+        "occurrence": {
+          "id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+          "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+          "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+          "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+          "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+          "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+          "week_start_date": "2026-06-22",
+          "ordinal": 2,
+          "planned_day": "fri",
+          "original_planned_day": "fri",
+          "actual_day": null,
+          "status": "planned",
+          "source": "weekly_confirmed",
+          "validated_at": null,
+          "created_at": "2026-06-26T10:57:30.779103+00:00",
+          "updated_at": "2026-06-26T10:57:30.779103+00:00",
+          "default_day": "fri"
+        }
+      }
+    ]
+  },
+  "schedule_response": {
+    "success": true,
+    "scheduled": 2,
+    "action_morning_scheduled": 1,
+    "action_morning_followup_scheduled": 0,
+    "light_greeting_scheduled": 0,
+    "action_evening_review_scheduled": 1,
+    "weekly_planning_prompt_scheduled": 0,
+    "weekly_progress_review_scheduled": 0,
+    "weekly_progress_review_skipped_new_user": 0,
+    "birthday_greeting_scheduled": 0,
+    "skipped": 0,
+    "candidates": 1,
+    "request_id": "one_shot_7flows_20260626_daily_r1-schedule",
+    "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+    "event_context": "action_morning_encouragement_v2"
+  },
+  "morning_process_response": {
+    "success": true,
+    "processed": 1,
+    "flushed_deferred": 0,
+    "delivered_rendez_vous": 0,
+    "processed_access_notifications": 0,
+    "processed_proactive_candidates": 0,
+    "request_id": "one_shot_7flows_20260626_daily_r1-process-morning"
+  },
+  "after_morning": {
+    "checkins": [
+      {
+        "id": "be07525e-cf51-4059-9c4b-6d7a6a140b54",
+        "status": "sent",
+        "origin": "action_morning",
+        "event_context": "action_morning_encouragement_v2",
+        "draft_message": "Aujourd’hui, vise juste le tout premier pas: 10 minutes de rangement ciblé, puis tu lances ton premier bloc de travail sans téléphone.  \nPas besoin que ce soit parfait, juste démarré.  \nTu veux commencer par lequel des deux ?",
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "process_checkins:action_morning_encouragement",
+          "version": 1,
+          "weekday": "fri",
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-26",
+          "instruction": "Message WhatsApp du matin.\nObjectif: encourager le user à réaliser les actions prévues aujourd'hui.\nTon: court, concret, chaleureux, pas de bilan, pas de question lourde.\nSurface: lancement de journee. Ne demande jamais comment une action precedente s'est passee.\nVarie l'ouverture et l'angle: cap du jour, premiere marche, version faisable, ancrage simple.\nNombre d'actions prévues: 2.\nLe user a une transformation active.\nUne seule idée principale, 1 à 3 phrases maximum.",
+          "checkin_kind": "action_morning_encouragement",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "chat_capability": "track_progress_only",
+          "event_grounding": "local_date=2026-06-26\nweekday=fri\ntransformation=QA actions du jour plan_id=eac0d4b2-c61f-4826-8a57-015dd11906b9\n- occurrence_id=7370ef18-d43d-41fb-b341-1f544a5e4912 item_id=c7f8c2c7-b3f6-483e-bad9-d8cef16ba483 title=Faire dix minutes de rangement ciblé\n- occurrence_id=5556bbde-1d08-4e1c-8775-4b212bd60597 item_id=8b162c8b-8f4a-4e97-b02f-ffa6384683da title=Préparer le premier bloc de travail sans téléphone",
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": null,
+          "morning_encouragement_local_time": "09:56"
+        },
+        "scheduled_for": "2026-06-26T10:55:31.178+00:00",
+        "delivery_attempt_count": 1,
+        "processed_at": "2026-06-26T10:57:33.632+00:00"
+      },
+      {
+        "id": "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+        "status": "pending",
+        "origin": "action_review",
+        "event_context": "action_evening_review_v2",
+        "draft_message": "",
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "schedule_action_evening_review_v2",
+          "version": 2,
+          "weekday": "fri",
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-26",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": "2026-06-26",
+          "selected_review_window": "today_non_late",
+          "evening_review_local_time": "20:10"
+        },
+        "scheduled_for": "2026-06-26T18:10:00+00:00",
+        "delivery_attempt_count": 0,
+        "processed_at": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "729e29ad-cfc0-4791-89d4-b3424d575bda",
+        "content": "Aujourd’hui, vise juste le tout premier pas: 10 minutes de rangement ciblé, puis tu lances ton premier bloc de travail sans téléphone.  \nPas besoin que ce soit parfait, juste démarré.  \nTu veux commencer par lequel des deux ?",
+        "metadata": {
+          "to": "+103375449978",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "scheduled_checkin",
+          "request_id": "3a734aef-59af-49e5-b80d-5aa0604f044e",
+          "checkin_kind": "action_morning_encouragement",
+          "is_proactive": false,
+          "event_context": "action_morning_encouragement_v2",
+          "morning_nudge_v2": null,
+          "require_opted_in": true,
+          "whatsapp_buttons": [],
+          "whatsapp_template": null,
+          "simulated_whatsapp": true,
+          "original_checkin_id": "be07525e-cf51-4059-9c4b-6d7a6a140b54",
+          "outbound_tracking_id": "7bb2018f-2f57-4cc4-95db-f746996dbf06",
+          "recurring_reminder_id": null,
+          "wa_outbound_message_id": "wamid_WEB_SIM_3a734aef-59af-49e5-b80d-5aa0604f044e",
+          "scheduled_checkin_origin": "action_morning",
+          "simulation_bypassed_phone": false,
+          "simulation_bypassed_opt_in": null
+        },
+        "created_at": "2026-06-26T10:57:33.627647+00:00"
+      }
+    ]
+  },
+  "daily_process_response": {
+    "message": "No checkins to process",
+    "flushed_deferred": 0,
+    "delivered_rendez_vous": 0,
+    "processed_access_notifications": 0,
+    "processed_proactive_candidates": 0,
+    "request_id": "one_shot_7flows_20260626_daily_r1-process-daily"
+  },
+  "after_daily": {
+    "checkins": [
+      {
+        "id": "be07525e-cf51-4059-9c4b-6d7a6a140b54",
+        "status": "sent",
+        "event_context": "action_morning_encouragement_v2",
+        "scheduled_for": "2026-06-26T10:55:31.178+00:00",
+        "processed_at": "2026-06-26T10:57:33.632+00:00",
+        "message_payload": {
+          "source": "process_checkins:action_morning_encouragement",
+          "version": 1,
+          "weekday": "fri",
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-26",
+          "instruction": "Message WhatsApp du matin.\nObjectif: encourager le user à réaliser les actions prévues aujourd'hui.\nTon: court, concret, chaleureux, pas de bilan, pas de question lourde.\nSurface: lancement de journee. Ne demande jamais comment une action precedente s'est passee.\nVarie l'ouverture et l'angle: cap du jour, premiere marche, version faisable, ancrage simple.\nNombre d'actions prévues: 2.\nLe user a une transformation active.\nUne seule idée principale, 1 à 3 phrases maximum.",
+          "checkin_kind": "action_morning_encouragement",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "chat_capability": "track_progress_only",
+          "event_grounding": "local_date=2026-06-26\nweekday=fri\ntransformation=QA actions du jour plan_id=eac0d4b2-c61f-4826-8a57-015dd11906b9\n- occurrence_id=7370ef18-d43d-41fb-b341-1f544a5e4912 item_id=c7f8c2c7-b3f6-483e-bad9-d8cef16ba483 title=Faire dix minutes de rangement ciblé\n- occurrence_id=5556bbde-1d08-4e1c-8775-4b212bd60597 item_id=8b162c8b-8f4a-4e97-b02f-ffa6384683da title=Préparer le premier bloc de travail sans téléphone",
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": null,
+          "morning_encouragement_local_time": "09:56"
+        },
+        "draft_message": "Aujourd’hui, vise juste le tout premier pas: 10 minutes de rangement ciblé, puis tu lances ton premier bloc de travail sans téléphone.  \nPas besoin que ce soit parfait, juste démarré.  \nTu veux commencer par lequel des deux ?",
+        "delivery_last_error": null
+      },
+      {
+        "id": "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+        "status": "pending",
+        "event_context": "action_evening_review_v2",
+        "scheduled_for": "2026-06-26T11:55:31.178+00:00",
+        "processed_at": null,
+        "message_payload": {
+          "source": "schedule_action_evening_review_v2",
+          "version": 2,
+          "weekday": "fri",
+          "timezone": "Europe/Paris",
+          "local_date": "2026-06-26",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": "2026-06-26",
+          "selected_review_window": "today_non_late",
+          "evening_review_local_time": "20:10"
+        },
+        "draft_message": "",
+        "delivery_last_error": null
+      },
+      {
+        "id": "e7bdb6d0-7b44-417c-bb08-6e528a859894",
+        "status": "pending",
+        "event_context": "action_evening_review_v2",
+        "scheduled_for": "2026-06-26T12:55:31.178+00:00",
+        "processed_at": null,
+        "message_payload": {
+          "source": "qa_one_shot_7flows_daily_due_clone",
+          "version": 2,
+          "weekday": "fri",
+          "timezone": "Europe/Paris",
+          "qa_run_id": "one_shot_7flows_20260626_daily_r1",
+          "local_date": "2026-06-26",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": "2026-06-26",
+          "qa_source_checkin_id": "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+          "selected_review_window": "today_non_late",
+          "evening_review_local_time": "20:10"
+        },
+        "draft_message": "",
+        "delivery_last_error": null
+      },
+      {
+        "id": "5ee7c013-1e7f-4058-a413-e8d3077f78e8",
+        "status": "pending",
+        "event_context": "action_evening_review_v2",
+        "scheduled_for": "2026-06-26T13:55:31.178+00:00",
+        "processed_at": null,
+        "message_payload": {
+          "source": "qa_one_shot_7flows_daily_due_yesterday",
+          "version": 2,
+          "weekday": "thu",
+          "timezone": "Europe/Paris",
+          "qa_run_id": "one_shot_7flows_20260626_daily_r1",
+          "local_date": "2026-06-25",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": "2026-06-25",
+          "qa_source_checkin_id": "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+          "selected_review_window": "today_non_late",
+          "evening_review_local_time": "20:10"
+        },
+        "draft_message": "",
+        "delivery_last_error": null
+      }
+    ],
+    "pending_actions": [],
+    "messages": [
+      {
+        "id": "729e29ad-cfc0-4791-89d4-b3424d575bda",
+        "content": "Aujourd’hui, vise juste le tout premier pas: 10 minutes de rangement ciblé, puis tu lances ton premier bloc de travail sans téléphone.  \nPas besoin que ce soit parfait, juste démarré.  \nTu veux commencer par lequel des deux ?",
+        "metadata": {
+          "to": "+103375449978",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "scheduled_checkin",
+          "request_id": "3a734aef-59af-49e5-b80d-5aa0604f044e",
+          "checkin_kind": "action_morning_encouragement",
+          "is_proactive": false,
+          "event_context": "action_morning_encouragement_v2",
+          "morning_nudge_v2": null,
+          "require_opted_in": true,
+          "whatsapp_buttons": [],
+          "whatsapp_template": null,
+          "simulated_whatsapp": true,
+          "original_checkin_id": "be07525e-cf51-4059-9c4b-6d7a6a140b54",
+          "outbound_tracking_id": "7bb2018f-2f57-4cc4-95db-f746996dbf06",
+          "recurring_reminder_id": null,
+          "wa_outbound_message_id": "wamid_WEB_SIM_3a734aef-59af-49e5-b80d-5aa0604f044e",
+          "scheduled_checkin_origin": "action_morning",
+          "simulation_bypassed_phone": false,
+          "simulation_bypassed_opt_in": null
+        },
+        "created_at": "2026-06-26T10:57:33.627647+00:00"
+      }
+    ]
+  },
+  "manual_daily_due_patch": {
+    "checkin_id": "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+    "scheduled_for": "2026-06-26T10:57:04.032Z",
+    "patch_status": 200,
+    "patch_body": "[{\"id\":\"ec835ad4-e7d0-48d8-b739-2c7c0b30341b\",\"user_id\":\"3b51bd83-74b6-4d38-9443-8769e464a7f5\",\"event_context\":\"action_evening_review_v2\",\"draft_message\":\"\",\"scheduled_for\":\"2026-06-26T11:55:31.178+00:00\",\"status\":\"pending\",\"created_at\":\"2026-06-26T10:57:31.167892+00:00\",\"processed_at\":null,\"message_mode\":\"dynamic\",\"message_payload\":{\"source\": \"schedule_action_evening_review_v2\", \"version\": 2, \"weekday\": \"fri\", \"timezone\": \"Europe/Paris\", \"local_date\": \"2026-06-26\", \"generated_at\": \"2026-06-26T10:57:31.095Z\", \"plan_item_ids\": [\"c7f8c2c7-b3f6-483e-bad9-d8cef16ba483\", \"8b162c8b-8f4a-4e97-b02f-ffa6384683da\"], \"occurrence_ids\": [\"7370ef18-d43d-41fb-b341-1f544a5e4912\", \"5556bbde-1d08-4e1c-8775-4b212bd60597\"], \"transformations\": [{\"plan_id\": \"eac0d4b2-c61f-4826-8a57-015dd11906b9\", \"plan_title\": \"Plan QA actions du jour\", \"occurrences\": [{\"kind\": \"habit\", \"title\": \"Faire dix minutes de rangement ciblé\", \"source\": \"weekly_confirmed\", \"status\": \"planned\", \"plan_id\": \"eac0d4b2-c61f-4826-8a57-015dd11906b9\", \"cycle_id\": \"6fcf26c1-2581-426a-8573-54e6c2cdaa9d\", \"dimension\": \"habits\", \"planned_day\": \"fri\", \"time_of_day\": \"morning\", \"plan_item_id\": \"c7f8c2c7-b3f6-483e-bad9-d8cef16ba483\", \"occurrence_id\": \"7370ef18-d43d-41fb-b341-1f544a5e4912\", \"transformation_id\": \"859f00ed-e08b-47e8-bb1d-a060a5b59f94\"}, {\"kind\": \"habit\", \"title\": \"Préparer le premier bloc de travail sans téléphone\", \"source\": \"weekly_confirmed\", \"status\": \"planned\", \"plan_id\": \"eac0d4b2-c61f-4826-8a57-015dd11906b9\", \"cycle_id\": \"6fcf26c1-2581-426a-8573-54e6c2cdaa9d\", \"dimension\": \"habits\", \"planned_day\": \"fri\", \"time_of_day\": \"afternoon\", \"plan_item_id\": \"8b162c8b-8f4a-4e97-b02f-ffa6384683da\", \"occurrence_id\": \"5556bbde-1d08-4e1c-8775-4b212bd60597\", \"transformation_id\": \"859f00ed-e08b-47e8-bb1d-a060a5b59f94\"}], \"transformation_id\": \"859f00ed-e08b-47e8-bb1d-a060a5b59f94\", \"transformation_title\": \"QA actions du jour\"}], \"week_start_date\": \"2026-06-22\", \"reviewed_local_date\": \"2026-06-26\", \"selected_review_window\": \"today_non_late\", \"evening_review_local_time\": \"20:10\"},\"origin\":\"action_review\",\"delivery_attempt_count\":0,\"delivery_last_error\":null,\"delivery_last_error_at\":null,\"delivery_last_request_id\":null,\"recurring_reminder_id\":null}]",
+    "process_status": 200,
+    "process_body": "{\"message\":\"No checkins to process\",\"flushed_deferred\":0,\"delivered_rendez_vous\":0,\"processed_access_notifications\":0,\"processed_proactive_candidates\":0,\"request_id\":\"one_shot_7flows_20260626_daily_r1-process-daily-manual-due\"}"
+  },
+  "daily_due_clone": {
+    "insert_status": 201,
+    "inserted": [
+      {
+        "id": "e7bdb6d0-7b44-417c-bb08-6e528a859894",
+        "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+        "event_context": "action_evening_review_v2",
+        "draft_message": "",
+        "scheduled_for": "2026-06-26T12:55:31.178+00:00",
+        "status": "pending",
+        "created_at": "2026-06-26T11:00:26.86941+00:00",
+        "processed_at": null,
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "qa_one_shot_7flows_daily_due_clone",
+          "version": 2,
+          "weekday": "fri",
+          "timezone": "Europe/Paris",
+          "qa_run_id": "one_shot_7flows_20260626_daily_r1",
+          "local_date": "2026-06-26",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": "2026-06-26",
+          "qa_source_checkin_id": "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+          "selected_review_window": "today_non_late",
+          "evening_review_local_time": "20:10"
+        },
+        "origin": "action_review",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ],
+    "process_status": 200,
+    "process_body": "{\"message\":\"No checkins to process\",\"flushed_deferred\":0,\"delivered_rendez_vous\":0,\"processed_access_notifications\":0,\"processed_proactive_candidates\":0,\"request_id\":\"one_shot_7flows_20260626_daily_r1-process-daily-due-clone\"}"
+  },
+  "daily_yesterday_clone": {
+    "insert_status": 201,
+    "inserted": [
+      {
+        "id": "5ee7c013-1e7f-4058-a413-e8d3077f78e8",
+        "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+        "event_context": "action_evening_review_v2",
+        "draft_message": "",
+        "scheduled_for": "2026-06-26T13:55:31.178+00:00",
+        "status": "pending",
+        "created_at": "2026-06-26T11:01:30.071633+00:00",
+        "processed_at": null,
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "qa_one_shot_7flows_daily_due_yesterday",
+          "version": 2,
+          "weekday": "thu",
+          "timezone": "Europe/Paris",
+          "qa_run_id": "one_shot_7flows_20260626_daily_r1",
+          "local_date": "2026-06-25",
+          "generated_at": "2026-06-26T10:57:31.095Z",
+          "plan_item_ids": [
+            "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+            "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+          ],
+          "occurrence_ids": [
+            "7370ef18-d43d-41fb-b341-1f544a5e4912",
+            "5556bbde-1d08-4e1c-8775-4b212bd60597"
+          ],
+          "transformations": [
+            {
+              "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+              "plan_title": "Plan QA actions du jour",
+              "occurrences": [
+                {
+                  "kind": "habit",
+                  "title": "Faire dix minutes de rangement ciblé",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "morning",
+                  "plan_item_id": "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+                  "occurrence_id": "7370ef18-d43d-41fb-b341-1f544a5e4912",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                },
+                {
+                  "kind": "habit",
+                  "title": "Préparer le premier bloc de travail sans téléphone",
+                  "source": "weekly_confirmed",
+                  "status": "planned",
+                  "plan_id": "eac0d4b2-c61f-4826-8a57-015dd11906b9",
+                  "cycle_id": "6fcf26c1-2581-426a-8573-54e6c2cdaa9d",
+                  "dimension": "habits",
+                  "planned_day": "fri",
+                  "time_of_day": "afternoon",
+                  "plan_item_id": "8b162c8b-8f4a-4e97-b02f-ffa6384683da",
+                  "occurrence_id": "5556bbde-1d08-4e1c-8775-4b212bd60597",
+                  "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94"
+                }
+              ],
+              "transformation_id": "859f00ed-e08b-47e8-bb1d-a060a5b59f94",
+              "transformation_title": "QA actions du jour"
+            }
+          ],
+          "week_start_date": "2026-06-22",
+          "reviewed_local_date": "2026-06-25",
+          "qa_source_checkin_id": "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+          "selected_review_window": "today_non_late",
+          "evening_review_local_time": "20:10"
+        },
+        "origin": "action_review",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ],
+    "process_status": 200,
+    "process_body": "{\"message\":\"No checkins to process\",\"flushed_deferred\":0,\"delivered_rendez_vous\":0,\"processed_access_notifications\":0,\"processed_proactive_candidates\":0,\"request_id\":\"one_shot_7flows_20260626_daily_r1-process-daily-yesterday-clone\"}"
+  }
+}

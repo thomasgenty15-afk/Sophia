@@ -366,7 +366,6 @@ Schema cible commun :
 ```json
 {
   "state_summary": "string",
-  "user_words": ["string"],
   "field_or_stage": "durability|setting|value|confirmation|done|null",
   "known_values": {
     "current_preferences": [],
@@ -485,7 +484,6 @@ Compatibilite legacy possible :
     "target_dispatcher": "global|safety_crisis|product_help|status_recap|other_local",
     "handoff_context_for_next_dispatcher": "string",
     "target_local_dispatcher_hint": "string|null",
-    "user_words": ["string"],
     "structured_context": {
       "source_flow": "update_coach_preferences",
       "active_flow_summary": "string",
@@ -537,7 +535,7 @@ Interdite ou `needed=false` si :
 
 - Quand : commit DB reel realise.
 - Recoit : `write_result.committed=true`, preference keys/labels/values,
-  user_words, evidence_used.
+  evidence_used.
 - Produit : confirmation naturelle courte du changement durable.
 - Ne doit jamais : parler de succes si `committed=false`, promettre un format
   unsupported, mentionner DB/table.
@@ -545,7 +543,7 @@ Interdite ou `needed=false` si :
 ### `ask_durable_vs_punctual`
 
 - Quand : demande de style claire mais durabilite ambigue.
-- Recoit : user_words, summary, missing `durability`, setting/value candidats
+- Recoit : summary, missing `durability`, setting/value candidats
   si disponibles.
 - Produit : une seule question durable vs maintenant.
 - Ne doit jamais : choisir durable/punctual a la place du dispatcher.
@@ -570,7 +568,7 @@ Interdite ou `needed=false` si :
 ### `punctual_instruction_ack`
 
 - Quand : consigne pour cette reponse seulement.
-- Recoit : summary ponctuel, user_words, no_write=true.
+- Recoit : summary ponctuel, no_write=true.
 - Produit : acknowledgement court que cela vaut pour maintenant.
 - Ne doit jamais : dire preference durable, stockee, gardee.
 

@@ -61,6 +61,10 @@ const PLAN_TYPE_CLASSIFICATION_SCHEMA = z.object({
     pace: z.enum(["gentle", "steady", "assertive"]),
     rationale: z.string().min(1).max(400),
   }),
+  transformation_snapshot: z.object({
+    starting_point: z.string().min(1),
+    arrival_point: z.string().min(1),
+  }).optional(),
   journey_strategy: z.object({
     mode: z.enum(["single_transformation", "two_transformations"]),
     rationale: z.string().min(1).max(500),
@@ -698,6 +702,16 @@ Rules:
 - plan_style, recommended_metrics, framing_to_avoid, first_steps_examples must be concrete and specific enough to guide plan generation.
 - Do not output markdown. Output JSON only.
 
+Transformation snapshot:
+- Add exactly one transformation_snapshot object for the loading screen.
+- It must stay true whether journey_strategy.mode is "single_transformation" or "two_transformations".
+- Do not describe the plan. Do not promise specific plan steps.
+- Write in French and address the user with "tu".
+- Generate natural, complete copy adapted to the questionnaire answers. Do not use fill-in-the-blank or template phrasing.
+- starting_point: one concrete, emotionally resonant sentence about where the user starts, emphasizing the main pain/friction from the questionnaire.
+- arrival_point: one concrete, motivating sentence about the desired end state, emphasizing the practical gains and felt relief.
+- Aim for about 250 characters maximum per field, but do not make exact length a schema-sensitive requirement.
+
 Return this JSON shape exactly:
 {
   "type_key": "sleep_recovery",
@@ -715,6 +729,10 @@ Return this JSON shape exactly:
   "intensity_profile": {
     "pace": "steady",
     "rationale": "Le user a besoin d'un vrai mouvement mais sans surcharge initiale."
+  },
+  "transformation_snapshot": {
+    "starting_point": "Tu pars d'un rythme qui te fatigue déjà avant même de commencer la journée, avec peu de marge pour récupérer vraiment.",
+    "arrival_point": "Tu veux retrouver des journées plus stables, avec un réveil plus prévisible et l'impression de reprendre la main sur ton énergie."
   },
   "journey_strategy": {
     "mode": "single_transformation",

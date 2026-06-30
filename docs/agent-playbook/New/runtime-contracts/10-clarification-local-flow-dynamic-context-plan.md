@@ -118,7 +118,6 @@ The local dispatcher should return a compact JSON shape:
     selected_candidate_id: string | null;
     selected_candidate_label: string | null;
     why_selected_or_not: string;
-    user_words: string[];
     turn_count: number;
   };
 
@@ -207,7 +206,6 @@ Target shape:
   };
 
   question: string | null;
-  user_words: string[];
 }
 ```
 
@@ -352,7 +350,6 @@ context in `note_information.structured_context`:
   context_evidence_used,
   best_reference_guess,
   missing_for_target_dispatcher,
-  user_words,
   dispatcher_structured_context
 }
 ```

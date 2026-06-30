@@ -7,16 +7,8 @@ export function operationInputFromPlanAdjustmentScope(
   turnFrame: TurnFrame | null,
 ): Record<string, unknown> | null {
   void message;
-  const intent = (turnFrame?.tool_skill_intents ?? []).find((candidate) =>
-    candidate.operation_type === "adjust_plan_item" &&
-    candidate.confidence_band !== "low"
-  ) as any;
-  const structuredInput = intent?.operation_input ?? intent?.payload_hint ??
-    intent?.slots;
-  return structuredInput && typeof structuredInput === "object" &&
-      !Array.isArray(structuredInput)
-    ? structuredInput as Record<string, unknown>
-    : null;
+  void turnFrame;
+  return null;
 }
 
 export function shouldKeepWeeklyAdaptiveReviewInConversation(args: {
@@ -35,7 +27,7 @@ export function shouldKeepWeeklyAdaptiveReviewInConversation(args: {
     })
   ) return false;
   const owner = args.routeDecision?.response_owner;
-  return owner === "tool_skill" || owner === "product_help";
+  return owner === "product_help";
 }
 
 export function hasPendingOrActiveAdjustPlanOperation(
@@ -51,25 +43,11 @@ export function weeklyReviewAllowsAdjustPlanBridge(args: {
   userMessage: string;
   history?: any[] | null;
 }): boolean {
+  void args.routeDecision;
+  void args.turnFrame;
+  void args.userMessage;
   void args.history;
-  if (
-    operationInputFromPlanAdjustmentScope(
-      args.userMessage,
-      args.turnFrame ?? null,
-    )
-  ) return true;
-  return args.routeDecision?.response_owner === "tool_skill" &&
-    String(args.routeDecision?.selected_handler ?? "").trim() ===
-      "adjust_plan_item" &&
-    Boolean(
-      args.turnFrame?.tool_skill_intents?.some((intent) =>
-        String(intent?.operation_type ?? "").trim() === "adjust_plan_item" &&
-        intent.explicitness === "explicit" &&
-        intent.confidence_band !== "low" &&
-        intent.ambiguity !== "intent_ambiguous" &&
-        intent.ambiguity !== "both"
-      ),
-    );
+  return false;
 }
 
 export function isExplicitWeeklyAdjustPlanRequest(message: string): boolean {
@@ -88,4 +66,29 @@ export function isVagueWholePlanWeeklyAdjustmentRequest(
 
 export function weeklyBridgeDoesNotApplyDirectly(): true {
   return true;
+}
+
+export function isCopyForwardWeeklyRequest(message: string): boolean {
+  void message;
+  return false;
+}
+
+export function isExplicitPendingApplyConfirmation(message: string): boolean {
+  void message;
+  return false;
+}
+
+export function isWeeklyLightRepeatRequest(message: string): boolean {
+  void message;
+  return false;
+}
+
+export function isWeeklyMissionCarryOverRequest(message: string): boolean {
+  void message;
+  return false;
+}
+
+export function weeklyMissionCarryOverContext(args?: unknown): null {
+  void args;
+  return null;
 }

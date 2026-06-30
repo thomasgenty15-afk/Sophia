@@ -104,11 +104,11 @@
             },
             {
               "path": "global_dispatcher",
-              "reason_code": "product_help_handoff_to_local_dispatcher_skips_global"
+              "reason_code": "product_help_exit_to_global_dispatcher_skips_global"
             }
           ],
           "direct_effects_to_run": [],
-          "reason_code": "product_help_handoff_to_local_dispatcher",
+          "reason_code": "product_help_exit_to_global_dispatcher",
           "memory_used_for_route": false,
           "memory_item_ids_used_for_route": [],
           "memory_use_kind": "none",
@@ -461,11 +461,11 @@
           },
           {
             "path": "global_dispatcher",
-            "reason_code": "product_help_handoff_to_local_dispatcher_skips_global"
+            "reason_code": "product_help_exit_to_global_dispatcher_skips_global"
           }
         ],
         "direct_effects_to_run": [],
-        "reason_code": "product_help_handoff_to_local_dispatcher",
+        "reason_code": "product_help_exit_to_global_dispatcher",
         "memory_used_for_route": false,
         "memory_item_ids_used_for_route": [],
         "memory_use_kind": "none",

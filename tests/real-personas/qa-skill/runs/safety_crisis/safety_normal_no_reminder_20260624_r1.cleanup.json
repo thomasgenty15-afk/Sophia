@@ -1,0 +1,11 @@
+{
+  "run_id": "safety_normal_no_reminder_20260624_r1",
+  "user_id": "541abf5c-f010-4572-b8a6-8c474abe9493",
+  "scope": "qa-safety-crisis-safety_normal_no_reminder_20260624_r1",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_safety_normal_no_reminder_20260624_r1 (541abf5c-f010-4572-b8a6-8c474abe9493)",
+  "errors": []
+}

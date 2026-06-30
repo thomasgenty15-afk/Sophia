@@ -1,44 +1,13 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { STATUS_RECAP_FLOW_STATE_KEY } from "../skills/status_recap/local_flow.ts";
+import type { RouteDecision } from "../contracts/route_decision.v1.ts";
+import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import {
   mergeDirectEffectRuntimeIntoVisibleRuntime,
   runDirectEffectLane,
   runOperationRuntimePipeline,
   turnFrameWithDirectEffectRuntime,
 } from "./operation_runtime_pipeline.ts";
-
-function fakeAttackSupabase() {
-  return {
-    from(table: string) {
-      if (table === "user_profile_facts") {
-        return {
-          select() {
-            return this;
-          },
-          eq() {
-            return this;
-          },
-          maybeSingle: async () => ({ data: null, error: null }),
-        };
-      }
-      if (table === "user_attack_cards") {
-        return {
-          select() {
-            return this;
-          },
-          eq() {
-            return this;
-          },
-          order() {
-            return this;
-          },
-          limit: async () => ({ data: [], error: null }),
-        };
-      }
-      throw new Error(`unexpected_table:${table}`);
-    },
-  } as any;
-}
+import { normalizeWeeklyReviewLocalDispatcherOutput } from "../skills/weekly_review/local_flow.ts";
 
 function fakeOneShotSupabase() {
   return {
@@ -60,27 +29,30 @@ function fakeOneShotSupabase() {
         };
       }
       if (table === "scheduled_checkins") {
+        const selectQuery = {
+          eq() {
+            return selectQuery;
+          },
+          like() {
+            return selectQuery;
+          },
+          order() {
+            return selectQuery;
+          },
+          limit() {
+            return selectQuery;
+          },
+          maybeSingle: async () => ({ data: null, error: null }),
+          then(resolve: any, reject: any) {
+            return Promise.resolve({ data: [], error: null }).then(
+              resolve,
+              reject,
+            );
+          },
+        };
         return {
           select() {
-            return {
-              eq() {
-                return {
-                  eq() {
-                    return {
-                      like() {
-                        return {
-                          order() {
-                            return {
-                              limit: async () => ({ data: [], error: null }),
-                            };
-                          },
-                        };
-                      },
-                    };
-                  },
-                };
-              },
-            };
+            return selectQuery;
           },
           upsert(row: any) {
             return {
@@ -98,11 +70,6 @@ function fakeOneShotSupabase() {
               },
             };
           },
-          update() {
-            return {
-              in: async () => ({ error: null }),
-            };
-          },
         };
       }
       throw new Error(`unexpected_table:${table}`);
@@ -110,38 +77,12 @@ function fakeOneShotSupabase() {
   } as any;
 }
 
-function pendingAttackConfirmation() {
-  return {
-    operation_id: "op-attack",
-    operation_type: "prepare_attack_card",
-    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
-    draft: {
-      operation_type: "prepare_attack_card",
-      output_schema: "attack_card_draft_v1",
-      draft: {
-        title: "Carte d'attaque - marche",
-        target_label: "marche",
-        technique: "texte_recadrage",
-        technique_title: "Le texte magique",
-        instruction: "Reviens au premier geste.",
-        generated_asset:
-          "Quand je négocie, je reviens au premier geste minuscule.",
-        activation_keyword: null,
-        supporting_points: [],
-        mode_emploi: "Lis-la au moment où la résistance monte.",
-        why_it_helps: "Elle coupe le débat intérieur.",
-      },
-      confirmation_message: "Je la crée ?",
-      confirmation_actions: ["yes", "no"],
-    },
-  };
-}
-
-function baseRouteDecision(overrides: Record<string, unknown> = {}) {
+function baseRouteDecision(
+  overrides: Partial<RouteDecision> = {},
+): RouteDecision {
   return {
     route_version: "v1",
     response_owner: "normal_reply",
-    selected_handler: undefined,
     reason_code: "test",
     direct_effects_to_run: [],
     blocked_paths: [],
@@ -149,74 +90,33 @@ function baseRouteDecision(overrides: Record<string, unknown> = {}) {
     memory_item_ids_used_for_route: [],
     memory_use_kind: "none",
     ...overrides,
-  } as any;
+  };
 }
 
-function baseTurnFrame(overrides: Record<string, unknown> = {}) {
+function baseTurnFrame(overrides: Partial<TurnFrame> = {}): TurnFrame {
   return {
     turn_id: "turn_op_1",
     source_message_id: "msg_1",
     user_id: "user_1",
     channel: "web",
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
-    conversation_risk: {
-      score: 0,
-      threshold: 8,
-      should_exit_flows: false,
-      reason_codes: [],
-      previous_scores: [],
-      matrix: [],
-      context_summary: null,
-    },
     direct_effects: [],
-    tool_skill_intents: [],
-    flow_opportunity: null,
     skill_signals: {},
+    needs_research: { detected: false, value: false },
     memory_plan: {
       response_intent: "reflection",
       reasoning_complexity: "low",
       context_need: "minimal",
       memory_mode: "none",
+      model_tier_hint: "lite",
+      context_budget_tier: "tiny",
+      targets: [],
+      retrieval_policy: "semantic_first",
+      plan_confidence: 0.7,
     },
     ...overrides,
-  } as any;
+  };
 }
-
-Deno.test("operation_runtime_pipeline safety route blocks operation runtime", async () => {
-  const result = await runOperationRuntimePipeline({
-    supabase: {} as any,
-    userId: "user_1",
-    userMessage: "programme un rappel",
-    channel: "web",
-    userTimezone: "Europe/Paris",
-    history: [],
-    tempMemory: {},
-    state: {},
-    planItemSnapshot: [],
-    turnFrame: baseTurnFrame({
-      safety: { risk_band: "high", reason_codes: [], evidence: [] },
-    }),
-    routeDecision: baseRouteDecision({
-      response_owner: "safety_crisis",
-      selected_handler: "safety_crisis",
-    }),
-    safetyContextOutput: { risk_band: "high" },
-    sourceMessageId: "msg_1",
-    requestId: "turn_op_1",
-    v2Runtime: null,
-    activeSkillState: null,
-    activeOperationIntake: null,
-    pendingOperationConfirmation: null,
-    fullAiRequested: false,
-    runAdjustPlanItemOperation: async () => {
-      return null;
-    },
-    guards: {
-      isActiveCardDraftingOperation: () => false,
-    },
-  });
-  assertEquals(result.operationRuntime, null);
-});
 
 function basePipelineInput(overrides: Record<string, unknown> = {}) {
   return {
@@ -235,308 +135,289 @@ function basePipelineInput(overrides: Record<string, unknown> = {}) {
     sourceMessageId: "msg_1",
     requestId: "turn_op_1",
     v2Runtime: null,
-    activeSkillState: null,
-    activeOperationIntake: null,
-    pendingOperationConfirmation: null,
-    fullAiRequested: false,
-    runAdjustPlanItemOperation: async () => null,
-    guards: {
-      isActiveCardDraftingOperation: () => false,
-    },
     ...overrides,
   };
 }
 
-Deno.test("operation_runtime_pipeline prepare_attack_card uses specialized handoff router", async () => {
-  let adjustCalls = 0;
+Deno.test("operation_runtime_pipeline safety route blocks direct runtime", async () => {
   const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeAttackSupabase(),
-    userMessage: "ok vas-y",
-    tempMemory: {
-      __pending_tool_skill_confirmation: pendingAttackConfirmation(),
-    },
-    pendingOperationConfirmation: pendingAttackConfirmation(),
-    routeDecision: baseRouteDecision({
-      response_owner: "tool_skill",
-      selected_handler: "prepare_attack_card",
-    }),
     turnFrame: baseTurnFrame({
-      confirmation_response: { kind: "yes", confidence_band: "high" },
-      tool_skill_intents: [{
-        operation_type: "prepare_attack_card",
+      safety: { risk_band: "high", reason_codes: [], evidence: [] },
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
         explicitness: "explicit",
+        target_status: "identified",
         confidence_band: "high",
-        ambiguity: "none",
-        user_intent: "draft_only",
+        payload_hint: {},
       }],
     }),
-    runAdjustPlanItemOperation: async () => {
-      adjustCalls += 1;
-      throw new Error("adjust executor should not run");
-    },
-  }));
-
-  assertEquals(adjustCalls, 0);
-  assertEquals(result.operationRuntime?.toolExecution, "platform_handoff");
-  assertEquals(result.operationRuntime?.executedTools, []);
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun as any)?.status,
-    "apply_attempt",
-  );
-  assertEquals(
-    Boolean((result.operationRuntime?.toolSkillRun as any)?.handoff_state),
-    true,
-  );
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun.platform_handoff as any)
-      ?.executable_from_chat,
-    true,
-  );
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun.committed_effects as unknown[])
-      .length,
-    0,
-  );
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun.platform_handoff as any)
-      ?.reason_code === "complex_operation_redirect_to_platform",
-    false,
-  );
-});
-
-Deno.test("operation_runtime_pipeline does not start prepare_attack_card from raw intent when normal reply won", async () => {
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeAttackSupabase(),
-    userMessage: "donne-moi juste une phrase simple a me repeter demain",
     routeDecision: baseRouteDecision({
-      response_owner: "normal_reply",
-      reason_code: "normal_reply_fit_dominates",
-      blocked_paths: [{
-        path: "tool_skill.prepare_attack_card",
-        reason_code: "normal_reply_fit_dominates",
-      }],
+      response_owner: "safety",
+      selected_handler: "safety_crisis",
+      direct_effects_to_run: ["track_progress_plan_item"],
     }),
-    turnFrame: baseTurnFrame({
-      normal_reply_fit_score: 0.9,
-      tool_skill_intents: [{
-        operation_type: "prepare_attack_card",
-        explicitness: "implied",
-        confidence_band: "high",
-        score: 0.74,
-        ambiguity: "none",
-        user_intent: "draft_only",
-      }],
-    }),
+    safetyContextOutput: { risk_band: "high" },
   }));
 
   assertEquals(result.operationRuntime, null);
-  assertEquals(result.routeDecision?.response_owner, "normal_reply");
 });
 
-Deno.test("operation_runtime_pipeline does not ask track-progress clarification when normal reply won", async () => {
+Deno.test("operation_runtime_pipeline safety route allows one-shot reminder", async () => {
+  const message = "Rappelle-moi dans 40 minutes de respirer et d'appeler Sam.";
   const result = await runOperationRuntimePipeline(basePipelineInput({
-    userMessage:
-      "je l'ai prepare dans ma tete mais pas encore envoye, ca compte ?",
-    routeDecision: baseRouteDecision({
-      response_owner: "normal_reply",
-      reason_code: "normal_reply_fit_dominates",
-      blocked_paths: [{
-        path: "track_progress_plan_item",
-        reason_code: "normal_reply_fit_dominates",
-      }],
-    }),
+    supabase: fakeOneShotSupabase(),
+    userMessage: message,
     turnFrame: baseTurnFrame({
-      normal_reply_fit_score: 0.86,
+      safety: { risk_band: "high", reason_codes: [], evidence: [] },
       direct_effects: [{
-        effect_type: "track_progress_plan_item",
-        explicitness: "weak",
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
         target_status: "identified",
-        confidence_band: "medium",
+        confidence_band: "high",
         payload_hint: {
-          target_item_id: "walk",
-          target_title: "marche",
+          raw_text: message,
+          when_hint: "dans 40 minutes",
+          UTC_time: "2026-06-13T08:40:00.000Z",
+          local_label: "dans 40 minutes",
+          instruction_hint: "respirer et appeler Sam",
         },
       }],
     }),
-  }));
-
-  assertEquals(result.operationRuntime, null);
-  assertEquals(result.routeDecision?.response_owner, "normal_reply");
-});
-
-Deno.test("operation_runtime_pipeline blocks tool runtime when clarification is required", async () => {
-  let adjustCalls = 0;
-  const result = await runOperationRuntimePipeline(basePipelineInput({
     routeDecision: baseRouteDecision({
-      response_owner: "tool_skill",
-      selected_handler: "select_state_potion",
-      reason_code: "clarification_required",
-      blocked_paths: [{
-        path: "operation_runtime_pipeline",
-        reason_code: "clarification_required",
-      }],
-    }),
-    turnFrame: baseTurnFrame({
-      tool_skill_intents: [],
-      skill_signals: { entry: {} },
-    }),
-    runAdjustPlanItemOperation: async () => {
-      adjustCalls += 1;
-      return null;
-    },
-  }));
-
-  assertEquals(adjustCalls, 0);
-  assertEquals(result.operationRuntime, null);
-  assertEquals(
-    result.routeDecision?.response_owner,
-    "orientation_clarification",
-  );
-  assertEquals(
-    result.routeDecision?.selected_handler,
-    "orientation_clarification",
-  );
-  assertEquals(result.routeDecision?.direct_effects_to_run, []);
-});
-
-Deno.test("operation_runtime_pipeline explicit approval does not make complex pending executable", async () => {
-  let adjustCalls = 0;
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeAttackSupabase(),
-    userMessage: "ok vas-y",
-    tempMemory: {
-      __pending_tool_skill_confirmation: pendingAttackConfirmation(),
-    },
-    pendingOperationConfirmation: pendingAttackConfirmation(),
-    routeDecision: baseRouteDecision({
-      response_owner: "tool_skill",
-      selected_handler: "prepare_attack_card",
-    }),
-    turnFrame: baseTurnFrame({
-      confirmation_response: { kind: "yes", confidence_band: "high" },
-    }),
-    runAdjustPlanItemOperation: async () => {
-      adjustCalls += 1;
-      throw new Error("pending adjust executor should not run");
-    },
-  }));
-
-  assertEquals(adjustCalls, 0);
-  assertEquals(result.operationRuntime?.toolExecution, "platform_handoff");
-  assertEquals(result.operationRuntime?.executedTools, []);
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun as any)?.status,
-    "apply_attempt",
-  );
-});
-
-Deno.test("operation_runtime_pipeline non-complex operation is not converted to platform handoff", async () => {
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    userMessage: "hello",
-    routeDecision: baseRouteDecision({
+      response_owner: "safety",
+      selected_handler: "safety_crisis",
       direct_effects_to_run: ["create_one_shot_reminder"],
     }),
+    safetyContextOutput: { risk_band: "high" },
+    clientNow: new Date("2026-06-13T08:00:00.000Z"),
   }));
 
-  assertEquals(
-    result.operationRuntime?.toolExecution === "platform_handoff",
-    false,
-  );
+  assertEquals(result.operationRuntime?.toolExecution, "success");
+  assertEquals(result.operationRuntime?.executedTools, [
+    "create_one_shot_reminder",
+  ]);
 });
 
-Deno.test("direct_effect_lane can execute one-shot reminder from local dispatcher message intake", async () => {
+Deno.test("operation_runtime_pipeline product_help route allows one-shot reminder direct effect", async () => {
   const message =
-    "Rappelle-moi dans 40 minutes de relire mes notes sur ce dossier, et ensuite j'aimerais qu'on parle de pourquoi je bloque.";
-  const result = await runDirectEffectLane({
-    ...basePipelineInput({
-      supabase: fakeOneShotSupabase(),
-      userMessage: message,
-      routeDecision: baseRouteDecision({
-        response_owner: "conversation_handler",
-        selected_handler: "flow_opportunity_verification",
-        reason_code: "active_flow_opportunity_verification_local_dispatcher",
-        direct_effects_to_run: [],
-      }),
-      turnFrame: baseTurnFrame(),
-      clientNow: new Date("2026-06-13T08:00:00.000Z"),
+    "Est-ce que je peux modifier une carte d'attaque, et rappelle-moi dans 40 minutes de relire la doc.";
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    supabase: fakeOneShotSupabase(),
+    userMessage: message,
+    turnFrame: baseTurnFrame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          raw_text: "rappelle-moi dans 40 minutes de relire la doc",
+          when_hint: "dans 40 minutes",
+          UTC_time: "2026-06-13T08:40:00.000Z",
+          local_label: "dans 40 minutes",
+          instruction_hint: "relire la doc",
+        },
+      }],
+      skill_signals: {
+        product_help: {
+          detected: true,
+          confidence_band: "high",
+          intent: "can_i_do_x",
+          evidence: ["modifier une carte d'attaque"],
+        } as any,
+      },
     }),
-    allowMessageIntakeFallback: true,
-  });
+    routeDecision: baseRouteDecision({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      direct_effects_to_run: ["create_one_shot_reminder"],
+    }),
+    clientNow: new Date("2026-06-13T08:00:00.000Z"),
+  }));
+
+  assertEquals(result.operationRuntime?.toolExecution, "success");
+  assertEquals(result.operationRuntime?.executedTools, [
+    "create_one_shot_reminder",
+  ]);
+});
+
+Deno.test("operation_runtime_pipeline active weekly commits local one-shot before visible weekly", async () => {
+  const message =
+    "Le plus dur c'est de choisir, et rappelle-moi demain a 18h de relire cette version allegee.";
+  const activeWeeklyState = {
+    skill_id: "weekly_adaptive_review_v1",
+    status: "open",
+    weekly_progress_review: {
+      transformations: [],
+    },
+    weekly_adaptive_review: {
+      week_strategy: { decision: "advance", reason: "test" },
+    },
+    weekly_flow_state: {
+      stage: "solution_fit",
+      validation_unlock_status: "locked_until_weekly_complete",
+      weekly_gates: {
+        week_experience_status: "captured",
+        action_review_status: "captured",
+        global_progress_status: "captured",
+        felt_progress_status: "captured",
+        solution_fit_status: "captured",
+        synthesis_status: "missing",
+        closure_status: "missing",
+      },
+      child_flow: { status: "none" },
+      detour_candidate: { kind: "none" },
+      turn_count: 2,
+      max_turns: 6,
+    },
+  };
+  let visibleInput: any = null;
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    supabase: fakeOneShotSupabase(),
+    userMessage: message,
+    tempMemory: {
+      __active_skill_state: activeWeeklyState,
+    },
+    turnFrame: baseTurnFrame(),
+    routeDecision: baseRouteDecision({
+      response_owner: "weekly_adaptive_review_v1",
+      selected_handler: "weekly_adaptive_review_v1",
+      reason_code: "active_weekly_adaptive_review",
+      active_flow_arbitration: {
+        decision: "continue_active",
+        active_owner: "weekly_adaptive_review_v1",
+        selected_owner: "weekly_adaptive_review_v1",
+        resume_policy: "resume_active",
+        reason_code: "active_weekly_adaptive_review",
+      },
+    }),
+    clientNow: new Date("2026-06-13T08:00:00.000Z"),
+    weeklyReviewLocalDispatcher: async () =>
+      normalizeWeeklyReviewLocalDispatcherOutput({
+        flow_action: "confirm_weekly_diagnostic",
+        confidence: "high",
+        weekly_intent: {
+          kind: "weekly_answer",
+          summary: "User identifies decision overload and asks a reminder.",
+        },
+        human_signal_updates: {
+          objective_delta: "slight_progress",
+          felt_progress: "neutral",
+          felt_state: "stable",
+        },
+        direct_effect_request: {
+          requested: true,
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text:
+              "rappelle-moi demain a 18h de relire cette version allegee",
+            when_hint: "demain a 18h",
+            UTC_time: "2026-06-14T16:00:00.000Z",
+            local_label: "demain a 18:00",
+            instruction_hint: "relire cette version allegee",
+          },
+          reason: "explicit one-shot reminder during weekly",
+        },
+        weekly_gates: {
+          global_progress_status: "captured",
+          felt_progress_status: "captured",
+          solution_fit_status: "captured",
+        },
+        state_updates: {
+          status: "open",
+          weekly_stage: "solution_fit",
+        },
+        visible_task: {
+          kind: "qualify_solution_fit",
+          instruction: "Continue weekly after committed reminder context.",
+        },
+        evidence: ["rappelle-moi demain a 18h"],
+      }),
+    weeklyReviewVisibleAgent: async (input: any) => {
+      visibleInput = input;
+      return "C'est programme. On continue le point weekly.";
+    },
+  }));
 
   assertEquals(result.operationRuntime?.toolExecution, "success");
   assertEquals(result.operationRuntime?.executedTools, [
     "create_one_shot_reminder",
   ]);
   assertEquals(
-    result.routeDecision?.selected_handler,
-    "flow_opportunity_verification",
+    visibleInput?.direct_effect_confirmation_context
+      ?.has_committed_one_shot_reminder,
+    true,
   );
-  assertEquals(result.routeDecision?.direct_effects_to_run, [
-    "create_one_shot_reminder",
-  ]);
   assertEquals(
-    (result.operationRuntime?.toolSkillRun as any)?.committed_effects[0]
-      ?.reminder_instruction,
-    "relire mes notes sur ce dossier",
+    result.routeDecision?.response_owner,
+    "weekly_adaptive_review_v1",
   );
 });
 
-Deno.test("direct_effect_lane ignores soft support without explicit one-shot time", async () => {
-  const result = await runDirectEffectLane({
-    ...basePipelineInput({
-      supabase: fakeOneShotSupabase(),
-      userMessage:
-        "J'ai besoin d'un appui pour ne pas décrocher, reste juste avec moi.",
-      routeDecision: baseRouteDecision({
-        response_owner: "conversation_handler",
-        selected_handler: "flow_opportunity_verification",
-        reason_code: "active_flow_opportunity_verification_local_dispatcher",
-        direct_effects_to_run: [],
-      }),
-      turnFrame: baseTurnFrame(),
+Deno.test("operation_runtime_pipeline active local flow does not parse raw message intake", async () => {
+  const message =
+    "Est-ce que je peux modifier une carte d'attaque, et rappelle-moi dans 40 minutes de relire la doc.";
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    supabase: fakeOneShotSupabase(),
+    userMessage: message,
+    turnFrame: baseTurnFrame(),
+    routeDecision: baseRouteDecision({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      direct_effects_to_run: [],
+      reason_code: "active_product_help",
     }),
-    allowMessageIntakeFallback: true,
-  });
+    allowDirectEffectMessageIntakeFallback: true,
+    clientNow: new Date("2026-06-13T08:00:00.000Z"),
+  }));
 
   assertEquals(result.operationRuntime, null);
   assertEquals(result.routeDecision?.direct_effects_to_run, []);
   assertEquals(result.turnFrame?.direct_effects, []);
 });
 
-Deno.test("direct effect runtime merges into visible owner without replacing selected handler", () => {
+Deno.test("direct_effect_lane does not execute one-shot reminder from message intake", async () => {
+  const message = "Rappelle-moi dans 40 minutes de relire mes notes.";
+  const result = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase(),
+      userMessage: message,
+      routeDecision: baseRouteDecision(),
+      turnFrame: baseTurnFrame(),
+      clientNow: new Date("2026-06-13T08:00:00.000Z"),
+    }),
+    allowMessageIntakeFallback: true,
+  });
+
+  assertEquals(result.operationRuntime, null);
+  assertEquals(result.routeDecision?.direct_effects_to_run, []);
+});
+
+Deno.test("direct effect runtime merges ledger into visible runtime without deterministic text prefix", () => {
   const directRuntime = {
-    content:
-      "C'est programmé pour aujourd'hui à 10:40: je te rappellerai de relire mes notes.",
+    content: "C'est programmé.",
     nextTempMemory: {},
     toolExecution: "success" as const,
     executedTools: ["create_one_shot_reminder"],
     toolSkillRun: {
       selected_handler: "create_one_shot_reminder",
-      status: "success",
-      requested_effects: [{ type: "create_one_shot_reminder" }],
-      allowed_effects: [{ type: "create_one_shot_reminder" }],
       committed_effects: [{
         type: "create_one_shot_reminder",
         id: "checkin-1",
-        reminder_instruction: "relire mes notes",
       }],
-      blocked_effects: [],
     },
   };
   const visibleRuntime = {
-    content: "Oui, on peut regarder ce qui te bloque.",
+    content: "On continue.",
     nextTempMemory: {},
     toolExecution: "none" as const,
     executedTools: [],
-    toolSkillRun: {
-      selected_handler: "flow_opportunity_verification",
-      skill_id: "flow_opportunity_verification",
-      requested_effects: [],
-      allowed_effects: [],
-      committed_effects: [],
-      blocked_effects: [],
-    },
+    toolSkillRun: { selected_handler: "normal_reply" },
   };
+
   const merged = mergeDirectEffectRuntimeIntoVisibleRuntime({
     directRuntime,
     visibleRuntime,
@@ -546,206 +427,15 @@ Deno.test("direct effect runtime merges into visible owner without replacing sel
     directRuntime,
   ) as any;
 
-  assertEquals(
-    (merged?.toolSkillRun as any).selected_handler,
-    "flow_opportunity_verification",
-  );
+  assertEquals(merged?.content, "On continue.");
   assertEquals(merged?.toolExecution, "success");
   assertEquals(merged?.executedTools, ["create_one_shot_reminder"]);
   assertEquals(
-    ((merged?.toolSkillRun as any).committed_effects as unknown[]).length,
-    1,
+    (merged?.toolSkillRun as any).direct_effect_lane.committed_effects[0].id,
+    "checkin-1",
   );
   assertEquals(
-    (merged?.toolSkillRun as any).direct_effect_lane.selected_handler,
-    "create_one_shot_reminder",
-  );
-  assertEquals(
-    turnFrame.direct_effect_lane.committed_effects[0].type,
-    "create_one_shot_reminder",
-  );
-});
-
-Deno.test("operation_runtime_pipeline active or closing status_recap flow runs status runtime without route signal", async () => {
-  for (const status of ["active", "closing"] as const) {
-    let statusRuntimeCalls = 0;
-    const result = await runOperationRuntimePipeline(basePipelineInput({
-      routeDecision: baseRouteDecision({
-        response_owner: "normal_reply",
-        selected_handler: undefined,
-        reason_code: "normal_reply",
-      }),
-      tempMemory: {
-        [STATUS_RECAP_FLOW_STATE_KEY]: {
-          skill_id: "status_recap",
-          mode: "local_readonly_flow",
-          status,
-          last_intent: "durable_status",
-          last_target_objects: ["unknown"],
-          last_projection_summary: {
-            attack_card_count: 0,
-            defense_card_count: 0,
-            one_shot_pending_count: 0,
-            one_shot_cancelled_recent_count: 0,
-            recurring_reminder_count: 0,
-            potion_session_count: 0,
-            coach_preference_count: 0,
-            recent_effect_history_count: 0,
-          },
-          last_answer_summary: "status précédent",
-          turn_count: 1,
-          max_turns: 3,
-          created_at: "2026-06-08T08:00:00.000Z",
-          updated_at: "2026-06-08T08:00:00.000Z",
-        },
-      },
-      runStatusRecapRuntime: async (input: any) => {
-        statusRuntimeCalls += 1;
-        assertEquals(input.routeDecision?.reason_code, "normal_reply");
-        return {
-          content: `status local ${status}`,
-          nextTempMemory: input.tempMemory,
-          toolExecution: "none",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "status_recap",
-            flow_action: "answer_object_status",
-          },
-        };
-      },
-    }));
-
-    assertEquals(statusRuntimeCalls, 1);
-    assertEquals(result.operationRuntime?.content, `status local ${status}`);
-    assertEquals(result.operationRuntime?.toolExecution, "none");
-    assertEquals(result.operationRuntime?.executedTools, []);
-  }
-});
-
-Deno.test("operation_runtime_pipeline passes turn frame direct effect to one-shot reminder", async () => {
-  const message =
-    "Non finalement, fais seulement un rappel unique demain à 17h pour envoyer mon bilan rapide.";
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeOneShotSupabase(),
-    userMessage: message,
-    routeDecision: baseRouteDecision({
-      reason_code: "create_one_shot_reminder_interrupts_active_handoff",
-      direct_effects_to_run: ["create_one_shot_reminder"],
-    }),
-    turnFrame: baseTurnFrame({
-      direct_effects: [{
-        effect_type: "create_one_shot_reminder",
-        explicitness: "explicit",
-        target_status: "identified",
-        confidence_band: "high",
-        payload_hint: { raw_text: message },
-      }],
-    }),
-    clientNow: new Date("2026-06-01T10:00:00.000Z"),
-  }));
-
-  assertEquals(result.operationRuntime?.toolExecution, "success");
-  assertEquals(result.operationRuntime?.executedTools, [
-    "create_one_shot_reminder",
-  ]);
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun as any)?.committed_effects.length,
-    1,
-  );
-});
-
-Deno.test("operation_runtime_pipeline runs direct effect from global second pass after local exit", async () => {
-  const message =
-    "Je change de sujet: programme-moi un rappel dans 30 minutes pour relancer le dossier.";
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeOneShotSupabase(),
-    userMessage: message,
-    routeDecision: baseRouteDecision({
-      response_owner: "tool_skill",
-      selected_handler: "create_one_shot_reminder",
-      reason_code: "global_dispatcher_second_pass_after_local_exit",
-      direct_effects_to_run: ["create_one_shot_reminder"],
-      local_flow_exit_handoff: {
-        source_flow_id: "demotivation_repair",
-        note_information: {
-          source_flow_id: "demotivation_repair",
-          target_dispatcher: "global",
-          handoff_reason: "explicit_tool_request",
-        },
-      },
-    }),
-    turnFrame: baseTurnFrame({
-      note_information: {
-        source_flow_id: "demotivation_repair",
-        target_dispatcher: "global",
-        handoff_reason: "explicit_tool_request",
-      },
-      direct_effects: [{
-        effect_type: "create_one_shot_reminder",
-        explicitness: "explicit",
-        target_status: "identified",
-        confidence_band: "high",
-        payload_hint: { raw_text: message },
-      }],
-    }),
-    activeSkillState: null,
-    activeOperationIntake: null,
-    pendingOperationConfirmation: null,
-    clientNow: new Date("2026-06-13T12:00:00.000Z"),
-  }));
-
-  assertEquals(result.operationRuntime?.toolExecution, "success");
-  assertEquals(result.operationRuntime?.executedTools, [
-    "create_one_shot_reminder",
-  ]);
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun as any)?.committed_effects[0]
-      ?.type,
-    "create_one_shot_reminder",
-  );
-});
-
-Deno.test("operation_runtime_pipeline runs one-shot reminder direct effect while safety owns visible route", async () => {
-  const message =
-    "D'accord, elle est au telephone avec moi. Mets-moi un rappel dans 30 minutes pour verifier que je tiens.";
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeOneShotSupabase(),
-    userMessage: message,
-    routeDecision: baseRouteDecision({
-      response_owner: "safety",
-      selected_handler: "safety_crisis",
-      reason_code: "safety_crisis_create_one_shot_reminder_direct_effect",
-      direct_effects_to_run: ["create_one_shot_reminder"],
-    }),
-    turnFrame: baseTurnFrame({
-      safety: {
-        risk_band: "medium",
-        reason_codes: ["active_safety_flow_caution"],
-        evidence: [],
-      },
-      direct_effects: [{
-        effect_type: "create_one_shot_reminder",
-        explicitness: "explicit",
-        target_status: "identified",
-        confidence_band: "high",
-        payload_hint: { raw_text: message },
-      }],
-    }),
-    safetyContextOutput: {
-      risk_band: "medium",
-      reason_codes: ["active_safety_flow_caution"],
-    },
-    clientNow: new Date("2026-06-12T08:10:00.000Z"),
-  }));
-
-  assertEquals(result.routeSafetyActive, true);
-  assertEquals(result.operationRuntime?.toolExecution, "success");
-  assertEquals(result.operationRuntime?.executedTools, [
-    "create_one_shot_reminder",
-  ]);
-  assertEquals(
-    (result.operationRuntime?.toolSkillRun as any)?.committed_effects[0]
-      ?.type,
-    "create_one_shot_reminder",
+    turnFrame.direct_effect_lane.committed_effects[0].id,
+    "checkin-1",
   );
 });

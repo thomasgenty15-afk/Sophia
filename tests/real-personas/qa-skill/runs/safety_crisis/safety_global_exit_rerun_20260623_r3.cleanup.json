@@ -1,0 +1,11 @@
+{
+  "run_id": "safety_global_exit_rerun_20260623_r3",
+  "user_id": "f5ad3d7f-0146-4db3-9cad-2837d7a939f8",
+  "scope": "qa-safety-crisis-safety_global_exit_rerun_20260623_r3",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_safety_global_exit_rerun_20260623_r3 (f5ad3d7f-0146-4db3-9cad-2837d7a939f8)",
+  "errors": []
+}

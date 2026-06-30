@@ -16,16 +16,33 @@ import {
 import {
   LEVEL_REVIEW_REMINDER_EVENT_CONTEXT_PREFIX,
 } from "../_shared/level_review_checkins.ts";
-import { generatePlanV2ForTransformation } from "../generate-plan-v2/index.ts";
-import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
-import { getUserTimeContext } from "../_shared/user_time_context.ts";
 import {
-  badRequest,
-  jsonResponse,
-  parseJsonBody,
-  serverError,
-  z,
-} from "../_shared/http.ts";
+  generateNextLevelForPlan,
+  GenerateNextLevelV1Error,
+} from "../generate-next-level-v1/index.ts";
+import {
+  buildScheduleAnchorFromUserTimeContext,
+  GeneratePlanV2Error,
+  materializeCurrentLevelWeekPlanning,
+} from "../generate-plan-v2/index.ts";
+import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
+import {
+  distributeMissingPlanPhaseItemsV3,
+  PlanDistributionError,
+} from "../_shared/v2-plan-distribution.ts";
+import {
+  buildBlueprintFromNextLevelPatch,
+  buildPhaseFromNextLevelPatch,
+  buildRuntimeFromNextLevelPatch,
+} from "../_shared/v2-next-level-generation.ts";
+import {
+  buildOnboardingWeek1ValidationPromptMessage,
+  loadOnboardingWeek1Planning,
+  ONBOARDING_WEEK1_PROMPT_DELAY_MS,
+  ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT,
+} from "../_shared/onboarding_week1_validation.ts";
+import { getUserTimeContext } from "../_shared/user_time_context.ts";
+import { badRequest, jsonResponse, parseJsonBody, z } from "../_shared/http.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
 import type {
   PlanContentV3,
@@ -51,6 +68,94 @@ class CompleteLevelV1Error extends Error {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function summarizeError(error: unknown): Record<string, unknown> {
+  if (error instanceof Error) {
+    const cause = (error as Error & { cause?: unknown }).cause;
+    return {
+      name: error.name,
+      message: error.message,
+      ...(cause ? { cause: summarizeError(cause) } : {}),
+    };
+  }
+  if (isRecord(error)) {
+    return {
+      name: typeof error.name === "string" ? error.name : "Error",
+      message: typeof error.message === "string"
+        ? error.message
+        : JSON.stringify(error),
+      code: typeof error.code === "string" ? error.code : null,
+      details: typeof error.details === "string" ? error.details : null,
+      hint: typeof error.hint === "string" ? error.hint : null,
+    };
+  }
+  return { name: "Error", message: String(error) };
+}
+
+function logCompleteLevelStep(
+  requestId: string,
+  step: string,
+  payload: Record<string, unknown> = {},
+) {
+  console.info("[complete-level-v1][step]", {
+    request_id: requestId,
+    step,
+    ...payload,
+  });
+}
+
+function logCompleteLevelFailure(
+  requestId: string,
+  step: string,
+  error: unknown,
+  payload: Record<string, unknown> = {},
+) {
+  console.error("[complete-level-v1][failed]", {
+    request_id: requestId,
+    step,
+    ...payload,
+    error: summarizeError(error),
+  });
+}
+
+async function runCompleteLevelStep<T>(
+  args: {
+    requestId: string;
+    step: string;
+    payload?: Record<string, unknown>;
+    run: () => Promise<T>;
+  },
+): Promise<T> {
+  logCompleteLevelStep(args.requestId, `${args.step}.started`, args.payload);
+  try {
+    const result = await args.run();
+    logCompleteLevelStep(
+      args.requestId,
+      `${args.step}.succeeded`,
+      args.payload,
+    );
+    return result;
+  } catch (error) {
+    logCompleteLevelFailure(args.requestId, args.step, error, args.payload);
+    throw error;
+  }
+}
+
+function shouldExposeDebugError(req: Request): boolean {
+  if ((Deno.env.get("SOPHIA_DEBUG_EDGE_ERRORS") ?? "").trim() === "1") {
+    return true;
+  }
+  try {
+    const host = new URL(req.url).hostname;
+    return host === "127.0.0.1" || host === "localhost";
+  } catch {
+    return false;
+  }
+}
+
 function getSupabaseEnv() {
   const url = String(Deno.env.get("SUPABASE_URL") ?? "").trim();
   const anonKey = String(Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
@@ -58,14 +163,22 @@ function getSupabaseEnv() {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
   ).trim();
   if (!url || !anonKey || !serviceRoleKey) {
-    throw new CompleteLevelV1Error(500, "Supabase environment is not configured");
+    throw new CompleteLevelV1Error(
+      500,
+      "Supabase environment is not configured",
+    );
   }
   return { url, anonKey, serviceRoleKey };
 }
 
-function parsePlanContent(content: Record<string, unknown> | null): PlanContentV3 {
+function parsePlanContent(
+  content: Record<string, unknown> | null,
+): PlanContentV3 {
   if (!content || content.version !== 3 || !Array.isArray(content.phases)) {
-    throw new CompleteLevelV1Error(409, "Le plan actif n'est pas un plan V3 compatible.");
+    throw new CompleteLevelV1Error(
+      409,
+      "Le plan actif n'est pas un plan V3 compatible.",
+    );
   }
   return content as unknown as PlanContentV3;
 }
@@ -193,28 +306,6 @@ async function loadRecentWeeklySignals(
     );
 }
 
-function cleanPromptText(value: unknown, max = 240): string {
-  const text = String(value ?? "").replace(/\s+/g, " ").trim();
-  if (!text) return "Non renseigné";
-  return text.length <= max ? text : `${text.slice(0, max - 3).trimEnd()}...`;
-}
-
-function summarizePhaseForPrompt(phase: PlanContentV3["phases"][number] | null): string {
-  if (!phase) return "Aucun niveau suivant dans le plan actuel.";
-  const items = phase.items
-    .slice(0, 8)
-    .map((item) =>
-      `- [${item.dimension}] ${cleanPromptText(item.title, 90)}: ${cleanPromptText(item.description, 160)}`
-    )
-    .join("\n");
-  return [
-    `Niveau ${phase.phase_order}: ${cleanPromptText(phase.title, 120)}`,
-    `Objectif: ${cleanPromptText(phase.phase_objective, 220)}`,
-    `Pourquoi maintenant: ${cleanPromptText(phase.why_this_now ?? phase.rationale, 220)}`,
-    `Items:\n${items || "- Aucun item"}`,
-  ].join("\n");
-}
-
 function findNextBlueprintLevel(
   plan: PlanContentV3,
   currentPhase: PlanContentV3["phases"][number],
@@ -226,139 +317,55 @@ function findNextBlueprintLevel(
     .sort((left, right) => left.level_order - right.level_order)[0] ?? null;
 }
 
-function summarizeNextLevelForPrompt(args: {
+function extractPlanItemTempId(item: UserPlanItemRow): string | null {
+  const payload = item.payload && typeof item.payload === "object" &&
+      !Array.isArray(item.payload)
+    ? item.payload as Record<string, unknown>
+    : null;
+  const generation =
+    payload?._generation && typeof payload._generation === "object" &&
+      !Array.isArray(payload._generation)
+      ? payload._generation as Record<string, unknown>
+      : null;
+  const tempId = typeof generation?.temp_id === "string"
+    ? generation.temp_id.trim()
+    : "";
+  return tempId.length > 0 ? tempId : null;
+}
+
+function buildTransformationContextForNextLevel(args: {
+  transformation: UserTransformationRow;
+  cycle: UserCycleRow;
   plan: PlanContentV3;
-  currentPhase: PlanContentV3["phases"][number];
-  nextPhase: PlanContentV3["phases"][number] | null;
-}): string {
-  if (args.nextPhase) return summarizePhaseForPrompt(args.nextPhase);
-
-  const blueprintLevel = findNextBlueprintLevel(args.plan, args.currentPhase);
-  if (!blueprintLevel) return summarizePhaseForPrompt(null);
-
-  return [
-    `Niveau ${blueprintLevel.level_order} (blueprint): ${cleanPromptText(blueprintLevel.title, 120)}`,
-    `Objectif prévu: ${cleanPromptText(blueprintLevel.preview_summary ?? blueprintLevel.intention, 220)}`,
-    `Pourquoi maintenant: ${cleanPromptText(blueprintLevel.intention, 220)}`,
-    `Durée estimée: ${blueprintLevel.estimated_duration_weeks} semaines`,
-    "Items: à générer maintenant par l'IA à partir du bilan et du plan précédent.",
-  ].join("\n");
-}
-
-function summarizeLevelItemsForPrompt(items: UserPlanItemRow[]): string {
-  if (items.length === 0) return "- Aucun item matériel retrouvé pour ce niveau.";
-
-  return items
-    .slice(0, 20)
-    .map((item) => {
-      const progress = item.target_reps
-        ? `, progression ${item.current_reps ?? 0}/${item.target_reps}`
-        : item.current_reps != null
-        ? `, progression ${item.current_reps}`
-        : "";
-      const cadence = item.cadence_label ? `, cadence ${item.cadence_label}` : "";
-      const completed = item.completed_at ? `, terminé le ${item.completed_at}` : "";
-      return `- [${item.dimension}/${item.kind}] ${
-        cleanPromptText(item.title, 90)
-      }: statut ${item.status}${progress}${cadence}${completed}. ${
-        cleanPromptText(item.description, 180)
-      }`;
-    })
-    .join("\n");
-}
-
-function summarizeWeeklySignalsForPrompt(signals: Array<Record<string, unknown>>): string {
-  if (signals.length === 0) return "- Aucun bilan hebdo récent disponible.";
-
-  return signals.slice(0, 3).map((signal, index) => {
-    const compact = JSON.stringify(signal);
-    return `- Bilan hebdo ${index + 1}: ${cleanPromptText(compact, 900)}`;
-  }).join("\n");
-}
-
-function formatAnswerForPrompt(
-  schema: ReturnType<typeof buildLevelReviewSchema>,
-  answers: Record<string, string>,
-): string {
-  return schema
-    .map((question) => {
-      const raw = answers[question.id];
-      if (!raw) return null;
-      const selected = question.options.find((option) => option.value === raw);
-      return `- ${question.label}: ${selected?.label ?? raw}`;
-    })
-    .filter((line): line is string => Boolean(line))
-    .join("\n");
-}
-
-function buildLevelCompletionRegenerationFeedback(args: {
-  plan: PlanContentV3;
-  currentPhase: PlanContentV3["phases"][number];
-  nextPhase: PlanContentV3["phases"][number] | null;
-  levelItems: UserPlanItemRow[];
-  schema: ReturnType<typeof buildLevelReviewSchema>;
-  answers: Record<string, string>;
-  summary: Record<string, unknown>;
-  weeklySignals: Array<Record<string, unknown>>;
-  decision: string;
-  decisionReason: string;
-  reviewMode: "user_review" | "auto_timeout";
-}): string {
-  const futureBlueprint = args.plan.plan_blueprint?.levels?.length
-    ? args.plan.plan_blueprint.levels
-      .map((level) =>
-        `- N${level.level_order} ${cleanPromptText(level.title, 90)} (${level.estimated_duration_weeks} sem.): ${cleanPromptText(level.preview_summary ?? level.intention, 160)}`
-      )
-      .join("\n")
-    : "Aucun blueprint futur explicite.";
-
-  return `Bilan de fin de niveau: le niveau courant est considéré comme terminé et ne doit pas être régénéré comme niveau courant.
-
-Objectif de cet appel IA:
-- décider si les réponses imposent de garder, alléger, accélérer ou réorienter la suite
-- générer le prochain niveau comme nouveau current_level_runtime
-- modifier les niveaux suivants dans le même plan si les informations du bilan l'exigent
-- ne pas repartir de zéro: utiliser le plan précédent comme base, conserver ce qui reste pertinent, et changer uniquement ce que le bilan justifie
-- raisonner comme un coach: préserver ce qui a donné de la traction, simplifier ce qui a créé de la friction, et ne jamais augmenter la charge si la disponibilité réelle du user baisse
-
-Niveau terminé:
-${summarizePhaseForPrompt(args.currentPhase)}
-
-État réel des actions du niveau terminé:
-${summarizeLevelItemsForPrompt(args.levelItems)}
-
-Prochain niveau prévu avant bilan:
-${summarizeNextLevelForPrompt({
-    plan: args.plan,
-    currentPhase: args.currentPhase,
-    nextPhase: args.nextPhase,
-  })}
-
-Blueprint futur avant bilan:
-${futureBlueprint}
-
-Mode de bilan: ${args.reviewMode === "auto_timeout" ? "validation automatique sans questionnaire utilisateur direct" : "questionnaire utilisateur complété"}.
-
-Réponses de bilan:
-${formatAnswerForPrompt(args.schema, args.answers)}
-
-Synthèse structurée du bilan:
-${JSON.stringify(args.summary, null, 2)}
-
-Signaux hebdo récents à utiliser comme contexte secondaire:
-${summarizeWeeklySignalsForPrompt(args.weeklySignals)}
-
-Décision initiale de Sophia avant génération: ${args.decision}.
-Raison: ${args.decisionReason}
-
-Contraintes de génération:
-- le nouveau current_level_runtime doit commencer après le niveau ${args.currentPhase.phase_order}
-- l'objectif du prochain niveau doit faire avancer explicitement l'objectif global de transformation, via la primary_metric ou un prérequis clairement relié à cette métrique
-- le prochain niveau doit rester cohérent avec la logique globale du plan: il ajoute une couche à ce qui précède, prépare correctement ce qui suit, et ne change pas de direction sans signal fort dans le bilan
-- si la suite paraît cohérente et les difficultés sont faibles, garde la logique globale et ajuste seulement le dosage
-- si la suite ne paraît pas cohérente, explique implicitement ce qui change via le nouveau niveau et le blueprint futur
-- réutilise explicitement la fierté déclarée comme signal de ce qui doit être conservé
-- si une difficulté bloquante apparaît, simplifie la charge du prochain niveau avant d'ajouter de nouvelles exigences`;
+}): Record<string, unknown> {
+  const phase1 = args.plan.metadata && typeof args.plan.metadata === "object"
+    ? (args.plan.metadata as Record<string, unknown>).phase_1
+    : null;
+  return {
+    transformation: {
+      id: args.transformation.id,
+      title: args.transformation.title,
+      user_summary: args.transformation.user_summary,
+      internal_summary: args.transformation.internal_summary,
+      success_definition: args.transformation.success_definition,
+      main_constraint: args.transformation.main_constraint,
+      questionnaire_schema: args.transformation.questionnaire_schema,
+      questionnaire_answers: args.transformation.questionnaire_answers,
+      handoff_payload: args.transformation.handoff_payload,
+    },
+    cycle: {
+      id: args.cycle.id,
+      requested_pace: args.cycle.requested_pace,
+      birth_date_snapshot: args.cycle.birth_date_snapshot,
+      gender_snapshot: args.cycle.gender_snapshot,
+    },
+    plan_metadata: {
+      phase_1: phase1 ?? null,
+      phase_1_preview: args.plan.metadata?.phase_1_preview ?? null,
+      plan_adjustment_context: args.plan.metadata?.plan_adjustment_context ??
+        null,
+    },
+  };
 }
 
 const AUTO_CLOSABLE_ITEM_STATUSES = new Set(["pending", "active", "stalled"]);
@@ -419,9 +426,144 @@ async function cancelPendingLevelReviewReminders(args: {
     )
     .in("status", ["pending", "retrying", "awaiting_user"]);
   if (error) {
-    throw new CompleteLevelV1Error(500, "Failed to cancel level review reminders", {
-      cause: error,
-    });
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to cancel level review reminders",
+      {
+        cause: error,
+      },
+    );
+  }
+}
+
+async function hasActiveWeekPlanningValidationPrompt(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planId: string;
+  targetWeekStartDate: string | null;
+}): Promise<boolean> {
+  const { data, error } = await args.admin
+    .from("scheduled_checkins")
+    .select("id,message_payload")
+    .eq("user_id", args.userId)
+    .eq("event_context", ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT)
+    .filter("message_payload->>plan_id", "eq", args.planId)
+    .in("status", ["pending", "retrying", "awaiting_user", "sent"])
+    .limit(20);
+  if (error) {
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to inspect week planning validation prompts",
+      {
+        cause: error,
+      },
+    );
+  }
+
+  const targetWeekStartDate = String(args.targetWeekStartDate ?? "").trim();
+  return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
+    const payload =
+      row.message_payload && typeof row.message_payload === "object"
+        ? row.message_payload as Record<string, unknown>
+        : {};
+    const rowWeek = String(
+      payload.target_week_start_date ?? payload.week_start_date ?? "",
+    ).trim();
+    return !targetWeekStartDate || rowWeek === targetWeekStartDate;
+  });
+}
+
+async function scheduleNewLevelWeekPlanningValidation(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planId: string;
+  planTitle: string | null;
+  timezone: string;
+  levelOrder: number;
+  levelTitle: string;
+  targetWeekStartDate: string | null;
+  now: string;
+}): Promise<void> {
+  const { data: profile, error: profileError } = await args.admin
+    .from("profiles")
+    .select("id,whatsapp_opted_in")
+    .eq("id", args.userId)
+    .maybeSingle();
+  if (profileError) {
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to load profile for week planning validation",
+      {
+        cause: profileError,
+      },
+    );
+  }
+  if (
+    !profile || (profile as Record<string, unknown>).whatsapp_opted_in !== true
+  ) {
+    return;
+  }
+
+  const planning = await loadOnboardingWeek1Planning(args.admin, {
+    userId: args.userId,
+    planId: args.planId,
+    targetWeekStartDate: args.targetWeekStartDate,
+  });
+  if (!planning.has_planning || planning.already_confirmed) return;
+
+  const effectiveTargetWeekStart = args.targetWeekStartDate ??
+    planning.week_start_date;
+  if (
+    await hasActiveWeekPlanningValidationPrompt({
+      admin: args.admin,
+      userId: args.userId,
+      planId: args.planId,
+      targetWeekStartDate: effectiveTargetWeekStart,
+    })
+  ) {
+    return;
+  }
+
+  const scheduledFor = new Date(
+    new Date(args.now).getTime() + ONBOARDING_WEEK1_PROMPT_DELAY_MS,
+  ).toISOString();
+  const { error } = await args.admin
+    .from("scheduled_checkins")
+    .insert({
+      user_id: args.userId,
+      origin: "weekly_planning",
+      event_context: ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT,
+      draft_message: buildOnboardingWeek1ValidationPromptMessage(),
+      message_mode: "static",
+      message_payload: {
+        source: "complete_level_v1_next_level_generation",
+        version: 1,
+        user_id: args.userId,
+        plan_id: args.planId,
+        plan_title: args.planTitle ?? "ton plan",
+        timezone: args.timezone,
+        level_order: args.levelOrder,
+        level_title: args.levelTitle,
+        week_start_date: planning.week_start_date,
+        week_end_date: planning.week_end_date,
+        target_week_start_date: effectiveTargetWeekStart,
+        summary_lines: planning.summary_lines,
+        created_from: "next_level_generation",
+        prompt_kind: "validation_prompt",
+        planning_available_at_schedule_time: planning.has_planning,
+        generated_at: args.now,
+      },
+      scheduled_for: scheduledFor,
+      status: "pending",
+    } as never);
+  if (error) {
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to schedule new level week planning validation",
+      {
+        cause: error,
+      },
+    );
   }
 }
 
@@ -448,7 +590,16 @@ export async function completeLevelV1(args: {
   } | null;
 }> {
   const now = new Date().toISOString();
-  const transformation = await loadTransformation(args.admin, args.transformationId);
+  logCompleteLevelStep(args.requestId, "started", {
+    user_id: args.userId,
+    transformation_id: args.transformationId,
+    plan_id: args.planId,
+    review_mode: args.reviewMode ?? "user_review",
+  });
+  const transformation = await loadTransformation(
+    args.admin,
+    args.transformationId,
+  );
   const cycle = await loadCycle(args.admin, transformation.cycle_id);
 
   if (cycle.user_id !== args.userId) {
@@ -466,7 +617,9 @@ export async function completeLevelV1(args: {
     transformation,
     planId: args.planId,
   });
-  const planContent = parsePlanContent(plan.content as Record<string, unknown> | null);
+  const planContent = parsePlanContent(
+    plan.content as Record<string, unknown> | null,
+  );
   const currentLevelRuntime = planContent.current_level_runtime;
   if (!currentLevelRuntime) {
     throw new CompleteLevelV1Error(
@@ -480,16 +633,33 @@ export async function completeLevelV1(args: {
     phase.phase_order === currentLevelRuntime.level_order
   );
   if (!currentPhase) {
-    throw new CompleteLevelV1Error(409, "Le niveau courant du plan est incohérent.");
+    throw new CompleteLevelV1Error(
+      409,
+      "Le niveau courant du plan est incohérent.",
+    );
   }
 
   const planItems = await loadPlanItems(args.admin, plan.id);
+  logCompleteLevelStep(args.requestId, "loaded_state", {
+    user_id: args.userId,
+    cycle_id: cycle.id,
+    transformation_id: transformation.id,
+    plan_id: plan.id,
+    transformation_status: transformation.status,
+    plan_status: plan.status,
+    current_phase_id: currentPhase.phase_id,
+    current_level_order: currentPhase.phase_order,
+    plan_item_count: planItems.length,
+  });
   const userTimeContext = await getUserTimeContext({
     supabase: args.admin,
     userId: args.userId,
     now: new Date(now),
   });
-  const transitionReady = isLevelTransitionReady(currentPhase.phase_id, planItems);
+  const transitionReady = isLevelTransitionReady(
+    currentPhase.phase_id,
+    planItems,
+  );
   const reviewWindowOpen = isLevelReviewWindowOpen({
     plan: planContent,
     currentLevel: currentLevelRuntime,
@@ -565,70 +735,312 @@ export async function completeLevelV1(args: {
     } as never);
 
   if (reviewInsertError) {
+    logCompleteLevelFailure(
+      args.requestId,
+      "persist_level_review",
+      reviewInsertError,
+      {
+        plan_id: plan.id,
+        phase_id: currentPhase.phase_id,
+        review_id: reviewId,
+      },
+    );
     throw new CompleteLevelV1Error(500, "Failed to persist level review", {
       cause: reviewInsertError,
     });
   }
+  logCompleteLevelStep(args.requestId, "persist_level_review.succeeded", {
+    plan_id: plan.id,
+    phase_id: currentPhase.phase_id,
+    review_id: reviewId,
+  });
 
-  const nextPhase = [...planContent.phases]
-    .sort((left, right) => left.phase_order - right.phase_order)
-    .find((phase) => phase.phase_order > currentPhase.phase_order) ?? null;
   const nextBlueprintLevel = findNextBlueprintLevel(planContent, currentPhase);
-  const shouldGenerateNextLevel = Boolean(transition.nextRuntime || nextBlueprintLevel);
+  const shouldGenerateNextLevel = Boolean(nextBlueprintLevel);
   const transitionDecisionReason = transition.nextRuntime
     ? transition.preview.reason
     : nextBlueprintLevel
-    ? "Le niveau suivant est généré depuis le blueprint futur du plan, puis recalibré avec le bilan de fin de niveau."
+    ? "Le niveau suivant est designé depuis le blueprint futur du plan, avec le bilan de fin de niveau comme signal de calibrage."
     : transition.preview.reason;
   let resultingPlanContent: PlanContentV3;
   let resultingPlanId = plan.id;
   let nextRuntime = transition.nextRuntime;
+  let nextLevelGenerationDecision: string | null = null;
+  let nextLevelGenerationReason: string | null = null;
 
-  if (shouldGenerateNextLevel) {
-    const regenerationFeedback = buildLevelCompletionRegenerationFeedback({
-      plan: planContent,
-      currentPhase,
-      nextPhase,
-      levelItems: planItems.filter((item) =>
-        item.phase_id === currentPhase.phase_id
-      ),
-      schema,
-      answers,
-      summary: summary as unknown as Record<string, unknown>,
-      weeklySignals,
-      decision: transition.preview.decision,
-      decisionReason: transitionDecisionReason,
-      reviewMode,
-    });
-
-    const generated = await generatePlanV2ForTransformation({
-      admin: args.admin,
+  if (nextBlueprintLevel) {
+    const futureBlueprintLevels = (planContent.plan_blueprint?.levels ?? [])
+      .filter((level) => level.level_order > nextBlueprintLevel.level_order)
+      .map((level) => ({ ...level }));
+    const completedTempIds = [
+      ...currentPhase.items.map((item) => item.temp_id),
+      ...planItems
+        .filter((item) => item.phase_id === currentPhase.phase_id)
+        .map(extractPlanItemTempId)
+        .filter((tempId): tempId is string => Boolean(tempId)),
+    ];
+    const nextLevelPatch = await runCompleteLevelStep({
       requestId: args.requestId,
-      userId: args.userId,
-      transformationId: transformation.id,
-      mode: "generate_and_activate",
-      feedback: regenerationFeedback,
-      forceRegenerate: true,
-      pace: null,
-      previewPlanId: null,
-      preserveActiveTransformationId: transformation.id,
-      adjustmentContext: {
-        reviewId,
-        scope: "plan",
-        effectiveStartDate: userTimeContext.user_local_date,
-        reason: reviewMode === "auto_timeout"
-          ? `Passage automatique apres le niveau ${currentPhase.phase_order}`
-          : `Bilan de fin du niveau ${currentPhase.phase_order}`,
-        userChangeSummary: reviewMode === "auto_timeout"
-          ? "Validation automatique sans bilan utilisateur."
-          : null,
-        assistantMessage: transitionDecisionReason,
+      step: "generate_next_level",
+      payload: {
+        plan_id: plan.id,
+        from_phase_id: currentPhase.phase_id,
+        from_level_order: currentPhase.phase_order,
+        target_phase_id: nextBlueprintLevel.phase_id,
+        target_level_order: nextBlueprintLevel.level_order,
       },
+      run: () =>
+        generateNextLevelForPlan({
+          requestId: args.requestId,
+          userId: args.userId,
+          context: {
+            plan: planContent,
+            currentLevelRuntime,
+            completedPhase: currentPhase,
+            completedLevelItems: planItems.filter((item) =>
+              item.phase_id === currentPhase.phase_id
+            ),
+            nextBlueprintLevel,
+            futureBlueprintLevels,
+            reviewSchema: schema,
+            answers,
+            summary,
+            weeklySignals,
+            initialDecision: transition.preview.decision,
+            initialDecisionReason: transitionDecisionReason,
+            reviewMode,
+            transformationContext: buildTransformationContextForNextLevel({
+              transformation,
+              cycle,
+              plan: planContent,
+            }),
+          },
+          validationContext: {
+            currentLevelOrder: currentPhase.phase_order,
+            completedPhaseId: currentPhase.phase_id,
+            expectedNextBlueprint: nextBlueprintLevel,
+            existingCompletedTempIds: [...new Set(completedTempIds)],
+            globalObjective: planContent.global_objective,
+          },
+        }),
     });
 
-    resultingPlanContent = generated.plan;
-    resultingPlanId = generated.planRow.id;
-    nextRuntime = generated.plan.current_level_runtime ?? transition.nextRuntime;
+    const generatedPhase = buildPhaseFromNextLevelPatch(nextLevelPatch);
+    nextLevelGenerationDecision = nextLevelPatch.decision;
+    nextLevelGenerationReason = nextLevelPatch.decision_reason;
+    const generatedRuntime = buildRuntimeFromNextLevelPatch(nextLevelPatch);
+    nextRuntime = generatedRuntime;
+    const nextLevelScheduleAnchor = buildScheduleAnchorFromUserTimeContext({
+      userTimeContext,
+    });
+    resultingPlanContent = {
+      ...planContent,
+      phases: [
+        ...planContent.phases.filter((phase) =>
+          phase.phase_id !== generatedPhase.phase_id &&
+          phase.phase_order !== generatedPhase.phase_order
+        ),
+        generatedPhase,
+      ].sort((left, right) => left.phase_order - right.phase_order),
+      plan_blueprint: buildBlueprintFromNextLevelPatch(
+        planContent,
+        nextLevelPatch,
+      ),
+      current_level_runtime: generatedRuntime,
+      metadata: {
+        ...planContent.metadata,
+        schedule_anchor: nextLevelScheduleAnchor,
+        last_next_level_generation: {
+          review_id: reviewId,
+          generated_at: now,
+          decision: nextLevelPatch.decision,
+          decision_reason: nextLevelPatch.decision_reason,
+          continuity_notes: nextLevelPatch.continuity_notes,
+        },
+      },
+    };
+
+    logCompleteLevelStep(args.requestId, "next_level_patch_ready", {
+      plan_id: plan.id,
+      decision: nextLevelPatch.decision,
+      target_phase_id: generatedPhase.phase_id,
+      target_level_order: generatedPhase.phase_order,
+      generated_item_count: generatedPhase.items.length,
+      generated_items: generatedPhase.items.map((item) => ({
+        temp_id: item.temp_id,
+        dimension: item.dimension,
+        kind: item.kind,
+        tracking_type: item.tracking_type,
+        support_mode: item.support_mode ?? null,
+        support_function: item.support_function ?? null,
+      })),
+    });
+
+    const distribution = await runCompleteLevelStep({
+      requestId: args.requestId,
+      step: "distribute_next_level_items",
+      payload: {
+        plan_id: plan.id,
+        phase_id: generatedRuntime.phase_id,
+        phase_order: generatedRuntime.level_order,
+        generated_item_count: generatedPhase.items.length,
+      },
+      run: () =>
+        distributeMissingPlanPhaseItemsV3({
+          supabase: args.admin,
+          userId: args.userId,
+          planId: plan.id,
+          content: resultingPlanContent,
+          now,
+          reason: "next_level_generation",
+          phaseId: generatedRuntime.phase_id,
+          phaseOrder: generatedRuntime.level_order,
+        }),
+    });
+    await runCompleteLevelStep({
+      requestId: args.requestId,
+      step: "materialize_week_planning",
+      payload: {
+        plan_id: plan.id,
+        phase_id: generatedRuntime.phase_id,
+        distributed_item_count: distribution.items.length,
+        anchor_week_start: nextLevelScheduleAnchor.anchor_week_start,
+      },
+      run: () =>
+        materializeCurrentLevelWeekPlanning({
+          admin: args.admin,
+          userId: args.userId,
+          planId: plan.id,
+          plan: resultingPlanContent,
+          anchor: nextLevelScheduleAnchor,
+          distributedItems: distribution.items,
+          tempIdMap: distribution.tempIdMap,
+          now,
+        }),
+    });
+    await runCompleteLevelStep({
+      requestId: args.requestId,
+      step: "schedule_week_planning_validation",
+      payload: {
+        plan_id: plan.id,
+        phase_id: generatedRuntime.phase_id,
+        target_week_start_date: nextLevelScheduleAnchor.anchor_week_start,
+      },
+      run: () =>
+        scheduleNewLevelWeekPlanningValidation({
+          admin: args.admin,
+          userId: args.userId,
+          planId: plan.id,
+          planTitle: plan.title,
+          timezone: nextLevelScheduleAnchor.timezone,
+          levelOrder: generatedRuntime.level_order,
+          levelTitle: generatedRuntime.title,
+          targetWeekStartDate: nextLevelScheduleAnchor.anchor_week_start,
+          now,
+        }),
+    });
+
+    const { error: planUpdateError } = await runCompleteLevelStep({
+      requestId: args.requestId,
+      step: "update_plan_after_next_level",
+      payload: {
+        plan_id: plan.id,
+        phase_id: generatedRuntime.phase_id,
+        level_order: generatedRuntime.level_order,
+      },
+      run: async () =>
+        await args.admin
+          .from("user_plans_v2")
+          .update({
+            content: resultingPlanContent as unknown as Record<string, unknown>,
+            status: "active",
+            updated_at: now,
+          })
+          .eq("id", plan.id),
+    });
+
+    if (planUpdateError) {
+      logCompleteLevelFailure(
+        args.requestId,
+        "update_plan_after_next_level",
+        planUpdateError,
+        {
+          plan_id: plan.id,
+          phase_id: generatedRuntime.phase_id,
+        },
+      );
+      throw new CompleteLevelV1Error(
+        500,
+        "Failed to update plan after next level generation",
+        {
+          cause: planUpdateError,
+        },
+      );
+    }
+  } else if (nextRuntime) {
+    const nextLevelScheduleAnchor = buildScheduleAnchorFromUserTimeContext({
+      userTimeContext,
+    });
+    resultingPlanContent = {
+      ...planContent,
+      plan_blueprint: transition.nextBlueprint,
+      current_level_runtime: nextRuntime,
+      metadata: {
+        ...planContent.metadata,
+        schedule_anchor: nextLevelScheduleAnchor,
+      },
+    };
+
+    const distribution = await distributeMissingPlanPhaseItemsV3({
+      supabase: args.admin,
+      userId: args.userId,
+      planId: plan.id,
+      content: resultingPlanContent,
+      now,
+      reason: "level_review_keep_transition",
+      phaseId: nextRuntime.phase_id,
+      phaseOrder: nextRuntime.level_order,
+    });
+    await materializeCurrentLevelWeekPlanning({
+      admin: args.admin,
+      userId: args.userId,
+      planId: plan.id,
+      plan: resultingPlanContent,
+      anchor: nextLevelScheduleAnchor,
+      distributedItems: distribution.items,
+      tempIdMap: distribution.tempIdMap,
+      now,
+    });
+    await scheduleNewLevelWeekPlanningValidation({
+      admin: args.admin,
+      userId: args.userId,
+      planId: plan.id,
+      planTitle: plan.title,
+      timezone: nextLevelScheduleAnchor.timezone,
+      levelOrder: nextRuntime.level_order,
+      levelTitle: nextRuntime.title,
+      targetWeekStartDate: nextLevelScheduleAnchor.anchor_week_start,
+      now,
+    });
+
+    const { error: planUpdateError } = await args.admin
+      .from("user_plans_v2")
+      .update({
+        content: resultingPlanContent as unknown as Record<string, unknown>,
+        status: "active",
+        updated_at: now,
+      })
+      .eq("id", plan.id);
+
+    if (planUpdateError) {
+      throw new CompleteLevelV1Error(
+        500,
+        "Failed to update plan after level review",
+        {
+          cause: planUpdateError,
+        },
+      );
+    }
   } else {
     resultingPlanContent = {
       ...planContent,
@@ -647,9 +1059,13 @@ export async function completeLevelV1(args: {
       .eq("id", plan.id);
 
     if (planUpdateError) {
-      throw new CompleteLevelV1Error(500, "Failed to update plan after level review", {
-        cause: planUpdateError,
-      });
+      throw new CompleteLevelV1Error(
+        500,
+        "Failed to update plan after level review",
+        {
+          cause: planUpdateError,
+        },
+      );
     }
   }
 
@@ -672,26 +1088,44 @@ export async function completeLevelV1(args: {
         source_plan_id: plan.id,
         resulting_plan_id: resultingPlanId,
         used_ai_generation: shouldGenerateNextLevel,
+        generation_scope: shouldGenerateNextLevel
+          ? "next_level"
+          : "existing_runtime",
+        next_level_generation_decision: nextLevelGenerationDecision,
+        next_level_generation_reason: nextLevelGenerationReason,
       },
-      previous_current_level_runtime: currentLevelRuntime as unknown as Record<string, unknown>,
-      next_current_level_runtime: nextRuntime as unknown as Record<string, unknown> | null,
-      previous_plan_blueprint:
-        planContent.plan_blueprint as unknown as Record<string, unknown> | null,
-      next_plan_blueprint:
-        resultingPlanContent.plan_blueprint as unknown as Record<string, unknown> | null,
+      previous_current_level_runtime: currentLevelRuntime as unknown as Record<
+        string,
+        unknown
+      >,
+      next_current_level_runtime: nextRuntime as unknown as
+        | Record<string, unknown>
+        | null,
+      previous_plan_blueprint: planContent.plan_blueprint as unknown as
+        | Record<string, unknown>
+        | null,
+      next_plan_blueprint: resultingPlanContent.plan_blueprint as unknown as
+        | Record<string, unknown>
+        | null,
       created_at: now,
     } as never);
 
   if (generationInsertError) {
-    throw new CompleteLevelV1Error(500, "Failed to persist level generation event", {
-      cause: generationInsertError,
-    });
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to persist level generation event",
+      {
+        cause: generationInsertError,
+      },
+    );
   }
 
   if (reviewMode === "auto_timeout") {
     await autoCloseUnfinishedLevelItems({
       admin: args.admin,
-      planItems: planItems.filter((item) => item.phase_id === currentPhase.phase_id),
+      planItems: planItems.filter((item) =>
+        item.phase_id === currentPhase.phase_id
+      ),
       now,
       reason: args.autoReason ?? "level_auto_closed",
     });
@@ -711,7 +1145,11 @@ export async function completeLevelV1(args: {
       cycle_id: cycle.id,
       transformation_id: transformation.id,
       plan_id: resultingPlanId,
-      reason: nextRuntime ? "level_review_completed_ai" : "final_level_completed",
+      reason: nextRuntime
+        ? shouldGenerateNextLevel
+          ? "level_review_completed_ai"
+          : "level_review_completed_keep"
+        : "final_level_completed",
       metadata: {
         review_id: reviewId,
         generation_event_id: generationEventId,
@@ -738,11 +1176,11 @@ export async function completeLevelV1(args: {
     summary: summaryText,
     nextLevel: nextRuntime
       ? {
-          phase_id: nextRuntime.phase_id,
-          level_order: nextRuntime.level_order,
-          title: nextRuntime.title,
-          duration_weeks: nextRuntime.duration_weeks,
-        }
+        phase_id: nextRuntime.phase_id,
+        level_order: nextRuntime.level_order,
+        title: nextRuntime.title,
+        duration_weeks: nextRuntime.duration_weeks,
+      }
       : null,
   };
 }
@@ -769,7 +1207,8 @@ async function handleRequest(req: Request): Promise<Response> {
 
     const env = getSupabaseEnv();
     const authHeader = String(
-      req.headers.get("Authorization") ?? req.headers.get("authorization") ?? "",
+      req.headers.get("Authorization") ?? req.headers.get("authorization") ??
+        "",
     ).trim();
     if (!authHeader) {
       return jsonResponse(
@@ -783,7 +1222,8 @@ async function handleRequest(req: Request): Promise<Response> {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data: authData, error: authError } = await userClient.auth.getUser();
+    const { data: authData, error: authError } = await userClient.auth
+      .getUser();
     if (authError || !authData?.user) {
       return jsonResponse(
         req,
@@ -816,25 +1256,62 @@ async function handleRequest(req: Request): Promise<Response> {
     });
   } catch (error) {
     const ctx = getRequestContext(req);
+    const debugError = summarizeError(error);
+    console.error("[complete-level-v1][request_failed]", {
+      request_id: requestId,
+      user_id: ctx.userId,
+      error: debugError,
+    });
     await logEdgeFunctionError({
       functionName: "complete-level-v1",
       error,
       requestId,
       userId: ctx.userId,
       source: "edge",
-      metadata: { route: "complete-level-v1" },
+      metadata: { route: "complete-level-v1", debug_error: debugError },
     });
 
     if (error instanceof CompleteLevelV1Error) {
-      if (error.status === 400) return badRequest(req, requestId, error.message);
+      const body = {
+        error: error.message,
+        request_id: requestId,
+        ...(shouldExposeDebugError(req) ? { debug: debugError } : {}),
+      };
+      if (error.status === 400) {
+        return badRequest(req, requestId, error.message);
+      }
       return jsonResponse(
         req,
-        { error: error.message, request_id: requestId },
+        body,
         { status: error.status },
       );
     }
 
-    return serverError(req, requestId, "Failed to complete current level");
+    if (
+      error instanceof PlanDistributionError ||
+      error instanceof GeneratePlanV2Error ||
+      error instanceof GenerateNextLevelV1Error
+    ) {
+      return jsonResponse(
+        req,
+        {
+          error: error.message,
+          request_id: requestId,
+          ...(shouldExposeDebugError(req) ? { debug: debugError } : {}),
+        },
+        { status: 500 },
+      );
+    }
+
+    return jsonResponse(
+      req,
+      {
+        error: "Failed to complete current level",
+        request_id: requestId,
+        ...(shouldExposeDebugError(req) ? { debug: debugError } : {}),
+      },
+      { status: 500 },
+    );
   }
 }
 

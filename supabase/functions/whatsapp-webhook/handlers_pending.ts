@@ -22,6 +22,16 @@ import {
   ACTION_EVENING_REVIEW_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
 import {
+  buildWeeklyPlanningValidationMessage,
+  WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
+  weeklyPlanningDashboardUrl,
+} from "../_shared/weekly_progress_review.ts";
+import {
+  addDaysYmd,
+  loadActiveWeeklyPlanning,
+  weeklyPlanningPromptScheduledFor,
+} from "../_shared/weekly_planning_lifecycle.ts";
+import {
   loadMomentumSnapshotV2,
   persistMomentumSnapshotV2,
 } from "../_shared/momentum_v2.ts";
@@ -43,9 +53,35 @@ import {
   runDailyActionReviewVisibleAgent,
 } from "../_shared/daily_action_review/local_flow.ts";
 import {
+  initialDailyActionCoachingState,
+  normalizeDailyActionCoachingHandoffContext,
+} from "../sophia-brain/skills/daily_action_coaching_recommendation/local_flow.ts";
+import {
+  runDailyActionCoachingRecommendationSkill,
+} from "../sophia-brain/skills/daily_action_coaching_recommendation/skill.ts";
+import {
   dailyReviewEffectsFullyCommitted,
   executeDailyReviewEffectPlan,
 } from "../_shared/daily_action_review/executor.ts";
+import {
+  normalizeNoteInformation,
+  sanitizeLocalExitNoteInformation,
+} from "../sophia-brain/contracts/note_information.v1.ts";
+import type {
+  DirectEffectTimeContext,
+} from "../sophia-brain/contracts/turn_frame.v1.ts";
+import {
+  buildDirectEffectConfirmationContext,
+} from "../sophia-brain/router/direct_effect_local_context.ts";
+import {
+  maybeRunOneShotReminderDirectEffect,
+} from "../sophia-brain/tools/always_on/one_shot_reminder/router.ts";
+import {
+  oneShotDirectEffectFromLocalRequest,
+} from "../sophia-brain/router/one_shot_local_direct_effect.ts";
+import {
+  buildUserTimeContextFromValues,
+} from "../_shared/user_time_context.ts";
 
 type DailyOccurrenceOutcomeApplyResult = {
   status: string;
@@ -82,8 +118,398 @@ function asRendezVousKind(value: unknown): RendezVousKind | null {
   return RENDEZ_VOUS_KINDS.has(raw) ? raw as RendezVousKind : null;
 }
 
+async function dailyOneShotDirectEffectContext(args: {
+  admin: any;
+  userId: string;
+  message: string;
+  sourceMessageId?: string | null;
+  requestId?: string | null;
+  now?: Date;
+  timezone?: string | null;
+  recentUserMessages: Array<{ content?: string | null }>;
+  directEffect: NonNullable<
+    ReturnType<typeof oneShotDirectEffectFromLocalRequest>
+  >;
+}): Promise<Record<string, unknown> | null> {
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: args.admin,
+    userId: args.userId,
+    message: args.message,
+    sourceMessageId: args.sourceMessageId ?? args.requestId ?? null,
+    requestId: args.requestId ?? undefined,
+    now: args.now,
+    userTimezone: args.timezone ?? "Europe/Paris",
+    noMutationRequested: false,
+    turnFrame: {
+      turn_id: args.requestId ?? "daily-action-review-pending",
+      source_message_id: args.requestId ?? null,
+      user_id: args.userId,
+      channel: "whatsapp",
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      direct_effects: [args.directEffect],
+      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+      memory_plan: {
+        context_need: "minimal",
+        memory_mode: "none",
+        context_budget_tier: "tiny",
+        targets: [],
+        retrieval_policy: "semantic_first",
+      },
+    } as any,
+    contextMessages: args.recentUserMessages
+      .map((message) => String(message?.content ?? "").trim())
+      .filter(Boolean)
+      .slice(-6)
+      .reverse(),
+  });
+  if (!result.detected || result.status === "ignored") return null;
+  const targetStatus = result.missing_slots.length > 0
+    ? "missing"
+    : "identified";
+  const context = buildDirectEffectConfirmationContext({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: targetStatus,
+      confidence_band: result.status === "success" ? "high" : "medium",
+      payload_hint: {
+        ...args.directEffect.payload_hint,
+        raw_text:
+          String(args.directEffect.payload_hint.raw_text ?? "").trim() ||
+          args.message,
+        when_hint: result.local_label ?? result.scheduled_for,
+        UTC_time: result.scheduled_for,
+        local_label: result.local_label,
+        instruction_hint: result.reminder_instruction,
+      },
+    }],
+    direct_effect_lane: {
+      selected_handler: "one_shot_reminder",
+      toolExecution: result.status,
+      executedTools: result.executed_tools,
+      requested_effects: result.requested_effects,
+      allowed_effects: result.allowed_effects,
+      committed_effects: result.committed_effects,
+      blocked_effects: result.blocked_effects,
+      visible_confirmation_hint: result.reply,
+    },
+  });
+  return context;
+}
+
+export function buildDailyPendingDirectEffectTimeContext(args: {
+  now?: Date;
+  timezone?: string | null;
+  locale?: string | null;
+}): DirectEffectTimeContext {
+  const timeContext = buildUserTimeContextFromValues({
+    now: args.now,
+    timezone: args.timezone ?? "Europe/Paris",
+    locale: args.locale ?? "fr-FR",
+  });
+  return {
+    now_utc: timeContext.now_utc,
+    user_timezone: timeContext.user_timezone,
+    user_locale: timeContext.user_locale,
+    user_local_datetime: timeContext.user_local_datetime,
+    user_local_human: timeContext.user_local_human,
+  };
+}
+
+function textWithDirectEffectConfirmation(
+  text: string,
+  context: Record<string, unknown> | null,
+): string {
+  void context;
+  return text;
+}
+
+function hasCommittedOneShotReminderDirectEffect(
+  context: Record<string, unknown> | null,
+): boolean {
+  if (!context || typeof context !== "object") return false;
+  const oneShot = context.one_shot_reminder;
+  return context.has_committed_one_shot_reminder === true &&
+    Boolean(
+      oneShot && typeof oneShot === "object" &&
+        (oneShot as Record<string, unknown>).committed === true,
+    );
+}
+
+function attachDailyDirectEffectConfirmationContext(
+  parsed: DailyActionReviewLocalFlowResult,
+  context: Record<string, unknown> | null,
+) {
+  if (!context || Object.keys(context).length === 0) return;
+  const output = parsed.dispatcherOutput as any;
+  const visibleTask =
+    output.visible_task && typeof output.visible_task === "object"
+      ? output.visible_task
+      : null;
+  if (!visibleTask) return;
+  const conversationContext = visibleTask.conversation_context &&
+      typeof visibleTask.conversation_context === "object"
+    ? visibleTask.conversation_context as Record<string, unknown>
+    : {} as Record<string, unknown>;
+  const knownValues = conversationContext.known_values &&
+      typeof conversationContext.known_values === "object"
+    ? conversationContext.known_values
+    : {};
+  const doNotSay = Array.isArray(conversationContext.do_not_say)
+    ? conversationContext.do_not_say
+    : [];
+  visibleTask.conversation_context = {
+    ...conversationContext,
+    known_values: {
+      ...knownValues,
+      direct_effect_confirmation_context: context,
+    },
+    do_not_say: [
+      ...new Set([
+        ...doNotSay,
+        "Ne dis pas que le rappel est programme si direct_effect_confirmation_context.has_committed_one_shot_reminder n'est pas true.",
+      ]),
+    ],
+  };
+}
+
+export function dailyDispatcherOutputWithDirectEffectConfirmationContextForVisible(
+  dispatcherOutput: DailyActionReviewLocalFlowResult["dispatcherOutput"] | null,
+  context: Record<string, unknown> | null,
+): DailyActionReviewLocalFlowResult["dispatcherOutput"] | null {
+  if (!dispatcherOutput || !context || Object.keys(context).length === 0) {
+    return dispatcherOutput;
+  }
+  const visibleTask = dispatcherOutput.visible_task &&
+      typeof dispatcherOutput.visible_task === "object"
+    ? dispatcherOutput.visible_task
+    : null;
+  if (!visibleTask) return dispatcherOutput;
+  const conversationContext: Record<string, unknown> =
+    visibleTask.conversation_context &&
+      typeof visibleTask.conversation_context === "object"
+      ? visibleTask.conversation_context as Record<string, unknown>
+      : {};
+  const knownValues = conversationContext.known_values &&
+      typeof conversationContext.known_values === "object"
+    ? conversationContext.known_values
+    : {};
+  const doNotSay = Array.isArray(conversationContext.do_not_say)
+    ? conversationContext.do_not_say
+    : [];
+  return {
+    ...dispatcherOutput,
+    visible_task: {
+      ...visibleTask,
+      conversation_context: {
+        ...conversationContext,
+        known_values: {
+          ...knownValues,
+          direct_effect_confirmation_context: context,
+        },
+        do_not_say: [
+          ...new Set([
+            ...doNotSay,
+            "Ne dis pas que le rappel est programme si direct_effect_confirmation_context.has_committed_one_shot_reminder n'est pas true.",
+          ]),
+        ],
+      },
+    },
+  } as unknown as DailyActionReviewLocalFlowResult["dispatcherOutput"];
+}
+
 function cleanText(value: unknown): string {
   return String(value ?? "").trim();
+}
+
+function publicSiteUrl(): string {
+  return cleanText(
+    Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL"),
+  ) || "https://app.sophia.app";
+}
+
+function recordOrEmpty(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function dailyPayloadWithoutChildFlowTransfer(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  const {
+    local_flow_transfer: _localFlowTransfer,
+    child_flow_handoff: _childFlowHandoff,
+    child_flow_note_information: _childFlowNoteInformation,
+    ...rest
+  } = payload;
+  return rest;
+}
+
+export function sanitizeDailyActionReviewExitMemoForPending(
+  value: unknown,
+): Record<string, unknown> {
+  const memo = recordOrEmpty(value);
+  const rawNote = recordOrEmpty(memo.note_information);
+  if (Object.keys(rawNote).length === 0) return memo;
+  const target = cleanText(rawNote.target_dispatcher) === "safety_crisis"
+    ? "safety_crisis"
+    : cleanText(rawNote.target_dispatcher) === "coaching_recommendation"
+    ? "coaching_recommendation"
+    : cleanText(rawNote.target_dispatcher) === "product_help"
+    ? "product_help"
+    : "global";
+  const note = sanitizeLocalExitNoteInformation(
+    normalizeNoteInformation(rawNote, {
+      source_flow_id: "daily_action_review_v1",
+      handoff_reason: target === "safety_crisis"
+        ? "safety"
+        : target === "coaching_recommendation"
+        ? "topic_change"
+        : target === "product_help"
+        ? "explicit_user_request"
+        : "topic_change",
+      target_dispatcher: target,
+      handoff_context_for_next_dispatcher: cleanText(
+        rawNote.handoff_context_for_next_dispatcher,
+      ) ||
+        "Daily action review exited to another dispatcher.",
+      user_words: Array.isArray(rawNote.user_words)
+        ? rawNote.user_words.map((item) => cleanText(item)).filter(Boolean)
+        : [],
+      structured_context: recordOrEmpty(rawNote.structured_context),
+    }),
+    target,
+  );
+  const handoffHint = recordOrEmpty(memo.handoff_hint_for_global_dispatcher);
+  return {
+    ...memo,
+    note_information: note,
+    handoff_hint_for_global_dispatcher: {
+      ...handoffHint,
+      likely_intent: note.target_dispatcher === "product_help"
+        ? "product_help"
+        : note.target_dispatcher === "coaching_recommendation"
+        ? "coaching_recommendation"
+        : "unknown",
+    },
+  };
+}
+
+export function dailyActionReviewActionCoachingReturnNoteFromTempMemory(
+  tempMemory: unknown,
+): Record<string, unknown> | null {
+  const memo = recordOrEmpty(
+    recordOrEmpty(tempMemory)
+      .__last_daily_action_coaching_recommendation_exit_memo,
+  );
+  const note = recordOrEmpty(memo.note_information);
+  if (Object.keys(note).length === 0) return null;
+  if (cleanText(note.target_dispatcher) !== "daily_action_review_v1") {
+    return null;
+  }
+  const structured = recordOrEmpty(note.structured_context);
+  if (structured.bridge_kind !== "daily_action_coaching_to_parent") {
+    return null;
+  }
+  return note;
+}
+
+export function dailyActionReviewCoachingReturnNoteFromTempMemory(
+  tempMemory: unknown,
+): Record<string, unknown> | null {
+  const specialized = dailyActionReviewActionCoachingReturnNoteFromTempMemory(
+    tempMemory,
+  );
+  if (specialized) return specialized;
+  const memo = recordOrEmpty(
+    recordOrEmpty(tempMemory).__last_coaching_recommendation_exit_memo,
+  );
+  const note = recordOrEmpty(memo.note_information);
+  if (Object.keys(note).length === 0) return null;
+  if (cleanText(note.target_dispatcher) !== "daily_action_review_v1") {
+    return null;
+  }
+  const structured = recordOrEmpty(note.structured_context);
+  if (structured.bridge_kind !== "coaching_recommendation_to_parent") {
+    return null;
+  }
+  return note;
+}
+
+function clearDailyActionReviewActionCoachingReturnMemo(
+  tempMemory: unknown,
+): Record<string, unknown> {
+  const next = { ...recordOrEmpty(tempMemory) };
+  delete next.__last_daily_action_coaching_recommendation_exit_memo;
+  return next;
+}
+
+function clearActiveDailyActionCoachingState(
+  tempMemory: unknown,
+): Record<string, unknown> {
+  const next = { ...recordOrEmpty(tempMemory) };
+  if (
+    cleanText(recordOrEmpty(next.__active_conversation_skill_v1).skill_id) ===
+      "daily_action_coaching_recommendation_v1"
+  ) {
+    delete next.__active_conversation_skill_v1;
+  }
+  if (
+    cleanText(recordOrEmpty(next.__active_skill_state).skill_id) ===
+      "daily_action_coaching_recommendation_v1"
+  ) {
+    delete next.__active_skill_state;
+  }
+  return next;
+}
+
+function activeConversationSkillIdFromTempMemory(tempMemory: unknown): string {
+  const memory = recordOrEmpty(tempMemory);
+  const activeConversationSkill = recordOrEmpty(
+    memory.__active_conversation_skill_v1,
+  );
+  if (cleanText(activeConversationSkill.status) === "active") {
+    return cleanText(activeConversationSkill.skill_id);
+  }
+  const activeSkillState = recordOrEmpty(memory.__active_skill_state);
+  if (
+    cleanText(activeSkillState.status) === "active" ||
+    cleanText(activeSkillState.skill_id)
+  ) {
+    return cleanText(activeSkillState.skill_id);
+  }
+  return "";
+}
+
+export function shouldGenericCheckinYesHandlePending(
+  pending: unknown,
+): boolean {
+  const payload = recordOrEmpty(recordOrEmpty(pending).payload);
+  const eventContext = cleanText(payload.event_context);
+  const chatCapability = cleanText(payload.chat_capability);
+  const messageMode = cleanText(payload.message_mode).toLowerCase();
+  if (messageMode === "conversation") return false;
+  if (
+    eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT ||
+    chatCapability === "daily_action_review"
+  ) return true;
+  return true;
+}
+
+export function isExplicitDailyActionReviewResumeText(
+  textValue: unknown,
+): boolean {
+  const raw = cleanText(textValue).toLowerCase();
+  if (!raw) return false;
+  const mentionsDaily = /\b(daily|check|bilan)\b/.test(raw);
+  const resumes =
+    /\b(reprend|reprendre|reprise|retour|retourne|continue|continuer)\b/
+      .test(raw);
+  const givesOutcome =
+    /\b(fait|faite|faits|faites|pas fait|manqu|valid|cl[oô]tur)/
+      .test(raw);
+  return mentionsDaily && resumes && givesOutcome;
 }
 
 async function activateWeeklyAdaptiveReviewState(params: {
@@ -118,6 +544,92 @@ async function activateWeeklyAdaptiveReviewState(params: {
       },
     },
   });
+}
+
+async function hasActiveWeeklyPlanningPromptForWeek(params: {
+  admin: any;
+  userId: string;
+  targetWeekStartDate: string;
+}) {
+  const { data, error } = await params.admin
+    .from("scheduled_checkins")
+    .select("id,message_payload")
+    .eq("user_id", params.userId)
+    .eq("event_context", WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT)
+    .in("status", ["pending", "retrying", "awaiting_user", "sent"])
+    .limit(50);
+  if (error) throw error;
+  return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
+    const payload = recordOrEmpty((row as any)?.message_payload);
+    return cleanText(payload.target_week_start_date) ===
+        params.targetWeekStartDate ||
+      cleanText(payload.next_week_start_date) === params.targetWeekStartDate ||
+      cleanText(payload.week_start_date) === params.targetWeekStartDate;
+  });
+}
+
+async function createWeeklyPlanningPromptAfterWeeklyDelivered(params: {
+  admin: any;
+  userId: string;
+  payload: Record<string, unknown>;
+  scheduledCheckinId?: unknown;
+  sentAtIso: string;
+}) {
+  const progressReview = recordOrEmpty(params.payload.weekly_progress_review);
+  const completedWeekStartDate = cleanText(progressReview.week_start_date) ||
+    cleanText(params.payload.week_start_date);
+  if (!completedWeekStartDate) return;
+  const targetWeekStartDate = addDaysYmd(completedWeekStartDate, 7);
+  const planning = await loadActiveWeeklyPlanning(params.admin, {
+    userId: params.userId,
+    weekStartDate: targetWeekStartDate,
+  });
+  if (!planning.has_pending) return;
+  if (
+    await hasActiveWeeklyPlanningPromptForWeek({
+      admin: params.admin,
+      userId: params.userId,
+      targetWeekStartDate,
+    })
+  ) return;
+
+  const dashboardUrl = cleanText(params.payload.dashboard_url) ||
+    weeklyPlanningDashboardUrl(publicSiteUrl());
+  const timezone = cleanText(params.payload.timezone) || "Europe/Paris";
+  const draftMessage = buildWeeklyPlanningValidationMessage({
+    nextWeekStartDate: targetWeekStartDate,
+    dashboardUrl,
+  });
+  const { error } = await params.admin
+    .from("scheduled_checkins")
+    .insert({
+      user_id: params.userId,
+      origin: "weekly_planning",
+      event_context: WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
+      draft_message: draftMessage,
+      message_mode: "static",
+      message_payload: {
+        source: "whatsapp_pending_weekly_review_delivered",
+        version: 1,
+        timezone,
+        dashboard_url: dashboardUrl,
+        week_start_date: planning.week_start_date,
+        week_end_date: planning.week_end_date,
+        target_week_start_date: targetWeekStartDate,
+        next_week_start_date: targetWeekStartDate,
+        previous_week_start_date: completedWeekStartDate,
+        previous_week_end_date: cleanText(progressReview.week_end_date) ||
+          cleanText(params.payload.week_end_date),
+        weekly_checkin_id: cleanText(params.scheduledCheckinId),
+        weekly_sent_at: params.sentAtIso,
+        summary_lines: planning.summary_lines,
+        created_from: "weekly_progress_review_delivered",
+        generated_at: new Date().toISOString(),
+      },
+      scheduled_for: weeklyPlanningPromptScheduledFor(params.sentAtIso),
+      status: "pending",
+    });
+  if (error) throw error;
 }
 
 async function fetchLatestCheckinPending(admin: any, userId: string) {
@@ -170,6 +682,7 @@ function buildDailyActionReviewDbContextPack(params: {
       plan_id: target.plan_id,
       plan_item_id: target.plan_item_id,
       title: target.title,
+      description: target.description ?? null,
       dimension: target.dimension ?? null,
       kind: target.kind ?? null,
       tracking_type: target.tracking_type ?? null,
@@ -232,8 +745,8 @@ function buildDailyActionReviewActivationNoteInformation(params: {
       ).filter(Boolean),
     },
     unresolved_questions: [
-      "Which selected actions were completed, partial, or missed today.",
-      "If partial or missed, the evidence/reason needed by the reducer.",
+      "Which selected actions were done or not done today.",
+      "If not done, the evidence/reason needed by the reducer.",
     ],
     confidence: "high",
     evidence: [
@@ -256,13 +769,6 @@ function buildDailyActionReviewActivationNoteInformation(params: {
       })),
     },
     risk_score: 0,
-    no_chat_mutation: {
-      db_write_committed: false,
-      potion_session_created: false,
-      scheduled_checkin_created: false,
-      recurring_reminder_created: false,
-      executable_confirmation_generated: false,
-    },
   };
 }
 
@@ -338,25 +844,26 @@ function dailyVisibleKindForCurrentState(
   const items = Object.values(parsed.state.items ?? {}) as any[];
   if (
     items.some((item) =>
+      Array.isArray(item?.missing_slots) &&
+      (item.missing_slots.includes("outcome") ||
+        item.missing_slots.includes("which_action") ||
+        item.missing_slots.includes("completion_level"))
+    )
+  ) return "clarify_outcome";
+  if (
+    items.some((item) =>
+      item?.outcome === "missed" &&
+      Array.isArray(item?.missing_slots) &&
+      item.missing_slots.includes("reason")
+    )
+  ) return "clarify_reason";
+  if (
+    items.some((item) =>
       item?.outcome === "missed" &&
       Array.isArray(item?.missing_slots) &&
       item.missing_slots.includes("still_relevant")
     )
   ) return "clarify_still_relevant";
-  if (
-    items.some((item) =>
-      item?.outcome === "partial" &&
-      Array.isArray(item?.missing_slots) &&
-      item.missing_slots.includes("completion_level")
-    )
-  ) return "clarify_completion_level";
-  if (
-    items.some((item) =>
-      (item?.outcome === "partial" || item?.outcome === "missed") &&
-      Array.isArray(item?.missing_slots) &&
-      item.missing_slots.includes("reason")
-    )
-  ) return "clarify_reason";
   return "clarify_outcome";
 }
 
@@ -367,9 +874,13 @@ async function requireDailyVisibleMessage(params: {
   dispatcherOutput?:
     | DailyActionReviewLocalFlowResult["dispatcherOutput"]
     | null;
+  directEffectConfirmationContext?: Record<string, unknown> | null;
   committedEffects?: any[];
   failedEffects?: any[];
   currentDailyQuestion?: string | null;
+  recentMessages?: Array<
+    { role: string; content: string; created_at?: string }
+  >;
   requestId: string;
   userId: string;
   errorCode: string;
@@ -378,10 +889,15 @@ async function requireDailyVisibleMessage(params: {
     kind: params.kind,
     targets: params.targets,
     state: params.state,
-    dispatcherOutput: params.dispatcherOutput ?? null,
+    dispatcherOutput:
+      dailyDispatcherOutputWithDirectEffectConfirmationContextForVisible(
+        params.dispatcherOutput ?? null,
+        params.directEffectConfirmationContext ?? null,
+      ),
     committedEffects: params.committedEffects as any,
     failedEffects: params.failedEffects as any,
     currentDailyQuestion: params.currentDailyQuestion ?? null,
+    recentMessages: params.recentMessages,
     requestId: params.requestId,
     userId: params.userId,
   });
@@ -453,9 +969,47 @@ async function fetchLatestActionEveningReviewPending(
         continue;
       }
     }
+    const payload = recordOrEmpty(row?.payload);
+    const messageMode = cleanText(payload.message_mode).toLowerCase();
+    if (messageMode && messageMode !== "conversation") continue;
     return row;
   }
   return null;
+}
+
+async function fetchRecentUserMessagesForDailyVisible(
+  admin: any,
+  userId: string,
+): Promise<Array<{ role: string; content: string; created_at?: string }>> {
+  const { data, error } = await admin
+    .from("chat_messages")
+    .select("role,content,created_at")
+    .eq("user_id", userId)
+    .eq("scope", "whatsapp")
+    .eq("role", "user")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (error) {
+    console.warn(
+      "[handlers_pending] daily visible recent user messages fetch failed",
+      error,
+    );
+    return [];
+  }
+  const messages: Array<
+    { role: string; content: string; created_at?: string }
+  > = (data ?? [])
+    .slice()
+    .reverse()
+    .map((row: any) => ({
+      role: "user",
+      content: String(row?.content ?? "").trim(),
+      created_at: typeof row?.created_at === "string"
+        ? row.created_at
+        : undefined,
+    }))
+    .filter((message: { content: string }) => message.content);
+  return messages;
 }
 
 function normalizeDailyTargets(value: unknown): DailyActionReviewTarget[] {
@@ -475,6 +1029,7 @@ function normalizeDailyTargets(value: unknown): DailyActionReviewTarget[] {
         null,
       plan_item_id: planItemId,
       title,
+      description: String(target?.description ?? "").trim() || null,
       dimension: String(target?.dimension ?? "").trim() || null,
       kind: String(target?.kind ?? "").trim() || null,
       tracking_type: String(target?.tracking_type ?? "").trim() || null,
@@ -1075,29 +1630,79 @@ async function handleActionEveningReviewReply(params: {
     await markPending(params.admin, pending.id, "cancelled");
     return false;
   }
+  const recentUserMessages = await fetchRecentUserMessagesForDailyVisible(
+    params.admin,
+    params.userId,
+  );
+  const stateBeforeDaily = await getUserState(
+    params.admin,
+    params.userId,
+    "whatsapp",
+  );
+  const tempMemoryBeforeDaily = stateBeforeDaily.temp_memory &&
+      typeof stateBeforeDaily.temp_memory === "object"
+    ? stateBeforeDaily.temp_memory
+    : {};
+  const coachingReturnNote =
+    dailyActionReviewActionCoachingReturnNoteFromTempMemory(
+      tempMemoryBeforeDaily,
+    );
+  const activeSkillId = activeConversationSkillIdFromTempMemory(
+    tempMemoryBeforeDaily,
+  );
+  const explicitDailyResume = isExplicitDailyActionReviewResumeText(
+    inboundText,
+  );
+  if (
+    !coachingReturnNote &&
+    activeSkillId === "daily_action_coaching_recommendation_v1" &&
+    !explicitDailyResume
+  ) {
+    return false;
+  }
+  if (
+    !coachingReturnNote &&
+    activeSkillId === "daily_action_coaching_recommendation_v1"
+  ) {
+    await updateUserState(params.admin, params.userId, "whatsapp", {
+      temp_memory: clearActiveDailyActionCoachingState(
+        tempMemoryBeforeDaily,
+      ),
+    });
+  }
+  if (coachingReturnNote) {
+    await updateUserState(params.admin, params.userId, "whatsapp", {
+      temp_memory: clearDailyActionReviewActionCoachingReturnMemo(
+        tempMemoryBeforeDaily,
+      ),
+    });
+  }
 
   const nowIso = new Date().toISOString();
   const localDate = String(payload?.local_date ?? "").trim() ||
     nowIso.slice(0, 10);
   const timezone = String(payload?.timezone ?? "").trim() || "Europe/Paris";
+  const directEffectTimeContext = buildDailyPendingDirectEffectTimeContext({
+    now: new Date(nowIso),
+    timezone,
+    locale: String(payload?.locale ?? "").trim() || "fr-FR",
+  });
   const effectiveAt = `${localDate}T12:00:00.000Z`;
   const dayStartIso = `${localDate}T00:00:00.000Z`;
   const dayEndIso = `${nextDateYmd(localDate)}T00:00:00.000Z`;
-
   const parsed: DailyActionReviewLocalFlowResult =
     await runDailyActionReviewLocalFlow({
       text: inboundText,
       targets: effectiveTargets,
       previousState: payload?.review_state,
-      noteInformationInbound: buildDailyActionReviewActivationNoteInformation(
-        {
+      noteInformationInbound: coachingReturnNote ??
+        buildDailyActionReviewActivationNoteInformation({
           pending,
           payload,
           targets: effectiveTargets,
           localDate,
           timezone,
-        },
-      ),
+        }),
       dbContextPack: buildDailyActionReviewDbContextPack({
         pending,
         payload,
@@ -1109,15 +1714,208 @@ async function handleActionEveningReviewReply(params: {
         payload,
         targets: effectiveTargets,
       }),
+      recentMessages: recentUserMessages,
       platformContext: {
         channel: "whatsapp",
         scope: "whatsapp",
         user_id: params.userId,
         action_id: params.actionId ?? null,
+        direct_effect_time_context: directEffectTimeContext,
+        direct_effect_confirmation_context: null,
       },
       requestId: params.requestId,
       userId: params.userId,
     });
+  const dailyDirectEffect = oneShotDirectEffectFromLocalRequest(
+    parsed.dispatcherOutput.direct_effect_request,
+  );
+  const directEffectConfirmationContext = dailyDirectEffect
+    ? await dailyOneShotDirectEffectContext({
+      admin: params.admin,
+      userId: params.userId,
+      message: inboundText,
+      sourceMessageId: params.requestId,
+      requestId: params.requestId,
+      now: new Date(nowIso),
+      timezone,
+      recentUserMessages,
+      directEffect: dailyDirectEffect,
+    })
+    : null;
+  attachDailyDirectEffectConfirmationContext(
+    parsed,
+    directEffectConfirmationContext,
+  );
+  if (parsed.childFlowHandoff) {
+    const nowForHandoff = new Date().toISOString();
+    const state = await getUserState(params.admin, params.userId, "whatsapp");
+    const tempMemory =
+      state.temp_memory && typeof state.temp_memory === "object"
+        ? state.temp_memory
+        : {};
+    const handoffContext = normalizeDailyActionCoachingHandoffContext(
+      parsed.childFlowHandoff.child_flow_context,
+    );
+    const initialCoachingState = handoffContext
+      ? initialDailyActionCoachingState(handoffContext)
+      : null;
+    const activeDailyActionCoachingState = initialCoachingState
+      ? {
+        skill_id: "daily_action_coaching_recommendation_v1",
+        status: "active",
+        version: 1,
+        started_at: nowForHandoff,
+        updated_at: nowForHandoff,
+        turn_count: 0,
+        working_state: {
+          daily_action_coaching_recommendation_state:
+            initialCoachingState,
+        },
+      }
+      : null;
+    await updateUserState(params.admin, params.userId, "whatsapp", {
+      temp_memory: {
+        ...tempMemory,
+        ...(activeDailyActionCoachingState
+          ? {
+            __active_conversation_skill_v1: activeDailyActionCoachingState,
+            __active_skill_state: activeDailyActionCoachingState,
+          }
+          : {}),
+        __last_daily_action_review_child_flow_handoff: {
+          reason: "child_flow_handoff",
+          flow_summary: parsed.dispatcherOutput.daily_intent.summary || null,
+          child_flow: "daily_action_coaching_recommendation_v1",
+          child_flow_context: handoffContext,
+          at: nowForHandoff,
+        },
+      },
+    });
+    await params.admin
+      .from("whatsapp_pending_actions")
+      .update({
+        payload: {
+          ...payload,
+          message_mode: "conversation",
+          chat_capability: "daily_action_review",
+          review_state: parsed.state,
+          daily_action_review_diagnosis: parsed.diagnosis,
+          missing_occurrence_ids: parsed.missingOccurrenceIds,
+          last_user_text: inboundText,
+          local_flow_transfer: "handoff_to_child_flow",
+          child_flow_handoff: parsed.childFlowHandoff,
+          child_flow_note_information: null,
+        },
+      })
+      .eq("id", pending.id);
+    if (!activeDailyActionCoachingState) return true;
+
+    const childOutput = await runDailyActionCoachingRecommendationSkill({
+      user_message: inboundText,
+      context: {
+        skill_id: "daily_action_coaching_recommendation_v1",
+        user_id: params.userId,
+        recent_messages: recentUserMessages.map((message: any) => ({
+          role: "user" as const,
+          content: cleanText(message?.content),
+        })).filter((message) => message.content),
+        active_skill_working_state: activeDailyActionCoachingState as any,
+        turn_frame: {
+          turn_id: params.requestId,
+          source_message_id: params.requestId,
+          user_id: params.userId,
+          channel: "whatsapp",
+          note_information: {
+            source_flow_id: "daily_action_review_v1",
+            target_dispatcher: "daily_action_coaching_recommendation_v1",
+            handoff_reason: "child_flow_handoff",
+            structured_context: handoffContext,
+          },
+          safety: { risk_band: "none", reason_codes: [], evidence: [] },
+          direct_effects: [],
+          skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+          memory_plan: {
+            context_need: "minimal",
+            memory_mode: "none",
+            context_budget_tier: "tiny",
+            targets: [],
+            retrieval_policy: "semantic_first",
+          },
+        } as any,
+        relevant_memory_items: [],
+        plan_items: effectiveTargets.map((target: any) => ({
+          id: target.plan_item_id,
+          title: target.title,
+          description: target.description ?? null,
+          plan_id: target.plan_id ?? null,
+        })),
+        product_surfaces: [],
+        exclusions: [],
+      },
+    });
+    const childPatch = childOutput.state_patch ?? {};
+    const childLocalState =
+      childPatch.daily_action_coaching_recommendation_state ?? null;
+    const childNote =
+      childPatch.daily_action_coaching_recommendation_note_information ??
+        null;
+    const stateAfterChildRaw = await getUserState(
+      params.admin,
+      params.userId,
+      "whatsapp",
+    );
+    let tempMemoryAfterChild =
+      stateAfterChildRaw.temp_memory &&
+          typeof stateAfterChildRaw.temp_memory === "object"
+        ? { ...stateAfterChildRaw.temp_memory }
+        : {};
+    if (childOutput.status === "continue" && childLocalState) {
+      const activeChildState = {
+        ...activeDailyActionCoachingState,
+        turn_count: Number((childLocalState as any)?.turn_count ?? 1) || 1,
+        updated_at: new Date().toISOString(),
+        working_state: {
+          daily_action_coaching_recommendation_state: childLocalState,
+        },
+      };
+      tempMemoryAfterChild.__active_conversation_skill_v1 = activeChildState;
+      tempMemoryAfterChild.__active_skill_state = activeChildState;
+    } else {
+      tempMemoryAfterChild = clearActiveDailyActionCoachingState(
+        tempMemoryAfterChild,
+      );
+    }
+    if (childNote) {
+      tempMemoryAfterChild.__last_daily_action_coaching_recommendation_exit_memo =
+        {
+          note_information: childNote,
+          at: new Date().toISOString(),
+        };
+    }
+    await updateUserState(params.admin, params.userId, "whatsapp", {
+      temp_memory: tempMemoryAfterChild,
+    });
+    const childReply = cleanText(childOutput.reply);
+    if (childReply) {
+      await sendDailyActionReviewAssistantMessage({
+        admin: params.admin,
+        requestId: params.requestId,
+        userId: params.userId,
+        fromE164: params.fromE164,
+        body: childReply,
+        source: "daily_action_coaching_recommendation",
+      });
+    }
+    if (childOutput.status === "complete" && childNote) {
+      await resumeDailyActionReviewAfterDailyActionCoachingReturn({
+        admin: params.admin,
+        userId: params.userId,
+        fromE164: params.fromE164,
+        requestId: params.requestId,
+      });
+    }
+    return true;
+  }
   if ("exitToGlobalDispatcher" in parsed && parsed.exitToGlobalDispatcher) {
     const nowForExit = new Date().toISOString();
     const state = await getUserState(params.admin, params.userId, "whatsapp");
@@ -1125,12 +1923,19 @@ async function handleActionEveningReviewReply(params: {
       state.temp_memory && typeof state.temp_memory === "object"
         ? state.temp_memory
         : {};
-    const exitMemo = buildDailyActionReviewLastExitMemo({
-      output: parsed.dispatcherOutput,
-      at: nowForExit,
-    });
+    const exitMemo = sanitizeDailyActionReviewExitMemoForPending(
+      buildDailyActionReviewLastExitMemo({
+        output: parsed.dispatcherOutput,
+        at: nowForExit,
+      }),
+    );
     const safetyPreempt =
       parsed.dispatcherOutput.flow_action === "safety_preempt";
+    const sanitizedExitNote =
+      Object.keys(recordOrEmpty(exitMemo.note_information))
+          .length
+        ? recordOrEmpty(exitMemo.note_information)
+        : null;
     await updateUserState(params.admin, params.userId, "whatsapp", {
       temp_memory: {
         ...tempMemory,
@@ -1142,8 +1947,7 @@ async function handleActionEveningReviewReply(params: {
               summary: parsed.dispatcherOutput.daily_intent.summary ||
                 parsed.dispatcherOutput.exit_memo.user_intent_summary,
               riskScore: parsed.dispatcherOutput.risk_score,
-              noteInformation: parsed.dispatcherOutput.note_information ??
-                parsed.dispatcherOutput.exit_memo.note_information ?? null,
+              noteInformation: sanitizedExitNote,
             }),
           }
           : {}),
@@ -1160,9 +1964,8 @@ async function handleActionEveningReviewReply(params: {
           daily_action_review_diagnosis: parsed.diagnosis,
           last_user_text: inboundText,
           local_flow_transfer: parsed.dispatcherOutput.flow_action,
-          last_local_exit_memo: parsed.dispatcherOutput.exit_memo,
-          last_note_information: parsed.dispatcherOutput.note_information ??
-            parsed.dispatcherOutput.exit_memo.note_information ?? null,
+          last_local_exit_memo: exitMemo,
+          last_note_information: sanitizedExitNote,
         },
       })
       .eq("id", pending.id);
@@ -1178,19 +1981,6 @@ async function handleActionEveningReviewReply(params: {
   });
 
   if (parsed.state.status === "stopped") {
-    const stoppedLocalParsed = "dispatcherOutput" in parsed
-      ? parsed as DailyActionReviewLocalFlowResult
-      : null;
-    const txt = parsed.generatedUserMessage ||
-      await requireDailyVisibleMessage({
-        kind: "stop_close",
-        targets: effectiveTargets,
-        state: parsed.state,
-        dispatcherOutput: stoppedLocalParsed?.dispatcherOutput ?? null,
-        requestId: params.requestId,
-        userId: params.userId,
-        errorCode: "daily_action_review_stop_visible_empty",
-      });
     await params.admin
       .from("whatsapp_pending_actions")
       .update({
@@ -1206,40 +1996,45 @@ async function handleActionEveningReviewReply(params: {
       })
       .eq("id", pending.id);
     await markPending(params.admin, pending.id, "cancelled");
-    await sendDailyActionReviewAssistantMessage({
-      admin: params.admin,
-      requestId: params.requestId,
-      userId: params.userId,
-      fromE164: params.fromE164,
-      body: txt,
-      source: "daily_action_review_stopped",
-    });
-    return true;
+    return false;
   }
 
   if (!parsed.shouldApplyEffects || !parsed.state.effect_plan.allowed) {
     const clarificationLocalParsed = "dispatcherOutput" in parsed
       ? parsed as DailyActionReviewLocalFlowResult
       : null;
-    const txt = parsed.generatedUserMessage ||
-      await requireDailyVisibleMessage({
-        kind: clarificationLocalParsed?.dispatcherOutput.visible_task.kind ??
-          dailyVisibleKindForCurrentState(parsed),
+    const mustRegenerateVisibleWithDirectEffect =
+      hasCommittedOneShotReminderDirectEffect(directEffectConfirmationContext);
+    const visibleKind = mustRegenerateVisibleWithDirectEffect
+      ? dailyVisibleKindForCurrentState(parsed)
+      : clarificationLocalParsed?.dispatcherOutput.visible_task.kind ??
+        dailyVisibleKindForCurrentState(parsed);
+    const txtRaw = !mustRegenerateVisibleWithDirectEffect &&
+        parsed.generatedUserMessage
+      ? parsed.generatedUserMessage
+      : await requireDailyVisibleMessage({
+        kind: visibleKind,
         targets: effectiveTargets,
         state: parsed.state,
         dispatcherOutput: clarificationLocalParsed?.dispatcherOutput ?? null,
+        directEffectConfirmationContext,
         currentDailyQuestion: parsed.state.next_question,
+        recentMessages: recentUserMessages,
         requestId: params.requestId,
         userId: params.userId,
         errorCode: "daily_action_review_clarification_visible_empty",
       });
+    const txt = textWithDirectEffectConfirmation(
+      txtRaw,
+      directEffectConfirmationContext,
+    );
     if (parsed.state.status === "needs_clarification") {
       parsed.state.next_question = parsed.state.next_question || txt;
     }
     parsed.state.generated_user_message = parsed.state.generated_user_message ||
       txt;
     const updatedPayload = {
-      ...payload,
+      ...dailyPayloadWithoutChildFlowTransfer(payload),
       message_mode: "conversation",
       chat_capability: "daily_action_review",
       review_state: parsed.state,
@@ -1461,49 +2256,39 @@ async function handleActionEveningReviewReply(params: {
       result: dailyEffectsResult,
     })
   ) {
-    const failedLocalParsed = "dispatcherOutput" in parsed
-      ? parsed as DailyActionReviewLocalFlowResult
-      : null;
-    const failedVisible = await requireDailyVisibleMessage({
-      kind: "commit_failed",
-      targets: effectiveTargets,
-      state: parsed.state,
-      dispatcherOutput: failedLocalParsed?.dispatcherOutput ?? null,
-      committedEffects: dailyEffectsResult.committed_effects,
-      failedEffects: dailyEffectsResult.failed_effects,
-      requestId: params.requestId,
-      userId: params.userId,
-      errorCode: "daily_action_review_commit_failed_visible_empty",
-    });
     const failedState = {
       ...parsed.state,
       status: "needs_clarification" as const,
       should_apply_effects: false,
-      generated_user_message: failedVisible,
+      generated_user_message: null,
     };
     await params.admin
       .from("whatsapp_pending_actions")
       .update({
         payload: {
-          ...payload,
+          ...dailyPayloadWithoutChildFlowTransfer(payload),
           message_mode: "conversation",
           chat_capability: "daily_action_review",
           review_state: failedState,
           daily_action_review_diagnosis: parsed.diagnosis,
           missing_occurrence_ids: parsed.missingOccurrenceIds,
           daily_review_effects_result: dailyEffectsResult,
+          daily_review_commit_incident: {
+            source_flow_id: DAILY_ACTION_REVIEW_SOURCE,
+            status: "failed",
+            failed_effects: dailyEffectsResult.failed_effects,
+            committed_effects: dailyEffectsResult.committed_effects,
+            failed_at: nowIso,
+          },
           last_user_text: inboundText,
         },
       })
       .eq("id", pending.id);
-    await sendDailyActionReviewAssistantMessage({
-      admin: params.admin,
-      requestId: params.requestId,
-      userId: params.userId,
-      fromE164: params.fromE164,
-      body: failedState.generated_user_message,
-      source: "daily_action_review_commit_failed",
-    });
+    await markPending(params.admin, pending.id, "failed");
+    console.error(
+      `[${params.requestId}] daily action review commit failed`,
+      dailyEffectsResult.failed_effects,
+    );
     return true;
   }
 
@@ -1516,17 +2301,24 @@ async function handleActionEveningReviewReply(params: {
     should_apply_effects: true,
     stop_reason: parsed.state.stop_reason ?? "all_required_slots_filled",
   };
+  const completedFlowMemo = {
+    source_flow_id: DAILY_ACTION_REVIEW_SOURCE,
+    status: "completed",
+    committed_effects: dailyEffectsResult.committed_effects,
+    completed_at: nowIso,
+  };
   await params.admin
     .from("whatsapp_pending_actions")
     .update({
       payload: {
-        ...payload,
+        ...dailyPayloadWithoutChildFlowTransfer(payload),
         message_mode: "conversation",
         chat_capability: "daily_action_review",
         review_state: completedState,
         daily_action_review_diagnosis: parsed.diagnosis,
         missing_occurrence_ids: [],
         daily_review_effects_result: dailyEffectsResult,
+        completed_flow_memo: completedFlowMemo,
         completed_at: nowIso,
       },
     })
@@ -1542,6 +2334,29 @@ async function handleActionEveningReviewReply(params: {
     }).eq("id", pending.scheduled_checkin_id);
   }
   await markPending(params.admin, pending.id, "done");
+
+  try {
+    const userState = await getUserState(
+      params.admin,
+      params.userId,
+      "whatsapp",
+    );
+    const tempMemory =
+      userState.temp_memory && typeof userState.temp_memory === "object"
+        ? userState.temp_memory
+        : {};
+    await updateUserState(params.admin, params.userId, "whatsapp", {
+      temp_memory: {
+        ...tempMemory,
+        __last_completed_flow_memo: completedFlowMemo,
+      },
+    });
+  } catch (error) {
+    console.warn(
+      `[${params.requestId}] daily action review completed_flow_memo temp memory write failed`,
+      error,
+    );
+  }
 
   try {
     const { snapshot, cycleId } = await loadMomentumSnapshotV2(params.admin, {
@@ -1564,17 +2379,23 @@ async function handleActionEveningReviewReply(params: {
   const successLocalParsed = "dispatcherOutput" in parsed
     ? parsed as DailyActionReviewLocalFlowResult
     : null;
-  const txt = await requireDailyVisibleMessage({
+  const txtRaw = await requireDailyVisibleMessage({
     kind: "commit_success",
     targets: effectiveTargets,
     state: completedState,
     dispatcherOutput: successLocalParsed?.dispatcherOutput ?? null,
+    directEffectConfirmationContext,
     committedEffects: dailyEffectsResult.committed_effects,
     failedEffects: dailyEffectsResult.failed_effects,
+    recentMessages: recentUserMessages,
     requestId: params.requestId,
     userId: params.userId,
     errorCode: "daily_action_review_commit_success_visible_empty",
   });
+  const txt = textWithDirectEffectConfirmation(
+    txtRaw,
+    directEffectConfirmationContext,
+  );
   await sendDailyActionReviewAssistantMessage({
     admin: params.admin,
     requestId: params.requestId,
@@ -1822,6 +2643,7 @@ export async function handlePendingActions(params: {
     const pending = await fetchLatestCheckinPending(admin, userId);
     // Don't swallow generic "oui" messages if there is no pending scheduled_checkin.
     if (!pending) return false;
+    if (!shouldGenericCheckinYesHandlePending(pending)) return false;
     // If linked to a scheduled_checkins row and marked as dynamic, generate the text right now.
     const scheduledId = pending?.scheduled_checkin_id ?? null;
     const payload = pending?.payload ?? {};
@@ -1924,6 +2746,18 @@ export async function handlePendingActions(params: {
             error,
           );
         });
+        await createWeeklyPlanningPromptAfterWeeklyDelivered({
+          admin,
+          userId,
+          payload: resolvedMessagePayload,
+          scheduledCheckinId: scheduledId,
+          sentAtIso: new Date().toISOString(),
+        }).catch((error) => {
+          console.warn(
+            `[handlers_pending] weekly_planning_prompt_enqueue_failed scheduled_checkin_id=${scheduledId}`,
+            error,
+          );
+        });
       }
     }
     // mark scheduled_checkin as sent
@@ -1935,6 +2769,21 @@ export async function handlePendingActions(params: {
         delivery_last_error_at: null,
         delivery_last_request_id: requestId,
       }).eq("id", pending.scheduled_checkin_id);
+    }
+    if (
+      String(payload?.action_evening_review ?? "") === "true" ||
+      outboundEventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT
+    ) {
+      await admin.from("whatsapp_pending_actions").update({
+        payload: {
+          ...payload,
+          message_mode: "conversation",
+          chat_capability: "daily_action_review",
+          template_accepted_at: new Date().toISOString(),
+          template_accept_text: params.inboundText,
+        },
+      }).eq("id", pending.id).eq("status", "pending");
+      return true;
     }
     // Any explicit user response to recurring reminder probe resets unanswered counter.
     if (String(outboundEventContext).startsWith("recurring_reminder:")) {
@@ -2009,4 +2858,89 @@ export async function handlePendingActions(params: {
     return true;
   }
   return false;
+}
+
+export async function resumeDailyActionReviewAfterDailyActionCoachingReturn(
+  params: {
+  admin: any;
+  userId: string;
+  fromE164: string;
+  requestId: string;
+},
+) {
+  const state = await getUserState(params.admin, params.userId, "whatsapp");
+  const coachingReturnNote =
+    dailyActionReviewActionCoachingReturnNoteFromTempMemory(
+      state?.temp_memory,
+    );
+  if (!coachingReturnNote) return false;
+  const pending = await fetchLatestActionEveningReviewPending(
+    params.admin,
+    params.userId,
+  );
+  const payload = recordOrEmpty(pending?.payload);
+  if (
+    !pending ||
+    cleanText(pending.status) !== "pending" ||
+    cleanText(payload.chat_capability) !== "daily_action_review"
+  ) {
+    return false;
+  }
+  const targets = normalizeDailyTargets(payload.targets);
+  if (targets.length === 0) return false;
+  const reviewState = stateFromUnknown(payload.review_state, targets);
+  const recentUserMessages = await fetchRecentUserMessagesForDailyVisible(
+    params.admin,
+    params.userId,
+  );
+  const visibleKind = dailyVisibleKindForCurrentState({ state: reviewState });
+  const txt = await requireDailyVisibleMessage({
+    kind: visibleKind,
+    targets,
+    state: reviewState,
+    dispatcherOutput: null,
+    currentDailyQuestion: reviewState.next_question,
+    recentMessages: recentUserMessages,
+    requestId: `${params.requestId}:daily_parent_return_visible`,
+    userId: params.userId,
+    errorCode: "daily_action_review_child_return_visible_empty",
+  });
+  if (reviewState.status === "needs_clarification") {
+    reviewState.next_question = reviewState.next_question || txt;
+  }
+  reviewState.generated_user_message = txt;
+  await params.admin
+    .from("whatsapp_pending_actions")
+    .update({
+      payload: {
+        ...dailyPayloadWithoutChildFlowTransfer(payload),
+        message_mode: "conversation",
+        chat_capability: "daily_action_review",
+        review_state: reviewState,
+        missing_occurrence_ids: Object.values(reviewState.items ?? {})
+          .filter((item: any) =>
+            !isAppliedDailyOutcome(item?.outcome) ||
+            (Array.isArray(item?.missing_slots) &&
+              item.missing_slots.length > 0)
+          )
+          .map((item: any) => cleanText(item?.occurrence_id))
+          .filter(Boolean),
+        last_child_flow_return_note: coachingReturnNote,
+      },
+    })
+    .eq("id", pending.id);
+  await updateUserState(params.admin, params.userId, "whatsapp", {
+    temp_memory: clearActiveDailyActionCoachingState(
+      clearDailyActionReviewActionCoachingReturnMemo(state?.temp_memory),
+    ),
+  });
+  await sendDailyActionReviewAssistantMessage({
+    admin: params.admin,
+    requestId: params.requestId,
+    userId: params.userId,
+    fromE164: params.fromE164,
+    body: txt,
+    source: "daily_action_review_child_return",
+  });
+  return true;
 }

@@ -46,7 +46,7 @@ Objectif architecture :
 
 3. Multi-turn
    - Persist active state sous une cle claire, par exemple __clarification_flow_state.
-   - Conserver candidate_signals, conflict_summary, source_flow_id, source_dispatcher, user_words.
+   - Conserver candidate_signals, conflict_summary, source_flow_id, source_dispatcher et evidence runtime utile.
    - Permettre plusieurs tours tant que le conflit reste ambigue.
    - Permettre stop local / cancel / topic change / safety.
 
@@ -217,4 +217,3 @@ Livrable final :
   - global dispatcher normal non appele pendant clarification active sauf exit_to_global_dispatcher ;
   - note_information presente sur chaque changement de dispatcher.
 ```
-

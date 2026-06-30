@@ -317,10 +317,7 @@ function compactBrainTraceMetadata(brain: unknown): Record<string, unknown> {
         : null,
       turn_frame: turnFrame
         ? {
-          normal_reply_fit_score: turnFrame.normal_reply_fit_score ?? null,
-          flow_opportunity: turnFrame.flow_opportunity ?? null,
           direct_effects: compactArray(turnFrame.direct_effects, 8),
-          tool_skill_intents: compactArray(turnFrame.tool_skill_intents, 8),
         }
         : null,
       tool_skill_run: toolSkillRun

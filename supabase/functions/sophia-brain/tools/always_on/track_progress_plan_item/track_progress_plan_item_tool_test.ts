@@ -29,8 +29,6 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
         status_hint: "completed",
       },
     }],
-    tool_skill_intents: [],
-    flow_opportunity: null,
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -104,12 +102,6 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
       turn_frame: frame({
         safety: { risk_band: "critical", reason_codes: [], evidence: [] },
       }),
-      expected: "blocked",
-    },
-    {
-      name: "pending-confirmation",
-      turn_frame: frame(),
-      pending_tool_skill_confirmation: { id: "pending" },
       expected: "blocked",
     },
     {
@@ -201,13 +193,12 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
       expected: "none",
     },
   ];
-  assertEquals(cases.length, 15);
+  assertEquals(cases.length, 14);
   for (const testCase of cases) {
     const outcome = await runTrackProgressPlanItemV2({
       ...base,
       message: testCase.message ?? base.message,
       turn_frame: testCase.turn_frame,
-      pending_tool_skill_confirmation: testCase.pending_tool_skill_confirmation,
       recent_writes_idempotency: testCase.recent_writes_idempotency,
       db_idempotency_check: testCase.db_idempotency_check,
     });
@@ -222,18 +213,16 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
   }
 });
 
-Deno.test("track_progress_plan_item v2 can coexist with emotional_repair owner", async () => {
+Deno.test("track_progress_plan_item v2 can coexist with product_help signal", async () => {
   const outcome = await runTrackProgressPlanItemV2({
     message: "j'ai rate ma marche, je suis nul",
     plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
     turn_frame: frame({
       skill_signals: {
-        entry: {
-          emotional_repair: {
-            detected: true,
-            confidence_band: "high",
-            reason: "self_attack",
-          },
+        product_help: {
+          detected: true,
+          confidence_band: "high",
+          reason: "product_question_near_progress",
         },
       },
       direct_effects: [{
@@ -348,15 +337,6 @@ Deno.test("track_progress_plan_item direct effect router blocks unsafe or ambigu
       expectedReason: "target_not_in_plan",
     },
     {
-      name: "pending confirmation active blocks write",
-      message: "j'ai fait ma marche",
-      turn_frame: frame(),
-      pending_tool_skill_confirmation: { id: "pending" },
-      expectedStatus: "blocked",
-      expectedIntent: "ignore",
-      expectedReason: "pending_confirmation_active",
-    },
-    {
       name: "duplicate source message blocks write",
       message: "j'ai fait ma marche",
       turn_frame: frame(),
@@ -454,7 +434,6 @@ Deno.test("track_progress_plan_item direct effect router blocks unsafe or ambigu
     const writes: unknown[] = [];
     const overrides = testCase as {
       plan_snapshot?: unknown;
-      pending_tool_skill_confirmation?: unknown;
       recent_writes_idempotency?: { source_message_ids: string[] };
       db_idempotency_check?: (key: string) => Promise<boolean>;
       no_mutation_requested?: boolean;
@@ -465,8 +444,6 @@ Deno.test("track_progress_plan_item direct effect router blocks unsafe or ambigu
       plan_snapshot: overrides.plan_snapshot ??
         [{ id: "walk", title: "marche" }],
       turn_frame: testCase.turn_frame,
-      pending_tool_skill_confirmation:
-        overrides.pending_tool_skill_confirmation,
       recent_writes_idempotency: overrides.recent_writes_idempotency,
       db_idempotency_check: overrides.db_idempotency_check,
       no_mutation_requested: overrides.no_mutation_requested,

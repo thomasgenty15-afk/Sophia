@@ -344,7 +344,7 @@
               },
               "visible_task": "compare_features",
               "return_to_parent_flow": false,
-              "handoff_to_local_dispatcher": false,
+              "exit_to_global_dispatcher": false,
               "note_information": null,
               "reason_code": "product_help_local_compare_features",
               "reducer_trace": {
@@ -965,7 +965,7 @@
             },
             "visible_task": "compare_features",
             "return_to_parent_flow": false,
-            "handoff_to_local_dispatcher": false,
+            "exit_to_global_dispatcher": false,
             "note_information": null,
             "reason_code": "product_help_local_compare_features",
             "reducer_trace": {

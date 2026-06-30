@@ -22,6 +22,7 @@ import { handleStopOptOut } from "./handlers_optout.ts";
 import {
   handlePendingActions,
   maybeCompletePendingRendezVous,
+  resumeDailyActionReviewAfterDailyActionCoachingReturn,
 } from "./handlers_pending.ts";
 import {
   clearExpiredWhatsAppOnboardingState,
@@ -621,13 +622,18 @@ Deno.serve(async (req) => {
         );
         // Opt-in: strict yes token only.
         const isOptInYesText = /^(oui|yes|absolument)\s*!?$/i.test(textLower);
-        // Scheduled / recurring reminder template buttons: "Oui !" / "Une prochaine fois !"
+        // Scheduled / recurring reminder template buttons:
+        // - daily bilan: "Carrément!" / "On le fait demain!"
+        // - generic check-in: "Oui !" / "Une prochaine fois !"
         // and recurring reminder consent: "Avec plaisir !" / "Not this time"
-        const isCheckinYes = /^oui\b|avec\s+plaisir/i.test(textLower);
+        const isCheckinYes = /^(oui\b|avec\s+plaisir\b|carr[ée]ment\b)/i.test(
+          textLower,
+        );
         const isCheckinLater =
-          /plus\s*tard|une\s+prochaine\s+fois|not\s+this\s+time/i.test(
-            textLower,
-          );
+          /plus\s*tard|une\s+prochaine\s+fois|on\s+le\s+fait\s+demain|not\s+this\s+time/i
+            .test(
+              textLower,
+            );
         if (isWrongNumber) {
           await handleWrongNumber({
             admin,
@@ -1088,6 +1094,12 @@ Deno.serve(async (req) => {
           replyToWaMessageId: msg.wa_message_id,
           purpose: "whatsapp_default_brain_reply",
           contextOverride: buildDefaultWhatsAppConversationContext(),
+        });
+        await resumeDailyActionReviewAfterDailyActionCoachingReturn({
+          admin,
+          userId: profile.id,
+          fromE164,
+          requestId: processId,
         });
         logWebhookTrace({
           requestId,

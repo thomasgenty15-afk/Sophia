@@ -42,12 +42,11 @@ import type {
   MorningNudgeAnchor,
   MorningNudgeCoachIntent,
   MorningNudgeKind,
+  MorningNudgeLegacyFollowupFlowKind,
   MorningNudgePayloadV2,
   MorningNudgeSuppressionReason,
   MorningScheduledCommitment,
-  PostMorningNudgeFlowKind,
 } from "./morning_nudge_contract.ts";
-import { flowKindForMorningNudgeKind } from "./morning_nudge_contract.ts";
 import {
   DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
   loadLatestConversationPulseV2,
@@ -452,7 +451,7 @@ export interface MorningNudgePlanV2 {
   target_plan_item_titles: string[];
   nudge_kind?: MorningNudgeKind;
   opens_local_flow?: boolean;
-  intended_followup_flow?: PostMorningNudgeFlowKind | null;
+  intended_followup_flow?: MorningNudgeLegacyFollowupFlowKind | null;
   coach_intent?: MorningNudgeCoachIntent;
   suppressed_plan_item_ids?: string[];
   suppressed_plan_item_titles?: string[];
@@ -1542,7 +1541,7 @@ function classifyMorningNudgeV2(args: {
 }): {
   nudge_kind: MorningNudgeKind;
   opens_local_flow: boolean;
-  intended_followup_flow: PostMorningNudgeFlowKind | null;
+  intended_followup_flow: MorningNudgeLegacyFollowupFlowKind | null;
   coach_intent: MorningNudgeCoachIntent;
   suppressed_plan_item_ids: string[];
   suppressed_plan_item_titles: string[];
@@ -1576,11 +1575,10 @@ function classifyMorningNudgeV2(args: {
     nudgeKind = "no_action_greeting";
   }
 
-  const intendedFollowupFlow = flowKindForMorningNudgeKind(nudgeKind);
   return {
     nudge_kind: nudgeKind,
-    opens_local_flow: intendedFollowupFlow !== null,
-    intended_followup_flow: intendedFollowupFlow,
+    opens_local_flow: false,
+    intended_followup_flow: null,
     coach_intent: coachIntentForPosture({
       posture: args.posture,
       nudgeKind,
@@ -1603,16 +1601,12 @@ export function buildMorningNudgePayloadV2(args: {
 }): MorningNudgePayloadV2 | null {
   if (args.plan.decision !== "send" || !args.plan.posture) return null;
   const nudgeKind = args.plan.nudge_kind ?? "no_action_greeting";
-  const intendedFollowupFlow = args.plan.intended_followup_flow ??
-    flowKindForMorningNudgeKind(nudgeKind);
-  const opensLocalFlow = args.plan.opens_local_flow ??
-    intendedFollowupFlow !== null;
   return {
     event_context: MORNING_NUDGE_V2_EVENT_CONTEXT,
     nudge_kind: nudgeKind,
     posture: args.plan.posture,
-    opens_local_flow: opensLocalFlow,
-    intended_followup_flow: intendedFollowupFlow,
+    opens_local_flow: false,
+    intended_followup_flow: null,
     coach_intent: args.plan.coach_intent ??
       coachIntentForPosture({
         posture: args.plan.posture,

@@ -1,3 +1,5 @@
+import { VISIBLE_OUTPUT_STYLE_RULES } from "../../sophia-brain/router/response_style_policy.ts";
+
 export type DailyActionReviewOpeningTarget = {
   title?: string | null;
 };
@@ -42,13 +44,16 @@ export function renderDailyActionReviewOpeningInstruction(
     .filter((target) => target.title);
   return [
     "Message WhatsApp de bilan daily action review.",
+    VISIBLE_OUTPUT_STYLE_RULES,
     "Objectif: demander au user, naturellement, ce qui s'est passe pour les actions ciblees par current_focus_occurrence_ids.",
     "Tu dois poser une seule question principale et laisser le user repondre librement.",
     "Les actions ciblees sont des occurrences ouvertes a verifier maintenant: ne les presente jamais comme deja faites, deja notees, deja ratees ou deja reportees dans ce message d'ouverture.",
     "Le contexte recent peut aider le ton, mais il ne doit pas remplacer le check des targets courantes.",
     "Ne propose pas de solution, carte, potion, ajustement de plan ou coaching dans ce premier message.",
     "Ne dis pas que tu vas automatiquement reporter; tu peux seulement ouvrir la porte a comprendre si une action non faite reste utile.",
-    'Ne force pas les mots "fait", "pas fait" ou "partiellement fait"; la reponse libre sera analysee ensuite.',
+    'Ne force pas les mots "fait" ou "pas fait"; la reponse libre sera analysee ensuite.',
+    "Varie fortement l'ouverture par rapport aux relances d'action recentes. Ne commence pas par 'Je repense a ton action' si une formule proche existe deja dans l'historique.",
+    "Angle attendu: bilan du jour au moment present, pas relance du lendemain matin. Change le premier groupe de mots et le verbe d'accroche entre deux bilans.",
     options.allowGreeting
       ? "Comme aucune conversation recente n'a eu lieu, commence par une salutation courte et naturelle, variee, avant la question."
       : "Comme une conversation recente existe deja, ne commence pas par une salutation.",

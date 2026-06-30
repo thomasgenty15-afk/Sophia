@@ -3841,7 +3841,7 @@
               "user_words": [],
               "structured_context": {
                 "source_flow": "prepare_defense_card",
-                "flow_action": "handoff_to_local_dispatcher",
+                "flow_action": "exit_to_global_dispatcher",
                 "current_stage": "support_need_intake",
                 "tool_fit": "ambiguous",
                 "collected_state": {
@@ -4287,7 +4287,7 @@
             "user_words": [],
             "structured_context": {
               "source_flow": "prepare_defense_card",
-              "flow_action": "handoff_to_local_dispatcher",
+              "flow_action": "exit_to_global_dispatcher",
               "current_stage": "support_need_intake",
               "tool_fit": "ambiguous",
               "collected_state": {

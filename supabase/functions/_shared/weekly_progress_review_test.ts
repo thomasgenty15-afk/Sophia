@@ -17,14 +17,14 @@ Deno.test("weekly date helpers derive week boundaries", () => {
   assertEquals(nextWeekStartForLocalDate("2026-05-02"), "2026-05-04");
 });
 
-Deno.test("weekly planning validation message explains unlock after weekly", () => {
+Deno.test("weekly planning validation message announces planning availability", () => {
   const message = buildWeeklyPlanningValidationMessage({
     nextWeekStartDate: "2026-05-04",
     dashboardUrl: "https://example.test/dashboard",
   });
 
-  assertStringIncludes(message, "Le point de fin de semaine est termine");
-  assertStringIncludes(message, "validation de la semaine prochaine");
+  assertStringIncludes(message, "Ta planification de la semaine est disponible");
+  assertStringIncludes(message, "https://example.test/dashboard");
   assertStringIncludes(message, "confirmer");
 });
 

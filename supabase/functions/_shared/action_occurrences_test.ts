@@ -2,10 +2,9 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import {
   buildActionMorningFallbackMessage,
-  buildActionMorningFollowupFallbackMessage,
-  buildActionMorningFollowupGrounding,
-  buildActionMorningFollowupInstruction,
   buildActionMorningGrounding,
+  buildActionMorningInstruction,
+  buildLightMorningInstruction,
   localDateYmdInTimezone,
   mondayWeekStartForLocalDate,
   type TodayActionOccurrenceSchedule,
@@ -98,51 +97,16 @@ Deno.test("buildActionMorningFallbackMessage summarizes multi-plan mornings", ()
   assertStringIncludes(grounding, "transformation=Sport");
   assertStringIncludes(grounding, "transformation=Focus");
   assertStringIncludes(grounding, "occurrence_id=occurrence-1");
+
+  const instruction = buildActionMorningInstruction(schedule);
+  assertStringIncludes(instruction, "lancement de journee");
+  assertStringIncludes(instruction, "Ne demande jamais comment");
 });
 
-Deno.test("buildActionMorningFollowup copy stays non culpabilisant and traceable", () => {
-  const schedule: TodayActionOccurrenceSchedule = {
-    local_date: "2026-05-05",
-    week_start_date: "2026-05-04",
-    weekday: "tue",
-    timezone: "Europe/Paris",
-    scheduled_for: "2026-05-06T05:00:00.000Z",
-    transformations: [
-      {
-        transformation_id: "transformation-sleep",
-        transformation_title: "Sommeil",
-        plan_id: "plan-sleep",
-        plan_title: "Sas du soir",
-        occurrences: [
-          {
-            occurrence_id: "occurrence-sas",
-            cycle_id: "cycle-sleep",
-            transformation_id: "transformation-sleep",
-            plan_id: "plan-sleep",
-            plan_item_id: "item-sas",
-            title: "Faire le sas de déchargement",
-            dimension: "habits",
-            kind: "habit",
-            time_of_day: "evening",
-            planned_day: "tue",
-            status: "planned",
-            source: "weekly_confirmed",
-          },
-        ],
-      },
-    ],
-  };
+Deno.test("buildLightMorningInstruction stays separate from action followups", () => {
+  const instruction = buildLightMorningInstruction();
 
-  const message = buildActionMorningFollowupFallbackMessage(schedule);
-  assertStringIncludes(message, "ça s'est passé comment");
-  assertStringIncludes(message, "Pas besoin");
-
-  const instruction = buildActionMorningFollowupInstruction(schedule);
-  assertStringIncludes(instruction, "non culpabilisant");
-  assertStringIncludes(instruction, "sommeil");
-
-  const grounding = buildActionMorningFollowupGrounding(schedule);
-  assertStringIncludes(grounding, "event=action_morning_followup");
-  assertStringIncludes(grounding, "local_date_reviewed=2026-05-05");
-  assertStringIncludes(grounding, "occurrence_id=occurrence-sas");
+  assertStringIncludes(instruction, "presence legere");
+  assertStringIncludes(instruction, "pas follow-up");
+  assertStringIncludes(instruction, "Ne demande pas un bilan");
 });

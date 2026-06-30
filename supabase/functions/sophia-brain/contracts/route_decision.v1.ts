@@ -1,10 +1,11 @@
 export type ResponseOwner =
   | "safety"
-  | "pending_confirmation"
-  | "tool_skill"
-  | "orientation_clarification"
-  | "conversation_handler"
   | "product_help"
+  | "coaching_recommendation"
+  | "daily_action_coaching_recommendation_v1"
+  | "feature_opportunity"
+  | "weekly_adaptive_review_v1"
+  | "direct_effect"
   | "normal_reply";
 
 export type MemoryUseKind =
@@ -18,7 +19,6 @@ export type BlockedPath = {
   reason_code: string;
   raw_score?: number;
   adjusted_score?: number;
-  normal_reply_fit_score?: number;
 };
 
 export type RouteDecision = {

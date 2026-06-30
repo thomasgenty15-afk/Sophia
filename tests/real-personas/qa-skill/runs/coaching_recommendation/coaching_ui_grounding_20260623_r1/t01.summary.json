@@ -1,0 +1,63 @@
+{
+  "run_id": "coaching_ui_grounding_20260623_r1",
+  "turn": "t01",
+  "request_id": "coaching_ui_grounding_20260623_r1-t01",
+  "user": "Je bloque sur un mail perso à envoyer, mais ce n’est pas dans mon plan. Je veux juste me débloquer maintenant sans toucher au plan.",
+  "http_status": 200,
+  "ok": true,
+  "assistant": "Je partirais sur une carte d’attaque libre, technique Preparer le terrain : ouvre ton brouillon, enlève tout ce qui distrait, puis pose juste les 3 infos à écrire pour rendre le démarrage simple.\n\nSi tu veux la retrouver ensuite, va dans Dashboard > Ressources puis choisis ou crée ce type de carte.",
+  "response_owner": "coaching_recommendation",
+  "selected_handler": "coaching_recommendation",
+  "route_reason": "coaching_recommendation_signal",
+  "active_flow_arbitration": {
+    "decision": "minimal_global_dispatcher",
+    "active_owner": "none",
+    "selected_owner": "coaching_recommendation",
+    "resume_policy": "none",
+    "reason_code": "coaching_recommendation_signal"
+  },
+  "safety": {
+    "risk_band": "none",
+    "reason_codes": [],
+    "evidence": []
+  },
+  "direct_effects": [],
+  "direct_effect_lane": null,
+  "direct_effect_confirmation_context": null,
+  "memory_plan": {
+    "response_intent": "support_user_with_non_plan_action_coaching",
+    "reasoning_complexity": "low",
+    "context_need": "minimal",
+    "memory_mode": "none",
+    "model_tier_hint": "lite",
+    "context_budget_tier": "tiny",
+    "targets": [],
+    "retrieval_policy": "force_taxonomy",
+    "plan_confidence": 0.7
+  },
+  "effect_ledger": {
+    "turn_id": "coaching_ui_grounding_20260623_r1-t01",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "status": "continue",
+    "reason_code": "coaching_recommendation_signal",
+    "latency_ms": 19529
+  },
+  "tool_skill_run": null
+}

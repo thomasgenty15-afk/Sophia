@@ -51,7 +51,7 @@
 - http_status: `200`
 - response_owner: `tool_skill`
 - selected_handler: `prepare_attack_card`
-- route_reason: `product_help_handoff_to_local_dispatcher`
+- route_reason: `product_help_exit_to_global_dispatcher`
 - safety: `none`
 - direct_effects: `[]`
 - operation: `null`
@@ -184,7 +184,7 @@
 
 **Routage**
 - T1: entree correcte `product_help`, avec note_information initiale `global_dispatcher -> product_help`.
-- T2: fix product_help valide: `route_reason=product_help_handoff_to_local_dispatcher`, `selected_handler=prepare_attack_card`, note_information `product_help -> prepare_attack_card`.
+- T2: fix product_help valide: `route_reason=product_help_exit_to_global_dispatcher`, `selected_handler=prepare_attack_card`, note_information `product_help -> prepare_attack_card`.
 - T3/T4: reprise active correcte par `active_prepare_attack_card_local_dispatcher`.
 - T5: sortie vers global observee pour un cancel simple, a corriger cote `prepare_attack_card` selon doctrine locale.
 
@@ -201,7 +201,7 @@
 **Fix propose**
 - Source amont: `prepare_attack_card` reducer/local dispatcher/visible task mapping.
 - Correction recommandee: ajouter les continuations exactes manquantes dans le contrat local cible et corriger la politique stop. Ne pas modifier le bridge product_help qui est prouve vert sur T2.
-- Tests d'invariant attendus: T2 trace `product_help_handoff_to_local_dispatcher`; T4 paraphrases de confirmation (`oui`, `ca me va`, `garde simple`, `5 minutes`) passent; T5 stop simple reste local; anti-FP changement de sujet clair sort global avec note_information.
+- Tests d'invariant attendus: T2 trace `product_help_exit_to_global_dispatcher`; T4 paraphrases de confirmation (`oui`, `ca me va`, `garde simple`, `5 minutes`) passent; T5 stop simple reste local; anti-FP changement de sujet clair sort global avec note_information.
 
 ## 5. Verdict Global
 

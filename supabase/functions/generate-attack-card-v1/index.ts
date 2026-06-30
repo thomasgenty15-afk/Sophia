@@ -14,11 +14,12 @@ import {
 } from "../_shared/http.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
 import { loadLabScopeContext } from "../_shared/v2-lab-context.ts";
-import type { AttackCardContent, LabScopeKind } from "../_shared/v2-types.ts";
+import type { AttackCardContent, LabScopeKind, UserPlanItemRow } from "../_shared/v2-types.ts";
 
 const REQUEST_SCHEMA = z.object({
   attack_card_id: z.string().uuid().optional(),
   transformation_id: z.string().uuid().optional(),
+  plan_item_id: z.string().uuid().optional(),
   scope_kind: z.enum(["transformation", "out_of_plan"]).optional(),
   force_regenerate: z.boolean().optional(),
 });
@@ -147,6 +148,94 @@ function mergeExistingTechniqueResults(
   };
 }
 
+function planItemKindLabel(dimension: UserPlanItemRow["dimension"]): string {
+  if (dimension === "habits") return "habitude";
+  if (dimension === "missions") return "mission";
+  if (dimension === "clarifications") return "clarification";
+  return "support";
+}
+
+async function loadPlanItemForAttackCard(
+  admin: SupabaseClient,
+  userId: string,
+  planItemId: string,
+): Promise<UserPlanItemRow> {
+  const { data, error } = await admin
+    .from("user_plan_items")
+    .select("*")
+    .eq("id", planItemId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new GenerateAttackCardError(500, `DB error: ${error.message}`, { cause: error });
+  }
+  if (!data) throw new GenerateAttackCardError(404, "Plan item not found");
+
+  const item = data as UserPlanItemRow;
+  if (item.dimension !== "missions" && item.dimension !== "habits") {
+    throw new GenerateAttackCardError(409, "This plan item cannot receive an attack card");
+  }
+  if (item.status === "pending" || item.status === "deactivated" || item.status === "cancelled") {
+    throw new GenerateAttackCardError(409, "This plan item is not available for an attack card");
+  }
+
+  return item;
+}
+
+async function buildPlanItemActionContext(
+  admin: SupabaseClient,
+  userId: string,
+  item: UserPlanItemRow,
+) {
+  let phaseItemsSummary: string[] | null = null;
+
+  if (item.phase_id) {
+    const { data: siblingItems, error } = await admin
+      .from("user_plan_items")
+      .select("id, title, description, dimension")
+      .eq("user_id", userId)
+      .eq("transformation_id", item.transformation_id)
+      .eq("phase_id", item.phase_id)
+      .order("activation_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) {
+      throw new GenerateAttackCardError(500, `DB error: ${error.message}`, { cause: error });
+    }
+
+    phaseItemsSummary = ((siblingItems as Array<Record<string, unknown>> | null) ?? [])
+      .filter((candidate) => String(candidate.id ?? "") !== item.id)
+      .flatMap((candidate) => {
+        const title = String(candidate.title ?? "").trim();
+        if (!title) return [];
+        const description = typeof candidate.description === "string"
+          ? candidate.description.trim()
+          : "";
+        const dimension = candidate.dimension as UserPlanItemRow["dimension"] | undefined;
+        return [
+          `${dimension ? planItemKindLabel(dimension) : "action"}: ${title}${
+            description ? ` - ${description}` : ""
+          }`,
+        ];
+      });
+  }
+
+  const fallbackHint = item.dimension === "habits"
+    ? "Installer cette habitude dans le quotidien avec moins de friction."
+    : "Demarrer cette mission sans la remettre a plus tard.";
+
+  return {
+    phase_label: item.phase_order != null ? `Niveau ${item.phase_order}` : null,
+    item_title: item.title,
+    item_description: item.description ?? null,
+    item_kind: planItemKindLabel(item.dimension),
+    time_of_day: item.time_of_day ?? null,
+    cadence_label: item.cadence_label ?? null,
+    activation_hint: item.description ?? fallbackHint,
+    phase_items_summary: phaseItemsSummary,
+  };
+}
+
 export async function generateAttackCardForTransformation(args: {
   admin: SupabaseClient;
   userId: string;
@@ -163,6 +252,7 @@ export async function generateAttackCardForTransformation(args: {
     time_of_day: string | null;
     cadence_label: string | null;
     activation_hint: string | null;
+    phase_items_summary?: string[] | null;
   } | null;
   requestId?: string;
   forceRegenerate?: boolean;
@@ -337,23 +427,34 @@ async function handleRequest(req: Request): Promise<Response> {
     });
 
     const scopeKind = parsed.data.scope_kind ?? "transformation";
-    if (scopeKind === "transformation" && !parsed.data.transformation_id) {
+    const planItem = parsed.data.plan_item_id
+      ? await loadPlanItemForAttackCard(admin, authData.user.id, parsed.data.plan_item_id)
+      : null;
+    const transformationId = planItem?.transformation_id ?? parsed.data.transformation_id;
+    if (scopeKind === "transformation" && !transformationId) {
       throw new GenerateAttackCardError(400, "transformation_id is required");
     }
+    const actionContext = planItem
+      ? await buildPlanItemActionContext(admin, authData.user.id, planItem)
+      : null;
 
     const result = await generateAttackCardForTransformation({
       admin,
       userId: authData.user.id,
       attackCardId: parsed.data.attack_card_id ?? null,
-      transformationId: parsed.data.transformation_id,
+      transformationId,
       scopeKind,
+      planItemId: planItem?.id ?? null,
+      phaseId: planItem?.phase_id ?? null,
+      actionContext,
       requestId,
       forceRegenerate: parsed.data.force_regenerate ?? false,
     });
 
     return jsonResponse(req, {
       request_id: requestId,
-      transformation_id: parsed.data.transformation_id,
+      transformation_id: transformationId,
+      plan_item_id: planItem?.id ?? null,
       scope_kind: scopeKind,
       card_id: result.card_id,
       content: result.content,

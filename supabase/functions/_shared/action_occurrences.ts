@@ -483,6 +483,8 @@ export function buildActionMorningInstruction(
     "Message WhatsApp du matin.",
     "Objectif: encourager le user à réaliser les actions prévues aujourd'hui.",
     "Ton: court, concret, chaleureux, pas de bilan, pas de question lourde.",
+    "Surface: lancement de journee. Ne demande jamais comment une action precedente s'est passee.",
+    "Varie l'ouverture et l'angle: cap du jour, premiere marche, version faisable, ancrage simple.",
     `Nombre d'actions prévues: ${count}.`,
     schedule.transformations.length > 1
       ? "Le user a plusieurs transformations actives: regroupe sans faire long."
@@ -511,49 +513,6 @@ export function buildActionMorningGrounding(
   return lines.join("\n");
 }
 
-export function buildActionMorningFollowupFallbackMessage(
-  schedule: TodayActionOccurrenceSchedule,
-): string {
-  const titles = listTitles(schedule);
-  if (titles.length === 0) {
-    return "Je voulais juste prendre la temperature de ce que tu avais prévu hier. Rien à justifier.";
-  }
-  if (titles.length === 1) {
-    return `Pour "${
-      titles[0]
-    }" hier, ça s'est passé comment ? Pas besoin que ce soit parfait.`;
-  }
-  const visible = titles.slice(0, 3).map((title) => `"${title}"`).join(", ");
-  const suffix = titles.length > 3 ? ` + ${titles.length - 3} autre(s)` : "";
-  return `Pour tes actions d'hier (${visible}${suffix}), ça s'est passé comment ? Pas besoin que ce soit parfait.`;
-}
-
-export function buildActionMorningFollowupInstruction(
-  schedule: TodayActionOccurrenceSchedule,
-): string {
-  const count = listTitles(schedule).length;
-  return [
-    "Message WhatsApp du matin, le lendemain d'une ou plusieurs actions prévues.",
-    "Objectif: demander doucement comment ça s'est passé, pour récupérer du feedback utile au plan.",
-    "Ton: non culpabilisant, sans surveillance, sans pression de performance.",
-    "Ne dis pas 'tu aurais dû'. Ne demande pas de justification.",
-    "Si l'action touche au sommeil ou au coucher, demande comment le sas/le coucher s'est passé avec douceur.",
-    `Nombre d'actions concernées: ${count}.`,
-    "1 question maximum, 1 à 3 phrases maximum.",
-  ].join("\n");
-}
-
-export function buildActionMorningFollowupGrounding(
-  schedule: TodayActionOccurrenceSchedule,
-): string {
-  return [
-    "event=action_morning_followup",
-    `local_date_reviewed=${schedule.local_date}`,
-    `weekday_reviewed=${schedule.weekday}`,
-    buildActionMorningGrounding(schedule),
-  ].join("\n");
-}
-
 export function buildLightMorningFallbackMessage(): string {
   return "Je te souhaite une bonne journée. Garde juste un petit point d'appui simple, et on avance.";
 }
@@ -571,6 +530,8 @@ export function buildLightMorningInstruction(): string {
     "Si l'historique contient une question Sophia non repondue, ignore-la.",
     "Si l'historique contient un succes recent du user, tu peux le reconnaitre sobrement, sans demander de bilan.",
     "Ne propose pas de nouvelle action. Ne demande pas un bilan.",
+    "Surface: presence legere, pas nudge d'action, pas follow-up, pas bilan.",
+    "Varie l'ouverture et l'angle: souffle, point d'appui, journee respirable, elan doux.",
     "Message attendu: 1 a 2 phrases, zero ou une question tres legere maximum.",
     "Preference: pas de question si une phrase de presence suffit.",
     "",

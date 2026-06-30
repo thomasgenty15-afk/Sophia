@@ -67,7 +67,7 @@ Artefacts:
 - http_status: 200
 - response_owner: `adjust_plan_item` via `routing_decision_summary.tool_skill_runtime.selected_handler`
 - selected_handler: `adjust_plan_item`
-- route_reason: Product Help handoff to local dispatcher observe: `brain:product_help_handoff_to_local_dispatcher`
+- route_reason: Product Help handoff to local dispatcher observe: `brain:product_help_exit_to_global_dispatcher`
 - flow_action: `clarify_adjustment_need`
 - visible_task.kind: `clarify_adjustment_need`
 - direct_effects: aucun
@@ -177,7 +177,7 @@ Artefacts:
 **Verdict: yellow**
 
 **Routage**
-- T2 montre le bridge attendu: `brain:product_help_handoff_to_local_dispatcher`, puis `selected_handler=adjust_plan_item`.
+- T2 montre le bridge attendu: `brain:product_help_exit_to_global_dispatcher`, puis `selected_handler=adjust_plan_item`.
 - T3-T5 restent sous `brain:active_adjust_plan_item_local_dispatcher`.
 - Le dispatcher global normal est saute pendant le flow actif: runtime T2 contient `brain:product_help.global_dispatcher_skipped`, puis T3-T5 chargent l'active flow et utilisent le dispatcher local.
 - Ce n'est pas le legacy Product Help qui repond a partir de T2: les sources raw sont `adjust_plan_item.local_dispatcher` et `adjust_plan_item.visible.*`.

@@ -18,7 +18,7 @@ type DimensionSectionProps = {
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
+  onCardsChanged: () => Promise<void> | void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
 };
 
@@ -41,7 +41,7 @@ export function DimensionSection({
   unlockStateByItemId,
   busyItemId,
   onComplete,
-  onPrepareCards,
+  onCardsChanged,
   onOpenDefenseResourceEditor,
 }: DimensionSectionProps) {
   const hasContent = groups.all.length > 0;
@@ -78,7 +78,7 @@ export function DimensionSection({
                 unlockState={unlockStateByItemId.get(item.id) ?? null}
                 isBusy={busyItemId === item.id}
                 onComplete={onComplete}
-                onPrepareCards={onPrepareCards}
+                onCardsChanged={onCardsChanged}
                 onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
               />
             </div>
@@ -99,7 +99,7 @@ export function DimensionSection({
                   unlockState={unlockStateByItemId.get(item.id) ?? null}
                   isBusy={busyItemId === item.id}
                   onComplete={onComplete}
-                  onPrepareCards={onPrepareCards}
+                  onCardsChanged={onCardsChanged}
                   onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
                 />
               </div>

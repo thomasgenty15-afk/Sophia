@@ -4661,7 +4661,7 @@
               "user_words": [],
               "structured_context": {
                 "source_flow": "prepare_defense_card",
-                "flow_action": "handoff_to_local_dispatcher",
+                "flow_action": "exit_to_global_dispatcher",
                 "current_stage": "exit",
                 "tool_fit": "attack_better",
                 "collected_state": {
@@ -5106,7 +5106,7 @@
             "user_words": [],
             "structured_context": {
               "source_flow": "prepare_defense_card",
-              "flow_action": "handoff_to_local_dispatcher",
+              "flow_action": "exit_to_global_dispatcher",
               "current_stage": "exit",
               "tool_fit": "attack_better",
               "collected_state": {

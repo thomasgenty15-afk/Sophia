@@ -32,10 +32,6 @@ export type WhatsAppOnboardingFlowAction =
   | "blocked_exit_before_plan_ready"
   | "exit_to_global_dispatcher"
   | "complete_onboarding"
-  | "get_info_product"
-  | "get_info_db"
-  | "handoff_to_local_flow"
-  | "exit_to_global_dispatcher"
   | "safety_preempt"
   | "technical_blocked";
 
@@ -54,8 +50,6 @@ export type WhatsAppOnboardingVisibleTaskKind =
   | "blocked_exit_before_plan_ready"
   | "stop_after_plan_ready"
   | "progress_attempt_blocked"
-  | "inline_product_return"
-  | "inline_status_return"
   | "repeat_question"
   | "technical_blocked"
   | "safety";
@@ -78,7 +72,6 @@ export type WhatsAppOnboardingPreferenceUpdate = {
 
 export type WhatsAppOnboardingConversationContext = {
   state_summary: string;
-  user_words: string[];
   stage: string;
   plan: {
     status: WhatsAppOnboardingPlanStatus;
@@ -185,15 +178,8 @@ export type WhatsAppOnboardingLocalDecision = {
   global_effect_policy: {
     allow_global_dispatcher: boolean;
     allow_track_progress_plan_item: boolean;
-    allow_update_coach_preferences_runtime: boolean;
     allow_normal_reply: boolean;
     why: string;
-  };
-  no_chat_mutation: {
-    plan_created: boolean;
-    plan_item_progress_logged: boolean;
-    pending_confirmation_created: boolean;
-    confirmation_token_created: boolean;
   };
   state_mutation_request?: {
     modified_fields: string[];
@@ -261,8 +247,6 @@ export type WhatsAppOnboardingReducerResult = {
     | "owned"
     | "exit_to_global_dispatcher"
     | "inline_tool"
-    | "handoff_to_local_flow"
-    | "exit_to_global_dispatcher"
     | "safety_preempt"
     | "technical_blocked";
   reason_code: string;

@@ -203,7 +203,6 @@ Target subskill fields :
     "target_dispatcher": "select_state_potion",
     "handoff_context_for_next_dispatcher": "string",
     "target_local_dispatcher_hint": "Enter the selected potion flow, consume candidates as candidates, and do not make the user repeat the emotional episode wholesale.",
-    "user_words": ["string"],
     "structured_context": {},
     "risk_score": 0,
     "no_chat_mutation": {
@@ -219,7 +218,6 @@ Target subskill fields :
   "context_domain": "relationship|work|body|plan_execution|unknown",
   "emotional_episode": {
     "summary": "string",
-    "user_words": ["string"],
     "identity_freeze_risk": true,
     "already_stabilized": true
   },

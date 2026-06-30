@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "body": [
+    {
+      "id": "85ed82df-97b2-47b2-a5f1-83ff90f4ec6e",
+      "user_id": "de8f6263-058e-4315-b728-790777f1f0f9",
+      "event_context": "one_shot_reminder:verifier_ca",
+      "draft_message": null,
+      "scheduled_for": "2026-06-23T07:00:00+00:00",
+      "status": "pending",
+      "created_at": "2026-06-22T17:13:04.282537+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: vérifier ça.",
+        "parse_source": "payload",
+        "request_text": "rappelle-moi demain à 9h de vérifier ça",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: vérifier ça.",
+        "source_message_id": null,
+        "reminder_instruction": "vérifier ça"
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    }
+  ]
+}

@@ -121,7 +121,7 @@ Les stages V1 sont :
 scope
 reason_change
 change_target
-constraints
+limits
 affected_items
 handoff_draft_generation
 handoff_validation

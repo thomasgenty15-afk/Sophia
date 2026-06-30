@@ -4,7 +4,6 @@ import type {
   RouteDecision,
 } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
-import type { SafetySignalContext } from "../safety/safety_context.ts";
 import type { DispatcherMemoryPlan } from "../contracts/turn_frame.v1.ts";
 
 declare const Deno: any;
@@ -14,7 +13,6 @@ export type ConversationTurnTrace = {
   user_id: string;
   source_message_id: string;
   ts: string;
-  safety_context: SafetySignalContext;
   dispatcher_run: {
     latency_ms: number;
     tokens_in: number;
@@ -47,6 +45,12 @@ export function setConversationTraceSinkForTest(
 }
 
 let traceWriteClient: SupabaseClient | null = null;
+
+export function setConversationTraceWriteClientForTest(
+  client: SupabaseClient | null,
+): void {
+  traceWriteClient = client;
+}
 
 function isLocalSupabaseUrl(url: string): boolean {
   try {
@@ -97,6 +101,7 @@ async function signLocalServiceRoleJwt(secret: string): Promise<string> {
 async function getTraceWriteClient(
   fallback: unknown,
 ): Promise<unknown> {
+  if (traceWriteClient) return traceWriteClient;
   const url = Deno.env.get("SUPABASE_URL") ?? "";
   let serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   if (url && isLocalSupabaseUrl(url) && !isJwtLike(serviceRoleKey)) {
@@ -130,7 +135,6 @@ export async function logConversationTurn(
       user_id: trace.user_id,
       source_message_id: trace.source_message_id,
       ts: trace.ts,
-      safety_context: trace.safety_context,
       dispatcher_run: trace.dispatcher_run,
       turn_frame: trace.turn_frame,
       route_decision: trace.route_decision,

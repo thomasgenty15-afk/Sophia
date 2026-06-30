@@ -37,7 +37,7 @@ type HabitWeekPlanRow = {
   plan_id: string;
   plan_item_id: string;
   week_start_date: string;
-  status: "pending_confirmation" | "confirmed" | "auto_applied";
+  status: "pending_confirmation" | "confirmed" | "auto_applied" | "archived";
   default_days?: DayCode[];
   planned_days?: DayCode[];
   confirmed_at: string | null;

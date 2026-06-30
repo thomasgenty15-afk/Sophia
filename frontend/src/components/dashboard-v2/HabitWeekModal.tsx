@@ -10,7 +10,7 @@ type DayCode = typeof DAY_CODES[number];
 
 type HabitWeekPlan = {
   id: string;
-  status: "pending_confirmation" | "confirmed" | "auto_applied";
+  status: "pending_confirmation" | "confirmed" | "auto_applied" | "archived";
   week_start_date: string;
   confirmed_at: string | null;
 };

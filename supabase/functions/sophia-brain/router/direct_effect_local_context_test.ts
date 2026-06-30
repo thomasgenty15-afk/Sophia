@@ -1,11 +1,22 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  buildDirectEffectConfirmationContext,
+  directEffectTimeContextFromUnknown,
   directEffectLocalDispatcherPromptLines,
   withDirectEffectLocalContext,
 } from "./direct_effect_local_context.ts";
+import { oneShotDirectEffectFromLocalRequest } from "./one_shot_local_direct_effect.ts";
 
 Deno.test("direct effect local context requires reminder intent beyond duration", () => {
-  const context = withDirectEffectLocalContext({});
+  const context = withDirectEffectLocalContext({}, null, undefined, {
+    now_utc: "2026-06-24T15:00:00.000Z",
+    user_timezone: "Europe/Paris",
+    user_locale: "fr-FR",
+    user_local_datetime: "2026-06-24T17:00:00",
+    user_local_human: "mercredi 24 juin 2026 à 17:00",
+  });
+  assertEquals(context.direct_effect_time_context?.now_utc, "2026-06-24T15:00:00.000Z");
+  assertEquals(context.direct_effect_time_context?.user_timezone, "Europe/Paris");
   assertEquals(
     context.direct_effect_tool_policy.create_one_shot_reminder.includes(
       "A duration/time is not enough",
@@ -18,8 +29,170 @@ Deno.test("direct effect local context requires reminder intent beyond duration"
     ),
     true,
   );
+  assertEquals(
+    context.direct_effect_tool_policy.create_one_shot_reminder.includes(
+      "never ask timezone when user_timezone is present",
+    ),
+    true,
+  );
 
   const prompt = directEffectLocalDispatcherPromptLines().join("\n");
+  assertEquals(
+    prompt.includes("Bloc canonique create_one_shot_reminder"),
+    true,
+  );
   assertEquals(prompt.includes("Une duree/heure seule ne suffit pas"), true);
   assertEquals(prompt.includes("pas le rythme de la conversation"), true);
+  assertEquals(prompt.includes("payload_hint.raw_text"), true);
+  assertEquals(prompt.includes("payload_hint.when_hint"), true);
+  assertEquals(prompt.includes("payload_hint.UTC_time"), true);
+  assertEquals(prompt.includes("payload_hint.local_label"), true);
+  assertEquals(prompt.includes("valide UTC_time"), true);
+  assertEquals(prompt.includes("direct_effect_time_context"), true);
+  assertEquals(prompt.includes("Ne demande pas le fuseau horaire"), true);
+  assertEquals(prompt.includes("strictement futur"), true);
+  assertEquals(prompt.includes("payload_hint.instruction_hint"), true);
+  assertEquals(
+    prompt.includes("garde les deux") &&
+      prompt.includes("direct_effect_request"),
+    true,
+  );
+  assertEquals(prompt.includes("Ces champs sont atomiques"), true);
+  assertEquals(prompt.includes("raw_text seul"), true);
+  assertEquals(prompt.includes("Si when_hint, UTC_time, local_label ou instruction_hint manque"), true);
+  assertEquals(
+    prompt.includes("ne doit jamais absorber le besoin local restant"),
+    true,
+  );
+  assertEquals(
+    prompt.includes("le dispatcher global a deja flagge l'intention"),
+    true,
+  );
+  assertEquals(
+    prompt.includes("ne doit pas recreer, rerouter, redemander ou confirmer"),
+    true,
+  );
+  assertEquals(prompt.includes("direct_effect_request.requested=false"), true);
+  assertEquals(
+    prompt.includes("Le direct effect ne doit jamais absorber"),
+    true,
+  );
+});
+
+Deno.test("direct effect time context accepts nested platform context", () => {
+  const context = directEffectTimeContextFromUnknown({
+    channel: "whatsapp",
+    direct_effect_time_context: {
+      now_utc: "2026-06-24T17:20:00.000Z",
+      user_timezone: "Europe/Paris",
+      user_locale: "fr-FR",
+      user_local_datetime: "2026-06-24T19:20:00",
+      user_local_human: "mercredi 24 juin 2026 à 19:20",
+    },
+  });
+
+  assertEquals(context?.now_utc, "2026-06-24T17:20:00.000Z");
+  assertEquals(context?.user_timezone, "Europe/Paris");
+  assertEquals(context?.user_local_datetime, "2026-06-24T19:20:00");
+});
+
+Deno.test("direct effect confirmation context exposes committed one-shot contract", () => {
+  const context = buildDirectEffectConfirmationContext({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        raw_text: "rappelle-moi demain de payer",
+        when_hint: "demain",
+        UTC_time: "2026-06-25T07:00:00.000Z",
+        local_label: "demain",
+        instruction_hint: "payer",
+      },
+    }],
+    direct_effect_lane: {
+      visible_confirmation_hint: "C'est programme.",
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "r1",
+        local_label: "demain",
+        reminder_instruction: "payer",
+      }],
+      requested_effects: [{ type: "create_one_shot_reminder" }],
+      blocked_effects: [],
+    },
+  });
+
+  assertEquals(context?.has_committed_one_shot_reminder, true);
+  assertEquals(context?.confirmation_text, null);
+  assertEquals(context?.committed_effects, []);
+  assertEquals(context?.one_shot_reminder, {
+    committed: true,
+    local_label: "demain",
+    reminder_instruction: "payer",
+  });
+  assertEquals(context?.do_not_recreate, true);
+  assertEquals(context?.remaining_user_need_must_continue, true);
+});
+
+Deno.test("local one-shot direct effect requires dispatcher UTC_time and local_label", () => {
+  const effect = oneShotDirectEffectFromLocalRequest({
+    requested: true,
+    effect_type: "create_one_shot_reminder",
+    explicitness: "explicit",
+    target_status: "identified",
+    confidence_band: "high",
+    payload_hint: {
+      raw_text: "rappelle-moi dans 30 minutes de verifier le calme",
+      when_hint: "dans 30 minutes",
+      UTC_time: "2026-06-24T12:30:00.000Z",
+      local_label: "dans 30 minutes",
+      instruction_hint: "verifier le calme",
+    },
+    reason: "explicit reminder",
+  });
+
+  assertEquals(effect?.effect_type, "create_one_shot_reminder");
+  assertEquals(
+    (effect?.payload_hint as any)?.UTC_time,
+    "2026-06-24T12:30:00.000Z",
+  );
+  assertEquals((effect?.payload_hint as any)?.local_label, "dans 30 minutes");
+});
+
+Deno.test("local one-shot direct effect is ignored when global already flagged it", () => {
+  const request = {
+    requested: true,
+    effect_type: "create_one_shot_reminder" as const,
+    explicitness: "explicit" as const,
+    target_status: "identified" as const,
+    confidence_band: "high" as const,
+    payload_hint: {
+      raw_text: "rappelle-moi dans 30 minutes de verifier le calme",
+      when_hint: "dans 30 minutes",
+      UTC_time: "2026-06-24T12:30:00.000Z",
+      local_label: "dans 30 minutes",
+      instruction_hint: "verifier le calme",
+    },
+    reason: "explicit reminder",
+  };
+
+  const effect = oneShotDirectEffectFromLocalRequest(request, {
+    turnFrame: {
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          raw_text: request.payload_hint.raw_text,
+          when_hint: request.payload_hint.when_hint,
+          instruction_hint: request.payload_hint.instruction_hint,
+        },
+      }],
+    },
+  });
+
+  assertEquals(effect, null);
 });

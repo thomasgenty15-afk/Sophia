@@ -20,11 +20,11 @@ Deno.test("recordRequestedEffect ajoute une entry requested", () => {
   const ledger = createEffectLedger("turn-1");
   const entry = recordRequestedEffect(ledger, {
     effect_id: "effect-1",
-    effect_type: "coach_preferences.update",
-    operation_type: "update_coach_preferences",
+    effect_type: "one_shot_reminder.create",
+    operation_type: "create_one_shot_reminder",
     operation_id: "op-1",
-    tool_id: "update_coach_preferences",
-    source: "tool_skill",
+    tool_id: "create_one_shot_reminder",
+    source: "router",
   });
   assertEquals(entry.status, "requested");
   assertEquals(ledger.entries.length, 1);
@@ -34,30 +34,30 @@ Deno.test("recordCommittedEffect ajoute une entry committed", () => {
   const ledger = createEffectLedger("turn-1");
   const entry = recordCommittedEffect(ledger, {
     effect_id: "effect-1",
-    effect_type: "coach_preferences.update",
-    operation_type: "update_coach_preferences",
+    effect_type: "plan_item_progress.track",
+    operation_type: "track_progress_plan_item",
     operation_id: "op-1",
-    committed_id: "coach.tone",
-    tool_id: "update_coach_preferences",
+    committed_id: "progress-1",
+    tool_id: "track_progress_plan_item",
     source: "executor",
-    db_ref: { table: "user_profile_facts", key: "coach.tone" },
+    db_ref: { table: "plan_item_progress_logs", id: "progress-1" },
   });
   assertEquals(entry.status, "committed");
-  assertEquals(entry.committed_id, "coach.tone");
-  assertEquals(entry.db_ref?.key, "coach.tone");
+  assertEquals(entry.committed_id, "progress-1");
+  assertEquals(entry.db_ref?.id, "progress-1");
 });
 
 Deno.test("hasCommittedEffect détecte le bon type", () => {
   const ledger = createEffectLedger("turn-1");
   recordCommittedEffect(ledger, {
     effect_id: "effect-1",
-    effect_type: "coach_preferences.update",
+    effect_type: "one_shot_reminder.create",
     source: "executor",
   });
   assertEquals(
     hasCommittedEffect(
       ledger,
-      (entry) => entry.effect_type === "coach_preferences.update",
+      (entry) => entry.effect_type === "one_shot_reminder.create",
     ),
     true,
   );
@@ -74,8 +74,8 @@ Deno.test("summarizeEffectLedgerForTrace ne leak pas de payload massif", () => {
   const ledger = createEffectLedger("turn-1");
   recordRequestedEffect(ledger, {
     effect_id: "effect-1",
-    effect_type: "coach_preferences.update",
-    source: "tool_skill",
+    effect_type: "one_shot_reminder.create",
+    source: "router",
     payload_summary: {
       long_text: "x".repeat(1000),
       nested: { secret: "do-not-expand" },
@@ -94,14 +94,14 @@ Deno.test("failed ne compte pas comme committed", () => {
   const ledger = createEffectLedger("turn-1");
   recordFailedEffect(ledger, {
     effect_id: "effect-1",
-    effect_type: "coach_preferences.update",
+    effect_type: "one_shot_reminder.create",
     source: "executor",
     reason_code: "db_down",
   });
   assertEquals(
     hasCommittedEffect(
       ledger,
-      (entry) => entry.effect_type === "coach_preferences.update",
+      (entry) => entry.effect_type === "one_shot_reminder.create",
     ),
     false,
   );
@@ -111,14 +111,14 @@ Deno.test("blocked ne compte pas comme committed", () => {
   const ledger = createEffectLedger("turn-1");
   recordBlockedEffect(ledger, {
     effect_id: "effect-1",
-    effect_type: "coach_preferences.update",
+    effect_type: "one_shot_reminder.create",
     source: "executor",
     reason_code: "confirmation_required",
   });
   assertEquals(
     hasCommittedEffect(
       ledger,
-      (entry) => entry.effect_type === "coach_preferences.update",
+      (entry) => entry.effect_type === "one_shot_reminder.create",
     ),
     false,
   );
@@ -128,11 +128,11 @@ Deno.test("platform handoff proposed is a first-class ledger entry", () => {
   const ledger = createEffectLedger("turn-handoff-1");
   const entry = recordPlatformHandoffInLedger(ledger, {
     effect_id: "handoff-1",
-    operation_type: "adjust_plan_item",
+    operation_type: "external_platform_action",
     status: "proposed",
-    source: "weekly_review",
-    surface_id: "plan",
-    reason_code: "weekly_recommended_plan_adjustment",
+    source: "router",
+    surface_id: "external",
+    reason_code: "external_platform_only",
   });
 
   assertEquals(entry.kind, "platform_handoff");
@@ -145,16 +145,16 @@ Deno.test("platform handoff delivered does not count as committed or executed", 
   const ledger = createEffectLedger("turn-handoff-2");
   recordPlatformHandoffInLedger(ledger, {
     effect_id: "handoff-2",
-    operation_type: "prepare_attack_card",
+    operation_type: "external_platform_action",
     status: "delivered",
     source: "dispatcher",
-    surface_id: "attack_card",
+    surface_id: "external",
   });
 
   assertEquals(
     hasCommittedEffect(
       ledger,
-      (entry) => entry.operation_type === "prepare_attack_card",
+      (entry) => entry.operation_type === "external_platform_action",
     ),
     false,
   );
@@ -166,7 +166,7 @@ Deno.test("clarification asked is a non-mutant ledger entry", () => {
   const entry = recordClarificationInLedger(ledger, {
     effect_id: "clarification-1",
     status: "asked",
-    owner: "orientation_clarification",
+    owner: "product_help",
     ambiguity_kind: "intent",
     candidate_ids: ["one_shot", "recurring"],
     source: "dispatcher",
@@ -183,12 +183,12 @@ Deno.test("durable effect blocked remains distinct from platform handoff", () =>
   recordBlockedEffect(ledger, {
     effect_id: "blocked-1",
     effect_type: "one_shot_reminder.create",
-    source: "tool_skill",
+    source: "router",
     reason_code: "missing_time",
   });
   recordPlatformHandoffInLedger(ledger, {
     effect_id: "handoff-1",
-    operation_type: "adjust_plan_item",
+    operation_type: "external_platform_action",
     status: "delivered",
     source: "dispatcher",
   });

@@ -100,7 +100,13 @@ export type MomentumEntryRowV2 = {
 };
 
 export type MomentumWeekPlanRowV2 = {
-  status: "pending_confirmation" | "confirmed" | "auto_applied" | string;
+  status:
+    | "pending_confirmation"
+    | "confirmed"
+    | "auto_applied"
+    | "archived"
+    | string;
+  plan_id?: string | null;
   week_start_date: string;
   updated_at?: string | null;
   confirmed_at?: string | null;
@@ -608,8 +614,14 @@ export async function loadMomentumSnapshotV2(
       .lte("effective_at", `${addDaysYmd(windowTo, 1)}T00:00:00.000Z`),
     supabase
       .from("user_habit_week_plans")
-      .select("status,week_start_date,updated_at,confirmed_at")
+      .select("plan_id,status,week_start_date,updated_at,confirmed_at")
       .eq("user_id", params.userId)
+      .in(
+        "plan_id",
+        runtimeRefs.planIds.length > 0
+          ? runtimeRefs.planIds
+          : ["00000000-0000-0000-0000-000000000000"],
+      )
       .gte("week_start_date", occurrenceWeekFrom)
       .lte("week_start_date", occurrenceWeekTo),
     supabase
