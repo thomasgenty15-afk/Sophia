@@ -317,7 +317,7 @@ const LandingTDAH = () => {
                 Pendant des années, j'ai eu l'impression de gâcher mon potentiel. Je savais ce que je voulais faire, je me lançais à fond… et je lâchais au bout de trois jours. Puis je m'en voulais. Et la culpabilité me bloquait encore plus.
               </p>
               <p>
-                Il y a une dizaine de mois, j'ai fini par comprendre un truc : je n'avais pas besoin d'un coach qui me hurle dessus. J'avais besoin d'un <strong className="text-[#f6f2ea]">système qui me tient quand ma motivation lâche</strong>. Alors je m'en suis construit un. Petit à petit, j'ai arrêté le cannabis, transformé mon corps, lâché des automatismes que je pensais impossibles à lâcher, et lancé ce projet.
+                Il y a une dizaine de mois, j'ai fini par comprendre un truc : je n'avais pas besoin d'un coach qui me hurle dessus. J'avais besoin d'un <strong className="text-[#f6f2ea]">système qui me tient quand ma motivation lâche</strong>. Alors je m'en suis construit un. Petit à petit, j'ai appris à tenir même quand la motivation lâchait, transformé mon corps, lâché des automatismes que je pensais impossibles à lâcher, et lancé ce projet.
               </p>
               <p>
                 Sophia, c'est ce système, rendu accessible. Ce n'est pas une promesse marketing : c'est ce qui a marché pour moi quand rien d'autre ne marchait. Si ton cerveau fonctionne comme le mien, elle a été pensée pour toi.

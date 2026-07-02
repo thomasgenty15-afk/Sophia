@@ -61,6 +61,7 @@ function makeInput(
       },
     ],
     local_date: "2026-03-24",
+    recent_transformation_handoff: null,
     ...overrides,
   };
 }

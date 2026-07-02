@@ -9,7 +9,6 @@ function assert(cond: unknown, msg?: string) {
 
 const ON_DEMAND_PROFILE: ContextProfile = {
   temporal: true,
-  plan_metadata: true,
   plan_json: false,
   actions_summary: true,
   actions_details: "on_demand",

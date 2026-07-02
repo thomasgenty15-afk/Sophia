@@ -15,7 +15,7 @@ import {
 Deno.test("coaching_intervention_observability: history snapshot stays compact", () => {
   const snapshot = buildCoachingHistorySnapshot([{
     technique_id: "minimum_version",
-    blocker_type: "startup_inertia",
+    blocker_type: "start_friction",
     outcome: "tried_helpful",
     helpful: true,
     last_used_at: "2026-03-20T10:00:00.000Z",
@@ -23,7 +23,7 @@ Deno.test("coaching_intervention_observability: history snapshot stays compact",
 
   assertEquals(snapshot[0], {
     technique_id: "minimum_version",
-    blocker_type: "startup_inertia",
+    blocker_type: "start_friction",
     outcome: "tried_helpful",
     helpful: true,
     last_used_at: "2026-03-20T10:00:00.000Z",
@@ -47,11 +47,11 @@ Deno.test("coaching_intervention_observability: customization context includes c
 
 Deno.test("coaching_intervention_observability: finds deprioritized ineffective candidate", () => {
   const items = findCoachingDeprioritizedTechniques({
-    blocker_type: "craving_or_urge",
+    blocker_type: "urge",
     recommended_technique: "environment_shift",
     technique_history: [{
       technique_id: "urge_delay",
-      blocker_type: "craving_or_urge",
+      blocker_type: "urge",
       outcome: "tried_not_helpful",
       helpful: false,
       last_used_at: "2026-03-21T20:00:00.000Z",
@@ -70,8 +70,8 @@ Deno.test("coaching_intervention_observability: detects rendered coaching signal
       gate: "allow",
       decision: "propose",
       reason: "test",
-      blocker_type: "startup_inertia",
-      confidence: "medium",
+      blocker_type: "start_friction",
+      confidence: 0.6,
       need_clarification: false,
       recommended_technique: "ten_minute_sprint",
       technique_candidates: ["ten_minute_sprint"],
@@ -98,7 +98,7 @@ Deno.test("coaching_intervention_observability: derives follow-up audit from pen
       pending: {
         intervention_id: "coach_1",
         technique_id: "minimum_version",
-        blocker_type: "startup_inertia",
+        blocker_type: "start_friction",
         proposed_at: "2026-03-20T10:00:00.000Z",
         follow_up_due_at: null,
         target_action_title: "Dossier",
@@ -107,7 +107,7 @@ Deno.test("coaching_intervention_observability: derives follow-up audit from pen
       history: [{
         intervention_id: "coach_1",
         technique_id: "minimum_version",
-        blocker_type: "startup_inertia",
+        blocker_type: "start_friction",
         outcome: "unknown",
         helpful: null,
         last_used_at: "2026-03-20T10:00:00.000Z",
@@ -124,7 +124,7 @@ Deno.test("coaching_intervention_observability: derives follow-up audit from pen
       history: [{
         intervention_id: "coach_1",
         technique_id: "minimum_version",
-        blocker_type: "startup_inertia",
+        blocker_type: "start_friction",
         outcome: "behavior_changed",
         helpful: true,
         last_used_at: "2026-03-20T12:00:00.000Z",
@@ -158,7 +158,7 @@ Deno.test("coaching_intervention_observability: weekly summary payload stays aud
     summary: "Changer d'approche.",
     recent_resolved: [{
       technique_id: "urge_delay",
-      blocker_type: "craving_or_urge",
+      blocker_type: "urge",
       outcome: "tried_not_helpful",
       target_action_title: "Cigarette soir",
       helpful: false,

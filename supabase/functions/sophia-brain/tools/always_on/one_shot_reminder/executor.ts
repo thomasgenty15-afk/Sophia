@@ -362,6 +362,32 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
       user_message: compactText(params.effect.request_text ?? "", 500),
     };
   }
+  // Anti-duplication (garde-fou structurel, charte cmd 0): un one-shot
+  // pending existe deja au meme instant exact pour ce user -> la "creation"
+  // est presque toujours une question de verification ou un double envoi.
+  // On bloque au lieu de recreer; le contexte de confirmation permet au
+  // renderer de rappeler le rappel existant.
+  try {
+    const pendingRows = await readPendingOneShotReminderRows({
+      supabase: params.supabase,
+      userId: params.userId,
+    });
+    const duplicate = pendingRows.some((row) => {
+      const rowMs = new Date(String(row?.scheduled_for ?? "")).getTime();
+      return Number.isFinite(rowMs) && rowMs === scheduledMs;
+    });
+    if (duplicate) {
+      return {
+        detected: true,
+        status: "needs_clarify",
+        reason: "duplicate_pending",
+        user_message: compactText(params.effect.request_text ?? "", 500),
+      };
+    }
+  } catch (_error) {
+    // Lecture non bloquante: en cas d'echec on laisse la creation suivre
+    // son cours plutot que de bloquer un rappel legitime.
+  }
   const committed = await createReminderFromEffect({
     effect: {
       ...params.effect,

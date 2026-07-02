@@ -68,13 +68,13 @@ Deno.test("onboarding_helpers: loadProfileFactsForOnboarding returns empty for u
     return
   }
 
-  const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
-  const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
 
   const { userId } = await createTestUser(anon, admin)
 
   try {
-    const facts = await loadProfileFactsForOnboarding(admin, userId)
+    const facts = await loadProfileFactsForOnboarding(admin, userId) as { tone?: string; verbosity?: string }
     assertEquals(Object.keys(facts).length, 0)
   } finally {
     await cleanupTestUser(admin, userId)
@@ -94,8 +94,8 @@ Deno.test("onboarding_helpers: loadProfileFactsForOnboarding loads tone and verb
     return
   }
 
-  const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
-  const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
 
   const { userId } = await createTestUser(anon, admin)
 
@@ -122,7 +122,7 @@ Deno.test("onboarding_helpers: loadProfileFactsForOnboarding loads tone and verb
       },
     ])
 
-    const facts = await loadProfileFactsForOnboarding(admin, userId)
+    const facts = await loadProfileFactsForOnboarding(admin, userId) as { tone?: string; verbosity?: string }
     assertEquals(facts.tone, "direct")
     assertEquals(facts.verbosity, "concis")
   } finally {
@@ -147,8 +147,8 @@ Deno.test("onboarding_helpers: isReturningUser returns false for new user", asyn
     return
   }
 
-  const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
-  const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
 
   const { userId } = await createTestUser(anon, admin)
 
@@ -175,8 +175,8 @@ Deno.test("onboarding_helpers: isReturningUser returns true for user with web me
     return
   }
 
-  const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
-  const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
 
   const { userId } = await createTestUser(anon, admin)
 
@@ -215,8 +215,8 @@ Deno.test("onboarding_helpers: setDeferredOnboardingSteps and getDeferredOnboard
     return
   }
 
-  const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
-  const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
 
   const { userId } = await createTestUser(anon, admin)
 
@@ -356,8 +356,8 @@ Deno.test("onboarding_helpers: loadOnboardingContext returns complete context", 
     return
   }
 
-  const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
-  const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
 
   const { userId } = await createTestUser(anon, admin)
 

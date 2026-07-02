@@ -434,7 +434,9 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         ? outcome.reason
         : outcome.status,
       reply: outcome.status === "needs_clarify"
-        ? "Il me manque le moment exact pour programmer ce rappel."
+        ? (outcome.reason === "duplicate_pending"
+          ? "Ce rappel est déjà programmé pour ce moment, je ne le recrée pas."
+          : "Il me manque le moment exact pour programmer ce rappel.")
         : "Je n'ai pas réussi à programmer ce rappel.",
     }),
     requested_effects: [{ type: effectType, reason_code: "create" }],
@@ -442,6 +444,10 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     blocked_effects: outcome.status === "needs_clarify"
       ? [{ type: effectType, reason_code: outcome.reason }]
       : [],
-    missing_slots: outcome.status === "needs_clarify" ? ["scheduled_for"] : [],
+    missing_slots:
+      outcome.status === "needs_clarify" &&
+        outcome.reason !== "duplicate_pending"
+        ? ["scheduled_for"]
+        : [],
   };
 }

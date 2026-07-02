@@ -135,7 +135,11 @@ export type OneShotReminderToolOutcome =
   | {
     detected: true;
     status: "needs_clarify";
-    reason: "missing_time" | "past_time" | "unsupported_time";
+    reason:
+      | "missing_time"
+      | "past_time"
+      | "unsupported_time"
+      | "duplicate_pending";
     user_message: string;
   }
   | {

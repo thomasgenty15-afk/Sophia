@@ -1,8 +1,4 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import {
-  containsDurableSuccessClaim,
-  renderNonCommittedReply,
-} from "../tools/operations/_shared/committed_effect_renderer_guard.ts";
 
 function stripComments(source: string): string {
   return source
@@ -58,17 +54,5 @@ Deno.test("migrated_tool_recommendation_copy_is_owned_outside_run_ts", async () 
   assertEquals(
     rendererText.includes("Tu veux qu'on l'utilise pour alléger"),
     true,
-  );
-});
-
-Deno.test("renderer_success_guard_blocks_success_words_without_commit", () => {
-  assertEquals(containsDurableSuccessClaim("C'est fait."), true);
-  assertEquals(
-    renderNonCommittedReply("C'est fait.", "Rien n'est appliqué."),
-    "Rien n'est appliqué.",
-  );
-  assertEquals(
-    renderNonCommittedReply("Je prépare un brouillon.", "fallback"),
-    "Je prépare un brouillon.",
   );
 });

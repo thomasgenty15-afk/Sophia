@@ -35,6 +35,7 @@ export function oneShotReminderCanonicalDispatcherPromptLines(): string[] {
     "   - Si create_one_shot_reminder est emis avec un skill_signal conversationnel, la lane globale gere le direct effect; le skill local traite seulement le besoin utilisateur restant.",
     "   - Ne jamais laisser le rappel absorber l'intention restante du tour.",
     "   - Ne pas traiter un rappel recurrent comme un one-shot reminder. Toute demande de relance recurrente, sous quelque forme (tous les soirs, chaque matin, a chaque fois, regulierement, tous les jours), n'emet JAMAIS create_one_shot_reminder: c'est un signal skill_signals.feature_opportunity (initiatives), le soutien recurrent se pose dans les initiatives.",
+    "   - Une question de verification sur un rappel deja programme ('tu me relances bien a quelle heure ?', 'c'est bien prevu ?', 'j'ai bien un rappel demain ?') n'est pas une demande de creation: n'emets pas create_one_shot_reminder, la reponse se fait depuis le contexte de confirmation.",
   ];
 }
 

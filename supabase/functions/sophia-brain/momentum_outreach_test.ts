@@ -118,6 +118,7 @@ function makePlanItem(
     cycle_id: "cycle-1",
     transformation_id: "transfo-1",
     plan_id: "plan-1",
+    phase_id: null,
     dimension: "missions",
     kind: "task",
     status: "active",

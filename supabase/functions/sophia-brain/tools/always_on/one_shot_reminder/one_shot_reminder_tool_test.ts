@@ -1081,6 +1081,7 @@ Deno.test("G2: le texte exact donné en T6 est récupérable et non dégénéré
 function makeFakeSupabaseForCreate(opts: {
   profile?: { timezone?: string; locale?: string } | null;
   onUpsert?: (row: any) => void;
+  pendingRows?: Array<{ id: string; scheduled_for: string }>;
 }) {
   return {
     from(table: string) {
@@ -1108,6 +1109,21 @@ function makeFakeSupabaseForCreate(opts: {
           },
           select() {
             return chain;
+          },
+          eq() {
+            return chain;
+          },
+          like() {
+            return chain;
+          },
+          order() {
+            return chain;
+          },
+          limit() {
+            return Promise.resolve({
+              data: opts.pendingRows ?? [],
+              error: null,
+            });
           },
           single() {
             return Promise.resolve({
@@ -1592,5 +1608,58 @@ Deno.test("router helpers: local text addon stays explicit", () => {
       "Rappelle-moi à 16h05, formule une phrase courte pour Noa",
     ),
     "Phrase courte pour Noa : \"Je te confirme que je m'en occupe aujourd'hui, et je reviens vers toi dès que c'est fait.\"",
+  );
+});
+
+Deno.test("router: create blocks duplicate_pending when an identical pending reminder exists", async () => {
+  // Un one-shot pending existe deja au meme instant exact: la "creation"
+  // (question de verification ou double envoi) est bloquee, rien de recree.
+  const upserts: any[] = [];
+  const duplicate = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [{
+        id: "existing-1",
+        scheduled_for: "2026-05-30T07:00:00.000Z",
+      }],
+    }) as any,
+    userId: "u1",
+    message: "tu me relances bien demain à 9h ?",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate(),
+  });
+  assertEquals(duplicate.status, "needs_clarify");
+  assertEquals(duplicate.reason_code, "duplicate_pending");
+  assertEquals(duplicate.committed_effects, []);
+  assertEquals(
+    duplicate.blocked_effects.map((effect: any) => effect.reason_code),
+    ["duplicate_pending"],
+  );
+  assertEquals(duplicate.missing_slots, []);
+  assertEquals(
+    duplicate.reply?.includes("déjà programmé"),
+    true,
+  );
+  assertEquals(upserts.length, 0);
+
+  // Anti-faux-positif: un pending a un autre instant ne bloque pas la creation.
+  const distinct = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      pendingRows: [{
+        id: "existing-2",
+        scheduled_for: "2026-05-30T18:00:00.000Z",
+      }],
+    }) as any,
+    userId: "u1",
+    message: "rappelle-moi demain à 9h. Texte exact : relire X",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate(),
+  });
+  assertEquals(distinct.status, "success");
+  assertEquals(
+    distinct.committed_effects.map((effect: any) => effect.type),
+    ["create_one_shot_reminder"],
   );
 });

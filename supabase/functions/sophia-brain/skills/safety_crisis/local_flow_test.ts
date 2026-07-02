@@ -1262,7 +1262,7 @@ Deno.test("safety_crisis visible generation failure falls back to deterministic 
     assertEquals((output.diagnosis as any)?.visible_agent_ok, false);
     assertEquals((output.diagnosis as any)?.visible_fallback_used, true);
     assertEquals((output.diagnosis as any)?.visible_generation_failed, true);
-    assert(output.reply.length > 0);
+    assert((output.reply ?? "").length > 0);
   } finally {
     setSafetyCrisisLocalDispatcherForTest(null);
     setSafetyCrisisVisibleAgentForTest(null);

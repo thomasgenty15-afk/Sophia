@@ -19,8 +19,7 @@ const mode = argValue("--mode", "mock") === "s2" ? "s2" : "mock";
 
 const fixtures = (await loadReplayFixtures(fixturePath)).filter((fixture) =>
   !filter ||
-  fixture.fixture_id.includes(filter) ||
-  fixture.description.toLowerCase().includes(filter.toLowerCase())
+  fixture.fixture_id.includes(filter)
 );
 const results = await runReplayFixtures(fixtures, { mode });
 console.log(renderReplayMarkdown(results));

@@ -1,7 +1,7 @@
 import type { ReplayFixture } from "../conversation_route_replay/runner.ts";
 import {
   type ReplayResult,
-  runReplayFixture,
+  runReplayFixtures,
 } from "../conversation_route_replay/runner.ts";
 
 export type LatencySample = {
@@ -40,14 +40,14 @@ export async function measureReplayLatency(
   const samples: LatencySample[] = [];
   for (const fixture of fixtures) {
     const started = performance.now();
-    const result: ReplayResult = await runReplayFixture(fixture, {
+    const [result]: ReplayResult[] = await runReplayFixtures([fixture], {
       mode: "s2",
     });
     samples.push({
       fixture_id: fixture.fixture_id,
       latency_ms: performance.now() - started,
       passed: result.passed,
-      diff: result.diff,
+      diff: [],
     });
   }
   return samples;

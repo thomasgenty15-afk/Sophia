@@ -54,6 +54,7 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: inventory on psychologie loads ex
       memory_mode: "dossier",
       model_tier_hint: "standard",
       context_budget_tier: "large",
+      retrieval_policy: "semantic_first",
       targets: [
         {
           type: "domain_prefix",
@@ -88,6 +89,7 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: targeted work relation problem as
       memory_mode: "light",
       model_tier_hint: "standard",
       context_budget_tier: "medium",
+      retrieval_policy: "semantic_first",
       targets: [
         {
           type: "domain_key",
@@ -124,6 +126,7 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: memory_mode none disables all mem
       memory_mode: "none",
       model_tier_hint: "lite",
       context_budget_tier: "tiny",
+      retrieval_policy: "semantic_first",
       targets: [],
       plan_confidence: 0.9,
     },
@@ -209,6 +212,7 @@ Deno.test("resolveContextMemoryLoadStrategy: answer_user_now keeps dispatcher pl
       memory_mode: "dossier",
       model_tier_hint: "standard",
       context_budget_tier: "large",
+      retrieval_policy: "semantic_first",
       targets: [
         {
           type: "domain_prefix",
