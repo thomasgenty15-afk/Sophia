@@ -26,7 +26,8 @@ function productGuidance(
       feature,
       catalog_feature_id: "adjust_plan",
       label: "Ajustement du plan",
-      explain: "Adapter une action du plan quand elle est trop lourde ou mal calibree.",
+      explain:
+        "Adapter une action du plan quand elle est trop lourde ou mal calibree.",
       how_to: "Ouvrir l'action concernee dans le Plan puis ajuster son format.",
       locations: [{
         surface: "Dashboard > Plan",
@@ -135,11 +136,17 @@ function stepContext(args: {
 export async function runDailyActionCoachingVisibleAgent(args: {
   user_id: string;
   request_id?: string | null;
-  recent_user_messages: Array<{
-    role: "user";
+  recent_messages: Array<{
+    role: "user" | "assistant";
     content: string;
     created_at?: string | null;
   }>;
+  recent_effects_summary?: string | null;
+  user_identity?: {
+    first_name: string | null;
+    age: number | null;
+    gender: "male" | "female" | "other" | null;
+  } | null;
   action: DailyActionCoachingActionContext;
   recommendation: CoachingRecommendationDecision;
   evidence: string[];
@@ -148,7 +155,9 @@ export async function runDailyActionCoachingVisibleAgent(args: {
     user_id: args.user_id,
     request_id: args.request_id,
     visible_runtime_context: {
-      recent_user_messages: args.recent_user_messages.slice(-5),
+      recent_messages: args.recent_messages.slice(-8),
+      recent_effects_summary: args.recent_effects_summary ?? null,
+      user_identity: args.user_identity ?? null,
     },
     flow_context: flowContext({
       action: args.action,

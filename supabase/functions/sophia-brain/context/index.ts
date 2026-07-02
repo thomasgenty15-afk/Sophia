@@ -10,7 +10,6 @@ export type {
   ContextProfile,
   OnDemandTriggers,
   LoadedContext,
-  PlanMetadata,
 } from "./types.ts"
 
 // Profile utilities
@@ -18,7 +17,6 @@ export {
   CONTEXT_PROFILES,
   DEFAULT_CONTEXT_PROFILE,
   getContextProfile,
-  shouldLoadPlanJson,
   shouldLoadActionsDetails,
 } from "./types.ts"
 

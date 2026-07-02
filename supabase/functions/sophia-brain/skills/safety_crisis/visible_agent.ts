@@ -3,7 +3,10 @@ import {
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
 import {
+  committedOneShotReminderKnown,
+  directEffectContextCommittedThisTurn,
   oneShotReminderCanonicalVisiblePromptLines,
+  oneShotReminderVisibleContextPresent,
 } from "../../router/one_shot_reminder_prompt_contract.ts";
 import {
   VISIBLE_OUTPUT_STYLE_RULES,
@@ -52,6 +55,45 @@ function parseVisibleMessage(raw: unknown): string | null {
   } catch {
     return cleanMessage(raw);
   }
+}
+
+// Invariant anti-vide du rendu safety: si le visible agent echoue, le skill
+// rend ce message deterministe au lieu d'une reponse vide (jamais de tour
+// safety silencieux). L'echec reste observable via visible_generation_failed.
+export function safetyCrisisDeterministicVisibleMessage(
+  kind: SafetyCrisisVisibleTaskKind,
+  safetyResources: {
+    emergency_numbers: string;
+    suicide_prevention_number: string;
+  },
+): string {
+  const emergency = safetyResources.emergency_numbers || "15 ou 112";
+  const suicide = safetyResources.suicide_prevention_number || "3114";
+  const messages: Record<SafetyCrisisVisibleTaskKind, string> = {
+    immediate_risk_check:
+      "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
+    acute_grounding:
+      `Là, tout de suite : éloigne ce qui pourrait te blesser et rapproche-toi d'une personne. Si le danger est immédiat, appelle le ${emergency} ; le ${suicide} répond aussi 24h/24.`,
+    support_contact:
+      "Le plus utile maintenant : garder le lien avec une personne de confiance. Tu as quelqu'un que tu peux joindre là ?",
+    stabilizing:
+      "On reste sur l'essentiel : reste où tu es, garde le lien avec la personne qui te soutient, et respire calmement (4 secondes d'inspiration, 6 d'expiration).",
+    exit_check:
+      "Avant de reprendre : il n'y a bien aucun danger immédiat pour toi, là, maintenant ?",
+    resolved_exit:
+      "D'accord. L'immédiat est stabilisé, on peut reprendre là où tu veux.",
+    repeat_current_step:
+      "On reste sur le pas en cours, à ton rythme. Dis-moi où tu en es.",
+    product_tool_boundary:
+      "Je garde ta demande de côté pour après. Pour l'instant, on reste sur ta sécurité, une chose à la fois.",
+    stop_or_cancel:
+      `D'accord, on s'arrête là. Si besoin, le ${suicide} répond 24h/24.`,
+    safety_transition:
+      "On met le reste de côté un instant. Est-ce que tu es en sécurité, là, maintenant ?",
+    safety_escalation:
+      `Appelle maintenant le ${emergency}. Si c'est lié à des idées suicidaires, le ${suicide} répond 24h/24. Si tu peux, rapproche-toi d'une personne tout de suite.`,
+  };
+  return messages[kind];
 }
 
 const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
@@ -126,6 +168,24 @@ function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
     "Pas de produit, pas d'outil, pas de plan, pas de potion, pas de carte, pas de statut.",
     ...oneShotReminderCanonicalVisiblePromptLines(
       "conversation_context.known_values.direct_effect_confirmation_context",
+      {
+        present: oneShotReminderVisibleContextPresent(
+          (input.visible_task.conversation_context.known_values as
+            | Record<string, unknown>
+            | undefined)?.direct_effect_confirmation_context,
+        ),
+        committedThisTurn: directEffectContextCommittedThisTurn(
+          (input.visible_task.conversation_context.known_values as
+            | Record<string, unknown>
+            | undefined)?.direct_effect_confirmation_context,
+        ),
+        committedKnown: committedOneShotReminderKnown({
+          directEffectConfirmationContext:
+            (input.visible_task.conversation_context.known_values as
+              | Record<string, unknown>
+              | undefined)?.direct_effect_confirmation_context,
+        }),
+      },
     ),
     "Ne mentionne jamais JSON, dispatcher, reducer, prompt, table, DB ou outil interne.",
     "Si conversation_context.safety_resources.must_include_emergency_numbers=true, inclure exactement emergency_numbers et suicide_prevention_number.",

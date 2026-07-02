@@ -1,0 +1,328 @@
+{
+  "ok": true,
+  "source": "local",
+  "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+  "scope": "web",
+  "since": null,
+  "until": null,
+  "request_ids": [
+    "planrealign-r4deep-t1",
+    "planrealign-r4deep-t2",
+    "planrealign-r4deep-t3",
+    "planrealign-r4deep-t4",
+    "planrealign-r4deep-t5",
+    "planrealign-r4deep-t6"
+  ],
+  "counts": {
+    "chat_messages": 12,
+    "conversation_eval_events": 0,
+    "system_error_logs": 0,
+    "llm_usage_events": 3
+  },
+  "chat_messages": [
+    {
+      "id": "5b538285-ea79-4d08-ba16-48c2cdae2739",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "user",
+      "content": "Dans 45 minutes, rappelle-moi d’ouvrir Ajuster mon plan. Et là j’ai décroché de toute ma semaine : je veux comprendre quoi raconter à Sophia sans que tu écrives une réponse à ma place.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r4deep-t1",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-07-01T12:59:03.754572+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "ceb2b560-94a5-4494-a898-43844120b00d",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "assistant",
+      "content": "C’est noté : dans 45 minutes, je te rappelle d’ouvrir Ajuster mon plan.\n\nPour ce que tu peux y raconter à Sophia, pense surtout à ce qui a décroché cette semaine : ce qui n’a pas tenu, pourquoi ça a coincé, ce qui est devenu trop lourd ou irréaliste, ton niveau de retard, ton énergie dispo en ce moment, et ce que tu veux absolument garder malgré tout.\n\nL’idée n’est pas d’écrire “la bonne réponse”, mais de donner assez de contexte pour que ton plan reparte sur quelque chose de tenable.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r4deep-t1",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 8191,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 5188,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-07-01T12:59:17.260815+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "64735182-6381-49f3-9366-5ecd372b344b",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "user",
+      "content": "Tu peux ajuster le plan toi-même ici ? Et est-ce que je dois détailler toutes les actions que j’ai ratées une par une ?",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r4deep-t2",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-07-01T12:59:37.995059+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "8a32e6f4-33af-4379-be64-8e3a8875a53f",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "assistant",
+      "content": "Non, je ne peux pas le faire ici. Va dans Dashboard > Plan > Ajuster mon plan : c’est là que tu peux expliquer ce qui n’a pas tenu, ce qui t’a fait décrocher, ce que tu veux garder, ce qui est devenu trop lourd, et le rythme qui serait plus tenable. Tu n’as pas besoin de détailler chaque action ratée une par une si c’est trop lourd : parle plutôt du blocage global, du contexte qui a changé et de tes contraintes de temps ou d’énergie.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r4deep-t2",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 23051,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-07-01T13:00:01.098071+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "17679afd-14f4-4ee5-b141-1c11d0c97683",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "user",
+      "content": "En vrai j’ai honte, j’ai envie d’écrire juste que c’est ma faute et que j’ai été nul. Est-ce que c’est utile de mettre ça ?",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r4deep-t3",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-07-01T13:00:19.777371+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "e0932834-595b-4645-84ab-a5f30eb0dc52",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "assistant",
+      "content": "Non, ce n’est pas utile de te résumer à ça. Le plus aidant, c’est plutôt d’expliquer ce qui a coincé cette semaine, ce qui a rendu le rythme trop lourd ou irréaliste, et ce que tu veux retrouver à la place. Si tu veux, tu peux aussi dire ce que tu veux absolument garder, même si le reste n’a pas tenu. Va dans Dashboard > Plan > Ajuster mon plan.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r4deep-t3",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 6334,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-07-01T13:00:33.724173+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "30cc1885-0eb0-4d64-9b1c-342f8bfdcbdc",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "user",
+      "content": "Ok, et concrètement je trouve où ce cadre ? Je veux être sûr de ne pas aller dans Ressources ou dans le chat.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r4deep-t4",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-07-01T13:00:57.46182+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "df2e1447-0916-4ae4-9590-0228870f564d",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "assistant",
+      "content": "Oui : va dans Dashboard > Plan, puis ouvre Ajuster mon plan. Ce n’est pas dans Ressources ni dans le chat. Là, tu peux expliquer ce qui a décroché sur ta semaine, ce qui t’a bloqué, ce qui est devenu trop lourd, et ce que tu veux garder malgré tout.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r4deep-t4",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 7368,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-07-01T13:01:04.887698+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "5d01e8f3-b38b-4903-89f7-825fab3c3442",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "user",
+      "content": "Là oui donne-moi une trame, mais avec des blancs à remplir et pas une phrase finale à copier telle quelle.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r4deep-t5",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-07-01T13:01:24.87497+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "cbd88b82-c7e3-4a42-a56e-918db40fc7ff",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "assistant",
+      "content": "Oui — ouvre Dashboard > Plan > Ajuster mon plan, puis pars d’une trame comme celle-ci et remplis avec tes vrais détails :\n\n- Ce qui n’a pas tenu : ___\n- Depuis quand / à quel point je suis en retard : ___\n- Ce qui a bloqué ou changé : ___\n- Ce que je veux garder absolument : ___\n- Ce qui est devenu trop lourd ou irréaliste : ___\n- Le rythme que je peux tenir maintenant : ___\n- Ce que j’accepte de laisser de côté pour l’instant : ___\n\nPas besoin d’écrire que c’est “ta faute”. Le plus utile, c’est surtout de décrire le décalage et le contexte réel.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r4deep-t5",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 6800,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-07-01T13:01:31.710896+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "01763c98-6ddd-4a36-9118-3ee6fcd67ee7",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "user",
+      "content": "Autre sujet lié : finalement le plus gros blocage concret, c’est un mail à Camille hors de mon plan. Dès que j’ouvre le brouillon je pars ailleurs. Là tu m’aiderais comment ?",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r4deep-t6",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-07-01T13:01:52.610415+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "c3b80f01-5832-498c-85f6-b386d0456ff6",
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "role": "assistant",
+      "content": "Je partirais sur une carte d’attaque libre, technique préparer le terrain : ici le blocage vient surtout du contexte et de la distraction dès l’ouverture du brouillon, donc l’idée est de rendre le démarrage plus simple et plus cadré. Si tu veux la retrouver ensuite, va dans Dashboard > Ressources puis ouvre le chemin des cartes et choisis-en une nouvelle.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r4deep-t6",
+        "route_owner": "coaching_recommendation",
+        "agent_latency_ms": 18738,
+        "selected_handler": "coaching_recommendation",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-07-01T13:02:18.417674+00:00",
+      "scope": "web"
+    }
+  ],
+  "conversation_eval_events": [],
+  "system_error_logs": [],
+  "llm_usage_events": [
+    {
+      "id": "c2f48fd9-78e7-496b-8fe2-8465787ee780",
+      "created_at": "2026-07-01T12:59:09.005418+00:00",
+      "request_id": "planrealign-r4deep-t1",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 5694,
+      "output_tokens": 308,
+      "total_tokens": 6002,
+      "cost_usd": 0.0056565,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_09ccde4cf0471fb6006a450f1978e081a0bd31050ab86d54e7",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 5170,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "a8235ae2-2115-4f9d-8443-34354e21dd17",
+      "created_at": "2026-07-01T13:00:27.370762+00:00",
+      "request_id": "planrealign-r4deep-t3",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 6566,
+      "output_tokens": 243,
+      "total_tokens": 6809,
+      "cost_usd": 0.006018,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_07d0e0ffa8519f37006a450f69003081a187c3b58c0acaafa1",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 2535,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "3c7e91f9-ed77-4ffb-a9a8-2b492f572499",
+      "created_at": "2026-07-01T13:01:59.651591+00:00",
+      "request_id": "planrealign-r4deep-t6",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 6824,
+      "output_tokens": 330,
+      "total_tokens": 7154,
+      "cost_usd": 0.006603,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_0fab058b897d18c8006a450fc5604c81a38480ed3cf1533d96",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "ef1985a6-db7b-46a5-a8c2-66d012ec2c21",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 2450,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    }
+  ]
+}

@@ -113,6 +113,97 @@ Deno.test("dispatcher prompt defines feature opportunity entry signals", () => {
     ?.feature, "coach_preferences");
 });
 
+Deno.test("dispatcher prompt enforces feature_opportunity negative boundary and current-turn priority", () => {
+  // feature_opportunity must not swallow plan restructuring nor emotional distress.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Frontiere feature_opportunity (exclusions strictes)",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'est jamais feature_opportunity: c'est plan_realignment",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'est jamais feature_opportunity: laisse la reponse normale accueillir",
+    ),
+    true,
+  );
+  // Current-turn intent overrides prior product/feature momentum (recent_messages / previous_turn_frame).
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "prime sur la dynamique des tours precedents",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt defines plan realignment and boundaries", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("skill_signals.plan_realignment"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "product_execution_allowed=false",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "ne s'active pas pour une action precise bloquee",
+    ),
+    true,
+  );
+
+  const parsed = JSON.parse(buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+  })) as {
+    doctrine_examples: Array<{
+      user_message: string;
+      expected: {
+        skill_signals?: {
+          plan_realignment?: {
+            detected?: boolean;
+            context?: {
+              drift_type?: string;
+              scope?: string;
+              product_execution_allowed?: boolean;
+            };
+          };
+          coaching_recommendation?: { detected?: boolean };
+          product_help?: { detected?: boolean };
+        };
+      };
+    }>;
+  };
+  const drift = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("pas du tout suivi mon plan")
+  );
+  const late = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("pris trop de retard sur mon plan")
+  );
+  const action = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("Cette action est trop lourde")
+  );
+  const product = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("C'est quoi une carte de defense")
+  );
+
+  assertEquals(drift?.expected.skill_signals?.plan_realignment?.context
+    ?.drift_type, "lost_rhythm");
+  assertEquals(late?.expected.skill_signals?.plan_realignment?.context
+    ?.product_execution_allowed, false);
+  assertEquals(action?.expected.skill_signals?.coaching_recommendation
+    ?.detected, true);
+  assertEquals(product?.expected.skill_signals?.product_help?.detected, true);
+});
+
 Deno.test("dispatcher prompt preserves product help plus one-shot reminder multi-intent", () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
@@ -188,4 +279,197 @@ Deno.test("dispatcher prompt examples do not teach legacy routing", () => {
       false,
     );
   }
+});
+
+Deno.test("dispatcher prompt caps substance urge below safety high", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "reserves au danger pour la vie ou l'integrite physique",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "urge de substance ou un risque de rechute",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "plafonne risk_band a medium",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "substance_use_urge, imminent_relapse_risk ou time_critical_urge",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt routes plan reading away from plan_realignment", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'est jamais plan_realignment: c'est une lecture, pas une rupture",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "rappelle-moi mes actions en cours",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt keeps explicit memorization out of feature_opportunity", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "demande explicite de memorisation",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'est jamais feature_opportunity, meme si elle decrit un moment recurrent",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "La memorisation est automatique cote Sophia; ne propose pas une initiative a la place.",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt keeps presence-first during acute craving windows", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Fenetre de rupture en cours"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "sans demander quel levier ou quelle methode utiliser, ce n'est pas coaching_recommendation",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "la reponse normale accueille d'abord (presence, co-regulation, ancrage court)",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Ne l'active pas sur la seule description d'un craving ou d'une urge aigu en cours sans demande de levier",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt teaches canonical track_progress payload contract", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.status_hint parmi completed|partial|missed uniquement",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.target_item_id (copie exacte de active_action_candidates_for_direct_effects[].plan_item_id)",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Le report de progres compte quel que soit le ton",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Un imperatif de log sur une action du plan n'est pas une demande de memorisation",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Ce direct effect est transverse",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt track_progress examples use canonical status enum and item id", () => {
+  const parsed = JSON.parse(buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+  })) as {
+    doctrine_examples: Array<{
+      expected: {
+        direct_effects?: Array<{
+          effect_type?: string;
+          payload_hint?: Record<string, unknown>;
+        }>;
+      };
+    }>;
+  };
+
+  const trackExamples = parsed.doctrine_examples
+    .flatMap((example) => example.expected.direct_effects ?? [])
+    .filter((effect) => effect.effect_type === "track_progress_plan_item");
+  assertEquals(trackExamples.length >= 2, true);
+  for (const effect of trackExamples) {
+    const status = effect.payload_hint?.status_hint;
+    assertEquals(
+      status === "completed" || status === "partial" || status === "missed",
+      true,
+    );
+    assertEquals(typeof effect.payload_hint?.target_item_id, "string");
+  }
+});
+
+Deno.test("dispatcher prompt routes recurring reminder requests to initiatives", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'emet JAMAIS create_one_shot_reminder: c'est un signal skill_signals.feature_opportunity (initiatives)",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "le user demande une relance ou un rappel recurrent",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "c'est initiatives, jamais direct_effects.create_one_shot_reminder",
+    ),
+    true,
+  );
+
+  const parsed = JSON.parse(buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+  })) as {
+    doctrine_examples: Array<{
+      user_message: string;
+      expected: {
+        direct_effects?: Array<{ effect_type?: string }>;
+        skill_signals?: Record<string, { detected?: boolean }>;
+      };
+    }>;
+  };
+  const recurring = parsed.doctrine_examples.find((example) =>
+    example.user_message.includes("relancer tous les soirs")
+  );
+  assertEquals(Boolean(recurring), true);
+  assertEquals(recurring?.expected.direct_effects?.length ?? -1, 0);
+  assertEquals(
+    recurring?.expected.skill_signals?.feature_opportunity?.detected,
+    true,
+  );
 });

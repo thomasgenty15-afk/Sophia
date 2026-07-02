@@ -3,16 +3,8 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { generateWithGemini } from "./gemini.ts";
 import { z } from "./http.ts";
 import { logV2Event, V2_EVENT_TYPES } from "./v2-events.ts";
-import {
-  buildUnifiedIntakeUserPrompt,
-  UNIFIED_INTAKE_SYSTEM_PROMPT,
-  type UnifiedIntakeOutput,
-} from "./v2-prompts/intake_to_transformations.ts";
-import type {
-  UserCycleRow,
-  UserTransformationAspectRow,
-  UserTransformationRow,
-} from "./v2-types.ts";
+import { buildUnifiedIntakeUserPrompt, UNIFIED_INTAKE_SYSTEM_PROMPT, type UnifiedIntakeOutput } from "./v2-prompts/intake_to_transformations.ts";
+import type { UserCycleRow, UserTransformationAspectRow, UserTransformationRow } from "./v2-types.ts";
 
 const UNIFIED_INTAKE_OUTPUT_SCHEMA = z.object({
   aspects: z.array(z.object({
@@ -68,7 +60,10 @@ const UNIFIED_INTAKE_OUTPUT_SCHEMA = z.object({
 
   const deferredRanks = new Set<number>();
   for (const aspect of value.deferred_aspects) {
-    if (deferredRanks.has(aspect.source_rank) || activeRanks.has(aspect.source_rank)) {
+    if (
+      deferredRanks.has(aspect.source_rank) ||
+      activeRanks.has(aspect.source_rank)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Invalid deferred source_rank ${aspect.source_rank}`,
@@ -171,6 +166,8 @@ const UNIFIED_INTAKE_OUTPUT_SCHEMA = z.object({
   }
 });
 
+const UNIFIED_INTAKE_MAX_OUTPUT_ATTEMPTS = 2;
+
 export class UnifiedIntakeError extends Error {
   status: number;
 
@@ -186,19 +183,12 @@ export async function previewUnifiedIntake(params: {
   userId?: string | null;
   rawIntakeText: string;
 }): Promise<UnifiedIntakeOutput> {
-  const raw = await generateUnifiedIntakeWithLlm({
+  const output = await generateValidatedUnifiedIntakeWithLlm({
     requestId: params.requestId,
-    userId: params.userId ?? undefined,
+    userId: params.userId ?? null,
     rawIntakeText: params.rawIntakeText,
-  });
-  console.log(JSON.stringify({
-    tag: "after_llm_return",
     stage: "intake_unified_preview",
-    request_id: params.requestId,
-    output_length: raw.length,
-    at: new Date().toISOString(),
-  }));
-  const output = parseUnifiedIntakeOutput(raw);
+  });
   console.log(JSON.stringify({
     tag: "after_parse_output",
     stage: "intake_unified_preview",
@@ -234,19 +224,12 @@ export async function materializeUnifiedIntakeForCycle(params: {
   });
   await assertCycleCanBeRebuilt(params.admin, cycleContext.cycle.id);
 
-  const raw = await generateUnifiedIntakeWithLlm({
+  const output = await generateValidatedUnifiedIntakeWithLlm({
     requestId: params.requestId,
     userId: params.userId,
     rawIntakeText: params.rawIntakeText,
-  });
-  console.log(JSON.stringify({
-    tag: "after_llm_return",
     stage: "intake_unified",
-    request_id: params.requestId,
-    output_length: raw.length,
-    at: new Date().toISOString(),
-  }));
-  const output = parseUnifiedIntakeOutput(raw);
+  });
   console.log(JSON.stringify({
     tag: "after_parse_output",
     stage: "intake_unified",
@@ -266,9 +249,13 @@ export async function materializeUnifiedIntakeForCycle(params: {
     .delete()
     .eq("cycle_id", cycleContext.cycle.id);
   if (deleteAspectsError) {
-    throw new UnifiedIntakeError(500, "Failed to clear previous cycle aspects", {
-      cause: deleteAspectsError,
-    });
+    throw new UnifiedIntakeError(
+      500,
+      "Failed to clear previous cycle aspects",
+      {
+        cause: deleteAspectsError,
+      },
+    );
   }
 
   const { data: existingTransformations, error: existingTransformationsError } = await params.admin
@@ -276,9 +263,13 @@ export async function materializeUnifiedIntakeForCycle(params: {
     .select("*")
     .eq("cycle_id", cycleContext.cycle.id);
   if (existingTransformationsError) {
-    throw new UnifiedIntakeError(500, "Failed to load existing transformations", {
-      cause: existingTransformationsError,
-    });
+    throw new UnifiedIntakeError(
+      500,
+      "Failed to load existing transformations",
+      {
+        cause: existingTransformationsError,
+      },
+    );
   }
   const lockedTransformation = ((existingTransformations ?? []) as UserTransformationRow[]).find((row) =>
     row.status === "active" ||
@@ -303,9 +294,13 @@ export async function materializeUnifiedIntakeForCycle(params: {
       .delete()
       .eq("cycle_id", cycleContext.cycle.id);
     if (deleteTransformationsError) {
-      throw new UnifiedIntakeError(500, "Failed to replace previous transformations", {
-        cause: deleteTransformationsError,
-      });
+      throw new UnifiedIntakeError(
+        500,
+        "Failed to replace previous transformations",
+        {
+          cause: deleteTransformationsError,
+        },
+      );
     }
   }
 
@@ -319,9 +314,13 @@ export async function materializeUnifiedIntakeForCycle(params: {
       .from("user_transformation_aspects")
       .insert(aspectRows as any);
     if (insertAspectsError) {
-      throw new UnifiedIntakeError(500, "Failed to persist transformation aspects", {
-        cause: insertAspectsError,
-      });
+      throw new UnifiedIntakeError(
+        500,
+        "Failed to persist transformation aspects",
+        {
+          cause: insertAspectsError,
+        },
+      );
     }
   }
 
@@ -341,8 +340,9 @@ export async function materializeUnifiedIntakeForCycle(params: {
         500,
         `Failed to persist transformations: ${error.message}`,
         {
-        cause: error,
-      });
+          cause: error,
+        },
+      );
     }
     insertedTransformations = (data ?? []) as UserTransformationRow[];
 
@@ -364,7 +364,9 @@ export async function materializeUnifiedIntakeForCycle(params: {
         .map((row) => [row.source_rank as number, row]),
     );
     for (const transformation of output.transformations) {
-      const inserted = insertedBySourceIndex.get(transformation.source_group_index);
+      const inserted = insertedBySourceIndex.get(
+        transformation.source_group_index,
+      );
       if (!inserted) continue;
       for (const rank of transformation.aspect_ranks) {
         const aspect = aspectByRank.get(rank);
@@ -383,16 +385,21 @@ export async function materializeUnifiedIntakeForCycle(params: {
           } as any)
           .eq("id", aspect.id);
         if (error) {
-          throw new UnifiedIntakeError(500, "Failed to assign aspects to transformations", {
-            cause: error,
-          });
+          throw new UnifiedIntakeError(
+            500,
+            "Failed to assign aspects to transformations",
+            {
+              cause: error,
+            },
+          );
         }
       }
     }
   }
 
   const activeTransformationId = !output.needs_clarification
-    ? insertedTransformations.find((row) => row.priority_order === 1)?.id ?? null
+    ? insertedTransformations.find((row) => row.priority_order === 1)?.id ??
+      null
     : null;
 
   const cyclePatch = {
@@ -467,10 +474,14 @@ async function generateUnifiedIntakeWithLlm(params: {
   requestId: string;
   userId: string | null;
   rawIntakeText: string;
+  validationFeedback?: string[] | null;
 }): Promise<string> {
   const raw = await generateWithGemini(
     UNIFIED_INTAKE_SYSTEM_PROMPT,
-    buildUnifiedIntakeUserPrompt(params.rawIntakeText),
+    buildUnifiedIntakeUserPrompt(
+      params.rawIntakeText,
+      params.validationFeedback ?? null,
+    ),
     0.25,
     true,
     [],
@@ -500,18 +511,98 @@ async function generateUnifiedIntakeWithLlm(params: {
   return raw;
 }
 
-function parseUnifiedIntakeOutput(raw: string): UnifiedIntakeOutput {
+async function generateValidatedUnifiedIntakeWithLlm(params: {
+  requestId: string;
+  userId: string | null;
+  rawIntakeText: string;
+  stage: "intake_unified" | "intake_unified_preview";
+}): Promise<UnifiedIntakeOutput> {
+  let validationFeedback: string[] | null = null;
+
+  for (
+    let attempt = 1;
+    attempt <= UNIFIED_INTAKE_MAX_OUTPUT_ATTEMPTS;
+    attempt += 1
+  ) {
+    const raw = await generateUnifiedIntakeWithLlm({
+      requestId: params.requestId,
+      userId: params.userId,
+      rawIntakeText: params.rawIntakeText,
+      validationFeedback,
+    });
+    console.log(JSON.stringify({
+      tag: "after_llm_return",
+      stage: params.stage,
+      request_id: params.requestId,
+      attempt,
+      output_length: raw.length,
+      at: new Date().toISOString(),
+    }));
+
+    try {
+      return parseUnifiedIntakeOutput(raw);
+    } catch (error) {
+      const shouldRetry = attempt < UNIFIED_INTAKE_MAX_OUTPUT_ATTEMPTS &&
+        shouldRetryUnifiedIntakeGeneration(error);
+      if (!shouldRetry) {
+        throw error;
+      }
+
+      validationFeedback = extractUnifiedIntakeValidationFeedback(error);
+      console.warn(
+        "[intake-to-transformations-v2] retrying after invalid structured output",
+        {
+          request_id: params.requestId,
+          stage: params.stage,
+          attempt,
+          issues: validationFeedback,
+        },
+      );
+    }
+  }
+
+  throw new UnifiedIntakeError(
+    500,
+    "Unified intake retry loop ended unexpectedly",
+  );
+}
+
+function shouldRetryUnifiedIntakeGeneration(error: unknown): boolean {
+  if (!(error instanceof UnifiedIntakeError)) return false;
+  return error.message === "LLM returned invalid JSON" ||
+    error.message.startsWith("Unified intake output failed validation:");
+}
+
+function extractUnifiedIntakeValidationFeedback(error: unknown): string[] {
+  if (!(error instanceof UnifiedIntakeError)) return [];
+  if (error.message === "LLM returned invalid JSON") {
+    return [
+      "La sortie précédente n'était pas un JSON valide.",
+      "Régénère un objet JSON complet sans texte hors JSON, sans markdown, sans coupure et sans fragments corrompus.",
+    ];
+  }
+
+  const prefix = "Unified intake output failed validation:";
+  if (!error.message.startsWith(prefix)) return [];
+  return error.message
+    .slice(prefix.length)
+    .split(";")
+    .map((issue) => issue.trim())
+    .filter((issue) => issue.length > 0);
+}
+
+export function parseUnifiedIntakeOutput(raw: string): UnifiedIntakeOutput {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw);
+    parsed = parseJsonFromLlmText(raw);
   } catch (error) {
-    throw new UnifiedIntakeError(500, "LLM returned invalid JSON", { cause: error });
+    throw new UnifiedIntakeError(500, "LLM returned invalid JSON", {
+      cause: error,
+    });
   }
   const result = UNIFIED_INTAKE_OUTPUT_SCHEMA.safeParse(parsed);
   if (!result.success) {
-    const issues = result.error.issues.map((issue) =>
-      `${issue.path.join(".") || "root"}: ${issue.message}`
-    );
+    const issues = result.error.issues.map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`);
     throw new UnifiedIntakeError(
       500,
       `Unified intake output failed validation: ${issues.join("; ")}`,
@@ -520,7 +611,89 @@ function parseUnifiedIntakeOutput(raw: string): UnifiedIntakeOutput {
   return result.data as UnifiedIntakeOutput;
 }
 
-function buildStructurePayload(output: UnifiedIntakeOutput, now: string): Record<string, unknown> {
+function parseJsonFromLlmText(raw: string): unknown {
+  const text = String(raw ?? "").trim();
+  const candidates = [
+    text,
+    stripMarkdownJsonFence(text),
+    ...extractJsonObjectCandidates(text),
+  ];
+  let lastError: unknown = null;
+
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    const normalized = candidate.trim();
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    try {
+      return JSON.parse(normalized);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("No JSON object found in LLM response");
+}
+
+function stripMarkdownJsonFence(text: string): string {
+  return text
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+}
+
+function extractJsonObjectCandidates(text: string): string[] {
+  const candidates: string[] = [];
+  for (
+    let start = text.indexOf("{");
+    start !== -1;
+    start = text.indexOf("{", start + 1)
+  ) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start; index < text.length; index += 1) {
+      const char = text[index];
+
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === "\\") {
+          escaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+        continue;
+      }
+
+      if (char === "{") {
+        depth += 1;
+        continue;
+      }
+
+      if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          candidates.push(text.slice(start, index + 1));
+          break;
+        }
+      }
+    }
+  }
+
+  return candidates;
+}
+
+function buildStructurePayload(
+  output: UnifiedIntakeOutput,
+  now: string,
+): Record<string, unknown> {
   return {
     version: 1,
     stage: output.needs_clarification ? "clarification_needed" : "validated",
@@ -561,7 +734,9 @@ function buildAspectRows(params: {
   now: string;
 }): UserTransformationAspectRow[] {
   const uncertainByRank = new Map(
-    params.output.uncertain_aspects.map((aspect) => [aspect.source_rank, aspect]),
+    params.output.uncertain_aspects.map((
+      aspect,
+    ) => [aspect.source_rank, aspect]),
   );
 
   const activeRows = params.output.aspects.map((aspect) => {
@@ -661,8 +836,15 @@ async function loadOrCreateCycle(params: {
     return await createDraftCycle(params);
   }
   const cycle = data as UserCycleRow;
-  if (!["draft", "clarification_needed", "structured", "prioritized"].includes(cycle.status)) {
-    throw new UnifiedIntakeError(409, `Cycle status ${cycle.status} cannot be rebuilt`);
+  if (
+    !["draft", "clarification_needed", "structured", "prioritized"].includes(
+      cycle.status,
+    )
+  ) {
+    throw new UnifiedIntakeError(
+      409,
+      `Cycle status ${cycle.status} cannot be rebuilt`,
+    );
   }
   return { cycle, createdCycle: false };
 }
@@ -697,7 +879,9 @@ async function createDraftCycle(params: {
     .select("*")
     .single();
   if (error) {
-    throw new UnifiedIntakeError(500, "Failed to create cycle", { cause: error });
+    throw new UnifiedIntakeError(500, "Failed to create cycle", {
+      cause: error,
+    });
   }
 
   return { cycle: data as UserCycleRow, createdCycle: true };
@@ -713,17 +897,20 @@ async function assertCycleCanBeRebuilt(
     .eq("cycle_id", cycleId)
     .limit(1);
   if (error) {
-    throw new UnifiedIntakeError(500, "Failed to verify existing plans", { cause: error });
+    throw new UnifiedIntakeError(500, "Failed to verify existing plans", {
+      cause: error,
+    });
   }
   if ((data ?? []).length > 0) {
-    throw new UnifiedIntakeError(409, "Cycle already has V2 plans and cannot be rebuilt");
+    throw new UnifiedIntakeError(
+      409,
+      "Cycle already has V2 plans and cannot be rebuilt",
+    );
   }
 }
 
 function eventWarning(eventType: string, error: unknown): string {
-  return `Failed to log ${eventType}: ${
-    error instanceof Error ? error.message : String(error)
-  }`;
+  return `Failed to log ${eventType}: ${error instanceof Error ? error.message : String(error)}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

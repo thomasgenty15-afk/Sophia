@@ -3,6 +3,8 @@ import { baseOutput } from "../_shared/skill_helpers.ts";
 import { emptyConversationEffects } from "../_shared/conversation_skill_contract.ts";
 import type { TurnFrame } from "../../contracts/turn_frame.v1.ts";
 import type { LocalOneShotDirectEffectRequest } from "../../router/one_shot_local_direct_effect.ts";
+import { selectDirectEffectConfirmationContext } from "../../router/direct_effect_local_context.ts";
+import { visibleRecentMessages } from "../_shared/visible_history.ts";
 import {
   type CoachingRecommendationLocalDispatcher,
   initialCoachingRecommendationStateFromParentBridge,
@@ -44,18 +46,13 @@ function directEffectLane(turnFrame: TurnFrame | null) {
     : null;
 }
 
-function recentUserMessagesForVisible(
+function recentMessagesForVisible(
   input: CoachingRecommendationRunSkillInput,
 ) {
-  const messages = [
-    ...input.context.recent_messages,
-    { role: "user" as const, content: input.user_message },
-  ].filter((message) => message.role === "user" && message.content?.trim());
-  return messages.slice(-5).map((message) => ({
-    role: "user" as const,
-    content: message.content.trim(),
-    created_at: null,
-  }));
+  return visibleRecentMessages({
+    recent_messages: input.context.recent_messages,
+    user_message: input.user_message,
+  });
 }
 
 function initialStateFromDispatcherSignal(
@@ -194,7 +191,8 @@ function visibleDecisionForStep(
   if (step.task_kind === "action_plan_coaching") {
     return decision.lever === "attack_card" ||
         decision.lever === "defense_card" ||
-        decision.lever === "adjust_plan"
+        decision.lever === "adjust_plan" ||
+        decision.lever === "coaching_only"
       ? decision
       : null;
   }
@@ -212,7 +210,10 @@ function visibleDecisionForStep(
       : null;
   }
   if (step.task_kind === "emotion_coaching") {
-    return decision.lever === "state_potion" ? decision : null;
+    return decision.lever === "state_potion" ||
+        decision.lever === "coaching_only"
+      ? decision
+      : null;
   }
   return null;
 }
@@ -449,7 +450,9 @@ export async function runCoachingRecommendationSkill(
     });
   }
   let turnFrameForVisible = input.context.turn_frame;
-  if (input.direct_effect_executor && decision.direct_effect_request.requested) {
+  if (
+    input.direct_effect_executor && decision.direct_effect_request.requested
+  ) {
     const directEffectResult = await input.direct_effect_executor(
       decision.direct_effect_request,
     );
@@ -457,20 +460,30 @@ export async function runCoachingRecommendationSkill(
   }
   const visibleAgent = input.visible_agent ??
     runCoachingRecommendationVisibleAgent;
+  const recentDirectEffectConfirmationContext =
+    input.context.runtime_context?.recent_direct_effect_confirmation_context ??
+      null;
   const visibleOutput = normalizeVisibleOutput(
     await visibleAgent({
       user_id: input.context.user_id,
       request_id: (input.context.turn_frame as any)?.source_message_id ??
         null,
       visible_runtime_context: {
-        recent_user_messages: recentUserMessagesForVisible(input),
+        recent_messages: recentMessagesForVisible(input),
+        recent_effects_summary:
+          input.context.runtime_context?.recent_effects_summary ?? null,
+        user_identity: input.context.runtime_context?.user_identity ?? null,
       },
       flow_context: {
         ...reduced.flow_context,
         direct_effect_lane: directEffectLane(turnFrameForVisible),
         direct_effect_confirmation_context:
-          (turnFrameForVisible as any)?.direct_effect_confirmation_context ??
-            reduced.flow_context.direct_effect_confirmation_context ?? null,
+          selectDirectEffectConfirmationContext({
+            turnFrame: turnFrameForVisible,
+            reducedContext: reduced.flow_context
+              .direct_effect_confirmation_context,
+            recentContext: recentDirectEffectConfirmationContext,
+          }),
       },
       step_context: reduced.step_context,
     }),

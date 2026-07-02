@@ -3,6 +3,11 @@ import {
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
+import {
+  committedOneShotReminderKnown,
+  directEffectContextCommittedThisTurn,
+  oneShotReminderVisibleContextPresent,
+} from "../../router/one_shot_reminder_prompt_contract.ts";
 import type { DirectEffectConfirmationContext } from "../../router/direct_effect_local_context.ts";
 import type {
   WeeklyReviewConversationContext,
@@ -21,6 +26,7 @@ export type WeeklyReviewVisibleAgentInput = {
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   conversation_context: WeeklyReviewConversationContext;
   direct_effect_confirmation_context?: DirectEffectConfirmationContext | null;
+  recent_effects_summary?: string | null;
 };
 
 export type WeeklyReviewVisibleAgent = (
@@ -161,7 +167,19 @@ export async function runWeeklyReviewVisibleAgent(
   input: WeeklyReviewVisibleAgentInput,
 ): Promise<string | null> {
   const spec = weeklyReviewVisibleAgentSpec(input.stage);
-  const systemPrompt = weeklyReviewVisibleSystemPrompt(input.stage);
+  const systemPrompt = weeklyReviewVisibleSystemPrompt(input.stage, {
+    oneShotReminderContextPresent: oneShotReminderVisibleContextPresent(
+      input.direct_effect_confirmation_context,
+    ),
+    committedOneShotReminderThisTurn: directEffectContextCommittedThisTurn(
+      input.direct_effect_confirmation_context,
+    ),
+    committedOneShotReminderKnown: committedOneShotReminderKnown({
+      directEffectConfirmationContext:
+        input.direct_effect_confirmation_context,
+      recentEffectsSummary: input.recent_effects_summary,
+    }),
+  });
   if (!spec || !systemPrompt) return null;
   const userPrompt = buildWeeklyReviewVisibleAgentUserPrompt(input);
   try {
@@ -210,6 +228,7 @@ export function buildWeeklyReviewVisibleAgentUserPrompt(
       recent_user_messages: recentUserMessagesForVisible(input.recent_messages),
       direct_effect_confirmation_context:
         input.direct_effect_confirmation_context ?? null,
+      recent_effects_summary: input.recent_effects_summary ?? null,
     },
     visible_task: {
       kind: input.stage,

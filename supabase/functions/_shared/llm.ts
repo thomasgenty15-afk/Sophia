@@ -117,6 +117,9 @@ export async function geminiGenerate(
 
       if (resp.status === 429) {
         console.warn(`[llm] request_id=${requestId} gemini=429 attempt=${attempt}/${MAX_RETRIES}`);
+        if (attempt === MAX_RETRIES) {
+          throw new Error(`Gemini API Error 429: rate limited after ${MAX_RETRIES} attempts`);
+        }
         await sleep(backoffMs(attempt));
         continue;
       }
@@ -228,6 +231,9 @@ export async function geminiEmbed(
 
       if (resp.status === 429) {
         console.warn(`[llm] request_id=${requestId} embed=429 attempt=${attempt}/${MAX_RETRIES}`);
+        if (attempt === MAX_RETRIES) {
+          throw new Error(`Gemini Embedding Error 429: rate limited after ${MAX_RETRIES} attempts`);
+        }
         await sleep(backoffMs(attempt));
         continue;
       }

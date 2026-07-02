@@ -44,9 +44,7 @@ const WEEKLY_VISIBLE_COMMON_RULES = [
   VISIBLE_CONVERSATION_FLOW_RULES,
   "Tu recois visible_task.conversation_context comme source metier principale.",
   "Tu recois aussi visible_runtime_context avec les derniers messages user filtres. Utilise-les seulement pour la continuite de ton et de reference, jamais pour choisir une route, muter un etat ou decider un outcome.",
-  ...oneShotReminderCanonicalVisiblePromptLines(
-    "visible_runtime_context.direct_effect_confirmation_context",
-  ),
+  "Si visible_runtime_context.recent_effects_summary contient un effet recent, utilise-le seulement si le user demande ce qui vient d'etre fait, programme, note, valide ou annule, ou pour eviter de contredire un effet recent. Ne nomme jamais EffectLedger et ne le mentionne pas spontanement.",
   "Sans has_committed_one_shot_reminder=true, ne dis jamais que le rappel est prevu, demande, note, bien formule, enregistre ou programme.",
   "Tu ne routes pas, tu ne choisis pas la prochaine etape, tu ne corriges pas le reducer et tu n'appelles aucun outil.",
   "Ne lis pas de DB brute, de memoire brute ou de note_information brute.",
@@ -192,12 +190,25 @@ export function weeklyReviewVisibleAgentSpec(
 
 export function weeklyReviewVisibleSystemPrompt(
   stage: WeeklyReviewVisibleTaskKind,
+  opts?: {
+    oneShotReminderContextPresent?: boolean;
+    committedOneShotReminderThisTurn?: boolean;
+    committedOneShotReminderKnown?: boolean;
+  },
 ): string | null {
   const spec = weeklyReviewVisibleAgentSpec(stage);
   if (!spec) return null;
   return [
     `Stage: ${stage}.`,
     ...WEEKLY_VISIBLE_COMMON_RULES,
+    ...oneShotReminderCanonicalVisiblePromptLines(
+      "visible_runtime_context.direct_effect_confirmation_context",
+      {
+        present: opts?.oneShotReminderContextPresent === true,
+        committedThisTurn: opts?.committedOneShotReminderThisTurn === true,
+        committedKnown: opts?.committedOneShotReminderKnown === true,
+      },
+    ),
     ...spec.roleLines,
   ].join("\n");
 }

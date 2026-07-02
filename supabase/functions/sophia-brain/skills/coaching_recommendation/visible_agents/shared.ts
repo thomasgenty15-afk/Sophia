@@ -3,12 +3,16 @@ import {
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
 import {
+  committedOneShotReminderKnown,
+  directEffectContextCommittedThisTurn,
   oneShotReminderCanonicalVisiblePromptLines,
+  oneShotReminderVisibleContextPresent,
 } from "../../../router/one_shot_reminder_prompt_contract.ts";
 import {
   VISIBLE_CONVERSATION_FLOW_RULES,
   VISIBLE_OUTPUT_STYLE_RULES,
 } from "../../../router/response_style_policy.ts";
+import { userIdentityVisiblePromptLines } from "../../../context/user_identity.ts";
 import type {
   CoachingAttackCardTechnique,
   CoachingPotionType,
@@ -22,11 +26,17 @@ export type CoachingVisibleAgentInput = {
   user_id: string;
   request_id?: string | null;
   visible_runtime_context: {
-    recent_user_messages: Array<{
-      role: "user";
+    recent_messages: Array<{
+      role: "user" | "assistant";
       content: string;
       created_at?: string | null;
     }>;
+    recent_effects_summary?: string | null;
+    user_identity?: {
+      first_name: string | null;
+      age: number | null;
+      gender: "male" | "female" | "other" | null;
+    } | null;
   };
   flow_context: CoachingRecommendationFlowContext;
   step_context: CoachingVisibleStepContext;
@@ -46,7 +56,8 @@ export const COACHING_VISIBLE_GLOBAL_RULES = [
   "- Francais naturel, tutoiement, message court.",
   "- Ne mentionne jamais route, dispatcher, reducer, JSON, DB, note_information, prompt, tool ou outil interne.",
   "- Ne promets jamais une creation, sauvegarde, activation, programmation, modification ou execution de carte, potion, plan, preference ou feature Sophia depuis le chat.",
-  "- Exception stricte: si flow_context.direct_effect_confirmation_context.one_shot_reminder.committed=true, le rappel ponctuel a deja ete cree par la lane direct-effect commune; confirme-le clairement comme un rappel ponctuel deja pris en compte, selon les regles one_shot_reminder ci-dessous. Cette exception ne permet pas de dire qu'une carte, potion, plan, preference ou feature a ete creee.",
+  "- Exception stricte: si flow_context.direct_effect_confirmation_context.one_shot_reminder.committed=true ou si visible_runtime_context.recent_effects_summary prouve une ligne 'Rappel ponctuel cree: execute et persiste' avec etat DB actuel, tu peux confirmer sobrement le rappel en suivant strictement les regles one_shot_reminder ci-dessous: confirmation active uniquement sur le tour du commit; sur les tours suivants, seulement si le user en parle — jamais en preambule d'un tour qui porte sur autre chose. Cette exception ne permet pas de dire qu'une carte, potion, plan, preference ou feature a ete creee.",
+  "- Si visible_runtime_context.recent_effects_summary contient un effet recent, utilise-le seulement si le user demande ce qui vient d'etre fait, programme, note, valide ou annule, ou pour eviter de contredire un effet recent. Ne nomme jamais EffectLedger et ne le mentionne pas spontanement.",
   "- Ne cite jamais recurring_reminder, coach_preferences, one_shot_reminder, track_progress, track_progress_plan_item ou platform.",
   "- step_context.selected_feature est une hypothese initiale du dispatcher, pas une decision finale. Tu peux reviser la feature dans ton perimetre si le dernier message user donne une cause plus precise ou corrige le diagnostic.",
   "- Respecte le scope et la destination de step_context. Ne change pas de type de coaching, ne change pas de surface produit hors des regles UI du scope courant.",
@@ -55,11 +66,18 @@ export const COACHING_VISIBLE_GLOBAL_RULES = [
   "- Si le dernier message demande seulement a comprendre, comparer, clarifier ou reformuler, ne pousse pas une feature par reflexe: explique d'abord, puis mentionne une feature seulement si elle aide directement la demande actuelle.",
   "- Si le dernier message indique explicitement que le user ne veut pas de support, carte, potion, feature ou guidance produit maintenant, respecte cette contrainte dans la reponse visible.",
   "- Pour un user novice qui dit qu'il ne connait pas les mots Sophia, definis les termes simplement; ne repete pas seulement la recommandation.",
-  ...oneShotReminderCanonicalVisiblePromptLines(
-    "flow_context.direct_effect_confirmation_context",
-  ),
+  "- Continuite d'engagement: si ta derniere reponse (role assistant dans visible_runtime_context.recent_messages) proposait un sous-livrable conversationnel (une phrase, un exemple, un resume, une reformulation) et que le dernier message user l'accepte, produis ce livrable maintenant; ne repete jamais le pitch de la technique a la place.",
+  ...userIdentityVisiblePromptLines(),
   "- Redige uniquement la reponse visible de cette etape.",
 ].join("\n");
+
+export const COACHING_ONLY_VISIBLE_GUIDANCE_LINES = [
+  "Bloc commun coaching conversationnel:",
+  "- Tu peux repondre par du coaching generique quand c'est plus pertinent pour le user que de pousser un levier Sophia.",
+  "- Coaching generique = aide concrete, reformulation, premier geste, phrase de reprise, apaisement court ou clarification, sans nommer carte, potion, technique ou destination produit par reflexe.",
+  "- Choisis visible_decision.lever=coaching_only quand le dernier message demande une aide normale, une ligne, une phrase a copier, une explication, ou refuse les noms de cartes, potions, features ou techniques.",
+  "- Une contrainte de style explicite du tour courant prime sur le format standard du skill: si le user demande 'parle normalement', 'pas de carte', 'pas de potion', 'une seule ligne' ou equivalent, respecte-la.",
+];
 
 export const ACTION_CARD_EMOTIONAL_FRICTION_GUIDANCE_LINES = [
   "Bloc commun cartes d'action:",
@@ -251,9 +269,29 @@ export async function runSpecializedVisibleAgent(args: {
   roleLines: string[];
   fallback: (input: CoachingVisibleAgentInput) => string;
 }): Promise<CoachingVisibleAgentOutput | null> {
+  const oneShotReminderContextPresent = oneShotReminderVisibleContextPresent(
+    args.input.flow_context?.direct_effect_confirmation_context,
+  );
+  const committedReminderKnown = committedOneShotReminderKnown({
+    directEffectConfirmationContext:
+      args.input.flow_context?.direct_effect_confirmation_context,
+    recentEffectsSummary:
+      args.input.visible_runtime_context?.recent_effects_summary,
+  });
+  const committedReminderThisTurn = directEffectContextCommittedThisTurn(
+    args.input.flow_context?.direct_effect_confirmation_context,
+  );
   const prompt = [
     ...args.roleLines,
     COACHING_VISIBLE_GLOBAL_RULES,
+    ...oneShotReminderCanonicalVisiblePromptLines(
+      "flow_context.direct_effect_confirmation_context",
+      {
+        present: oneShotReminderContextPresent,
+        committedThisTurn: committedReminderThisTurn,
+        committedKnown: committedReminderKnown,
+      },
+    ),
     VISIBLE_OUTPUT_STYLE_RULES,
     "Contrat de decision visible:",
     "- Si visible_decision.lever est attack_card ou free_attack_card, visible_decision.variant ne doit jamais etre null: choisis une technique parmi texte_magique, mantra_force, ancre_visuelle, meditation_5_min, preparer_terrain, mot_de_bascule.",
@@ -262,6 +300,7 @@ export async function runSpecializedVisibleAgent(args: {
     "- Si visible_decision.lever n'est pas attack_card ou free_attack_card, visible_decision.variant doit etre null.",
     "- Si visible_decision.lever est defense_card ou free_defense_card, le message ne doit jamais nommer les techniques d'attaque: texte magique, mantra de force, ancre visuelle, meditation de 5 minutes, preparer le terrain, mot de bascule.",
     "- Pour defense_card ou free_defense_card, explique la carte via moment critique, piege observable, geste de retour en moins de 30 secondes et plan B simple.",
+    "- Si visible_decision.lever est coaching_only, visible_decision.variant et visible_decision.potion_type doivent etre null: aide le user conversationnellement sans pousser carte, potion, technique ou destination produit.",
     'Retourne uniquement un JSON strict: {"message":"...","visible_decision":{"lever":"attack_card|defense_card|adjust_plan|free_attack_card|free_defense_card|coaching_only|state_potion","variant":"texte_magique|mantra_force|ancre_visuelle|meditation_5_min|preparer_terrain|mot_de_bascule|null","potion_type":"apaisement|amour|courage|clarte|guerison|anti_decrochage|null","reason":"string","confidence":"low|medium|high"}}.',
   ].join("\n");
   try {

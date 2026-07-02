@@ -3,6 +3,7 @@ import {
   assertEquals,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
+  dispatcherPrompt,
   normalizeFeatureOpportunityLocalDispatcherOutput,
   reduceFeatureOpportunityLocalDispatcherOutput,
 } from "./local_flow.ts";
@@ -107,7 +108,8 @@ Deno.test("feature opportunity visible treats committed one-shot reminder as exp
 
   assert(prompt.includes("Exception stricte"));
   assert(prompt.includes("one_shot_reminder.committed=true"));
-  assert(prompt.includes("confirme-le clairement"));
+  assert(prompt.includes("visible_runtime_context.recent_effects_summary"));
+  assert(prompt.includes("Rappel ponctuel cree: execute et persiste"));
   assert(prompt.includes("Cette exception ne permet pas"));
   assert(prompt.includes("feature, initiative ou preference"));
 });
@@ -169,11 +171,10 @@ Deno.test("feature opportunity visible says initiatives and never internal remin
           ?.has_committed_one_shot_reminder,
         true,
       );
-      assertEquals(input.visible_runtime_context?.recent_user_messages, [
+      assertEquals(input.visible_runtime_context?.recent_messages, [
         {
           role: "user",
           content: "Avant chaque diner j'ai du mal a ne pas fumer",
-          created_at: null,
         },
       ]);
       assertEquals(
@@ -189,6 +190,44 @@ Deno.test("feature opportunity visible says initiatives and never internal remin
   assertEquals(output.effects?.requested, []);
   assertEquals(output.effects?.allowed, []);
   assertEquals(output.effects?.committed, []);
+});
+
+Deno.test("feature opportunity local dispatcher forces exit on plan realignment or emotional distress (Cmd 9)", () => {
+  const prompt = dispatcherPrompt({
+    user_id: "u1",
+    user_message: "test",
+    recent_messages: [],
+    previous_state: null,
+    dispatcher_signal_context: signalContext,
+  });
+
+  // answer_followup must be scoped to the already-detected opportunity only.
+  assert(
+    prompt.includes(
+      "answer_followup est reserve a une question, clarification ou complement PORTANT sur l'opportunite deja detectee",
+    ),
+  );
+  assert(
+    prompt.includes(
+      "Une nouvelle intention explicite hors de cette opportunite ne doit jamais etre traitee en answer_followup",
+    ),
+  );
+  // Explicit exit triggers: plan realignment (a) and emotional distress (b).
+  assert(
+    prompt.includes(
+      "une demande de revoir, ajuster, alleger, reorganiser ou refaire son plan, planning, semaine ou rythme",
+    ),
+  );
+  assert(
+    prompt.includes(
+      "un etat emotionnel, une detresse, un decouragement ou un 'a quoi bon' sans demande d'opportunite produit",
+    ),
+  );
+  assert(
+    prompt.includes(
+      "Ne requalifie pas ces messages en opportunite initiatives ou coach_preferences",
+    ),
+  );
 });
 
 Deno.test("feature opportunity legacy product handoff exits only to global", () => {

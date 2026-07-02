@@ -21,8 +21,12 @@ import {
   RECENT_MESSAGE_LIMITS,
   trimRecentChatMessages,
 } from "../../context/recent_messages_policy.ts";
-import { buildDirectEffectConfirmationContext } from "../../router/direct_effect_local_context.ts";
+import {
+  buildDirectEffectConfirmationContext,
+  selectDirectEffectConfirmationContext,
+} from "../../router/direct_effect_local_context.ts";
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
+import { visibleRecentMessages } from "../_shared/visible_history.ts";
 
 export type ProductHelpRunSkillInput = RunSkillInput & {
   local_dispatcher?: ProductHelpLocalDispatcher;
@@ -101,10 +105,13 @@ function recentCommittedEffects(turnFrame: unknown): unknown[] {
 function visibleRuntimeContext(input: ProductHelpRunSkillInput) {
   return {
     style_rules: VISIBLE_OUTPUT_STYLE_RULES,
-    recent_user_messages: recentMessagesFromContext(input)
-      .filter((message) => message.role === "user")
-      .slice(-5)
-      .map((message) => ({ role: "user" as const, content: message.content })),
+    recent_messages: visibleRecentMessages({
+      recent_messages: recentMessagesFromContext(input),
+      user_message: input.user_message,
+    }),
+    recent_effects_summary:
+      input.context.runtime_context?.recent_effects_summary ?? null,
+    user_identity: input.context.runtime_context?.user_identity ?? null,
   };
 }
 
@@ -279,9 +286,12 @@ function fallbackSkillOutput(reason: string) {
 
 export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
   const candidates = retrieveProductHelpCandidates(input.user_message);
-  const directEffectContext = buildDirectEffectConfirmationContext(
-    input.context.turn_frame,
-  );
+  const directEffectContext = selectDirectEffectConfirmationContext({
+    turnFrame: input.context.turn_frame,
+    recentContext: input.context.runtime_context
+      ?.recent_direct_effect_confirmation_context ??
+      null,
+  });
   const previous = readProductHelpFlowState(
     input.context.active_skill_working_state,
   );

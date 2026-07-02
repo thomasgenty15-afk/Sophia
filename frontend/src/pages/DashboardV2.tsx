@@ -3099,9 +3099,9 @@ export default function DashboardV2() {
               {/* ── MAIN CONTENT (Niveau 3 : Outils & Contenu) ── */}
               <div className="min-w-0 max-w-full lg:col-span-9 space-y-2.5 sm:space-y-5">
                 {/* ── TAB NAVIGATION ─────────────────────────────────── */}
-                <div className="relative flex max-w-full items-center gap-1 pb-1 md:block">
-                  <details className="group relative z-20 shrink-0 md:hidden">
-                    <summary className="flex h-[46px] w-11 cursor-pointer list-none items-center justify-center rounded-2xl border border-[#b8d8cc] bg-white/90 text-[#52635b] shadow-sm outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[#b8d8cc] focus-visible:ring-offset-2">
+                <div className="relative flex max-w-full items-stretch gap-1 pb-1">
+                  <details className="group relative z-20 shrink-0 lg:hidden">
+                    <summary className="flex h-full min-h-[46px] w-[clamp(2.5rem,6vw,2.75rem)] cursor-pointer list-none items-center justify-center rounded-2xl border border-[#b8d8cc] bg-white/90 text-[#52635b] shadow-sm outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[#b8d8cc] focus-visible:ring-offset-2">
                       <Menu className="h-4 w-4" />
                       <span className="sr-only">Choisir un parcours</span>
                     </summary>
@@ -3178,8 +3178,8 @@ export default function DashboardV2() {
                     </div>
                   </details>
 
-                  <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide md:flex md:justify-center md:overflow-visible">
-                    <div className="flex w-max min-w-full gap-1 rounded-2xl border border-[#b8d8cc] bg-white/90 p-1.5 shadow-sm md:w-full">
+                  <div className="min-w-0 flex-1">
+                    <div className="grid h-full w-full grid-flow-col auto-cols-fr gap-1 rounded-2xl border border-[#b8d8cc] bg-white/90 p-1.5 shadow-sm">
                       {dashboardTabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.key;
@@ -3188,17 +3188,17 @@ export default function DashboardV2() {
                             key={tab.key}
                             type="button"
                             onClick={() => setActiveTab(tab.key)}
-                            className={`flex shrink-0 items-center justify-center gap-1 rounded-xl px-3 py-2 text-[11px] font-bold transition-all duration-200 md:min-w-0 md:flex-1 md:gap-2 md:px-6 md:py-2.5 md:text-sm ${
+                            className={`flex min-w-0 items-center justify-center gap-[clamp(0.25rem,0.8vw,0.5rem)] rounded-xl px-[clamp(0.25rem,2vw,1.25rem)] py-[clamp(0.5rem,1vw,0.625rem)] text-[clamp(0.625rem,calc(0.35rem+0.8vw),0.875rem)] font-bold transition-all duration-200 ${
                               isActive
                                 ? `bg-[#002d21] text-white shadow-sm shadow-[#002d21]/20 border border-[#002d21]`
                                 : "text-[#52635b] hover:text-[#002d21] hover:bg-[#e9f8f0]"
                             }`}
                           >
                             <Icon
-                              className={`h-3.5 w-3.5 shrink-0 md:h-4 md:w-4 ${isActive ? tab.activeColor : ""}`}
+                              className={`h-[clamp(0.8rem,1.6vw,1rem)] w-[clamp(0.8rem,1.6vw,1rem)] shrink-0 ${isActive ? tab.activeColor : ""}`}
                             />
-                            <span className="min-w-0 whitespace-nowrap md:hidden">{tab.mobileLabel}</span>
-                            <span className="hidden whitespace-nowrap md:inline">{tab.label}</span>
+                            <span className="min-w-0 whitespace-nowrap min-[560px]:hidden">{tab.mobileLabel}</span>
+                            <span className="hidden min-w-0 whitespace-nowrap min-[560px]:inline">{tab.label}</span>
                           </button>
                         );
                       })}

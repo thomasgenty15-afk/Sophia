@@ -35,6 +35,11 @@ import {
 } from "../../sophia-brain/router/one_shot_local_direct_effect.ts";
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../sophia-brain/router/response_style_policy.ts";
 import {
+  committedOneShotReminderKnown,
+  directEffectContextCommittedThisTurn,
+  oneShotReminderVisibleContextPresent,
+} from "../../sophia-brain/router/one_shot_reminder_prompt_contract.ts";
+import {
   dailyActionReviewVisibleAgentSpec,
   dailyActionReviewVisibleSystemPrompt,
 } from "./visible_agents.ts";
@@ -1881,7 +1886,6 @@ export async function runDailyActionReviewVisibleAgent(params: {
   }) => Promise<unknown>;
 }): Promise<string | null> {
   const visibleAgent = dailyActionReviewVisibleAgentSpec(params.kind);
-  const systemPrompt = dailyActionReviewVisibleSystemPrompt(params.kind);
   const conversationContext = buildDailyActionReviewConversationContext({
     kind: params.kind,
     targets: params.targets,
@@ -1890,6 +1894,23 @@ export async function runDailyActionReviewVisibleAgent(params: {
     committedEffects: params.committedEffects,
     failedEffects: params.failedEffects,
     currentDailyQuestion: params.currentDailyQuestion,
+  });
+  const systemPrompt = dailyActionReviewVisibleSystemPrompt(params.kind, {
+    oneShotReminderContextPresent: oneShotReminderVisibleContextPresent(
+      (conversationContext?.known_values as
+        | Record<string, unknown>
+        | undefined)?.direct_effect_confirmation_context,
+    ),
+    committedOneShotReminderThisTurn: directEffectContextCommittedThisTurn(
+      (conversationContext?.known_values as
+        | Record<string, unknown>
+        | undefined)?.direct_effect_confirmation_context,
+    ),
+    committedOneShotReminderKnown: committedOneShotReminderKnown({
+      directEffectConfirmationContext: (conversationContext?.known_values as
+        | Record<string, unknown>
+        | undefined)?.direct_effect_confirmation_context,
+    }),
   });
   const userPrompt = JSON.stringify({
     visible_runtime_context: {

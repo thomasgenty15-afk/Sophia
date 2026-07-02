@@ -285,7 +285,7 @@ export async function previewStructuredIntake(params: {
 }): Promise<StructurationOutput> {
   const rawOutput = await generateStructurationWithLlm({
     requestId: params.requestId,
-    userId: params.userId ?? undefined,
+    userId: params.userId ?? null,
     rawIntakeText: params.rawIntakeText,
   });
   console.log(JSON.stringify({

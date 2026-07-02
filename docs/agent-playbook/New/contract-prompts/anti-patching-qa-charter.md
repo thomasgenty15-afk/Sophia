@@ -71,8 +71,7 @@ EffectLedger. Ils ne doivent pas inventer une intention.
 
 8. Tu protèges les contre-exemples avant de fixer.
    Pour chaque bug, ajoute au moins un test positif, une paraphrase et un
-   anti-faux-positif. Exemple : "annule ce rappel" doit annuler, mais "où
-   annuler ce rappel ?" ne doit pas annuler.
+   anti-faux-positif.
 
 9. Tu gardes le message courant prioritaire sur le vieux flow.
    Un pending ou active flow ne doit pas capturer une nouvelle intention

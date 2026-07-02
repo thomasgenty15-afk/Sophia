@@ -1,5 +1,6 @@
 import {
   ACTION_CARD_EMOTIONAL_FRICTION_GUIDANCE_LINES,
+  COACHING_ONLY_VISIBLE_GUIDANCE_LINES,
   type CoachingVisibleAgentInput,
   type CoachingVisibleAgentOutput,
   LEVER_COMPARISON_KNOWLEDGE_LINES,
@@ -61,6 +62,7 @@ export function runNoPlanCoachingVisibleAgent(
       "Contrainte de wording pour les destinations libres: n'utilise pas une tournure 'comme/en tant que' suivie du type de carte; transforme les elements UI en action utilisateur naturelle.",
       "Ressources est le bon endroit pour les cartes libres hors plan; Dashboard > Plan est interdit pour une action hors plan.",
       "Tu donnes un conseil concret adapte au coaching_move fourni.",
+      ...COACHING_ONLY_VISIBLE_GUIDANCE_LINES,
       ...LEVER_COMPARISON_KNOWLEDGE_LINES,
       ...ACTION_CARD_EMOTIONAL_FRICTION_GUIDANCE_LINES,
       "Pour action hors plan: si une carte est recommandee, presente-la comme carte libre, pas comme carte liee au Plan.",

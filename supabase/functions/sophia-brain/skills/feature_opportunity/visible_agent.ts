@@ -3,12 +3,16 @@ import {
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
 import {
+  committedOneShotReminderKnown,
+  directEffectContextCommittedThisTurn,
   oneShotReminderCanonicalVisiblePromptLines,
+  oneShotReminderVisibleContextPresent,
 } from "../../router/one_shot_reminder_prompt_contract.ts";
 import {
   VISIBLE_CONVERSATION_FLOW_RULES,
   VISIBLE_OUTPUT_STYLE_RULES,
 } from "../../router/response_style_policy.ts";
+import { userIdentityVisiblePromptLines } from "../../context/user_identity.ts";
 import type {
   FeatureOpportunityConversationContext,
   FeatureOpportunityVisibleTaskKind,
@@ -21,11 +25,17 @@ export type FeatureOpportunityVisibleAgentInput = {
   conversation_context: FeatureOpportunityConversationContext;
   visible_runtime_context?: {
     style_rules: string;
-    recent_user_messages: Array<{
-      role: "user";
+    recent_messages: Array<{
+      role: "user" | "assistant";
       content: string;
       created_at?: string | null;
     }>;
+    recent_effects_summary?: string | null;
+    user_identity?: {
+      first_name: string | null;
+      age: number | null;
+      gender: "male" | "female" | "other" | null;
+    } | null;
   };
 };
 
@@ -83,6 +93,8 @@ export function productGuidancePromptLines(): string[] {
     "- preferences de coaching: les trois reglages supportes sont coach.tone (plus doux, chaleureux/direct, direct), coach.challenge_level (faible, equilibre, eleve), coach.question_tendency (peu de questions, normal, tres questionnant).",
     "- preferences de coaching: destination utilisateur: Preferences coach. Le user choisit le reglage et l'applique depuis la plateforme.",
     "- preferences de coaching: elles ne reglent pas les formats fins comme exactement trois lignes, zero emoji ou jamais de question finale.",
+    "- preferences de coaching: seuls ces trois axes (ton, niveau de challenge, tendance a poser des questions) sont reglables aujourd'hui dans Preferences coach.",
+    "- Si le user exprime une preference hors de ces trois axes (par exemple un moment ou un horaire prefere comme faire le sport le matin, un contenu precis, ou une demande du type 'retiens ce fait sur moi'), ne la presente pas comme reglable dans Preferences coach et ne l'y renvoie pas: dis honnetement que Sophia ne sait pas encore prendre en compte ce type de preference et que ce sera possible dans une version suivante, sans le presenter comme deja fait ni le promettre.",
     "- Depuis ce flow, aiguille et explique. Ne promets jamais une sauvegarde, creation, modification ou application depuis le chat.",
   ];
 }
@@ -104,12 +116,18 @@ function visibleInstruction(stage: FeatureOpportunityVisibleTaskKind) {
 
 export function featureOpportunityVisiblePrompt(
   stage: FeatureOpportunityVisibleTaskKind,
+  opts?: {
+    oneShotReminderContextPresent?: boolean;
+    committedOneShotReminderThisTurn?: boolean;
+    committedOneShotReminderKnown?: boolean;
+  },
 ): string {
   return [
     "Tu es l'agent visible du skill feature_opportunity.",
     "Tu aides le user a reconnaitre une opportunite produit Sophia non-coaching.",
     "Tu ne crees rien, ne modifies rien, ne programmes rien, ne sauvegardes rien, et ne dis jamais que Sophia l'a fait pour les features, initiatives ou preferences de coaching.",
-    "Exception stricte: si conversation_context.direct_effect_confirmation_context.one_shot_reminder.committed=true, le rappel ponctuel a deja ete cree par la lane direct-effect commune; confirme-le clairement comme un rappel ponctuel deja pris en compte, selon les regles one_shot_reminder ci-dessous. Cette exception ne permet pas de dire qu'une feature, initiative ou preference a ete creee.",
+    "Exception stricte: si conversation_context.direct_effect_confirmation_context.one_shot_reminder.committed=true ou si visible_runtime_context.recent_effects_summary prouve une ligne 'Rappel ponctuel cree: execute et persiste' avec etat DB actuel, tu peux confirmer sobrement le rappel selon les regles one_shot_reminder ci-dessous. Cette exception ne permet pas de dire qu'une feature, initiative ou preference a ete creee.",
+    "Si visible_runtime_context.recent_effects_summary contient un effet recent, utilise-le seulement si le user demande ce qui vient d'etre fait, programme, note, valide ou annule, ou pour eviter de contredire un effet recent. Ne nomme jamais EffectLedger et ne le mentionne pas spontanement.",
     "Features visibles autorisees uniquement: initiatives, preferences de coaching, coach_preferences.",
     "Ne cite jamais les noms internes des anciennes surfaces de rappel.",
     "Pour feature=initiatives, utilise toujours le nom visible initiatives.",
@@ -117,9 +135,15 @@ export function featureOpportunityVisiblePrompt(
     ...productGuidancePromptLines(),
     ...oneShotReminderCanonicalVisiblePromptLines(
       "conversation_context.direct_effect_confirmation_context",
+      {
+        present: opts?.oneShotReminderContextPresent === true,
+        committedThisTurn: opts?.committedOneShotReminderThisTurn === true,
+        committedKnown: opts?.committedOneShotReminderKnown === true,
+      },
     ),
     "Ne mentionne jamais route, dispatcher, JSON, DB, note_information ou outil interne.",
     "Pose au maximum une question.",
+    ...userIdentityVisiblePromptLines(),
     VISIBLE_OUTPUT_STYLE_RULES,
     VISIBLE_CONVERSATION_FLOW_RULES,
     visibleInstruction(stage),
@@ -130,7 +154,20 @@ export function featureOpportunityVisiblePrompt(
 export async function runFeatureOpportunityVisibleAgent(
   input: FeatureOpportunityVisibleAgentInput,
 ): Promise<string | null> {
-  const prompt = featureOpportunityVisiblePrompt(input.stage);
+  const prompt = featureOpportunityVisiblePrompt(input.stage, {
+    oneShotReminderContextPresent: oneShotReminderVisibleContextPresent(
+      input.conversation_context?.direct_effect_confirmation_context,
+    ),
+    committedOneShotReminderThisTurn: directEffectContextCommittedThisTurn(
+      input.conversation_context?.direct_effect_confirmation_context,
+    ),
+    committedOneShotReminderKnown: committedOneShotReminderKnown({
+      directEffectConfirmationContext:
+        input.conversation_context?.direct_effect_confirmation_context,
+      recentEffectsSummary:
+        input.visible_runtime_context?.recent_effects_summary,
+    }),
+  });
   try {
     const raw = await generateWithGemini(
       prompt,
@@ -138,7 +175,7 @@ export async function runFeatureOpportunityVisibleAgent(
         stage: input.stage,
         visible_runtime_context: input.visible_runtime_context ?? {
           style_rules: VISIBLE_OUTPUT_STYLE_RULES,
-          recent_user_messages: [],
+          recent_messages: [],
         },
         conversation_context: input.conversation_context,
       }),

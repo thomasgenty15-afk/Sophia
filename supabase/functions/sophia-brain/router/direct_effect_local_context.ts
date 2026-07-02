@@ -287,6 +287,37 @@ export function buildDirectEffectConfirmationContext(
   };
 }
 
+function hasCommittedOneShotReminderContext(context: unknown): boolean {
+  if (!isRecord(context)) return false;
+  if (context.has_committed_one_shot_reminder === true) return true;
+  const oneShot = context.one_shot_reminder;
+  return isRecord(oneShot) && oneShot.committed === true;
+}
+
+export function selectDirectEffectConfirmationContext(args: {
+  turnFrame: unknown;
+  reducedContext?: unknown;
+  recentContext?: unknown;
+}): DirectEffectConfirmationContext | Record<string, unknown> | null {
+  const currentContext = isRecord(args.turnFrame)
+    ? (args.turnFrame.direct_effect_confirmation_context ?? null)
+    : null;
+  const current = currentContext ?? buildDirectEffectConfirmationContext(
+    args.turnFrame,
+  );
+  if (current) return current as DirectEffectConfirmationContext;
+
+  if (hasCommittedOneShotReminderContext(args.recentContext)) {
+    return args.recentContext as Record<string, unknown>;
+  }
+  if (hasCommittedOneShotReminderContext(args.reducedContext)) {
+    return args.reducedContext as Record<string, unknown>;
+  }
+  return (args.reducedContext as Record<string, unknown> | null) ??
+    (args.recentContext as Record<string, unknown> | null) ??
+    null;
+}
+
 export function withDirectEffectConfirmationContext<
   T extends Record<string, unknown>,
 >(

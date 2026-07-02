@@ -99,6 +99,12 @@ export interface LoadedContext {
    * X. Voir chantier 2 phase B, 2026-05-28.
    */
   durableEffectsSummary?: string;
+  /**
+   * Timeline compacte des effets persistés par l'EffectLedger sur les derniers
+   * tours. Source d'exécution récente uniquement; l'état courant reste porté
+   * par les tables métier.
+   */
+  recentEffectsSummary?: string;
 }
 
 /**

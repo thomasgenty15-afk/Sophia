@@ -14,8 +14,15 @@ import {
   buildContextString,
   type ContextLoadResult,
   loadContextForMode,
+  loadRecentDirectEffectConfirmationContext,
+  loadRecentEffectsLedgerSummary,
   type OnDemandTriggers,
+  serviceRoleLedgerReadClient,
 } from "../context/loader.ts";
+import {
+  loadUserIdentityPack,
+  type UserIdentityPack,
+} from "../context/user_identity.ts";
 import {
   RECENT_MESSAGE_LIMITS,
   recentChatMessagesFromHistory,
@@ -65,11 +72,12 @@ import {
   mergeDirectEffectRuntimeIntoVisibleRuntime,
   runDirectEffectLane,
   runOperationRuntimePipeline,
+  turnFrameHasRunnableDirectEffect,
   turnFrameWithDirectEffectRuntime,
 } from "./operation_runtime_pipeline.ts";
 import {
-  oneShotDirectEffectFromLocalRequest,
   type LocalOneShotDirectEffectRequest,
+  oneShotDirectEffectFromLocalRequest,
 } from "./one_shot_local_direct_effect.ts";
 import {
   directEffectConfirmationContextPrompt,
@@ -78,11 +86,14 @@ import {
 import {
   executedToolsForStatus,
   type OperationRuntimeResult,
+  recordToolSkillEffectsInLedger,
 } from "./effect_ledger_adapter.ts";
 import {
   createEffectLedger,
+  type EffectLedger,
   summarizeEffectLedgerForTrace,
 } from "./effect_ledger.ts";
+import { persistEffectLedgerForTurn } from "./effect_ledger_persistence.ts";
 import { logConversationTurn } from "../observability/trace_logger.ts";
 import {
   applySafetyCrisisExitStateIfNeeded,
@@ -99,6 +110,7 @@ import { runProductHelpSkill } from "../skills/product_help/skill.ts";
 import { runCoachingRecommendationSkill } from "../skills/coaching_recommendation/skill.ts";
 import { runDailyActionCoachingRecommendationSkill } from "../skills/daily_action_coaching_recommendation/skill.ts";
 import { runFeatureOpportunitySkill } from "../skills/feature_opportunity/skill.ts";
+import { runPlanRealignmentSkill } from "../skills/plan_realignment/skill.ts";
 import { runSafetyCrisisSkill } from "../skills/safety_crisis/skill.ts";
 import {
   oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput,
@@ -221,18 +233,24 @@ function productHelpInjectedContext(routeDecision: RouteDecision | null) {
   ].join("\n");
 }
 
+type RuntimeConversationSkillId =
+  | "product_help"
+  | "coaching_recommendation"
+  | "daily_action_coaching_recommendation_v1"
+  | "feature_opportunity"
+  | "plan_realignment";
+
 function buildConversationSkillContext(args: {
-  skillId:
-    | "product_help"
-    | "coaching_recommendation"
-    | "daily_action_coaching_recommendation_v1"
-    | "feature_opportunity";
+  skillId: RuntimeConversationSkillId;
   userId: string;
   recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
   activeSkillState: unknown;
   turnFrame: TurnFrame;
   planItemSnapshot: V2PlanItemSnapshotItem[];
   inboundNote?: unknown;
+  recentEffectsSummary?: string | null;
+  recentDirectEffectConfirmationContext?: Record<string, unknown> | null;
+  userIdentity?: UserIdentityPack | null;
 }) {
   return {
     skill_id: args.skillId,
@@ -246,16 +264,18 @@ function buildConversationSkillContext(args: {
     >,
     product_surfaces: [],
     exclusions: [],
+    runtime_context: {
+      recent_effects_summary: args.recentEffectsSummary ?? null,
+      recent_direct_effect_confirmation_context:
+        args.recentDirectEffectConfirmationContext ?? null,
+      user_identity: args.userIdentity ?? null,
+    },
     note_information: args.inboundNote ?? null,
   };
 }
 
 function localStateFromSkillOutput(
-  skillId:
-    | "product_help"
-    | "coaching_recommendation"
-    | "daily_action_coaching_recommendation_v1"
-    | "feature_opportunity",
+  skillId: RuntimeConversationSkillId,
   output: ConversationSkillOutput,
 ): unknown {
   const patch = output.state_patch ?? {};
@@ -263,6 +283,8 @@ function localStateFromSkillOutput(
     ? patch.product_help_local_state
     : skillId === "feature_opportunity"
     ? patch.feature_opportunity_local_state
+    : skillId === "plan_realignment"
+    ? patch.plan_realignment_local_state
     : skillId === "daily_action_coaching_recommendation_v1"
     ? patch.daily_action_coaching_recommendation_state
     : patch.coaching_recommendation_local_state;
@@ -334,11 +356,7 @@ export function applySafetyCrisisSkillState(args: {
 export function applyConversationSkillState(args: {
   tempMemory: Record<string, unknown>;
   activeSkillState: unknown;
-  skillId:
-    | "product_help"
-    | "coaching_recommendation"
-    | "daily_action_coaching_recommendation_v1"
-    | "feature_opportunity";
+  skillId: RuntimeConversationSkillId;
   output: ConversationSkillOutput;
 }) {
   let next = { ...args.tempMemory };
@@ -360,6 +378,8 @@ export function applyConversationSkillState(args: {
           ? local?.product_help_state?.turn_count
           : args.skillId === "feature_opportunity"
           ? local?.turn_count
+          : args.skillId === "plan_realignment"
+          ? local?.turn_count
           : args.skillId === "daily_action_coaching_recommendation_v1"
           ? local?.turn_count
           : local?.turn_count,
@@ -372,6 +392,8 @@ export function applyConversationSkillState(args: {
             ? "product_help_local_state"
             : args.skillId === "feature_opportunity"
             ? "feature_opportunity_local_state"
+            : args.skillId === "plan_realignment"
+            ? "plan_realignment_local_state"
             : args.skillId === "daily_action_coaching_recommendation_v1"
             ? "daily_action_coaching_recommendation_state"
             : "coaching_recommendation_local_state"
@@ -402,8 +424,8 @@ export function applyConversationSkillState(args: {
     args.skillId === "daily_action_coaching_recommendation_v1" &&
     args.output.state_patch
   ) {
-    const note =
-      args.output.state_patch.daily_action_coaching_recommendation_note_information;
+    const note = args.output.state_patch
+      .daily_action_coaching_recommendation_note_information;
     if (note) {
       next.__last_daily_action_coaching_recommendation_exit_memo = {
         note_information: note,
@@ -420,6 +442,15 @@ export function applyConversationSkillState(args: {
       };
     }
   }
+  if (args.skillId === "plan_realignment" && args.output.state_patch) {
+    const note = args.output.state_patch.plan_realignment_note_information;
+    if (note) {
+      next.__last_plan_realignment_exit_memo = {
+        note_information: note,
+        at: new Date().toISOString(),
+      };
+    }
+  }
   return next;
 }
 
@@ -431,6 +462,7 @@ function skillOutputNoteInformation(
     patch.coaching_recommendation_note_information ??
     patch.daily_action_coaching_recommendation_note_information ??
     patch.feature_opportunity_note_information ??
+    patch.plan_realignment_note_information ??
     (output.diagnosis as any)?.note_information) ?? null;
 }
 
@@ -527,6 +559,18 @@ function turnFrameWithLocalExitNoteRoutingHints(args: {
       context: recordOrNull(structured.dispatcher_signal_context) ??
         undefined,
     } as any;
+  } else if (
+    focus === "plan_realignment" &&
+    !skillSignals.plan_realignment?.detected
+  ) {
+    const structured = structuredContextFromNote(note);
+    skillSignals.plan_realignment = {
+      detected: true,
+      confidence_band: confidenceBand,
+      reason: "local_flow_exit_note",
+      context: recordOrNull(structured.dispatcher_signal_context) ??
+        undefined,
+    } as any;
   }
 
   return {
@@ -591,6 +635,68 @@ export function mergeVisibleTextForTest(
   const visible = String(agentText ?? "").trim();
   if (visible) return visible;
   return operationText;
+}
+
+function turnFrameHasCommittedOneShotReminder(
+  turnFrame: TurnFrame | null,
+): boolean {
+  const lane = (turnFrame as { direct_effect_lane?: unknown } | null)
+    ?.direct_effect_lane;
+  const committed =
+    lane && typeof lane === "object" &&
+      Array.isArray((lane as Record<string, unknown>).committed_effects)
+      ? (lane as Record<string, unknown>).committed_effects as unknown[]
+      : [];
+  return committed.some((effect) =>
+    Boolean(effect) && typeof effect === "object" &&
+    String((effect as Record<string, unknown>).type ?? "") ===
+      "create_one_shot_reminder"
+  );
+}
+
+function effectLedgerForOperationRuntime(
+  turnId: string,
+  operationRuntime: OperationRuntimeResult | null | undefined,
+) {
+  const effectLedger = createEffectLedger(turnId);
+  recordToolSkillEffectsInLedger({
+    ledger: effectLedger,
+    toolSkillRun: operationRuntime?.toolSkillRun,
+    toolExecution: operationRuntime?.toolExecution ?? "none",
+  });
+  return effectLedger;
+}
+
+async function persistEffectLedgerForRuntimeTurn(args: {
+  supabase: SupabaseClient;
+  effectLedger: EffectLedger;
+  userId: string;
+  sourceMessageId?: string | null;
+  requestId?: string | null;
+  channel: "web" | "whatsapp" | string;
+  scope: string;
+}) {
+  const result = await persistEffectLedgerForTurn({
+    supabase: args.supabase,
+    ledger: args.effectLedger,
+    userId: args.userId,
+    sourceMessageId: args.sourceMessageId ?? null,
+    requestId: args.requestId ?? null,
+    channel: args.channel,
+    scope: args.scope,
+  });
+  if (result.error) {
+    console.warn("[Router] persistEffectLedgerForTurn failed", result.error);
+  }
+}
+
+export function effectLedgerTraceForTest(args: {
+  turnId: string;
+  operationRuntime?: OperationRuntimeResult | null;
+}) {
+  return summarizeEffectLedgerForTrace(
+    effectLedgerForOperationRuntime(args.turnId, args.operationRuntime),
+  );
 }
 
 function finalVisibleText(text: unknown, routeDecision: RouteDecision | null) {
@@ -970,8 +1076,58 @@ export async function processMessage(
   let skillExitInjectedContext: string | undefined;
   let localFlowExitSkillRun: Record<string, unknown> | undefined;
   let localFlowExitRedispatchCount = 0;
+  let reminderDirectEffectReexecuted = false;
 
   visibleOwnerDispatch: while (true) {
+    // Direct-effect execution is a turn-level concern, not tied to whichever flow
+    // exited. When a local flow (e.g. feature_opportunity) hands the turn back to
+    // the global dispatcher on the same turn, the rebuilt turn frame can surface a
+    // runnable create_one_shot_reminder that the pre-loop pipeline never executed
+    // (the global dispatcher was skipped while the local flow owned the turn).
+    // Re-run the direct-effect lane once so the reminder is committed regardless
+    // of the exiting flow. Idempotency: fires at most once per turn and never when
+    // the reminder is already committed in this turn's direct_effect_lane.
+    if (
+      localFlowExitRedispatchCount > 0 &&
+      !reminderDirectEffectReexecuted &&
+      turnFrameHasRunnableDirectEffect(turnFrame, "create_one_shot_reminder") &&
+      !turnFrameHasCommittedOneShotReminder(turnFrame)
+    ) {
+      reminderDirectEffectReexecuted = true;
+      const reexecReminderLane = await runDirectEffectLane({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.timezone ?? meta?.clientTimezone ?? "UTC",
+        history,
+        tempMemory,
+        state,
+        planItemSnapshot,
+        turnFrame,
+        routeDecision,
+        safetyContextOutput,
+        sourceMessageId: loggedMessageId ?? requestId,
+        requestId,
+        v2Runtime,
+        clientNow,
+        allowMessageIntakeFallback: false,
+      });
+      routeDecision = reexecReminderLane.routeDecision ?? routeDecision;
+      tempMemory = reexecReminderLane.tempMemory ?? tempMemory;
+      turnFrame = turnFrameWithDirectEffectRuntime(
+        reexecReminderLane.turnFrame,
+        reexecReminderLane.operationRuntime,
+      ) ??
+        (reexecReminderLane.turnFrame
+          ? withDirectEffectConfirmationContext(reexecReminderLane.turnFrame)
+          : reexecReminderLane.turnFrame) ??
+        turnFrame;
+      operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
+        directRuntime: reexecReminderLane.operationRuntime,
+        visibleRuntime: operationRuntime,
+      });
+    }
     const operationRun = operationRuntime?.toolSkillRun ?? {};
     const weeklyLocalRuntimeOwnsTurn =
       operationRun.selected_handler === "weekly_adaptive_review_v1" &&
@@ -1036,7 +1192,10 @@ export async function processMessage(
           weeklyRuntimeContent,
           routeDecision,
         );
-        const effectLedger = createEffectLedger(turnFrame.turn_id);
+        const effectLedger = effectLedgerForOperationRuntime(
+          turnFrame.turn_id,
+          operationRuntime,
+        );
         const conversationTurnTrace = {
           turn_frame: turnFrame,
           route_decision: routeDecision,
@@ -1076,6 +1235,15 @@ export async function processMessage(
         } catch (error) {
           console.warn("[Router] logConversationTurn failed", error);
         }
+        await persistEffectLedgerForRuntimeTurn({
+          supabase,
+          effectLedger,
+          userId,
+          sourceMessageId: turnFrame.source_message_id,
+          requestId,
+          channel,
+          scope,
+        });
         await updateUserState(supabase, userId, scope, {
           current_mode: "companion",
           temp_memory: tempMemory,
@@ -1167,7 +1335,10 @@ export async function processMessage(
         mergeVisibleTextForTest(operationRuntime, skillReply),
         routeDecision,
       );
-      const effectLedger = createEffectLedger(turnFrame.turn_id);
+      const effectLedger = effectLedgerForOperationRuntime(
+        turnFrame.turn_id,
+        operationRuntime,
+      );
       const conversationTurnTrace = {
         turn_frame: turnFrame,
         route_decision: routeDecision,
@@ -1222,6 +1393,15 @@ export async function processMessage(
       } catch (error) {
         console.warn("[Router] logConversationTurn failed", error);
       }
+      await persistEffectLedgerForRuntimeTurn({
+        supabase,
+        effectLedger,
+        userId,
+        sourceMessageId: turnFrame.source_message_id,
+        requestId,
+        channel,
+        scope,
+      });
       await updateUserState(supabase, userId, scope, {
         current_mode: "sentry",
         temp_memory: tempMemory,
@@ -1268,10 +1448,31 @@ export async function processMessage(
       routeDecision.response_owner === "coaching_recommendation" ||
       routeDecision.response_owner ===
         "daily_action_coaching_recommendation_v1" ||
-      routeDecision.response_owner === "feature_opportunity"
+      routeDecision.response_owner === "feature_opportunity" ||
+      routeDecision.response_owner === "plan_realignment"
     ) {
       const skillId = routeDecision.response_owner;
       const skillStart = Date.now();
+      const [
+        recentEffectsSummary,
+        recentDirectEffectConfirmationContext,
+        skillUserIdentity,
+      ] = await Promise.all([
+        loadRecentEffectsLedgerSummary({
+          supabase,
+          userId,
+          scope,
+          userTimePromptBlock: userTime?.prompt_block,
+          ledgerReadClient: serviceRoleLedgerReadClient(),
+        }),
+        loadRecentDirectEffectConfirmationContext({
+          supabase,
+          userId,
+          scope,
+          ledgerReadClient: serviceRoleLedgerReadClient(),
+        }),
+        loadUserIdentityPack(supabase, userId),
+      ]);
       const context = buildConversationSkillContext({
         skillId,
         userId,
@@ -1280,6 +1481,9 @@ export async function processMessage(
         turnFrame,
         planItemSnapshot,
         inboundNote: turnFrame.note_information ?? null,
+        recentEffectsSummary,
+        recentDirectEffectConfirmationContext,
+        userIdentity: skillUserIdentity,
       });
       const localOneShotDirectEffectExecutor = async (
         request: LocalOneShotDirectEffectRequest,
@@ -1368,6 +1572,12 @@ export async function processMessage(
           context,
           direct_effect_executor: localOneShotDirectEffectExecutor,
         })
+        : skillId === "plan_realignment"
+        ? await runPlanRealignmentSkill({
+          user_message: userMessage,
+          context,
+          direct_effect_executor: localOneShotDirectEffectExecutor,
+        })
         : skillId === "daily_action_coaching_recommendation_v1"
         ? await runDailyActionCoachingRecommendationSkill({
           user_message: userMessage,
@@ -1441,7 +1651,10 @@ export async function processMessage(
           mergeVisibleTextForTest(operationRuntime, skillReply),
           routeDecision,
         );
-        const effectLedger = createEffectLedger(turnFrame.turn_id);
+        const effectLedger = effectLedgerForOperationRuntime(
+          turnFrame.turn_id,
+          operationRuntime,
+        );
         const conversationTurnTrace = {
           turn_frame: turnFrame,
           route_decision: routeDecision,
@@ -1494,6 +1707,15 @@ export async function processMessage(
         } catch (error) {
           console.warn("[Router] logConversationTurn failed", error);
         }
+        await persistEffectLedgerForRuntimeTurn({
+          supabase,
+          effectLedger,
+          userId,
+          sourceMessageId: turnFrame.source_message_id,
+          requestId,
+          channel,
+          scope,
+        });
         await updateUserState(supabase, userId, scope, {
           current_mode: "companion",
           temp_memory: tempMemory,
@@ -1685,7 +1907,10 @@ export async function processMessage(
     ? operationRuntime.toolExecution
     : agentToolExecution;
 
-  const effectLedger = createEffectLedger(turnFrame.turn_id);
+  const effectLedger = effectLedgerForOperationRuntime(
+    turnFrame.turn_id,
+    operationRuntime,
+  );
   const conversationTurnTrace = {
     turn_frame: turnFrame,
     route_decision: routeDecision,
@@ -1737,6 +1962,15 @@ export async function processMessage(
       error: error instanceof Error ? error.message : String(error),
     }, "warn");
   }
+  await persistEffectLedgerForRuntimeTurn({
+    supabase,
+    effectLedger,
+    userId,
+    sourceMessageId: turnFrame.source_message_id,
+    requestId,
+    channel,
+    scope,
+  });
 
   await updateUserState(supabase, userId, scope, {
     current_mode: agentOut.nextMode ?? "companion",

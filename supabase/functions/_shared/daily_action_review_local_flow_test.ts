@@ -413,15 +413,45 @@ Deno.test("daily action review has dedicated visible agent specs", () => {
   );
 });
 
-Deno.test("daily action review visible keeps canonical one-shot confirmation rules after stage rules", () => {
-  const prompt = dailyActionReviewVisibleSystemPrompt("clarify_outcome");
-  const stageIndex = prompt.lastIndexOf("Clarifie seulement l'outcome");
-  const oneShotIndex = prompt.lastIndexOf(
+Deno.test("daily action review visible injects one-shot confirmation rules only when a reminder is in ledger context", () => {
+  // A reminder committed this turn (pipeline) => active one-time confirmation.
+  const withReminder = dailyActionReviewVisibleSystemPrompt("clarify_outcome", {
+    oneShotReminderContextPresent: true,
+    committedOneShotReminderThisTurn: true,
+  });
+  const stageIndex = withReminder.lastIndexOf("Clarifie seulement l'outcome");
+  const oneShotIndex = withReminder.lastIndexOf(
     "confirme naturellement le rappel une seule fois",
   );
-
   assertEquals(stageIndex >= 0, true);
   assertEquals(oneShotIndex > stageIndex, true);
+
+  // Proven only from the recent ledger window (turns 2-5) => availability, no
+  // spontaneous confirmation directive.
+  const withWindowReminder = dailyActionReviewVisibleSystemPrompt(
+    "clarify_outcome",
+    { oneShotReminderContextPresent: true, committedOneShotReminderKnown: true },
+  );
+  assertEquals(
+    withWindowReminder.includes(
+      "Un rappel ponctuel committe est prouve et disponible dans le contexte",
+    ),
+    true,
+  );
+  assertEquals(
+    withWindowReminder.includes(
+      "confirme naturellement le rappel une seule fois",
+    ),
+    false,
+  );
+
+  const withoutReminder = dailyActionReviewVisibleSystemPrompt(
+    "clarify_outcome",
+  );
+  assertEquals(
+    withoutReminder.includes("confirme naturellement le rappel une seule fois"),
+    false,
+  );
 });
 
 Deno.test("daily action review opening prompt uses visible rules and binary wording", () => {

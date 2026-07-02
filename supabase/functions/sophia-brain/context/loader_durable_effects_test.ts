@@ -10,7 +10,11 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 
-import { loadDurableEffectsSummary } from "./loader.ts";
+import {
+  loadDurableEffectsSummary,
+  loadRecentDirectEffectConfirmationContext,
+  loadRecentEffectsLedgerSummary,
+} from "./loader.ts";
 
 type TableRowsByName = Record<string, unknown[]>;
 
@@ -31,6 +35,9 @@ function makeFakeSupabase(rowsByTable: TableRowsByName) {
           return this;
         },
         like(_col: string, _val: string) {
+          return this;
+        },
+        in(_col: string, _vals: unknown[]) {
           return this;
         },
         limit(_n: number) {
@@ -94,7 +101,7 @@ Deno.test("loadDurableEffectsSummary lists an active attack card and forbids 'pa
   // Garde-fou: la consigne anti-hallucination doit être présente.
   assertStringIncludes(
     summary,
-    "Ne dis JAMAIS \"on n'a pas validé/créé X\"",
+    'Ne dis JAMAIS "on n\'a pas validé/créé X"',
   );
 });
 
@@ -232,7 +239,7 @@ Deno.test("loadDurableEffectsSummary details ALL pending reminders (A4-r5 T11)",
   // La nouvelle consigne anti-faux-négatif doit être présente.
   assertStringIncludes(
     summary,
-    "Ne dis jamais \"non\" pour un rappel listé ci-dessus",
+    'Ne dis jamais "non" pour un rappel listé ci-dessus',
   );
 });
 
@@ -372,4 +379,154 @@ Deno.test("loadDurableEffectsSummary swallows errors and returns null (non-block
   } as any;
   const summary = await loadDurableEffectsSummary(supabase, "u1");
   assertEquals(summary, null);
+});
+
+Deno.test("loadRecentEffectsLedgerSummary injects committed effects with current DB state", async () => {
+  const supabase = makeFakeSupabase({
+    turn_summary_logs: [{
+      created_at: "2026-07-01T10:00:00.000Z",
+      payload: {
+        tag: "effect_ledger",
+        entries: [{
+          turn_id: "turn-1",
+          user_id: "u1",
+          created_at: "2026-07-01T10:00:00.000Z",
+          status: "committed",
+          kind: "durable_effect",
+          effect_type: "one_shot_reminder.create",
+          operation_type: "create_one_shot_reminder",
+          source: "executor",
+          payload_summary: {
+            reminder_instruction: "relire la synthese avant de l'envoyer",
+          },
+          db_ref: { table: "scheduled_checkins", id: "rem-1" },
+        }],
+      },
+    }],
+    scheduled_checkins: [{
+      id: "rem-1",
+      scheduled_for: "2026-07-01T12:20:00.000Z",
+      status: "pending",
+      message_payload: {
+        reminder_instruction: "relire la synthese avant de l'envoyer",
+      },
+    }],
+  });
+
+  const summary = await loadRecentEffectsLedgerSummary({
+    supabase,
+    userId: "u1",
+    userTimePromptBlock: "user_timezone=Europe/Paris",
+  });
+
+  if (!summary) throw new Error("expected non-null summary");
+  assertStringIncludes(summary, "EFFETS RÉCENTS");
+  assertStringIncludes(summary, "Rappel ponctuel créé");
+  assertStringIncludes(summary, "exécuté et persisté");
+  assertStringIncludes(summary, "état DB actuel: pending");
+  assertStringIncludes(summary, "relire la synthese avant de l'envoyer");
+  assertStringIncludes(summary, "ne révèle pas le nom EffectLedger");
+});
+
+Deno.test("loadRecentEffectsLedgerSummary expires effects outside the last five ledger turns", async () => {
+  const supabase = makeFakeSupabase({
+    turn_summary_logs: [{
+      scope: "web",
+      created_at: "2026-07-01T10:00:00.000Z",
+      payload: {
+        tag: "effect_ledger",
+        entries: [
+          {
+            turn_id: "turn-old",
+            user_id: "u1",
+            created_at: "2026-07-01T10:00:00.000Z",
+            status: "committed",
+            kind: "durable_effect",
+            effect_type: "one_shot_reminder.create",
+            operation_type: "create_one_shot_reminder",
+            source: "executor",
+            payload_summary: { reminder_instruction: "ancien rappel" },
+            db_ref: { table: "scheduled_checkins", id: "rem-old" },
+          },
+          ...[1, 2, 3, 4, 5].map((n) => ({
+            turn_id: `turn-keep-${n}`,
+            user_id: "u1",
+            source_message_id: `source-not-required-${n}`,
+            created_at: `2026-07-01T10:0${n}:00.000Z`,
+            status: "committed",
+            kind: "durable_effect",
+            effect_type: "one_shot_reminder.create",
+            operation_type: "create_one_shot_reminder",
+            source: "executor",
+            payload_summary: { reminder_instruction: `rappel recent ${n}` },
+            db_ref: { table: "scheduled_checkins", id: `rem-keep-${n}` },
+          })),
+        ],
+      },
+    }],
+    scheduled_checkins: [1, 2, 3, 4, 5].map((n) => ({
+      id: `rem-keep-${n}`,
+      scheduled_for: "2026-07-01T12:20:00.000Z",
+      status: "pending",
+      message_payload: { reminder_instruction: `rappel recent ${n}` },
+    })),
+  });
+
+  const summary = await loadRecentEffectsLedgerSummary({
+    supabase,
+    userId: "u1",
+    scope: "web",
+    userTimePromptBlock: "user_timezone=Europe/Paris",
+  });
+
+  if (!summary) throw new Error("expected non-null summary");
+  assertStringIncludes(summary, "rappel recent 5");
+  assertEquals(summary.includes("ancien rappel"), false);
+});
+
+Deno.test("loadRecentDirectEffectConfirmationContext projects a committed reminder", async () => {
+  const supabase = makeFakeSupabase({
+    turn_summary_logs: [{
+      scope: "web",
+      created_at: "2026-07-01T10:05:00.000Z",
+      payload: {
+        tag: "effect_ledger",
+        entries: [{
+          turn_id: "turn-1",
+          user_id: "u1",
+          source_message_id: "request-id-not-chat-message-id",
+          created_at: "2026-07-01T10:05:00.000Z",
+          status: "committed",
+          kind: "durable_effect",
+          effect_type: "one_shot_reminder.create",
+          operation_type: "create_one_shot_reminder",
+          source: "executor",
+          payload_summary: {
+            local_label: "dans 20 minutes",
+            reminder_instruction: "relire la synthese",
+          },
+          db_ref: { table: "scheduled_checkins", id: "rem-1" },
+        }],
+      },
+    }],
+    scheduled_checkins: [{
+      id: "rem-1",
+      scheduled_for: "2026-07-01T12:20:00.000Z",
+      status: "pending",
+      message_payload: { reminder_instruction: "relire la synthese" },
+    }],
+  });
+
+  const context = await loadRecentDirectEffectConfirmationContext({
+    supabase,
+    userId: "u1",
+    scope: "web",
+  });
+
+  assertEquals((context as any)?.has_committed_one_shot_reminder, true);
+  assertEquals((context as any)?.one_shot_reminder?.committed, true);
+  assertEquals(
+    (context as any)?.one_shot_reminder?.reminder_instruction,
+    "relire la synthese",
+  );
 });

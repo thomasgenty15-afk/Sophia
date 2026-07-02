@@ -11,6 +11,7 @@ export type ActiveLocalConversationFlowSkillId =
   | "weekly_adaptive_review_v1"
   | "product_help"
   | "coaching_recommendation"
+  | "plan_realignment"
   | "feature_opportunity"
   | "safety_crisis";
 
@@ -21,6 +22,7 @@ const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   "weekly_adaptive_review_v1",
   "product_help",
   "coaching_recommendation",
+  "plan_realignment",
   "feature_opportunity",
   "safety_crisis",
 ]);
@@ -95,6 +97,30 @@ function recordSkillId(value: unknown): string {
   return String(record.skill_id ?? "").trim();
 }
 
+// Borne de fraicheur des flows locaux: un flow actif dont le dernier tour
+// date de plus de 4h ne possede plus la conversation — le message courant
+// prime sur un vieux flow (charte anti-patching, commandement 9). Pour la
+// safety c'est sans risque: le pregate re-evalue chaque tour et re-engage
+// un flow frais si un signal reel est present.
+export const ACTIVE_LOCAL_FLOW_STALE_AFTER_MS = 4 * 60 * 60 * 1000;
+
+export function isStaleActiveLocalFlowState(
+  value: unknown,
+  nowMs: number = Date.now(),
+): boolean {
+  const record = value as any;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return false;
+  }
+  const touchedAt = Date.parse(
+    String(record.updated_at ?? record.started_at ?? ""),
+  );
+  // Sans timestamp exploitable, le flow est conserve: la fraicheur ne doit
+  // jamais casser un flow legitime a cause d'un state partiel.
+  if (!Number.isFinite(touchedAt)) return false;
+  return nowMs - touchedAt > ACTIVE_LOCAL_FLOW_STALE_AFTER_MS;
+}
+
 function activeLocalConversationSkillId(
   value: unknown,
 ): ActiveLocalConversationFlowSkillId | "" {
@@ -115,6 +141,7 @@ function activeLocalConversationSkillId(
     "exiting",
   ]);
   if (terminalStatuses.has(status)) return "";
+  if (isStaleActiveLocalFlowState(value)) return "";
   return ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS.has(
       skillId as ActiveLocalConversationFlowSkillId,
     )

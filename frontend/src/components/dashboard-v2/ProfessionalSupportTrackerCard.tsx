@@ -35,6 +35,11 @@ function shouldRevealRecommendation(
 ) {
   if (recommendation.timing_kind === "now") return true;
   if (recommendation.timing_kind === "if_blocked") return true;
+  // Current backend emits only "during_target_level". These recommendations are
+  // tied to a level the user is already committed to, and the card itself shows
+  // the target level as context, so surface them from the start of the plan
+  // instead of hiding the whole card until that level is reached.
+  if (recommendation.timing_kind === "during_target_level") return true;
   if (recommendation.timing_kind === "after_phase1") return phase1Completed;
   if (recommendation.target_level_order == null || currentLevelOrder == null) {
     return phase1Completed;

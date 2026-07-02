@@ -97,7 +97,7 @@ function operationRuntimeFromTrackProgress(args: {
   };
 }
 
-function turnFrameHasRunnableDirectEffect(
+export function turnFrameHasRunnableDirectEffect(
   turnFrame: TurnFrame | null,
   effectType: string,
 ): boolean {

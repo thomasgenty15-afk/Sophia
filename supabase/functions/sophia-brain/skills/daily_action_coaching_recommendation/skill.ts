@@ -1,4 +1,5 @@
 import type { RunSkillInput } from "../_shared/skill_helpers.ts";
+import { visibleRecentMessages } from "../_shared/visible_history.ts";
 import { baseOutput } from "../_shared/skill_helpers.ts";
 import { emptyConversationEffects } from "../_shared/conversation_skill_contract.ts";
 import {
@@ -6,32 +7,25 @@ import {
   type DailyActionCoachingVisibleOutput,
 } from "./contract.ts";
 import {
+  type DailyActionCoachingLocalDispatcher,
   initialDailyActionCoachingState,
   normalizeDailyActionCoachingHandoffContext,
   readDailyActionCoachingState,
   reduceDailyActionCoachingOutput,
   runDailyActionCoachingLocalDispatcher,
-  type DailyActionCoachingLocalDispatcher,
 } from "./local_flow.ts";
-import {
-  runDailyActionCoachingVisibleAgent,
-} from "./visible_agent.ts";
+import { runDailyActionCoachingVisibleAgent } from "./visible_agent.ts";
 
 export type DailyActionCoachingRunSkillInput = RunSkillInput & {
   local_dispatcher?: DailyActionCoachingLocalDispatcher;
   visible_agent?: typeof runDailyActionCoachingVisibleAgent;
 };
 
-function recentUserMessagesForVisible(input: DailyActionCoachingRunSkillInput) {
-  const messages = [
-    ...input.context.recent_messages,
-    { role: "user" as const, content: input.user_message },
-  ].filter((message) => message.role === "user" && message.content?.trim());
-  return messages.slice(-5).map((message) => ({
-    role: "user" as const,
-    content: message.content.trim(),
-    created_at: null,
-  }));
+function recentMessagesForVisible(input: DailyActionCoachingRunSkillInput) {
+  return visibleRecentMessages({
+    recent_messages: input.context.recent_messages,
+    user_message: input.user_message,
+  });
 }
 
 function normalizeVisibleOutput(
@@ -131,7 +125,10 @@ export async function runDailyActionCoachingRecommendationSkill(
         user_id: input.context.user_id,
         request_id: (input.context.turn_frame as any)?.source_message_id ??
           null,
-        recent_user_messages: recentUserMessagesForVisible(input),
+        recent_messages: recentMessagesForVisible(input),
+        user_identity: input.context.runtime_context?.user_identity ?? null,
+        recent_effects_summary:
+          input.context.runtime_context?.recent_effects_summary ?? null,
         action: previous.action_context,
         recommendation: reduced.recommendation,
         evidence: decision.evidence ?? [],

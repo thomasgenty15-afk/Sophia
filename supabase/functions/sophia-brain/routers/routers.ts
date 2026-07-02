@@ -93,6 +93,11 @@ function featureOpportunityDetected(turnFrame: TurnFrame): boolean {
     turnFrame.skill_signals.feature_opportunity.confidence_band !== "low";
 }
 
+function planRealignmentDetected(turnFrame: TurnFrame): boolean {
+  return turnFrame.skill_signals.plan_realignment?.detected === true &&
+    turnFrame.skill_signals.plan_realignment.confidence_band !== "low";
+}
+
 function activeConversationSkillId(activeSkillState: unknown): string {
   const record = activeSkillState && typeof activeSkillState === "object" &&
       !Array.isArray(activeSkillState)
@@ -107,6 +112,7 @@ function isActiveConversationSkill(
     | "safety_crisis"
     | "product_help"
     | "coaching_recommendation"
+    | "plan_realignment"
     | "daily_action_coaching_recommendation_v1"
     | "feature_opportunity"
     | "weekly_adaptive_review_v1",
@@ -156,6 +162,10 @@ export function runConversationRouters(input: {
           reason_code: "safety_priority",
         },
         {
+          path: "plan_realignment",
+          reason_code: "safety_priority",
+        },
+        {
           path: "feature_opportunity",
           reason_code: "safety_priority",
         },
@@ -185,6 +195,10 @@ export function runConversationRouters(input: {
         { path: "product_help", reason_code: "active_safety_priority" },
         {
           path: "coaching_recommendation",
+          reason_code: "active_safety_priority",
+        },
+        {
+          path: "plan_realignment",
           reason_code: "active_safety_priority",
         },
         {
@@ -280,6 +294,23 @@ export function runConversationRouters(input: {
   }
 
   if (
+    isActiveConversationSkill(input.active_skill_state, "plan_realignment")
+  ) {
+    return buildRouteDecision({
+      response_owner: "plan_realignment",
+      selected_handler: "plan_realignment",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: blockedPaths,
+      active_owner: "plan_realignment",
+      arbitration_decision: "continue_active",
+      resume_policy: "resume_active",
+      reason_code: directEffectsToRun.length > 0
+        ? "active_plan_realignment_with_direct_effects"
+        : "active_plan_realignment",
+    });
+  }
+
+  if (
     isActiveConversationSkill(input.active_skill_state, "feature_opportunity")
   ) {
     return buildRouteDecision({
@@ -315,6 +346,16 @@ export function runConversationRouters(input: {
       direct_effects_to_run: directEffectsToRun,
       blocked_paths: blockedPaths,
       reason_code: "coaching_recommendation_signal",
+    });
+  }
+
+  if (planRealignmentDetected(input.turn_frame)) {
+    return buildRouteDecision({
+      response_owner: "plan_realignment",
+      selected_handler: "plan_realignment",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: blockedPaths,
+      reason_code: "plan_realignment_signal",
     });
   }
 

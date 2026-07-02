@@ -589,6 +589,28 @@ function isClearIncomingCoachingSignal(args: {
   return false;
 }
 
+/**
+ * A dispatcher exit is "coherent" when the dispatcher committed to leaving per
+ * its own exit invariant: visible_task.kind=exit_ack and no active coaching
+ * recommendation/candidates left behind. Such an exit is a real, autonomous
+ * decision (durable preference/memory, autonomous product, status, new tool,
+ * frame refusal) and must be trusted. Incoherent "exits" that still carry a
+ * coaching recommendation/candidates are LLM noise / disguised target
+ * variations and stay subject to the active-flow anti-flapping guard.
+ */
+function isCoherentDispatcherExit(
+  output: CoachingRecommendationLocalDispatcherOutput,
+): boolean {
+  if (output.flow_action !== "exit_to_global_dispatcher") return false;
+  if (output.visible_task.kind !== "exit_ack") return false;
+  const rec = output.recommendation;
+  const hasActiveRecommendation = Boolean(
+    rec?.primary_feature || rec?.secondary_feature,
+  );
+  const hasCandidates = (output.feature_candidates?.length ?? 0) > 0;
+  return !hasActiveRecommendation && !hasCandidates;
+}
+
 function shouldPreserveDispatcherExit(args: {
   output: CoachingRecommendationLocalDispatcherOutput;
   selectedType?: CoachingType | null;
@@ -600,6 +622,9 @@ function shouldPreserveDispatcherExit(args: {
   if (
     args.output.coaching_intent.kind === "safety" || args.output.risk_score >= 7
   ) {
+    return true;
+  }
+  if (isCoherentDispatcherExit(args.output)) {
     return true;
   }
   if (args.output.coaching_intent.kind !== "off_topic") return false;
@@ -3114,6 +3139,9 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Exemple miroir obligatoire: apres une recommandation pour une action du plan, 'autre cas: j'ai un mail a Camille qui n'est pas dans mon plan, je bloque pareil' est un target_switch explicite vers no_plan_action, pas une sortie global.",
     "Dans un flow actif, ne produis jamais exit_to_global_dispatcher seulement parce que la cible passe de hors plan a plan, de plan a hors plan, ou d'action a emotion liee au coaching. C'est un changement de cible local.",
     "Si la nouvelle cible est mentionnee mais que sa relation au plan ou son type n'est pas clair, garde l'ownership et utilise change_confirm_coaching_type.",
+    "Frontiere du flow: tu possedes ce tour seulement si le message courant continue le travail de recommandation de coaching en cours: clarifier le blocage, adapter le levier propose, demander une aide plus concrete sur la meme action, ou poursuivre l'execution immediate de cette action.",
+    "Hors perimetre: si le message courant introduit une intention autonome qui doit etre arbitree globalement - question produit autonome, statut ou recap d'une operation, preference ou memoire durable, nouvelle action tool distincte, changement de sujet, ou refus du cadre de recommandation actuel - utilise exit_to_global_dispatcher.",
+    "Le message courant est prioritaire sur l'etat actif: si le tour sort du perimetre coaching, ne le reformule pas en carte, potion ou technique; rends feature_candidates=[], recommendation null, visible_task.kind=exit_ack et note_information vers global.",
     "Invariant de coherence de sortie: exit_to_global_dispatcher est mutuellement exclusif avec une recommandation coaching active.",
     "Si flow_action=exit_to_global_dispatcher: feature_candidates doit etre [], recommendation.primary_feature=null, recommendation.secondary_feature=null, visible_task.kind=exit_ack, state_updates.status=exit_to_global, et note_information doit expliquer le vrai sujet hors coaching.",
     "Si recommendation.primary_feature est attack_card, defense_card, adjust_plan ou state_potion, ou si visible_task.kind est action_plan_coaching, no_plan_coaching ou emotion_coaching, alors flow_action ne peut jamais etre exit_to_global_dispatcher: utilise recommend_feature, answer_followup ou compare_features avec state_updates.status=active.",

@@ -1,4 +1,4 @@
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Moon, Sunrise } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import type { PlanTypeClassificationV1 } from "../../types/v2";
@@ -179,23 +179,52 @@ export function PlanGenerationScreen({
         </div>
 
         {transformationSnapshot ? (
-          <div className="w-full max-w-xl border-t border-blue-100 pt-5">
-            <div className="grid gap-5 md:grid-cols-2">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-700">
-                  Ton point de départ
-                </p>
-                <p className="mt-2 text-sm leading-6 text-gray-700">
-                  {transformationSnapshot.starting_point}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
-                  Ton point d'arrivée
-                </p>
-                <p className="mt-2 text-sm leading-6 text-gray-700">
-                  {transformationSnapshot.arrival_point}
-                </p>
+          <div className="w-full max-w-2xl">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/70 to-transparent" />
+
+              <div className="relative grid gap-3 md:grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)] md:items-stretch">
+                <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/90 to-white px-5 py-5">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm shadow-blue-200">
+                      <Moon className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
+                      Ton point de départ
+                    </p>
+                  </div>
+                  <p className="mt-4 text-[15px] leading-7 text-slate-700">
+                    {transformationSnapshot.starting_point}
+                  </p>
+                </div>
+
+                <div className="relative flex items-center justify-center">
+                  <div className="hidden h-full w-px bg-gradient-to-b from-transparent via-slate-200 to-transparent md:block" />
+                  <div className="absolute left-1/2 top-1/2 hidden h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm md:flex">
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                  <div className="flex h-10 w-full items-center justify-center md:hidden">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm">
+                      <ArrowRight className="h-4 w-4 rotate-90" aria-hidden="true" />
+                    </div>
+                    <div className="h-px flex-1 bg-gradient-to-r from-slate-200 via-slate-200 to-transparent" />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/90 to-white px-5 py-5">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm shadow-emerald-200">
+                      <Sunrise className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+                      Ton point d'arrivée
+                    </p>
+                  </div>
+                  <p className="mt-4 text-[15px] leading-7 text-slate-700">
+                    {transformationSnapshot.arrival_point}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

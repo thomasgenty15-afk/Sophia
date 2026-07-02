@@ -147,8 +147,80 @@ const DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS = Math.max(
   ),
 );
 
+const WHATSAPP_COACHING_PAUSED_STATUSES = [
+  "pending",
+  "retrying",
+  "awaiting_user",
+];
+
 function cleanText(value: unknown): string {
   return String(value ?? "").trim();
+}
+
+function isWhatsappCoachingAccessAllowed(
+  profile: Record<string, unknown> | null | undefined,
+): boolean {
+  const tier = cleanText(profile?.access_tier).toLowerCase();
+  if (tier === "alliance" || tier === "architecte") return true;
+  if (tier !== "trial") return false;
+
+  const trialEndRaw = cleanText(profile?.trial_end);
+  if (!trialEndRaw) return true;
+  const trialEndMs = new Date(trialEndRaw).getTime();
+  return Number.isFinite(trialEndMs) && trialEndMs > Date.now();
+}
+
+async function loadWhatsappCoachingAccess(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+}): Promise<{ allowed: boolean; tier: string }> {
+  const { data, error } = await params.supabaseAdmin
+    .from("profiles")
+    .select("access_tier,trial_end")
+    .eq("id", params.userId)
+    .maybeSingle();
+  if (error) throw error;
+  return {
+    allowed: isWhatsappCoachingAccessAllowed(
+      (data as Record<string, unknown> | null) ?? null,
+    ),
+    tier: cleanText((data as any)?.access_tier).toLowerCase() || "none",
+  };
+}
+
+async function pauseWhatsappCoachingWorkForUser(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  requestId: string;
+  reason: string;
+}) {
+  const nowIso = new Date().toISOString();
+
+  await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .update({
+      status: "cancelled",
+      processed_at: nowIso,
+      delivery_last_error: params.reason,
+      delivery_last_error_at: nowIso,
+      delivery_last_request_id: params.requestId,
+    } as any)
+    .eq("user_id", params.userId)
+    .in("status", WHATSAPP_COACHING_PAUSED_STATUSES as any);
+
+  await params.supabaseAdmin
+    .from("whatsapp_pending_actions")
+    .update({
+      status: "cancelled",
+      processed_at: nowIso,
+    } as any)
+    .eq("user_id", params.userId)
+    .in("kind", [
+      "deferred_send",
+      "scheduled_checkin",
+      PROACTIVE_TEMPLATE_CANDIDATE_KIND,
+    ] as any)
+    .eq("status", "pending");
 }
 
 function parseStringArray(value: unknown): string[] {
@@ -1532,7 +1604,7 @@ async function processDueDailyBilanWinbacks(params: {
   const { data: profiles, error } = await params.supabaseAdmin
     .from("profiles")
     .select(
-      "id,locale,timezone,whatsapp_bilan_opted_in,whatsapp_last_inbound_at,whatsapp_bilan_paused_until,whatsapp_coaching_paused_until,whatsapp_bilan_winback_step,whatsapp_bilan_last_winback_at",
+      "id,locale,timezone,access_tier,trial_end,whatsapp_bilan_opted_in,whatsapp_last_inbound_at,whatsapp_bilan_paused_until,whatsapp_coaching_paused_until,whatsapp_bilan_winback_step,whatsapp_bilan_last_winback_at",
     )
     .eq("whatsapp_bilan_opted_in", true)
     .not("whatsapp_last_inbound_at", "is", null)
@@ -1546,6 +1618,16 @@ async function processDueDailyBilanWinbacks(params: {
   for (const profile of profiles as Array<Record<string, unknown>>) {
     const userId = cleanText(profile.id);
     if (!userId) continue;
+
+    if (!isWhatsappCoachingAccessAllowed(profile)) {
+      await pauseWhatsappCoachingWorkForUser({
+        supabaseAdmin: params.supabaseAdmin,
+        userId,
+        requestId: params.requestId,
+        reason: "whatsapp_coaching_access_paused",
+      });
+      continue;
+    }
 
     const decision = evaluateDailyBilanWinbackForProfile(profile);
     if (!decision || decision.decision !== "send" || !decision.step) continue;
@@ -1684,6 +1766,20 @@ async function processPendingProactiveTemplateCandidates(params: {
     const losers = sorted.slice(1);
     const payload = (winner?.payload ?? {}) as any;
     const purpose = String(payload.purpose ?? "").trim();
+
+    const access = await loadWhatsappCoachingAccess({
+      supabaseAdmin: params.supabaseAdmin,
+      userId,
+    });
+    if (!access.allowed) {
+      await pauseWhatsappCoachingWorkForUser({
+        supabaseAdmin: params.supabaseAdmin,
+        userId,
+        requestId: params.requestId,
+        reason: `whatsapp_coaching_access_paused:${access.tier}`,
+      });
+      continue;
+    }
 
     let recurringQuotaMonthKey: string | null = null;
     let recurringQuotaConsumed = false;
@@ -2143,10 +2239,34 @@ async function processDueRendezVous(params: {
     const { data: profile } = await params.supabaseAdmin
       .from("profiles")
       .select(
-        "whatsapp_opted_in,whatsapp_last_inbound_at,whatsapp_last_outbound_at,timezone",
+        "access_tier,trial_end,whatsapp_opted_in,whatsapp_last_inbound_at,whatsapp_last_outbound_at,timezone",
       )
       .eq("id", userId)
       .maybeSingle();
+
+    if (
+      !isWhatsappCoachingAccessAllowed(
+        (profile as Record<string, unknown> | null) ?? null,
+      )
+    ) {
+      console.log(
+        `[process-checkins] request_id=${params.requestId} rendez_vous_skipped user_id=${userId} rdv_id=${rdvId} reason=access_paused`,
+      );
+      await transitionRendezVous(
+        params.supabaseAdmin as any,
+        rdvId,
+        "cancelled",
+        {
+          nowIso,
+          eventMetadata: {
+            source: "process_checkins",
+            reason: "access_paused",
+            access_tier: cleanText((profile as any)?.access_tier) || "none",
+          },
+        },
+      ).catch(() => undefined);
+      continue;
+    }
 
     if (!Boolean((profile as any)?.whatsapp_opted_in)) {
       console.log(
@@ -2342,6 +2462,20 @@ Deno.serve(async (req) => {
     let flushedCount = 0;
     if (deferred && deferred.length > 0) {
       for (const row of deferred as any[]) {
+        const access = await loadWhatsappCoachingAccess({
+          supabaseAdmin,
+          userId: String(row.user_id ?? ""),
+        });
+        if (!access.allowed) {
+          await pauseWhatsappCoachingWorkForUser({
+            supabaseAdmin,
+            userId: String(row.user_id ?? ""),
+            requestId,
+            reason: `whatsapp_coaching_access_paused:${access.tier}`,
+          });
+          continue;
+        }
+
         // Ensure quiet window is satisfied before sending.
         const { data: profile } = await supabaseAdmin
           .from("profiles")
@@ -2413,6 +2547,15 @@ Deno.serve(async (req) => {
           const status = (e as any)?.status;
           // 429 throttle => keep pending, retry later.
           if (status === 429) continue;
+          if (status === 402) {
+            await pauseWhatsappCoachingWorkForUser({
+              supabaseAdmin,
+              userId: String(row.user_id ?? ""),
+              requestId,
+              reason: "whatsapp_coaching_access_paused:paywall",
+            });
+            continue;
+          }
 
           // If WhatsApp can't be used (not opted in / paywall / missing phone), fall back to in-app log and stop retrying.
           if (bodyText.trim()) {
@@ -2511,6 +2654,31 @@ Deno.serve(async (req) => {
     let processedCount = 0;
 
     for (const checkin of checkins) {
+      const checkinUserId = String((checkin as any)?.user_id ?? "").trim();
+      if (!checkinUserId) {
+        await markScheduledCheckinDeliveryState({
+          supabaseAdmin,
+          checkinId: checkin.id,
+          status: "cancelled",
+          errorMessage: "missing_user_id",
+          requestId,
+        });
+        continue;
+      }
+      const access = await loadWhatsappCoachingAccess({
+        supabaseAdmin,
+        userId: checkinUserId,
+      });
+      if (!access.allowed) {
+        await pauseWhatsappCoachingWorkForUser({
+          supabaseAdmin,
+          userId: checkinUserId,
+          requestId,
+          reason: `whatsapp_coaching_access_paused:${access.tier}`,
+        });
+        continue;
+      }
+
       const eventContext = String((checkin as any)?.event_context ?? "");
       const isMomentumOutreach = isMomentumOutreachEventContext(eventContext);
       const isMomentumMorningNudge = isMorningNudgeEventContext(eventContext);

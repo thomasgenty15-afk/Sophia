@@ -7,7 +7,10 @@ import {
   createNoteInformation,
   type NoteInformation,
 } from "../contracts/note_information.v1.ts";
-import { clearActiveConversationSkillState } from "./active_flow_state.ts";
+import {
+  clearActiveConversationSkillState,
+  isStaleActiveLocalFlowState,
+} from "./active_flow_state.ts";
 
 export function isSafetyRoute(routeDecision: RouteDecision | null): boolean {
   return routeDecision?.response_owner === "safety";
@@ -17,6 +20,10 @@ export function isActiveSafetyCrisisSkillState(value: unknown): boolean {
   const record = value as any;
   if (!record || typeof record !== "object") return false;
   if (String(record.skill_id ?? "") !== "safety_crisis") return false;
+  // Meme borne de fraicheur que les autres flows locaux: un flow safety
+  // abandonne ne capture pas un tour neutre des heures plus tard; le pregate
+  // re-detecte un vrai signal a chaque tour et re-engage un flow frais.
+  if (isStaleActiveLocalFlowState(value)) return false;
   const phase = String(record.working_state?.phase ?? "").trim();
   return phase !== "resolved" &&
     String(record.status ?? "active") !== "exiting";

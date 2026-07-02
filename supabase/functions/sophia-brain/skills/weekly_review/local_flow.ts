@@ -18,6 +18,10 @@ import {
   RECENT_MESSAGE_LIMITS,
   recentChatMessagesFromHistory,
 } from "../../context/recent_messages_policy.ts";
+import {
+  loadRecentEffectsLedgerSummary,
+  serviceRoleLedgerReadClient,
+} from "../../context/loader.ts";
 import type { OperationRuntimeResult } from "../../router/effect_ledger_adapter.ts";
 import {
   type ActiveActionCandidateForDirectEffects,
@@ -3997,6 +4001,11 @@ export async function runWeeklyReviewLocalRuntime(args: {
       handoffSummary: reduced.handoff_summary,
       visibleTask,
     });
+  const recentEffectsSummary = await loadRecentEffectsLedgerSummary({
+    supabase: args.supabase,
+    userId: args.userId,
+    ledgerReadClient: serviceRoleLedgerReadClient(),
+  });
   const visibleAgent = args.visibleAgent ?? runWeeklyReviewVisibleAgent;
   const visible = await visibleAgent({
     user_id: args.userId,
@@ -4006,6 +4015,7 @@ export async function runWeeklyReviewLocalRuntime(args: {
     recent_messages: recentMessagesFromHistory(args.history),
     conversation_context: conversationContext,
     direct_effect_confirmation_context: directEffectConfirmationContext,
+    recent_effects_summary: recentEffectsSummary,
   });
   const visibleText = cleanText(visible);
   const visibleFallbackUsed = !visibleText;

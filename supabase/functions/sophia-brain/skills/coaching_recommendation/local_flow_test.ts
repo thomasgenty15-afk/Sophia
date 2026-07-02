@@ -11,6 +11,7 @@ import {
 import { runCoachingRecommendationSkill } from "./skill.ts";
 import {
   ACTION_CARD_EMOTIONAL_FRICTION_GUIDANCE_LINES,
+  COACHING_ONLY_VISIBLE_GUIDANCE_LINES,
   COACHING_VISIBLE_GLOBAL_RULES,
   LEVER_COMPARISON_KNOWLEDGE_LINES,
 } from "./visible_agents/shared.ts";
@@ -315,6 +316,33 @@ Deno.test("coaching local dispatcher prompt makes global exit mutually exclusive
   assertEquals(source.includes("forbidden_contradiction"), true);
 });
 
+Deno.test("coaching local dispatcher prompt defines generic flow boundary for global exit", async () => {
+  const source = await Deno.readTextFile(
+    new URL("./local_flow.ts", import.meta.url),
+  );
+  assertEquals(source.includes("Frontiere du flow"), true);
+  assertEquals(
+    source.includes(
+      "tu possedes ce tour seulement si le message courant continue le travail de recommandation de coaching en cours",
+    ),
+    true,
+  );
+  assertEquals(
+    source.includes(
+      "si le message courant introduit une intention autonome qui doit etre arbitree globalement",
+    ),
+    true,
+  );
+  assertEquals(
+    source.includes("Le message courant est prioritaire sur l'etat actif"),
+    true,
+  );
+  assertEquals(
+    source.includes("ne le reformule pas en carte, potion ou technique"),
+    true,
+  );
+});
+
 Deno.test("coaching local dispatcher prompt preserves stable product followups", async () => {
   const source = await Deno.readTextFile(
     new URL("./local_flow.ts", import.meta.url),
@@ -397,7 +425,15 @@ Deno.test("coaching visible global rules prioritize latest visible user intent",
     true,
   );
   assertEquals(
-    COACHING_VISIBLE_GLOBAL_RULES.includes("confirme-le clairement"),
+    COACHING_VISIBLE_GLOBAL_RULES.includes(
+      "visible_runtime_context.recent_effects_summary prouve",
+    ),
+    true,
+  );
+  assertEquals(
+    COACHING_VISIBLE_GLOBAL_RULES.includes(
+      "Rappel ponctuel cree: execute et persiste",
+    ),
     true,
   );
 });
@@ -417,6 +453,39 @@ Deno.test("coaching specialized visible agents carry novice explanation rule", (
   assertEquals(
     String(runNoPlanCoachingVisibleAgent).includes(
       "visible_decision.lever=coaching_only",
+    ),
+    true,
+  );
+});
+
+Deno.test("coaching specialized visible agents can render generic coaching", () => {
+  const sources = [
+    String(runActionPlanCoachingVisibleAgent),
+    String(runNoPlanCoachingVisibleAgent),
+    String(runEmotionCoachingVisibleAgent),
+  ];
+  const guidance = COACHING_ONLY_VISIBLE_GUIDANCE_LINES.join("\n");
+  assertEquals(guidance.includes("coaching generique"), true);
+  assertEquals(guidance.includes("aide normale"), true);
+  assertEquals(guidance.includes("une phrase a copier"), true);
+  assertEquals(guidance.includes("parle normalement"), true);
+  assertEquals(guidance.includes("pas de carte"), true);
+  assertEquals(guidance.includes("une seule ligne"), true);
+  for (const source of sources) {
+    assertEquals(
+      source.includes("COACHING_ONLY_VISIBLE_GUIDANCE_LINES"),
+      true,
+    );
+  }
+  assertEquals(
+    String(runActionPlanCoachingVisibleAgent).includes(
+      "attack_card, defense_card, adjust_plan ou coaching_only",
+    ),
+    true,
+  );
+  assertEquals(
+    String(runEmotionCoachingVisibleAgent).includes(
+      "state_potion ou coaching_only",
     ),
     true,
   );
@@ -1908,6 +1977,112 @@ Deno.test("coaching active flow rejects non-critical global exit when target swi
   assertEquals(reduced.local_state?.coaching_type, "no_plan_action");
 });
 
+Deno.test("coaching active flow preserves a coherent autonomous exit (durable preference) instead of forcing type confirmation", () => {
+  const previous = {
+    stage: "followup" as const,
+    user_need_summary: "No plan action coaching in progress.",
+    candidate_features: [{
+      feature: "attack_card" as const,
+      fit: "high" as const,
+      why: "Launch blocker.",
+      destination_hint: "Ressources",
+    }],
+    current_recommendation: {
+      feature: "attack_card" as const,
+      fit: "high" as const,
+      why: "Launch blocker.",
+      destination_hint: "Ressources",
+    },
+    secondary_recommendation: null,
+    unresolved_question: null,
+    last_answer_summary: "Attack card for the blocker.",
+    parent_flow_id: null,
+    parent_return_focus: null,
+    parent_action_context: null,
+    parent_state_summary: null,
+    coaching_type: "no_plan_action" as const,
+    coaching_type_confidence: "high" as const,
+    coaching_type_evidence: ["mail perso hors plan"],
+    pending_type_change: null,
+    dispatcher_signal_context: {
+      coaching_type: "no_plan_action" as const,
+      confidence: 0.9,
+      action_context: {
+        source: "free" as const,
+        plan_item_id: null,
+        action_title: "mail perso",
+      },
+      reason: "Free action.",
+    },
+    difficulty: {
+      target_kind: "free_action" as const,
+      summary: "Mail perso.",
+      action_title: "mail perso",
+      action_source: "free" as const,
+    },
+    cause_analysis: null,
+    recommendation_decision: null,
+    last_visible_task_kind: "no_plan_coaching" as const,
+    turn_count: 2,
+    max_turns: 4,
+  };
+
+  const reduced = reduceCoachingRecommendationLocalDispatcherOutput({
+    previous,
+    output: decision({
+      flow_action: "exit_to_global_dispatcher",
+      coaching_intent: {
+        kind: "preference_request",
+        summary:
+          "The user asks Sophia to durably remember a coaching preference for next times.",
+      },
+      target_switch: {
+        status: "none",
+        to_coaching_type: null,
+        target: null,
+      },
+      recommendation: {
+        primary_feature: null,
+        secondary_feature: null,
+        why_primary: null,
+        user_facing_next_step: null,
+      },
+      feature_candidates: [],
+      state_updates: {
+        stage: "followup",
+        status: "exit_to_global",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "exit_ack",
+        instruction: "Acknowledge and hand the durable preference to global.",
+        conversation_context: {
+          state_summary: "Durable preference request, out of coaching scope.",
+          known_values: {},
+          missing_or_weak_values: [],
+          candidate_features: [],
+          recommendation: {},
+          tone_constraints: [],
+          do_not_say: [],
+          evidence_used: [],
+        },
+      },
+      evidence: [
+        "The user asks for a durable coaching-style preference.",
+      ],
+    }),
+    userMessage:
+      "Retiens un truc pour les prochaines fois, comme une préférence durable : quand je bloque, donne-moi direct le premier geste concret, sans passer par le nom des cartes.",
+  });
+
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.reason_code, "coaching_recommendation_exit_to_global");
+  assertEquals(reduced.diagnosis.exit_rejected_reason, null);
+  assertEquals(reduced.visible_task !== "change_confirm_coaching_type", true);
+  assertEquals(reduced.note_information !== null, true);
+});
+
 Deno.test("coaching switches from plan action to clear no-plan action without stale action context", () => {
   const previous = {
     stage: "followup" as const,
@@ -2782,6 +2957,9 @@ Deno.test("coaching skill passes dispatcher context to specialized visible input
       plan_items: [],
       product_surfaces: [],
       exclusions: [],
+      runtime_context: {
+        recent_effects_summary: "=== EFFETS RÉCENTS ===\n- Rappel créé.\n",
+      },
     },
     local_dispatcher: async () =>
       decision({
@@ -2812,14 +2990,18 @@ Deno.test("coaching skill passes dispatcher context to specialized visible input
   const state = (output.state_patch as any)
     .coaching_recommendation_local_state;
   assertEquals(state.last_visible_decision ?? null, null);
-  assertEquals(visibleInput.visible_runtime_context.recent_user_messages, [
+  assertEquals(visibleInput.visible_runtime_context.recent_messages, [
     {
       role: "user",
       content: "Avant je parlais d'autre chose",
-      created_at: null,
     },
-    { role: "user", content: "J'oublie toujours ma marche", created_at: null },
+    { role: "assistant", content: "Ok." },
+    { role: "user", content: "J'oublie toujours ma marche" },
   ]);
+  assertEquals(
+    visibleInput.visible_runtime_context.recent_effects_summary,
+    "=== EFFETS RÉCENTS ===\n- Rappel créé.\n",
+  );
   assertEquals(
     Object.hasOwn(
       visibleInput.flow_context.dispatcher_signal_context ?? {},
@@ -2844,6 +3026,114 @@ Deno.test("coaching skill passes dispatcher context to specialized visible input
   assertEquals(
     visibleInput.step_context.selected_feature,
     "attack_card",
+  );
+});
+
+Deno.test("coaching visible receives recent committed reminder context when current turn has no direct effect", async () => {
+  const turnFrame: TurnFrame = {
+    turn_id: "t-recent-reminder",
+    source_message_id: "m-recent-reminder",
+    user_id: "u1",
+    channel: "web",
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [],
+    skill_signals: {
+      coaching_recommendation: {
+        detected: true,
+        confidence_band: "high",
+        context: {
+          coaching_type: "no_plan_action",
+          confidence: 0.8,
+          action_context: null,
+          reason: "User asks a follow-up inside active coaching.",
+        },
+      },
+    },
+    memory_plan: {
+      context_need: "minimal",
+      memory_mode: "none",
+      context_budget_tier: "tiny",
+      targets: [],
+      retrieval_policy: "semantic_first",
+    },
+  } as TurnFrame;
+  const recentDirectContext = {
+    has_committed_one_shot_reminder: true,
+    has_requested_one_shot_reminder: true,
+    one_shot_reminder: {
+      committed: true,
+      local_label: "dans 20 minutes",
+      reminder_instruction: "relire la synthese",
+    },
+    committed_effects: [{
+      type: "create_one_shot_reminder",
+      id: "rem-recent-1",
+      local_label: "dans 20 minutes",
+      reminder_instruction: "relire la synthese",
+    }],
+    requested_effects: [],
+    blocked_effects: [],
+    do_not_recreate: true,
+    do_not_reroute: true,
+    do_not_redemand: true,
+    do_not_confirm_without_commit: true,
+    remaining_user_need_must_continue: true,
+    source: "recent_effect_ledger",
+  };
+  let visibleInput: any = null;
+
+  await runCoachingRecommendationSkill({
+    user_message:
+      "Tu peux me redire exactement ce que tu viens de programmer comme rappel ?",
+    context: {
+      skill_id: "coaching_recommendation",
+      user_id: "u1",
+      recent_messages: [],
+      active_skill_working_state: null,
+      turn_frame: turnFrame,
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+      runtime_context: {
+        recent_effects_summary:
+          "=== EFFETS RÉCENTS ===\n- Rappel ponctuel créé: exécuté et persisté; état DB actuel: pending.\n",
+        recent_direct_effect_confirmation_context: recentDirectContext,
+      },
+    },
+    local_dispatcher: async () =>
+      decision({
+        recommendation: {
+          primary_feature: "attack_card",
+          secondary_feature: null,
+          why_primary: "The user is in an action-starting loop.",
+          user_facing_next_step: "Use a short reset phrase.",
+        },
+        feature_candidates: [{
+          feature: "attack_card",
+          fit: "medium",
+          why: "Action-starting loop.",
+          destination_hint: "Cartes d'attaque",
+        }],
+      }),
+    visible_agent: async (input) => {
+      visibleInput = input;
+      return "C'est bien le rappel dans 20 minutes.";
+    },
+  });
+
+  assertEquals(
+    visibleInput.flow_context.direct_effect_confirmation_context,
+    recentDirectContext,
+  );
+  assertEquals(
+    visibleInput.flow_context.direct_effect_confirmation_context
+      .one_shot_reminder,
+    {
+      committed: true,
+      local_label: "dans 20 minutes",
+      reminder_instruction: "relire la synthese",
+    },
   );
 });
 
@@ -3083,6 +3373,131 @@ Deno.test("coaching_only visible decision preserves the last stable product reco
   assertEquals(state.last_visible_decision.lever, "coaching_only");
   assertEquals(state.current_recommendation.feature, "attack_card");
   assertEquals(state.recommendation_decision.primary_feature, "attack_card");
+
+  const actionPlanPreviousState = {
+    ...previousState,
+    user_need_summary: "Dossier mutuelle launch blocker.",
+    candidate_features: [{
+      feature: "attack_card",
+      fit: "high",
+      why: "Launch blocker on a plan action.",
+      destination_hint: "Dashboard > Plan",
+    }],
+    current_recommendation: {
+      feature: "attack_card",
+      fit: "high",
+      why: "Launch blocker on a plan action.",
+      destination_hint: "Dashboard > Plan",
+    },
+    coaching_type: "plan_action" as const,
+    dispatcher_signal_context: {
+      coaching_type: "plan_action" as const,
+      confidence: 0.9,
+      action_context: {
+        source: "plan",
+        plan_item_id: "plan-item-1",
+        action_title: "dossier mutuelle",
+      },
+      reason: "Plan action launch blocker.",
+    },
+    difficulty: {
+      target_kind: "plan_action",
+      summary: "Dossier mutuelle.",
+      action_title: "dossier mutuelle",
+      action_source: "plan",
+    },
+    recommendation_decision: {
+      primary_feature: "attack_card",
+      secondary_feature: null,
+      why_primary: "Launch blocker on a plan action.",
+      why_not_others: {},
+      platform_destination: {
+        label: "carte d'attaque",
+        surface_hint: "Dashboard > Plan",
+        user_facing_destination:
+          "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte",
+      },
+      user_facing_next_step: "Prepare une carte depuis l'action du Plan.",
+    },
+    last_visible_decision: {
+      lever: "attack_card",
+      variant: "texte_magique",
+      potion_type: null,
+      reason: "Launch blocker on a plan action.",
+      confidence: "high",
+    },
+    last_visible_task_kind: "action_plan_coaching",
+  };
+  const actionTurnFrame: TurnFrame = {
+    ...turnFrame,
+    turn_id: "t-coaching-only-action-plan",
+    source_message_id: "m-coaching-only-action-plan",
+    skill_signals: {
+      coaching_recommendation: {
+        detected: true,
+        confidence_band: "high",
+        context: actionPlanPreviousState.dispatcher_signal_context,
+      },
+    },
+  } as TurnFrame;
+  const actionOutput = await runCoachingRecommendationSkill({
+    user_message: "Pas de carte: donne-moi juste la premiere phrase.",
+    context: {
+      skill_id: "coaching_recommendation",
+      user_id: "u1",
+      recent_messages: [],
+      active_skill_working_state: activeCoachingState(actionPlanPreviousState),
+      turn_frame: actionTurnFrame,
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+    },
+    local_dispatcher: async () =>
+      decision({
+        flow_action: "answer_followup",
+        feature_candidates: [],
+        recommendation: {
+          primary_feature: null,
+          secondary_feature: null,
+          why_primary: null,
+          user_facing_next_step: null,
+        },
+        visible_task: {
+          kind: "action_plan_coaching",
+          instruction: "Help conversationally without card label.",
+          conversation_context: {
+            state_summary: "User asks for a normal phrase.",
+            known_values: {},
+            missing_or_weak_values: [],
+            candidate_features: [],
+            recommendation: {},
+            tone_constraints: ["pas de carte"],
+            do_not_say: ["carte"],
+            evidence_used: [],
+          },
+        },
+      }),
+    visible_agent: async () => ({
+      message: "Ecris juste: je reprends par la premiere info manquante.",
+      visible_decision: {
+        lever: "coaching_only",
+        variant: null,
+        potion_type: null,
+        reason: "Le user demande une phrase directe sans carte.",
+        confidence: "high",
+      },
+    }),
+  });
+  const actionState = (actionOutput.state_patch as any)
+    .coaching_recommendation_local_state;
+  assertEquals(actionOutput.status, "continue");
+  assertEquals(actionState.last_visible_decision.lever, "coaching_only");
+  assertEquals(actionState.current_recommendation.feature, "attack_card");
+  assertEquals(
+    actionState.recommendation_decision.primary_feature,
+    "attack_card",
+  );
 });
 
 Deno.test("coaching product visible decision keeps ownership active when reducer would close", async () => {

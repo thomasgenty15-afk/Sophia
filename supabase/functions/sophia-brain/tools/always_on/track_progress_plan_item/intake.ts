@@ -32,9 +32,14 @@ function payloadFromTurnFrame(turnFrame: TurnFrame): Record<string, unknown> {
 }
 
 function validStatus(value: unknown): TrackProgressStatus | null {
-  return value === "completed" || value === "missed" || value === "partial"
-    ? value
-    : null;
+  // Frontiere de contrat avec le dispatcher: l'enum canonique est
+  // completed|partial|missed, mais des versions du prompt ont enseigne
+  // "done" — on normalise l'alias sur ce slot structure plutot que de
+  // bloquer un effet explicite avec status_missing.
+  if (value === "completed" || value === "done") return "completed";
+  if (value === "missed") return "missed";
+  if (value === "partial") return "partial";
+  return null;
 }
 
 function intentForStatus(status: TrackProgressStatus): TrackProgressIntent {
@@ -208,9 +213,15 @@ export function runTrackProgressIntake(args: {
 
   const payload = payloadFromTurnFrame(args.turn_frame);
   const status = validStatus(payload.status_hint);
-  const targetItemId = typeof payload.target_item_id === "string"
-    ? payload.target_item_id.trim()
+  // Le champ canonique est target_item_id; plan_item_id est tolere car
+  // c'est le nom du champ dans active_action_candidates_for_direct_effects
+  // que le dispatcher recopie.
+  const rawItemId = typeof payload.target_item_id === "string"
+    ? payload.target_item_id
+    : typeof payload.plan_item_id === "string"
+    ? payload.plan_item_id
     : "";
+  const targetItemId = rawItemId.trim();
   const targetTitle = typeof payload.target_title === "string"
     ? payload.target_title.trim()
     : "";

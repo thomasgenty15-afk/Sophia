@@ -556,3 +556,64 @@ Deno.test("track_progress_plan_item runtime state uses canonical key only", asyn
   const legacyKey = "__track_progress_" + "parallel";
   assertEquals((tempMemory as any)[legacyKey], undefined);
 });
+
+Deno.test("track_progress_plan_item intake normalizes dispatcher payload aliases", async () => {
+  const { runTrackProgressIntake } = await import("./intake.ts");
+
+  // Alias historique du prompt dispatcher: status_hint="done" + plan_item_id
+  // (le nom du champ dans active_action_candidates_for_direct_effects).
+  const aliased = runTrackProgressIntake({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          plan_item_id: "sas-item",
+          status_hint: "done",
+        },
+      }],
+    }),
+    message: "marque comme fait mon sas de décompression sans fumer stp",
+  });
+  assertEquals(aliased.detected, true);
+  assertEquals(aliased.progress_status, "completed");
+  assertEquals(aliased.intent, "log_completed");
+  assertEquals(aliased.target_item_id, "sas-item");
+  assertEquals(aliased.reason_code, "dispatcher_status_hint");
+
+  // Le payload canonique reste prioritaire sur l'alias.
+  const canonical = runTrackProgressIntake({
+    turn_frame: frame(),
+    message: "j'ai fait ma marche",
+  });
+  assertEquals(canonical.progress_status, "completed");
+  assertEquals(canonical.target_item_id, "walk");
+
+  // Anti-faux-positif: un statut inconnu reste bloque en clarify.
+  const unknown = runTrackProgressIntake({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "walk",
+          status_hint: "maybe_later",
+        },
+      }],
+    }),
+    message: "je verrai pour ma marche",
+  });
+  assertEquals(unknown.intent, "clarify");
+  assertEquals(unknown.reason_code, "status_missing");
+
+  // Anti-faux-positif: une question de statut ne log jamais.
+  const question = runTrackProgressIntake({
+    turn_frame: frame(),
+    message: "est-ce que tu as noté ma marche ?",
+  });
+  assertEquals(question.intent, "status_question");
+});

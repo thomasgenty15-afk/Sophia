@@ -4,6 +4,7 @@ import {
 } from "../../sophia-brain/router/response_style_policy.ts";
 import {
   oneShotReminderCanonicalVisiblePromptLines,
+  oneShotReminderVisibleContextPresent,
 } from "../../sophia-brain/router/one_shot_reminder_prompt_contract.ts";
 import type { DailyActionReviewVisibleTaskKind } from "./local_flow.ts";
 
@@ -21,9 +22,6 @@ const DAILY_VISIBLE_COMMON_RULES = [
   "Tu recois aussi visible_runtime_context avec les 5 derniers messages user filtres. Utilise-les seulement pour la continuite de ton et de reference, jamais pour choisir une route, muter un etat ou decider un outcome.",
   "Tu n'as pas le droit de remplir un champ metier, choisir une route, appeler un outil, lire la DB brute ou lire la memoire brute.",
   "Utilise seulement conversation_context pour formuler le message.",
-  ...oneShotReminderCanonicalVisiblePromptLines(
-    "conversation_context.known_values.direct_effect_confirmation_context",
-  ),
   "Respecte conversation_context.affect_context et conversation_context.tone_constraints pour ajuster le ton.",
   "Retourne uniquement le message visible, sans JSON, sans guillemets englobants.",
   "Une question principale max quand tu poses une question.",
@@ -139,6 +137,11 @@ export function dailyActionReviewVisibleAgentSpec(
 
 export function dailyActionReviewVisibleSystemPrompt(
   kind: DailyActionReviewVisibleTaskKind,
+  opts?: {
+    oneShotReminderContextPresent?: boolean;
+    committedOneShotReminderThisTurn?: boolean;
+    committedOneShotReminderKnown?: boolean;
+  },
 ): string {
   const spec = dailyActionReviewVisibleAgentSpec(kind);
   return [
@@ -146,6 +149,11 @@ export function dailyActionReviewVisibleSystemPrompt(
     ...spec.roleLines,
     ...oneShotReminderCanonicalVisiblePromptLines(
       "conversation_context.known_values.direct_effect_confirmation_context",
+      {
+        present: opts?.oneShotReminderContextPresent === true,
+        committedThisTurn: opts?.committedOneShotReminderThisTurn === true,
+        committedKnown: opts?.committedOneShotReminderKnown === true,
+      },
     ),
   ].join("\n");
 }

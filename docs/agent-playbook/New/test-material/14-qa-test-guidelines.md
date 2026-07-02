@@ -145,6 +145,31 @@ conversationnels Sophia. Elle complete les fiches specialisees, notamment :
 - Les side effects doivent etre bloques pendant un signal safety actif.
 - Si le probleme est systeme, corriger le code avant de conclure `green`.
 
+## Memoire (Memorizer Nocturne)
+
+- L'ecriture `memory_items` est portee par le memorizer quotidien
+  (`trigger-memorizer-daily`), pas par un write in-turn : un accuse « c'est
+  note, je le garde en tete » sur une intention memoire explicite est le
+  comportement attendu, pas un claim sans commit.
+- Invariant QA : ne PAS verifier `memory_items` immediatement apres le tour.
+  Si le run contient une intention memoire explicite (« retiens que... »,
+  « garde en tete... »), declencher `trigger-memorizer-daily` en fin de run,
+  puis verifier `memory_items >= 1` avec le bon contenu apres le batch.
+- Un accuse de memorisation sur un report d'action du plan (« note que j'ai
+  fait X ») reste un bug (domaine track_progress, preuve de commit requise) —
+  la tolerance memorizer ne s'applique qu'aux faits personnels.
+- Nettoyage : supprimer les `memory_items` crees par le batch de test en fin
+  de run, comme tout autre effet durable.
+
+## Hygiene Inter-Runs
+
+- Avant un run, verifier que `user_chat_states.temp_memory` du scope vise ne
+  porte pas un `__active_skill_state` residuel d'un run precedent ; le reset
+  si le run n'a pas pour objectif de tester cette persistance.
+- Le runtime relache de lui-meme un flow local sans message depuis plus de 4h
+  (borne de fraicheur `active_flow_state`), mais un T1 propre reste la regle
+  pour ne pas polluer le verdict du run.
+
 ## Organisation Des Variantes
 
 - Le scenario initial d'un test global est toujours `N.1`.

@@ -173,7 +173,7 @@ export async function handleUnlinkedInbound(params) {
     // Always send a validation email containing a LINK:<token> prefilled WhatsApp message.
     const existingPhone = (target.phone_number ?? "").trim();
     const mismatch = Boolean(existingPhone) && normalizeFrom(existingPhone) !== fromE164;
-    const targetEmail = await getAccountEmailForProfile(admin, target.id);
+    const targetEmail = await getAccountEmailForProfile(admin, target.id, String((target as any)?.email ?? ""));
     if (!targetEmail) {
       await sendUnlinked("Je retrouve ton compte, mais je n'arrive pas à t'envoyer l'email de validation.\n\n" + `Écris à ${params.supportEmail} avec ton numéro WhatsApp (${fromE164}) et on règle ça.`);
       await admin.from("whatsapp_link_requests").upsert({

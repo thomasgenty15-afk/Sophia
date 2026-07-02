@@ -13,6 +13,7 @@ import {
   applyMemoryV2ActiveLoaderResult,
   applySafetyCrisisSkillState,
   buildTurnFrameForRuntime,
+  effectLedgerTraceForTest,
   mergeVisibleTextForTest,
 } from "./run.ts";
 
@@ -59,6 +60,40 @@ Deno.test("direct effect text is not deterministically prepended when visible ag
   );
 });
 
+Deno.test("runtime trace effect ledger includes committed direct effects", () => {
+  const trace = effectLedgerTraceForTest({
+    turnId: "turn-ledger-direct-effect",
+    operationRuntime: {
+      content: "C'est programmé.",
+      nextTempMemory: {},
+      toolExecution: "success",
+      executedTools: ["create_one_shot_reminder"],
+      toolSkillRun: {
+        selected_handler: "create_one_shot_reminder",
+        operation_id: "op-reminder-1",
+        status: "success",
+        committed_effects: [{
+          type: "create_one_shot_reminder",
+          operation_id: "op-reminder-1",
+          scheduled_checkin_ids: ["checkin-1"],
+          scheduled_for: "2026-07-01T13:44:03.829Z",
+          local_label: "dans 45 minutes",
+          reminder_instruction: "ouvrir Ajuster mon plan",
+        }],
+      },
+    },
+  });
+  const entries = trace.entries as Array<Record<string, unknown>>;
+
+  assertEquals((trace.counts as Record<string, number>).committed, 1);
+  assertEquals(entries[0]?.effect_type, "one_shot_reminder.create");
+  assertEquals(entries[0]?.operation_type, "create_one_shot_reminder");
+  assertEquals(entries[0]?.db_ref, {
+    table: "scheduled_checkins",
+    id: "checkin-1",
+  });
+});
+
 function route(turnFrame: TurnFrame) {
   return runConversationRouters({
     turn_frame: turnFrame,
@@ -71,6 +106,7 @@ const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "weekly_adaptive_review_v1",
   "product_help",
   "coaching_recommendation",
+  "plan_realignment",
   "feature_opportunity",
   "safety_crisis",
 ];
@@ -366,6 +402,29 @@ Deno.test("global router routes feature opportunity signal", () => {
   assertEquals(decision.reason_code, "feature_opportunity_signal");
 });
 
+Deno.test("global router routes plan realignment signal", () => {
+  const decision = route(frame({
+    skill_signals: {
+      plan_realignment: {
+        detected: true,
+        confidence_band: "high",
+        reason: "plan_drift_repair_need",
+        context: {
+          drift_type: "lost_rhythm",
+          scope: "week",
+          explicit_adjust_request: false,
+          product_execution_allowed: false,
+          reason: "User reports being disconnected from the weekly plan.",
+        },
+      },
+    },
+  }));
+
+  assertEquals(decision.response_owner, "plan_realignment");
+  assertEquals(decision.selected_handler, "plan_realignment");
+  assertEquals(decision.reason_code, "plan_realignment_signal");
+});
+
 Deno.test("global router keeps coaching recommendation before feature opportunity", () => {
   const decision = route(frame({
     skill_signals: {
@@ -426,8 +485,8 @@ Deno.test("readActiveFlowState active coaching prevents product_help ownership",
       skill_id: "coaching_recommendation",
       status: "active",
       turn_count: 1,
-      started_at: "2026-06-18T10:00:00.000Z",
-      updated_at: "2026-06-18T10:01:00.000Z",
+      started_at: new Date(Date.now() - 120_000).toISOString(),
+      updated_at: new Date(Date.now() - 60_000).toISOString(),
       working_state: {
         coaching_recommendation_local_state: {
           stage: "recommend",
@@ -467,8 +526,8 @@ Deno.test("readActiveFlowState active product_help keeps product_help ownership"
       skill_id: "product_help",
       status: "active",
       turn_count: 1,
-      started_at: "2026-06-18T10:00:00.000Z",
-      updated_at: "2026-06-18T10:01:00.000Z",
+      started_at: new Date(Date.now() - 120_000).toISOString(),
+      updated_at: new Date(Date.now() - 60_000).toISOString(),
       working_state: {
         product_help_local_state: {
           skill_id: "product_help",
@@ -503,8 +562,8 @@ Deno.test("readActiveFlowState active weekly keeps weekly ownership", () => {
       skill_id: "weekly_adaptive_review_v1",
       status: "open",
       turn_count: 1,
-      started_at: "2026-06-23T10:00:00.000Z",
-      updated_at: "2026-06-23T10:01:00.000Z",
+      started_at: new Date(Date.now() - 120_000).toISOString(),
+      updated_at: new Date(Date.now() - 60_000).toISOString(),
       weekly_flow_state: {
         stage: "week_experience",
       },
@@ -542,8 +601,8 @@ Deno.test("readActiveFlowState active safety keeps safety ownership and skips pr
       status: "active",
       mode: "local_safety_flow",
       turn_count: 1,
-      started_at: "2026-06-22T10:00:00.000Z",
-      updated_at: "2026-06-22T10:01:00.000Z",
+      started_at: new Date(Date.now() - 120_000).toISOString(),
+      updated_at: new Date(Date.now() - 60_000).toISOString(),
       working_state: {
         phase: "acute_grounding",
         risk_band: "high",
@@ -699,6 +758,7 @@ Deno.test("applyConversationSkillState purges every active flow key for local di
     "product_help",
     "coaching_recommendation",
     "feature_opportunity",
+    "plan_realignment",
   ] as const;
 
   for (const skillId of skillIds) {
@@ -766,6 +826,40 @@ Deno.test("global router keeps active feature opportunity before product_help", 
   assertEquals(
     interrupted.active_flow_arbitration?.active_owner,
     "feature_opportunity",
+  );
+  assertEquals(
+    interrupted.active_flow_arbitration?.decision,
+    "continue_active",
+  );
+});
+
+Deno.test("global router keeps active plan realignment before product_help", () => {
+  const active = {
+    skill_id: "plan_realignment",
+    status: "active",
+    working_state: {},
+  };
+  const continued = runConversationRouters({
+    turn_frame: frame(),
+    active_skill_state: active,
+    safety_context_risk_band: "none",
+  });
+  assertEquals(continued.response_owner, "plan_realignment");
+
+  const interrupted = runConversationRouters({
+    turn_frame: frame({
+      skill_signals: {
+        product_help: { detected: true, confidence_band: "high" },
+      },
+    }),
+    active_skill_state: active,
+    safety_context_risk_band: "none",
+  });
+  assertEquals(interrupted.response_owner, "plan_realignment");
+  assertEquals(interrupted.reason_code, "active_plan_realignment");
+  assertEquals(
+    interrupted.active_flow_arbitration?.active_owner,
+    "plan_realignment",
   );
   assertEquals(
     interrupted.active_flow_arbitration?.decision,

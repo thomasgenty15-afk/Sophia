@@ -1,7 +1,4 @@
-import type {
-  DeferredReason,
-  TransformationAspectUncertainty,
-} from "../v2-types.ts";
+import type { DeferredReason, TransformationAspectUncertainty } from "../v2-types.ts";
 
 export type UnifiedIntakeAspect = {
   label: string;
@@ -40,8 +37,7 @@ export type UnifiedIntakeOutput = {
   clarification_prompt: string | null;
 };
 
-export const UNIFIED_INTAKE_SYSTEM_PROMPT =
-  `Tu es le module unifié d'intake de Sophia.
+export const UNIFIED_INTAKE_SYSTEM_PROMPT = `Tu es le module unifié d'intake de Sophia.
 
 Tu reçois le texte libre d'un utilisateur et tu dois faire en UNE SEULE PASSE ce qui suit :
 
@@ -154,12 +150,25 @@ Tu ne fais PAS deux étapes mentales séparées. Tu dois produire directement de
 
 Ne retourne RIEN d'autre que le JSON.`;
 
-export function buildUnifiedIntakeUserPrompt(rawIntakeText: string): string {
+export function buildUnifiedIntakeUserPrompt(
+  rawIntakeText: string,
+  validationFeedback?: string[] | null,
+): string {
+  const feedback = Array.isArray(validationFeedback) && validationFeedback.length > 0
+    ? `
+
+La sortie précédente a été rejetée par le validateur pour ces raisons :
+${validationFeedback.map((issue) => `- ${issue}`).join("\n")}
+
+Corrige ces problèmes et produis un nouvel objet JSON complet.`
+    : "";
+
   return `Voici le texte libre de l'utilisateur :
 
 """
 ${rawIntakeText}
 """
+${feedback}
 
 Produis directement le JSON final unifié.`;
 }

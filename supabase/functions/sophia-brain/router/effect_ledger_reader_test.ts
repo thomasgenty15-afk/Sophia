@@ -2,11 +2,13 @@ import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { loadRecentEffectHistory } from "./effect_ledger_reader.ts";
 
 function makeQuery(rows: unknown[], error: Error | null = null) {
+  const filters: Array<{ col: string; val: unknown }> = [];
   const builder: any = {
     select() {
       return this;
     },
-    eq() {
+    eq(col: string, val: unknown) {
+      filters.push({ col, val });
       return this;
     },
     gte() {
@@ -21,7 +23,16 @@ function makeQuery(rows: unknown[], error: Error | null = null) {
     then(
       onFulfilled: (value: { data: unknown[]; error: Error | null }) => unknown,
     ) {
-      return Promise.resolve({ data: rows, error }).then(onFulfilled);
+      const filtered = rows.filter((row) => {
+        if (!row || typeof row !== "object" || Array.isArray(row)) return true;
+        const record = row as Record<string, unknown>;
+        return filters.every((filter) =>
+          Object.hasOwn(record, filter.col)
+            ? record[filter.col] === filter.val
+            : true
+        );
+      });
+      return Promise.resolve({ data: filtered, error }).then(onFulfilled);
     },
   };
   return builder;
@@ -141,4 +152,92 @@ Deno.test("reader falls back to conversation_turn_traces", async () => {
   assertEquals(entries.length, 1);
   assertEquals(entries[0].status, "blocked");
   assertEquals(entries[0].turn_id, "turn-trace");
+});
+
+Deno.test("reader keeps only the requested recent turn window", async () => {
+  const rows = Array.from({ length: 6 }, (_, index) => {
+    const turn = index + 1;
+    return {
+      created_at: `2026-05-29T10:0${turn}:00.000Z`,
+      payload: {
+        tag: "effect_ledger",
+        entries: [
+          {
+            turn_id: `turn-${turn}`,
+            user_id: "user-1",
+            created_at: `2026-05-29T10:0${turn}:00.000Z`,
+            status: "committed",
+            effect_type: "one_shot_reminder.create",
+            source: "executor",
+            payload_summary: {},
+            db_ref: { table: "scheduled_checkins", id: `rem-${turn}` },
+          },
+        ],
+      },
+    };
+  });
+  const supabase = makeFakeSupabase({ turn_summary_logs: rows });
+
+  const entries = await loadRecentEffectHistory({
+    supabase,
+    userId: "user-1",
+    limit: 20,
+    turnLimit: 5,
+  });
+
+  assertEquals(entries.map((entry) => entry.turn_id), [
+    "turn-6",
+    "turn-5",
+    "turn-4",
+    "turn-3",
+    "turn-2",
+  ]);
+});
+
+Deno.test("reader filters turn_summary_logs by scope when provided", async () => {
+  const supabase = makeFakeSupabase({
+    turn_summary_logs: [
+      {
+        scope: "web",
+        created_at: "2026-05-29T10:01:00.000Z",
+        payload: {
+          tag: "effect_ledger",
+          entries: [{
+            turn_id: "turn-web",
+            user_id: "user-1",
+            created_at: "2026-05-29T10:01:00.000Z",
+            status: "committed",
+            effect_type: "one_shot_reminder.create",
+            source: "executor",
+            payload_summary: {},
+          }],
+        },
+      },
+      {
+        scope: "other",
+        created_at: "2026-05-29T10:02:00.000Z",
+        payload: {
+          tag: "effect_ledger",
+          entries: [{
+            turn_id: "turn-other",
+            user_id: "user-1",
+            created_at: "2026-05-29T10:02:00.000Z",
+            status: "committed",
+            effect_type: "one_shot_reminder.create",
+            source: "executor",
+            payload_summary: {},
+          }],
+        },
+      },
+    ],
+  });
+
+  const entries = await loadRecentEffectHistory({
+    supabase,
+    userId: "user-1",
+    scope: "web",
+    limit: 10,
+  });
+
+  assertEquals(entries.map((entry) => entry.turn_id), ["turn-web"]);
 });

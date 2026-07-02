@@ -127,6 +127,16 @@ function getFallbackTemplate(purpose: string | undefined) {
       injectBodyNameParam: true,
     };
   }
+  if (p === "subscription_confirmed") {
+    return {
+      name: (Deno.env.get("WHATSAPP_SUBSCRIPTION_CONFIRMED_TEMPLATE_NAME") ??
+        "subscription_confirmed_v1").trim(),
+      language:
+        (Deno.env.get("WHATSAPP_SUBSCRIPTION_CONFIRMED_TEMPLATE_LANG") ?? "fr")
+          .trim(),
+      injectBodyNameParam: false,
+    };
+  }
   if (p === "recurring_reminder") {
     return {
       name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ??
@@ -330,7 +340,8 @@ Deno.serve(async (req) => {
       ? Date.now() < trialEndTs
       : false;
     const isLifecycleAccessMessage = purpose === "end_trial" ||
-      purpose === "end_subscription";
+      purpose === "end_subscription" ||
+      purpose === "subscription_confirmed";
 
     // Plan gating: WhatsApp is available only on Alliance + Architecte.
     // This prevents "System" users from receiving proactive WhatsApp messages.
@@ -378,7 +389,10 @@ Deno.serve(async (req) => {
     const templatePolicyPriority = proactiveTemplatePriorityForPurpose(purpose);
 
     // Throttle only when proactive (per spec)
-    if (!webSimulationEnabled && isProactive) {
+    if (
+      !webSimulationEnabled && isProactive &&
+      purpose !== "subscription_confirmed"
+    ) {
       const sent = await countProactiveLast10h(admin, body.user_id);
       if (sent >= 2) {
         return await preflightErrorResponse({

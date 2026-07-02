@@ -2,6 +2,21 @@
 
 import type { PersistedEffectLedgerEntry } from "./effect_ledger.ts";
 
+const VALID_EFFECT_LEDGER_STATUSES = new Set([
+  "requested",
+  "allowed",
+  "blocked",
+  "committed",
+  "failed",
+  "proposed",
+  "delivered",
+  "cancelled",
+  "superseded",
+  "asked",
+  "resolved",
+  "topic_change",
+]);
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
@@ -9,19 +24,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function normalizeEntry(value: unknown): PersistedEffectLedgerEntry | null {
   if (!isRecord(value)) return null;
   const status = String(value.status ?? "");
-  if (
-    status !== "requested" && status !== "allowed" &&
-    status !== "committed" && status !== "failed" && status !== "blocked"
-  ) {
-    return null;
-  }
+  if (!VALID_EFFECT_LEDGER_STATUSES.has(status)) return null;
   return {
     turn_id: String(value.turn_id ?? ""),
     user_id: String(value.user_id ?? ""),
     source_message_id: String(value.source_message_id ?? "").trim() || null,
     request_id: String(value.request_id ?? "").trim() || null,
     created_at: String(value.created_at ?? ""),
-    status,
+    status: status as PersistedEffectLedgerEntry["status"],
     effect_type: String(value.effect_type ?? "unknown_effect"),
     operation_type: String(value.operation_type ?? "").trim() || null,
     operation_id: String(value.operation_id ?? "").trim() || null,
@@ -96,15 +106,39 @@ function orderRecent(
     .slice(0, Math.max(0, limit));
 }
 
+function keepRecentTurnWindow(
+  entries: PersistedEffectLedgerEntry[],
+  turnLimit: number,
+): PersistedEffectLedgerEntry[] {
+  if (!Number.isFinite(turnLimit) || turnLimit <= 0) return entries;
+  const allowedTurnIds = new Set<string>();
+  for (const entry of entries) {
+    const turnId = String(entry.turn_id ?? "").trim();
+    if (!turnId || allowedTurnIds.has(turnId)) continue;
+    if (allowedTurnIds.size >= turnLimit) break;
+    allowedTurnIds.add(turnId);
+  }
+  if (allowedTurnIds.size === 0) return [];
+  return entries.filter((entry) => allowedTurnIds.has(entry.turn_id));
+}
+
 // Reader for recent execution history only. Callers must still query business
 // tables before answering what is active now.
 export async function loadRecentEffectHistory(args: {
   supabase: any;
   userId: string;
   limit: number;
+  scope?: string | null;
+  turnLimit?: number | null;
   sinceIso?: string | null;
 }): Promise<PersistedEffectLedgerEntry[]> {
   const limit = Math.max(1, Math.min(100, Math.floor(args.limit || 20)));
+  const turnLimit = Math.max(
+    0,
+    Math.min(20, Math.floor(args.turnLimit || 0)),
+  );
+  const queryLimit = turnLimit > 0 ? Math.max(limit, turnLimit * 12) : limit;
+  const scope = String(args.scope ?? "").trim();
   const sinceIso = String(args.sinceIso ?? "").trim();
   try {
     let query = args.supabase
@@ -112,13 +146,18 @@ export async function loadRecentEffectHistory(args: {
       .select("created_at,payload")
       .eq("user_id", args.userId)
       .order("created_at", { ascending: false })
-      .limit(limit);
+      .limit(queryLimit);
+    if (scope) query = query.eq("scope", scope);
     if (sinceIso && typeof query.gte === "function") {
       query = query.gte("created_at", sinceIso);
     }
     const res = await query;
     if (res?.error) throw res.error;
-    return orderRecent(entriesFromTurnSummaryRows(res?.data ?? []), limit);
+    const ordered = orderRecent(
+      entriesFromTurnSummaryRows(res?.data ?? []),
+      100,
+    );
+    return keepRecentTurnWindow(ordered, turnLimit).slice(0, limit);
   } catch {
     let query = args.supabase
       .from("conversation_turn_traces")
@@ -127,15 +166,16 @@ export async function loadRecentEffectHistory(args: {
       )
       .eq("user_id", args.userId)
       .order("ts", { ascending: false })
-      .limit(limit);
+      .limit(queryLimit);
     if (sinceIso && typeof query.gte === "function") {
       query = query.gte("ts", sinceIso);
     }
     const res = await query;
     if (res?.error) return [];
-    return orderRecent(
+    const ordered = orderRecent(
       entriesFromConversationTraceRows(res?.data ?? []),
-      limit,
+      100,
     );
+    return keepRecentTurnWindow(ordered, turnLimit).slice(0, limit);
   }
 }

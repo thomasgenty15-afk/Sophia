@@ -34,7 +34,7 @@ export function oneShotReminderCanonicalDispatcherPromptLines(): string[] {
     "   - Si le meme message contient un besoin coaching, feature_opportunity, weekly ou safety et une demande explicite de rappel ponctuel, garder les deux: le skill_signal ou flow local pour le besoin restant et direct_effects.create_one_shot_reminder pour le rappel.",
     "   - Si create_one_shot_reminder est emis avec un skill_signal conversationnel, la lane globale gere le direct effect; le skill local traite seulement le besoin utilisateur restant.",
     "   - Ne jamais laisser le rappel absorber l'intention restante du tour.",
-    "   - Ne pas traiter un rappel recurrent comme un one-shot reminder.",
+    "   - Ne pas traiter un rappel recurrent comme un one-shot reminder. Toute demande de relance recurrente, sous quelque forme (tous les soirs, chaque matin, a chaque fois, regulierement, tous les jours), n'emet JAMAIS create_one_shot_reminder: c'est un signal skill_signals.feature_opportunity (initiatives), le soutien recurrent se pose dans les initiatives.",
   ];
 }
 
@@ -60,19 +60,178 @@ export function oneShotReminderCanonicalLocalDispatcherPromptLines(): string[] {
     "- Si direct_effect_lane.committed_effects contient create_one_shot_reminder, le rappel est deja commite: transmets le contexte de confirmation au visible agent et continue le besoin restant.",
     "- Si turn_frame.direct_effects contient create_one_shot_reminder mais direct_effect_lane n'a pas de commit, ne dis jamais que le rappel est programme; laisse le runtime global gerer l'effet et continue le besoin restant.",
     "- Le direct effect ne doit jamais absorber tout le tour.",
-    "- Ne traite jamais un rappel recurrent comme create_one_shot_reminder.",
+    "- Ne traite jamais un rappel recurrent comme create_one_shot_reminder: une demande de relance recurrente (tous les soirs, chaque matin, a chaque fois) releve des initiatives (feature_opportunity cote global); n'emets aucun direct_effect_request pour ca.",
   ];
+}
+
+/**
+ * Presence gate for the visible one-shot-reminder guidance block.
+ *
+ * The block is only meaningful when a one-shot reminder actually sits in the
+ * turn's direct-effect confirmation context (a reminder committed this turn or
+ * still committed+pending inside the 5-turn EffectLedger window). Outside of
+ * that window, the generic non-mutation rules each visible agent already owns
+ * cover "chat can't cancel/modify a reminder" and "never claim an effect
+ * without proof", so injecting the detailed reminder block would only be noise.
+ *
+ * Detection is purely structural (presence of a `one_shot_reminder` object),
+ * never a semantic/regex read of the user message.
+ */
+export function oneShotReminderVisibleContextPresent(
+  directEffectConfirmationContext: unknown,
+): boolean {
+  if (
+    !directEffectConfirmationContext ||
+    typeof directEffectConfirmationContext !== "object"
+  ) {
+    return false;
+  }
+  const reminder =
+    (directEffectConfirmationContext as Record<string, unknown>)
+      .one_shot_reminder;
+  return Boolean(reminder && typeof reminder === "object");
+}
+
+function normalizeForReminderMatch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("fr-FR");
+}
+
+/**
+ * Deterministic proof that a one-shot reminder is committed and still live in
+ * the direct confirmation context (either committed this turn or projected from
+ * the recent EffectLedger window, which the loader already gates on a pending DB
+ * row). Purely structural, never a semantic read of the user message.
+ */
+export function directEffectContextHasCommittedOneShotReminder(
+  directEffectConfirmationContext: unknown,
+): boolean {
+  if (
+    !directEffectConfirmationContext ||
+    typeof directEffectConfirmationContext !== "object"
+  ) {
+    return false;
+  }
+  const ctx = directEffectConfirmationContext as Record<string, unknown>;
+  if (ctx.has_committed_one_shot_reminder === true) return true;
+  const reminder = ctx.one_shot_reminder;
+  return Boolean(
+    reminder &&
+      typeof reminder === "object" &&
+      (reminder as Record<string, unknown>).committed === true,
+  );
+}
+
+/**
+ * Deterministic proof that the recent-effects ledger summary carries a committed
+ * one-shot reminder whose current DB state is still pending. We require the
+ * canonical proof line ("Rappel ponctuel créé: exécuté et persisté") AND an
+ * "état DB actuel: pending" marker so we never suppress the denial for a reminder
+ * that already fired or was cancelled. Matching is accent-insensitive but only
+ * reads the ledger summary string, never the user message.
+ */
+export function recentEffectsSummaryHasCommittedOneShotReminder(
+  recentEffectsSummary: unknown,
+): boolean {
+  if (
+    typeof recentEffectsSummary !== "string" || !recentEffectsSummary.trim()
+  ) {
+    return false;
+  }
+  return recentEffectsSummary.split("\n").some((line) => {
+    const normalized = normalizeForReminderMatch(line);
+    if (!normalized.includes("rappel ponctuel cree")) return false;
+    if (!normalized.includes("execute et persiste")) return false;
+    return normalized.includes("etat db actuel: pending");
+  });
+}
+
+/**
+ * True when a committed one-shot reminder was created *this turn* by the
+ * one-shot reminder pipeline (i.e. the direct confirmation context is the
+ * current-turn build, not the recent-ledger projection). The recent-ledger
+ * projection tags itself with `source: "recent_effect_ledger"`; the current-turn
+ * pipeline build never sets `source`. This is the discriminator that keeps the
+ * active "confirm once" instruction on the creation turn only, so it does not
+ * leak onto later turns where the reminder is merely available from the ledger
+ * window. Purely structural, never a semantic read of the user message.
+ */
+export function directEffectContextCommittedThisTurn(
+  directEffectConfirmationContext: unknown,
+): boolean {
+  if (
+    !directEffectConfirmationContext ||
+    typeof directEffectConfirmationContext !== "object"
+  ) {
+    return false;
+  }
+  const ctx = directEffectConfirmationContext as Record<string, unknown>;
+  if (String(ctx.source ?? "") === "recent_effect_ledger") return false;
+  return directEffectContextHasCommittedOneShotReminder(ctx);
+}
+
+/**
+ * True when a committed, still-pending one-shot reminder is provable to the
+ * visible agent from either the direct confirmation context or the recent
+ * ledger summary. Used to suppress the "you cannot confirm a reminder" denial so
+ * a genuinely committed reminder is never denied on recap.
+ */
+export function committedOneShotReminderKnown(args: {
+  directEffectConfirmationContext?: unknown;
+  recentEffectsSummary?: unknown;
+}): boolean {
+  return (
+    directEffectContextHasCommittedOneShotReminder(
+      args.directEffectConfirmationContext,
+    ) ||
+    recentEffectsSummaryHasCommittedOneShotReminder(args.recentEffectsSummary)
+  );
 }
 
 export function oneShotReminderCanonicalVisiblePromptLines(
   contextPath: string,
+  opts?: { present?: boolean; committedThisTurn?: boolean; committedKnown?: boolean },
 ): string[] {
+  const committedThisTurn = opts?.committedThisTurn === true;
+  // `committedKnown` is the union: proof exists either this turn (pipeline) or in
+  // the recent-ledger window. It gates block presence and denial suppression.
+  const committedKnown = opts?.committedKnown === true || committedThisTurn;
+  // The block stays injected whenever a reminder sits in the direct context
+  // (present) OR whenever a committed reminder is provable (committedKnown), so
+  // the guidance reaches the agent even when only the recent summary carries the
+  // proof.
+  if (opts && opts.present === false && !committedKnown) return [];
+
+  // Active confirmation belongs to the *creation turn* only (the one-shot
+  // reminder pipeline confirms once, right after committing). On later turns the
+  // reminder is only available from the ledger window: it must NOT be
+  // re-confirmed spontaneously, only recalled if the user asks (recap line
+  // below). So we emit the "confirm once" directive on the this-turn branch only.
+  const activeConfirmationLine = committedThisTurn
+    ? `Si ${contextPath}.one_shot_reminder.committed=true, confirme naturellement le rappel une seule fois. Utilise one_shot_reminder.local_label pour le moment et one_shot_reminder.reminder_instruction pour l'objet du rappel, puis reponds au besoin restant du user.`
+    : null;
+
+  const committedProofLine = committedThisTurn
+    ? `Un rappel ponctuel committe ce tour est prouve dans le contexte (${contextPath}.has_committed_one_shot_reminder=true): confirme-le sobrement une seule fois avec local_label. Ne dis jamais que tu ne peux pas confirmer ce rappel et ne nie jamais son existence.`
+    : committedKnown
+    ? `Un rappel ponctuel committe est prouve et disponible dans le contexte (${contextPath}.has_committed_one_shot_reminder=true ou visible_runtime_context.recent_effects_summary avec une ligne 'Rappel ponctuel cree: execute et persiste' et etat DB actuel pending). Ne le confirme pas de toi-meme si le user n'en parle pas; rappelle-le seulement s'il le demande ou si c'est utile pour ne pas le contredire. N'ouvre jamais ta reponse par ce rappel et ne le mentionne pas en preambule d'un tour qui porte sur autre chose (emotion, coaching, question). Ne nie jamais son existence.`
+    : `Si ${contextPath}.has_committed_one_shot_reminder n'est pas true, ne dis jamais qu'un rappel est programme, cree, enregistre, active ou fait.`;
+  const unprovenReminderLine = committedKnown
+    ? "N'affirme aucun autre rappel non prouve; ne parle que du rappel committe prouve ci-dessus, en respectant son etat DB actuel (par exemple ne le presente pas comme actif s'il est annule ou deja passe)."
+    : "Si aucune de ces sources ne prouve le rappel, dis sobrement que tu ne peux pas confirmer qu'un rappel a ete programme. Ne le deduis jamais du dernier message user, d'une intention, d'une recommandation, ni d'une reponse precedente.";
   return [
-    `Si ${contextPath}.one_shot_reminder.committed=true, confirme naturellement le rappel une seule fois. Utilise one_shot_reminder.local_label pour le moment et one_shot_reminder.reminder_instruction pour l'objet du rappel, puis reponds au besoin restant du user.`,
+    ...(activeConfirmationLine ? [activeConfirmationLine] : []),
     "Ne repete pas one_shot_reminder.reminder_instruction ou son equivalent deux fois.",
     "Ne reformule pas l'objet du rappel avant puis apres le marqueur temporel.",
-    `Si ${contextPath}.has_committed_one_shot_reminder n'est pas true, ne dis jamais qu'un rappel est programme, cree, enregistre, active ou fait.`,
+    committedProofLine,
+    "Si le user demande si un rappel recent a ete programme ou ce qui vient d'etre programme, tu peux confirmer seulement depuis deux sources: le contexte direct ci-dessus avec has_committed_one_shot_reminder=true, ou visible_runtime_context.recent_effects_summary si ce champ est fourni et contient une ligne 'Rappel ponctuel cree: execute et persiste' avec etat DB actuel.",
+    unprovenReminderLine,
     "Ne calcule jamais une heure visible depuis UTC_time ou scheduled_for; utilise uniquement local_label.",
     "Ne recree, reroute, redemande ou redecide jamais un rappel depuis le visible agent.",
+    "Un rappel ponctuel ne peut pas etre annule, modifie, decale, reprogramme ou supprime depuis le chat: c'est une limite produit actuelle, pas un doute sur l'existence du rappel.",
+    "Si le user demande d'annuler, modifier, decaler ou supprimer un rappel, ne dis jamais que c'est fait et ne le presente pas comme faisable ici; explique sobrement que la gestion des rappels se fait dans la plateforme (ses rappels ponctuels / Initiatives).",
+    "Ne nie jamais l'existence d'un rappel deja confirme ou deja prouve par les sources ci-dessus juste parce que l'annulation est impossible: si le rappel est connu, rappelle-le sobrement avec local_label puis pose la limite d'annulation.",
   ];
 }

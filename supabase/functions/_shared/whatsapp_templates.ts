@@ -56,6 +56,12 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
       "Coucou {{1}}, ton essai s'est terminé. 🥲\nSi tu as trouvé l'aide que tu cherchais, je peux t'envoyer le lien pour continuer ensemble. Tu veux ? ☺️",
     buttons: ["C'est parti !", "Pas pour le moment"],
   },
+  subscription_confirmed_v1: {
+    name: "subscription_confirmed_v1",
+    body:
+      "C’est confirmé ✅\nTon abonnement Sophia est bien activé.\n\nJe suis contente de te retrouver ici.",
+    buttons: [],
+  },
   sophia_bilan_weekly_v1: {
     name: "sophia_bilan_weekly_v1",
     body:

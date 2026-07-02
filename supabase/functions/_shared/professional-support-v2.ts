@@ -29,7 +29,7 @@ const PROFESSIONAL_SUPPORT_KEY_ENUM = z.enum(
 
 const ENRICHED_RECOMMENDATION_SCHEMA = z.object({
   key: PROFESSIONAL_SUPPORT_KEY_ENUM,
-  reason: z.string().min(1).max(220),
+  reason: z.string().min(1),
   priority_rank: z.number().int().min(1).max(3),
   timing_kind: z.enum(
     [
@@ -446,6 +446,30 @@ export async function classifyAndPersistProfessionalSupport(args: {
         .insert(nextRow as never)
         .select("*")
         .maybeSingle();
+
+      if (error && (error as { code?: string }).code === "23505") {
+        // A concurrent classification (activation enrichment racing the
+        // dashboard bootstrap) already inserted this (transformation_id,
+        // professional_key) row. Adopt it instead of failing.
+        const { data: existingRow, error: reselectError } = await args.admin
+          .from("user_professional_support_recommendations")
+          .update(nextRow as never)
+          .eq("transformation_id", args.transformation.id)
+          .eq("professional_key", recommendation.key)
+          .select("*")
+          .maybeSingle();
+
+        if (reselectError || !existingRow) {
+          throw new ProfessionalSupportV2Error(
+            500,
+            "Failed to insert professional support recommendation",
+            { cause: reselectError ?? error },
+          );
+        }
+
+        rows.push(existingRow as UserProfessionalSupportRecommendationRow);
+        continue;
+      }
 
       if (error || !data) {
         throw new ProfessionalSupportV2Error(

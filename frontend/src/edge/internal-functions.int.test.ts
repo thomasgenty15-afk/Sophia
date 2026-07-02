@@ -8,7 +8,6 @@ import {
 const BASE_URL = process.env.VITE_SUPABASE_URL;
 const INTERNAL_SECRET = process.env.MEGA_INTERNAL_SECRET;
 const IS_FULL = process.env.MEGA_TEST_FULL === "1";
-const IS_STUB = process.env.MEGA_TEST_MODE !== "0";
 
 function mustGetBaseUrl() {
   if (!BASE_URL) {
@@ -17,7 +16,7 @@ function mustGetBaseUrl() {
   return BASE_URL;
 }
 
-async function callInternal(fn: string, body: any) {
+async function callInternal(fn: string, body: Record<string, unknown>) {
   if (!INTERNAL_SECRET) {
     throw new Error(
       "Missing MEGA_INTERNAL_SECRET (runner couldn't read Edge SECRET_KEY)",
@@ -34,7 +33,7 @@ async function callInternal(fn: string, body: any) {
   });
   const text = await res.text();
   // These endpoints should return JSON. If not, throw with context.
-  let json: any;
+  let json: unknown;
   try {
     json = JSON.parse(text);
   } catch {
@@ -73,39 +72,6 @@ describe("edge functions: internal jobs (require X-Internal-Secret) [FULL]", () 
   });
 
   it.skipIf(!IS_FULL)(
-    "detect-future-events: creates scheduled_checkins for active users",
-    async () => {
-      // Make user "active" by inserting a recent user message.
-      const { error: msgErr } = await admin.from("chat_messages").insert({
-        user_id: userId,
-        role: "user",
-        content: "Demain j'ai une réunion importante",
-        created_at: new Date().toISOString(),
-      });
-      if (msgErr) throw msgErr;
-
-      const out = await callInternal("detect-future-events", {});
-      expect(out.success).toBe(true);
-
-      const { data, error } = await admin
-        .from("scheduled_checkins")
-        .select("status,event_context,draft_message,scheduled_for")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      expect(data).toBeTruthy();
-      expect(data!.status).toBe("pending");
-      if (IS_STUB) expect(data!.draft_message).toContain("MEGA_TEST_STUB");
-      expect(data!.event_context).toBeTruthy();
-      expect(new Date(data!.scheduled_for).getTime()).toBeGreaterThan(
-        Date.now(),
-      );
-    },
-  );
-
-  it.skipIf(!IS_FULL)(
     "process-checkins: sends due checkins via WhatsApp and marks them sent",
     async () => {
       const scheduledFor = new Date(Date.now() - 5_000).toISOString();
@@ -114,7 +80,7 @@ describe("edge functions: internal jobs (require X-Internal-Secret) [FULL]", () 
         .update({
           phone_invalid: false,
           whatsapp_opted_in: true,
-        } as any)
+        } satisfies Record<string, unknown>)
         .eq("id", userId);
       if (profileErr) throw profileErr;
 
@@ -151,7 +117,9 @@ describe("edge functions: internal jobs (require X-Internal-Secret) [FULL]", () 
         .single();
       if (msgReadErr) throw msgReadErr;
       expect(msg.content).toBe("Message programmé");
-      expect((msg.metadata as any)?.source).toBe("scheduled_checkin");
+      expect((msg.metadata as Record<string, unknown> | null)?.source).toBe(
+        "scheduled_checkin",
+      );
     },
   );
 });

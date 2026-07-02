@@ -8,8 +8,42 @@
 
 declare const Deno: any;
 
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
+
+let cachedServiceRoleLedgerClient: SupabaseClient | null | undefined = undefined;
+
+/**
+ * `turn_summary_logs` holds the EffectLedger and is not exposed to end users via
+ * RLS. The WhatsApp path already runs the brain with a service-role client, but
+ * the web/test paths use a user-scoped client, so recent-effect reads come back
+ * empty and visible agents lose the proof that a durable effect was committed.
+ * Build a service-role client (when the key is present) that callers pass to the
+ * loaders as `ledgerReadClient` so proofs are consistent across channels.
+ * Returns undefined when no service-role key is available; callers then fall
+ * back to their user-scoped client.
+ *
+ * Kept separate from the loaders (which only consume the explicit param) so unit
+ * tests can inject a mock client without an env-derived client shadowing it.
+ */
+export function serviceRoleLedgerReadClient(): SupabaseClient | undefined {
+  if (cachedServiceRoleLedgerClient !== undefined) {
+    return cachedServiceRoleLedgerClient ?? undefined;
+  }
+  try {
+    const url = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    cachedServiceRoleLedgerClient = url && serviceKey
+      ? createClient(url, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      }) as unknown as SupabaseClient
+      : null;
+  } catch {
+    cachedServiceRoleLedgerClient = null;
+  }
+  return cachedServiceRoleLedgerClient ?? undefined;
+}
 import { logV2Event, V2_EVENT_TYPES } from "../../_shared/v2-events.ts";
 import {
   buildRetrievalExecutedPayload,
@@ -34,6 +68,8 @@ import {
   getUserProfileFacts,
 } from "../profile_facts.ts";
 import type { DispatcherMemoryPlan } from "../router/dispatcher.ts";
+import type { PersistedEffectLedgerEntry } from "../router/effect_ledger.ts";
+import { loadRecentEffectHistory } from "../router/effect_ledger_reader.ts";
 import type { SurfaceRuntimeAddon } from "../surface_state.ts";
 import { getSurfaceDefinition } from "../surface_registry.ts";
 import { DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE } from "../conversation_pulse_builder.ts";
@@ -562,6 +598,19 @@ export async function loadContextForMode(
         }
       }),
     );
+    promises.push(
+      loadRecentEffectsLedgerSummary({
+        supabase: opts.supabase,
+        userId: opts.userId,
+        scope: opts.scope,
+        userTimePromptBlock: opts.userTime?.prompt_block,
+      }).then((block) => {
+        if (block) {
+          context.recentEffectsSummary = block;
+          elementsLoaded.push("recent_effects_summary");
+        }
+      }),
+    );
   }
 
   // 2. Temporal context
@@ -1007,6 +1056,7 @@ export function buildContextString(loaded: LoadedContext): string {
   // memoryV2Payload pour que le LLM la voie quand il s'apprête à parler
   // d'une carte/rappel/préférence. Voir chantier 2 phase B.
   if (loaded.durableEffectsSummary) ctx += loaded.durableEffectsSummary;
+  if (loaded.recentEffectsSummary) ctx += loaded.recentEffectsSummary;
   if (loaded.whatsappFilRouge) ctx += loaded.whatsappFilRouge;
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
@@ -2559,6 +2609,268 @@ function extractReminderInstruction(payload: any): string {
       "",
     )
     .trim();
+}
+
+function recentEffectStatusLabel(status: string): string {
+  if (status === "committed") return "exécuté et persisté";
+  if (status === "failed") return "tenté mais non persisté";
+  if (status === "blocked") return "bloqué, non persisté";
+  return status;
+}
+
+function recentEffectTypeLabel(entry: PersistedEffectLedgerEntry): string {
+  const effectType = String(entry.effect_type ?? "").trim();
+  const operationType = String(entry.operation_type ?? "").trim();
+  if (effectType === "one_shot_reminder.create") {
+    return "Rappel ponctuel créé";
+  }
+  if (effectType === "one_shot_reminder.cancel") {
+    return "Rappel ponctuel annulé";
+  }
+  if (effectType === "plan_item_progress.track") {
+    return "Progression d'action notée";
+  }
+  if (
+    effectType === "coach_preferences.update" ||
+    operationType === "update_coach_preferences" ||
+    entry.db_ref?.table === "user_profile_facts"
+  ) {
+    return "Préférence utilisateur mise à jour";
+  }
+  return effectType || operationType || "Effet durable";
+}
+
+function recentEffectInstruction(entry: PersistedEffectLedgerEntry): string {
+  const payload = entry.payload_summary ?? {};
+  const value = String(
+    payload.reminder_instruction ??
+      payload.instruction ??
+      payload.target_title ??
+      payload.title ??
+      payload.status_hint ??
+      payload.key ??
+      "",
+  ).replace(/\s+/g, " ").trim();
+  return value ? value.slice(0, 140) : "";
+}
+
+async function loadScheduledCheckinsById(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  ids: string[];
+}): Promise<Map<string, any>> {
+  const ids = [
+    ...new Set(
+      args.ids.map((id) => String(id).trim()).filter(
+        Boolean,
+      ),
+    ),
+  ].slice(0, 12);
+  const out = new Map<string, any>();
+  if (ids.length === 0) return out;
+  try {
+    let query: any = args.supabase
+      .from("scheduled_checkins")
+      .select("id,scheduled_for,status,message_payload")
+      .eq("user_id", args.userId);
+    if (typeof query.in !== "function") return out;
+    query = query.in("id", ids);
+    const res = await query;
+    if (res?.error) return out;
+    for (const row of (res?.data ?? []) as any[]) {
+      const id = String(row?.id ?? "").trim();
+      if (id) out.set(id, row);
+    }
+  } catch {
+    return out;
+  }
+  return out;
+}
+
+function formatRecentEffectLine(args: {
+  entry: PersistedEffectLedgerEntry;
+  scheduledCheckins: Map<string, any>;
+  timezone: string;
+}): string {
+  const entry = args.entry;
+  const label = recentEffectTypeLabel(entry);
+  const status = recentEffectStatusLabel(String(entry.status ?? ""));
+  const detail = recentEffectInstruction(entry);
+  const pieces: string[] = [`- ${label}: ${status}`];
+  if (detail) pieces.push(`détail: ${detail}`);
+
+  const table = String(entry.db_ref?.table ?? "").trim();
+  const id = String(entry.db_ref?.id ?? "").trim();
+  if (table === "scheduled_checkins" && id) {
+    const checkin = args.scheduledCheckins.get(id);
+    if (checkin) {
+      const currentStatus = String(checkin?.status ?? "").trim() || "inconnu";
+      const scheduledRaw = String(checkin?.scheduled_for ?? "").trim();
+      const scheduledLocal = scheduledRaw
+        ? formatScheduledForUserTimezone(scheduledRaw, args.timezone)
+        : "";
+      const instruction = extractReminderInstruction(checkin?.message_payload);
+      pieces.push(`état DB actuel: ${currentStatus}`);
+      if (scheduledLocal) pieces.push(`prévu: ${scheduledLocal}`);
+      if (instruction && instruction !== detail) {
+        pieces.push(`instruction DB: ${instruction.slice(0, 140)}`);
+      }
+    } else {
+      pieces.push("référence DB actuelle introuvable");
+    }
+  } else if (table) {
+    pieces.push(`référence DB: ${table}${id ? `/${id}` : ""}`);
+  }
+
+  return `${pieces.join("; ")}.`;
+}
+
+/**
+ * Timeline courte des effets réellement observés par le runtime.
+ * L'état courant reste porté par les tables métier; ce bloc sert à répondre
+ * aux questions de continuité immédiate ("qu'est-ce que tu viens de faire ?").
+ */
+export async function loadRecentEffectsLedgerSummary(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  scope?: string | null;
+  userTimePromptBlock?: string;
+  /**
+   * Optional privileged client for reading `turn_summary_logs`. That table is an
+   * internal execution log not exposed to end users via RLS, so the user-scoped
+   * client used by the web/test paths reads it empty. Callers pass a service-role
+   * client here to keep recent-effect proofs consistent across channels; falls
+   * back to `supabase` when omitted (e.g. WhatsApp already passes service-role).
+   */
+  ledgerReadClient?: SupabaseClient;
+}): Promise<string | null> {
+  try {
+    const ledgerClient = args.ledgerReadClient ?? args.supabase;
+    const entries = await loadRecentEffectHistory({
+      supabase: ledgerClient,
+      userId: args.userId,
+      limit: 40,
+      scope: args.scope ?? null,
+      turnLimit: 5,
+    });
+    const relevant = entries.filter((entry) => {
+      const status = String(entry.status ?? "");
+      if (
+        status !== "committed" && status !== "failed" && status !== "blocked"
+      ) {
+        return false;
+      }
+      if (String(entry.effect_type ?? "") === "final_reply.claim") return false;
+      return String(entry.kind ?? "durable_effect") === "durable_effect";
+    }).slice(0, 8);
+    if (relevant.length === 0) return null;
+
+    const timezone = extractTimezoneFromUserTimeBlock(args.userTimePromptBlock);
+    const scheduledCheckinIds = relevant
+      .filter((entry) => entry.db_ref?.table === "scheduled_checkins")
+      .map((entry) => String(entry.db_ref?.id ?? "").trim())
+      .filter(Boolean);
+    const scheduledCheckins = await loadScheduledCheckinsById({
+      supabase: args.supabase,
+      userId: args.userId,
+      ids: scheduledCheckinIds,
+    });
+
+    const lines = [
+      "=== EFFETS RÉCENTS (EffectLedger, fenêtre 5 tours) ===",
+      "Usage: utiliser seulement si le user demande ce qui vient d'être fait, programmé, noté, validé, annulé, ou si nécessaire pour ne pas contredire un effet récent. Ne pas le mentionner spontanément.",
+      "Source: timeline d'exécution récente. Pour dire si un objet existe encore maintenant, l'état DB actuel est prioritaire.",
+      ...relevant.map((entry) =>
+        formatRecentEffectLine({ entry, scheduledCheckins, timezone })
+      ),
+      "Consigne: ne révèle pas le nom EffectLedger. Si l'effet est marqué bloqué/failed, ne dis pas que c'est fait. Si une ligne committed a une référence DB actuelle, tu peux répondre sobrement que cela a été fait, avec l'état DB indiqué.",
+    ];
+    return lines.join("\n") + "\n\n";
+  } catch (err) {
+    console.warn(
+      "[ContextLoader] loadRecentEffectsLedgerSummary failed (non-blocking):",
+      err,
+    );
+    return null;
+  }
+}
+
+export async function loadRecentDirectEffectConfirmationContext(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  scope?: string | null;
+  /** See loadRecentEffectsLedgerSummary.ledgerReadClient. */
+  ledgerReadClient?: SupabaseClient;
+}): Promise<Record<string, unknown> | null> {
+  try {
+    const ledgerClient = args.ledgerReadClient ?? args.supabase;
+    const entries = await loadRecentEffectHistory({
+      supabase: ledgerClient,
+      userId: args.userId,
+      limit: 40,
+      scope: args.scope ?? null,
+      turnLimit: 5,
+    });
+    const committedReminder = entries.find((entry) => {
+      if (entry.status !== "committed") return false;
+      if (entry.effect_type !== "one_shot_reminder.create") return false;
+      if (entry.db_ref?.table !== "scheduled_checkins") return false;
+      return true;
+    });
+    if (!committedReminder) return null;
+
+    const dbId = String(committedReminder.db_ref?.id ?? "").trim();
+    const scheduledCheckins = await loadScheduledCheckinsById({
+      supabase: args.supabase,
+      userId: args.userId,
+      ids: dbId ? [dbId] : [],
+    });
+    const checkin = dbId ? scheduledCheckins.get(dbId) : null;
+    const currentStatus = String(checkin?.status ?? "").trim();
+    if (checkin && currentStatus && currentStatus !== "pending") return null;
+
+    const payload = committedReminder.payload_summary ?? {};
+    const reminderInstruction = checkin
+      ? extractReminderInstruction(checkin?.message_payload)
+      : String(payload.reminder_instruction ?? payload.instruction ?? "")
+        .trim();
+    const scheduledFor = String(
+      checkin?.scheduled_for ?? payload.scheduled_for ?? "",
+    ).trim();
+    const localLabel = String(payload.local_label ?? "").trim();
+
+    return {
+      has_committed_one_shot_reminder: true,
+      has_requested_one_shot_reminder: true,
+      one_shot_reminder: {
+        committed: true,
+        local_label: localLabel || null,
+        reminder_instruction: reminderInstruction || null,
+      },
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: dbId || committedReminder.committed_id || null,
+        scheduled_for: scheduledFor || null,
+        local_label: localLabel || null,
+        reminder_instruction: reminderInstruction || null,
+      }],
+      requested_effects: [],
+      blocked_effects: [],
+      confirmation_text: null,
+      do_not_recreate: true,
+      do_not_reroute: true,
+      do_not_redemand: true,
+      do_not_confirm_without_commit: true,
+      remaining_user_need_must_continue: true,
+      source: "recent_effect_ledger",
+    };
+  } catch (err) {
+    console.warn(
+      "[ContextLoader] loadRecentDirectEffectConfirmationContext failed (non-blocking):",
+      err,
+    );
+    return null;
+  }
 }
 
 /**

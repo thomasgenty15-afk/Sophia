@@ -229,6 +229,38 @@ Deno.test("dispatcher normalizes coaching recommendation activation context", as
   assertEquals(Object.hasOwn(context?.action_context ?? {}, "action_type"), false);
 });
 
+Deno.test("dispatcher preserves plan realignment signal context without execution", async () => {
+  const frame = await dispatch(
+    "J'ai pris trop de retard sur mon plan, je crois qu'il faut le revoir.",
+    {
+      skill_signals: {
+        plan_realignment: {
+          detected: true,
+          confidence_band: "high",
+          reason: "plan_realignment_explicit_adjust",
+          context: {
+            drift_type: "late_on_plan",
+            scope: "whole_plan",
+            explicit_adjust_request: true,
+            product_execution_allowed: true,
+            reason: "User reports plan-level delay and wants to review it.",
+            action_patch: { unsafe: true },
+          },
+        },
+      },
+    },
+  );
+
+  const context = frame.skill_signals.plan_realignment?.context;
+  assertEquals(frame.skill_signals.plan_realignment?.detected, true);
+  assertEquals(context?.drift_type, "late_on_plan");
+  assertEquals(context?.scope, "whole_plan");
+  assertEquals(context?.explicit_adjust_request, true);
+  assertEquals(context?.product_execution_allowed, false);
+  assertEquals(Object.hasOwn(context ?? {}, "action_patch"), false);
+  assertNoLegacyRouteFields(frame);
+});
+
 Deno.test("dispatcher preserves feature opportunity signal context", async () => {
   const frame = await dispatch(
     "Avant chaque diner j'ai du mal a ne pas fumer",

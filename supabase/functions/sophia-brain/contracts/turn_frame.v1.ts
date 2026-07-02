@@ -68,7 +68,28 @@ export type CoachingRecommendationSignalContext = {
     plan_item_id?: string | null;
     action_title?: string | null;
   } | null;
-  needs_type_confirmation?: boolean;
+};
+
+export type PlanRealignmentDriftType =
+  | "missed_plan"
+  | "late_on_plan"
+  | "lost_rhythm"
+  | "plan_too_heavy"
+  | "changed_context"
+  | "ambiguous";
+
+export type PlanRealignmentScope =
+  | "whole_plan"
+  | "week"
+  | "level"
+  | "unknown";
+
+export type PlanRealignmentSignalContext = {
+  drift_type: PlanRealignmentDriftType;
+  scope: PlanRealignmentScope;
+  explicit_adjust_request: boolean;
+  product_execution_allowed: false;
+  reason: string;
 };
 
 export type FeatureOpportunityKind =
@@ -91,6 +112,9 @@ export type DispatcherSkillSignals = {
   product_help?: SkillSignal;
   coaching_recommendation?: SkillSignal & {
     context?: CoachingRecommendationSignalContext;
+  };
+  plan_realignment?: SkillSignal & {
+    context?: PlanRealignmentSignalContext;
   };
   feature_opportunity?: SkillSignal & {
     context?: FeatureOpportunitySignalContext;

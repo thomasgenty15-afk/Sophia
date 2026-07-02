@@ -393,8 +393,6 @@ memory_v2_alerts_enabled = "env(memory_v2_alerts_enabled)"
 verify_jwt = false
 [functions.update-core-identity]
 verify_jwt = false
-[functions.detect-future-events]
-verify_jwt = false
 [functions.process-checkins]
 verify_jwt = false
 [functions.schedule-onboarding-week1-validation]
@@ -416,9 +414,6 @@ verify_jwt = false
 verify_jwt = false
 [functions.whatsapp-sim-trigger]
 verify_jwt = false
-[functions.sophia-brain-internal]
-verify_jwt = false
-
 [functions.process-llm-retry-jobs]
 verify_jwt = false
 
@@ -426,6 +421,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.process-whatsapp-optin-recovery]
+verify_jwt = false
+
+[functions.promote-candidate-memory-items]
 verify_jwt = false
 
 [functions.cycle-draft]

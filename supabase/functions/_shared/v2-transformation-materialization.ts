@@ -308,7 +308,7 @@ export async function previewTransformationMaterialization(params: {
   });
   const rawOutput = await generateTransformationMaterializationWithLlm({
     requestId: params.requestId,
-    userId: params.userId ?? undefined,
+    userId: params.userId ?? null,
     input: promptInput,
   });
   console.log(JSON.stringify({

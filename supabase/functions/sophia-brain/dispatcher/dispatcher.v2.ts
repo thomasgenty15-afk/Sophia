@@ -13,6 +13,9 @@ import type {
   Explicitness,
   FeatureOpportunityKind,
   FeatureOpportunitySignalContext,
+  PlanRealignmentDriftType,
+  PlanRealignmentScope,
+  PlanRealignmentSignalContext,
   RiskBand,
   TurnFrame,
 } from "../contracts/turn_frame.v1.ts";
@@ -484,6 +487,35 @@ function sanitizeFeatureOpportunitySignalContext(
   };
 }
 
+function sanitizePlanRealignmentSignalContext(
+  raw: unknown,
+): PlanRealignmentSignalContext | undefined {
+  const root = objectRecord(raw);
+  if (!root) return undefined;
+  return {
+    drift_type: enumString<PlanRealignmentDriftType>(
+      root.drift_type,
+      [
+        "missed_plan",
+        "late_on_plan",
+        "lost_rhythm",
+        "plan_too_heavy",
+        "changed_context",
+        "ambiguous",
+      ],
+      "ambiguous",
+    ),
+    scope: enumString<PlanRealignmentScope>(
+      root.scope,
+      ["whole_plan", "week", "level", "unknown"],
+      "unknown",
+    ),
+    explicit_adjust_request: root.explicit_adjust_request === true,
+    product_execution_allowed: false,
+    reason: optionalText(root.reason, 240) ?? "",
+  };
+}
+
 function sanitizeResearchSignal(
   raw: unknown,
   fallback: DispatcherResearchSignal,
@@ -571,7 +603,11 @@ function sanitizeDirectEffects(raw: unknown): TurnFrame["direct_effects"] {
 
 function sanitizeSkillSignal(
   raw: unknown,
-  kind?: "coaching_recommendation" | "feature_opportunity" | "product_help",
+  kind?:
+    | "coaching_recommendation"
+    | "feature_opportunity"
+    | "plan_realignment"
+    | "product_help",
 ): {
   detected: boolean;
   confidence_band: ConfidenceBand;
@@ -579,7 +615,8 @@ function sanitizeSkillSignal(
   reason?: string;
   context?:
     | CoachingRecommendationSignalContext
-    | FeatureOpportunitySignalContext;
+    | FeatureOpportunitySignalContext
+    | PlanRealignmentSignalContext;
 } | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const signal = raw as Record<string, unknown>;
@@ -595,6 +632,8 @@ function sanitizeSkillSignal(
     ? sanitizeCoachingRecommendationSignalContext(signal.context)
     : kind === "feature_opportunity"
     ? sanitizeFeatureOpportunitySignalContext(signal.context)
+    : kind === "plan_realignment"
+    ? sanitizePlanRealignmentSignalContext(signal.context)
     : undefined;
   return {
     detected: signal.detected === true,
@@ -623,6 +662,10 @@ function sanitizeSkillSignals(
     root.feature_opportunity,
     "feature_opportunity",
   );
+  const directPlanRealignment = sanitizeSkillSignal(
+    root.plan_realignment,
+    "plan_realignment",
+  );
   const entryRoot = root.entry && typeof root.entry === "object" &&
       !Array.isArray(root.entry)
     ? root.entry as Record<string, unknown>
@@ -639,17 +682,25 @@ function sanitizeSkillSignals(
     entryRoot.feature_opportunity,
     "feature_opportunity",
   );
+  const entryPlanRealignment = sanitizeSkillSignal(
+    entryRoot.plan_realignment,
+    "plan_realignment",
+  );
   const productHelp = directProductHelp ?? entryProductHelp;
   const coachingRecommendation = directCoachingRecommendation ??
     entryCoachingRecommendation;
   const featureOpportunity = directFeatureOpportunity ??
     entryFeatureOpportunity;
+  const planRealignment = directPlanRealignment ?? entryPlanRealignment;
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
   if (productHelp?.detected === true) {
     signals.product_help = productHelp;
   }
   if (coachingRecommendation?.detected === true) {
     signals.coaching_recommendation = coachingRecommendation as any;
+  }
+  if (planRealignment?.detected === true) {
+    signals.plan_realignment = planRealignment as any;
   }
   if (featureOpportunity?.detected === true) {
     signals.feature_opportunity = featureOpportunity as any;
@@ -785,6 +836,7 @@ function hasAllOriginalDirectEffects(
 function hasEntrySkillSignal(frame: TurnFrame): boolean {
   return frame.skill_signals?.product_help?.detected === true ||
     frame.skill_signals?.coaching_recommendation?.detected === true ||
+    frame.skill_signals?.plan_realignment?.detected === true ||
     frame.skill_signals?.feature_opportunity?.detected === true;
 }
 

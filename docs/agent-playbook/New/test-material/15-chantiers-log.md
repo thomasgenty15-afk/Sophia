@@ -7623,3 +7623,79 @@ Tests / verifications :
   : vert;
 - `deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/skills/weekly_review/weekly_review_local_flow_test.ts`
   : 22 passed.
+
+---
+
+### J85 — Coaching recommendation: frontiere generique du flow actif
+
+Couche. L5 conversation skill `coaching_recommendation` / dispatcher local.
+
+Symptome. Run `normal20-20260701-r1`, tours T4, T6, T9 et T15 :
+le flow actif coaching capturait des intentions autonomes comme preference ou
+memoire durable, question produit, statut/recap d'operation et clarification de
+capacite.
+
+Fix. Ajout d'une frontiere concise dans le prompt du dispatcher local :
+`coaching_recommendation` ne possede le tour que si le message courant continue
+la recommandation de coaching en cours. Une intention autonome devant etre
+arbitree globalement doit produire `exit_to_global_dispatcher` avec
+`note_information`, sans reformuler la demande en carte, potion ou technique.
+Le changement reste dans le dispatcher local; aucune regex metier ni preemption
+aval en L3/L4 n'a ete ajoutee.
+
+Fichiers modifies.
+
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow.ts`
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow_test.ts`
+- `docs/agent-playbook/New/test-material/run-bug-sheets/2026-07-01-normal20-20260701-r1-bugs.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+
+Tests / verifications.
+
+- `deno test --allow-read supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow_test.ts`
+  : 51 passed.
+- `deno check supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow.ts supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow_test.ts`
+  : vert.
+
+Limites restantes. Le run IA reel doit etre rejoue pour verifier que le modele
+applique bien la frontiere en conversation. Les bugs EffectLedger/status et
+renderer visible "carte" restent hors scope de ce chantier.
+
+---
+
+### J86 — Coaching recommendation: sortie visible en coaching generique
+
+Couche. L5 conversation skill `coaching_recommendation` / visible agents.
+
+Symptome. Run `normal20-20260701-r1`, tours T11, T18 et T20 :
+Sophia continuait a exposer "carte", "technique" ou le format produit alors
+que le user demandait une aide normale, une phrase copiable ou une seule ligne.
+
+Fix. Ajout d'un bloc visible commun `coaching_only` pour les agents
+specialises de `coaching_recommendation`. Les agents `action_plan_coaching`,
+`no_plan_coaching` et `emotion_coaching` peuvent maintenant rendre un coaching
+conversationnel sans pousser carte, potion, technique ou destination produit
+quand c'est plus pertinent pour le message courant. Le filtre runtime accepte
+`coaching_only` aussi pour les actions du plan et l'emotionnel, tout en
+conservant la derniere recommandation produit stable pour les follow-ups.
+
+Fichiers modifies.
+
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/shared.ts`
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/action_plan_coaching.ts`
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/no_plan_coaching.ts`
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/emotion_coaching.ts`
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/skill.ts`
+- `supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow_test.ts`
+- `docs/agent-playbook/New/test-material/run-bug-sheets/2026-07-01-normal20-20260701-r1-bugs.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+
+Tests / verifications.
+
+- `deno test --allow-read supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow_test.ts`
+  : 52 passed.
+- `deno check supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/shared.ts supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/action_plan_coaching.ts supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/no_plan_coaching.ts supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/emotion_coaching.ts supabase/functions/sophia-brain/skills/coaching_recommendation/skill.ts supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow_test.ts`
+  : vert.
+
+Limites restantes. Le run IA reel doit etre rejoue pour verifier que les
+contraintes de style explicites sont effectivement respectees en conversation.

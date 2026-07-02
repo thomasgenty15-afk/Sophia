@@ -456,7 +456,7 @@ export function reduceFeatureOpportunityLocalDispatcherOutput(args: {
   };
 }
 
-function dispatcherPrompt(input: FeatureOpportunityLocalDispatcherInput) {
+export function dispatcherPrompt(input: FeatureOpportunityLocalDispatcherInput) {
   return [
     "Tu es le dispatcher local du skill feature_opportunity.",
     "Retourne uniquement le JSON demande. Ne reponds pas au user.",
@@ -467,6 +467,8 @@ function dispatcherPrompt(input: FeatureOpportunityLocalDispatcherInput) {
     "coach_preferences: feedback sur le style Sophia, trop de questions, trop long, ton inadequat, besoin de plus directif/doux.",
     "Il n'y a aucun handoff local depuis feature_opportunity. Si le sujet sort de l'opportunite produit, question produit autonome incluse, utilise exit_to_global_dispatcher avec target_dispatcher=global.",
     "Si le user pose une question de comprehension directement liee a l'opportunite deja detectee, reste dans le flow et choisis answer_followup: le visible agent a les definitions produit utiles pour aiguiller.",
+    "answer_followup est reserve a une question, clarification ou complement PORTANT sur l'opportunite deja detectee (initiatives ou coach_preferences). Une nouvelle intention explicite hors de cette opportunite ne doit jamais etre traitee en answer_followup, meme si elle parait thematiquement proche: utilise exit_to_global_dispatcher.",
+    "Sortie obligatoire (exit_to_global_dispatcher, target_dispatcher=global) quand le message courant est: (a) une demande de revoir, ajuster, alleger, reorganiser ou refaire son plan, planning, semaine ou rythme; ou (b) un etat emotionnel, une detresse, un decouragement ou un 'a quoi bon' sans demande d'opportunite produit. Ne requalifie pas ces messages en opportunite initiatives ou coach_preferences.",
     ...directEffectLocalDispatcherPromptLines(),
     ...localOneShotDirectEffectPromptLines("feature_opportunity actif"),
     "Regle prioritaire create_one_shot_reminder pendant feature_opportunity: si current_user_message contient une demande explicite de rappel ponctuel avec un delai ou moment exploitable, tu dois remplir direct_effect_request.requested=true, meme si le reste du message demande de formuler, clarifier, recommander ou expliquer l'opportunite. Ne mets jamais cette demande seulement dans user_problem_summary, recommendation.user_facing_next_step, visible_task.instruction, evidence ou state_updates: ces champs narratifs ne declenchent pas la lane directe.",

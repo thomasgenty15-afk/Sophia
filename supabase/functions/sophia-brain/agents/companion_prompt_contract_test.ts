@@ -15,7 +15,7 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.length < 12000);
+  assert(prompt.length < 12800);
   assert(prompt.includes("CORE_COMPANION"));
   assert(prompt.includes("OUTPUT_STYLE"));
   assert(prompt.includes("NORMAL_REPLY_POLICY"));
@@ -103,6 +103,13 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
   assert(
     prompt.includes(
       "Ne propose pas automatiquement une carte, une potion ou un outil Sophia",
+    ),
+  );
+  assert(prompt.includes("Priorité au dernier message"));
+  assert(prompt.includes("accueille l'émotion d'abord"));
+  assert(
+    prompt.includes(
+      "sans la réinterpréter en question produit ni prolonger le sujet précédent",
     ),
   );
   assert(prompt.includes("Point/récap léger"));
@@ -355,4 +362,25 @@ Deno.test("companion question rhythm does not infer question tendency from other
 
   assert(prompt.includes("Préférence user: high"));
   assert(prompt.includes("environ 1 question tous les 2 tours"));
+});
+
+Deno.test("companion normal reply acknowledges explicit memorization requests", () => {
+  const prompt = buildCompanionSystemPrompt({
+    isWhatsApp: false,
+    lastAssistantMessage: "Je te suis.",
+    context: "",
+    userState: { risk_level: 0, temp_memory: {} },
+  });
+
+  assert(prompt.includes("Demande de retenir un fait personnel"));
+  assert(prompt.includes("la mémorisation est automatique côté Sophia"));
+  assert(
+    prompt.includes("ne propose ni initiative, ni rappel, ni fonctionnalité"),
+  );
+  assert(prompt.includes("Cet accusé ne vaut jamais pour une action du plan"));
+  assert(
+    prompt.includes(
+      "sans effet commis prouvé par le contexte, dis honnêtement que ce n'est pas encore enregistré",
+    ),
+  );
 });

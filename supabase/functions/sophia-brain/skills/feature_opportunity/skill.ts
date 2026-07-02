@@ -14,7 +14,8 @@ import {
   runFeatureOpportunityVisibleAgent,
 } from "./visible_agent.ts";
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
-import { buildDirectEffectConfirmationContext } from "../../router/direct_effect_local_context.ts";
+import { visibleRecentMessages } from "../_shared/visible_history.ts";
+import { selectDirectEffectConfirmationContext } from "../../router/direct_effect_local_context.ts";
 import {
   emptyLocalOneShotDirectEffectRequest,
   type LocalOneShotDirectEffectRequest,
@@ -39,39 +40,26 @@ function cleanMessage(value: unknown): string | null {
 }
 
 function visibleRuntimeContext(input: FeatureOpportunityRunSkillInput) {
-  const recentUserMessages = (input.context.recent_messages ?? [])
-    .filter((message: any) =>
-      cleanMessage(message?.role)?.toLowerCase() === "user"
-    )
-    .map((message: any) => ({
-      role: "user" as const,
-      content: cleanMessage(message?.content) ?? "",
-      created_at: cleanMessage(message?.created_at),
-    }))
-    .filter((message) => message.content);
-  const currentUserMessage = cleanMessage(input.user_message);
-  if (
-    currentUserMessage &&
-    recentUserMessages[recentUserMessages.length - 1]?.content !==
-      currentUserMessage
-  ) {
-    recentUserMessages.push({
-      role: "user" as const,
-      content: currentUserMessage,
-      created_at: null,
-    });
-  }
   return {
     style_rules: VISIBLE_OUTPUT_STYLE_RULES,
-    recent_user_messages: recentUserMessages.slice(-5),
+    recent_messages: visibleRecentMessages({
+      recent_messages: input.context.recent_messages,
+      user_message: input.user_message,
+    }),
+    recent_effects_summary:
+      input.context.runtime_context?.recent_effects_summary ?? null,
+    user_identity: input.context.runtime_context?.user_identity ?? null,
   };
 }
 
-function directEffectConfirmationContext(turnFrame: TurnFrame | null) {
-  return (turnFrame as any)
-    ?.direct_effect_confirmation_context ??
-    buildDirectEffectConfirmationContext(turnFrame) ??
-    null;
+function directEffectConfirmationContext(
+  turnFrame: TurnFrame | null,
+  recentContext: unknown,
+) {
+  return selectDirectEffectConfirmationContext({
+    turnFrame,
+    recentContext,
+  });
 }
 
 function initialStateFromDispatcherSignal(
@@ -196,7 +184,9 @@ export async function runFeatureOpportunitySkill(
     });
   }
   let turnFrameForVisible = input.context.turn_frame;
-  if (input.direct_effect_executor && decision.direct_effect_request.requested) {
+  if (
+    input.direct_effect_executor && decision.direct_effect_request.requested
+  ) {
     const directEffectResult = await input.direct_effect_executor(
       decision.direct_effect_request,
     );
@@ -206,6 +196,8 @@ export async function runFeatureOpportunitySkill(
     runFeatureOpportunityVisibleAgent;
   const directEffectContext = directEffectConfirmationContext(
     turnFrameForVisible,
+    input.context.runtime_context?.recent_direct_effect_confirmation_context ??
+      null,
   );
   const reply = await visibleAgent({
     user_id: input.context.user_id,

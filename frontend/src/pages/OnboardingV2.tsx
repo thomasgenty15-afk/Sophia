@@ -1508,10 +1508,26 @@ export default function OnboardingV2() {
         args.targetStage === "capture" || args.targetStage === "priorities"
       );
 
-    const { error: deletePlansError } = await supabase
+    // Parallel model: when adding a second transformation, the previously
+    // active one must be preserved. These destructive resets are scoped to the
+    // whole cycle, so we explicitly exclude the preserved transformation (and
+    // its plan) to avoid wiping the first transformation the user already runs.
+    const preservedTransformationId =
+      draft.entry_mode === "add_transformation"
+        ? preservedCycleActiveTransformationId
+        : null;
+
+    let deletePlansQuery = supabase
       .from("user_plans_v2")
       .delete()
       .eq("cycle_id", draft.cycle_id);
+    if (preservedTransformationId) {
+      deletePlansQuery = deletePlansQuery.neq(
+        "transformation_id",
+        preservedTransformationId,
+      );
+    }
+    const { error: deletePlansError } = await deletePlansQuery;
     if (deletePlansError) throw deletePlansError;
 
     const transformationPatch: Record<string, unknown> = {
@@ -1525,11 +1541,18 @@ export default function OnboardingV2() {
       transformationPatch.questionnaire_answers = null;
     }
 
-    const { error: updateTransformationsError } = await supabase
+    let updateTransformationsQuery = supabase
       .from("user_transformations")
       .update(transformationPatch)
       .eq("cycle_id", draft.cycle_id)
       .in("status", ["draft", "ready", "pending", "active"]);
+    if (preservedTransformationId) {
+      updateTransformationsQuery = updateTransformationsQuery.neq(
+        "id",
+        preservedTransformationId,
+      );
+    }
+    const { error: updateTransformationsError } = await updateTransformationsQuery;
     if (updateTransformationsError) throw updateTransformationsError;
 
     const cycleStatusByStage = {
@@ -1543,7 +1566,9 @@ export default function OnboardingV2() {
       status: cycleStatusByStage[args.targetStage],
       updated_at: now,
     };
-    if (args.targetStage === "capture") {
+    if (preservedTransformationId) {
+      cyclePatch.active_transformation_id = preservedTransformationId;
+    } else if (args.targetStage === "capture") {
       cyclePatch.active_transformation_id = null;
     } else if (
       args.activeTransformationId !== undefined &&
@@ -1592,91 +1617,6 @@ export default function OnboardingV2() {
         ),
       );
     }
-  }
-
-  async function completePreservedTransformationForMultiPartTransition() {
-    if (!effectiveUser || !draft.cycle_id || !preservedCycleActiveTransformationId) return;
-
-    const now = new Date().toISOString();
-    const { data: previousTransformation, error: loadPreviousError } = await supabase
-      .from("user_transformations")
-      .select("id,status")
-      .eq("id", preservedCycleActiveTransformationId)
-      .eq("cycle_id", draft.cycle_id)
-      .maybeSingle();
-
-    if (loadPreviousError) throw loadPreviousError;
-    if (!previousTransformation) return;
-    if (
-      previousTransformation.status === "completed" ||
-      previousTransformation.status === "abandoned" ||
-      previousTransformation.status === "archived" ||
-      previousTransformation.status === "cancelled"
-    ) {
-      return;
-    }
-
-    const [{ error: planError }, { error: transformationError }, cycleUpdateResult] = await Promise.all([
-      supabase
-        .from("user_plans_v2")
-        .update({
-          status: "completed",
-          completed_at: now,
-          updated_at: now,
-        })
-        .eq("transformation_id", preservedCycleActiveTransformationId)
-        .in("status", ["active", "paused"]),
-      supabase
-        .from("user_transformations")
-        .update({
-          status: "completed",
-          completed_at: now,
-          updated_at: now,
-        })
-        .eq("id", preservedCycleActiveTransformationId)
-        .in("status", ["draft", "ready", "pending", "active"]),
-      supabase
-        .from("user_cycles")
-        .update({
-          active_transformation_id: null,
-          updated_at: now,
-        })
-        .eq("id", draft.cycle_id),
-    ]);
-
-    if (planError) throw planError;
-    if (transformationError) throw transformationError;
-    if (cycleUpdateResult.error) throw cycleUpdateResult.error;
-
-    const { data: reminderRows, error: reminderError } = await supabase
-      .from("user_recurring_reminders")
-      .update({
-        status: "completed",
-        ended_reason: "plan_completed",
-        deactivated_at: now,
-        updated_at: now,
-      } as never)
-      .eq("user_id", effectiveUser.id)
-      .eq("transformation_id", preservedCycleActiveTransformationId)
-      .in("initiative_kind", ["plan_free"])
-      .in("status", ["active", "inactive"])
-      .select("id");
-
-    if (reminderError) throw reminderError;
-
-    const reminderIds = ((reminderRows as Array<{ id: string }> | null) ?? []).map((row) => row.id);
-    if (reminderIds.length === 0) return;
-
-    const { error: cancelCheckinsError } = await supabase
-      .from("scheduled_checkins")
-      .update({
-        status: "cancelled",
-        processed_at: now,
-      } as never)
-      .in("recurring_reminder_id", reminderIds)
-      .in("status", ["pending", "retrying", "awaiting_user"]);
-
-    if (cancelCheckinsError) throw cancelCheckinsError;
   }
 
   function handleBackClick() {
@@ -2515,8 +2455,10 @@ export default function OnboardingV2() {
         if (updateError) throw updateError;
         if (!isOnboardingActionCurrent(actionToken)) return;
 
-        await completePreservedTransformationForMultiPartTransition();
-        if (!isOnboardingActionCurrent(actionToken)) return;
+        // Parallel model: adding a second transformation must NOT close the
+        // first one. It stays active and navigable; the backend
+        // (resolveCycleActiveTransformationId) keeps it as the cycle's active
+        // transformation.
 
         persistDraft(setDraft, {
           questionnaire_answers: answers,

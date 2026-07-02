@@ -173,6 +173,9 @@ const LandingPage = () => {
               <Link to="/l-architecte" className="transition-colors hover:text-[#17211d]">
                 L'Architecte
               </Link>
+              <Link to="/tdah" className="transition-colors hover:text-[#17211d]">
+                TDAH
+              </Link>
               <Link to="/formules" className="transition-colors hover:text-[#17211d]">
                 Offres
               </Link>
@@ -204,6 +207,9 @@ const LandingPage = () => {
           </Link>
           <Link to="/l-architecte" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
             Architecte
+          </Link>
+          <Link to="/tdah" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
+            TDAH
           </Link>
           <Link to="/formules" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
             Offres

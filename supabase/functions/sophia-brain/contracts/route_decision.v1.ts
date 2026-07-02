@@ -2,6 +2,7 @@ export type ResponseOwner =
   | "safety"
   | "product_help"
   | "coaching_recommendation"
+  | "plan_realignment"
   | "daily_action_coaching_recommendation_v1"
   | "feature_opportunity"
   | "weekly_adaptive_review_v1"

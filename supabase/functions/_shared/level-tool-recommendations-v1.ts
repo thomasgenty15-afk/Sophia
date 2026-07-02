@@ -57,7 +57,7 @@ const RECOMMENDATION_SCHEMA = z.object({
   brand_name: z.string().trim().min(1).max(120).nullable(),
   reason: z.string().trim().min(1).max(260),
   why_this_level: z.string().trim().min(1).max(320),
-  confidence_score: z.number().int().min(95).max(100),
+  confidence_score: z.number().int().min(90).max(100),
   sophia_overlap_risk: SOPHIA_OVERLAP_RISK_ENUM,
 }).superRefine((value, ctx) => {
   if (value.sophia_overlap_risk !== "low") {
@@ -136,6 +136,10 @@ const BLOCKED_OVERLAP_PATTERNS = [
 ];
 
 const UNIVERSAL_LEVEL_OFFSET = 1;
+
+// Must stay in sync with the DB CHECK constraint
+// user_level_tool_recommendations_confidence_score_check (>= 95).
+const MIN_PERSISTED_CONFIDENCE_SCORE = 95;
 
 type LevelRecommendationOutput = z.infer<typeof LEVEL_RECOMMENDATION_SCHEMA>;
 type EligibleLevel = {
@@ -496,6 +500,21 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
       continue;
     }
 
+    // Deactivate stale rows for this level BEFORE inserting the new ones. The
+    // partial unique index (plan_id, target_level_order, priority_rank) WHERE
+    // is_active only allows one active row per rank, so inserting first would
+    // collide with the existing active row of the same rank on every
+    // regeneration.
+    if (activeRows.length > 0) {
+      await supersedeLevelRecommendations({
+        admin: args.admin,
+        rows: activeRows,
+        now,
+        reason: supersededReason,
+        newRecommendationIdsByRank: new Map(),
+      });
+    }
+
     const insertedRows: UserLevelToolRecommendationRow[] = [];
     for (const recommendation of levelOutput.recommendations) {
       const signature = buildRecommendationSignature(recommendation);
@@ -538,6 +557,42 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
         .select("*")
         .maybeSingle();
 
+      if (error && (error as { code?: string }).code === "23505") {
+        // A concurrent generation (e.g. activation enrichment racing the
+        // dashboard bootstrap) already inserted an active row for this
+        // (plan_id, target_level_order, priority_rank). Adopt it instead of
+        // failing the whole classification.
+        const { data: existingActive, error: reselectError } = await args.admin
+          .from("user_level_tool_recommendations")
+          .select("*")
+          .eq("plan_id", args.planRow.id)
+          .eq("target_level_order", levelOutput.phase.phase_order)
+          .eq("priority_rank", recommendation.priority_rank)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (reselectError || !existingActive) {
+          throw new LevelToolRecommendationsV1Error(
+            500,
+            "Failed to insert level tool recommendation",
+            { cause: reselectError ?? error },
+          );
+        }
+
+        console.warn("[level-tools][insert_conflict_adopted]", {
+          request_id: args.requestId,
+          transformation_id: args.transformation.id,
+          plan_id: args.planRow.id,
+          target_level_order: levelOutput.phase.phase_order,
+          priority_rank: recommendation.priority_rank,
+        });
+
+        const adopted = existingActive as UserLevelToolRecommendationRow;
+        insertedRows.push(adopted);
+        persistedRows.push(adopted);
+        continue;
+      }
+
       if (error || !data) {
         throw new LevelToolRecommendationsV1Error(
           500,
@@ -568,18 +623,6 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
           display_name: persisted.display_name,
           preserved_status: preservedStatus,
         },
-      });
-    }
-
-    if (activeRows.length > 0) {
-      await supersedeLevelRecommendations({
-        admin: args.admin,
-        rows: activeRows,
-        now,
-        reason: supersededReason,
-        newRecommendationIdsByRank: new Map(
-          insertedRows.map((row) => [row.priority_rank, row.id]),
-        ),
       });
     }
 
@@ -829,6 +872,9 @@ function normalizeLevelsOutput(
         why_this_level: entry.why_this_level.trim(),
       }))
       .filter((entry) => !containsBlockedOverlap(entry))
+      // The DB enforces confidence_score >= MIN_PERSISTED_CONFIDENCE_SCORE. Drop
+      // anything below that threshold here instead of letting the INSERT fail.
+      .filter((entry) => entry.confidence_score >= MIN_PERSISTED_CONFIDENCE_SCORE)
       .map((entry, index) => ({
         ...entry,
         priority_rank: index + 1,
@@ -1138,7 +1184,7 @@ Your task:
 - Recommend between 0 and 2 tools per level.
 - Return 0 only when nothing reaches the required confidence threshold.
 - confidence_score must represent your internal product confidence that this tool will materially help the user execute THIS level.
-- Only output recommendations with confidence_score >= 95.
+- Only output recommendations with confidence_score >= 95. Anything below 95 must be dropped.
 - Prefer direct execution support over generic wellness advice.
 - Recommendations can be apps or physical products.
 - The tool name can be free-form, but the category_key must come from the allowed taxonomy below.

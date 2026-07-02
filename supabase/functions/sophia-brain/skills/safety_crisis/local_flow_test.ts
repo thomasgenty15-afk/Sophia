@@ -1234,7 +1234,7 @@ Deno.test("safety_crisis first activation note is consumed by local dispatcher a
   }
 });
 
-Deno.test("safety_crisis visible generation failure does not use deterministic visible message", async () => {
+Deno.test("safety_crisis visible generation failure falls back to deterministic safety message", async () => {
   try {
     setSafetyCrisisLocalDispatcherForTest(async () =>
       dispatcherOutput({
@@ -1260,9 +1260,9 @@ Deno.test("safety_crisis visible generation failure does not use deterministic v
       context,
     });
     assertEquals((output.diagnosis as any)?.visible_agent_ok, false);
-    assertEquals((output.diagnosis as any)?.visible_fallback_used, false);
+    assertEquals((output.diagnosis as any)?.visible_fallback_used, true);
     assertEquals((output.diagnosis as any)?.visible_generation_failed, true);
-    assertEquals(output.reply, "");
+    assert(output.reply.length > 0);
   } finally {
     setSafetyCrisisLocalDispatcherForTest(null);
     setSafetyCrisisVisibleAgentForTest(null);
@@ -1383,4 +1383,87 @@ Deno.test("safety_crisis resolved exit stores note_information for next dispatch
     "global",
   );
   assertEquals((next as any)?.__active_skill_state, undefined);
+});
+
+Deno.test("safety_crisis reducer releases flow on explicit correction with risk none", () => {
+  const released = reduceSafetyCrisis({
+    previousState: {
+      phase: "support_contact",
+      risk_band: "high",
+      consecutive_deescalated_turns: 1,
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      immediate_danger: false,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_deescalation_evidence",
+    }),
+  });
+  assertEquals(released.phase, "resolved");
+  assertEquals(released.riskBand, "low");
+  assertEquals(released.visibleTask.kind, "resolved_exit");
+});
+
+Deno.test("safety_crisis reducer keeps flow latched on correction without prior deescalated turn", () => {
+  const stillActive = reduceSafetyCrisis({
+    previousState: {
+      phase: "acute_grounding",
+      risk_band: "high",
+      consecutive_deescalated_turns: 0,
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "medium",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_deescalation_evidence",
+    }),
+  });
+  assert(stillActive.phase !== "resolved");
+});
+
+Deno.test("safety_crisis reducer lets working risk band descend on attested deescalation", () => {
+  const descending = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      risk_band: "high",
+      consecutive_deescalated_turns: 2,
+      human_support_mentioned: true,
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({
+      deescalation_evidence: true,
+      human_support_available: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_support_status",
+    }),
+  });
+  assert(descending.riskBand !== "high");
+  assert(descending.riskBand !== "critical");
+});
+
+Deno.test("safety_crisis reducer keeps risk band floor without deescalation evidence", () => {
+  const latched = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      risk_band: "high",
+      consecutive_deescalated_turns: 0,
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({
+      uncertainty: "high",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_support_status",
+    }),
+  });
+  assertEquals(latched.riskBand, "high");
 });

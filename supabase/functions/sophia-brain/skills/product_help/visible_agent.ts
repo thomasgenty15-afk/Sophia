@@ -3,12 +3,16 @@ import {
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
 import {
+  committedOneShotReminderKnown,
+  directEffectContextCommittedThisTurn,
   oneShotReminderCanonicalVisiblePromptLines,
+  oneShotReminderVisibleContextPresent,
 } from "../../router/one_shot_reminder_prompt_contract.ts";
 import {
   VISIBLE_CONVERSATION_FLOW_RULES,
   VISIBLE_OUTPUT_STYLE_RULES,
 } from "../../router/response_style_policy.ts";
+import { userIdentityVisiblePromptLines } from "../../context/user_identity.ts";
 import type {
   ProductHelpConversationContext,
   ProductHelpVisibleTaskKind,
@@ -21,10 +25,16 @@ export type ProductHelpVisibleAgentInput = {
   conversation_context: ProductHelpConversationContext;
   visible_runtime_context?: {
     style_rules: string;
-    recent_user_messages: Array<{
-      role: "user";
+    recent_messages: Array<{
+      role: "user" | "assistant";
       content: string;
     }>;
+    recent_effects_summary?: string | null;
+    user_identity?: {
+      first_name: string | null;
+      age: number | null;
+      gender: "male" | "female" | "other" | null;
+    } | null;
   };
 };
 
@@ -79,15 +89,34 @@ function visibleSystemPrompt(input: ProductHelpVisibleAgentInput): string {
     "Tu es l'agent visible du skill product_help.",
     "Tu écris uniquement le prochain message visible de Sophia.",
     "Tu ne routes pas, tu ne lances aucun flow, tu ne remplis aucun champ d'un autre flow.",
-    "product_help est strictement non-mutant: ne dis jamais que tu as créé, modifié, annulé, activé, programmé, enregistré ou appliqué quelque chose, sauf confirmation sobre d'un direct effect deja prouve par conversation_context.known_values.direct_effect_confirmation_context.one_shot_reminder.committed=true.",
-    "Tu écris seulement à partir de conversation_context. Tu ne lis pas de DB brute, de mémoire brute, ni de contexte hors conversation_context.",
+    "product_help est strictement non-mutant: ne dis jamais que tu as créé, modifié, annulé, activé, programmé, enregistré ou appliqué quelque chose, sauf confirmation sobre d'un rappel deja prouve par conversation_context.known_values.direct_effect_confirmation_context.one_shot_reminder.committed=true ou par visible_runtime_context.recent_effects_summary avec une ligne 'Rappel ponctuel cree: execute et persiste' et etat DB actuel.",
+    "Tu écris seulement à partir de conversation_context et, pour les questions sur ce qui vient d'être fait/programmé/noté/validé, de visible_runtime_context.recent_effects_summary. Tu ne lis pas de DB brute, de mémoire brute, ni d'autre contexte hors de ces champs.",
+    "Si visible_runtime_context.recent_effects_summary contient un effet récent, utilise-le seulement pour répondre à ce type de question ou pour éviter une contradiction. Ne le mentionne pas spontanément et ne nomme jamais EffectLedger.",
     "N'invente aucun objet réel: pour affirmer qu'un objet existe ou a un état, il faut une source dans conversation_context.known_values.grounded_sources, conversation_context.known_values.grounding.db_sources_used ou active_flow_used.",
     "Ne rends pas un inventaire d'etat reel complet.",
     "Si conversation_context indique un mode inline, réponds à la question produit puis laisse naturellement le flow parent reprendre.",
     ...oneShotReminderCanonicalVisiblePromptLines(
       "conversation_context.known_values.direct_effect_confirmation_context",
+      {
+        present: oneShotReminderVisibleContextPresent(
+          input.conversation_context?.known_values
+            ?.direct_effect_confirmation_context,
+        ),
+        committedThisTurn: directEffectContextCommittedThisTurn(
+          input.conversation_context?.known_values
+            ?.direct_effect_confirmation_context,
+        ),
+        committedKnown: committedOneShotReminderKnown({
+          directEffectConfirmationContext:
+            input.conversation_context?.known_values
+              ?.direct_effect_confirmation_context,
+          recentEffectsSummary:
+            input.visible_runtime_context?.recent_effects_summary,
+        }),
+      },
     ),
     "Ne mentionne jamais JSON, dispatcher, reducer, prompt, DB, table ou outil interne.",
+    ...userIdentityVisiblePromptLines(),
     VISIBLE_OUTPUT_STYLE_RULES,
     VISIBLE_CONVERSATION_FLOW_RULES,
     "Reste court, naturel et concret.",
@@ -104,7 +133,7 @@ export async function runProductHelpVisibleAgent(
     stage: input.stage,
     visible_runtime_context: input.visible_runtime_context ?? {
       style_rules: VISIBLE_OUTPUT_STYLE_RULES,
-      recent_user_messages: [],
+      recent_messages: [],
     },
     conversation_context: input.conversation_context,
     hard_constraints: {

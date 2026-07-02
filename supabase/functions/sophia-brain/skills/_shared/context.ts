@@ -7,7 +7,8 @@ export type SkillId =
   | "product_help"
   | "coaching_recommendation"
   | "daily_action_coaching_recommendation_v1"
-  | "feature_opportunity";
+  | "feature_opportunity"
+  | "plan_realignment";
 
 export type SkillMemoryItem = {
   id: string;
@@ -29,6 +30,15 @@ export type SkillContext = {
   plan_items: Array<Record<string, unknown>>;
   product_surfaces: Array<Record<string, unknown>>;
   exclusions: string[];
+  runtime_context?: {
+    recent_effects_summary?: string | null;
+    recent_direct_effect_confirmation_context?: Record<string, unknown> | null;
+    user_identity?: {
+      first_name: string | null;
+      age: number | null;
+      gender: "male" | "female" | "other" | null;
+    } | null;
+  };
   precomputed_safety_crisis_local_dispatcher_output?: unknown;
 };
 

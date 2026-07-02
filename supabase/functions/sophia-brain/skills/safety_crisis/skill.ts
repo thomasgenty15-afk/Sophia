@@ -11,7 +11,10 @@ import {
 } from "./contract.ts";
 import { runSafetyCrisisLocalDispatcher } from "./local_dispatcher.ts";
 import { reduceSafetyCrisis } from "./reducer.ts";
-import { runSafetyCrisisVisibleAgentResult } from "./visible_agent.ts";
+import {
+  runSafetyCrisisVisibleAgentResult,
+  safetyCrisisDeterministicVisibleMessage,
+} from "./visible_agent.ts";
 
 function workingState(input: RunSkillInput): SafetyCrisisSnapshot[
   "previous_state"
@@ -167,11 +170,18 @@ export async function runSafetyCrisisSkill(
     visible_task: visibleTask,
   });
   const visibleGenerationFailed = !visibleAgentResult.message;
+  // Invariant anti-vide: un tour safety ne rend jamais une reponse vide.
+  const deterministicVisibleMessage = visibleGenerationFailed
+    ? safetyCrisisDeterministicVisibleMessage(
+      reduction.visibleTask.kind,
+      reduction.visibleTask.conversation_context.safety_resources,
+    )
+    : null;
   if (visibleGenerationFailed) {
     console.warn("safety_crisis.visible_generation_failed", {
       "visible_task.kind": reduction.visibleTask.kind,
       reason: visibleAgentResult.failure_reason,
-      deterministic_visible_message_used: false,
+      deterministic_visible_message_used: true,
     });
   }
   const decision: SafetyCrisisDecision = {
@@ -180,7 +190,7 @@ export async function runSafetyCrisisSkill(
     risk_band: reduction.riskBand,
     safety_signals: safetySignals,
     response_contract: responseContract,
-    reply: visibleAgentResult.message ?? "",
+    reply: visibleAgentResult.message ?? deterministicVisibleMessage ?? "",
     state_patch: {
       ...reduction.statePatch,
       visible_task: visibleTask,
@@ -260,7 +270,7 @@ export async function runSafetyCrisisSkill(
       state_mutation_audit: reduction.stateMutationAudit,
       visible_task: reduction.visibleTask,
       visible_agent_ok: visibleAgentResult.visible_agent_ok,
-      visible_fallback_used: false,
+      visible_fallback_used: Boolean(deterministicVisibleMessage),
       visible_generation_failed: visibleGenerationFailed,
       visible_failure_reason: visibleAgentResult.failure_reason,
       exit_memo: reduction.exitMemo,

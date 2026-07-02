@@ -615,15 +615,23 @@ export function reduceSafetyCrisis(args: {
   const noCurrentImmediateDanger = args.signals.immediate_danger === false ||
     (args.signals.clarified_non_immediate && !meansNearby);
   const currentRiskSignal = hasNewRiskSignal(args.signals);
-  const canResolve = previousPhase === "exit_check" &&
-    args.sourceRiskBand !== "critical" &&
-    args.sourceRiskBand !== "high" &&
+  const explicitCorrectionRelease =
+    args.signals.clarified_non_immediate === true &&
+    args.sourceRiskBand === "none" &&
     previousDeescalations >= 1 &&
-    noCurrentImmediateDanger &&
-    meansSafe &&
-    humanSupportAvailable &&
-    args.signals.user_currently_alone !== true &&
+    args.signals.immediate_danger !== true &&
+    !meansNearby &&
     !currentRiskSignal;
+  const canResolve = explicitCorrectionRelease ||
+    (previousPhase === "exit_check" &&
+      args.sourceRiskBand !== "critical" &&
+      args.sourceRiskBand !== "high" &&
+      previousDeescalations >= 1 &&
+      noCurrentImmediateDanger &&
+      meansSafe &&
+      humanSupportAvailable &&
+      args.signals.user_currently_alone !== true &&
+      !currentRiskSignal);
   const exitRequested = args.dispatcherOutput?.flow_action ===
       "exit_to_global_dispatcher" ||
     args.dispatcherOutput?.flow_action === "wants_to_exit" ||
@@ -675,11 +683,17 @@ export function reduceSafetyCrisis(args: {
     phase = "stabilizing";
   }
 
-  const riskBand = phase === "resolved" ? "low" : maxRisk(
-    args.sourceRiskBand,
-    previousRiskBand,
-    minimumRiskForPhase(phase),
-  );
+  // En desescalade attestee sans nouveau signal de risque, le band precedent
+  // ne sert plus de plancher: sans ca le working_state reste fige a high.
+  const deescalating = args.signals.deescalation_evidence === true &&
+    !currentRiskSignal;
+  const riskBand = phase === "resolved" ? "low" : deescalating
+    ? maxRisk(args.sourceRiskBand, minimumRiskForPhase(phase))
+    : maxRisk(
+      args.sourceRiskBand,
+      previousRiskBand,
+      minimumRiskForPhase(phase),
+    );
   const consecutiveDeescalatedTurns = nextConsecutiveDeescalatedTurns({
     previous,
     signals: args.signals,

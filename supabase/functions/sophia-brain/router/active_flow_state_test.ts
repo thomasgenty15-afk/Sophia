@@ -20,6 +20,7 @@ const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "weekly_adaptive_review_v1",
   "product_help",
   "coaching_recommendation",
+  "plan_realignment",
   "feature_opportunity",
   "safety_crisis",
 ];
@@ -222,4 +223,99 @@ Deno.test("active_flow_state exposes and clears coaching recommendation exit mem
   });
   assertEquals(cleaned.__last_coaching_recommendation_exit_memo, undefined);
   assertEquals(cleaned.kept, true);
+});
+
+Deno.test("active_flow_state releases local flows stale for more than 4 hours", async () => {
+  const { isStaleActiveLocalFlowState } = await import(
+    "./active_flow_state.ts"
+  );
+  const now = Date.now();
+  const fiveHoursAgo = new Date(now - 5 * 60 * 60 * 1000).toISOString();
+  const tenMinutesAgo = new Date(now - 10 * 60 * 1000).toISOString();
+
+  // Flow périmé (dernier tour il y a 5h): relâché avant arbitration.
+  const stale = {
+    __active_skill_state: {
+      skill_id: "plan_realignment",
+      status: "active",
+      updated_at: fiveHoursAgo,
+    },
+  };
+  assertEquals(readActiveFlowState(stale).activeSkillState, null);
+  assertEquals(
+    shouldSkipGlobalDispatcherForActiveLocalFlow({
+      activeSkillState: stale.__active_skill_state,
+    }),
+    false,
+  );
+
+  // Anti-régression: flow récent (10 min) toujours actif.
+  const fresh = {
+    __active_skill_state: {
+      skill_id: "plan_realignment",
+      status: "active",
+      updated_at: tenMinutesAgo,
+    },
+  };
+  assertEquals(
+    (readActiveFlowState(fresh).activeSkillState as any)?.skill_id,
+    "plan_realignment",
+  );
+
+  // Anti-régression: state sans timestamp exploitable conservé (state partiel
+  // ou legacy — la fraîcheur ne casse jamais un flow légitime).
+  assertEquals(
+    isStaleActiveLocalFlowState({ skill_id: "product_help", status: "active" }),
+    false,
+  );
+  // started_at sert de repli quand updated_at manque.
+  assertEquals(
+    isStaleActiveLocalFlowState({
+      skill_id: "product_help",
+      status: "active",
+      started_at: fiveHoursAgo,
+    }),
+    true,
+  );
+});
+
+Deno.test("active_flow_state safety crisis latch obeys the same staleness bound", async () => {
+  const { isActiveSafetyCrisisSkillState } = await import(
+    "./safety_crisis_runtime.ts"
+  );
+  const now = Date.now();
+  const fiveHoursAgo = new Date(now - 5 * 60 * 60 * 1000).toISOString();
+  const tenMinutesAgo = new Date(now - 10 * 60 * 1000).toISOString();
+
+  // Flow safety abandonné depuis 5h: ne capture plus un tour neutre.
+  assertEquals(
+    isActiveSafetyCrisisSkillState({
+      skill_id: "safety_crisis",
+      status: "active",
+      updated_at: fiveHoursAgo,
+      working_state: { phase: "support_contact", risk_band: "high" },
+    }),
+    false,
+  );
+
+  // Anti-régression: vraie crise il y a 10 minutes, latch conservé.
+  assertEquals(
+    isActiveSafetyCrisisSkillState({
+      skill_id: "safety_crisis",
+      status: "active",
+      updated_at: tenMinutesAgo,
+      working_state: { phase: "support_contact", risk_band: "high" },
+    }),
+    true,
+  );
+
+  // Anti-régression: state sans timestamp conservé tel quel.
+  assertEquals(
+    isActiveSafetyCrisisSkillState({
+      skill_id: "safety_crisis",
+      status: "active",
+      working_state: { phase: "support_contact" },
+    }),
+    true,
+  );
 });

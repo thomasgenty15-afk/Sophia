@@ -150,9 +150,18 @@ function errorToMessage(error: unknown): string {
   }
 }
 
-function isWhatsappSchedulingTierEligible(accessTierRaw: unknown): boolean {
+function isWhatsappSchedulingTierEligible(
+  accessTierRaw: unknown,
+  trialEndRaw?: unknown,
+): boolean {
   const tier = cleanText(accessTierRaw).toLowerCase();
-  return tier === "trial" || tier === "alliance" || tier === "architecte";
+  if (tier === "alliance" || tier === "architecte") return true;
+  if (tier !== "trial") return false;
+
+  const trialEnd = cleanText(trialEndRaw);
+  if (!trialEnd) return true;
+  const trialEndMs = new Date(trialEnd).getTime();
+  return Number.isFinite(trialEndMs) && trialEndMs > Date.now();
 }
 
 function getSiteUrl(): string {
@@ -275,6 +284,40 @@ async function cancelFutureWeeklyCheckins(params: {
   if (error) throw error;
 }
 
+async function cancelPendingWhatsappCoachingCheckins(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  nowIso: string;
+  reason: string;
+}): Promise<void> {
+  const { error } = await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .update({
+      status: "cancelled",
+      processed_at: params.nowIso,
+      delivery_last_error: params.reason,
+      delivery_last_error_at: params.nowIso,
+    } as any)
+    .eq("user_id", params.userId)
+    .in("status", ["pending", "retrying", "awaiting_user"] as any);
+  if (error) throw error;
+
+  const { error: pendingActionsError } = await params.supabaseAdmin
+    .from("whatsapp_pending_actions")
+    .update({
+      status: "cancelled",
+      processed_at: params.nowIso,
+    } as any)
+    .eq("user_id", params.userId)
+    .in("kind", [
+      "deferred_send",
+      "scheduled_checkin",
+      "proactive_template_candidate",
+    ] as any)
+    .eq("status", "pending");
+  if (pendingActionsError) throw pendingActionsError;
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   try {
@@ -293,7 +336,7 @@ Deno.serve(async (req) => {
     let profilesQuery = supabaseAdmin
       .from("profiles")
       .select(
-        "id,full_name,birth_date,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier,trial_start",
+        "id,full_name,birth_date,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier,trial_start,trial_end",
       )
       .order("id", { ascending: true });
 
@@ -331,6 +374,12 @@ Deno.serve(async (req) => {
         : false;
 
       if (!Boolean(profile.whatsapp_opted_in)) {
+        await cancelPendingWhatsappCoachingCheckins({
+          supabaseAdmin,
+          userId,
+          nowIso,
+          reason: "whatsapp_not_opted_in",
+        });
         skipped++;
         continue;
       }
@@ -340,6 +389,12 @@ Deno.serve(async (req) => {
         ? new Date(pauseUntilIso).getTime()
         : NaN;
       if (Number.isFinite(pauseUntilMs) && pauseUntilMs > Date.now()) {
+        await cancelPendingWhatsappCoachingCheckins({
+          supabaseAdmin,
+          userId,
+          nowIso,
+          reason: "whatsapp_coaching_paused",
+        });
         await cancelFutureMorningCheckins({
           supabaseAdmin,
           userId,
@@ -380,7 +435,20 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (!isWhatsappSchedulingTierEligible(profile.access_tier)) {
+      if (
+        !isWhatsappSchedulingTierEligible(
+          profile.access_tier,
+          profile.trial_end,
+        )
+      ) {
+        await cancelPendingWhatsappCoachingCheckins({
+          supabaseAdmin,
+          userId,
+          nowIso,
+          reason: `whatsapp_coaching_access_paused:${
+            cleanText(profile.access_tier).toLowerCase() || "none"
+          }`,
+        });
         skipped++;
         continue;
       }
@@ -412,6 +480,8 @@ Deno.serve(async (req) => {
           now,
         }),
       };
+      const canScheduleMorningToday =
+        new Date(todaySchedule.scheduled_for).getTime() > now.getTime();
       const yesterdayScheduleRaw = await loadTodayActionOccurrences(
         supabaseAdmin as any,
         {
@@ -444,7 +514,8 @@ Deno.serve(async (req) => {
       );
       const hasOpenActionsFromYesterday = yesterdaySchedule.transformations
         .some((entry) => entry.occurrences.length > 0);
-      const shouldSendLightGreeting = !hasActionsToday &&
+      const shouldSendLightGreeting = canScheduleMorningToday &&
+        !hasActionsToday &&
         allowsMorning &&
         await shouldScheduleLightMorningGreeting(supabaseAdmin as any, {
           userId,
@@ -469,7 +540,7 @@ Deno.serve(async (req) => {
       });
       const shouldTryBirthdayGreeting = birthdayMatch.matches &&
         (allowsMorning || allowsEvening);
-      const hasAnyCandidate = (allowsMorning &&
+      const hasAnyCandidate = (allowsMorning && canScheduleMorningToday &&
         (hasActionsToday || shouldSendLightGreeting)) ||
         (allowsEvening && (hasActionsToday || hasOpenActionsFromYesterday)) ||
         shouldTryWeeklyPlanningPrompt ||
@@ -542,6 +613,7 @@ Deno.serve(async (req) => {
 
       if (
         allowsMorning &&
+        canScheduleMorningToday &&
         (hasActionsToday || shouldSendLightGreeting)
       ) {
         await cancelFutureMorningCheckins({
