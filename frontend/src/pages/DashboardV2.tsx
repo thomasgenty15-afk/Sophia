@@ -211,7 +211,7 @@ async function invokeFunctionWithTimeout<T>(
   timeoutMs = 180_000,
 ): Promise<T> {
   const requestId = newRequestId();
-  const requestBody = name === "generate-plan-v2"
+  const requestBody = name === "generate-plan-v2" || name === "adjust-plan-v1"
     ? { ...body, ...buildClientTimePayload() }
     : body;
   const invokePromise = supabase.functions.invoke<T>(name, {
@@ -1684,7 +1684,7 @@ export default function DashboardV2() {
       let data: GeneratePlanPreviewResponse;
       try {
         data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
-          "generate-plan-v2",
+          "adjust-plan-v1",
           {
             transformation_id: transformation.id,
             mode: "preview",
@@ -1776,7 +1776,7 @@ export default function DashboardV2() {
       let finalizedPlanId: string | null = null;
       try {
         const data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
-          "generate-plan-v2",
+          "adjust-plan-v1",
           {
             transformation_id: transformation.id,
             mode: "confirm",
