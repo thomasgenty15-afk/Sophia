@@ -238,6 +238,71 @@ async function invokeFunctionWithTimeout<T>(
   return data as T;
 }
 
+const PLAN_RECOVERY_POLL_INTERVAL_MS = 5_000;
+const PLAN_RECOVERY_POLL_TIMEOUT_MS = 90_000;
+const PLAN_RECOVERY_CLOCK_SKEW_MS = 60_000;
+
+function isRecoverableFunctionError(error: unknown): boolean {
+  const status = Number(
+    (error as { context?: { status?: number } })?.context?.status ??
+      (error as { status?: number })?.status,
+  );
+  // Recover on gateway/server failures (5xx) and timeouts (408): the edge
+  // function keeps running after the gateway cuts the connection, so its
+  // result usually lands in the database anyway. A 4xx means the request
+  // itself was rejected and no draft will ever appear.
+  if (!Number.isFinite(status)) return true;
+  return status >= 500 || status === 408;
+}
+
+function waitMs(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function recoverDraftPlanAfterInvokeError(args: {
+  transformationId: string;
+  requestStartedAt: number;
+}): Promise<{ planId: string; planPreview: PlanContentV3 } | null> {
+  const createdAfterIso = new Date(
+    args.requestStartedAt - PLAN_RECOVERY_CLOCK_SKEW_MS,
+  ).toISOString();
+  const deadline = Date.now() + PLAN_RECOVERY_POLL_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await waitMs(PLAN_RECOVERY_POLL_INTERVAL_MS);
+    const { data, error } = await supabase
+      .from("user_plans_v2")
+      .select("id, content")
+      .eq("transformation_id", args.transformationId)
+      .eq("status", "draft")
+      .gte("created_at", createdAfterIso)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) continue;
+    const content = data.content as PlanContentV3 | null;
+    if (content?.version === 3 && Array.isArray(content.phases)) {
+      return { planId: data.id as string, planPreview: content };
+    }
+  }
+  return null;
+}
+
+async function waitForPlanActivationAfterInvokeError(
+  planId: string,
+): Promise<boolean> {
+  const deadline = Date.now() + PLAN_RECOVERY_POLL_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await waitMs(PLAN_RECOVERY_POLL_INTERVAL_MS);
+    const { data, error } = await supabase
+      .from("user_plans_v2")
+      .select("id, status")
+      .eq("id", planId)
+      .maybeSingle();
+    if (!error && data?.status === "active") return true;
+  }
+  return false;
+}
+
 function buildClientTimePayload(): Record<string, unknown> {
   return {
     client_now_iso: new Date().toISOString(),
@@ -1615,23 +1680,44 @@ export default function DashboardV2() {
     setDashboardActionError(null);
 
     try {
-      const data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
-        "generate-plan-v2",
-        {
-          transformation_id: transformation.id,
-          mode: "preview",
-          feedback,
-          force_regenerate: true,
-          adjustment_context: {
-            review_id: planReviewProposal.review_id,
-            scope: previewScope,
-            effective_start_date: effectiveStartDate,
-            reason: planReviewProposal.understanding.slice(0, 280),
-            user_change_summary: planReviewProposal.user_change_summary,
-            assistant_message: planReviewProposal.assistant_summary,
+      const requestStartedAt = Date.now();
+      let data: GeneratePlanPreviewResponse;
+      try {
+        data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
+          "generate-plan-v2",
+          {
+            transformation_id: transformation.id,
+            mode: "preview",
+            feedback,
+            force_regenerate: true,
+            adjustment_context: {
+              review_id: planReviewProposal.review_id,
+              scope: previewScope,
+              effective_start_date: effectiveStartDate,
+              reason: planReviewProposal.understanding.slice(0, 280),
+              user_change_summary: planReviewProposal.user_change_summary,
+              assistant_message: planReviewProposal.assistant_summary,
+            },
           },
-        },
-      );
+        );
+      } catch (invokeError) {
+        if (!isRecoverableFunctionError(invokeError)) throw invokeError;
+        console.warn(
+          "[DashboardV2] plan preview invoke failed, polling for draft",
+          invokeError,
+        );
+        const recovered = await recoverDraftPlanAfterInvokeError({
+          transformationId: transformation.id,
+          requestStartedAt,
+        });
+        if (!recovered) throw invokeError;
+        data = {
+          request_id: "recovered-after-invoke-error",
+          plan_id: recovered.planId,
+          plan_preview: recovered.planPreview,
+          plan_status: "draft",
+        };
+      }
       if (!data?.plan_preview) throw new Error("Le preview du plan ajusté est vide.");
 
       const now = new Date().toISOString();
@@ -1687,21 +1773,39 @@ export default function DashboardV2() {
       const effectiveStartDate =
         planReviewPreviewRevision?.effective_start_date ??
         getBrowserLocalYmd();
-      const data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
-        "generate-plan-v2",
-        {
-          transformation_id: transformation.id,
-          mode: "confirm",
-          adjustment_context: {
-            review_id: planReviewProposal.review_id,
-            scope: previewScope,
-            effective_start_date: effectiveStartDate,
-            reason: planReviewProposal.understanding.slice(0, 280),
-            user_change_summary: planReviewProposal.user_change_summary,
-            assistant_message: planReviewProposal.assistant_summary,
+      let finalizedPlanId: string | null = null;
+      try {
+        const data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
+          "generate-plan-v2",
+          {
+            transformation_id: transformation.id,
+            mode: "confirm",
+            adjustment_context: {
+              review_id: planReviewProposal.review_id,
+              scope: previewScope,
+              effective_start_date: effectiveStartDate,
+              reason: planReviewProposal.understanding.slice(0, 280),
+              user_change_summary: planReviewProposal.user_change_summary,
+              assistant_message: planReviewProposal.assistant_summary,
+            },
           },
-        },
-      );
+        );
+        finalizedPlanId = data?.plan_id ?? null;
+      } catch (invokeError) {
+        const previewPlanId = planReviewPreviewPlanId;
+        if (!isRecoverableFunctionError(invokeError) || !previewPlanId) {
+          throw invokeError;
+        }
+        console.warn(
+          "[DashboardV2] plan confirm invoke failed, polling for activation",
+          invokeError,
+        );
+        const activated = await waitForPlanActivationAfterInvokeError(
+          previewPlanId,
+        );
+        if (!activated) throw invokeError;
+        finalizedPlanId = previewPlanId;
+      }
 
       const now = new Date().toISOString();
       const { error: updateError } = await supabase
@@ -1709,7 +1813,7 @@ export default function DashboardV2() {
         .update({
           session_status: "completed",
           completed_at: now,
-          finalized_plan_id: data?.plan_id ?? null,
+          finalized_plan_id: finalizedPlanId,
           updated_at: now,
         })
         .eq("id", planReviewProposal.review_id);
@@ -1814,13 +1918,6 @@ export default function DashboardV2() {
     : planReviewComposerMode === "chat"
       ? "Tu peux poursuivre cet échange brièvement. La conversation se ferme automatiquement après 30 minutes d'inactivité."
       : null;
-  const planReviewBusyLabel = planReviewBusyAction === "preview"
-    ? "Sophia prépare le niveau ajusté…"
-    : planReviewBusyAction === "confirm"
-      ? "Sophia applique le niveau ajusté…"
-      : planReviewBusyAction === "submit"
-        ? "Sophia analyse ta demande…"
-        : null;
   const planReviewActions: PlanRevisionPanelAction[] = (() => {
     if (!planReviewProposal) return [];
 
@@ -1848,8 +1945,9 @@ export default function DashboardV2() {
         disabled: planReviewBusy,
         variant: "primary",
         isLoading: planReviewBusyAction === "preview",
-        loadingLabel:
-          previewScope === "level" ? "Chargement du niveau…" : "Chargement du plan…",
+        loadingLabel: previewScope === "level"
+          ? "Sophia prépare le niveau ajusté…"
+          : "Sophia prépare le plan ajusté…",
       });
     }
 
@@ -1887,7 +1985,7 @@ export default function DashboardV2() {
     });
     actions.push({
       key: "complete",
-      label: "Terminer",
+      label: "Annuler",
       onClick: () => void handlePlanReviewComplete(),
       disabled: planReviewBusy,
       variant: "danger",
@@ -3326,7 +3424,6 @@ export default function DashboardV2() {
                                     showComposer={planReviewShowComposer}
                                     submitLabel={planReviewSubmitLabel}
                                     helperText={planReviewHelperText}
-                                    busyLabel={planReviewBusyLabel}
                                     changeSummary={planReviewProposal?.user_change_summary ?? null}
                                     proposedChanges={planReviewProposal?.decision === "no_change"
                                       ? []
@@ -3411,7 +3508,6 @@ export default function DashboardV2() {
                                 showComposer={planReviewShowComposer}
                                 submitLabel={planReviewSubmitLabel}
                                 helperText={planReviewHelperText}
-                                busyLabel={planReviewBusyLabel}
                                 changeSummary={planReviewProposal?.user_change_summary ?? null}
                                 proposedChanges={planReviewProposal?.decision === "no_change"
                                   ? []

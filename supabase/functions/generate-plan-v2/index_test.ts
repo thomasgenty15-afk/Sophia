@@ -359,6 +359,23 @@ Deno.test("validateGeneratedPlanAgainstContext accepts matching plan fixture", (
 
 Deno.test("validateGeneratedPlanAgainstContext fills a skipped future display level after regeneration", () => {
   const plan = makePlanFixture();
+  plan.phases[0].items.push({
+    temp_id: "gen-p1-missions-001",
+    dimension: "missions",
+    kind: "task",
+    title: "Envoyer un premier message",
+    description: "Passer de l'ouverture à un envoi concret.",
+    tracking_type: "boolean",
+    activation_order: 1,
+    activation_condition: null,
+    support_mode: null,
+    support_function: null,
+    target_reps: null,
+    cadence_label: null,
+    scheduled_days: null,
+    time_of_day: "anytime",
+    payload: {},
+  });
   plan.current_level_runtime = {
     phase_id: "phase-1",
     level_order: 1,
@@ -382,6 +399,7 @@ Deno.test("validateGeneratedPlanAgainstContext fills a skipped future display le
         action_focus: ["Ouvrir la conversation"],
         item_assignments: [
           { temp_id: "gen-p1-clarifications-001" },
+          { temp_id: "gen-p1-missions-001" },
           { temp_id: "gen-p1-habits-001", weekly_reps: 3 },
         ],
         reps_summary: "3 fois",
@@ -428,6 +446,23 @@ Deno.test("validateGeneratedPlanAgainstContext fills a skipped future display le
 
 Deno.test("validateGeneratedPlanAgainstContext keeps misnumbered future blueprint content", () => {
   const plan = makePlanFixture();
+  plan.phases[0].items.push({
+    temp_id: "gen-p1-missions-001",
+    dimension: "missions",
+    kind: "task",
+    title: "Envoyer un premier message",
+    description: "Passer de l'ouverture à un envoi concret.",
+    tracking_type: "boolean",
+    activation_order: 1,
+    activation_condition: null,
+    support_mode: null,
+    support_function: null,
+    target_reps: null,
+    cadence_label: null,
+    scheduled_days: null,
+    time_of_day: "anytime",
+    payload: {},
+  });
   plan.current_level_runtime = {
     phase_id: "phase-1",
     level_order: 1,
@@ -451,6 +486,7 @@ Deno.test("validateGeneratedPlanAgainstContext keeps misnumbered future blueprin
         action_focus: ["Ouvrir la conversation"],
         item_assignments: [
           { temp_id: "gen-p1-clarifications-001" },
+          { temp_id: "gen-p1-missions-001" },
           { temp_id: "gen-p1-habits-001", weekly_reps: 3 },
         ],
         reps_summary: "3 fois",

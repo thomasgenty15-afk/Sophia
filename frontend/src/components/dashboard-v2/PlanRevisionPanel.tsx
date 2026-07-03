@@ -72,7 +72,6 @@ type PlanRevisionPanelProps = {
   composerPlaceholder?: string;
   submitLabel?: string;
   helperText?: string | null;
-  busyLabel?: string | null;
   changeSummary?: string | null;
   proposedChanges?: string[];
   previewNode?: ReactNode;
@@ -106,7 +105,6 @@ export function PlanRevisionPanel({
   composerPlaceholder,
   submitLabel = "Analyser la demande",
   helperText,
-  busyLabel,
   changeSummary,
   proposedChanges = [],
   previewNode,
@@ -205,7 +203,7 @@ export function PlanRevisionPanel({
               {isBusy ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Analyse en cours…
+                  Sophia analyse ta demande…
                 </>
               ) : (
                 <>
@@ -224,15 +222,8 @@ export function PlanRevisionPanel({
         </div>
       ) : null}
 
-      {isBusy && busyLabel ? (
-        <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>{busyLabel}</span>
-        </div>
-      ) : null}
-
       {actions.length > 0 ? (
-        <div className="mt-5 flex flex-wrap gap-3">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
           {actions.map((action) => (
             <button
               key={action.key}
