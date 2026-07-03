@@ -13,6 +13,9 @@ export type TrackProgressIntakeResult = {
   target_title: string | null;
   value: number | null;
   date_hint: string | null;
+  // Correction explicite d'un report deja fait (contrat dispatcher 3h):
+  // seule voie qui autorise a re-ecrire un outcome oppose le meme jour.
+  is_correction: boolean;
   confidence: "high" | "medium" | "low";
   reason_code: string;
   evidence: string[];
@@ -175,6 +178,7 @@ export function runTrackProgressIntake(args: {
       target_title: null,
       value: null,
       date_hint: null,
+      is_correction: false,
       confidence: "low",
       reason_code: "no_track_progress_direct_effect",
       evidence: [],
@@ -190,6 +194,7 @@ export function runTrackProgressIntake(args: {
       target_title: null,
       value: null,
       date_hint: null,
+      is_correction: false,
       confidence: "high",
       reason_code: "status_question",
       evidence: [args.message],
@@ -205,6 +210,7 @@ export function runTrackProgressIntake(args: {
       target_title: null,
       value: null,
       date_hint: null,
+      is_correction: false,
       confidence: "high",
       reason_code: "future_intent",
       evidence: [args.message],
@@ -228,6 +234,7 @@ export function runTrackProgressIntake(args: {
   const dateHint = typeof payload.date_hint === "string"
     ? payload.date_hint
     : null;
+  const isCorrection = payload.correction === true;
 
   if (!status) {
     return {
@@ -238,6 +245,7 @@ export function runTrackProgressIntake(args: {
       target_title: targetTitle || null,
       value: null,
       date_hint: dateHint,
+      is_correction: isCorrection,
       confidence: "low",
       reason_code: "status_missing",
       evidence: [args.message],
@@ -252,6 +260,7 @@ export function runTrackProgressIntake(args: {
     target_title: targetTitle || null,
     value: valueForStatus(status, payload.value_hint),
     date_hint: dateHint,
+    is_correction: isCorrection,
     confidence: "high",
     reason_code: "dispatcher_status_hint",
     evidence: [args.message],

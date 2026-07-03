@@ -317,6 +317,31 @@ Deno.test("track_progress_plan_item direct effect router returns canonical logge
   }
 });
 
+Deno.test("track_progress_plan_item router surfaces already_tracked_today without recommitting", async () => {
+  // Idempotence journaliere (Paul r1 T15): une entry identique (item, jour,
+  // outcome) existe deja, ecrite par un autre message. Le writer signale
+  // already_logged -> le router bloque avec raison structurelle, zero commit,
+  // et garde la cible dans allowed_effects pour le contexte de confirmation.
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "je te confirme que j'ai fait ma marche",
+    plan_snapshot: [{ id: "walk", title: "marche" }],
+    turn_frame: frame(),
+    write_progress: async () => ({
+      logged_progress_id: "existing-entry-1",
+      already_logged: true,
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "already_tracked_today");
+  assertEquals(result.committed_effects, []);
+  assertEquals(result.executed_tools, []);
+  assertEquals(result.blocked_effects, [{
+    type: "track_progress_plan_item",
+    reason_code: "already_tracked_today",
+  }]);
+  assertEquals(result.allowed_effects[0]?.target_title, "marche");
+});
+
 Deno.test("track_progress_plan_item direct effect router blocks unsafe or ambiguous writes", async () => {
   const cases = [
     {
@@ -616,4 +641,112 @@ Deno.test("track_progress_plan_item intake normalizes dispatcher payload aliases
     message: "est-ce que tu as noté ma marche ?",
   });
   assertEquals(question.intent, "status_question");
+});
+
+Deno.test("track_progress same-day contradiction guard (BF-EFFECT-01 R2-B01)", async (t) => {
+  const makeBase = () => {
+    const writes: unknown[] = [];
+    return {
+      writes,
+      base: {
+        message: "j'ai rate ma marche",
+        plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+        write_progress: async (input: unknown) => {
+          writes.push(input);
+          return { logged_progress_id: `progress-${writes.length}` };
+        },
+      },
+    };
+  };
+  const missedFrame = (extraPayload: Record<string, unknown> = {}) =>
+    frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "walk",
+          status_hint: "missed",
+          ...extraPayload,
+        },
+      }],
+    });
+
+  await t.step("positif: aucune evidence opposee -> commit", async () => {
+    const { writes, base } = makeBase();
+    const result = await runTrackProgressPlanItemDirectEffect({
+      ...base,
+      turn_frame: missedFrame(),
+      same_day_evidence_check: async () => null,
+    });
+    assertEquals(result.status, "logged");
+    assertEquals(result.committed_effects.length, 1);
+    assertEquals(writes.length, 1);
+  });
+
+  await t.step(
+    "contradiction: outcome oppose deja committe le meme jour -> needs_clarify, aucun write",
+    async () => {
+      const { writes, base } = makeBase();
+      const result = await runTrackProgressPlanItemDirectEffect({
+        ...base,
+        turn_frame: missedFrame(),
+        same_day_evidence_check: async () => ({
+          entry_id: "entry-daily",
+          outcome: "completed",
+          source: "daily_action_review_v1",
+        }),
+      });
+      assertEquals(result.status, "needs_clarify");
+      assertEquals(
+        result.debug.reason_code,
+        "contradicts_same_day_evidence",
+      );
+      assertEquals(result.committed_effects.length, 0);
+      assertEquals(writes.length, 0);
+      assert(String(result.reply ?? "").includes("marche"));
+      assert(
+        result.blocked_effects.some((effect) =>
+          effect.reason_code === "contradicts_same_day_evidence"
+        ),
+      );
+    },
+  );
+
+  await t.step(
+    "anti-faux-positif: correction explicite (payload_hint.correction) -> commit",
+    async () => {
+      const { writes, base } = makeBase();
+      const result = await runTrackProgressPlanItemDirectEffect({
+        ...base,
+        message: "en fait non, je l'ai pas faite ma marche",
+        turn_frame: missedFrame({ correction: true }),
+        same_day_evidence_check: async () => ({
+          entry_id: "entry-daily",
+          outcome: "completed",
+          source: "daily_action_review_v1",
+        }),
+      });
+      assertEquals(result.status, "logged");
+      assertEquals(result.committed_effects.length, 1);
+      assertEquals(writes.length, 1);
+    },
+  );
+
+  await t.step(
+    "meme outcome deja committe: pas une contradiction, le guard laisse passer",
+    async () => {
+      const { writes, base } = makeBase();
+      // Le check renvoie null pour un meme outcome (idempotence geree par
+      // logPlanItemProgressV2/already_logged, pas par ce guard).
+      const result = await runTrackProgressPlanItemDirectEffect({
+        ...base,
+        turn_frame: missedFrame(),
+        same_day_evidence_check: async () => null,
+      });
+      assertEquals(result.status, "logged");
+      assertEquals(writes.length, 1);
+    },
+  );
 });

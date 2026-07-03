@@ -136,6 +136,61 @@ Deno.test("direct effect confirmation context exposes committed one-shot contrac
   assertEquals(context?.remaining_user_need_must_continue, true);
 });
 
+Deno.test("confirmation context exposes already_tracked_today with target, never a phantom commit", () => {
+  // Paul r1 T15: question de verification -> le writer detecte l'entry du jour
+  // et bloque already_tracked_today. Le composeur doit pouvoir confirmer
+  // l'existant (cible + statut) sans re-commit et sans deni.
+  const context = buildDirectEffectConfirmationContext({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "walk", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      committed_effects: [],
+      requested_effects: [{ type: "track_progress_plan_item" }],
+      allowed_effects: [{
+        type: "track_progress_plan_item",
+        target_item_id: "walk",
+        target_title: "Faire 10 min de mouvement",
+        progress_status: "completed",
+      }],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "already_tracked_today",
+      }],
+    },
+  });
+
+  assertEquals(context?.track_progress, null);
+  assertEquals(context?.blocked_track_progress, {
+    reason_code: "already_tracked_today",
+    target_title: "Faire 10 min de mouvement",
+    progress_status: "completed",
+  });
+
+  // Anti-faux-positif: un commit reel du tour reste expose comme commit,
+  // jamais requalifie en blocage.
+  const committedContext = buildDirectEffectConfirmationContext({
+    direct_effects: [],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        logged_progress_id: "p1",
+        target_title: "Faire 10 min de mouvement",
+        progress_status: "completed",
+      }],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
+    },
+  });
+  assertEquals(committedContext?.track_progress?.committed, true);
+  assertEquals(committedContext?.blocked_track_progress, null);
+});
+
 Deno.test("local one-shot direct effect requires dispatcher UTC_time and local_label", () => {
   const effect = oneShotDirectEffectFromLocalRequest({
     requested: true,

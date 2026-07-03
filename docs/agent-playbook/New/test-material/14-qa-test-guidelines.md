@@ -160,6 +160,13 @@ conversationnels Sophia. Elle complete les fiches specialisees, notamment :
   la tolerance memorizer ne s'applique qu'aux faits personnels.
 - Nettoyage : supprimer les `memory_items` crees par le batch de test en fin
   de run, comme tout autre effet durable.
+- Hygiene : il n'existe AUCUN chemin d'ecriture memoire in-turn dans le code
+  (`memory_items`/`memory_message_processing` ne sont ecrits que par le
+  batch). Si un run observe des writes memoire « pendant les tours » (cas Eva
+  global15 r1), c'est qu'un batch a ete declenche en parallele du run
+  (trigger externe/cron local) : incident d'environnement a noter, pas un bug
+  produit. Verifier qu'aucun `trigger-memorizer-daily` ne tourne pendant un
+  run en cours.
 
 ## Hygiene Inter-Runs
 

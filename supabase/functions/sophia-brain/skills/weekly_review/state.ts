@@ -14,6 +14,14 @@ function isWeeklyAdaptiveReviewState(value: unknown): value is Record<
     flowId === "weekly_adaptive_review_v1";
 }
 
+// Un weekly deja termine (cloture) ne doit plus capturer le routage: le tour
+// suivant doit repartir vers le dispatcher global (puis normal_reply pour une
+// simple politesse post-cloture). Sans ce garde, le weekly reste "actif" avec
+// status=completed et re-entre de facon non deterministe (re-synthese parasite).
+function isTerminalWeeklyReviewStatus(value: Record<string, unknown>): boolean {
+  return String((value as any).status ?? "").trim() === "completed";
+}
+
 export function isWeeklyAdaptiveReviewActive(
   activeSkillState: unknown,
 ): boolean {
@@ -31,28 +39,31 @@ export function weeklyAdaptiveReviewStateForTurn(args: {
   activeSkillState: unknown;
   tempMemory?: unknown;
 }): unknown {
-  if (isWeeklyAdaptiveReviewState(args.activeSkillState)) {
-    return args.activeSkillState;
-  }
+  // Un weekly termine n'est plus une capture active: on l'ignore pour que le
+  // routage reparte vers le global (et normal_reply sur une politesse).
+  const activeIfNotTerminal = (value: unknown): Record<string, unknown> | null =>
+    isWeeklyAdaptiveReviewState(value) && !isTerminalWeeklyReviewStatus(value)
+      ? value
+      : null;
+
+  const fromActiveSkill = activeIfNotTerminal(args.activeSkillState);
+  if (fromActiveSkill) return fromActiveSkill;
   const temp = args.tempMemory && typeof args.tempMemory === "object"
     ? args.tempMemory as Record<string, unknown>
     : {};
-  if (isWeeklyAdaptiveReviewState(temp[ACTIVE_CONVERSATION_SKILL_KEY])) {
-    return temp[ACTIVE_CONVERSATION_SKILL_KEY];
-  }
-  if (isWeeklyAdaptiveReviewState(temp.__active_skill_state)) {
-    return temp.__active_skill_state;
-  }
-  if (isWeeklyAdaptiveReviewState(temp.active_skill_state)) {
-    return temp.active_skill_state;
-  }
+  const fromCanonicalKey = activeIfNotTerminal(temp[ACTIVE_CONVERSATION_SKILL_KEY]);
+  if (fromCanonicalKey) return fromCanonicalKey;
+  const fromLegacyKey = activeIfNotTerminal(temp.__active_skill_state);
+  if (fromLegacyKey) return fromLegacyKey;
+  const fromLegacyKey2 = activeIfNotTerminal(temp.active_skill_state);
+  if (fromLegacyKey2) return fromLegacyKey2;
   const suspended = temp.__suspended_flow_v1;
   if (
     suspended &&
-    typeof suspended === "object" &&
-    isWeeklyAdaptiveReviewState((suspended as any).state_snapshot)
+    typeof suspended === "object"
   ) {
-    return (suspended as any).state_snapshot;
+    const fromSuspended = activeIfNotTerminal((suspended as any).state_snapshot);
+    if (fromSuspended) return fromSuspended;
   }
   return null;
 }

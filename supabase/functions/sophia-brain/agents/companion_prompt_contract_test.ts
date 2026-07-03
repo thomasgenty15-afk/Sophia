@@ -15,7 +15,7 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.length < 12800);
+  assert(prompt.length < 13000);
   assert(prompt.includes("CORE_COMPANION"));
   assert(prompt.includes("OUTPUT_STYLE"));
   assert(prompt.includes("NORMAL_REPLY_POLICY"));
@@ -125,6 +125,25 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
   assertEquals(prompt.includes(["status", "recap"].join("_")), false);
   assertEquals(prompt.includes(["emotional", "repair"].join("_")), false);
   assertEquals(prompt.includes(["demotivation", "repair"].join("_")), false);
+});
+
+Deno.test("companion normal reply keeps social register after a closed flow", () => {
+  const prompt = buildCompanionSystemPrompt({
+    isWhatsApp: false,
+    lastAssistantMessage: "Le bilan de la semaine est clos.",
+    context: "",
+    userState: { risk_level: 0, temp_memory: {} },
+  });
+
+  // Invariant registre post-flow: politesse/au revoir apres un flow terminé
+  // -> reponse sociale breve, sans re-annonce de cloture ni re-synthese du bilan.
+  assert(prompt.includes("Après un flow terminé"));
+  assert(prompt.includes("rends la politesse en une phrase courte"));
+  assert(
+    prompt.includes(
+      "sans ré-annoncer la clôture ni re-synthétiser le bilan terminé",
+    ),
+  );
 });
 
 Deno.test("companion normal reply receives recent visible history for loop recovery", () => {
@@ -372,15 +391,27 @@ Deno.test("companion normal reply acknowledges explicit memorization requests", 
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.includes("Demande de retenir un fait personnel"));
-  assert(prompt.includes("la mémorisation est automatique côté Sophia"));
+  assert(prompt.includes("Retenir un fait personnel"));
+  assert(prompt.includes("mémorisation automatique"));
   assert(
-    prompt.includes("ne propose ni initiative, ni rappel, ni fonctionnalité"),
+    prompt.includes("ne propose ni initiative ni rappel à la place"),
   );
-  assert(prompt.includes("Cet accusé ne vaut jamais pour une action du plan"));
+  assert(prompt.includes("Jamais cet accusé pour une action du plan"));
   assert(
     prompt.includes(
-      "sans effet commis prouvé par le contexte, dis honnêtement que ce n'est pas encore enregistré",
+      "sans effet commis prouvé, dis que ce n'est pas enregistré",
     ),
   );
+});
+
+Deno.test("companion normal reply clarifies ambiguous follow-ups instead of guessing", () => {
+  const prompt = buildCompanionSystemPrompt({
+    isWhatsApp: false,
+    lastAssistantMessage: "Je te suis.",
+    context: "",
+    userState: { risk_level: 0, temp_memory: {} },
+  });
+  assert(prompt.includes("Follow-up ambigu"));
+  assert(prompt.includes("clarifie en une phrase au lieu de choisir"));
+  assert(prompt.includes("sinon réponds direct"));
 });

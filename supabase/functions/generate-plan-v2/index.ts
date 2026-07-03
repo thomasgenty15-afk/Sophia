@@ -705,6 +705,14 @@ async function handleRequest(req: Request): Promise<Response> {
           { status },
         );
       }
+      if (status === 503) {
+        // Classification unavailable — transient, the client should retry.
+        return jsonResponse(
+          req,
+          { error: error.message, request_id: requestId },
+          { status },
+        );
+      }
     }
 
     return serverError(req, requestId, "Failed to generate V2 plan");
@@ -1064,11 +1072,21 @@ export async function generatePlanV2ForTransformation(params: {
       planTypeClassification = classificationResult.classification;
       context.transformation = classificationResult.transformation;
     } catch (error) {
-      console.warn("[generate-plan-v2][classification_fallback_failed]", {
+      // Hard guardrail: never generate a plan without a classification when
+      // questionnaire answers exist. A missing classification silently falls
+      // back to "single_transformation" scoping, which would target the
+      // GLOBAL objective instead of tranche 1 on a split journey and skip
+      // creating the second transformation. Fail loud so the client retries.
+      console.error("[generate-plan-v2][classification_unavailable]", {
         request_id: params.requestId,
         transformation_id: context.transformation.id,
         error_message: error instanceof Error ? error.message : String(error),
       });
+      throw new GeneratePlanV2Error(
+        503,
+        "Plan type classification unavailable — retry plan generation",
+        { cause: error },
+      );
     }
   }
 
@@ -1414,7 +1432,7 @@ function extractPlanTypeClassification(
   return classification as PlanTypeClassificationV1;
 }
 
-function shouldRefreshPlanTypeClassification(
+export function shouldRefreshPlanTypeClassification(
   classification: PlanTypeClassificationV1 | null,
 ): boolean {
   if (!classification) return true;

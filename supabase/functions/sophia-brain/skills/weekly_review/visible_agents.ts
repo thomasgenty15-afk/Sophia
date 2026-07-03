@@ -53,6 +53,8 @@ const WEEKLY_VISIBLE_COMMON_RULES = [
   "Ne formule jamais l'ajustement comme un patch pret a appliquer: evite ce qui bougerait, ce qui resterait, proposition prete, changement en attente.",
   "Une destination produit n'est pas une recommandation d'ajustement.",
   "Si hard_constraints.repeat_adjust_recommendation_forbidden=true, ne reformule jamais la recommandation d'ajustement deja donnee: n'emploie pas ajustement utile, intention a renseigner, mini-version, alleger, ou hard_constraints.adjust_recommendation_destination_user_message. Ferme seulement le point weekly.",
+  "Si hard_constraints.adjust_recommendation_already_surfaced=true et que le user ne demande pas explicitement de repeter la recommandation, ne re-deroule pas la recommandation complete ni un recap action par action deja rendu: reponds au point nouveau du message user en une ou deux phrases, avec au besoin le rappel que tu ne modifies pas le plan ici et hard_constraints.adjust_recommendation_destination_user_message.",
+  "Si hard_constraints.chat_plan_mutation_refusal_required=true, le user demande d'appliquer/valider/modifier le changement directement dans le chat: reponds seulement, en une ou deux phrases, que tu ne modifies pas le plan ici et rends hard_constraints.adjust_recommendation_destination_user_message. Ne re-deroule ni la recommandation d'ajustement, ni la synthese, ni un recap action par action. N'invente aucune nouvelle recommandation.",
   "Si hard_constraints.can_surface_adjust_recommendation n'est pas true, ne formule jamais de recommandation d'ajustement: n'emploie pas ajustement utile, levier recommande, je recommande, a envisager serait, ou une intention precise a appliquer. Tu peux seulement nommer un constat factuel et, si le user demande ou le mettre, donner hard_constraints.adjust_recommendation_destination_user_message.",
   "Si hard_constraints.can_surface_adjust_recommendation est true et que tu mentionnes une recommandation d'ajustement, dis explicitement que tu ne modifies pas le plan ici.",
   "Si hard_constraints.can_surface_adjust_recommendation est true et que tu mentionnes une recommandation d'ajustement, rends aussi la destination exacte depuis hard_constraints.adjust_recommendation_destination_user_message. Ne remplace pas cette destination par ailleurs, dans le plan, ou une formulation vague.",
@@ -150,6 +152,7 @@ export const WEEKLY_REVIEW_VISIBLE_AGENT_SPECS: Record<
       "Formulation attendue seulement si hard_constraints.can_surface_adjust_recommendation=true: Je ne modifie pas le plan ici. En revanche, vu ce qu'on a vu cette semaine, l'ajustement utile a envisager serait...",
       "Mentionne quoi ajuster, pourquoi, et sur quelle base observee. Ne donne que les elements presents dans adjust_recommendation. Ne rends pas le niveau de confiance au user.",
       "Ne dis jamais ce qui bougerait / ce qui resterait, et ne decris pas un patch pret a appliquer.",
+      "Si le user pousse pour appliquer directement le changement depuis le chat, refuse sobrement en une ou deux phrases: rappelle que tu ne modifies pas le plan ici et rends hard_constraints.adjust_recommendation_destination_user_message, sans re-derouler la recommandation ni refaire le bilan action par action.",
     ],
   },
   weekly_synthesis_closure: {
@@ -169,6 +172,7 @@ export const WEEKLY_REVIEW_VISIBLE_AGENT_SPECS: Record<
       "Pour weekly_closure, cloture clairement le point weekly sans poser une nouvelle question et sans dire que le Plan a ete modifie.",
       "Pour weekly_closure, si hard_constraints.synthesis_already_rendered=true, ne refais pas la synthese complete: 1 ou 2 phrases maximum, pas de liste action par action, pas de recap complet de l'objectif global.",
       "Pour weekly_closure, si hard_constraints.repeat_adjust_recommendation_forbidden=true, ne rappelle pas l'intention principale si cette intention est une recommandation d'ajustement deja surfacee; dis seulement que le bilan weekly est cloture.",
+      "Pour weekly_synthesis, si hard_constraints.repeat_adjust_recommendation_forbidden=true (recommandation deja surfacee a un tour precedent), ne re-deroule pas la recommandation d'ajustement ni un nouveau recap action par action: fais une synthese factuelle courte et, si besoin, rappelle seulement la destination sans reformuler l'ajustement.",
     ],
   },
 };

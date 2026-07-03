@@ -78,7 +78,12 @@ export function classifyAntiNoise(
   const durableShortStatement =
     /\b(mon objectif|j'apprends|j apprends|je veux|je prefere|je préfère|je ne veux pas|ne memorise pas|limite claire|doit etre|doit être|a payer|à payer|avant le \d{1,2}|sujet professionnel|projet personnel|ma cousine|mon cousin|ma soeur|ma sœur|mon frere|mon frère|ma collegue|mon collegue|ma collègue|mon collègue|ma comptable|mon comptable|ma assistante|mon assistant|assistante administrative|assistant administratif|coach de natation|client|client de consulting|contrat|contrats signes|contrats signés|facture|factures impayees|factures impayées|compatible avec mon allergie|compatibles avec mon allergie)\b/
       .test(normalized);
+  // memorize: intention de memorisation explicite ("retiens que...") — un
+  // fait confie ne doit jamais etre perdu par le filtre de cout, quelle que
+  // soit sa longueur (rose-r2 T13, BF-MEMORY-01). Le LLM d'extraction reste
+  // le decideur final.
   const important = signals.correction.detected ||
+    signals.memorize.detected ||
     signals.forget.detected ||
     signals.safety.detected ||
     signals.dated_reference.detected ||

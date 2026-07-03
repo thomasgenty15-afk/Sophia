@@ -21,7 +21,10 @@ import {
   materializeCycleTransformationsFromIntake,
   previewTransformationsFromIntake,
 } from "../_shared/v2-intake-core.ts";
-import { classifyPlanTypeForTransformation } from "../classify-plan-type-v1/index.ts";
+import {
+  ClassifyPlanTypeV1Error,
+  runPlanTypeClassificationLlm,
+} from "../classify-plan-type-v1/index.ts";
 import { generateQuestionnaireDraft } from "../generate-questionnaire-v2/index.ts";
 
 const DRAFT_STAGE_VALUES = [
@@ -100,6 +103,21 @@ const GUEST_QUESTIONNAIRE_REQUEST_SCHEMA = z.object({
   }),
 });
 
+const GUEST_CLASSIFY_REQUEST_SCHEMA = z.object({
+  anonymous_session_id: z.string().uuid(),
+  transformation: z.object({
+    id: z.string().uuid(),
+    title: z.string().nullable(),
+    internal_summary: z.string().min(1),
+    user_summary: z.string().min(1),
+  }),
+  questionnaire_schema: z.record(z.unknown()),
+  questionnaire_answers: z.record(z.unknown()).refine(
+    (value) => Object.keys(value).length > 0,
+    { message: "questionnaire_answers must not be empty" },
+  ),
+});
+
 type StoredDraftPayload = z.infer<typeof DRAFT_PAYLOAD_SCHEMA>;
 
 class CycleDraftError extends Error {
@@ -156,6 +174,11 @@ function isIntakePath(pathname: string): boolean {
 function isQuestionnairePath(pathname: string): boolean {
   return pathname.endsWith("/cycle-draft/questionnaire") ||
     pathname.endsWith("/cycle-draft/questionnaire/");
+}
+
+function isClassifyPath(pathname: string): boolean {
+  return pathname.endsWith("/cycle-draft/classify") ||
+    pathname.endsWith("/cycle-draft/classify/");
 }
 
 function computeExpiresAt(now = Date.now()): string {
@@ -317,6 +340,10 @@ async function handleRequest(req: Request): Promise<Response> {
       return await handleGuestQuestionnaire(req, requestId);
     }
 
+    if (req.method === "POST" && isClassifyPath(pathname)) {
+      return await handleGuestClassify(req, requestId);
+    }
+
     return cycleDraftResponse(
       req,
       { error: "Method Not Allowed", request_id: requestId },
@@ -418,6 +445,55 @@ async function handleGuestQuestionnaire(
     schema,
     questions: schema.questions,
   });
+}
+
+// Guest plan-type classification: stateless like /intake and /questionnaire.
+// The client stores the returned classification in the draft; it reaches the
+// database only through the draft sync + hydrate copy.
+async function handleGuestClassify(
+  req: Request,
+  requestId: string,
+): Promise<Response> {
+  const parsedBody = await parseJsonBody(
+    req,
+    GUEST_CLASSIFY_REQUEST_SCHEMA,
+    requestId,
+  );
+  if (!parsedBody.ok) {
+    return cycleDraftResponse(
+      req,
+      await parsedBody.response.json(),
+      { status: parsedBody.response.status },
+    );
+  }
+
+  const transformation = parsedBody.data.transformation;
+
+  try {
+    const classification = await runPlanTypeClassificationLlm({
+      requestId: `${requestId}:guest_classify`,
+      userId: null,
+      transformationId: transformation.id,
+      transformationLike: {
+        title: transformation.title,
+        internal_summary: transformation.internal_summary,
+        user_summary: transformation.user_summary,
+      },
+      profileSnapshot: null,
+      questionnaireAnswers: parsedBody.data.questionnaire_answers,
+      questionnaireSchema: parsedBody.data.questionnaire_schema,
+    });
+
+    return cycleDraftResponse(req, {
+      request_id: requestId,
+      classification,
+    });
+  } catch (error) {
+    if (error instanceof ClassifyPlanTypeV1Error && error.status < 500) {
+      throw new CycleDraftError(error.status, error.message, { cause: error });
+    }
+    throw error;
+  }
 }
 
 async function handleUpsertDraft(
@@ -690,12 +766,10 @@ async function handleHydrateDraft(
 
   if (row) await deleteDraftRow(admin, row.id);
 
-  await schedulePostHydrationPlanTypeClassification({
-    admin,
-    requestId,
-    userId,
-    transformationId: result.classifyTransformationId,
-  });
+  // No background classification here anymore: the guest classification is
+  // copied from the draft during hydration (hydrateFromDraftData). When it is
+  // missing (old draft, guest classify failure), the profile-stage guardrail
+  // in the frontend relaunches classify-plan-type-v1 explicitly.
 
   return cycleDraftResponse(req, {
     request_id: requestId,
@@ -711,7 +785,7 @@ async function hydrateGuestDraftToCycle(params: {
   requestId: string;
   userId: string;
   draft: StoredDraftPayload & { anonymous_session_id: string };
-}): Promise<{ cycle: UserCycleRow; classifyTransformationId: string | null }> {
+}): Promise<{ cycle: UserCycleRow }> {
   const guestTransformations = extractFullDraftTransformations(params.draft);
   const draftSchema = extractDraftQuestionnaireSchema(params.draft);
   const draftAnswers = extractDraftQuestionnaireAnswers(params.draft);
@@ -768,7 +842,7 @@ async function hydrateGuestDraftToCycle(params: {
       request_id: params.requestId,
       cycle_id: cycle.id,
     });
-    return { cycle, classifyTransformationId: null };
+    return { cycle };
   }
 
   const now = new Date().toISOString();
@@ -822,12 +896,7 @@ async function hydrateGuestDraftToCycle(params: {
     active_transformation_id: cycle.active_transformation_id ?? null,
   });
 
-  return {
-    cycle,
-    classifyTransformationId: activeTransformation && draftSchema && hasAnswers
-      ? activeTransformation.id
-      : null,
-  };
+  return { cycle };
 }
 
 type FullDraftTransformation = {
@@ -841,9 +910,29 @@ type FullDraftTransformation = {
   recommended_order: number | null;
   recommended_progress_indicator: string | null;
   ordering_rationale: string | null;
+  plan_type_classification: Record<string, unknown> | null;
 };
 
-function extractFullDraftTransformations(
+// Minimal shape check before copying a guest classification into
+// handoff_payload — same gate as extractPlanTypeClassification in
+// generate-plan-v2.
+export function extractDraftPlanTypeClassification(
+  value: unknown,
+): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.type_key !== "string") return null;
+  if (
+    !candidate.duration_guidance ||
+    typeof candidate.duration_guidance !== "object" ||
+    Array.isArray(candidate.duration_guidance)
+  ) {
+    return null;
+  }
+  return candidate;
+}
+
+export function extractFullDraftTransformations(
   draft: StoredDraftPayload,
 ): FullDraftTransformation[] {
   const candidate = (draft as Record<string, unknown>).transformations;
@@ -888,6 +977,9 @@ function extractFullDraftTransformations(
       ordering_rationale: typeof row.ordering_rationale === "string"
         ? row.ordering_rationale
         : null,
+      plan_type_classification: extractDraftPlanTypeClassification(
+        row.plan_type_classification,
+      ),
     }];
   });
 }
@@ -902,7 +994,7 @@ async function hydrateFromDraftData(params: {
   draftSchema: Record<string, unknown> | null;
   draftAnswers: Record<string, unknown>;
   hasAnswers: boolean;
-}): Promise<{ cycle: UserCycleRow; classifyTransformationId: string | null }> {
+}): Promise<{ cycle: UserCycleRow }> {
   const now = new Date().toISOString();
 
   const draftActiveId = String(
@@ -995,6 +1087,12 @@ async function hydrateFromDraftData(params: {
           recommended_progress_indicator:
             guest.recommended_progress_indicator,
           ordering_rationale: guest.ordering_rationale,
+          // Guest classification computed before signup (cycle-draft
+          // /classify) — copying it here is what makes it visible to the
+          // profile + plan-loading screens without re-running the LLM.
+          ...(guest.plan_type_classification
+            ? { plan_type_classification: guest.plan_type_classification }
+            : {}),
         },
       },
       created_at: now,
@@ -1105,54 +1203,7 @@ async function hydrateFromDraftData(params: {
     active_transformation_id: cycle.active_transformation_id ?? null,
   });
 
-  return {
-    cycle,
-    classifyTransformationId: activeTransformation && params.draftSchema && params.hasAnswers
-      ? activeTransformation.id
-      : null,
-  };
-}
-
-async function schedulePostHydrationPlanTypeClassification(params: {
-  admin: SupabaseClient;
-  requestId: string;
-  userId: string;
-  transformationId: string | null;
-}): Promise<void> {
-  if (!params.transformationId) return;
-
-  const task = classifyPlanTypeForTransformation({
-    admin: params.admin,
-    requestId: `${params.requestId}:post_auth_hydrate`,
-    userId: params.userId,
-    transformationId: params.transformationId,
-  }).then(() => {
-    console.info("[cycle-draft][hydrate][classification][done]", {
-      request_id: params.requestId,
-      user_id: params.userId,
-      transformation_id: params.transformationId,
-    });
-  }).catch((error) => {
-    console.warn("[cycle-draft][hydrate][classification][failed]", {
-      request_id: params.requestId,
-      user_id: params.userId,
-      transformation_id: params.transformationId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-  });
-
-  const edgeRuntime = (
-    globalThis as typeof globalThis & {
-      EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void };
-    }
-  ).EdgeRuntime;
-
-  if (typeof edgeRuntime?.waitUntil === "function") {
-    edgeRuntime.waitUntil(task);
-    return;
-  }
-
-  await task;
+  return { cycle };
 }
 
 type DraftTransformationSnapshot = {

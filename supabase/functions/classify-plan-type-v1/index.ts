@@ -153,7 +153,7 @@ type ClassificationContext = {
   transformation: UserTransformationRow;
 };
 
-class ClassifyPlanTypeV1Error extends Error {
+export class ClassifyPlanTypeV1Error extends Error {
   status: number;
 
   constructor(status: number, message: string, options?: { cause?: unknown }) {
@@ -257,30 +257,36 @@ if (import.meta.main) {
   Deno.serve(handleRequest);
 }
 
-export async function classifyPlanTypeForTransformation(params: {
-  admin: SupabaseClient;
+export type PlanTypeClassificationTransformationLike = {
+  title: string | null;
+  internal_summary: string;
+  user_summary: string;
+  success_definition?: string | null;
+  main_constraint?: string | null;
+};
+
+export type PlanTypeClassificationProfileSnapshot = {
+  birth_date?: string | null;
+  gender?: string | null;
+};
+
+export type PlanTypeClassificationLlmInput = {
   requestId: string;
-  userId: string;
-  transformationId: string;
-}): Promise<{
-  cycle: UserCycleRow;
-  transformation: UserTransformationRow;
-  classification: PlanTypeClassificationV1;
-}> {
-  const context = await loadClassificationContext(
-    params.admin,
-    params.userId,
-    params.transformationId,
-  );
+  userId: string | null;
+  transformationId?: string | null;
+  transformationLike: PlanTypeClassificationTransformationLike;
+  profileSnapshot?: PlanTypeClassificationProfileSnapshot | null;
+  questionnaireAnswers: Record<string, unknown>;
+  questionnaireSchema: Record<string, unknown>;
+};
 
-  const questionnaireAnswers = isRecord(context.transformation.questionnaire_answers)
-    ? context.transformation.questionnaire_answers
-    : {};
-  const questionnaireSchema = isRecord(context.transformation.questionnaire_schema)
-    ? context.transformation.questionnaire_schema
-    : {};
-
-  if (Object.keys(questionnaireAnswers).length === 0) {
+// Pure LLM core: no database access. Callable for authenticated
+// transformations (via classifyPlanTypeForTransformation) and for guest
+// drafts (via cycle-draft /classify) alike.
+export async function runPlanTypeClassificationLlm(
+  input: PlanTypeClassificationLlmInput,
+): Promise<PlanTypeClassificationV1> {
+  if (Object.keys(input.questionnaireAnswers).length === 0) {
     throw new ClassifyPlanTypeV1Error(
       400,
       "Questionnaire answers are required before classifying the plan type",
@@ -294,10 +300,10 @@ export async function classifyPlanTypeForTransformation(params: {
     const raw = await generateWithGemini(
       PLAN_TYPE_CLASSIFICATION_SYSTEM_PROMPT,
       buildPlanTypeClassificationUserPrompt({
-        cycle: context.cycle,
-        transformation: context.transformation,
-        questionnaireAnswers,
-        questionnaireSchema,
+        transformationLike: input.transformationLike,
+        profileSnapshot: input.profileSnapshot ?? null,
+        questionnaireAnswers: input.questionnaireAnswers,
+        questionnaireSchema: input.questionnaireSchema,
         validationIssues,
       }),
       0.2,
@@ -305,9 +311,9 @@ export async function classifyPlanTypeForTransformation(params: {
       [],
       "auto",
       {
-        requestId: `${params.requestId}:classify-plan-type-v1`,
+        requestId: `${input.requestId}:classify-plan-type-v1`,
         source: "classify-plan-type-v1",
-        userId: params.userId,
+        userId: input.userId ?? undefined,
         model: getGlobalAiModel(),
         maxRetries: 3,
         httpTimeoutMs: 90_000,
@@ -326,8 +332,8 @@ export async function classifyPlanTypeForTransformation(params: {
       parsed = JSON.parse(raw);
     } catch (error) {
       console.error("[classify-plan-type-v1][invalid-json]", {
-        request_id: params.requestId,
-        transformation_id: params.transformationId,
+        request_id: input.requestId,
+        transformation_id: input.transformationId ?? null,
         attempt,
         raw,
         error_name: error instanceof Error ? error.name : "UnknownError",
@@ -362,8 +368,8 @@ export async function classifyPlanTypeForTransformation(params: {
       code: issue.code,
     }));
     console.error("[classify-plan-type-v1][invalid-schema]", {
-      request_id: params.requestId,
-      transformation_id: params.transformationId,
+      request_id: input.requestId,
+      transformation_id: input.transformationId ?? null,
       attempt,
       parsed: normalizedParsed,
       issues,
@@ -387,6 +393,51 @@ export async function classifyPlanTypeForTransformation(params: {
       "Plan type classification could not be validated",
     );
   }
+
+  return classification;
+}
+
+export async function classifyPlanTypeForTransformation(params: {
+  admin: SupabaseClient;
+  requestId: string;
+  userId: string;
+  transformationId: string;
+}): Promise<{
+  cycle: UserCycleRow;
+  transformation: UserTransformationRow;
+  classification: PlanTypeClassificationV1;
+}> {
+  const context = await loadClassificationContext(
+    params.admin,
+    params.userId,
+    params.transformationId,
+  );
+
+  const questionnaireAnswers = isRecord(context.transformation.questionnaire_answers)
+    ? context.transformation.questionnaire_answers
+    : {};
+  const questionnaireSchema = isRecord(context.transformation.questionnaire_schema)
+    ? context.transformation.questionnaire_schema
+    : {};
+
+  const classification = await runPlanTypeClassificationLlm({
+    requestId: params.requestId,
+    userId: params.userId,
+    transformationId: context.transformation.id,
+    transformationLike: {
+      title: context.transformation.title,
+      internal_summary: context.transformation.internal_summary,
+      user_summary: context.transformation.user_summary,
+      success_definition: context.transformation.success_definition,
+      main_constraint: context.transformation.main_constraint,
+    },
+    profileSnapshot: {
+      birth_date: context.cycle.birth_date_snapshot ?? null,
+      gender: context.cycle.gender_snapshot ?? null,
+    },
+    questionnaireAnswers,
+    questionnaireSchema,
+  });
 
   const now = new Date().toISOString();
   const nextHandoffPayload = mergePlanTypeClassification(
@@ -427,19 +478,19 @@ export async function classifyPlanTypeForTransformation(params: {
   };
 }
 
-function buildPlanTypeClassificationUserPrompt(input: {
-  cycle: UserCycleRow;
-  transformation: UserTransformationRow;
+export function buildPlanTypeClassificationUserPrompt(input: {
+  transformationLike: PlanTypeClassificationTransformationLike;
+  profileSnapshot?: PlanTypeClassificationProfileSnapshot | null;
   questionnaireAnswers: Record<string, unknown>;
   questionnaireSchema: Record<string, unknown>;
   validationIssues?: string[] | null;
 }): string {
   const profileLines = [
-    input.cycle.birth_date_snapshot
-      ? `- Birth date snapshot: ${input.cycle.birth_date_snapshot}`
+    input.profileSnapshot?.birth_date
+      ? `- Birth date snapshot: ${input.profileSnapshot.birth_date}`
       : null,
-    input.cycle.gender_snapshot
-      ? `- Gender snapshot: ${input.cycle.gender_snapshot}`
+    input.profileSnapshot?.gender
+      ? `- Gender snapshot: ${input.profileSnapshot.gender}`
       : null,
   ].filter(Boolean).join("\n");
 
@@ -455,11 +506,11 @@ ${input.validationIssues.map((issue) => `- ${issue}`).join("\n")}
 
   return `## Transformation
 
-- Title: ${String(input.transformation.title ?? "").trim() || "Untitled transformation"}
-- Internal summary: ${input.transformation.internal_summary}
-- User summary: ${input.transformation.user_summary}
-- Success definition: ${String(input.transformation.success_definition ?? "").trim() || "Not provided"}
-- Main constraint: ${String(input.transformation.main_constraint ?? "").trim() || "Not provided"}
+- Title: ${String(input.transformationLike.title ?? "").trim() || "Untitled transformation"}
+- Internal summary: ${input.transformationLike.internal_summary}
+- User summary: ${input.transformationLike.user_summary}
+- Success definition: ${String(input.transformationLike.success_definition ?? "").trim() || "Not provided"}
+- Main constraint: ${String(input.transformationLike.main_constraint ?? "").trim() || "Not provided"}
 
 ## Profile
 
@@ -498,7 +549,7 @@ ${validationIssuesBlock}
 Return the JSON classification only.`;
 }
 
-function normalizePlanTypeClassificationCandidate(value: unknown): unknown {
+export function normalizePlanTypeClassificationCandidate(value: unknown): unknown {
   if (!isRecord(value)) return value;
 
   const candidate = { ...value };

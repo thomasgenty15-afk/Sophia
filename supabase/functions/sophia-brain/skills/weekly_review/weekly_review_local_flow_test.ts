@@ -342,7 +342,8 @@ Deno.test("weekly visible receives adjustment destination and closure claim guar
     destination_instruction:
       "Validation du niveau : renseigner cet input de maniere concrete, sans modifier le plan depuis le chat.",
     safe_to_surface: true,
-    surfaced_in_weekly: true,
+    // Premiere surface au stage synthesis: la destination doit se propager.
+    surfaced_in_weekly: false,
     updated_at: "2026-06-24T00:00:00.000Z",
   };
   context.weekly_gates.closure_status = "missing";
@@ -667,6 +668,235 @@ Deno.test("weekly adjust recommendation visible prompt is non-mutant and destina
   );
   assertStringIncludes(prompt, "Je ne modifie pas le plan ici");
   assertStringIncludes(prompt, "ce qui bougerait / ce qui resterait");
+});
+
+Deno.test("weekly visible prompt forbids re-rendering an already surfaced recommendation outside closure", () => {
+  const prompt = weeklyReviewVisibleSystemPromptForTest(
+    "weekly_adjust_recommendation",
+  ) ?? "";
+
+  assertStringIncludes(
+    prompt,
+    "hard_constraints.adjust_recommendation_already_surfaced=true",
+  );
+  assertStringIncludes(
+    prompt,
+    "ne re-deroule pas la recommandation complete ni un recap action par action deja rendu",
+  );
+  assertStringIncludes(
+    prompt,
+    "reponds au point nouveau du message user en une ou deux phrases",
+  );
+  assertStringIncludes(
+    prompt,
+    "Si le user pousse pour appliquer directement le changement depuis le chat",
+  );
+  assertStringIncludes(
+    prompt,
+    "sans re-derouler la recommandation ni refaire le bilan action par action",
+  );
+  // Anti-faux-positif: le user garde le droit de demander une repetition explicite.
+  assertStringIncludes(
+    prompt,
+    "ne demande pas explicitement de repeter la recommandation",
+  );
+});
+
+Deno.test("weekly dispatcher parses chat_plan_mutation_request", () => {
+  const withFlag = normalizeWeeklyReviewLocalDispatcherOutput({
+    flow_action: "answer_weekly_question",
+    confidence: "high",
+    chat_plan_mutation_request: true,
+    weekly_intent: { kind: "weekly_answer", summary: "Le user veut appliquer directement." },
+    visible_task: { kind: "weekly_adjust_recommendation", instruction: "Refuser sobrement." },
+  });
+  assertEquals(withFlag.chat_plan_mutation_request, true);
+
+  const withoutFlag = normalizeWeeklyReviewLocalDispatcherOutput({
+    flow_action: "answer_weekly_question",
+    confidence: "high",
+    weekly_intent: { kind: "weekly_answer", summary: "Le user demande quoi ajuster." },
+    visible_task: { kind: "weekly_adjust_recommendation", instruction: "Repondre." },
+  });
+  assertEquals(withoutFlag.chat_plan_mutation_request, false);
+});
+
+Deno.test("weekly visible refuses chat plan mutation request without re-surfacing", () => {
+  const prompt = weeklyReviewVisibleSystemPromptForTest(
+    "weekly_adjust_recommendation",
+  ) ?? "";
+  assertStringIncludes(
+    prompt,
+    "hard_constraints.chat_plan_mutation_refusal_required=true",
+  );
+  assertStringIncludes(
+    prompt,
+    "Ne re-deroule ni la recommandation d'ajustement, ni la synthese, ni un recap action par action",
+  );
+
+  const context = visibleContext() as any;
+  // Recommandation par ailleurs surfacable (safe, confiante): sans le flag elle
+  // pourrait se rendre; avec le flag elle doit etre bloquee.
+  context.adjust_recommendation = {
+    status: "ready",
+    confidence: 0.97,
+    mode: "next_level_required",
+    what_to_adjust: ["reduire a une version tres courte"],
+    why: ["l'energie chute des jeudi"],
+    evidence: ["avance ressentie", "mission preparee mais jamais envoyee"],
+    target_scope: "next_level_inputs",
+    destination_instruction: "Validation du niveau",
+    safe_to_surface: true,
+    surfaced_in_weekly: false,
+  };
+  context.known_values = {
+    ...(context.known_values ?? {}),
+    chat_plan_mutation_request: true,
+  };
+
+  const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    user_id: "user-weekly-chat-mutation-push",
+    stage: "weekly_adjust_recommendation",
+    conversation_context: context,
+  }));
+
+  assertEquals(
+    parsed.hard_constraints.chat_plan_mutation_refusal_required,
+    true,
+  );
+  // Le refus force can_surface a false meme si la reco etait surfacable.
+  assertEquals(
+    parsed.hard_constraints.can_surface_adjust_recommendation,
+    false,
+  );
+  // La destination reste disponible pour le renvoi plateforme (fixture par
+  // defaut = next_week_configured => Ajuster mon plan).
+  assertStringIncludes(
+    parsed.hard_constraints.adjust_recommendation_destination_user_message,
+    "Ajuster mon plan",
+  );
+});
+
+Deno.test("weekly synthesis does not re-surface an already surfaced recommendation", () => {
+  const context = visibleContext() as any;
+  context.field_or_stage = "weekly_synthesis";
+  context.adjust_recommendation = {
+    status: "surfaced",
+    confidence: 0.96,
+    mode: "next_level_required",
+    what_to_adjust: ["reduire a une version tres courte"],
+    why: ["l'energie chute des jeudi"],
+    evidence: [
+      "avance ressentie mais energie qui s'effondre",
+      "mission preparee mais jamais envoyee",
+    ],
+    target_scope: "next_level_inputs",
+    destination_instruction: "Validation du niveau",
+    safe_to_surface: true,
+    surfaced_in_weekly: true,
+    updated_at: "2026-07-03T02:13:15.811Z",
+  };
+
+  const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    user_id: "user-weekly-synthesis-already-surfaced",
+    stage: "weekly_synthesis",
+    conversation_context: context,
+  }));
+
+  // Deja surfacee -> pas de re-surface au stage synthesis, et repetition interdite.
+  assertEquals(
+    parsed.hard_constraints.adjust_recommendation_already_surfaced,
+    true,
+  );
+  assertEquals(
+    parsed.hard_constraints.can_surface_adjust_recommendation,
+    false,
+  );
+  assertEquals(
+    parsed.hard_constraints.repeat_adjust_recommendation_forbidden,
+    true,
+  );
+});
+
+Deno.test("weekly synthesis first surface still renders when not yet surfaced", () => {
+  const context = visibleContext() as any;
+  context.field_or_stage = "weekly_synthesis";
+  context.adjust_recommendation = {
+    status: "ready",
+    confidence: 0.96,
+    mode: "next_level_required",
+    what_to_adjust: ["reduire a une version tres courte"],
+    why: ["l'energie chute des jeudi"],
+    evidence: [
+      "avance ressentie mais energie qui s'effondre",
+      "mission preparee mais jamais envoyee",
+    ],
+    target_scope: "next_level_inputs",
+    destination_instruction: "Validation du niveau",
+    safe_to_surface: true,
+    surfaced_in_weekly: false,
+    updated_at: "2026-07-03T02:13:15.811Z",
+  };
+
+  const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    user_id: "user-weekly-synthesis-first-surface",
+    stage: "weekly_synthesis",
+    conversation_context: context,
+  }));
+
+  // Premiere surface au stage synthesis: doit rester surfacable.
+  assertEquals(
+    parsed.hard_constraints.adjust_recommendation_already_surfaced,
+    false,
+  );
+  assertEquals(
+    parsed.hard_constraints.can_surface_adjust_recommendation,
+    true,
+  );
+  assertEquals(
+    parsed.hard_constraints.repeat_adjust_recommendation_forbidden,
+    false,
+  );
+});
+
+Deno.test("weekly adjust recommendation user prompt flags already surfaced recommendation", () => {
+  const context = visibleContext() as any;
+  context.adjust_recommendation = {
+    status: "surfaced",
+    confidence: 0.97,
+    mode: "next_level_required",
+    what_to_adjust: ["prevoir une mini-version les soirs tardifs"],
+    why: ["la version normale devient trop lourde"],
+    evidence: [
+      "retours tardifs trop lourds",
+      "mini-version confirmee comme levier",
+    ],
+    target_scope: "next_level_inputs",
+    destination_instruction: "Validation du niveau",
+    safe_to_surface: true,
+    surfaced_in_weekly: true,
+    updated_at: "2026-06-25T10:25:12.261Z",
+  };
+
+  const parsed = JSON.parse(buildWeeklyReviewVisibleAgentUserPrompt({
+    user_id: "user-weekly-adjust-already-surfaced",
+    stage: "weekly_adjust_recommendation",
+    conversation_context: context,
+  }));
+
+  assertEquals(
+    parsed.hard_constraints.adjust_recommendation_already_surfaced,
+    true,
+  );
+  // Hors closure, la recommandation reste surfacable si le user la redemande explicitement.
+  assertEquals(
+    parsed.hard_constraints.can_surface_adjust_recommendation,
+    true,
+  );
+  assertEquals(
+    parsed.hard_constraints.repeat_adjust_recommendation_forbidden,
+    false,
+  );
 });
 
 Deno.test("weekly adjust recommendation below 0.95 is not safe to surface", () => {

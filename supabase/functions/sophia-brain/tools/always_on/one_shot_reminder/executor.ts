@@ -367,12 +367,27 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
   // est presque toujours une question de verification ou un double envoi.
   // On bloque au lieu de recreer; le contexte de confirmation permet au
   // renderer de rappeler le rappel existant.
+  // Invariant de re-entrance: la lane direct-effect peut s'executer plusieurs
+  // fois dans un meme tour (pipeline, reexec post-flow, executor local d'un
+  // skill). Une ligne portant le source_message_id du tour courant est notre
+  // propre ecriture, pas un duplicate: on la laisse retomber sur le chemin
+  // idempotent de createReminderFromEffect, qui re-renvoie le meme committed.
+  const turnSourceMessageId = String(
+    params.sourceMessageId ?? params.requestId ?? "",
+  ).trim();
   try {
     const pendingRows = await readPendingOneShotReminderRows({
       supabase: params.supabase,
       userId: params.userId,
     });
     const duplicate = pendingRows.some((row) => {
+      const rowSourceMessageId = String(
+        (row?.message_payload as Record<string, unknown> | null | undefined)
+          ?.source_message_id ?? "",
+      ).trim();
+      if (turnSourceMessageId && rowSourceMessageId === turnSourceMessageId) {
+        return false;
+      }
       const rowMs = new Date(String(row?.scheduled_for ?? "")).getTime();
       return Number.isFinite(rowMs) && rowMs === scheduledMs;
     });

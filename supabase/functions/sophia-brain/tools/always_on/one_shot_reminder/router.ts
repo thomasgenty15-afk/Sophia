@@ -287,6 +287,27 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       }],
     };
   }
+  // Ceinture structurelle cardinalite: la doctrine interdit d'emettre un
+  // one-shot pour une demande recurrente, mais quand le LLM desobeit le
+  // payload porte cardinality="recurring" et on bloque ici au lieu de creer
+  // un faux ponctuel (multiflow T13: recurrent committe silencieusement).
+  if (payloadText(createEffect, "cardinality") === "recurring") {
+    return {
+      ...baseDirectEffectResult({
+        detected: true,
+        intent: "create",
+        status: "blocked",
+        reason_code: "recurring_not_supported",
+        reply:
+          "Un rappel récurrent se règle dans les Initiatives — je n'ai rien créé en ponctuel.",
+      }),
+      requested_effects: [{ type: effectType, reason_code: "create" }],
+      blocked_effects: [{
+        type: effectType,
+        reason_code: "recurring_not_supported",
+      }],
+    };
+  }
   const missingPayloadSlots: OneShotReminderDirectEffectResult["missing_slots"] =
     [];
   if (!compiledPayload.scheduledFor || !compiledPayload.localLabel) {
@@ -436,6 +457,8 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       reply: outcome.status === "needs_clarify"
         ? (outcome.reason === "duplicate_pending"
           ? "Ce rappel est déjà programmé pour ce moment, je ne le recrée pas."
+          : outcome.reason === "past_time"
+          ? "Cette heure est déjà passée aujourd'hui, je n'ai rien programmé — tu veux un autre horaire, ou demain ?"
           : "Il me manque le moment exact pour programmer ce rappel.")
         : "Je n'ai pas réussi à programmer ce rappel.",
     }),
@@ -446,7 +469,8 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       : [],
     missing_slots:
       outcome.status === "needs_clarify" &&
-        outcome.reason !== "duplicate_pending"
+        outcome.reason !== "duplicate_pending" &&
+        outcome.reason !== "past_time"
         ? ["scheduled_for"]
         : [],
   };

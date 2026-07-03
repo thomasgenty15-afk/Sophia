@@ -322,6 +322,11 @@ export type WeeklyReviewLocalDispatcherOutput = {
   flow_action: WeeklyReviewLocalFlowAction;
   confidence: "low" | "medium" | "high";
   risk_score: number;
+  // true quand le message courant demande d'appliquer/valider/modifier le plan
+  // directement depuis le chat ("fais-le pour moi", "valide a ma place"). Ce
+  // n'est pas une demande "quoi ajuster": le visible doit refuser sobrement et
+  // renvoyer vers la plateforme, sans re-derouler la recommandation.
+  chat_plan_mutation_request: boolean;
   modified_fields: string[];
   clear_fields: string[];
   target_dispatcher: NoteInformationTargetDispatcher | "none";
@@ -1825,6 +1830,7 @@ export function normalizeWeeklyReviewLocalDispatcherOutput(
     flow_action: action,
     confidence: confidence(root.confidence),
     risk_score: normalizedRiskScore,
+    chat_plan_mutation_request: root.chat_plan_mutation_request === true,
     modified_fields: stringArray(root.modified_fields, 30),
     clear_fields: stringArray(root.clear_fields, 30),
     target_dispatcher: targetDispatcher,
@@ -2616,6 +2622,8 @@ function buildWeeklyConversationContext(args: {
       user_corrected_action_statuses: flow.user_corrected_action_statuses,
       dominant_blocker_confirmation:
         args.output.human_signal_updates.dominant_blocker_confirmation,
+      chat_plan_mutation_request:
+        args.output.chat_plan_mutation_request === true,
     },
     missing_or_weak_values: missing,
     weekly_strategy: {
@@ -3585,6 +3593,7 @@ function dispatcherSystemPrompt(): string {
     "- Si le user pose une question factuelle/status pendant le weekly, retourne exit_to_global_dispatcher target_dispatcher=global avec le contexte; ne fais pas de status inline.",
     "- Si plusieurs plans/actions sont dans le weekly, preserve toujours le contexte plan/action.",
     "- Si le scope plan/action est ambigu, clarifie au lieu de melanger les plans.",
+    "- chat_plan_mutation_request: mets true seulement quand le message courant demande d'appliquer, valider, activer ou modifier le changement de plan directement dans le chat ('fais-le pour moi', 'valide a ma place', 'applique-le directement', 'change-le maintenant'). C'est une demande d'action, pas une demande 'quoi ajuster': ne choisis pas weekly_adjust_recommendation pour re-derouler la recommandation; garde le stage courant utile et laisse le visible refuser sobrement et renvoyer vers la plateforme. Distingue-la d'une vraie question 'quoi devrais-je ajuster / quoi renseigner', ou chat_plan_mutation_request reste false.",
     "- Si le user corrige une progression oubliee, ne l'assimile pas a un ajustement Plan.",
     "- Si le user mentionne une progression passee, par exemple une action faite jeudi, stocke-la comme correction weekly a clarifier/valider; ne dis pas que c'est corrige sans commit dedie.",
     "- Si le user change de sujet sans dispatcher local cible clair, retourne exit_to_global_dispatcher target_dispatcher=global.",
@@ -3626,7 +3635,7 @@ function dispatcherSystemPrompt(): string {
     "Exemple JSON 2 - sortie globale sparse:",
     '{"flow_action":"exit_to_global_dispatcher","confidence":"high","target_dispatcher":"global","weekly_intent":{"kind":"explicit_tool_request","summary":"Le user demande une carte au lieu de continuer le weekly."},"state_updates":{"status":"exit_to_global","weekly_stage":"solution_fit","close_after_visible":true},"exit_memo":{"needed":true,"reason":"explicit_tool_request","user_intent_summary":"demande de carte hors weekly","handoff_hint_for_global_dispatcher":{"likely_intent":"normal_coaching","why":"demande hors weekly; global reprend"}},"note_information":{"source_flow_id":"weekly_adaptive_review_v1","handoff_reason":"explicit_user_request","target_dispatcher":"global","handoff_context_for_next_dispatcher":"Le user quitte le point weekly pour une demande hors perimetre. Global reprend avec le contexte weekly.","structured_context":{"user_message_summary":"demande de carte hors weekly","active_flow_summary":"weekly parent exits to global","recommended_next_focus":"global"},"confidence":"high"},"evidence":["demande explicite hors weekly"]}',
     "",
-    "Schema sparse autorise: flow_action, confidence, target_dispatcher si sortie globale, weekly_intent, human_signal_updates, handoff_updates, adjust_recommendation, forgotten_progress, direct_effect_request, action_status_updates, weekly_gates, detour_candidate, state_updates, visible_task, exit_memo, note_information, risk_score si non nul/safety, evidence. Omet tout champ inutile/default. Pour exit_to_global_dispatcher, note_information est obligatoire. Pour continuation weekly, note_information et exit_memo doivent etre omis.",
+    "Schema sparse autorise: flow_action, confidence, chat_plan_mutation_request si true, target_dispatcher si sortie globale, weekly_intent, human_signal_updates, handoff_updates, adjust_recommendation, forgotten_progress, direct_effect_request, action_status_updates, weekly_gates, detour_candidate, state_updates, visible_task, exit_memo, note_information, risk_score si non nul/safety, evidence. Omet tout champ inutile/default. Pour exit_to_global_dispatcher, note_information est obligatoire. Pour continuation weekly, note_information et exit_memo doivent etre omis.",
   ].join("\n");
 }
 

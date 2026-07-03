@@ -83,7 +83,7 @@ function frameWithStructuredCreate(payload: Record<string, unknown> = {}) {
       payload_hint: {
         raw_text: "rappelle-moi demain à 9h. Texte exact : relire X",
         when_hint: "demain à 9h",
-        scheduled_for: "2026-05-30T07:00:00.000Z",
+        UTC_time: "2026-05-30T07:00:00.000Z",
         local_label: "09:00",
         instruction_hint: "relire X",
         ...payload,
@@ -1081,7 +1081,11 @@ Deno.test("G2: le texte exact donné en T6 est récupérable et non dégénéré
 function makeFakeSupabaseForCreate(opts: {
   profile?: { timezone?: string; locale?: string } | null;
   onUpsert?: (row: any) => void;
-  pendingRows?: Array<{ id: string; scheduled_for: string }>;
+  pendingRows?: Array<{
+    id: string;
+    scheduled_for: string;
+    message_payload?: Record<string, unknown>;
+  }>;
 }) {
   return {
     from(table: string) {
@@ -1101,6 +1105,7 @@ function makeFakeSupabaseForCreate(opts: {
       }
       if (table === "scheduled_checkins") {
         const state: { row: any } = { row: null };
+        const filters: Array<{ col: string; val: unknown }> = [];
         const chain: any = {
           upsert(row: any) {
             state.row = row;
@@ -1110,7 +1115,8 @@ function makeFakeSupabaseForCreate(opts: {
           select() {
             return chain;
           },
-          eq() {
+          eq(col: string, val: unknown) {
+            filters.push({ col, val });
             return chain;
           },
           like() {
@@ -1120,10 +1126,26 @@ function makeFakeSupabaseForCreate(opts: {
             return chain;
           },
           limit() {
+            return chain;
+          },
+          // Awaité directement par readPendingOneShotReminderRows.
+          then(resolve: any, reject: any) {
             return Promise.resolve({
               data: opts.pendingRows ?? [],
               error: null,
-            });
+            }).then(resolve, reject);
+          },
+          // Chemin idempotent de createReminderFromEffect: lookup par
+          // message_payload->>source_message_id.
+          maybeSingle() {
+            const sourceFilter = filters.find((f) =>
+              f.col === "message_payload->>source_message_id"
+            );
+            const match = (opts.pendingRows ?? []).find((row) =>
+              String(row.message_payload?.source_message_id ?? "") ===
+                String(sourceFilter?.val ?? " ")
+            );
+            return Promise.resolve({ data: match ?? null, error: null });
           },
           single() {
             return Promise.resolve({
@@ -1630,7 +1652,7 @@ Deno.test("router: create blocks duplicate_pending when an identical pending rem
     turnFrame: frameWithStructuredCreate(),
   });
   assertEquals(duplicate.status, "needs_clarify");
-  assertEquals(duplicate.reason_code, "duplicate_pending");
+  assertEquals((duplicate as any).debug?.reason_code, "duplicate_pending");
   assertEquals(duplicate.committed_effects, []);
   assertEquals(
     duplicate.blocked_effects.map((effect: any) => effect.reason_code),
@@ -1662,4 +1684,127 @@ Deno.test("router: create blocks duplicate_pending when an identical pending rem
     distinct.committed_effects.map((effect: any) => effect.type),
     ["create_one_shot_reminder"],
   );
+});
+
+Deno.test("router: same-turn re-execution converges to committed, never self-duplicate", async () => {
+  // La lane direct-effect peut s'executer plusieurs fois dans un meme tour
+  // (pipeline, reexec post-flow, executor local d'un skill). La ligne pending
+  // ecrite par la passe 1 porte le source_message_id du tour: la passe 2 ne
+  // doit pas la traiter comme un duplicate mais retomber sur le chemin
+  // idempotent et re-renvoyer le meme committed (Alex r3 T5 / Nina r1 T7).
+  const upserts: any[] = [];
+  const reexec = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [{
+        id: "own-write-1",
+        scheduled_for: "2026-05-30T07:00:00.000Z",
+        message_payload: { source_message_id: "msg-turn-1" },
+      }],
+    }) as any,
+    userId: "u1",
+    message: "rappelle-moi demain à 9h. Texte exact : relire X",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    sourceMessageId: "msg-turn-1",
+    turnFrame: frameWithStructuredCreate(),
+  });
+  assertEquals(reexec.status, "success");
+  assertEquals(
+    reexec.committed_effects.map((effect: any) => effect.type),
+    ["create_one_shot_reminder"],
+  );
+  assertEquals(reexec.blocked_effects, []);
+  // Aucune 2e ecriture: le commit existant du tour est reutilise tel quel.
+  assertEquals(upserts.length, 0);
+
+  // Anti-faux-positif: meme instant mais ecrit par un AUTRE message -> le
+  // garde duplicate_pending continue de bloquer.
+  const foreign = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [{
+        id: "other-write-1",
+        scheduled_for: "2026-05-30T07:00:00.000Z",
+        message_payload: { source_message_id: "msg-earlier-turn" },
+      }],
+    }) as any,
+    userId: "u1",
+    message: "tu me relances bien demain à 9h ?",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    sourceMessageId: "msg-turn-2",
+    turnFrame: frameWithStructuredCreate(),
+  });
+  assertEquals(foreign.status, "needs_clarify");
+  assertEquals(
+    foreign.blocked_effects.map((effect: any) => effect.reason_code),
+    ["duplicate_pending"],
+  );
+  assertEquals(upserts.length, 0);
+});
+
+Deno.test("router: create blocked past_time yields an explicit no-creation reply", async () => {
+  const pastTime = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    }) as any,
+    userId: "u1",
+    message: "fais moi un rappel ce soir à 19h stp",
+    now: new Date("2026-05-29T21:45:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      UTC_time: "2026-05-29T17:00:00.000Z",
+      when_hint: "ce soir à 19h",
+      local_label: "19:00",
+    }),
+  });
+  assertEquals(pastTime.status, "needs_clarify");
+  assertEquals((pastTime as any).debug?.reason_code, "past_time");
+  assertEquals(pastTime.committed_effects, []);
+  assertEquals(pastTime.missing_slots, []);
+  assertEquals(
+    pastTime.reply?.includes("déjà passée"),
+    true,
+  );
+  assertEquals(
+    pastTime.reply?.includes("je n'ai rien programmé"),
+    true,
+  );
+});
+
+Deno.test("router: cardinality=recurring blocks the one-shot instead of committing a flattened reminder", async () => {
+  const upserts: any[] = [];
+  const recurring = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+    }) as any,
+    userId: "u1",
+    message: "colle-moi un rappel tous les soirs à 21h stp",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      cardinality: "recurring",
+      when_hint: "tous les soirs à 21h",
+    }),
+  });
+  assertEquals(recurring.status, "blocked");
+  assertEquals(
+    recurring.blocked_effects.map((effect: any) => effect.reason_code),
+    ["recurring_not_supported"],
+  );
+  assertEquals(recurring.committed_effects, []);
+  assertEquals(upserts.length, 0);
+  assertEquals(recurring.reply?.includes("Initiatives"), true);
+
+  // Anti-regression: cardinality=once (ou absente) laisse la creation normale.
+  const once = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    }) as any,
+    userId: "u1",
+    message: "rappelle-moi demain à 9h. Texte exact : relire X",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({ cardinality: "once" }),
+  });
+  assertEquals(once.status, "success");
 });

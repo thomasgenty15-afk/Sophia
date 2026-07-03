@@ -18,7 +18,12 @@ export type TrackProgressWrite = (input: {
   source_message_id: string;
   date_hint?: string | null;
   idempotency_key: string;
-}) => Promise<{ logged_progress_id: string }>;
+}) => Promise<{
+  logged_progress_id: string;
+  // Entry identique (item, jour, outcome) deja en DB, ecrite par un autre
+  // message: rien de re-ecrit, l'id renvoye est celui de l'entry existante.
+  already_logged?: boolean;
+}>;
 
 export type TrackProgressCommittedEffect = {
   type: "track_progress_plan_item";

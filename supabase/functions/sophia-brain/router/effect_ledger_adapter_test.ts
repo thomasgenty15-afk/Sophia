@@ -110,3 +110,75 @@ Deno.test("effect_ledger_adapter records retained recommendation as request", ()
   assertEquals(ledger.entries[0].status, "requested");
   assertEquals(ledger.entries[0].effect_type, "one_shot_reminder.create");
 });
+
+Deno.test("blocked track_progress result without reply still reaches the ledger", async () => {
+  const { operationRuntimeFromTrackProgress } = await import(
+    "./operation_runtime_pipeline.ts"
+  );
+  const { createEffectLedger, summarizeEffectLedgerForTrace } = await import(
+    "./effect_ledger.ts"
+  );
+  const { recordToolSkillEffectsInLedger } = await import(
+    "./effect_ledger_adapter.ts"
+  );
+
+  // Resultat de lane bloque (gate/idempotence) SANS texte de fallback —
+  // avant le fix, operationRuntimeFromTrackProgress retournait null et le
+  // blocage disparaissait de la trace.
+  const runtime = operationRuntimeFromTrackProgress({
+    tempMemory: {},
+    result: {
+      detected: true,
+      intent: "log_completed",
+      status: "blocked",
+      reply: null,
+      executed_tools: [],
+      requested_effects: [{
+        type: "track_progress_plan_item",
+        target_item_id: "item-1",
+        target_title: "Faire un sas",
+        progress_status: "completed",
+        value: 1,
+        date_hint: null,
+        source_message_id: "msg-1",
+      }],
+      allowed_effects: [],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "duplicate_recent_write",
+      }],
+      debug: {
+        reason_code: "duplicate_recent_write",
+        gate_reason: "recent_writes_idempotency",
+      },
+    } as any,
+    sourceMessageId: "msg-1",
+  });
+
+  // Le resultat n'est plus jete...
+  assertEquals(runtime !== null, true);
+  // ...mais ne court-circuite jamais la composition (content vide).
+  assertEquals(runtime?.content, "");
+
+  // Et le ledger enregistre requested + blocked avec la raison.
+  const ledger = createEffectLedger("turn-1");
+  recordToolSkillEffectsInLedger({
+    ledger,
+    toolSkillRun: runtime?.toolSkillRun,
+    toolExecution: runtime?.toolExecution ?? "none",
+  });
+  const summary = summarizeEffectLedgerForTrace(ledger) as {
+    counts: Record<string, number>;
+    entries: Array<Record<string, unknown>>;
+  };
+  assertEquals(summary.counts.requested >= 1, true);
+  assertEquals(summary.counts.blocked >= 1, true);
+  assertEquals(
+    summary.entries.some((entry) =>
+      entry.status === "blocked" &&
+      String(entry.reason_code ?? "").includes("duplicate_recent_write")
+    ),
+    true,
+  );
+});

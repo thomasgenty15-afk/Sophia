@@ -29,6 +29,24 @@ export function renderTrackProgressClarification(reasonCode: string): string {
   return "Je prefere confirmer avant de l'ecrire.";
 }
 
+const trackProgressOutcomeLabels: Record<string, string> = {
+  completed: "fait",
+  partial: "partiel",
+  missed: "rate",
+};
+
+export function renderTrackProgressContradictionClarification(input: {
+  target_title: string;
+  existing_outcome: string;
+  requested_status: string;
+}): string {
+  const existing = trackProgressOutcomeLabels[input.existing_outcome] ??
+    input.existing_outcome;
+  const requested = trackProgressOutcomeLabels[input.requested_status] ??
+    input.requested_status;
+  return `Aujourd'hui, ${input.target_title} est deja note comme ${existing}. Tu veux que je corrige en ${requested} ?`;
+}
+
 export function enforceTrackProgressReplyInvariant(
   result: TrackProgressDirectEffectResult,
 ): TrackProgressDirectEffectResult {

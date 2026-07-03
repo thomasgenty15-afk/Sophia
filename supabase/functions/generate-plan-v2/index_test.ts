@@ -3,9 +3,13 @@ import { assertEquals, assertThrows } from "jsr:@std/assert@1";
 import {
   calculateAgeFromBirthDate,
   computeNextGenerationAttempt,
+  shouldRefreshPlanTypeClassification,
   validateGeneratedPlanAgainstContext,
 } from "./index.ts";
-import type { PlanContentV3 } from "../_shared/v2-types.ts";
+import type {
+  PlanContentV3,
+  PlanTypeClassificationV1,
+} from "../_shared/v2-types.ts";
 
 function makePlanFixture(): PlanContentV3 {
   return {
@@ -1179,4 +1183,71 @@ Deno.test("validateGeneratedPlanAgainstContext accepts a multi-week level with o
 
   assertEquals(validated.phases[0].items.length, 6);
   assertEquals(validated.current_level_runtime?.weeks[2]?.item_assignments?.[0]?.temp_id, "gen-p1-habits-003");
+});
+
+function makeClassificationFixture(
+  overrides: Partial<PlanTypeClassificationV1> = {},
+): PlanTypeClassificationV1 {
+  return {
+    type_key: "weight_loss",
+    confidence: 0.9,
+    duration_guidance: { min_months: 1, default_months: 2, max_months: 3 },
+    journey_strategy: {
+      mode: "single_transformation",
+      rationale: "Un seul axe dominant.",
+      total_estimated_duration_months: 2,
+      transformation_1_title: "Perdre les premiers kilos",
+      transformation_1_goal: "Atteindre 95 kg.",
+      transformation_2_title: null,
+      transformation_2_goal: null,
+    },
+    ...overrides,
+  } as PlanTypeClassificationV1;
+}
+
+// Guardrail gate: plan generation must (re-)run the classification exactly
+// when it is missing, or when a split journey lacks its per-tranche guidance.
+Deno.test("shouldRefreshPlanTypeClassification requires a classification when absent", () => {
+  assertEquals(shouldRefreshPlanTypeClassification(null), true);
+});
+
+Deno.test("shouldRefreshPlanTypeClassification accepts a complete single_transformation classification", () => {
+  assertEquals(
+    shouldRefreshPlanTypeClassification(makeClassificationFixture()),
+    false,
+  );
+});
+
+Deno.test("shouldRefreshPlanTypeClassification re-runs a split journey missing tranche guidance", () => {
+  const incompleteSplit = makeClassificationFixture({
+    journey_strategy: {
+      mode: "two_transformations",
+      rationale: "Objectif trop large pour une seule transformation.",
+      total_estimated_duration_months: 6,
+      transformation_1_title: "Premiere tranche",
+      transformation_1_goal: "Atteindre 95 kg.",
+      transformation_2_title: "Deuxieme tranche",
+      transformation_2_goal: "Atteindre 80 kg.",
+    },
+    split_metric_guidance: null,
+  });
+  assertEquals(shouldRefreshPlanTypeClassification(incompleteSplit), true);
+
+  const completeSplit = makeClassificationFixture({
+    journey_strategy: incompleteSplit.journey_strategy,
+    split_metric_guidance: {
+      metric_label: "Body weight",
+      transformation_1: {
+        baseline_text: "105 kg",
+        target_text: "95 kg",
+        success_definition: "Atteindre 95 kg.",
+      },
+      transformation_2: {
+        baseline_text: "95 kg",
+        target_text: "80 kg",
+        success_definition: "Atteindre 80 kg.",
+      },
+    },
+  });
+  assertEquals(shouldRefreshPlanTypeClassification(completeSplit), false);
 });

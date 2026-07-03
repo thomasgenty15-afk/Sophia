@@ -611,6 +611,82 @@ export async function generateCycleDraftQuestionnaireGuest(params: {
   });
 }
 
+export type GuestClassifyResponse = {
+  classification: PlanTypeClassificationV1;
+};
+
+export async function classifyPlanTypeGuest(params: {
+  anonymousSessionId: string;
+  transformation: TransformationPreviewV2;
+  questionnaireSchema: QuestionnaireSchemaV2;
+  questionnaireAnswers: Record<string, unknown>;
+}): Promise<GuestClassifyResponse> {
+  return callCycleDraftJson<GuestClassifyResponse>({
+    path: "/classify",
+    body: {
+      anonymous_session_id: params.anonymousSessionId,
+      transformation: {
+        id: params.transformation.id,
+        title: params.transformation.title,
+        internal_summary: params.transformation.internal_summary,
+        user_summary: params.transformation.user_summary,
+      },
+      questionnaire_schema: params.questionnaireSchema,
+      questionnaire_answers: params.questionnaireAnswers,
+    },
+  });
+}
+
+/**
+ * Fire-and-forget guest classification launched at questionnaire submit,
+ * running in parallel with the signup flow. Lives at lib level (not inside a
+ * component) so the continuation survives the SPA navigation to /auth.
+ *
+ * On resolution the classification is patched into the locally stored draft
+ * and synced to the server draft row immediately, so the post-signup hydrate
+ * can copy it into the real transformation's handoff_payload. If hydration
+ * already happened (cycle_id present / draft cleared / transformation gone),
+ * the result is deliberately discarded: guest draft ids no longer match the
+ * DB rows, and the profile-stage guardrail re-runs classification instead.
+ */
+export function launchGuestPlanTypeClassification(params: {
+  anonymousSessionId: string;
+  transformation: TransformationPreviewV2;
+  questionnaireSchema: QuestionnaireSchemaV2;
+  questionnaireAnswers: Record<string, unknown>;
+}): void {
+  void classifyPlanTypeGuest(params)
+    .then((response) => {
+      if (!response?.classification) return;
+
+      const draft = loadOnboardingV2Draft();
+      if (!draft) return;
+      if (draft.cycle_id) return;
+      if (draft.anonymous_session_id !== params.anonymousSessionId) return;
+
+      const hasTransformation = draft.transformations.some(
+        (item) => item.id === params.transformation.id,
+      );
+      if (!hasTransformation) return;
+
+      const persisted = persistOnboardingV2DraftLocally({
+        ...draft,
+        transformations: draft.transformations.map((item) =>
+          item.id === params.transformation.id
+            ? { ...item, plan_type_classification: response.classification }
+            : item
+        ),
+        updated_at: new Date().toISOString(),
+      });
+      // Immediate sync (no debounce): the user may complete signup at any
+      // moment, and hydrate reads the server draft row.
+      void syncDraftToServer(persisted);
+    })
+    .catch((error) => {
+      console.warn("[onboarding][guest-classify][failed]", error);
+    });
+}
+
 export function saveOnboardingV2Draft(
   draft: OnboardingV2Draft,
   options?: { sync?: boolean },

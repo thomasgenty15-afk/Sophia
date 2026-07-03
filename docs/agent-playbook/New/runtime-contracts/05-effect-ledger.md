@@ -56,10 +56,15 @@ Utilisation actuelle dans le code :
   `committed_effects` et, quand présent, `failed_effects`.
 - `router/effect_ledger_adapter.ts` traduit ces tableaux en entries ledger
   génériques. Il ne doit pas décider la sémantique métier d'un effet.
-- `router/final_response_pipeline.ts` appelle
-  `rewriteUncommittedEffectClaims` avant le style/emoji final. Si une réponse
-  affirme un effet non commité, le pipeline enregistre un `blocked`
-  `final_reply.claim`.
+- La discipline de claim est portée par les contrats de prompt et le contexte
+  structurel, pas par une passe de réécriture : le composeur final (companion
+  ou visible agent) reçoit `direct_effect_confirmation_context`
+  (`one_shot_reminder.committed`, `blocked_one_shot_reminder.reason_code`) et
+  le bloc canonique one_shot_reminder qui interdit toute confirmation sans
+  commit prouvé et impose d'annoncer les blocages (`past_time`,
+  `duplicate_pending`). (Note 2026-07-02 : l'ancien garde
+  `rewriteUncommittedEffectClaims` / `router/final_response_pipeline.ts`
+  décrit ici n'existe pas dans le code V2 — doc corrigée.)
 - `router/effect_ledger_persistence.ts` sérialise la timeline dans
   `turn_summary_logs` via `log_turn_summary_log`, en non-bloquant.
 - `router/effect_ledger_reader.ts` recharge l'historique récent depuis
@@ -87,8 +92,9 @@ platform handoff skill router
   -> record platform_handoff in ledger
 
 normal reply / operation reply
-  -> final_response_pipeline
-  -> rewriteUncommittedEffectClaims
+  -> composeur final + direct_effect_confirmation_context
+     (committed / blocked_one_shot_reminder.reason_code)
+  -> contrats de prompt anti-claim (bloc canonique one_shot_reminder)
   -> trace + optional persisted EffectLedger timeline
 ```
 
@@ -98,9 +104,8 @@ normal reply / operation reply
   `EffectLedgerStatus`, `EffectLedgerEntry`, `EffectLedger`, les fonctions
   `recordRequestedEffect`, `recordAllowedEffect`, `recordBlockedEffect`,
   `recordCommittedEffect`, `recordFailedEffect`, `hasCommittedEffect`,
-  `summarizeEffectLedgerForTrace`,
-  `serializeEffectLedgerForPersistence` et
-  `rewriteUncommittedEffectClaims`.
+  `summarizeEffectLedgerForTrace` et
+  `serializeEffectLedgerForPersistence`.
 - `router/effect_ledger_adapter.ts` possède le mapping runtime générique :
   `effectTypeFromToolType`, `executedToolsForStatus`,
   `recordToolSkillEffectsInLedger`, `recordToolSkillEffectsInLedger`,

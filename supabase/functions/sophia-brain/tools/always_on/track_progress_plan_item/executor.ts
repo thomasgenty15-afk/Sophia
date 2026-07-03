@@ -10,6 +10,12 @@ export type TrackProgressExecutionResult =
     committed_effect: TrackProgressCommittedEffect;
   }
   | {
+    // Entry identique deja en DB pour (item, jour, outcome), ecrite par un
+    // autre message: aucun nouveau write, on expose l'existant au renderer.
+    status: "already_logged";
+    existing_progress_id: string;
+  }
+  | {
     status: "failed";
     reason_code: "write_failed" | "missing_logged_progress_id";
   };
@@ -34,6 +40,12 @@ export async function executeTrackProgressWrite(args: {
     const loggedProgressId = String(written.logged_progress_id ?? "").trim();
     if (!loggedProgressId) {
       return { status: "failed", reason_code: "missing_logged_progress_id" };
+    }
+    if (written.already_logged) {
+      return {
+        status: "already_logged",
+        existing_progress_id: loggedProgressId,
+      };
     }
     return {
       status: "committed",

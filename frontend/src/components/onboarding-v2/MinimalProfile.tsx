@@ -14,6 +14,11 @@ type MinimalProfileProps = {
   submittingLabel?: string;
   currentTransformationTitle?: string | null;
   planTypeClassification?: PlanTypeClassificationV1 | null;
+  // True while the plan-type classification is still being computed for this
+  // transformation: the journey summary shows a loading placeholder and the
+  // submit button stays disabled so the user never generates a plan without
+  // having seen a potential 2-transformation split.
+  classificationPending?: boolean;
   questionnaireSchema?: QuestionnaireSchemaV2 | null;
   questionnaireAnswers?: Record<string, unknown> | null;
   hasStoredBirthDate?: boolean;
@@ -56,6 +61,7 @@ export function MinimalProfile({
   submittingLabel = "Génération du plan…",
   currentTransformationTitle,
   planTypeClassification = null,
+  classificationPending = false,
   questionnaireSchema = null,
   questionnaireAnswers = null,
   hasStoredBirthDate = false,
@@ -67,6 +73,7 @@ export function MinimalProfile({
   const canSubmit = Boolean(shouldAskBirthDate ? value.birthDate : hasStoredBirthDate) &&
     Boolean(shouldAskGender ? value.gender : hasStoredGender) &&
     Boolean(value.pace) &&
+    !classificationPending &&
     !isSubmitting;
   const journeyStrategy = planTypeClassification?.journey_strategy ?? null;
   const splitMetricGuidance = planTypeClassification?.split_metric_guidance ?? null;
@@ -126,6 +133,21 @@ export function MinimalProfile({
             </div>
           </div>
         )}
+
+        {classificationPending && !planTypeClassification ? (
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
+            <Loader2 className="h-5 w-5 shrink-0 animate-spin text-blue-600" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                Sophia finalise l’analyse de ton parcours…
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                Encore quelques secondes : on vérifie si ton objectif tient dans une
+                seule transformation ou s’il vaut mieux le découper en deux.
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         {showsTwoTransformationSplit ? (
           <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
@@ -359,6 +381,12 @@ export function MinimalProfile({
             "Générer mon plan"
           )}
         </button>
+        {classificationPending && !isSubmitting ? (
+          <p className="mt-3 text-center text-sm leading-relaxed text-gray-500">
+            Le bouton s’activera automatiquement dès que l’analyse de ton parcours
+            sera terminée.
+          </p>
+        ) : null}
       </div>
     </section>
   );

@@ -103,6 +103,55 @@ Deno.test("batch selector keeps all substantive user messages by default", async
   assertEquals(batch.context_messages.length, 0);
 });
 
+Deno.test("batch selector never pre-filters an explicit memorize request (rose-r2 T13)", async () => {
+  // "retiens que <fait court>" doit atteindre le LLM d'extraction meme sous
+  // 15 mots et sans autre signal: un fait explicitement confie ne se perd
+  // jamais dans le filtre de cout.
+  const batch = await selectMemorizerBatch({
+    messages: [
+      {
+        id: "memorize-short",
+        user_id: "u",
+        role: "user",
+        content: "Retiens que je flanche les dimanches apres-midi.",
+      },
+      {
+        id: "memorize-paraphrase",
+        user_id: "u",
+        role: "user",
+        content: "Garde ca en tete: je craque quand je suis seule.",
+      },
+      // Anti-faux-positif: bavardage court sans intention memoire -> filtre.
+      {
+        id: "chatter",
+        user_id: "u",
+        role: "user",
+        content: "haha oui c'est clair, trop bien.",
+      },
+    ],
+  });
+  assertEquals(batch.primary_messages.map((message) => message.id), [
+    "memorize-short",
+    "memorize-paraphrase",
+  ]);
+  assertEquals(batch.skipped_noise_messages.map((message) => message.id), [
+    "chatter",
+  ]);
+  // Le miroir negatif reste intact: une demande d'oubli courte passe aussi
+  // (signal forget), elle n'est pas convertie en memorisation.
+  const forgetBatch = await selectMemorizerBatch({
+    messages: [{
+      id: "forget-short",
+      user_id: "u",
+      role: "user",
+      content: "Ne retiens pas ce que je viens de dire.",
+    }],
+  });
+  assertEquals(forgetBatch.primary_messages.map((message) => message.id), [
+    "forget-short",
+  ]);
+});
+
 Deno.test("batch selector keeps short durable preference, goal and deadline statements", async () => {
   const batch = await selectMemorizerBatch({
     messages: [

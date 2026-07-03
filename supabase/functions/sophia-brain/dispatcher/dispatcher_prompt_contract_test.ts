@@ -402,6 +402,36 @@ Deno.test("dispatcher prompt teaches canonical track_progress payload contract",
   );
 });
 
+Deno.test("dispatcher prompt separates regret from report and teaches explicit correction", () => {
+  // 3g: un enonce affectif/contrefactuel (regret, frustration, souhait
+  // retrospectif) n'est jamais un report de progres (BF-INTAKE-04 R2-B01).
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Un enonce affectif ou contrefactuel sur une action n'est jamais un report de progres",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "revenir emotionnellement sur une action dont le resultat a deja ete rapporte dans la conversation ne produit aucun nouveau direct effect",
+    ),
+    true,
+  );
+  // 3h: la correction explicite d'un report deja fait passe par
+  // payload_hint.correction=true (seule voie qui traverse le guard
+  // contradicts_same_day_evidence).
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("payload_hint.correction=true"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "ne re-emets pas un statut oppose sur une action deja rapportee",
+    ),
+    true,
+  );
+});
+
 Deno.test("dispatcher prompt track_progress examples use canonical status enum and item id", () => {
   const parsed = JSON.parse(buildDispatcherPrompt({
     user_message: "test",
@@ -470,6 +500,127 @@ Deno.test("dispatcher prompt routes recurring reminder requests to initiatives",
   assertEquals(recurring?.expected.direct_effects?.length ?? -1, 0);
   assertEquals(
     recurring?.expected.skill_signals?.feature_opportunity?.detected,
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt treats reminder verification questions as non-creation", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Une question de verification sur un rappel deja programme",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'est pas une demande de creation: n'emets pas create_one_shot_reminder",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt treats track verification questions and vague targets as non-writes", () => {
+  // Paul r1 T15 (question de statut re-committee) + T8 (anaphore committee
+  // sans confirmation): la doctrine doit interdire l'emission sur une
+  // question, et degrader la confiance sur une cible devinee.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Une question de verification ou de statut",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'est jamais un nouveau report: n'emets aucun track_progress_plan_item",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Un statut se lit dans le contexte, il ne se re-ecrit pas",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "sans referent clair dans le message ou le tour immediatement precedent",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "target_status=inferred et confidence_band=medium au plus",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Une cible devinee n'est jamais identified/high",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt keeps initiatives away from active plan items and launch blockers", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Si un item actif du plan couvre deja le sujet",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "laisse la reponse faire progresser l'item existant du plan",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Un blocage de demarrage sur une action active du plan",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "prime sur initiatives meme si le contexte est recurrent: priorise skill_signals.coaching_recommendation",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt carries night-time anchoring and cardinality contract", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Regle nocturne"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "'demain' designe strictement le jour civil suivant (J+1), jamais la date du jour",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.cardinality est obligatoire et vaut 'once'",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt keeps presence-first altitude on emotional lows (eva-r1 T1)", () => {
+  // Charge emotionnelle basse sans demande de levier => reponse normale
+  // d'accueil, pas de signal coaching par reflexe (generalisation de la
+  // regle presence-first du craving aigu).
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Meme regle d'altitude pour un tour a charge emotionnelle basse",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "la reponse normale accueille et valide d'abord",
+    ),
     true,
   );
 });

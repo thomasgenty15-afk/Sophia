@@ -14,6 +14,25 @@ export type DirectEffectConfirmationContext = {
     local_label: string | null;
     reminder_instruction: string | null;
   } | null;
+  /** Raison structurelle si la creation a ete bloquee ce tour (past_time, duplicate_pending...). */
+  blocked_one_shot_reminder: {
+    reason_code: string;
+  } | null;
+  /** Commit track_progress du tour: sans ce canal, le composeur nie un effet reel. */
+  track_progress: {
+    committed: boolean;
+    target_title: string | null;
+    progress_status: string | null;
+  } | null;
+  /**
+   * Track bloque ce tour avec raison structurelle (already_tracked_today...):
+   * le composeur confirme l'etat existant au lieu de re-committer ou de nier.
+   */
+  blocked_track_progress: {
+    reason_code: string;
+    target_title: string | null;
+    progress_status: string | null;
+  } | null;
   /** @deprecated Visible agents must use one_shot_reminder instead. */
   confirmation_text: string | null;
   /** @deprecated Kept empty for compatibility; do not expose raw effect rows. */
@@ -213,7 +232,11 @@ function directEffectLaneRecord(turnFrame: unknown): Record<string, unknown> {
 
 function effectsArray(
   lane: Record<string, unknown>,
-  key: "committed_effects" | "requested_effects" | "blocked_effects",
+  key:
+    | "committed_effects"
+    | "requested_effects"
+    | "allowed_effects"
+    | "blocked_effects",
 ): unknown[] {
   return Array.isArray(lane[key]) ? lane[key] as unknown[] : [];
 }
@@ -265,15 +288,60 @@ export function buildDirectEffectConfirmationContext(
   );
   if (
     !hasRequestedOneShot && !hasCommittedOneShot && requested.length === 0 &&
-    blocked.length === 0
+    blocked.length === 0 && committed.length === 0
   ) {
     return null;
   }
+  // La raison du blocage doit atteindre le composeur: sans elle, il sait
+  // seulement qu'aucun commit n'existe et produit un refus ambigu ("je ne
+  // peux pas le programmer ici") au lieu d'expliquer le blocage reel
+  // (heure passee, doublon) et de proposer la suite.
+  const blockedOneShot = blocked.find((candidate) =>
+    isRecord(candidate) &&
+    String(candidate.type ?? "") === "create_one_shot_reminder"
+  );
+  const committedTrack = committed.find((candidate) =>
+    isRecord(candidate) &&
+    String(candidate.type ?? "") === "track_progress_plan_item"
+  );
+  const blockedTrack = blocked.find((candidate) =>
+    isRecord(candidate) &&
+    String(candidate.type ?? "") === "track_progress_plan_item"
+  );
+  // Le blocked_effect ne porte que la raison; la cible vient de l'effet
+  // admis (allowed) du meme tour, qui porte target_title/progress_status.
+  const allowedTrack = effectsArray(lane, "allowed_effects").find((
+    candidate,
+  ) =>
+    isRecord(candidate) &&
+    String(candidate.type ?? "") === "track_progress_plan_item"
+  );
   return {
     has_committed_one_shot_reminder: hasCommittedOneShot,
     has_requested_one_shot_reminder: hasRequestedOneShot,
     one_shot_reminder: hasCommittedOneShot
       ? oneShotReminderVisibleFact(committed)
+      : null,
+    blocked_one_shot_reminder: isRecord(blockedOneShot)
+      ? { reason_code: stringValue(blockedOneShot.reason_code) || "blocked" }
+      : null,
+    track_progress: isRecord(committedTrack)
+      ? {
+        committed: true,
+        target_title: stringValue(committedTrack.target_title) || null,
+        progress_status: stringValue(committedTrack.progress_status) || null,
+      }
+      : null,
+    blocked_track_progress: isRecord(blockedTrack) && !isRecord(committedTrack)
+      ? {
+        reason_code: stringValue(blockedTrack.reason_code) || "blocked",
+        target_title: isRecord(allowedTrack)
+          ? stringValue(allowedTrack.target_title) || null
+          : null,
+        progress_status: isRecord(allowedTrack)
+          ? stringValue(allowedTrack.progress_status) || null
+          : null,
+      }
       : null,
     confirmation_text: null,
     committed_effects: [],
@@ -341,7 +409,7 @@ export function directEffectConfirmationContextPrompt(
   return [
     "DIRECT_EFFECT_CONFIRMATION_CONTEXT:",
     JSON.stringify(context),
-    "Rules: if one_shot_reminder.committed=true, confirm the reminder naturally once; use one_shot_reminder.local_label for the time and one_shot_reminder.reminder_instruction for the reminder object; do not repeat reminder_instruction or an equivalent object twice; do not reformulate the reminder object before and after the time marker; never recreate, reroute, redemand, or claim the reminder without commit evidence; answer the remaining user need in the same response.",
+    "Rules: if one_shot_reminder.committed=true, confirm the reminder naturally once, presenting it as just created (never as already pending or pre-existing); use one_shot_reminder.local_label for the time and one_shot_reminder.reminder_instruction for the reminder object; do not repeat reminder_instruction or an equivalent object twice; do not reformulate the reminder object before and after the time marker; never recreate, reroute, redemand, or claim the reminder without commit evidence; if blocked_one_shot_reminder.reason_code=past_time, say clearly that nothing was created because the requested time has already passed today and offer another time or tomorrow, never restate the blocked request as if still valid; if blocked_one_shot_reminder.reason_code=duplicate_pending, say an identical reminder already exists and recall it instead of confirming a new one; if track_progress.committed=true, confirm that the progress on track_progress.target_title was recorded (status track_progress.progress_status) — never say you cannot check or track it from the chat; if blocked_track_progress.reason_code=already_tracked_today, confirm that this progress on blocked_track_progress.target_title is already recorded for today (nothing was written twice) — never deny that it was recorded, never log it again, and if the user reports a genuine second occurrence today, point to the dashboard; answer the remaining user need in the same response.",
   ].join("\n");
 }
 

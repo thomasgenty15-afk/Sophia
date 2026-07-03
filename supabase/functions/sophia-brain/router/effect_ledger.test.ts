@@ -40,7 +40,7 @@ Deno.test("recordCommittedEffect ajoute une entry committed", () => {
     committed_id: "progress-1",
     tool_id: "track_progress_plan_item",
     source: "executor",
-    db_ref: { table: "plan_item_progress_logs", id: "progress-1" },
+    db_ref: { table: "user_plan_item_entries", id: "progress-1" },
   });
   assertEquals(entry.status, "committed");
   assertEquals(entry.committed_id, "progress-1");
@@ -64,7 +64,7 @@ Deno.test("hasCommittedEffect détecte le bon type", () => {
   assertEquals(
     hasCommittedEffect(
       ledger,
-      (entry) => entry.effect_type === "one_shot_reminder.create",
+      (entry) => entry.effect_type === "plan_item_progress.track",
     ),
     false,
   );
@@ -101,7 +101,7 @@ Deno.test("failed ne compte pas comme committed", () => {
   assertEquals(
     hasCommittedEffect(
       ledger,
-      (entry) => entry.effect_type === "one_shot_reminder.create",
+      (entry) => entry.effect_type === "plan_item_progress.track",
     ),
     false,
   );
@@ -118,7 +118,7 @@ Deno.test("blocked ne compte pas comme committed", () => {
   assertEquals(
     hasCommittedEffect(
       ledger,
-      (entry) => entry.effect_type === "one_shot_reminder.create",
+      (entry) => entry.effect_type === "plan_item_progress.track",
     ),
     false,
   );

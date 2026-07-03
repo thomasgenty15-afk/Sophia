@@ -10,6 +10,8 @@ export interface DetectedSignals {
   trivial: SignalMatch;
   correction: SignalMatch;
   forget: SignalMatch;
+  /** Intention de memorisation explicite ("retiens que...") — miroir de forget. */
+  memorize: SignalMatch;
   safety: SignalMatch;
   explicit_topic_switch: SignalMatch;
   dated_reference: SignalMatch;
@@ -75,6 +77,21 @@ const PATTERNS: Record<
       "privacy_delete",
       "\\b(je veux que tu oublies|ne memorise pas|ne retiens pas|n'enregistre pas)\\b",
       0.95,
+    ),
+  ],
+  // Proces-verbal charte cmd 5 (2026-07-03, rose-r2 T13 / BF-MEMORY-01):
+  // l'intention de memorisation explicite n'avait aucun signal (asymetrie
+  // avec forget) et un "retiens que <fait court>" tombait dans le
+  // smart_pre_filter du memorizer -> perte silencieuse d'un fait confie.
+  // Ce signal EXEMPTE seulement du pre-filtre de cout; la decision d'ecrire
+  // reste au LLM d'extraction. Owner: memory runtime signals. Suppression:
+  // quand le dispatcher emettra un marqueur structurel d'intention memoire
+  // persiste par message. Voir 15-chantiers-log.md.
+  memorize: [
+    p(
+      "memorize_request",
+      "\\b(retiens (que|bien|ca|le|la)|garde(-| )?(le|la|ca)? ?en tete|souviens(-| )toi (que|de)|memorise (que|ca|le|bien)|note (que|bien que)|a retenir sur moi|garde ca sur moi)\\b",
+      0.92,
     ),
   ],
   safety: [

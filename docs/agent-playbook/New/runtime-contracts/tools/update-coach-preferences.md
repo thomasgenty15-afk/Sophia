@@ -1,6 +1,20 @@
 # update_coach_preferences Runtime Contract
 
-## Mental Model
+> **STATUT V2 (décision produit du 2026-07-02) : write-skill RETIRÉ du chat.**
+> Dans le redesign V2 (`clean-v2-redesign`), le write-skill
+> `update_coach_preferences` n'existe plus dans `sophia-brain`. Le feedback de
+> style depuis le chat est routé vers `feature_opportunity`
+> (coach_preferences), qui recommande le réglage et redirige vers
+> **Preferences coach** dans la plateforme — sans jamais promettre de
+> sauvegarde depuis le chat. Sophia adapte son style localement dans la
+> conversation en attendant. C'est le comportement attendu en QA : une
+> redirection honnête n'est PAS un bug (`BF-ROUTE-01`), mais répéter la même
+> redirection verbatim après un refus explicite de l'utilisateur reste une
+> friction UX à éviter (doctrine dans le visible feature_opportunity).
+> Le reste de ce document décrit l'ancien write-skill et n'est conservé que
+> comme référence si ce chemin d'écriture est un jour reconstruit.
+
+## Mental Model (LEGACY — write-skill retiré en V2)
 
 `update_coach_preferences` est un write-skill local léger.
 

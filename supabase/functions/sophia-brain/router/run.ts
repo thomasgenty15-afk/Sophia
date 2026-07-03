@@ -73,6 +73,7 @@ import {
   runDirectEffectLane,
   runOperationRuntimePipeline,
   turnFrameHasRunnableDirectEffect,
+  runTrackProgressRuntimeLane,
   turnFrameWithDirectEffectRuntime,
 } from "./operation_runtime_pipeline.ts";
 import {
@@ -1077,6 +1078,7 @@ export async function processMessage(
   let localFlowExitSkillRun: Record<string, unknown> | undefined;
   let localFlowExitRedispatchCount = 0;
   let reminderDirectEffectReexecuted = false;
+  let trackProgressReexecuted = false;
 
   visibleOwnerDispatch: while (true) {
     // Direct-effect execution is a turn-level concern, not tied to whichever flow
@@ -1127,6 +1129,40 @@ export async function processMessage(
         directRuntime: reexecReminderLane.operationRuntime,
         visibleRuntime: operationRuntime,
       });
+    }
+    // Meme logique pour track_progress: sous flow local actif, le dispatcher
+    // global est saute, donc un report d'action qui provoque l'exit du flow
+    // ne surface l'effet qu'apres le redispatch (Alex R2-B01). La lane est
+    // idempotente par source_message_id (TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY),
+    // donc pas de risque de double commit.
+    if (
+      localFlowExitRedispatchCount > 0 &&
+      !trackProgressReexecuted &&
+      turnFrameHasRunnableDirectEffect(turnFrame, "track_progress_plan_item")
+    ) {
+      trackProgressReexecuted = true;
+      const reexecTrackRuntime = await runTrackProgressRuntimeLane({
+        tempMemory,
+        turnFrame,
+        sourceMessageId: loggedMessageId ?? requestId,
+        userMessage,
+        planItemSnapshot,
+        supabase,
+        userId,
+        channel,
+        v2Runtime,
+        trackProgressBlockedReasonCode: null,
+      });
+      if (reexecTrackRuntime) {
+        turnFrame = turnFrameWithDirectEffectRuntime(
+          turnFrame,
+          reexecTrackRuntime,
+        ) ?? turnFrame;
+        operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
+          directRuntime: reexecTrackRuntime,
+          visibleRuntime: operationRuntime,
+        });
+      }
     }
     const operationRun = operationRuntime?.toolSkillRun ?? {};
     const weeklyLocalRuntimeOwnsTurn =

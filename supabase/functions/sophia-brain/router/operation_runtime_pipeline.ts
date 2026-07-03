@@ -30,7 +30,10 @@ import {
 } from "../skills/weekly_review/runtime.ts";
 import { maybeRunOneShotReminderDirectEffect } from "../tools/always_on/one_shot_reminder/router.ts";
 import { withDirectEffectConfirmationContext } from "./direct_effect_local_context.ts";
-import { createTrackProgressPlanItemWrite } from "../tools/always_on/track_progress_plan_item/db.ts";
+import {
+  createTrackProgressPlanItemWrite,
+  createTrackProgressSameDayEvidenceCheck,
+} from "../tools/always_on/track_progress_plan_item/db.ts";
 import {
   applyTrackProgressDirectEffectFailureState,
   applyTrackProgressDirectEffectRuntimeState,
@@ -67,7 +70,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function operationRuntimeFromTrackProgress(args: {
+export function operationRuntimeFromTrackProgress(args: {
   tempMemory: any;
   result: Awaited<ReturnType<typeof runTrackProgressPlanItemDirectEffect>>;
   sourceMessageId?: string | null;
@@ -79,7 +82,11 @@ function operationRuntimeFromTrackProgress(args: {
   });
   if (!args.result.detected || args.result.status === "ignored") return null;
   const content = String(args.result.reply ?? "").trim();
-  if (!content) return null;
+  // Un resultat sans texte (effet bloque/decline sans fallback) reste trace:
+  // le jeter rendait le blocage invisible du ledger et de la trace QA
+  // (globaleval15 T5, requested/blocked jamais enregistres). content vide
+  // ne court-circuite jamais la composition (routeIsPureDirectEffect exige
+  // un content non vide) — seul le toolSkillRun est enregistre.
   return {
     content,
     nextTempMemory: args.tempMemory,
@@ -368,6 +375,78 @@ export type DirectEffectLaneResult = {
   routeOrFrameChanged: boolean;
 };
 
+/**
+ * Lane track_progress executable hors pipeline (idempotente par
+ * source_message_id via TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY): utilisee par
+ * le pipeline pre-boucle ET par la re-execution apres sortie de flow local
+ * (le dispatcher global etant saute pendant un flow actif, un report
+ * d'action qui provoque l'exit doit pouvoir committer sur le meme tour).
+ */
+export async function runTrackProgressRuntimeLane(params: {
+  tempMemory: any;
+  turnFrame: TurnFrame;
+  sourceMessageId: string | null;
+  userMessage: string;
+  planItemSnapshot: unknown[];
+  supabase: OperationRuntimePipelineInput["supabase"];
+  userId: string;
+  channel: string;
+  v2Runtime: OperationRuntimePipelineInput["v2Runtime"];
+  trackProgressBlockedReasonCode: string | null;
+}): Promise<OperationRuntimeResult | null> {
+  const sourceMessageId = params.sourceMessageId ??
+    params.turnFrame.source_message_id;
+  const alreadyLogged =
+    (params.tempMemory as any)?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
+      ?.source_message_id &&
+    sourceMessageId &&
+    (params.tempMemory as any)[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
+        .source_message_id === sourceMessageId;
+  if (alreadyLogged) return null;
+  try {
+    const previousSourceMessageId = String(
+      (params.tempMemory as any)?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
+        ?.source_message_id ?? "",
+    ).trim();
+    const blockedReason = params.trackProgressBlockedReasonCode ?? null;
+    const result = await runTrackProgressPlanItemDirectEffect({
+      turn_frame: params.turnFrame,
+      message: params.userMessage,
+      plan_snapshot: params.planItemSnapshot ?? [],
+      no_mutation_requested: Boolean(blockedReason),
+      blocked_reason_code: blockedReason,
+      same_day_evidence_check: createTrackProgressSameDayEvidenceCheck({
+        supabase: params.supabase,
+        userId: params.userId,
+      }),
+      write_progress: createTrackProgressPlanItemWrite({
+        supabase: params.supabase,
+        userId: params.userId,
+        source: params.channel,
+        sourceMessageId,
+        runtime: params.v2Runtime,
+      }),
+      recent_writes_idempotency: {
+        source_message_ids: previousSourceMessageId
+          ? [previousSourceMessageId]
+          : [],
+      },
+    });
+    return operationRuntimeFromTrackProgress({
+      tempMemory: params.tempMemory,
+      result,
+      sourceMessageId,
+    });
+  } catch (_error) {
+    applyTrackProgressDirectEffectFailureState({
+      temp_memory: params.tempMemory,
+      source_message_id: sourceMessageId,
+      reason_code: "track_progress_direct_effect_failed",
+    });
+    return null;
+  }
+}
+
 export async function runDirectEffectLane(
   args: OperationRuntimePipelineInput & {
     allowMessageIntakeFallback?: boolean;
@@ -517,13 +596,19 @@ export async function runOperationRuntimePipeline(
   });
   routeOrFrameChanged = routeOrFrameChanged ||
     turnFrame !== turnFrameBeforeWeeklyDirectEffect;
+  // Cette lane n'appartient qu'au bilan hebdo: quand il est actif, le runtime
+  // weekly retourne plus bas sans passer par la lane principale (ligne ~711),
+  // donc elle doit couvrir les effets route pendant ce flow. Hors bilan hebdo,
+  // la lane principale s'en charge — la faire tourner ici aussi exécuterait le
+  // reminder deux fois dans le même tour (auto-collision: la 2e passe voit
+  // l'écriture de la 1re et rend un duplicate_pending contredisant le commit).
   const weeklyShouldRunOneShotDirectEffect = Boolean(
     weeklyOneShotDirectEffect,
-  ) || routeRequestsDirectEffect({
+  ) || (isRecord(weeklyState) && routeRequestsDirectEffect({
     routeDecision,
     turnFrame,
     effectType: "create_one_shot_reminder",
-  });
+  }));
   const weeklyDirectEffectLane = weeklyShouldRunOneShotDirectEffect
     ? await runDirectEffectLane({
       ...args,
@@ -621,55 +706,19 @@ export async function runOperationRuntimePipeline(
   const trackProgressRuntime: OperationRuntimeResult | null =
     !routeSafetyActive && turnFrame &&
       routePermitsTrackProgressRuntime({ routeDecision, turnFrame })
-      ? await (async () => {
-        const sourceMessageId = args.sourceMessageId ??
-          turnFrame.source_message_id;
-        const alreadyLogged =
-          (tempMemory as any)?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
-            ?.source_message_id &&
-          sourceMessageId &&
-          (tempMemory as any)[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
-              .source_message_id === sourceMessageId;
-        if (alreadyLogged) return null;
-        try {
-          const previousSourceMessageId = String(
-            (tempMemory as any)?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]
-              ?.source_message_id ?? "",
-          ).trim();
-          const blockedReason = args.trackProgressBlockedReasonCode ?? null;
-          const result = await runTrackProgressPlanItemDirectEffect({
-            turn_frame: turnFrame,
-            message: args.userMessage,
-            plan_snapshot: args.planItemSnapshot ?? [],
-            no_mutation_requested: Boolean(blockedReason),
-            blocked_reason_code: blockedReason,
-            write_progress: createTrackProgressPlanItemWrite({
-              supabase: args.supabase,
-              userId: args.userId,
-              source: args.channel,
-              sourceMessageId,
-              runtime: args.v2Runtime,
-            }),
-            recent_writes_idempotency: {
-              source_message_ids: previousSourceMessageId
-                ? [previousSourceMessageId]
-                : [],
-            },
-          });
-          return operationRuntimeFromTrackProgress({
-            tempMemory,
-            result,
-            sourceMessageId,
-          });
-        } catch (_error) {
-          applyTrackProgressDirectEffectFailureState({
-            temp_memory: tempMemory,
-            source_message_id: sourceMessageId,
-            reason_code: "track_progress_direct_effect_failed",
-          });
-          return null;
-        }
-      })()
+      ? await runTrackProgressRuntimeLane({
+        tempMemory,
+        turnFrame,
+        sourceMessageId: args.sourceMessageId ?? null,
+        userMessage: args.userMessage,
+        planItemSnapshot: args.planItemSnapshot ?? [],
+        supabase: args.supabase,
+        userId: args.userId,
+        channel: args.channel,
+        v2Runtime: args.v2Runtime,
+        trackProgressBlockedReasonCode: args.trackProgressBlockedReasonCode ??
+          null,
+      })
       : null;
 
   const directEffectLane = await runDirectEffectLane({

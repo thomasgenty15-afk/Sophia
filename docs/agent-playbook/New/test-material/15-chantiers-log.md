@@ -7699,3 +7699,39 @@ Tests / verifications.
 
 Limites restantes. Le run IA reel doit etre rejoue pour verifier que les
 contraintes de style explicites sont effectivement respectees en conversation.
+
+## Chantier — Signal memorize dans le pre-filtre memorizer (proces-verbal regex, charte cmd 5)
+
+Runs declencheurs. `rose-global15-r2 T13` (BF-MEMORY-01) : « retiens que je
+flanche le dimanche apres-midi... garde-le en tete » acquitte in-turn puis
+rejete au batch (`rejection_reasons={smart_pre_filter:15}`, `memory_items=0`)
+— perte silencieuse d'un fait explicitement confie.
+
+Couche. Memory runtime (signaux) + memorizer (batch selector). Hors chemin de
+routing sophia-brain : ce signal n'oriente aucun tour, il EXEMPTE seulement du
+filtre de cout ; la decision d'ecriture reste au LLM d'extraction.
+
+Decision. La couche de signaux (`signal_detection.ts`) savait detecter l'oubli
+(« ne retiens pas », confiance 0.95) mais pas l'intention de memorisation
+positive — asymetrie structurelle. Ajout du signal `memorize`
+(« retiens que/garde en tete/souviens-toi que/memorise que/a retenir sur
+moi »), consomme par `classifyAntiNoise` dans le set `important` du
+`smart_pre_filter`.
+
+Proces-verbal regex (charte cmd 5) :
+- owner : memory runtime signals (`_shared/memory/runtime/signal_detection.ts`) ;
+- raison : le pre-filtre est lui-meme une heuristique de cout ; sans signal
+  positif, un fait confie court est perdu sans trace visible ;
+- test anti-faux-positif : bavardage court sans intention memoire reste
+  filtre ; « ne retiens pas » reste route vers forget
+  (`memorizer/batch_selector_test.ts`) ;
+- condition de suppression : le jour ou le dispatcher emet un marqueur
+  structurel d'intention memoire persiste par message (option architecture
+  cible), ce signal regex devient redondant et doit etre retire.
+
+Fichiers. `_shared/memory/runtime/signal_detection.ts`,
+`_shared/memory/memorizer/batch_selector.ts`,
+`_shared/memory/memorizer/batch_selector_test.ts`.
+
+Tests. `deno test _shared/memory/memorizer/batch_selector_test.ts
+_shared/memory/runtime/signal_detection_test.ts` : 9 passed.

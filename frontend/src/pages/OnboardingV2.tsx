@@ -21,6 +21,7 @@ import {
   hydrateDraftAfterAuth,
   intakeToTransformationsGuest,
   type JourneyContextTransition,
+  launchGuestPlanTypeClassification,
   loadDraftFromServer,
   loadOnboardingV2Draft,
   markOnboardingAuthHandoff,
@@ -607,6 +608,13 @@ function mapCrystallizedTransformation(
   };
 }
 
+// Classification guardrail (profile / generating_plan stages): DB re-read
+// cadence and how long we keep the profile submit button gated while waiting
+// for a missing plan-type classification.
+const CLASSIFICATION_POLL_INTERVAL_MS = 3_000;
+const CLASSIFICATION_POLL_MAX_MS = 90_000;
+const CLASSIFICATION_WAIT_MAX_MS = 90_000;
+
 function findCurrentTransformation(draft: OnboardingV2Draft) {
   if (draft.active_transformation_id) {
     return draft.transformations.find((item) =>
@@ -779,6 +787,12 @@ export default function OnboardingV2() {
   const { user, loading: authLoading } = useAuth();
   const postAuthHydrationAttemptRef = useRef<string | null>(null);
   const activeOnboardingActionTokenRef = useRef(0);
+  // Anti-double-fire: transformation id for which a classification relaunch
+  // was already requested from the profile stage (see the guardrail effect).
+  const classifyRelaunchAttemptRef = useRef<string | null>(null);
+  const [classificationWaitExpired, setClassificationWaitExpired] = useState(
+    false,
+  );
   const [draft, setDraft] = useState<OnboardingV2Draft>(() =>
     loadOnboardingV2Draft() ?? createEmptyOnboardingV2Draft()
   );
@@ -1287,9 +1301,15 @@ export default function OnboardingV2() {
     };
   }, [draft, effectiveUser]);
 
+  // Classification guardrail. The plan-type classification normally arrives
+  // via the guest flow (computed pre-signup, copied into handoff_payload at
+  // hydrate) or via the authenticated questionnaire submit. When it is still
+  // missing here, this effect (1) re-reads the DB, (2) relaunches
+  // classify-plan-type-v1 once (profile stage only — during generating_plan,
+  // generate-plan-v2 runs it inline itself), then (3) polls until it lands.
   useEffect(() => {
     if (!effectiveUser || !draft.cycle_id) return;
-    if (draft.stage !== "profile") return;
+    if (draft.stage !== "profile" && draft.stage !== "generating_plan") return;
     const currentClassification = currentTransformation?.plan_type_classification;
     const hasCompleteSplitMetricGuidance =
       currentClassification?.journey_strategy?.mode !== "two_transformations" ||
@@ -1300,8 +1320,11 @@ export default function OnboardingV2() {
     if (currentClassification && hasCompleteSplitMetricGuidance) return;
 
     let cancelled = false;
+    let pollTimer: number | null = null;
+    const pollStartedAt = Date.now();
+    const relaunchAllowed = draft.stage === "profile";
 
-    const refreshProfileClassification = async () => {
+    const refreshProfileClassification = async (): Promise<boolean> => {
       const [{ data: cycleData }, { data: transformationRows }] = await Promise.all([
         supabase
           .from("user_cycles")
@@ -1316,7 +1339,9 @@ export default function OnboardingV2() {
           .order("priority_order", { ascending: true }),
       ]);
 
-      if (cancelled || !cycleData || !Array.isArray(transformationRows)) return;
+      if (cancelled || !cycleData || !Array.isArray(transformationRows)) {
+        return false;
+      }
 
       const refreshedTransformations = transformationRows.map((row) =>
         toTransformationPreview(row as UserTransformationRow)
@@ -1333,7 +1358,9 @@ export default function OnboardingV2() {
           refreshedClassification?.split_metric_guidance?.transformation_2
         );
 
-      if (!refreshedClassification || !refreshedHasCompleteSplitMetricGuidance) return;
+      if (!refreshedClassification || !refreshedHasCompleteSplitMetricGuidance) {
+        return false;
+      }
 
       persistDraft(setDraft, {
         cycle_status: cycleData.status,
@@ -1348,19 +1375,135 @@ export default function OnboardingV2() {
             : draft.profile.pace,
         },
       }, { sync: false });
+      return true;
     };
 
-    void refreshProfileClassification();
+    // Relaunch classify-plan-type-v1 at most once per transformation, and
+    // never for a part-2 split transformation (its classification is copied
+    // at split creation — re-running would overwrite it for nothing).
+    const relaunchClassificationIfNeeded = async (): Promise<void> => {
+      if (!relaunchAllowed) return;
+      const transformationId = currentTransformation?.id ??
+        draft.active_transformation_id;
+      if (!transformationId) return;
+      if (classifyRelaunchAttemptRef.current === transformationId) return;
+
+      const { data: row } = await supabase
+        .from("user_transformations")
+        .select("id,questionnaire_answers,handoff_payload")
+        .eq("id", transformationId)
+        .maybeSingle();
+      if (cancelled || !row) return;
+
+      const rowRecord = row as Pick<
+        UserTransformationRow,
+        "id" | "questionnaire_answers" | "handoff_payload"
+      >;
+      const hasAnswers = Boolean(
+        rowRecord.questionnaire_answers &&
+          typeof rowRecord.questionnaire_answers === "object" &&
+          Object.keys(rowRecord.questionnaire_answers).length > 0,
+      );
+      const onboardingV2 = (rowRecord.handoff_payload?.onboarding_v2 ?? null) as
+        | { multi_part_journey?: { part_number?: unknown } | null }
+        | null;
+      const partNumber = Number(
+        onboardingV2?.multi_part_journey?.part_number ?? Number.NaN,
+      );
+      if (!hasAnswers || partNumber === 2) return;
+
+      classifyRelaunchAttemptRef.current = transformationId;
+      console.info("[onboarding][classification][relaunch]", {
+        transformation_id: transformationId,
+      });
+      try {
+        await invokeFunction<ClassifyPlanTypeResponse>(
+          "classify-plan-type-v1",
+          { transformation_id: transformationId },
+        );
+      } catch (relaunchError) {
+        console.warn(
+          "[onboarding][classification][relaunch_failed]",
+          relaunchError,
+        );
+      }
+    };
+
+    const poll = async () => {
+      if (cancelled) return;
+      const landed = await refreshProfileClassification();
+      if (cancelled || landed) return;
+      if (Date.now() - pollStartedAt > CLASSIFICATION_POLL_MAX_MS) return;
+      pollTimer = window.setTimeout(
+        () => void poll(),
+        CLASSIFICATION_POLL_INTERVAL_MS,
+      );
+    };
+
+    const run = async () => {
+      const landed = await refreshProfileClassification();
+      if (cancelled || landed) return;
+      await relaunchClassificationIfNeeded();
+      if (cancelled) return;
+      // The relaunch resolves once the classification is persisted — poll
+      // immediately so a successful relaunch is picked up without delay.
+      void poll();
+    };
+
+    void run();
 
     return () => {
       cancelled = true;
+      if (pollTimer !== null) window.clearTimeout(pollTimer);
     };
   }, [
     currentTransformation?.plan_type_classification,
+    currentTransformation?.id,
+    draft.active_transformation_id,
     draft.cycle_id,
     draft.profile,
     draft.stage,
     effectiveUser,
+  ]);
+
+  // "Classification expected but not there yet" — gates the profile submit
+  // button and shows the loading placeholder in MinimalProfile. Released
+  // after CLASSIFICATION_WAIT_MAX_MS so a stuck classification can never
+  // block the funnel (generate-plan-v2 re-runs it inline as the last net).
+  useEffect(() => {
+    const currentClassification = currentTransformation?.plan_type_classification;
+    const expecting = draft.stage === "profile" && !currentClassification;
+    if (!expecting) {
+      setClassificationWaitExpired(false);
+      return;
+    }
+    const timer = window.setTimeout(
+      () => setClassificationWaitExpired(true),
+      CLASSIFICATION_WAIT_MAX_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [draft.stage, currentTransformation?.plan_type_classification]);
+
+  const classificationPending = useMemo(() => {
+    if (draft.stage !== "profile") return false;
+    if (classificationWaitExpired) return false;
+    const classification = currentTransformation?.plan_type_classification ?? null;
+    const hasCompleteSplitMetricGuidance =
+      classification?.journey_strategy?.mode !== "two_transformations" ||
+      Boolean(
+        classification?.split_metric_guidance?.transformation_1 &&
+          classification?.split_metric_guidance?.transformation_2,
+      );
+    if (classification && hasCompleteSplitMetricGuidance) return false;
+    const answers = currentTransformation?.questionnaire_answers ??
+      draft.questionnaire_answers ?? null;
+    return Boolean(answers && Object.keys(answers).length > 0);
+  }, [
+    classificationWaitExpired,
+    currentTransformation?.plan_type_classification,
+    currentTransformation?.questionnaire_answers,
+    draft.questionnaire_answers,
+    draft.stage,
   ]);
 
   useEffect(() => {
@@ -2560,6 +2703,25 @@ export default function OnboardingV2() {
             : transformation
         ),
       });
+
+      // Launch the plan-type classification now, in parallel with the signup
+      // flow (no await — the continuation stores the result in the draft so
+      // the post-signup hydrate can copy it into the real transformation).
+      const guestTransformation = draft.transformations.find(
+        (transformation) => transformation.id === transformationId,
+      ) ?? null;
+      if (
+        guestTransformation && draft.questionnaire_schema &&
+        Object.keys(answers).length > 0
+      ) {
+        launchGuestPlanTypeClassification({
+          anonymousSessionId: draft.anonymous_session_id,
+          transformation: guestTransformation,
+          questionnaireSchema: draft.questionnaire_schema,
+          questionnaireAnswers: answers,
+        });
+      }
+
       // Flush immediately so the server has the answers before the user
       // completes signup — don't rely on the 500ms debounce alone.
       markOnboardingAuthHandoff({
@@ -3381,6 +3543,7 @@ export default function OnboardingV2() {
           submittingLabel={loadingState?.id === "plan" ? loadingState.label : undefined}
           currentTransformationTitle={currentTransformation?.title ?? null}
           planTypeClassification={currentTransformation?.plan_type_classification ?? null}
+          classificationPending={classificationPending}
           questionnaireSchema={currentTransformation?.questionnaire_schema ?? null}
           questionnaireAnswers={currentTransformation?.questionnaire_answers ?? null}
           hasStoredBirthDate={storedProfileFields.birthDate}

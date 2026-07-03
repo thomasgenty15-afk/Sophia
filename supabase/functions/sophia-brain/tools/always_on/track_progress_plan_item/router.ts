@@ -1,17 +1,20 @@
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import { runDirectEffectGate } from "../../../routers/direct_effect_gate.ts";
 import type {
+  TrackProgressCommittedEffect,
   TrackProgressDirectEffectResult,
   TrackProgressIntent,
   TrackProgressRequestedEffect,
   TrackProgressStatus,
   TrackProgressWrite,
 } from "./contract.ts";
+import type { TrackProgressSameDayEvidenceCheck } from "./db.ts";
 import { executeTrackProgressWrite } from "./executor.ts";
 import { requestedEffectFromIntake, runTrackProgressIntake } from "./intake.ts";
 import {
   enforceTrackProgressReplyInvariant,
   renderTrackProgressClarification,
+  renderTrackProgressContradictionClarification,
   renderTrackProgressLoggedReply,
 } from "./renderer.ts";
 
@@ -21,6 +24,10 @@ export type TrackProgressPlanItemRouterInput = {
   plan_snapshot: unknown;
   recent_writes_idempotency?: { source_message_ids: string[] };
   db_idempotency_check?: (key: string) => Promise<boolean>;
+  // Lecture d'evidence meme-jour injectee (voir
+  // createTrackProgressSameDayEvidenceCheck): detecte un outcome oppose deja
+  // committe avant d'autoriser un write non confirme.
+  same_day_evidence_check?: TrackProgressSameDayEvidenceCheck;
   no_mutation_requested?: boolean;
   blocked_reason_code?: string | null;
   write_progress: TrackProgressWrite;
@@ -273,6 +280,31 @@ export async function runTrackProgressPlanItemDirectEffect(
     });
   }
 
+  // Invariant d'integrite d'evidence: un outcome oppose deja committe le meme
+  // jour (daily review, dashboard, tour precedent) exige une correction
+  // explicite (payload_hint.correction, contrat dispatcher 3h). Sans elle, on
+  // demande confirmation au lieu d'ecrire une evidence contradictoire.
+  if (input.same_day_evidence_check && !intake.is_correction) {
+    const conflicting = await input.same_day_evidence_check({
+      target_item_id: requested.target_item_id,
+      progress_status: requested.progress_status,
+      date_hint: requested.date_hint ?? null,
+    });
+    if (conflicting) {
+      return blockedResult({
+        intent: "clarify",
+        status: "needs_clarify",
+        reason_code: "contradicts_same_day_evidence",
+        reply: renderTrackProgressContradictionClarification({
+          target_title: item.title,
+          existing_outcome: conflicting.outcome,
+          requested_status: requested.progress_status,
+        }),
+        requested_effects: requestedEffects,
+      });
+    }
+  }
+
   const allowed: TrackProgressRequestedEffect = {
     ...requested,
     target_title: item.title,
@@ -288,6 +320,17 @@ export async function runTrackProgressPlanItemDirectEffect(
       intent: intake.intent,
       status: "failed",
       reason_code: execution.reason_code,
+      requested_effects: requestedEffects,
+      allowed_effects: [allowed],
+    });
+  }
+  if (execution.status === "already_logged") {
+    // Le progres demande est deja en DB pour ce jour (autre message): rien de
+    // re-ecrit. Le composeur confirme l'existant via le contexte de
+    // confirmation au lieu de re-committer ou de nier (Paul r1 T15).
+    return blockedResult({
+      intent: intake.intent,
+      reason_code: "already_tracked_today",
       requested_effects: requestedEffects,
       allowed_effects: [allowed],
     });
@@ -410,6 +453,7 @@ export async function maybeRunTrackProgressPlanItemRuntime(
       message: input.message,
       plan_snapshot: input.plan_snapshot,
       db_idempotency_check: input.db_idempotency_check,
+      same_day_evidence_check: input.same_day_evidence_check,
       no_mutation_requested: input.no_mutation_requested,
       blocked_reason_code: input.blocked_reason_code,
       write_progress: input.write_progress,
@@ -473,6 +517,30 @@ export async function runTrackProgressPlanItemFromWeeklyCorrection(args: {
       committed_effects: [committed],
       blocked_effects: [],
       debug: { reason_code: "weekly_correction_logged" },
+    });
+  }
+  if (execution.status === "already_logged") {
+    // Commit idempotent: l'evidence demandee existe deja pour (item, jour,
+    // outcome) — on l'expose comme preuve au lieu de re-ecrire.
+    const committed: TrackProgressCommittedEffect = {
+      type: "track_progress_plan_item",
+      logged_progress_id: execution.existing_progress_id,
+      target_item_id: args.target_item_id,
+      target_title: args.target_title,
+      progress_status: args.progress_status,
+      value: args.value,
+    };
+    return enforceTrackProgressReplyInvariant({
+      detected: true,
+      intent: intentForProgressStatus(args.progress_status),
+      status: "logged",
+      reply: null,
+      executed_tools: [],
+      requested_effects: [requested],
+      allowed_effects: [requested],
+      committed_effects: [committed],
+      blocked_effects: [],
+      debug: { reason_code: "weekly_correction_already_logged" },
     });
   }
   return blockedResult({

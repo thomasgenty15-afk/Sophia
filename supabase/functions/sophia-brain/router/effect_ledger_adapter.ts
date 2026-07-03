@@ -28,7 +28,9 @@ const OPERATION_TYPE_BY_EFFECT_TYPE: Record<string, string> = {
 const COMMITTED_DB_TABLE_BY_EFFECT_TYPE: Record<string, string> = {
   "one_shot_reminder.create": "scheduled_checkins",
   "one_shot_reminder.cancel": "scheduled_checkins",
-  "plan_item_progress.track": "plan_item_progress_logs",
+  // Table reelle du writer track_progress (logPlanItemProgressV2);
+  // l'ancien nom "plan_item_progress_logs" n'existe pas dans le schema.
+  "plan_item_progress.track": "user_plan_item_entries",
 };
 
 export type OperationRuntimeResult = {

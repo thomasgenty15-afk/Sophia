@@ -172,6 +172,67 @@ Deno.test("formatCurrentWeekPlanContextBlock: renders current week actions, vali
   assert(block.includes("value_text=Session faite hier"));
 });
 
+Deno.test("formatCurrentWeekPlanContextBlock: recap source line + no silent cap on entries (paul-r1 T14)", () => {
+  const entries = Array.from({ length: 5 }, (_, index) => ({
+    plan_item_id: "pi-move",
+    entry_kind: "checkin",
+    outcome: index === 0 ? "missed" : "completed",
+    value_text: null,
+    difficulty_level: null,
+    blocker_hint: null,
+    created_at: `2026-06-1${6 + (index % 3)}T08:0${index}:00.000Z`,
+    effective_at: `2026-06-1${5 + (index % 4)}T19:0${index}:00.000Z`,
+  }));
+  const block = formatCurrentWeekPlanContextBlock({
+    timezone: "Europe/Paris",
+    weekStart: "2026-06-15",
+    items: [{
+      id: "pi-move",
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+      title: "Faire 10 min de mouvement",
+      tracking_type: "boolean",
+      target_reps: 5,
+      current_reps: 4,
+    }],
+    weekPlans: [],
+    occurrences: [],
+    entries,
+  });
+
+  // Le recap « où j'en suis » doit être servi par ce bloc, sans excuse de
+  // liste manquante.
+  assert(block.includes("executions_semaine"));
+  assert(
+    block.includes(
+      "ne dis jamais que la liste des séances faites te manque",
+    ),
+  );
+  // 5 entries, 3 détaillées: la troncature est annoncée, jamais silencieuse.
+  assert(block.includes("(+2 autre(s) execution(s) cette semaine"));
+
+  // Anti-faux-positif: 3 entries ou moins => aucune mention de troncature.
+  const smallBlock = formatCurrentWeekPlanContextBlock({
+    timezone: "Europe/Paris",
+    weekStart: "2026-06-15",
+    items: [{
+      id: "pi-move",
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+      title: "Faire 10 min de mouvement",
+      tracking_type: "boolean",
+      target_reps: 5,
+      current_reps: 2,
+    }],
+    weekPlans: [],
+    occurrences: [],
+    entries: entries.slice(0, 2),
+  });
+  assert(!smallBlock.includes("autre(s) execution(s)"));
+});
+
 Deno.test("formatWeeklyRecapSnapshot: extracts summary from V2 runtime snapshot", () => {
   const snapshot: Pick<
     SystemRuntimeSnapshotRow,

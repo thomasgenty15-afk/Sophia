@@ -94,8 +94,17 @@ function activeCoachingState(localState: Record<string, unknown>) {
 
 Deno.test("coaching action visible guidance requires naming attack card technique", () => {
   const guidance = ACTION_CARD_EMOTIONAL_FRICTION_GUIDANCE_LINES.join("\n");
+  // La nomination de la technique est desormais scopee a la PREMIERE
+  // recommandation (renforcement C5b): sur un follow-up, on passe au contenu
+  // concret sans re-nommer la technique.
   assertEquals(
-    guidance.includes("nomme toujours la technique conseillee"),
+    guidance.includes(
+      "Lors de la PREMIERE recommandation d'une carte d'attaque",
+    ),
+    true,
+  );
+  assertEquals(
+    guidance.includes("nomme la technique conseillee et explique"),
     true,
   );
   assertEquals(guidance.includes("Contre-exemple interdit"), true);
@@ -339,6 +348,101 @@ Deno.test("coaching local dispatcher prompt defines generic flow boundary for gl
   );
   assertEquals(
     source.includes("ne le reformule pas en carte, potion ou technique"),
+    true,
+  );
+});
+
+Deno.test("coaching local dispatcher prompt forces progression after an accepted offer (rose-r2 T4, nina-r1 T2)", async () => {
+  const source = await Deno.readTextFile(
+    new URL("./local_flow.ts", import.meta.url),
+  );
+  // Offre acceptee => executer l'offre, jamais rejouer le cadrage.
+  assertEquals(source.includes("Progression apres acceptation"), true);
+  assertEquals(
+    source.includes(
+      "ne rejoue jamais le meme cadrage ni la meme recommandation",
+    ),
+    true,
+  );
+  assertEquals(
+    source.includes(
+      "visible_task.instruction doit ordonner d'EXECUTER l'offre acceptee",
+    ),
+    true,
+  );
+  // Frontiere produit preservee (anti-faux-positif): pas de remplissage de
+  // carte depuis le chat, meme apres acceptation.
+  assertEquals(
+    source.includes(
+      "d'accuser l'acceptation et de donner le prochain pas concret sur la plateforme sans re-servir le scaffold",
+    ),
+    true,
+  );
+  assertEquals(source.includes("Interdit de progression"), true);
+  // Renforcement (probe reel C5b 2026-07-03): un "aide-moi a la preparer" apres
+  // une carte recommandee doit faire avancer, pas re-nommer la technique.
+  assertEquals(
+    source.includes("Distinction contenu vs destination dans un follow-up"),
+    true,
+  );
+  assertEquals(
+    source.includes(
+      "ordonne d'AVANCER concretement sans re-nommer la technique",
+    ),
+    true,
+  );
+  const visibleShared = await Deno.readTextFile(
+    new URL("./visible_agents/shared.ts", import.meta.url),
+  );
+  assertEquals(
+    visibleShared.includes("Anti-repetition de cadrage"),
+    true,
+  );
+  assertEquals(
+    visibleShared.includes(
+      "Ne re-propose jamais une offre que le user vient d'accepter",
+    ),
+    true,
+  );
+  // Avancee concrete sur carte d'attaque vs frontiere stricte carte de defense.
+  assertEquals(
+    visibleShared.includes(
+      "Avancer sur une carte d'ATTAQUE deja recommandee",
+    ),
+    true,
+  );
+  assertEquals(
+    visibleShared.includes(
+      "Avancer sur une carte de DEFENSE deja recommandee",
+    ),
+    true,
+  );
+  assertEquals(
+    visibleShared.includes(
+      "La frontiere produit de la carte de defense reste stricte meme sur 'aide-moi a la preparer'",
+    ),
+    true,
+  );
+});
+
+Deno.test("coaching visible rules carry presence-first altitude on emotional lows (eva-r1 T1, paul-r1 T12)", async () => {
+  const visibleShared = await Deno.readTextFile(
+    new URL("./visible_agents/shared.ts", import.meta.url),
+  );
+  assertEquals(
+    visibleShared.includes("Altitude premier tour emotionnel"),
+    true,
+  );
+  assertEquals(
+    visibleShared.includes(
+      "commence par un beat de validation/accueil humain",
+    ),
+    true,
+  );
+  assertEquals(
+    visibleShared.includes(
+      "jamais sous forme d'instructions UI (chemins d'ecrans, boutons) a ce tour-la",
+    ),
     true,
   );
 });

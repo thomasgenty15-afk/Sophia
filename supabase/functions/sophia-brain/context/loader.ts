@@ -2087,6 +2087,8 @@ export function formatCurrentWeekPlanContextBlock(
     `Semaine locale: ${input.weekStart} -> ${weekEnd} | timezone=${input.timezone}\n`;
   block +=
     "Usage: source factuelle pour répondre aux questions sur actions, jours, validation et exécution. Ne cite pas les ids; distingue prévu, validé et fait.\n";
+  block +=
+    "Pour un point/recap de la semaine (« où j'en suis »), executions_semaine ci-dessous EST la liste des exécutions enregistrées (fait/raté/partiel par action, y compris celles de cette session): appuie-toi dessus, ne dis jamais que la liste des séances faites te manque quand ce bloc est présent.\n";
 
   for (const item of relevantItems) {
     const id = String(item.id);
@@ -2094,14 +2096,16 @@ export function formatCurrentWeekPlanContextBlock(
     const occurrences = (occurrencesByItemId.get(id) ?? []).slice().sort(
       (left, right) => Number(left.ordinal ?? 99) - Number(right.ordinal ?? 99),
     );
-    const entries = (entriesByItemId.get(id) ?? []).slice().sort((
+    const allEntries = (entriesByItemId.get(id) ?? []).slice().sort((
       left,
       right,
     ) =>
       String(right.effective_at ?? right.created_at ?? "").localeCompare(
         String(left.effective_at ?? left.created_at ?? ""),
       )
-    ).slice(0, 3);
+    );
+    const entries = allEntries.slice(0, 3);
+    const hiddenEntriesCount = allEntries.length - entries.length;
     const scheduledDays = formatDayList(item.scheduled_days);
     const occurrenceDays = formatOccurrenceDayList(occurrences);
     const payload = formatPayloadForPrompt(item.payload);
@@ -2179,6 +2183,12 @@ export function formatCurrentWeekPlanContextBlock(
       block += "  executions_semaine:\n";
       for (const entry of entries) {
         block += `${formatEntryForPrompt(entry)}\n`;
+      }
+      if (hiddenEntriesCount > 0) {
+        // No silent caps: le LLM doit savoir que la liste est tronquée pour
+        // ne pas presenter les 3 dernieres comme le total de la semaine.
+        block +=
+          `    (+${hiddenEntriesCount} autre(s) execution(s) cette semaine non detaillee(s) ici)\n`;
       }
     }
   }
@@ -2847,6 +2857,8 @@ export async function loadRecentDirectEffectConfirmationContext(args: {
         local_label: localLabel || null,
         reminder_instruction: reminderInstruction || null,
       },
+      blocked_one_shot_reminder: null,
+      track_progress: null,
       committed_effects: [{
         type: "create_one_shot_reminder",
         id: dbId || committedReminder.committed_id || null,
@@ -2920,13 +2932,17 @@ export async function loadDurableEffectsSummary(
         .eq("status", "active")
         .order("generated_at", { ascending: false })
         .limit(1),
+      // C3 (2026-07-03, rose-r2 T15 / BF-STATUS-01) — le cap silencieux à 5
+      // faisait annoncer "5 rappels" comme total exhaustif alors que 6 étaient
+      // pending. On charge large + count exact pour que le rendu ne puisse
+      // jamais affirmer l'exhaustivité sur une liste tronquée.
       supabase
         .from("scheduled_checkins")
-        .select("id,scheduled_for,status,message_payload")
+        .select("id,scheduled_for,status,message_payload", { count: "exact" })
         .eq("user_id", userId)
         .eq("status", "pending")
         .order("scheduled_for", { ascending: true })
-        .limit(5),
+        .limit(50),
       // CHANTIER E6 (2026-05-28) — On récupère source_type pour distinguer les
       // préférences définies par l'utilisateur (explicit_user/ui/...) des
       // réglages par défaut système (system_default). Voir A11 T13 où les 9
@@ -2962,6 +2978,11 @@ export async function loadDurableEffectsSummary(
     const attack = (attackRes.data ?? [])[0] as any;
     const defense = (defenseRes.data ?? [])[0] as any;
     const checkins = (checkinsRes.data ?? []) as any[];
+    // Total DB réel (count exact), potentiellement > lignes chargées: le
+    // rendu ne doit jamais annoncer un total dérivé d'une liste tronquée.
+    const checkinsTotal = Number.isFinite(Number((checkinsRes as any).count))
+      ? Math.max(Number((checkinsRes as any).count), checkins.length)
+      : checkins.length;
     const prefs = (prefsRes.data ?? []) as any[];
     const recurring = (recurringRes.data ?? []) as any[];
     const potions = (potionRes.data ?? []) as any[];
@@ -3011,7 +3032,7 @@ export async function loadDurableEffectsSummary(
       // ("11h18 confirmé ? 11h32 confirmé ?"), le LLM ne voit qu'un seul
       // rappel détaillé et répond à tort "non confirmé" pour les autres.
       // Voir A4-r5 T11.
-      lines.push(`- Rappels ponctuels en attente (${checkins.length}):`);
+      lines.push(`- Rappels ponctuels en attente (${checkinsTotal}):`);
       for (const checkin of checkins) {
         const instruction = extractReminderInstruction(
           checkin?.message_payload,
@@ -3033,6 +3054,15 @@ export async function loadDurableEffectsSummary(
           : "";
         lines.push(
           `  • ${scheduledLabel ? `${scheduledLabel} — ` : ""}${instruction}.`,
+        );
+      }
+      if (checkinsTotal > checkins.length) {
+        // No silent caps: si la liste est tronquée, le LLM doit le savoir
+        // pour ne jamais affirmer l'exhaustivité.
+        lines.push(
+          `  • … et ${
+            checkinsTotal - checkins.length
+          } autre(s) rappel(s) en attente non listé(s) ici — ne présente jamais cette liste comme complète, renvoie vers la plateforme pour le détail.`,
         );
       }
     }

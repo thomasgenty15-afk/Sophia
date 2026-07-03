@@ -40,7 +40,9 @@ function makeFakeSupabase(rowsByTable: TableRowsByName) {
         in(_col: string, _vals: unknown[]) {
           return this;
         },
-        limit(_n: number) {
+        _limit: undefined as number | undefined,
+        limit(n: number) {
+          this._limit = n;
           return this;
         },
         maybeSingle() {
@@ -52,11 +54,20 @@ function makeFakeSupabase(rowsByTable: TableRowsByName) {
           });
         },
         then(
-          onFulfilled: (v: { data: unknown[]; error: null }) => unknown,
+          onFulfilled: (
+            v: { data: unknown[]; count: number; error: null },
+          ) => unknown,
         ) {
-          return Promise.resolve({ data: rows, error: null }).then(
-            onFulfilled,
-          );
+          // Reproduit le contrat PostgREST: data respecte limit(), count
+          // (avec { count: "exact" }) reflete le total DB avant troncature.
+          const limited = typeof this._limit === "number"
+            ? rows.slice(0, this._limit)
+            : rows;
+          return Promise.resolve({
+            data: limited,
+            count: rows.length,
+            error: null,
+          }).then(onFulfilled);
         },
       };
       return builder;
@@ -142,6 +153,55 @@ Deno.test("loadDurableEffectsSummary lists pending one-shot reminders with sched
   if (!summary) throw new Error("expected non-null summary");
   assertStringIncludes(summary, "Rappels ponctuels en attente (1)");
   assertStringIncludes(summary, "Payer la facture");
+});
+
+// C3 (2026-07-03) — Régression rose-r2 T15 (BF-STATUS-01): le cap silencieux
+// à 5 rappels faisait annoncer "5" comme total exhaustif alors que 6 étaient
+// pending en DB (le rappel créé en séance omis). Le summary doit lister tous
+// les pending et annoncer le total DB réel.
+Deno.test("loadDurableEffectsSummary lists every pending reminder with the real DB total (rose-r2 T15)", async () => {
+  const rows = Array.from({ length: 6 }, (_, index) => ({
+    id: `r-${index}`,
+    scheduled_for: new Date(Date.now() + (index + 1) * 60 * 60 * 1000)
+      .toISOString(),
+    status: "pending",
+    message_payload: { reminder_instruction: `rappel numero ${index}` },
+  }));
+  const supabase = makeFakeSupabase({
+    user_attack_cards: [],
+    user_defense_cards: [],
+    scheduled_checkins: rows,
+    user_profile_facts: [],
+  });
+  const summary = await loadDurableEffectsSummary(supabase, "u1");
+  if (!summary) throw new Error("expected non-null summary");
+  assertStringIncludes(summary, "Rappels ponctuels en attente (6)");
+  for (let index = 0; index < 6; index++) {
+    assertStringIncludes(summary, `rappel numero ${index}`);
+  }
+});
+
+Deno.test("loadDurableEffectsSummary never claims exhaustivity on a truncated reminder list", async () => {
+  // 60 pending > borne de chargement (50): le total annoncé reste 60 et la
+  // troncature est explicite — jamais de cap silencieux.
+  const rows = Array.from({ length: 60 }, (_, index) => ({
+    id: `r-${index}`,
+    scheduled_for: new Date(Date.now() + (index + 1) * 60 * 60 * 1000)
+      .toISOString(),
+    status: "pending",
+    message_payload: { reminder_instruction: `rappel numero ${index}` },
+  }));
+  const supabase = makeFakeSupabase({
+    user_attack_cards: [],
+    user_defense_cards: [],
+    scheduled_checkins: rows,
+    user_profile_facts: [],
+  });
+  const summary = await loadDurableEffectsSummary(supabase, "u1");
+  if (!summary) throw new Error("expected non-null summary");
+  assertStringIncludes(summary, "Rappels ponctuels en attente (60)");
+  assertStringIncludes(summary, "non listé(s) ici");
+  assertStringIncludes(summary, "ne présente jamais cette liste comme complète");
 });
 
 // Chantier 12 (2026-05-28) — Régression A4-r6 T15: scheduled_for affiché

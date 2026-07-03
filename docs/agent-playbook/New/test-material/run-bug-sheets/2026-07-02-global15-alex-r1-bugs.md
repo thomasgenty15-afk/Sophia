@@ -43,3 +43,15 @@ Run report: `docs/agent-playbook/New/test-material/qa-run-reports/2026-07-02-glo
 - Statut: fix_applied (rerun requis)
 - Fix reference: constat — `profiles.full_name/birth_date/gender` n'étaient lus nulle part dans sophia-brain. Nouveau pack identité `context/user_identity.ts` (prénom/âge/genre) chargé une fois par tour (`router/run.ts`) et exposé aux visible agents des 5 skills conversationnels via `visible_runtime_context.user_identity`, avec doctrine canonique : accords genrés uniquement si `gender` connu, sinon formulation neutre (y compris phrases 1ère personne à répéter) ; prénom avec parcimonie ; âge jamais mentionné. Tests `context/user_identity_test.ts`.
 - Tests requis: test de cohérence grammaticale de genre sur un échantillon de personas homme/femme pour les phrases générées par `coaching_recommendation`.
+
+## R1-B04 — Doublon de rappel sur question de vérification (découvert au probe de vérification post-fix)
+
+- Bug id: R1-B04
+- Tours: n/a (découvert le 2026-07-02 par le probe réel `qa-j1-preamble-probe-r3`, persona Alex, hors run QA formel)
+- Famille: BF-EFFECT (effet dupliqué) + BF-ROUTE-03 (question de vérification classée création)
+- Domaine owner: dispatcher (émission direct effect) + gate one-shot reminder (anti-duplication)
+- Source amont: une question de vérification (« tu me relances bien à quelle heure demain ? ») a émis un `create_one_shot_reminder` et créé une **2e ligne** `scheduled_checkins` pending au même instant exact (07:00Z, slugs différents : `la_ligne_du_carnet` puis `me_relancer`). Aucun garde structurel n'empêchait le doublon. Non systématique (le T6 du run original n'avait rien créé) : variance LLM, classe de bug réelle.
+- Preuve système: 2 lignes pending identiques en DB à 17 s d'écart pendant le probe (supprimées au nettoyage).
+- Correction attendue: (1) anti-duplication structurelle au gate (charte cmd 0, garde-fou EffectLedger légitime) ; (2) doctrine : question de vérification ≠ demande de création.
+- Statut: fix_applied (rerun requis)
+- Fix reference: `tools/always_on/one_shot_reminder/executor.ts` — blocage `duplicate_pending` si un one-shot pending existe au même instant exact (lecture `readPendingOneShotReminderRows`, non bloquante en cas d'échec) ; `router.ts` — reply dédiée (« déjà programmé, je ne le recrée pas ») sans `missing_slots` parasite ; `contract.ts` — raison `duplicate_pending` ajoutée à l'union ; doctrine dans le bloc canonique dispatcher (`router/one_shot_reminder_prompt_contract.ts`). Tests : « create blocks duplicate_pending... » (positif + anti-faux-positif heure distincte) + contrat dispatcher « treats reminder verification questions as non-creation ». Note annexe : la fixture de test utilisait encore `payload_hint.scheduled_for` au lieu du canonique `UTC_time` — corrigée, ce qui répare aussi 2 tests préexistants.

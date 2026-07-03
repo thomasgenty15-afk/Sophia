@@ -9,7 +9,7 @@ import {
 } from "./operation_runtime_pipeline.ts";
 import { normalizeWeeklyReviewLocalDispatcherOutput } from "../skills/weekly_review/local_flow.ts";
 
-function fakeOneShotSupabase() {
+function fakeOneShotSupabase(opts: { onUpsert?: (row: any) => void } = {}) {
   return {
     from(table: string) {
       if (table === "profiles") {
@@ -55,6 +55,7 @@ function fakeOneShotSupabase() {
             return selectQuery;
           },
           upsert(row: any) {
+            opts.onUpsert?.(row);
             return {
               select() {
                 return {
@@ -355,6 +356,42 @@ Deno.test("operation_runtime_pipeline active weekly commits local one-shot befor
     result.routeDecision?.response_owner,
     "weekly_adaptive_review_v1",
   );
+});
+
+Deno.test("operation_runtime_pipeline executes one-shot reminder exactly once per turn outside weekly", async () => {
+  // Auto-collision Alex r3 T5 / Nina r1 T7: la lane weekly tournait aussi hors
+  // bilan hebdo (des que la route demandait l'effet), puis la lane principale
+  // re-executait le meme create dans le meme tour. Hors weekly, une seule
+  // execution est permise.
+  const upserts: any[] = [];
+  const message = "Rappelle-moi demain a 18h de relire la doc.";
+  const result = await runOperationRuntimePipeline(basePipelineInput({
+    supabase: fakeOneShotSupabase({ onUpsert: (row) => upserts.push(row) }),
+    userMessage: message,
+    turnFrame: baseTurnFrame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          raw_text: message,
+          when_hint: "demain a 18h",
+          UTC_time: "2026-06-14T16:00:00.000Z",
+          local_label: "demain a 18:00",
+          instruction_hint: "relire la doc",
+        },
+      }],
+    }),
+    routeDecision: baseRouteDecision({
+      direct_effects_to_run: ["create_one_shot_reminder"],
+      reason_code: "direct_effects_then_normal_reply",
+    }),
+    clientNow: new Date("2026-06-13T08:00:00.000Z"),
+  }));
+
+  assertEquals(result.operationRuntime?.toolExecution, "success");
+  assertEquals(upserts.length, 1);
 });
 
 Deno.test("operation_runtime_pipeline active local flow does not parse raw message intake", async () => {

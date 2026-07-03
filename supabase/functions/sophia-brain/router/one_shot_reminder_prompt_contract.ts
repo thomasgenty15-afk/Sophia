@@ -36,6 +36,8 @@ export function oneShotReminderCanonicalDispatcherPromptLines(): string[] {
     "   - Ne jamais laisser le rappel absorber l'intention restante du tour.",
     "   - Ne pas traiter un rappel recurrent comme un one-shot reminder. Toute demande de relance recurrente, sous quelque forme (tous les soirs, chaque matin, a chaque fois, regulierement, tous les jours), n'emet JAMAIS create_one_shot_reminder: c'est un signal skill_signals.feature_opportunity (initiatives), le soutien recurrent se pose dans les initiatives.",
     "   - Une question de verification sur un rappel deja programme ('tu me relances bien a quelle heure ?', 'c'est bien prevu ?', 'j'ai bien un rappel demain ?') n'est pas une demande de creation: n'emets pas create_one_shot_reminder, la reponse se fait depuis le contexte de confirmation.",
+    "   - Regle nocturne (user_local_datetime entre 00:00 et 06:00): 'ce soir' designe le soir du jour civil COURANT, jamais la veille; 'demain' designe strictement le jour civil suivant (J+1), jamais la date du jour. Si le jour vise reste ambigu (ex: 'demain a 21h' dit a 2h du matin), n'emets pas l'effet: la clarification prime.",
+    "   - payload_hint.cardinality est obligatoire et vaut 'once' pour un rappel ponctuel. Une demande recurrente n'emet jamais cet effet (cf. regle initiatives); si tu l'emets malgre tout, mets cardinality='recurring' — le runtime le bloquera au lieu de creer un faux ponctuel.",
   ];
 }
 
@@ -87,10 +89,13 @@ export function oneShotReminderVisibleContextPresent(
   ) {
     return false;
   }
-  const reminder =
-    (directEffectConfirmationContext as Record<string, unknown>)
-      .one_shot_reminder;
-  return Boolean(reminder && typeof reminder === "object");
+  const ctx = directEffectConfirmationContext as Record<string, unknown>;
+  const reminder = ctx.one_shot_reminder;
+  const blocked = ctx.blocked_one_shot_reminder;
+  const track = ctx.track_progress;
+  return Boolean(reminder && typeof reminder === "object") ||
+    Boolean(blocked && typeof blocked === "object") ||
+    Boolean(track && typeof track === "object");
 }
 
 function normalizeForReminderMatch(value: string): string {
@@ -211,7 +216,7 @@ export function oneShotReminderCanonicalVisiblePromptLines(
   // re-confirmed spontaneously, only recalled if the user asks (recap line
   // below). So we emit the "confirm once" directive on the this-turn branch only.
   const activeConfirmationLine = committedThisTurn
-    ? `Si ${contextPath}.one_shot_reminder.committed=true, confirme naturellement le rappel une seule fois. Utilise one_shot_reminder.local_label pour le moment et one_shot_reminder.reminder_instruction pour l'objet du rappel, puis reponds au besoin restant du user.`
+    ? `Si ${contextPath}.one_shot_reminder.committed=true, confirme naturellement le rappel une seule fois, en le presentant comme venant d'etre cree — jamais comme 'deja en attente' ou preexistant. Utilise one_shot_reminder.local_label pour le moment et one_shot_reminder.reminder_instruction pour l'objet du rappel, puis reponds au besoin restant du user.`
     : null;
 
   const committedProofLine = committedThisTurn
@@ -227,12 +232,15 @@ export function oneShotReminderCanonicalVisiblePromptLines(
     "Ne repete pas one_shot_reminder.reminder_instruction ou son equivalent deux fois.",
     "Ne reformule pas l'objet du rappel avant puis apres le marqueur temporel.",
     committedProofLine,
+    `Si ${contextPath}.blocked_one_shot_reminder.reason_code=past_time: la creation a ete refusee parce que l'heure demandee est deja passee aujourd'hui. Dis clairement que rien n'a ete cree, propose un autre horaire ou demain, et ne reformule jamais la demande bloquee comme si elle restait valide. Reponds ensuite normalement au reste du message.`,
+    `Si ${contextPath}.blocked_one_shot_reminder.reason_code=duplicate_pending: un rappel identique existe deja pour ce moment; rappelle sobrement le rappel existant, ne confirme pas une nouvelle creation.`,
+    `Si ${contextPath}.track_progress.committed=true: la progression sur track_progress.target_title est REELLEMENT enregistree (statut track_progress.progress_status). Confirme-la sobrement; ne dis jamais que tu ne peux pas cocher, marquer ou tracker depuis le chat.`,
     "Si le user demande si un rappel recent a ete programme ou ce qui vient d'etre programme, tu peux confirmer seulement depuis deux sources: le contexte direct ci-dessus avec has_committed_one_shot_reminder=true, ou visible_runtime_context.recent_effects_summary si ce champ est fourni et contient une ligne 'Rappel ponctuel cree: execute et persiste' avec etat DB actuel.",
     unprovenReminderLine,
     "Ne calcule jamais une heure visible depuis UTC_time ou scheduled_for; utilise uniquement local_label.",
     "Ne recree, reroute, redemande ou redecide jamais un rappel depuis le visible agent.",
     "Un rappel ponctuel ne peut pas etre annule, modifie, decale, reprogramme ou supprime depuis le chat: c'est une limite produit actuelle, pas un doute sur l'existence du rappel.",
-    "Si le user demande d'annuler, modifier, decaler ou supprimer un rappel, ne dis jamais que c'est fait et ne le presente pas comme faisable ici; explique sobrement que la gestion des rappels se fait dans la plateforme (ses rappels ponctuels / Initiatives).",
+    "Si le user demande d'annuler, modifier, decaler, supprimer ou laisser tomber un rappel, ne dis jamais que c'est fait et ne le presente pas comme faisable ici; explique sobrement que la gestion des rappels se fait dans la plateforme (ses rappels ponctuels / Initiatives). Meme si le message contient d'autres demandes, accuse d'abord cette demande en une phrase avant de repondre au reste: ne l'ignore jamais en silence.",
     "Ne nie jamais l'existence d'un rappel deja confirme ou deja prouve par les sources ci-dessus juste parce que l'annulation est impossible: si le rappel est connu, rappelle-le sobrement avec local_label puis pose la limite d'annulation.",
   ];
 }

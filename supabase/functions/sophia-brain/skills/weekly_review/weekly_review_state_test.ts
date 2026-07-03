@@ -1,5 +1,6 @@
 import {
   clearWeeklyReviewState,
+  isWeeklyReviewActive,
   readWeeklyReviewState,
   updateWeeklyReviewStateAfterTurn,
   writeWeeklyReviewState,
@@ -26,6 +27,33 @@ Deno.test("weekly_state_clear_preserves_unrelated_temp_memory", () => {
   const cleared = clearWeeklyReviewState(tempMemory);
   assertEquals(cleared.keep, "value");
   assertEquals(cleared.__active_skill_state, undefined);
+});
+
+Deno.test("weekly_state_completed_is_no_longer_active_for_routing", () => {
+  // R2-B04: un weekly termine ne doit plus capturer le routage; le tour
+  // suivant repart vers le dispatcher global (puis normal_reply).
+  const completedState = {
+    skill_id: "weekly_adaptive_review_v1",
+    status: "completed",
+    weekly_flow_state: { status: "completed", stage: "closing" },
+  };
+  const tempMemory = writeWeeklyReviewState({}, completedState);
+  assertEquals(readWeeklyReviewState({ tempMemory }), null);
+  assertEquals(isWeeklyReviewActive({ tempMemory }), false);
+  // active_skill_state fourni directement (chemin router) doit aussi etre inerte.
+  assertEquals(
+    readWeeklyReviewState({ activeSkillState: completedState }),
+    null,
+  );
+});
+
+Deno.test("weekly_state_open_stays_active_for_routing", () => {
+  const tempMemory = writeWeeklyReviewState({}, weeklyState);
+  assertEquals(isWeeklyReviewActive({ tempMemory }), true);
+  assertStrictEquals(
+    readWeeklyReviewState({ tempMemory }),
+    tempMemory.__active_skill_state,
+  );
 });
 
 Deno.test("weekly_state_after_turn_preserves_state_without_text_patch", () => {

@@ -74,12 +74,32 @@ function adjustDestinationInstruction(
   return "Tu peux renseigner cette intention dans la Validation du niveau, au moment de valider le niveau.";
 }
 
+// Une fois la recommandation d'ajustement surfacee dans le weekly, elle ne doit
+// pas etre re-deroulee lors des etapes de synthese/cloture (repetition). Le
+// stage weekly_adjust_recommendation reste hors de ce set: c'est la ou le user
+// demande explicitement quoi ajuster, donc une (re)surface y est legitime.
+const STAGES_BLOCKING_ALREADY_SURFACED_ADJUST_RECOMMENDATION = new Set<
+  WeeklyReviewVisibleTaskKind
+>(["weekly_synthesis", "weekly_closure"]);
+
+function chatPlanMutationRefusalRequired(
+  context: WeeklyReviewConversationContext,
+): boolean {
+  return (context.known_values?.chat_plan_mutation_request as unknown) === true;
+}
+
 function canSurfaceAdjustRecommendation(
   context: WeeklyReviewConversationContext,
   options: { stage?: WeeklyReviewVisibleTaskKind } = {},
 ): boolean {
+  // Une demande d'application dans le chat n'est pas une demande "quoi ajuster":
+  // on ne re-deroule pas la recommandation, on refuse et on renvoie plateforme.
+  if (chatPlanMutationRefusalRequired(context)) {
+    return false;
+  }
   if (
-    options.stage === "weekly_closure" &&
+    options.stage &&
+    STAGES_BLOCKING_ALREADY_SURFACED_ADJUST_RECOMMENDATION.has(options.stage) &&
     context.adjust_recommendation.surfaced_in_weekly === true
   ) {
     return false;
@@ -218,6 +238,9 @@ export function buildWeeklyReviewVisibleAgentUserPrompt(
   );
   const adjustRecommendationAlreadySurfaced =
     visibleContext.adjust_recommendation.surfaced_in_weekly === true;
+  const chatPlanMutationRefusal = chatPlanMutationRefusalRequired(
+    input.conversation_context,
+  );
   const canSurfaceAdjust = canSurfaceAdjustRecommendation(visibleContext, {
     stage: input.stage,
   });
@@ -241,10 +264,13 @@ export function buildWeeklyReviewVisibleAgentUserPrompt(
       adjust_recommendation_already_surfaced:
         adjustRecommendationAlreadySurfaced,
       repeat_adjust_recommendation_forbidden:
-        input.stage === "weekly_closure" &&
+        STAGES_BLOCKING_ALREADY_SURFACED_ADJUST_RECOMMENDATION.has(
+          input.stage,
+        ) &&
         adjustRecommendationAlreadySurfaced,
       can_surface_adjust_recommendation: canSurfaceAdjust,
       adjust_recommendation_safe_to_surface: canSurfaceAdjust,
+      chat_plan_mutation_refusal_required: chatPlanMutationRefusal,
       adjustment_destination: visibleContext.weekly_planning_context
         .adjustment_destination,
       adjust_recommendation_destination_user_message:

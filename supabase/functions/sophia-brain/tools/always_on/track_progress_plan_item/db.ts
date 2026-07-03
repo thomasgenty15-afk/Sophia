@@ -11,7 +11,7 @@ import type {
 import type { TrackProgressWrite } from "./contract.ts";
 
 export type V2TrackingResult = {
-  mode: "logged" | "needs_clarify";
+  mode: "logged" | "needs_clarify" | "already_logged";
   message: string;
   target: string;
   status: string;
@@ -64,6 +64,61 @@ function derivePlanItemEntryKind(args: {
   }
 
   return args.item.kind === "milestone" ? "progress" : "checkin";
+}
+
+/**
+ * Miroir du contrat d'ecriture du dashboard
+ * (frontend/src/hooks/useDashboardV2Logic.ts, logItemEntry +
+ * nextStatusForEntry): une entry completed incremente le compteur visible
+ * (current_reps) et applique la meme transition de statut. Sans ce deuxieme
+ * write, le chat felicite mais la carte reste a 0/target (R2-W01 /
+ * BF-EFFECT-03). Les reports missed/partial n'incrementent jamais.
+ */
+export function planItemPatchForCompletedEntry(
+  item: Pick<
+    UserPlanItemRow,
+    | "dimension"
+    | "tracking_type"
+    | "status"
+    | "current_habit_state"
+    | "target_reps"
+    | "current_reps"
+    | "activated_at"
+  >,
+  nowIso: string,
+): Partial<UserPlanItemRow> | null {
+  const isHabit = String(item.dimension ?? "") === "habits";
+  const isBoolean = String(item.tracking_type ?? "") === "boolean";
+  if (item.target_reps == null && !isHabit) {
+    // Item sans compteur: seul un tracking boolean se termine (contrat
+    // dashboard: tracking_type === "boolean" => completed).
+    if (!isBoolean) return null;
+    return {
+      status: "completed",
+      completed_at: nowIso,
+      activated_at: item.activated_at ?? nowIso,
+    };
+  }
+  const nextReps = Math.max((item.current_reps ?? 0) + 1, 0);
+  if (isHabit) {
+    const target = item.target_reps ?? 5;
+    const reachedTarget = nextReps >= target;
+    return {
+      current_reps: nextReps,
+      status: reachedTarget ? "in_maintenance" : "active",
+      current_habit_state: reachedTarget ? "in_maintenance" : "active_building",
+      activated_at: item.activated_at ?? nowIso,
+      completed_at: reachedTarget ? nowIso : null,
+    };
+  }
+  const target = item.target_reps ?? 1;
+  const reachedTarget = nextReps >= target || isBoolean;
+  return {
+    current_reps: nextReps,
+    status: reachedTarget ? "completed" : "active",
+    activated_at: item.activated_at ?? nowIso,
+    completed_at: reachedTarget ? nowIso : null,
+  };
 }
 
 export async function logPlanItemProgressV2(args: {
@@ -130,6 +185,59 @@ export async function logPlanItemProgressV2(args: {
 
   const nowIso = new Date().toISOString();
   const effectiveAt = resolveLoggedAtIso(dateHint);
+
+  // Idempotence journaliere (garde anti-duplication, charte cmd 0): une entry
+  // identique (item, jour, outcome) existe deja -> on ne re-ecrit pas.
+  // Deux cas distincts:
+  // - meme source_message_id = re-execution de la meme lane dans le tour ->
+  //   on re-renvoie le commit existant (re-entrance, comme les rappels);
+  // - autre message = question de verification ou double report -> mode
+  //   already_logged, le renderer confirme l'existant au lieu de re-committer.
+  const effectiveDay = effectiveAt.slice(0, 10);
+  const sameDayResult = await supabase
+    .from("user_plan_item_entries")
+    .select("id,outcome,created_at,metadata")
+    .eq("user_id", userId)
+    .eq("plan_item_id", planItemId)
+    .eq("outcome", status)
+    .gte("effective_at", `${effectiveDay}T00:00:00.000Z`)
+    .lt("effective_at", `${effectiveDay}T23:59:59.999Z`)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (!sameDayResult.error) {
+    const sameDayRows = (sameDayResult.data ?? []) as Array<
+      Pick<UserPlanItemEntryRow, "id" | "outcome" | "created_at" | "metadata">
+    >;
+    const turnSourceMessageId = String(sourceMessageId ?? "").trim();
+    const ownWrite = turnSourceMessageId
+      ? sameDayRows.find((row) =>
+        String(
+          (row.metadata as Record<string, unknown> | null)
+            ?.source_message_id ?? "",
+        ).trim() === turnSourceMessageId
+      )
+      : undefined;
+    const title = String(item.title ?? "").trim() || planItemId;
+    if (ownWrite) {
+      return {
+        mode: "logged",
+        message: "",
+        target: title,
+        status,
+        logged_progress_id: String(ownWrite.id),
+      };
+    }
+    if (sameDayRows.length > 0) {
+      return {
+        mode: "already_logged",
+        message: "",
+        target: title,
+        status,
+        logged_progress_id: String(sameDayRows[0].id),
+      };
+    }
+  }
+
   const numericValue = Number.isFinite(Number(value)) ? Number(value) : null;
   const entryKind = derivePlanItemEntryKind({
     status,
@@ -182,6 +290,25 @@ export async function logPlanItemProgressV2(args: {
     },
   });
 
+  // Deuxieme write du contrat dashboard: compteur + transition de statut.
+  // Non-bloquant: l'entry committee reste la source de verite si le patch
+  // echoue (le compteur peut etre recalcule), on ne casse pas un commit reel.
+  if (status === "completed") {
+    const patch = planItemPatchForCompletedEntry(item, nowIso);
+    if (patch) {
+      const patchResult = await supabase
+        .from("user_plan_items")
+        .update(patch)
+        .eq("id", item.id);
+      if (patchResult.error) {
+        console.warn(
+          "[TrackProgress] current_reps/status patch failed (non-blocking):",
+          patchResult.error,
+        );
+      }
+    }
+  }
+
   const title = String(item.title ?? "").trim() || planItemId;
   return {
     mode: "logged",
@@ -189,6 +316,63 @@ export async function logPlanItemProgressV2(args: {
     target: title,
     status,
     logged_progress_id: entryId,
+  };
+}
+
+export type TrackProgressSameDayEvidence = {
+  entry_id: string;
+  outcome: string;
+  source: string | null;
+};
+
+export type TrackProgressSameDayEvidenceCheck = (input: {
+  target_item_id: string;
+  progress_status: "completed" | "missed" | "partial";
+  date_hint?: string | null;
+}) => Promise<TrackProgressSameDayEvidence | null>;
+
+/**
+ * Garde-fou d'integrite d'evidence (BF-EFFECT-01, run daily-2plans-20260703-r2):
+ * un track_progress non confirme ne doit pas re-ecrire un outcome OPPOSE sur
+ * une action qui porte deja une evidence committee le meme jour (daily review,
+ * dashboard ou tour precedent). Complement du garde meme-outcome de
+ * logPlanItemProgressV2 (already_logged): ici on detecte la contradiction, et
+ * le router demande confirmation au lieu d'ecrire. Check deterministe non
+ * semantique — il lit l'etat structure, il n'invente aucune intention; la
+ * correction explicite passe par payload_hint.correction (contrat dispatcher
+ * 3h). Meme convention de fenetre jour que resolveLoggedAtIso et que le filtre
+ * already-resolved de process-checkins (journee UTC de la date visee).
+ */
+export function createTrackProgressSameDayEvidenceCheck(args: {
+  supabase: SupabaseClient;
+  userId: string;
+}): TrackProgressSameDayEvidenceCheck {
+  return async (input) => {
+    const day = resolveLoggedAtIso(input.date_hint).slice(0, 10);
+    const result = await args.supabase
+      .from("user_plan_item_entries")
+      .select("id,outcome,metadata,created_at")
+      .eq("user_id", args.userId)
+      .eq("plan_item_id", input.target_item_id)
+      .in("outcome", ["completed", "missed", "partial"])
+      .gte("effective_at", `${day}T00:00:00.000Z`)
+      .lt("effective_at", `${day}T23:59:59.999Z`)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (result.error) throw result.error;
+    const row = (result.data?.[0] ?? null) as
+      | Pick<UserPlanItemEntryRow, "id" | "outcome" | "metadata">
+      | null;
+    if (!row) return null;
+    const existingOutcome = String(row.outcome ?? "");
+    if (existingOutcome === input.progress_status) return null;
+    return {
+      entry_id: String(row.id),
+      outcome: existingOutcome,
+      source: String(
+        (row.metadata as Record<string, unknown> | null)?.source ?? "",
+      ) || null,
+    };
   };
 }
 
@@ -211,6 +395,12 @@ export function createTrackProgressPlanItemWrite(args: {
       sourceMessageId: input.source_message_id || args.sourceMessageId,
       runtime: args.runtime,
     });
+    if (written.mode === "already_logged" && written.logged_progress_id) {
+      return {
+        logged_progress_id: written.logged_progress_id,
+        already_logged: true,
+      };
+    }
     if (written.mode !== "logged" || !written.logged_progress_id) {
       throw new Error(written.message);
     }
