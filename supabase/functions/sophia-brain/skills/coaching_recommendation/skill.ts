@@ -473,6 +473,23 @@ export async function runCoachingRecommendationSkill(
         recent_effects_summary:
           input.context.runtime_context?.recent_effects_summary ?? null,
         user_identity: input.context.runtime_context?.user_identity ?? null,
+        // F3: le visible agent recoit la liste reelle des actions actives —
+        // fin du « je n'ai pas la liste, colle ton plan » (rose-r5 T3).
+        active_plan_items: (input.context.plan_items ?? [])
+          .slice(0, 16)
+          .map((item: Record<string, unknown>) => ({
+            title: String(item?.title ?? ""),
+            status: String(item?.status ?? "active"),
+            dimension: String(item?.dimension ?? "") || null,
+            recent_checks: Array.isArray(item?.recent_checks)
+              ? (item.recent_checks as Array<Record<string, unknown>>)
+                .map((check) => ({
+                  effective_at: String(check?.effective_at ?? "") || null,
+                  outcome: String(check?.outcome ?? "") || null,
+                }))
+              : [],
+          }))
+          .filter((item: { title: string }) => item.title),
       },
       flow_context: {
         ...reduced.flow_context,

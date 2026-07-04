@@ -75,9 +75,15 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
   },
   sophia_checkin_v2: {
     name: "sophia_checkin_v2",
+    // Meta-approved body has zero placeholders: do not inject a name param.
     body:
-      "Hello {{1}} 🙂\nJ’aimerais prendre rapidement de tes nouvelles. C’est ok pour toi ?",
+      "Hello 🙂\nJ’aimerais prendre rapidement de tes nouvelles. C’est ok pour toi ?",
     buttons: ["Oui !", "Une prochaine fois !"],
+  },
+  morning_nudge_v1: {
+    name: "morning_nudge_v1",
+    body: "Hello ! Prêt pour ton boost du matin ? 💥",
+    buttons: ["Go !"],
   },
   sophia_birthday_v1: {
     name: "sophia_birthday_v1",

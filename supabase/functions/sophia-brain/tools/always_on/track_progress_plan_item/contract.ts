@@ -18,6 +18,9 @@ export type TrackProgressWrite = (input: {
   source_message_id: string;
   date_hint?: string | null;
   idempotency_key: string;
+  // Correction de cible (3h-bis): entry du jour a invalider sur cet item
+  // avant de committer sur target_item_id.
+  retarget_from_item_id?: string | null;
 }) => Promise<{
   logged_progress_id: string;
   // Entry identique (item, jour, outcome) deja en DB, ecrite par un autre
@@ -42,6 +45,7 @@ export type TrackProgressRequestedEffect = {
   value: number;
   date_hint?: string | null;
   source_message_id: string;
+  retarget_from_item_id?: string | null;
 };
 
 export type TrackProgressDirectEffectResult = {

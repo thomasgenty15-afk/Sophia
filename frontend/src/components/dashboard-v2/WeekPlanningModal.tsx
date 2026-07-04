@@ -95,9 +95,16 @@ function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
   return [...seen];
 }
 
+function sortDayCodes(days: DayCode[]): DayCode[] {
+  return [...days].sort((left, right) =>
+    DAY_CODES.indexOf(left) - DAY_CODES.indexOf(right)
+  );
+}
+
 function sameDayCodes(left: DayCode[], right: DayCode[]): boolean {
   if (left.length !== right.length) return false;
-  return left.every((day, index) => day === right[index]);
+  const sortedRight = sortDayCodes(right);
+  return sortDayCodes(left).every((day, index) => day === sortedRight[index]);
 }
 
 function dateFromYmdUtc(ymd: string): Date {
@@ -272,12 +279,17 @@ export function WeekPlanningModal({
           [itemId]: selected.filter((entry) => entry !== day),
         };
       }
-      if (selected.length >= target) return current;
+      if (target <= 0) return current;
+      if (selected.length >= target) {
+        // Quota atteint : le jour sélectionné le plus ancien laisse sa place.
+        return {
+          ...current,
+          [itemId]: [...selected.slice(selected.length - target + 1), day],
+        };
+      }
       return {
         ...current,
-        [itemId]: [...selected, day].sort((left, right) =>
-          DAY_CODES.indexOf(left) - DAY_CODES.indexOf(right)
-        ),
+        [itemId]: [...selected, day],
       };
     });
   };
@@ -308,7 +320,9 @@ export function WeekPlanningModal({
             week_start_date: weekCalendar.anchorWeekStart,
             items: items.map((item) => ({
               plan_item_id: item.id,
-              planned_days: normalizeDayCodes(selectedDaysByItemId[item.id]),
+              planned_days: sortDayCodes(
+                normalizeDayCodes(selectedDaysByItemId[item.id]),
+              ),
               target_reps_override: weeklyTargetForItem(
                 item,
                 allowedDays.length,

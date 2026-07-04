@@ -666,6 +666,102 @@ Deno.test("safety_crisis reducer provides visible-agent-safe conversation_contex
   assertEquals(context.selected_candidate, {});
 });
 
+Deno.test("safety_crisis does not repeat emergency numbers once delivered while risk stays critical (R5-B01)", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "acute_grounding",
+      risk_band: "critical",
+      immediate_danger: true,
+      emergency_numbers_delivered: true,
+      last_assistant_safety_step: "safety_step=acute_grounding",
+    },
+    sourceRiskBand: "critical",
+    signals: emptySafetySignal({
+      immediate_danger: true,
+      has_means_nearby: true,
+      user_currently_alone: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "safety_escalate",
+      risk_score: 9,
+      evidence: ["still in crisis, no new escalation"],
+    }),
+    currentUserMessage: "ouais c'est bon t'inquiete",
+  });
+  const context = reduced.visibleTask.conversation_context;
+  // Numeros deja donnes + pas de re-escalade -> on ne re-recite pas la hotline.
+  assertEquals(context.safety_resources.must_include_emergency_numbers, false);
+  assertEquals(
+    context.known_values.emergency_numbers_already_delivered,
+    true,
+  );
+  // Le flag reste vrai tant que le risque est eleve.
+  assertEquals(reduced.statePatch.emergency_numbers_delivered, true);
+});
+
+Deno.test("safety_crisis re-delivers emergency numbers on re-escalation (R5-B01)", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "stabilizing",
+      risk_band: "medium",
+      immediate_danger: false,
+      // Numeros deja donnes plus tot, mais la crise etait redescendue.
+      emergency_numbers_delivered: true,
+      last_assistant_safety_step: "safety_step=stabilizing",
+    },
+    sourceRiskBand: "critical",
+    signals: emptySafetySignal({
+      immediate_danger: true,
+      has_means_nearby: true,
+      user_currently_alone: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "safety_escalate",
+      risk_score: 9,
+      evidence: ["risk climbs back up"],
+    }),
+    currentUserMessage: "non ca remonte, j'ai de nouveau ces idees",
+  });
+  const context = reduced.visibleTask.conversation_context;
+  // Re-escalade -> on re-delivre les numeros.
+  assertEquals(context.safety_resources.must_include_emergency_numbers, true);
+  assertEquals(reduced.statePatch.emergency_numbers_delivered, true);
+});
+
+Deno.test("safety_crisis re-delivers emergency numbers on phase re-escalation within sustained crisis (R5-B01)", () => {
+  // Crise jamais totalement redescendue (risque reste critical, immediate_danger
+  // deja vrai) mais la phase remonte immediate_risk_check -> acute_grounding:
+  // c'est une intensification qui doit re-surfacer les numeros de facon
+  // deterministe, sans dependre de l'heuristique de prompt.
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "immediate_risk_check",
+      risk_band: "critical",
+      immediate_danger: true,
+      emergency_numbers_delivered: true,
+      last_assistant_safety_step: "safety_step=immediate_risk_check",
+    },
+    sourceRiskBand: "critical",
+    signals: emptySafetySignal({
+      immediate_danger: true,
+      has_means_nearby: true,
+      user_currently_alone: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "safety_escalate",
+      risk_score: 9,
+      evidence: ["sharp intensification, holding the means now"],
+    }),
+    currentUserMessage: "ca monte d'un coup, je tiens la boite, je vais le faire",
+  });
+  const context = reduced.visibleTask.conversation_context;
+  assertEquals(reduced.phase, "acute_grounding");
+  assertEquals(context.safety_resources.must_include_emergency_numbers, true);
+});
+
 Deno.test("safety_crisis reducer preserves server-owned runtime fields on continuation", () => {
   const reduced = reduceSafetyCrisis({
     previousState: {

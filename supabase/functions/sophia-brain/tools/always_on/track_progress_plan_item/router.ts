@@ -28,6 +28,10 @@ export type TrackProgressPlanItemRouterInput = {
   // createTrackProgressSameDayEvidenceCheck): detecte un outcome oppose deja
   // committe avant d'autoriser un write non confirme.
   same_day_evidence_check?: TrackProgressSameDayEvidenceCheck;
+  // Fenetre d'evidence textuelle pour le grounding de cible (F2): les 2
+  // derniers messages de la conversation (les deux roles). La cible doit
+  // etre attestee dans le message courant ou cette fenetre, sinon clarify.
+  evidence_messages?: string[];
   no_mutation_requested?: boolean;
   blocked_reason_code?: string | null;
   write_progress: TrackProgressWrite;
@@ -153,7 +157,7 @@ function intentForProgressStatus(
 
 function planItems(
   planSnapshot: unknown,
-): Array<{ id: string; title: string }> {
+): Array<{ id: string; title: string; aliases: string[] }> {
   const items = Array.isArray(planSnapshot)
     ? planSnapshot
     : Array.isArray((planSnapshot as any)?.items)
@@ -163,8 +167,71 @@ function planItems(
     .map((item: any) => ({
       id: String(item?.id ?? ""),
       title: String(item?.title ?? ""),
+      aliases: [
+        // Vocabulaire user-facing structurel de l'item: aliases si presents,
+        // et description (le snapshot V2 la porte) — reduit la friction
+        // quand le user nomme l'action avec ses mots a lui.
+        ...(Array.isArray(item?.aliases)
+          ? item.aliases.map((alias: unknown) => String(alias ?? ""))
+          : []),
+        String(item?.description ?? ""),
+      ].filter(Boolean),
     }))
     .filter((item: { id: string; title: string }) => item.id && item.title);
+}
+
+function normalizeEvidenceText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Grounding de cible v2 (G1, contrat 3d-ter): le dispatcher fournit la
+ * PREUVE — payload_hint.target_evidence, citation verbatim des mots du user
+ * qui nomment l'action visee. Le runtime ne porte AUCUNE connaissance
+ * metier (zero liste, zero pattern): il verifie seulement que la citation
+ * existe telle quelle dans le message courant ou la fenetre recente
+ * (normalisation accents/casse/espaces uniquement, pour tolerer une
+ * citation aux accents pres). Toute la semantique — quel item, quels mots
+ * le nomment — reste dans le prompt. Citation absente ou introuvable =
+ * cible non prouvee → clarification (contrat O + re-arm 3g).
+ */
+export function trackTargetEvidenceVerified(args: {
+  target_evidence: string | null;
+  target_title: string;
+  target_aliases?: string[];
+  texts: string[];
+}): boolean {
+  const quote = normalizeEvidenceText(String(args.target_evidence ?? ""));
+  if (!quote) return false;
+  const quoteExists = args.texts.some((text) =>
+    normalizeEvidenceText(text).includes(quote)
+  );
+  if (!quoteExists) return false;
+  // Coherence citation ↔ cible choisie (observed: le modele cite la
+  // reference vague elle-meme, "un autre truc du plan", comme evidence).
+  // Une citation qui ne partage AUCUN mot avec le titre de l'item choisi ne
+  // peut pas le nommer. Intersection ensembliste pure entre deux chaines du
+  // contrat — zero liste, zero connaissance metier, rien a maintenir.
+  // Les aliases structures de l'item comptent comme son nom: c'est le
+  // vocabulaire user-facing prevu par le produit ("ma marche" pour "Faire
+  // 10 min de mouvement en rentrant").
+  const titleTokens = new Set(
+    [args.target_title, ...(args.target_aliases ?? [])]
+      .flatMap((source) =>
+        normalizeEvidenceText(source).split(/[^a-z0-9]+/)
+      )
+      .filter((token) => token.length >= 3),
+  );
+  if (titleTokens.size === 0) return true;
+  const quoteTokens = quote.split(/[^a-z0-9]+/).filter((token) =>
+    token.length >= 3
+  );
+  return quoteTokens.some((token) => titleTokens.has(token));
 }
 
 export async function runTrackProgressPlanItemDirectEffect(
@@ -280,6 +347,29 @@ export async function runTrackProgressPlanItemDirectEffect(
     });
   }
 
+  // Grounding de cible (G1, contrat 3d-ter): le dispatcher doit fournir la
+  // citation verbatim des mots du user qui nomment la cible. Citation
+  // absente (cible devinee, « un autre truc du plan ») ou introuvable
+  // (fabriquee) → on n'ecrit pas, on demande (contrat O: la question part au
+  // composeur + re-arm 3g au tour suivant). Zero sous-flow, zero etat.
+  if (
+    !trackTargetEvidenceVerified({
+      target_evidence: intake.target_evidence,
+      target_title: item.title,
+      target_aliases: item.aliases,
+      texts: [input.message, ...(input.evidence_messages ?? [])],
+    })
+  ) {
+    return blockedResult({
+      intent: "clarify",
+      status: "needs_clarify",
+      reason_code: "target_not_evidenced",
+      reply:
+        `Tu parles de quelle action exactement ? Je pensais a "${item.title}" mais je prefere que tu me la nommes avant de la noter.`,
+      requested_effects: requestedEffects,
+    });
+  }
+
   // Invariant d'integrite d'evidence: un outcome oppose deja committe le meme
   // jour (daily review, dashboard, tour precedent) exige une correction
   // explicite (payload_hint.correction, contrat dispatcher 3h). Sans elle, on
@@ -381,12 +471,23 @@ export function applyTrackProgressDirectEffectRuntimeState(args: {
   }
 
   if (result.status === "needs_clarify") {
+    const requestedSnapshot = result.requested_effects[0] ?? null;
     (tempMemory as any)[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY] = {
       mode: "needs_clarify",
       message: result.reply ??
         "Impossible de logger automatiquement. Oriente vers le dashboard pour mise a jour immediate, ou propose d'attendre le prochain bilan.",
       reason_code: result.debug.reason_code,
       source_message_id: source_message_id ?? null,
+      // Slots deja etablis: le dispatcher peut re-emettre l'effet complete
+      // quand le user repond a la clarification (chantier O4, eva-r2 B01).
+      known_slots: requestedSnapshot
+        ? {
+          target_item_id: requestedSnapshot.target_item_id ?? null,
+          target_title: requestedSnapshot.target_title ?? null,
+          progress_status: requestedSnapshot.progress_status ?? null,
+          date_hint: requestedSnapshot.date_hint ?? null,
+        }
+        : null,
     };
     return { toolExecution: "blocked", executedTools: [] };
   }
@@ -406,6 +507,37 @@ export function applyTrackProgressDirectEffectRuntimeState(args: {
     source_message_id: source_message_id ?? null,
   };
   return { toolExecution: "blocked", executedTools: [] };
+}
+
+/**
+ * Fenetre de re-arm (chantier O4): apres un needs_clarify, le tour suivant
+ * peut completer l'ecriture si le user repond a la question. On expose la
+ * clarification en attente au dispatcher global UNE seule fois (le tour
+ * d'apres), avec les slots deja etablis pour qu'il re-emette l'effet complet.
+ * Marque l'etat comme expose (mutation volontaire du runtime key, persistee
+ * avec temp_memory) pour ne pas polluer les tours ulterieurs.
+ */
+export function pendingTrackProgressClarificationForDispatcher(
+  tempMemory: unknown,
+): {
+  effect_type: "track_progress_plan_item";
+  reason_code: string;
+  clarify_question: string;
+  known_slots: Record<string, unknown> | null;
+} | null {
+  const runtime = (tempMemory as any)?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY];
+  if (!runtime || runtime.mode !== "needs_clarify") return null;
+  if (runtime.clarification_exposed_to_dispatcher === true) return null;
+  runtime.clarification_exposed_to_dispatcher = true;
+  return {
+    effect_type: "track_progress_plan_item",
+    reason_code: String(runtime.reason_code ?? "needs_clarify"),
+    clarify_question: String(runtime.message ?? ""),
+    known_slots: runtime.known_slots &&
+        typeof runtime.known_slots === "object"
+      ? runtime.known_slots as Record<string, unknown>
+      : null,
+  };
 }
 
 export function applyTrackProgressDirectEffectFailureState(args: {

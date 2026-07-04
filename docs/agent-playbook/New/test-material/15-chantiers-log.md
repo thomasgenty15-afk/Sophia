@@ -7735,3 +7735,210 @@ Fichiers. `_shared/memory/runtime/signal_detection.ts`,
 
 Tests. `deno test _shared/memory/memorizer/batch_selector_test.ts
 _shared/memory/runtime/signal_detection_test.ts` : 9 passed.
+
+## Chantier O — Contrat d'outcome total + politique default-deny des claims (2026-07-03)
+
+Runs declencheurs. `rose-global15-r5` T11/T12 (red racine : « c'est note : ta
+journee est ratee » puis confirmation sur demande de verification, alors que
+le track etait bloque par safety et absent en DB), `paul-broadflow15-r1` T6
+(accuse sur cible ambigue sans effet), `eva-global15-r2` T13-15
+(`needs_clarify` avale par la reponse finale, ecriture jamais retentee).
+
+Couche. Canal EffectLedger→renderer (`router/direct_effect_local_context.ts`),
+pipeline (`run.ts` : exposition dispatcher), prompts renderer (companion +
+bloc canonique visible agents), dispatcher (doctrine 3g re-arm).
+
+Diagnostic architectural. Les gardes structurelles (safety, already_tracked,
+contradicts_same_day_evidence, duplicate_pending...) multipliaient les points
+de blocage, mais le canal de confirmation etait une ENUMERATION champ-par-champ
+(un champ + une regle de prompt par cas). Chaque nouveau blocage non cable
+etait un chemin muet, et un composeur face a une demande d'ecriture sans
+information vraie invente un accuse. Le defaut n'etait pas les gardes : c'etait
+l'absence de contrat total.
+
+Decision.
+1. `effects_outcome` (contrat TOTAL) : chaque effet demande au tour recoit
+   exactement un statut d'un vocabulaire ferme — `committed | blocked(raison)
+   | needs_clarify(question) | failed | not_attempted` — avec `guidance`
+   (posture de rendu) en donnee. Une lane jamais executee (blocage safety
+   amont) produit `not_attempted/safety_active` : plus de silence possible.
+2. Politique default-deny dans les prompts (companion + bloc canonique) :
+   4 lignes stables — committed → confirmer une fois ; blocked/failed/
+   not_attempted → suivre guidance, jamais de claim ; needs_clarify → poser
+   clarify_question ; defaut = aucun « c'est fait/note/enregistre/programme ».
+   Les cas sont des donnees, plus des regles enumerees.
+3. Re-arm des clarifications : l'etat `needs_clarify` (question + known_slots)
+   est expose UNE fois au dispatcher global au tour suivant
+   (`flow_state_context.pending_direct_effect_clarification`, doctrine 3g) —
+   le user qui repond a la clarification voit son ecriture completee au lieu
+   du neant (eva-r2 T14/T15).
+
+Fichiers. `router/direct_effect_local_context.ts` (types + builder +
+politique EN), `router/run.ts` (exposition pending clarification),
+`tools/always_on/track_progress_plan_item/router.ts` (known_slots +
+`pendingTrackProgressClarificationForDispatcher`),
+`dispatcher/dispatcher.prompts.ts` (3g + version
+`dispatcher_v2_prompt_2026_07_pending_clarification_rearm_v1`),
+`agents/companion.ts` (regle Ecritures default-deny),
+`router/one_shot_reminder_prompt_contract.ts` (ligne politique canonique).
+
+Charte. Commandements 15 (toute garde produit un outcome expose) et 16
+(contrat total + default-deny, jamais d'enumeration) ajoutes a
+`contract-prompts/anti-patching-qa-charter.md` + question au Test Mental.
+
+Tests. Builder totalite (safety-muted → not_attempted/safety_active ;
+contradicts → needs_clarify avec question ; committed → guidance unique),
+politique dans le prompt, re-arm une-seule-fenetre, doctrine 3g. Sweep :
+754 passed / 9 echecs preexistants connus. Companion budget : 12984 < 13000.
+
+Limites constatees en probe reel (a suivre). Le modele local desobeit
+encore a 3f sur des reports vagues : il assert `identified/high` avec une
+cible devinee meme quand le user dit « je te dis laquelle apres » → le
+commit part sur le mauvais item et la boucle clarify→re-arm ne se declenche
+pas (famille fabrication de cible, rose-r3-B02/paul-B03). Le contrat
+d'outcome rend ce chemin honnete (le claim correspond a un commit reel)
+mais la discipline de cible reste un chantier dispatcher (grounding
+structurel de la cible sur evidence du message, a concevoir hors regex).
+
+## Chantier F — Batch post-runs 2026-07-03 (ancrage date, evidence de cible, snapshot plan, cancel, exits info)
+
+Runs declencheurs. `eva-global15-r2` B01 (report retro-date jamais persiste),
+`rose-global15-r5` B02/B04/B06, `paul-broadflow15-r1` B01/B03,
+`global15-nina-r1` B01, + probe reel (fabrication de cible 2/2).
+
+F1 — Ancrage date (L1 dispatcher). Regle 3d-bis: `date_hint` OBLIGATOIRE en
+date ISO locale resolue pour tout report retro-date; l'exemple doctrine qui
+enseignait `date_hint:"hier soir"` (la source du bug) est corrige. Writer et
+gardes deja keyed sur `effectiveDay` → fin des fausses collisions.
+
+F2 — Grounding de cible track (garde structurelle fail-open). Avant toute
+ecriture, la cible choisie par le dispatcher doit etre attestee dans le
+message courant ou la fenetre recente (tokens du titre + aliases structures
+du snapshot — evidence de lecture, pas detection d'intention). Cible devinee
+→ `needs_clarify target_not_evidenced` (question via contrat O + re-arm 3g).
+FAIL-OPEN: titre inexploitable ou fenetre vide = comportement actuel; la
+garde ne peut qu'ameliorer. Zero sous-flow, zero etat.
+
+F3 — Snapshot plan. Diagnostic: la regle companion designait « SNAPSHOT COURT
+PLAN / ACTIONS ACTIVES » comme source de verite des recaps... section jamais
+construite (source fantome → recaps improvises sur 3 personas). Fix:
+`activePlanSnapshotPromptBlock` construit chaque tour depuis planItemSnapshot
+(inconditionnel, count reel, no silent cap) + `active_plan_items` injecte aux
+visible agents coaching (fin du « colle ton plan », rose-r5 T3).
+
+F4 — Cancel reminder + memorizer. Capacite cancel complete: contrat
+dispatcher `payload_hint.intent="cancel"` (jamais une creation sur une
+annulation), garde structurelle dans le router (intent=cancel ne touche
+jamais le chemin create), execution reelle (pending vise → status=cancelled,
+cible par heure locale; ambiguite → clarification — l'ancien code stub aurait
+cible TOUS les pendings). Valide en probe reel: « annule le rappel de 18h » →
+intent cancel emis, commit prouve, DB cancelled, rendu veridique. Memorizer:
+prompt d'extraction v2 — exclusion stricte des etats produit (le faux
+souvenir « rappel annule » de paul T14) + motif recurrent = statement, pas
+event (rose-r5 B04).
+
+F5 — Exits « demande d'information » (prompt, decision utilisateur: pas de
+re-evaluation par dispatcher global sous flow). Doctrine coaching +
+feature_opportunity: « montre-moi mon plan / mes actions / où j'en suis » ⇒
+exit_to_global_dispatcher → normal_reply, qui possede desormais la projection
+(F3). Interdiction de demander au user de fournir sa propre liste.
+
+Tests/verifs. one_shot_reminder 74 verts (4 tests de l'ancien design
+« cancel unsupported » retournes vers le nouveau design), track 14 verts,
+dispatcher contract 23+ verts; sweep sophia-brain 757 verts / 9 echecs
+preexistants; suite memoire: 10 echecs identiques a HEAD (verifies par
+stash). Probe reel cancel end-to-end OK, effets purges, plan Alex intact.
+Note infra: `supabase functions serve` etait arrete — relance en arriere-plan
+pour les probes (process laisse actif).
+
+## Chantier G — Contrat de citation d'evidence + correction de cible (2026-07-03, reds du run alex-r5)
+
+Runs declencheurs. `global15-alex-r5` T7 (commit sur cible devinee — la garde
+lexicale F2 contournee par le token generique « semaine ») et T8 (claim « je
+corrige » sans aucun effet — correction de cible inexistante au contrat).
+
+Decision d'architecture (discussion utilisateur: « les gardes ne seront
+jamais aussi adaptatives qu'un prompt »). Le matching lexical de F2 (liste de
+stopwords = whack-a-mole garanti) est SUPPRIME au profit du contrat de
+citation: la semantique (quel item, quels mots le nomment) vit 100% dans le
+prompt (3d-ter, exemples positifs et negatifs), le runtime ne verifie que des
+faits: (1) la citation existe verbatim dans le message/fenetre, (2) elle
+partage >=1 token avec titre+aliases+description de l'item choisi
+(intersection ensembliste pure — zero liste, zero donnee a maintenir).
+Iterations documentees des probes reels: le modele a d'abord cite la
+reference vague elle-meme (« un autre truc du plan ») → l'intersection
+citation↔cible a ete ajoutee et l'exemple negatif mis en doctrine; puis le
+re-arm 3g echouait sur les clarifications de cible (known_slots portait la
+cible DEVINEE) → regle de fusion precisee (la reponse du user PRIME sur le
+slot clarifie).
+
+Correction de cible (3h-bis + runtime): chaque entry conversationnelle stocke
+item_patch_prior (etat de l'item avant patch compteur/statut) dans sa
+metadata → invalidateChatEntryForRetarget fait un revert EXACT (jamais de
+devinette) puis le commit part sur la cible corrigee. « corrige » rejoint le
+vocabulaire default-deny (claim ⇒ commit exige).
+
+Validation reelle (persona Alex, scopes dedies, purges): vague → clarify
+(0 commit) → reponse → re-arm → commit bonne cible; report sas → correction →
+entry sas invalidee + reps restaures + commit bonne cible + claim veridique.
+
+Fichiers. dispatcher.prompts.ts (3d-ter, 3h-bis, 3g fusion, exemple, version
+target_evidence_retarget_v1), track intake/contract/router/executor/db,
+companion (vocab), direct_effect_local_context (vocab EN),
+one_shot_reminder_prompt_contract (vocab canonique).
+
+Tests. Track 18 verts (contrat citation: absente/fabriquee/reelle/fenetre/
+alias; retarget pass-through), dispatcher contract 24 verts, sweep 763/9
+preexistants. Etat DB final = baseline (0 entry residuelle).
+
+---
+
+## 2026-07-04 — Chantier H : memorizer haut volume + snapshot coches + invariant clarify
+
+Source: vague de 5 runs du 2026-07-03 soir (rose-r6 B01/B02, paul-r2 B01).
+Diagnostic prealable: les 2 reds de la vague (nina-r2 T14/T15, eva-r3 T14)
+ont ete requalifies pre-G par la preuve DB (payloads sans target_evidence,
+tours a 20:41-20:50 UTC, deploiement G ~21:50) — pas de regression.
+
+H1 — trigger-memorizer-daily robuste au volume (rose-r6 B01, BF-MEMORY-01).
+Le filtre deja-traites `.in("message_id", ids)` non borne depassait la limite
+d'URI PostgREST des ~200 ids → batch entier en echec, AUCUN memory_item ecrit
+sur le chemin nominal, erreur logguee `[object Object]`. Fix runtime (garde
+de chargement, zero semantique): loadProcessedMessageIds chunke par 100 et
+unionne; readableErrorMessage serialise message/details/code. Deno.serve
+gate par import.meta.main (module importable en test). Tests: 519 ids →
+chunks <=100, aucun id perdu; erreur reelle remontee. Validation reelle:
+batch Rose 201 ids → HTTP 200 (chargement passe, stade extraction atteint).
+
+H2 — le snapshot plan porte les coches reelles (paul-r2 B01, BF-STATUS-02).
+Cause racine: conflit cree par F3 — le bloc SNAPSHOT se declarait « source
+de verite pour "ou j'en suis" » mais ne contenait QUE les statuts d'items;
+le modele obeissait au bloc dominant et NIAIT les entries pourtant chargees
+dans executions_semaine (le chargement etait sain: entries plan_id OK,
+fenetre OK). Fix prompt-first, une seule source: V2PlanItemSnapshotItem porte
+recent_checks (effective_at/outcome depuis user_plan_item_entries, deja
+chargees par getPlanItemRuntime — zero requete en plus), le bloc rend
+« coches recentes: outcome@date » par item + ligne d'usage « statut != coche,
+ne nie jamais une coche listee »; idem active_plan_items des visible agents
+coaching. Probe reelle Paul: 2 tracks en session → recap les cite et les
+attribue a aujourd'hui; question de verification → confirmation DB, 0 effet
+(la forme exacte du red eva-r3 T14 ne se reproduit pas non plus).
+
+H3 — invariant « pas de silence validant » (rose-r6 B02).
+Un needs_clarify sans question rendait le contrat O muet (le composeur
+n'avait rien a poser → validation emotionnelle sans effet, rose-r6 T2 ere
+F2). Invariant structurel dans deriveEffectsOutcome: clarify_question a
+TOUJOURS une valeur (fallback par effect_type si le hint de lane manque) +
+test de contrat. Moitie « evidence trop stricte » deja morte avec G1 —
+probe reelle: le message T2 verbatim de rose-r6 committe desormais sur
+d62d828a avec claim veridique.
+
+Fichiers. trigger-memorizer-daily/index.ts (+index_test.ts nouveau),
+plan_snapshot_runtime.ts (recent_checks), direct_effect_local_context.ts
+(rendu coches + ligne usage + fallback clarify), coaching skill.ts +
+visible_agents/shared.ts (recent_checks + doctrine).
+
+Tests. 4 nouveaux memorizer verts, 11 direct_effect_local_context verts
+(dont 2 nouveaux), sweep router+track+companion 153 verts / 3 echecs
+preexistants a HEAD (user_facing_messages_architecture, verifies par stash).
+Cleanup probes: 3 entries supprimees, scopes purges, items = baseline exacte.

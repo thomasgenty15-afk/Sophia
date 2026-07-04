@@ -134,6 +134,9 @@ const QUIET_WINDOW_MINUTES = Number.parseInt(
   10,
 );
 const PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS = 6;
+// Proactive outreach (morning nudges, daily/weekly bilan, momentum outreach)
+// must not be delivered — or retried — more than this long after it was due.
+const PROACTIVE_CHECKIN_MAX_STALENESS_MS = 2 * 60 * 60 * 1000;
 const RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT = 5;
 const RECURRING_REMINDER_TEMPLATE_QUOTA_KEY = "recurring_reminder_template";
 const RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000;
@@ -2731,6 +2734,55 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Proactive-outreach staleness guard.
+      // Morning nudges, daily/weekly bilan and momentum outreach lose their meaning
+      // when they land hours late (delivery failure + backoff retries, or a delayed
+      // cron run). Anchor on the FIRST scheduled time (retries mutate scheduled_for
+      // forward, so we persist it once) and expire instead of sending/retrying past
+      // the freshness window.
+      const isPeremptibleProactiveCheckin = isMomentumMorningNudge ||
+        isActionMorningEncouragement || isMorningLightGreeting ||
+        isActionEveningReview || isWeeklyProgressReview || isMomentumOutreach;
+      if (isPeremptibleProactiveCheckin) {
+        const stalenessPayload =
+          ((checkin as any)?.message_payload ?? {}) as Record<string, unknown>;
+        const scheduledForIso = cleanText((checkin as any)?.scheduled_for);
+        let originalScheduledForIso = cleanText(
+          stalenessPayload?.original_scheduled_for,
+        );
+        if (!originalScheduledForIso && scheduledForIso) {
+          originalScheduledForIso = scheduledForIso;
+          const nextPayload = {
+            ...stalenessPayload,
+            original_scheduled_for: originalScheduledForIso,
+          };
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ message_payload: nextPayload })
+            .eq("id", checkin.id);
+          (checkin as any).message_payload = nextPayload;
+        }
+        const originalScheduledMs = parseIsoMs(originalScheduledForIso);
+        if (
+          originalScheduledMs !== null &&
+          Date.now() - originalScheduledMs > PROACTIVE_CHECKIN_MAX_STALENESS_MS
+        ) {
+          // checkin_status enum has no "expired"; use "cancelled" and mark the
+          // reason in delivery_last_error for observability.
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            errorMessage: "proactive_checkin_expired_stale",
+            requestId,
+          });
+          console.log(
+            `[process-checkins] request_id=${requestId} proactive_checkin_expired checkin_id=${checkin.id} event_context=${eventContext} original_scheduled_for=${originalScheduledForIso}`,
+          );
+          continue;
+        }
+      }
+
       // Recurring reminders: if previous consent probes were unanswered, count them.
       // After 2 unanswered probes, auto-pause the reminder and stop future sends.
       if (recurringReminderId) {
@@ -4701,10 +4753,14 @@ Deno.serve(async (req) => {
         }
       }
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
+      const isMorningNudgeKind = isMomentumMorningNudge ||
+        isActionMorningEncouragement || isMorningLightGreeting;
       const checkinPurpose = recurringReminderId
         ? "recurring_reminder"
         : isBirthdayGreeting
         ? "birthday_greeting"
+        : isMorningNudgeKind
+        ? "morning_nudge"
         : "scheduled_checkin";
       const recurringReminderNeedsTemplate = Boolean(recurringReminderId) &&
         !in24hConversationWindow;

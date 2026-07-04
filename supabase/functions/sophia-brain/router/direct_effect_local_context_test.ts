@@ -1,6 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   buildDirectEffectConfirmationContext,
+  directEffectConfirmationContextPrompt,
   directEffectTimeContextFromUnknown,
   directEffectLocalDispatcherPromptLines,
   withDirectEffectLocalContext,
@@ -250,4 +251,194 @@ Deno.test("local one-shot direct effect is ignored when global already flagged i
   });
 
   assertEquals(effect, null);
+});
+
+Deno.test("effects_outcome is TOTAL: safety-muted lane yields a visible not_attempted outcome (rose-r5 T11)", () => {
+  // Le cas historiquement muet: le dispatcher a emis un track explicite, mais
+  // la lane n'a jamais tourne (blocage safety amont). Le contrat total doit
+  // produire un outcome visible avec la posture "differe honnete" — jamais
+  // un contexte null qui laisse le composeur inventer "c'est note".
+  const context = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "high", reason_codes: [], evidence: [] },
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "d62d828a", status_hint: "missed" },
+    }],
+    // Pas de direct_effect_lane: la lane n'a pas ete executee.
+  });
+  assertEquals(context !== null, true);
+  const outcome = context?.effects_outcome.find((o) =>
+    o.effect_type === "track_progress_plan_item"
+  );
+  assertEquals(outcome?.status, "not_attempted");
+  assertEquals(outcome?.reason_code, "safety_active");
+  assertEquals(outcome?.guidance.includes("differee"), true);
+  assertEquals(outcome?.guidance.includes("aucun claim"), true);
+
+  // Anti-faux-positif: aucun effet demande, aucune lane → pas de contexte.
+  const empty = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "high", reason_codes: [], evidence: [] },
+    direct_effects: [],
+  });
+  assertEquals(empty, null);
+});
+
+Deno.test("effects_outcome maps blocked reasons to needs_clarify with the lane question (eva-r2 B01)", () => {
+  const context = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "coupure", status_hint: "missed" },
+    }],
+    direct_effect_lane: {
+      committed_effects: [],
+      requested_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Coupure ecran",
+        progress_status: "missed",
+      }],
+      allowed_effects: [],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "contradicts_same_day_evidence",
+      }],
+      visible_confirmation_hint:
+        "Tu parles de quelle nuit exactement ? J'ai deja un soir note ce jour-la.",
+    },
+  });
+  const outcome = context?.effects_outcome.find((o) =>
+    o.effect_type === "track_progress_plan_item"
+  );
+  assertEquals(outcome?.status, "needs_clarify");
+  assertEquals(outcome?.reason_code, "contradicts_same_day_evidence");
+  assertEquals(
+    outcome?.clarify_question?.includes("quelle nuit"),
+    true,
+  );
+  assertEquals(outcome?.target, "Coupure ecran");
+  assertEquals(outcome?.guidance.includes("N'accuse aucune ecriture"), true);
+
+  // Un commit reste committed avec sa guidance de confirmation unique.
+  const committed = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Marche",
+        progress_status: "completed",
+      }],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
+    },
+  });
+  const committedOutcome = committed?.effects_outcome[0];
+  assertEquals(committedOutcome?.status, "committed");
+  assertEquals(committedOutcome?.guidance.includes("une seule fois"), true);
+});
+
+Deno.test("confirmation prompt carries the universal default-deny policy, not per-case enumeration", () => {
+  const prompt = directEffectConfirmationContextPrompt({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {},
+    }],
+  });
+  assertEquals(prompt !== null, true);
+  assertEquals(
+    prompt?.includes(
+      "effects_outcome is the complete and only truth",
+    ),
+    true,
+  );
+  assertEquals(prompt?.includes("Default-deny"), true);
+  assertEquals(
+    prompt?.includes("never say or imply 'c'est noté / c'est fait"),
+    true,
+  );
+  assertEquals(prompt?.includes("status=needs_clarify → ask clarify_question"), true);
+});
+
+Deno.test("plan snapshot block lists recent checks so recaps read entries, not item status", async () => {
+  const { activePlanSnapshotPromptBlock } = await import(
+    "./direct_effect_local_context.ts"
+  );
+  const block = activePlanSnapshotPromptBlock([
+    {
+      id: "item-1",
+      title: "Journée avec au moins une marche active",
+      dimension: "habits",
+      status: "active",
+      tracking_type: "boolean",
+      recent_checks: [
+        { effective_at: "2026-07-03T12:00:00.000Z", entry_kind: "progress", outcome: "completed" },
+        { effective_at: "2026-07-01T12:00:00.000Z", entry_kind: "skip", outcome: "missed" },
+      ],
+    },
+    {
+      id: "item-2",
+      title: "Préparer un plan anti-ennui",
+      dimension: "missions",
+      status: "pending",
+    },
+  ]);
+  // L'item tracké expose ses coches (outcome@date) malgré son statut `active`:
+  // c'est la donnée qui empêche un recap de nier une entry committée.
+  assertEquals(block?.includes("statut: active"), true);
+  assertEquals(block?.includes("coches recentes: completed@2026-07-03, missed@2026-07-01"), true);
+  // Item sans coche: pas de suffixe fabriqué.
+  assertEquals(block?.includes("Préparer un plan anti-ennui — statut: pending") || block?.includes("Préparer un plan anti-ennui [missions] — statut: pending"), true);
+  assertEquals(block?.split("coches recentes:").length, 2);
+  // Ligne d'usage: le statut seul ne répond jamais à "qu'est-ce que j'ai coché".
+  assertEquals(block?.includes("ne nie jamais une coche listee"), true);
+});
+
+Deno.test("needs_clarify outcome NEVER ships without a question (rose-r6 B02 invariant)", () => {
+  // Lane needs_clarify sans visible_confirmation_hint (le chemin qui a produit
+  // le silence validant de rose-r6 T2): la question de fallback doit exister.
+  const context = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "item-x", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      committed_effects: [],
+      requested_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Journée 100% sans cannabis",
+        progress_status: "completed",
+      }],
+      allowed_effects: [],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "target_not_evidenced",
+      }],
+      // pas de visible_confirmation_hint
+    },
+  });
+  const outcome = context?.effects_outcome.find((o) =>
+    o.effect_type === "track_progress_plan_item"
+  );
+  assertEquals(outcome?.status, "needs_clarify");
+  assertEquals(typeof outcome?.clarify_question, "string");
+  assertEquals((outcome?.clarify_question ?? "").length > 0, true);
+  assertEquals(
+    outcome?.clarify_question?.includes("quelle action de ton plan"),
+    true,
+  );
 });

@@ -37,6 +37,17 @@ export type CoachingVisibleAgentInput = {
       age: number | null;
       gender: "male" | "female" | "other" | null;
     } | null;
+    /** Actions actives du plan (source DB) — F3: le visible agent ne demande jamais au user sa liste. */
+    active_plan_items?: Array<{
+      title: string;
+      status: string;
+      dimension: string | null;
+      /** Coches reelles (entries DB): le statut d'item ne dit pas "deja coche". */
+      recent_checks?: Array<{
+        effective_at: string | null;
+        outcome: string | null;
+      }>;
+    }> | null;
   };
   flow_context: CoachingRecommendationFlowContext;
   step_context: CoachingVisibleStepContext;
@@ -58,6 +69,7 @@ export const COACHING_VISIBLE_GLOBAL_RULES = [
   "- Ne promets jamais une creation, sauvegarde, activation, programmation, modification ou execution de carte, potion, plan, preference ou feature Sophia depuis le chat.",
   "- Exception stricte: si flow_context.direct_effect_confirmation_context.one_shot_reminder.committed=true ou si visible_runtime_context.recent_effects_summary prouve une ligne 'Rappel ponctuel cree: execute et persiste' avec etat DB actuel, tu peux confirmer sobrement le rappel en suivant strictement les regles one_shot_reminder ci-dessous: confirmation active uniquement sur le tour du commit; sur les tours suivants, seulement si le user en parle — jamais en preambule d'un tour qui porte sur autre chose. Cette exception ne permet pas de dire qu'une carte, potion, plan, preference ou feature a ete creee.",
   "- Si visible_runtime_context.recent_effects_summary contient un effet recent, utilise-le seulement si le user demande ce qui vient d'etre fait, programme, note, valide ou annule, ou pour eviter de contredire un effet recent. Ne nomme jamais EffectLedger et ne le mentionne pas spontanement.",
+  "- visible_runtime_context.active_plan_items est la liste reelle des actions actives du plan (source DB). Si le user demande son plan, ses actions ou où il en est, reponds depuis cette liste. Ne dis JAMAIS que tu n'as pas la liste sous les yeux et ne demande JAMAIS au user de coller, copier ou redonner son plan. Les recent_checks d'un item sont ses coches reelles (entries DB): un item peut etre status=active ET deja coche aujourd'hui — pour 'qu'est-ce que j'ai coche/fait', reponds depuis recent_checks, jamais depuis le statut seul, et ne nie jamais une coche listee.",
   "- Ne cite jamais recurring_reminder, coach_preferences, one_shot_reminder, track_progress, track_progress_plan_item ou platform.",
   "- step_context.selected_feature est une hypothese initiale du dispatcher, pas une decision finale. Tu peux reviser la feature dans ton perimetre si le dernier message user donne une cause plus precise ou corrige le diagnostic.",
   "- Respecte le scope et la destination de step_context. Ne change pas de type de coaching, ne change pas de surface produit hors des regles UI du scope courant.",

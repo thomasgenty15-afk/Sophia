@@ -188,6 +188,14 @@ export type CancelOneShotReminderOutcome =
     cancelled_local_labels: string[];
     cancelled_ids?: string[];
     user_message: string;
+  }
+  | {
+    // Plusieurs pending et aucune heure cible identifiable: on ne devine
+    // jamais quoi annuler — clarification (contrat O).
+    detected: true;
+    status: "ambiguous_target";
+    pending_count: number;
+    user_message: string;
   };
 
 export type CreateOneShotReminderV2Outcome =

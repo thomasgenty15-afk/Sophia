@@ -5,9 +5,11 @@ import {
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import {
   applyTrackProgressDirectEffectRuntimeState,
+  pendingTrackProgressClarificationForDispatcher,
   runTrackProgressPlanItemDirectEffect,
   runTrackProgressPlanItemFromWeeklyCorrection,
   TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY,
+  trackTargetEvidenceVerified,
 } from "./router.ts";
 import { runTrackProgressPlanItemV2 } from "./track_progress_plan_item_tool.ts";
 
@@ -27,6 +29,7 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
         target_item_id: "walk",
         target_title: "marche",
         status_hint: "completed",
+        target_evidence: "ma marche",
       },
     }],
     skill_signals: {},
@@ -69,7 +72,7 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
           explicitness: "explicit",
           target_status: "identified",
           confidence_band: "high",
-          payload_hint: { target_item_id: "walk", status_hint: "missed" },
+          payload_hint: { target_item_id: "walk", status_hint: "missed", target_evidence: "ma marche" },
         }],
       }),
       expected: "logged",
@@ -84,7 +87,7 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
           explicitness: "explicit",
           target_status: "identified",
           confidence_band: "high",
-          payload_hint: { target_item_id: "walk", status_hint: "partial" },
+          payload_hint: { target_item_id: "walk", status_hint: "partial", target_evidence: "ma marche" },
         }],
       }),
       expected: "logged",
@@ -230,7 +233,7 @@ Deno.test("track_progress_plan_item v2 can coexist with product_help signal", as
         explicitness: "explicit",
         target_status: "identified",
         confidence_band: "high",
-        payload_hint: { target_item_id: "walk", status_hint: "missed" },
+        payload_hint: { target_item_id: "walk", status_hint: "missed", target_evidence: "ma marche" },
       }],
     }),
     write_progress: async () => ({ logged_progress_id: "progress-emotion" }),
@@ -257,7 +260,7 @@ Deno.test("track_progress_plan_item direct effect router returns canonical logge
           explicitness: "explicit",
           target_status: "identified",
           confidence_band: "high",
-          payload_hint: { target_item_id: "walk", status_hint: "partial" },
+          payload_hint: { target_item_id: "walk", status_hint: "partial", target_evidence: "ma marche" },
         }],
       }),
       expectedIntent: "log_partial",
@@ -272,7 +275,7 @@ Deno.test("track_progress_plan_item direct effect router returns canonical logge
           explicitness: "explicit",
           target_status: "identified",
           confidence_band: "high",
-          payload_hint: { target_item_id: "walk", status_hint: "missed" },
+          payload_hint: { target_item_id: "walk", status_hint: "missed", target_evidence: "ma marche" },
         }],
       }),
       expectedIntent: "log_missed",
@@ -668,6 +671,7 @@ Deno.test("track_progress same-day contradiction guard (BF-EFFECT-01 R2-B01)", a
         payload_hint: {
           target_item_id: "walk",
           status_hint: "missed",
+          target_evidence: "ma marche",
           ...extraPayload,
         },
       }],
@@ -750,3 +754,218 @@ Deno.test("track_progress same-day contradiction guard (BF-EFFECT-01 R2-B01)", a
     },
   );
 });
+
+Deno.test("pending clarification re-arm window: exposed once to the dispatcher, with known slots (eva-r2 B01)", async () => {
+  // needs_clarify stocke la question + les slots connus dans temp_memory.
+  const tempMemory: Record<string, unknown> = {};
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "la coupure n'a pas tenu ce soir-la",
+    plan_snapshot: [{ id: "walk", title: "marche" }],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "ambiguous",
+        confidence_band: "high",
+        payload_hint: {},
+      }],
+    }),
+    write_progress: async () => ({ logged_progress_id: "never" }),
+  });
+  assertEquals(result.status, "needs_clarify");
+  applyTrackProgressDirectEffectRuntimeState({
+    temp_memory: tempMemory,
+    result,
+    source_message_id: "msg-13",
+  });
+
+  // Tour suivant: la clarification est exposee UNE fois au dispatcher.
+  const first = pendingTrackProgressClarificationForDispatcher(tempMemory);
+  assertEquals(first?.effect_type, "track_progress_plan_item");
+  assertEquals((first?.clarify_question ?? "").length > 0, true);
+  // Fenetre unique: la deuxieme lecture ne re-expose pas.
+  const second = pendingTrackProgressClarificationForDispatcher(tempMemory);
+  assertEquals(second, null);
+
+  // Anti-faux-positif: un etat logged n'expose jamais de clarification.
+  const loggedMemory: Record<string, unknown> = {
+    [TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY]: {
+      mode: "logged",
+      source_message_id: "msg-1",
+    },
+  };
+  assertEquals(
+    pendingTrackProgressClarificationForDispatcher(loggedMemory),
+    null,
+  );
+});
+
+Deno.test("target evidence contract: no quote or fabricated quote clarifies, real quote commits (G1)", async () => {
+  const planSnapshot = [{
+    id: "walk",
+    title: "Faire 10 min de mouvement en rentrant",
+    aliases: ["marche"],
+  }];
+  const trackFrame = (payload: Record<string, unknown>) =>
+    frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: payload,
+      }],
+    });
+
+  // Citation ABSENTE (cible devinee, "un autre truc du plan"): clarify.
+  const noQuote = await runTrackProgressPlanItemDirectEffect({
+    message: "j'ai avance sur un autre truc du plan cette semaine",
+    plan_snapshot: planSnapshot,
+    turn_frame: trackFrame({ target_item_id: "walk", status_hint: "completed" }),
+    write_progress: async () => ({ logged_progress_id: "never" }),
+  });
+  assertEquals(noQuote.status, "needs_clarify");
+  assertEquals(noQuote.debug.reason_code, "target_not_evidenced");
+  assertEquals(noQuote.committed_effects, []);
+
+  // Citation FABRIQUEE (les mots n'existent pas dans le message): clarify.
+  const fabricated = await runTrackProgressPlanItemDirectEffect({
+    message: "voila c'est fait pour ce soir",
+    plan_snapshot: planSnapshot,
+    turn_frame: trackFrame({
+      target_item_id: "walk",
+      status_hint: "completed",
+      target_evidence: "mes 10 min de mouvement",
+    }),
+    write_progress: async () => ({ logged_progress_id: "never" }),
+  });
+  assertEquals(fabricated.status, "needs_clarify");
+  assertEquals(fabricated.debug.reason_code, "target_not_evidenced");
+
+  // Citation REELLE dans le message courant: commit direct, zero friction.
+  const attested = await runTrackProgressPlanItemDirectEffect({
+    message: "j'ai fait mes 10 min de mouvement en rentrant ce soir",
+    plan_snapshot: planSnapshot,
+    turn_frame: trackFrame({
+      target_item_id: "walk",
+      status_hint: "completed",
+      target_evidence: "mes 10 min de mouvement",
+    }),
+    write_progress: async () => ({ logged_progress_id: "p-1" }),
+  });
+  assertEquals(attested.status, "logged");
+
+  // Citation prise dans la fenetre (tour precedent qui nommait l'action).
+  const windowAttested = await runTrackProgressPlanItemDirectEffect({
+    message: "oui c'est fait",
+    plan_snapshot: planSnapshot,
+    turn_frame: trackFrame({
+      target_item_id: "walk",
+      status_hint: "completed",
+      target_evidence: "ta marche de ce soir",
+    }),
+    evidence_messages: ["Tu veux qu'on parle de ta marche de ce soir ?"],
+    write_progress: async () => ({ logged_progress_id: "p-2" }),
+  });
+  assertEquals(windowAttested.status, "logged");
+});
+
+Deno.test("trackTargetEvidenceVerified: verbatim containment, accent/case tolerant, zero business knowledge", () => {
+  // Accents et casse normalises, rien d'autre.
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "ma journee sans ecran",
+      target_title: "Journée sans écran après 22h30",
+      texts: ["J'ai reussi ma journée sans écran hier !"],
+    }),
+    true,
+  );
+  // Citation vide = pas de preuve.
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "",
+      target_title: "Journée sans écran",
+      texts: ["peu importe"],
+    }),
+    false,
+  );
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: null,
+      target_title: "Journée sans écran",
+      texts: ["x"],
+    }),
+    false,
+  );
+  // Citation reelle mais qui ne partage aucun mot avec le titre NI les
+  // aliases de l'item choisi: la reference vague citee comme evidence
+  // (le cas observe en probe: "un autre truc du plan").
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "un autre truc du plan",
+      target_title: "Planifier mes soirees de la semaine",
+      texts: ["j'ai avance sur un autre truc du plan cette semaine"],
+    }),
+    false,
+  );
+  // Alias structurel = nom user-facing valide.
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "ma marche",
+      target_title: "Faire 10 min de mouvement en rentrant",
+      target_aliases: ["marche"],
+      texts: ["j'ai fait ma marche ce soir"],
+    }),
+    true,
+  );
+  // Citation fabriquee: "mes soirees de la semaine" n'existe pas telle
+  // quelle dans le message (regression T7 du run r5).
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "mes soirees de la semaine",
+      target_title: "Planifier mes soirees de la semaine",
+      texts: ["j'ai avance sur un autre truc du plan cette semaine"],
+    }),
+    false,
+  );
+});
+
+Deno.test("retarget correction: invalidates the wrong item entry then commits on the corrected target (G2)", async () => {
+  const writes: any[] = [];
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message:
+      "non c'etait la cartographie de mes ruminations, pas les soirees. corrige stp",
+    plan_snapshot: [
+      { id: "cartographie", title: "Cartographier mes ruminations du soir" },
+      { id: "soirees", title: "Planifier mes soirees de la semaine" },
+    ],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "cartographie",
+          status_hint: "completed",
+          correction: true,
+          retarget_from: "soirees",
+          target_evidence: "la cartographie de mes ruminations",
+        },
+      }],
+    }),
+    write_progress: async (input) => {
+      writes.push(input);
+      return { logged_progress_id: "p-corrected" };
+    },
+  });
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 1);
+  assertEquals(writes[0].target_item_id, "cartographie");
+  assertEquals(writes[0].retarget_from_item_id, "soirees");
+  assertEquals(
+    result.committed_effects[0]?.target_title,
+    "Cartographier mes ruminations du soir",
+  );
+});
+

@@ -121,6 +121,65 @@ export function planItemPatchForCompletedEntry(
   };
 }
 
+/**
+ * Correction de cible (3h-bis): invalide l'entry conversationnelle du jour
+ * sur l'item errone et restaure l'etat de l'item depuis item_patch_prior
+ * (enregistre au commit) — revert exact, aucune devinette. Ne touche que les
+ * entries ecrites par le chat (source router_parallel_tracking_v2).
+ */
+export async function invalidateChatEntryForRetarget(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  planItemId: string;
+  outcome: "completed" | "missed" | "partial";
+  effectiveDay: string;
+}): Promise<{ invalidated: boolean }> {
+  const { data, error } = await args.supabase
+    .from("user_plan_item_entries")
+    .select("id,metadata")
+    .eq("user_id", args.userId)
+    .eq("plan_item_id", args.planItemId)
+    .eq("outcome", args.outcome)
+    .gte("effective_at", `${args.effectiveDay}T00:00:00.000Z`)
+    .lt("effective_at", `${args.effectiveDay}T23:59:59.999Z`)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (error) throw error;
+  const row = (data ?? []).find((candidate: any) =>
+    String(
+      (candidate?.metadata as Record<string, unknown> | null)?.source ?? "",
+    ) === "router_parallel_tracking_v2"
+  ) as { id: string; metadata: Record<string, unknown> | null } | undefined;
+  if (!row) return { invalidated: false };
+  const del = await args.supabase
+    .from("user_plan_item_entries")
+    .delete()
+    .eq("id", row.id);
+  if (del.error) throw del.error;
+  const prior = row.metadata?.item_patch_prior as
+    | Record<string, unknown>
+    | undefined;
+  if (prior && typeof prior === "object") {
+    const restore = await args.supabase
+      .from("user_plan_items")
+      .update({
+        status: prior.status ?? null,
+        current_reps: prior.current_reps ?? null,
+        current_habit_state: prior.current_habit_state ?? null,
+        completed_at: prior.completed_at ?? null,
+        activated_at: prior.activated_at ?? null,
+      })
+      .eq("id", args.planItemId);
+    if (restore.error) {
+      console.warn(
+        "[TrackProgress] retarget item restore failed (non-blocking):",
+        restore.error,
+      );
+    }
+  }
+  return { invalidated: true };
+}
+
 export async function logPlanItemProgressV2(args: {
   supabase: SupabaseClient;
   userId: string;
@@ -131,6 +190,7 @@ export async function logPlanItemProgressV2(args: {
   source?: string | null;
   sourceMessageId?: string | null;
   runtime?: ActiveTransformationRuntime | null;
+  retargetFromItemId?: string | null;
 }): Promise<V2TrackingResult> {
   const {
     supabase,
@@ -142,6 +202,7 @@ export async function logPlanItemProgressV2(args: {
     source,
     sourceMessageId,
     runtime,
+    retargetFromItemId,
   } = args;
 
   const resolvedRuntime = await resolveActiveTransformationRuntime({
@@ -194,6 +255,26 @@ export async function logPlanItemProgressV2(args: {
   // - autre message = question de verification ou double report -> mode
   //   already_logged, le renderer confirme l'existant au lieu de re-committer.
   const effectiveDay = effectiveAt.slice(0, 10);
+
+  // Correction de cible (3h-bis): invalider d'abord l'ecriture erronee du
+  // jour sur l'item source, puis committer normalement sur la bonne cible.
+  if (retargetFromItemId && retargetFromItemId !== planItemId) {
+    try {
+      await invalidateChatEntryForRetarget({
+        supabase,
+        userId,
+        planItemId: retargetFromItemId,
+        outcome: status,
+        effectiveDay,
+      });
+    } catch (error) {
+      console.warn(
+        "[TrackProgress] retarget invalidation failed (non-blocking):",
+        error,
+      );
+    }
+  }
+
   const sameDayResult = await supabase
     .from("user_plan_item_entries")
     .select("id,outcome,created_at,metadata")
@@ -265,6 +346,16 @@ export async function logPlanItemProgressV2(args: {
       channel: String(source ?? "").trim() || null,
       source_message_id: sourceMessageId ?? null,
       status_hint: status,
+      // Etat de l'item AVANT le patch compteur/statut: permet une
+      // invalidation deterministe (correction de cible 3h-bis) sans
+      // deviner ce que le commit avait modifie.
+      item_patch_prior: {
+        status: item.status ?? null,
+        current_reps: item.current_reps ?? null,
+        current_habit_state: item.current_habit_state ?? null,
+        completed_at: item.completed_at ?? null,
+        activated_at: item.activated_at ?? null,
+      },
     },
   };
 
@@ -394,6 +485,7 @@ export function createTrackProgressPlanItemWrite(args: {
       source: args.source,
       sourceMessageId: input.source_message_id || args.sourceMessageId,
       runtime: args.runtime,
+      retargetFromItemId: input.retarget_from_item_id ?? null,
     });
     if (written.mode === "already_logged" && written.logged_progress_id) {
       return {

@@ -121,6 +121,60 @@ async function loadCandidateUsers(args: {
   }));
 }
 
+// Les erreurs du client Supabase sont souvent des objets plats (pas des
+// instances Error): String(error) donnerait "[object Object]" et masquerait
+// la cause reelle (ex: "URI too long").
+export function readableErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message || String(error);
+  if (typeof error === "string") return error;
+  const anyErr = error as any;
+  if (typeof anyErr?.message === "string" && anyErr.message) {
+    const details = typeof anyErr?.details === "string" && anyErr.details
+      ? ` (${anyErr.details})`
+      : "";
+    const code = typeof anyErr?.code === "string" && anyErr.code
+      ? ` [${anyErr.code}]`
+      : "";
+    return `${anyErr.message}${details}${code}`;
+  }
+  try {
+    return JSON.stringify(error ?? null);
+  } catch {
+    return String(error);
+  }
+}
+
+// PostgREST encode `.in(...)` dans l'URL GET: au-dela de quelques centaines
+// d'ids, la requete depasse la limite d'URI et le batch entier echoue
+// ("URI too long") — aucun memory_item ecrit. On requete donc par paquets
+// bornes et on unionne les resultats.
+export const PROCESSED_IDS_CHUNK_SIZE = 100;
+
+export async function loadProcessedMessageIds(args: {
+  admin: any;
+  user_id: string;
+  message_ids: string[];
+  chunk_size?: number;
+}): Promise<Set<string>> {
+  const chunkSize = Math.max(1, args.chunk_size ?? PROCESSED_IDS_CHUNK_SIZE);
+  const processedIds = new Set<string>();
+  for (let start = 0; start < args.message_ids.length; start += chunkSize) {
+    const chunk = args.message_ids.slice(start, start + chunkSize);
+    const { data: processed, error: processedError } = await args.admin
+      .from("memory_message_processing")
+      .select("message_id")
+      .eq("user_id", args.user_id)
+      .eq("processing_role", "primary")
+      .eq("processing_status", "completed")
+      .in("message_id", chunk);
+    if (processedError) throw processedError;
+    for (const row of processed ?? []) {
+      processedIds.add(String((row as any).message_id));
+    }
+  }
+  return processedIds;
+}
+
 async function loadUnprocessedMessages(args: {
   admin: any;
   user_id: string;
@@ -142,17 +196,11 @@ async function loadUnprocessedMessages(args: {
   if (rows.length === 0) return [];
 
   const ids = rows.map((row: any) => String(row.id));
-  const { data: processed, error: processedError } = await args.admin
-    .from("memory_message_processing")
-    .select("message_id")
-    .eq("user_id", args.user_id)
-    .eq("processing_role", "primary")
-    .eq("processing_status", "completed")
-    .in("message_id", ids);
-  if (processedError) throw processedError;
-  const processedIds = new Set(
-    (processed ?? []).map((row: any) => String(row.message_id)),
-  );
+  const processedIds = await loadProcessedMessageIds({
+    admin: args.admin,
+    user_id: args.user_id,
+    message_ids: ids,
+  });
 
   return rows
     .filter((row: any) => !processedIds.has(String(row.id)))
@@ -436,7 +484,7 @@ async function runDailyMemorizerForUser(args: {
   };
 }
 
-Deno.serve(async (req) => {
+async function handleRequest(req: Request): Promise<Response> {
   const requestId = getRequestId(req);
   try {
     logDailyMemorizer("request_received", {
@@ -559,7 +607,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     logDailyMemorizer("request_failed", {
       request_id: requestId,
-      error: error instanceof Error ? error.message : String(error),
+      error: readableErrorMessage(error),
     }, "error");
     await logEdgeFunctionError({
       functionName: "trigger-memorizer-daily",
@@ -572,7 +620,11 @@ Deno.serve(async (req) => {
     return jsonResponse(req, {
       ok: false,
       request_id: requestId,
-      error: error instanceof Error ? error.message : String(error),
+      error: readableErrorMessage(error),
     }, { status: 500 });
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handleRequest);
+}

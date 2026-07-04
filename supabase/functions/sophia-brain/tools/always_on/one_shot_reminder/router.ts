@@ -8,8 +8,8 @@ import type {
   OneShotReminderToolOutcome,
 } from "./contract.ts";
 import { buildOneShotReminderIntake } from "./intake.ts";
-import type { maybeCancelOneShotReminder } from "./executor.ts";
 import {
+  maybeCancelOneShotReminder,
   maybeCreateOneShotReminder,
   maybeCreateOneShotReminderFromStructuredEffect,
 } from "./executor.ts";
@@ -284,6 +284,106 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       blocked_effects: [{
         type: effectType,
         reason_code: "no_mutation_requested",
+      }],
+    };
+  }
+  // Intention cancel (F4, paul-broadflow15 T14): une demande d'annulation ne
+  // touche JAMAIS le chemin create — garde structurelle meme si le LLM se
+  // trompe ailleurs. Le payload porte intent="cancel" (contrat dispatcher);
+  // l'executor cible le pending par heure locale, et l'ambiguite clarifie au
+  // lieu de deviner.
+  if (payloadText(createEffect, "intent") === "cancel") {
+    const cancelRunner = args.cancelReminder ?? maybeCancelOneShotReminder;
+    const cancelOutcome = await cancelRunner({
+      supabase: args.supabase,
+      userId: args.userId,
+      message: args.message,
+      requestId: args.requestId,
+      now,
+    });
+    if (cancelOutcome.detected && cancelOutcome.status === "cancelled") {
+      const label = cancelOutcome.cancelled_local_labels[0] ?? "";
+      return {
+        ...baseDirectEffectResult({
+          detected: true,
+          intent: "cancel",
+          status: "success",
+          reason_code: "cancelled",
+          reply: label
+            ? `C'est annulé : le rappel de ${label} ne partira pas.`
+            : "C'est annulé : ce rappel ne partira pas.",
+        }),
+        executed_tools: ["cancel_one_shot_reminder"],
+        requested_effects: [{
+          type: "cancel_one_shot_reminder",
+          reason_code: "cancel",
+        }],
+        allowed_effects: [{
+          type: "cancel_one_shot_reminder",
+          reason_code: "cancel",
+        }],
+        committed_effects: [{
+          type: "cancel_one_shot_reminder",
+          ids: cancelOutcome.cancelled_ids ?? [],
+          local_label: label || undefined,
+        }],
+      };
+    }
+    if (cancelOutcome.detected && cancelOutcome.status === "ambiguous_target") {
+      return {
+        ...baseDirectEffectResult({
+          detected: true,
+          intent: "cancel",
+          status: "needs_clarify",
+          reason_code: "cancel_target_ambiguous",
+          reply:
+            `Tu as ${cancelOutcome.pending_count} rappels en attente — tu veux annuler lequel ? Donne-moi son heure.`,
+        }),
+        requested_effects: [{
+          type: "cancel_one_shot_reminder",
+          reason_code: "cancel",
+        }],
+        blocked_effects: [{
+          type: "cancel_one_shot_reminder",
+          reason_code: "cancel_target_ambiguous",
+        }],
+      };
+    }
+    if (cancelOutcome.detected && cancelOutcome.status === "no_reminder") {
+      return {
+        ...baseDirectEffectResult({
+          detected: true,
+          intent: "cancel",
+          status: "blocked",
+          reason_code: "no_pending_reminder",
+          reply:
+            "Je ne trouve aucun rappel en attente qui corresponde — rien à annuler.",
+        }),
+        requested_effects: [{
+          type: "cancel_one_shot_reminder",
+          reason_code: "cancel",
+        }],
+        blocked_effects: [{
+          type: "cancel_one_shot_reminder",
+          reason_code: "no_pending_reminder",
+        }],
+      };
+    }
+    return {
+      ...baseDirectEffectResult({
+        detected: true,
+        intent: "cancel",
+        status: "failed",
+        reason_code: "cancel_failed",
+        reply: "Je n'ai pas réussi à annuler ce rappel.",
+      }),
+      requested_effects: [{
+        type: "cancel_one_shot_reminder",
+        reason_code: "cancel",
+      }],
+      blocked_effects: [{
+        type: "cancel_one_shot_reminder",
+        reason_code: "cancel_failed",
       }],
     };
   }

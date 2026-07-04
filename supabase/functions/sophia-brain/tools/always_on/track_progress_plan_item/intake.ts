@@ -16,6 +16,12 @@ export type TrackProgressIntakeResult = {
   // Correction explicite d'un report deja fait (contrat dispatcher 3h):
   // seule voie qui autorise a re-ecrire un outcome oppose le meme jour.
   is_correction: boolean;
+  // Citation verbatim des mots du user qui nomment la cible (contrat 3d-ter):
+  // preuve exigee avant toute ecriture sur target_status=identified.
+  target_evidence: string | null;
+  // Correction de cible (contrat 3h-bis): item errone dont l'entry du jour
+  // doit etre invalidee avant de committer sur target_item_id.
+  retarget_from_item_id: string | null;
   confidence: "high" | "medium" | "low";
   reason_code: string;
   evidence: string[];
@@ -179,6 +185,8 @@ export function runTrackProgressIntake(args: {
       value: null,
       date_hint: null,
       is_correction: false,
+      target_evidence: null,
+      retarget_from_item_id: null,
       confidence: "low",
       reason_code: "no_track_progress_direct_effect",
       evidence: [],
@@ -195,6 +203,8 @@ export function runTrackProgressIntake(args: {
       value: null,
       date_hint: null,
       is_correction: false,
+      target_evidence: null,
+      retarget_from_item_id: null,
       confidence: "high",
       reason_code: "status_question",
       evidence: [args.message],
@@ -211,6 +221,8 @@ export function runTrackProgressIntake(args: {
       value: null,
       date_hint: null,
       is_correction: false,
+      target_evidence: null,
+      retarget_from_item_id: null,
       confidence: "high",
       reason_code: "future_intent",
       evidence: [args.message],
@@ -235,6 +247,12 @@ export function runTrackProgressIntake(args: {
     ? payload.date_hint
     : null;
   const isCorrection = payload.correction === true;
+  const targetEvidence = typeof payload.target_evidence === "string"
+    ? payload.target_evidence.trim()
+    : "";
+  const retargetFromItemId = typeof payload.retarget_from === "string"
+    ? payload.retarget_from.trim()
+    : "";
 
   if (!status) {
     return {
@@ -246,6 +264,8 @@ export function runTrackProgressIntake(args: {
       value: null,
       date_hint: dateHint,
       is_correction: isCorrection,
+      target_evidence: targetEvidence || null,
+      retarget_from_item_id: retargetFromItemId || null,
       confidence: "low",
       reason_code: "status_missing",
       evidence: [args.message],
@@ -261,6 +281,8 @@ export function runTrackProgressIntake(args: {
     value: valueForStatus(status, payload.value_hint),
     date_hint: dateHint,
     is_correction: isCorrection,
+    target_evidence: targetEvidence || null,
+    retarget_from_item_id: retargetFromItemId || null,
     confidence: "high",
     reason_code: "dispatcher_status_hint",
     evidence: [args.message],
@@ -286,5 +308,6 @@ export function requestedEffectFromIntake(args: {
     value: Number(args.intake.value),
     date_hint: args.intake.date_hint,
     source_message_id: args.source_message_id,
+    retarget_from_item_id: args.intake.retarget_from_item_id,
   };
 }

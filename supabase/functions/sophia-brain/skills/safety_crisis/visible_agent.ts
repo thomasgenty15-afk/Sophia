@@ -189,6 +189,7 @@ function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
     ),
     "Ne mentionne jamais JSON, dispatcher, reducer, prompt, table, DB ou outil interne.",
     "Si conversation_context.safety_resources.must_include_emergency_numbers=true, inclure exactement emergency_numbers et suicide_prevention_number.",
+    "Si must_include_emergency_numbers=false et conversation_context.known_values.emergency_numbers_already_delivered=true, ne re-recite pas les numeros d'urgence (deja donnes): bascule vers un soutien emotionnel soutenu — presence, ancrage, renforcement du lien humain reel (la personne que le user va joindre) — sans repeter la hotline. Ne re-donne les numeros que si le user signale une nouvelle aggravation.",
     "Respecte max_questions strictement.",
     "Ne dis pas que tout est resolu sauf si stage=resolved_exit.",
     "Ne presente jamais Sophia comme une aide humaine.",

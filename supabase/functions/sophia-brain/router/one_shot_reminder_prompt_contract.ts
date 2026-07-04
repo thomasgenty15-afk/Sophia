@@ -38,6 +38,7 @@ export function oneShotReminderCanonicalDispatcherPromptLines(): string[] {
     "   - Une question de verification sur un rappel deja programme ('tu me relances bien a quelle heure ?', 'c'est bien prevu ?', 'j'ai bien un rappel demain ?') n'est pas une demande de creation: n'emets pas create_one_shot_reminder, la reponse se fait depuis le contexte de confirmation.",
     "   - Regle nocturne (user_local_datetime entre 00:00 et 06:00): 'ce soir' designe le soir du jour civil COURANT, jamais la veille; 'demain' designe strictement le jour civil suivant (J+1), jamais la date du jour. Si le jour vise reste ambigu (ex: 'demain a 21h' dit a 2h du matin), n'emets pas l'effet: la clarification prime.",
     "   - payload_hint.cardinality est obligatoire et vaut 'once' pour un rappel ponctuel. Une demande recurrente n'emet jamais cet effet (cf. regle initiatives); si tu l'emets malgre tout, mets cardinality='recurring' — le runtime le bloquera au lieu de creer un faux ponctuel.",
+    "   - ANNULATION: si le user demande d'annuler, supprimer, retirer ou laisser tomber un rappel ponctuel existant ('annule-le', 'supprime le rappel de 19h', 'finalement pas de rappel'), emets create_one_shot_reminder avec payload_hint.intent='cancel' et, si le user precise le rappel vise, payload_hint.when_hint avec son heure. N'emets JAMAIS une creation (intent absent ou 'create') sur une demande d'annulation: le runtime execute l'annulation du pending vise, ou clarifie si plusieurs rappels sont en attente. Une annulation n'exige ni UTC_time ni instruction_hint.",
   ];
 }
 
@@ -228,6 +229,9 @@ export function oneShotReminderCanonicalVisiblePromptLines(
     ? "N'affirme aucun autre rappel non prouve; ne parle que du rappel committe prouve ci-dessus, en respectant son etat DB actuel (par exemple ne le presente pas comme actif s'il est annule ou deja passe)."
     : "Si aucune de ces sources ne prouve le rappel, dis sobrement que tu ne peux pas confirmer qu'un rappel a ete programme. Ne le deduis jamais du dernier message user, d'une intention, d'une recommandation, ni d'une reponse precedente.";
   return [
+    // Politique universelle default-deny (chantier O5): effects_outcome est
+    // le contrat total — chaque garde future est honnete par construction.
+    `${contextPath}.effects_outcome est la verite complete des ecritures demandees ce tour. Politique: status=committed → confirme une fois; status=blocked/failed/not_attempted → suis guidance de cet outcome, ne presente jamais l'ecriture comme faite; status=needs_clarify → pose clarify_question sans accuser aucune ecriture. Aucun claim d'ecriture NI de correction ("c'est fait/note/enregistre/programme/corrige") hors committed.`,
     ...(activeConfirmationLine ? [activeConfirmationLine] : []),
     "Ne repete pas one_shot_reminder.reminder_instruction ou son equivalent deux fois.",
     "Ne reformule pas l'objet du rappel avant puis apres le marqueur temporel.",
@@ -239,8 +243,8 @@ export function oneShotReminderCanonicalVisiblePromptLines(
     unprovenReminderLine,
     "Ne calcule jamais une heure visible depuis UTC_time ou scheduled_for; utilise uniquement local_label.",
     "Ne recree, reroute, redemande ou redecide jamais un rappel depuis le visible agent.",
-    "Un rappel ponctuel ne peut pas etre annule, modifie, decale, reprogramme ou supprime depuis le chat: c'est une limite produit actuelle, pas un doute sur l'existence du rappel.",
-    "Si le user demande d'annuler, modifier, decaler, supprimer ou laisser tomber un rappel, ne dis jamais que c'est fait et ne le presente pas comme faisable ici; explique sobrement que la gestion des rappels se fait dans la plateforme (ses rappels ponctuels / Initiatives). Meme si le message contient d'autres demandes, accuse d'abord cette demande en une phrase avant de repondre au reste: ne l'ignore jamais en silence.",
-    "Ne nie jamais l'existence d'un rappel deja confirme ou deja prouve par les sources ci-dessus juste parce que l'annulation est impossible: si le rappel est connu, rappelle-le sobrement avec local_label puis pose la limite d'annulation.",
+    "ANNULATION d'un rappel ponctuel: possible depuis le chat UNIQUEMENT quand effects_outcome contient un outcome committed de type cancel_one_shot_reminder — dans ce cas confirme l'annulation une fois (avec local_label si connu). Sans ce commit prouve, ne dis JAMAIS qu'un rappel est annule; si l'outcome est needs_clarify (plusieurs rappels en attente), demande lequel annuler; si l'outcome est blocked (aucun pending correspondant), dis qu'il n'y a rien a annuler. Une modification/decalage/reprogrammation reste hors chat: gestion dans la plateforme.",
+    "Meme si le message contient d'autres demandes, accuse d'abord la demande d'annulation en une phrase (selon son outcome reel) avant de repondre au reste: ne l'ignore jamais en silence.",
+    "Ne nie jamais l'existence d'un rappel deja confirme ou deja prouve par les sources ci-dessus: si le rappel est connu, rappelle-le sobrement avec local_label.",
   ];
 }

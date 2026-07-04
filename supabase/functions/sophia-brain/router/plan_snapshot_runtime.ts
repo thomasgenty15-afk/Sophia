@@ -60,6 +60,14 @@ export type V2PlanItemSnapshotItem = {
   } | null;
   streak_current: number;
   last_entry_at: string | null;
+  // Dernieres coches reelles (user_plan_item_entries) de l'item: la seule
+  // source qui dit "deja coche" — le statut d'item ne le dit pas (une
+  // habitude reste `active` apres un check du jour).
+  recent_checks?: {
+    effective_at: string | null;
+    entry_kind: string | null;
+    outcome: string | null;
+  }[];
   active_load_score?: number;
   payload?: Record<string, unknown> | null;
 };
@@ -410,6 +418,11 @@ export async function buildV2PlanItemSnapshot(
           : null,
         streak_current: computeStreakFromEntries(item.recent_entries),
         last_entry_at: item.last_entry_at,
+        recent_checks: item.recent_entries.slice(0, 3).map((entry) => ({
+          effective_at: entry.effective_at ?? null,
+          entry_kind: entry.entry_kind ?? null,
+          outcome: entry.outcome ?? null,
+        })),
         active_load_score: activeLoad.current_load_score,
         payload: item.payload && typeof item.payload === "object"
           ? item.payload as Record<string, unknown>

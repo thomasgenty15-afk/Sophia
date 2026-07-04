@@ -95,6 +95,31 @@ EffectLedger. Ils ne doivent pas inventer une intention.
 
 14. Tu n'as pas le droit de mettre des guards qui repose sur de la regex.
 
+15. Toute garde qui bloque une écriture DOIT produire un outcome exposé au renderer.
+    Un point de blocage muet est un bug en soi, même si la garde protège
+    correctement la DB : le composeur, face à une demande d'écriture sans
+    aucune information vraie à rendre, invente un accusé (« c'est noté »).
+    Chaque garde (safety, idempotence, clarification, échec technique) doit
+    donc alimenter le contrat d'outcome total du tour
+    (`effects_outcome` : `committed | blocked(raison) | needs_clarify(question)
+    | failed | not_attempted`) avec sa raison et sa posture de rendu
+    (`guidance`). Ajouter une garde sans outcome visible est interdit —
+    c'est le piège qui a produit les claims mensongers sous blocage safety
+    (rose-global15-r5 T11/T12).
+
+16. Le canal de vérité des effets est un contrat TOTAL, jamais une énumération.
+    Interdit d'exposer les cas de blocage champ par champ (« un champ pour le
+    rappel bloqué, un champ pour le track bloqué… ») ou règle de prompt par
+    règle de prompt (« si past_time dis X, si duplicate dis Y… ») : cette
+    approche garantit structurellement un cas oublié. Le prompt du renderer
+    porte une POLITIQUE courte et stable (committed → confirmer une fois ;
+    blocked/failed/not_attempted → suivre guidance, jamais de claim ;
+    needs_clarify → poser la question ; défaut = refus de claim) ; les cas
+    et leurs postures sont des DONNÉES du contexte (raison + guidance),
+    extensibles sans toucher au prompt. Toute affirmation d'écriture
+    (« c'est fait / noté / enregistré / programmé ») exige un outcome
+    `committed` — default-deny, pas allow-list.
+
 ## Test Mental
 
 Avant de coder, l'agent doit pouvoir répondre :
@@ -105,6 +130,8 @@ Avant de coder, l'agent doit pouvoir répondre :
 - quelle famille de cas ce fix améliore-t-il ?
 - quel anti-faux-positif prouve qu'on ne casse pas un cas voisin ?
 - quelle trace ou projection prouve l'effet durable ?
+- si ce fix ajoute un point de blocage : quel outcome produit-il dans
+  `effects_outcome`, et que dira le renderer sur ce chemin ?
 
 Si la réponse tient seulement à "ce message exact doit passer", le fix est
 probablement un patch fragile.
@@ -115,3 +142,4 @@ probablement un patch fragile.
 | --- | --- | --- | --- |
 | 2026-05-30 | Ajouter une charte anti-patching QA pour les corrections de runs rouges. | Active | Demande utilisateur |
 | 2026-05-30 | Rendre obligatoire la classification `BF-*` et la mise a jour des feuilles de bugs par run. | Active | J67 |
+| 2026-07-03 | Commandements 15-16 : contrat d'outcome TOTAL (`effects_outcome`) + politique default-deny des claims. Origine : les gardes ajoutées (safety, idempotence, contradiction) créaient des points de blocage muets que le composeur maquillait en « c'est noté » (rose-global15-r5 T11/T12, paul-broadflow15 T6, eva-r2 T13-15). Le canal d'exposition champ-par-champ garantissait un cas oublié ; il est remplacé par un contrat total où chaque garde est honnête par construction. | Active | Chantier O (2026-07-03) |

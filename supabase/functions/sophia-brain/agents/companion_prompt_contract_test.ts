@@ -52,7 +52,19 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
   assert(prompt.includes("réponse tourne en rond"));
   assert(prompt.includes("reconnais une possible perte de fil côté Sophia"));
   assert(prompt.includes("reprends le dernier point certain"));
-  assert(prompt.includes('ne dis pas "c\'est fait"'));
+  // Politique default-deny (chantier O5): la vérité des écritures est le
+  // contrat d'outcome, jamais l'intuition conversationnelle.
+  assert(
+    prompt.includes(
+      "DIRECT_EFFECT_CONFIRMATION_CONTEXT est la seule vérité",
+    ),
+  );
+  assert(
+    prompt.includes(
+      'jamais "c\'est fait/noté/enregistré/programmé/corrigé"',
+    ),
+  );
+  assert(prompt.includes("pose clarify_question si présente"));
   assert(prompt.includes("sophia_delivery:reaction_only"));
   assert(prompt.includes("sophia_delivery:no_response"));
   assert(prompt.includes('"exactement"'));

@@ -81,6 +81,10 @@ import {
   oneShotDirectEffectFromLocalRequest,
 } from "./one_shot_local_direct_effect.ts";
 import {
+  pendingTrackProgressClarificationForDispatcher,
+} from "../tools/always_on/track_progress_plan_item/router.ts";
+import {
+  activePlanSnapshotPromptBlock,
   directEffectConfirmationContextPrompt,
   withDirectEffectConfirmationContext,
 } from "./direct_effect_local_context.ts";
@@ -911,9 +915,22 @@ export async function processMessage(
     user_id: userId,
     channel,
     active_skill_state: activeFlowState.activeSkillState,
-    flow_state_context: lastLocalFlowExitContext
-      ? { last_local_flow_exit: lastLocalFlowExitContext }
-      : null,
+    flow_state_context: (() => {
+      // Fenetre de re-arm O4: une clarification d'ecriture posee au tour
+      // precedent est exposee une fois au dispatcher pour qu'il re-emette
+      // l'effet complete si le message courant y repond (eva-r2 B01).
+      const pendingClarification =
+        pendingTrackProgressClarificationForDispatcher(tempMemory);
+      if (!lastLocalFlowExitContext && !pendingClarification) return null;
+      return {
+        ...(lastLocalFlowExitContext
+          ? { last_local_flow_exit: lastLocalFlowExitContext }
+          : {}),
+        ...(pendingClarification
+          ? { pending_direct_effect_clarification: pendingClarification }
+          : {}),
+      };
+    })(),
     direct_effect_time_context: userTime
       ? {
         now_utc: userTime.now_utc,
@@ -1152,6 +1169,10 @@ export async function processMessage(
         channel,
         v2Runtime,
         trackProgressBlockedReasonCode: null,
+        evidenceMessages: (history ?? [])
+          .slice(-2)
+          .map((entry: any) => String(entry?.content ?? ""))
+          .filter(Boolean),
       });
       if (reexecTrackRuntime) {
         turnFrame = turnFrameWithDirectEffectRuntime(
@@ -1809,6 +1830,9 @@ export async function processMessage(
     opts?.contextOverride,
     skillExitInjectedContext,
     directEffectConfirmationContextPrompt(turnFrame),
+    // F3: la section que la regle companion designe comme source de verite
+    // des recaps de plan — construite a chaque tour, inconditionnelle.
+    activePlanSnapshotPromptBlock(planItemSnapshot),
     productHelpInjectedContext(routeDecision),
   ].filter(Boolean).join("\n\n") || undefined;
   const contextLoadResult = await loadContextForMode({

@@ -624,3 +624,133 @@ Deno.test("dispatcher prompt keeps presence-first altitude on emotional lows (ev
     true,
   );
 });
+
+Deno.test("dispatcher prompt re-arms a pending write clarification (chantier O4)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "pending_direct_effect_clarification",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "re-emets l'effet direct COMPLET correspondant avec le payload canonique",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "c'est la suite de la meme demande, pas une nouvelle intention",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Si le message courant passe a autre chose, ignore ce contexte",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt anchors retro-dated reports on a resolved ISO date_hint (eva-r2 B01, rose-r5 B06)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Format strict: date ISO locale YYYY-MM-DD du jour vise",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Jamais de mot relatif (\"hier\", \"ce soir\") dans date_hint",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Report d'aujourd'hui: omets date_hint",
+    ),
+    true,
+  );
+  // L'exemple doctrine n'enseigne plus le format relatif.
+  const parsed = JSON.parse(buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+  })) as {
+    doctrine_examples: Array<{
+      user_message: string;
+      expected: {
+        direct_effects?: Array<{ payload_hint?: { date_hint?: string } }>;
+      };
+    }>;
+  };
+  const retro = parsed.doctrine_examples.find((example) =>
+    example.user_message.includes("fait hier soir")
+  );
+  assertEquals(Boolean(retro), true);
+  const dateHint = retro?.expected.direct_effects?.[0]?.payload_hint
+    ?.date_hint ?? "";
+  assertEquals(dateHint.includes("YYYY-MM-DD"), true);
+  assertEquals(dateHint === "hier soir", false);
+});
+
+Deno.test("dispatcher prompt requires a verbatim target_evidence quote and defines target retarget (G1/G2, alex-r5 T7/T8)", () => {
+  // 3d-ter: la cible identifiee exige une citation verbatim du user.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.target_evidence: OBLIGATOIRE avec target_status=identified",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "CITATION EXACTE, copiee mot pour mot",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Si tu ne peux citer AUCUN mot qui nomme une action precise",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("n'invente pas de citation"),
+    true,
+  );
+  // 3h-bis: correction de cible = retarget structurel, jamais un simple accuse.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Correction de CIBLE"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.retarget_from = plan_item_id de l'action erronee",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Ne reponds JAMAIS a une correction de cible par un simple accuse sans emettre cet effet",
+    ),
+    true,
+  );
+  // L'exemple doctrine porte la citation.
+  const parsed = JSON.parse(buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+  })) as {
+    doctrine_examples: Array<{
+      user_message: string;
+      expected: {
+        direct_effects?: Array<{ payload_hint?: { target_evidence?: string } }>;
+      };
+    }>;
+  };
+  const retro = parsed.doctrine_examples.find((example) =>
+    example.user_message.includes("sas de decompression")
+  );
+  assertEquals(
+    retro?.expected.direct_effects?.[0]?.payload_hint?.target_evidence,
+    "sas de decompression sans fumer",
+  );
+});

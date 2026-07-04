@@ -41,18 +41,26 @@ Deno.test("one-shot reminder visible contract requires committed effect proof", 
   assertEquals(prompt.includes("reponse finale"), false);
 });
 
-Deno.test("one-shot reminder visible contract states cancel/modify is not possible from chat without denying existence", () => {
+Deno.test("one-shot reminder visible contract gates cancellation claims on a committed cancel outcome (F4)", () => {
+  // F4 (2026-07-03): l'annulation depuis le chat existe desormais — le
+  // contrat visible exige la preuve committed pour la confirmer, clarifie en
+  // cas d'ambiguite, et garde modification/decalage hors chat.
   const prompt = oneShotReminderCanonicalVisiblePromptLines(
     "flow_context.direct_effect_confirmation_context",
   ).join("\n");
 
   assertStringIncludes(
     prompt,
-    "ne peut pas etre annule, modifie, decale, reprogramme ou supprime depuis le chat",
+    "UNIQUEMENT quand effects_outcome contient un outcome committed de type cancel_one_shot_reminder",
   );
   assertStringIncludes(
     prompt,
-    "la gestion des rappels se fait dans la plateforme",
+    "Sans ce commit prouve, ne dis JAMAIS qu'un rappel est annule",
+  );
+  assertStringIncludes(prompt, "demande lequel annuler");
+  assertStringIncludes(
+    prompt,
+    "Une modification/decalage/reprogrammation reste hors chat",
   );
   assertStringIncludes(
     prompt,
@@ -91,14 +99,14 @@ Deno.test("committedKnown from the recent window suppresses denial without forci
     false,
   );
   assertEquals(prompt.includes("confirme-le sobrement"), false);
-  // The recap-on-demand permission and cancellation-limit lines stay.
+  // The recap-on-demand permission and cancellation-proof lines stay.
   assertStringIncludes(
     prompt,
     "Si le user demande si un rappel recent a ete programme",
   );
   assertStringIncludes(
     prompt,
-    "ne peut pas etre annule, modifie, decale, reprogramme ou supprime depuis le chat",
+    "Sans ce commit prouve, ne dis JAMAIS qu'un rappel est annule",
   );
 });
 
@@ -309,11 +317,11 @@ Deno.test("cancel requests must be acknowledged first even in multi-intent messa
     "flow_context.direct_effect_confirmation_context",
     { present: true, committedThisTurn: false, committedKnown: true },
   ).join("\n");
-  assertStringIncludes(lines, "laisser tomber un rappel");
   assertStringIncludes(
     lines,
-    "Meme si le message contient d'autres demandes, accuse d'abord cette demande",
+    "accuse d'abord la demande d'annulation en une phrase",
   );
+  assertStringIncludes(lines, "selon son outcome reel");
   assertStringIncludes(lines, "ne l'ignore jamais en silence");
 });
 

@@ -25,9 +25,24 @@ function fakeSupabase() {
             },
           };
         },
-        update() {
+        update(vals: any) {
+          assertEquals(vals, { status: "cancelled" });
           return {
-            in: async () => ({ error: null }),
+            in(_col: string, ids: string[]) {
+              return {
+                eq() {
+                  return {
+                    select: async () => ({
+                      data: ids.map((id) => ({
+                        id,
+                        scheduled_for: "2026-05-29T14:05:00.000Z",
+                      })),
+                      error: null,
+                    }),
+                  };
+                },
+              };
+            },
           };
         },
       };
@@ -153,7 +168,10 @@ Deno.test("create payload cleans punctuation and avoids first-person helper inst
   );
 });
 
-Deno.test("cancel_targeted_reminder_is_not_committed", async () => {
+Deno.test("cancel_targeted_reminder_commits_cancellation (F4)", async () => {
+  // F4 (2026-07-03, paul-broadflow15 T14): l'annulation ciblee est desormais
+  // une vraie capacite — le pending vise passe en cancelled et le commit est
+  // prouve (le contrat O rendra la confirmation depuis ce commit).
   const result = await executeOneShotReminderEffects({
     supabase: fakeSupabase(),
     userId: "user-1",
@@ -168,11 +186,14 @@ Deno.test("cancel_targeted_reminder_is_not_committed", async () => {
       reason_code: "ready",
     },
   });
-  assertEquals(result.committed_effects, []);
-  assertEquals(result.failed_effects, [{
-    type: "cancel_one_shot_reminder",
-    reason_code: "one_shot_reminder_cancel_unsupported",
-  }]);
+  assertEquals(result.failed_effects, []);
+  assertEquals(result.committed_effects.length, 1);
+  assertEquals(result.committed_effects[0].type, "cancel_one_shot_reminder");
+  assertEquals(result.committed_effects[0].ids, ["reminder-1"]);
+  assertEquals(
+    result.committed_effects[0].local_label,
+    "vendredi 29 mai à 16:05",
+  );
 });
 
 Deno.test("no_done_language_without_commit", async () => {

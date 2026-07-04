@@ -75,6 +75,7 @@ const SAFETY_SERVER_OWNED_FIELDS = [
   "user_not_alone",
   "emergency_help_mentioned",
   "human_support_mentioned",
+  "emergency_numbers_delivered",
   "consecutive_deescalated_turns",
   "last_user_safety_signal",
   "last_assistant_safety_step",
@@ -404,6 +405,8 @@ function buildConversationContext(args: {
   dispatcherOutput?: SafetyCrisisLocalDispatcherOutput | null;
   currentUserMessage?: string | null;
   noteInformationInbound?: NoteInformation | null;
+  mustIncludeEmergencyNumbers: boolean;
+  emergencyNumbersAlreadyDelivered: boolean;
 }): SafetyCrisisConversationContext {
   const currentStep = typeof args.previousState.last_assistant_safety_step ===
       "string"
@@ -440,6 +443,7 @@ function buildConversationContext(args: {
         : null,
     risk_band: args.riskBand,
     phase: args.phase,
+    emergency_numbers_already_delivered: args.emergencyNumbersAlreadyDelivered,
   };
   return {
     state_summary: args.statePatch.summary ??
@@ -461,9 +465,7 @@ function buildConversationContext(args: {
     safety_resources: {
       emergency_numbers: "15 ou 112",
       suicide_prevention_number: "3114",
-      must_include_emergency_numbers:
-        args.responseContract.must_include_emergency_numbers ||
-        args.kind === "safety_escalation",
+      must_include_emergency_numbers: args.mustIncludeEmergencyNumbers,
       must_prioritize_human_support:
         args.responseContract.must_prioritize_human_support ||
         args.kind === "support_contact" ||
@@ -559,6 +561,8 @@ function buildVisibleTask(args: {
   dispatcherOutput?: SafetyCrisisLocalDispatcherOutput | null;
   currentUserMessage?: string | null;
   noteInformationInbound?: NoteInformation | null;
+  mustIncludeEmergencyNumbers: boolean;
+  emergencyNumbersAlreadyDelivered: boolean;
 }): SafetyCrisisVisibleTask {
   const responseContract = safetyResponseContract({
     phase: args.phase,
@@ -577,6 +581,8 @@ function buildVisibleTask(args: {
       dispatcherOutput: args.dispatcherOutput,
       currentUserMessage: args.currentUserMessage,
       noteInformationInbound: args.noteInformationInbound,
+      mustIncludeEmergencyNumbers: args.mustIncludeEmergencyNumbers,
+      emergencyNumbersAlreadyDelivered: args.emergencyNumbersAlreadyDelivered,
     }),
   };
 }
@@ -721,9 +727,54 @@ export function reduceSafetyCrisis(args: {
   const humanSupportMentioned = Boolean(
     previous.human_support_mentioned || humanSupportAvailable,
   );
+  const task = visibleTaskKindFor({
+    phase,
+    riskBand,
+    dispatcherOutput: args.dispatcherOutput,
+    exitRefusalReason,
+  });
+  // Gestion de phase de la hotline (R5-B01): on delivre les numeros d'urgence
+  // une fois par crise (ou lors d'une re-escalade), puis on bascule vers un
+  // soutien emotionnel soutenu au lieu de re-reciter la hotline a chaque tour.
+  const responseContractForTurn = safetyResponseContract({
+    phase,
+    riskBand,
+    signals: args.signals,
+  });
+  const contractForcesNumbers =
+    responseContractForTurn.must_include_emergency_numbers ||
+    task.kind === "safety_escalation";
+  const emergencyNumbersAlreadyDelivered =
+    previous.emergency_numbers_delivered === true;
+  // Re-escalade = transition d'etat qui doit re-surfacer les numeros, meme si la
+  // crise n'a jamais totalement redescendu. On s'appuie sur des transitions
+  // d'etat PROPRES (pas les signaux bruts par tour, trop bruites: le dispatcher
+  // garde self_harm_intent/immediate_danger vrais tant que le moyen est present,
+  // meme quand le user se calme). Declencheurs deterministes:
+  //  - le risque remonte a critical depuis plus bas;
+  //  - immediate_danger repasse a true apres avoir ete faux;
+  //  - la phase remonte vers acute_grounding depuis une phase plus basse
+  //    (desescalade attestee puis nouveau pic).
+  // Entre deux transitions, on ne re-recite pas la hotline (pref user: soutien
+  // emotionnel soutenu). La regle prompt visible ("sauf nouvelle aggravation")
+  // reste un filet souple si le user decrit une aggravation nette.
+  const reEscalated =
+    (riskBand === "critical" && previousRiskBand !== "critical") ||
+    (args.signals.immediate_danger === true &&
+      previous.immediate_danger !== true) ||
+    (phase === "acute_grounding" && previousPhase !== "acute_grounding");
+  const mustDeliverNumbersThisTurn = contractForcesNumbers &&
+    (!emergencyNumbersAlreadyDelivered || reEscalated);
+  // On garde le flag tant que le risque reste eleve; on le remet a false des que
+  // la crise redescend, pour qu'une future re-escalade re-delivre les numeros.
+  const highRiskPhaseNow = phase === "acute_grounding" ||
+    riskBand === "critical" || args.signals.immediate_danger === true;
+  const emergencyNumbersDelivered = mustDeliverNumbersThisTurn ||
+    (emergencyNumbersAlreadyDelivered && highRiskPhaseNow);
   const statePatchBase = {
     phase,
     risk_band: riskBand,
+    emergency_numbers_delivered: emergencyNumbersDelivered,
     trigger_summary: previous.trigger_summary ??
       args.dispatcherOutput?.state_hints.suggested_trigger_summary ??
       (args.signals.suicidal_ideation || args.signals.self_harm_intent ||
@@ -770,12 +821,6 @@ export function reduceSafetyCrisis(args: {
     computed: statePatchBase,
     now: new Date().toISOString(),
   });
-  const task = visibleTaskKindFor({
-    phase,
-    riskBand,
-    dispatcherOutput: args.dispatcherOutput,
-    exitRefusalReason,
-  });
   const visibleTask = buildVisibleTask({
     kind: task.kind,
     phase,
@@ -786,6 +831,8 @@ export function reduceSafetyCrisis(args: {
     dispatcherOutput: args.dispatcherOutput,
     currentUserMessage: args.currentUserMessage,
     noteInformationInbound: args.noteInformationInbound,
+    mustIncludeEmergencyNumbers: mustDeliverNumbersThisTurn,
+    emergencyNumbersAlreadyDelivered,
   });
 
   return {

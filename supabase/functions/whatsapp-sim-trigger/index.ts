@@ -65,7 +65,8 @@ function templateForEvent(event: SimEvent, body: Body, fallbackName: string) {
         type: "template",
         name: "sophia_checkin_v2",
         language: "fr",
-        components: [bodyParam(firstParam)],
+        // Meta-approved sophia_checkin_v2 has zero placeholders.
+        components: [],
       },
     };
   }

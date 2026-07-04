@@ -147,13 +147,23 @@ function getFallbackTemplate(purpose: string | undefined) {
       injectBodyNameParam: false,
     };
   }
+  if (p === "morning_nudge") {
+    return {
+      name: (Deno.env.get("WHATSAPP_MORNING_NUDGE_TEMPLATE_NAME") ??
+        "morning_nudge_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_MORNING_NUDGE_TEMPLATE_LANG") ?? "en")
+        .trim(),
+      injectBodyNameParam: false,
+    };
+  }
   if (p === "scheduled_checkin") {
     return {
       name:
         (Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_NAME") ?? "sophia_checkin_v1")
           .trim(),
       language: (Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_LANG") ?? "fr").trim(),
-      injectBodyNameParam: true,
+      // Meta-approved sophia_checkin_v2 has zero placeholders.
+      injectBodyNameParam: false,
     };
   }
   if (

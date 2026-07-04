@@ -393,6 +393,8 @@ export async function runTrackProgressRuntimeLane(params: {
   channel: string;
   v2Runtime: OperationRuntimePipelineInput["v2Runtime"];
   trackProgressBlockedReasonCode: string | null;
+  /** Fenetre d'evidence de cible (F2): derniers messages, les deux roles. */
+  evidenceMessages?: string[];
 }): Promise<OperationRuntimeResult | null> {
   const sourceMessageId = params.sourceMessageId ??
     params.turnFrame.source_message_id;
@@ -415,6 +417,7 @@ export async function runTrackProgressRuntimeLane(params: {
       plan_snapshot: params.planItemSnapshot ?? [],
       no_mutation_requested: Boolean(blockedReason),
       blocked_reason_code: blockedReason,
+      evidence_messages: params.evidenceMessages ?? [],
       same_day_evidence_check: createTrackProgressSameDayEvidenceCheck({
         supabase: params.supabase,
         userId: params.userId,
@@ -718,6 +721,10 @@ export async function runOperationRuntimePipeline(
         v2Runtime: args.v2Runtime,
         trackProgressBlockedReasonCode: args.trackProgressBlockedReasonCode ??
           null,
+        evidenceMessages: (args.history ?? [])
+          .slice(-2)
+          .map((entry: any) => String(entry?.content ?? ""))
+          .filter(Boolean),
       })
       : null;
 

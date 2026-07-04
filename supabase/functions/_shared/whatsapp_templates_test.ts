@@ -27,3 +27,30 @@ Deno.test("daily bilan template renders approved outside-window prompt", () => {
   assertEquals(rendered.buttons, ["Carrément!", "On le fait demain!"]);
   assertEquals(rendered.params, ["Thomas"]);
 });
+
+Deno.test("scheduled checkin template has zero placeholders (Meta-approved)", () => {
+  // Meta rejects sophia_checkin_v2 when a body param is injected (error 132000):
+  // the approved template expects zero placeholders. A name param must be ignored.
+  const rendered = renderWhatsAppTemplate({
+    name: "sophia_checkin_v2",
+    fallbackParams: ["Thomas"],
+  });
+
+  assertEquals(rendered.known, true);
+  assertEquals(
+    rendered.content,
+    "Hello 🙂\nJ’aimerais prendre rapidement de tes nouvelles. C’est ok pour toi ?",
+  );
+  assertEquals(rendered.buttons, ["Oui !", "Une prochaine fois !"]);
+});
+
+Deno.test("morning nudge template renders zero-placeholder morning prompt", () => {
+  const rendered = renderWhatsAppTemplate({
+    name: "morning_nudge_v1",
+    fallbackParams: ["Thomas"],
+  });
+
+  assertEquals(rendered.known, true);
+  assertEquals(rendered.content, "Hello ! Prêt pour ton boost du matin ? 💥");
+  assertEquals(rendered.buttons, ["Go !"]);
+});

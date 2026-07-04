@@ -1203,13 +1203,18 @@ function makeFakeSupabaseForCancel(opts: {
 }) {
   return {
     from(_table: string) {
-      const state: { updateVals: unknown } = { updateVals: null };
+      const state: {
+        updateVals: unknown;
+        updating: boolean;
+        updateIds: string[];
+      } = { updateVals: null, updating: false, updateIds: [] };
       const chain: any = {
         select() {
           return chain;
         },
         update(vals: unknown) {
           state.updateVals = vals;
+          state.updating = true;
           return chain;
         },
         eq() {
@@ -1225,13 +1230,28 @@ function makeFakeSupabaseForCancel(opts: {
           return chain;
         },
         in(_col: string, ids: string[]) {
-          opts.onUpdate?.({ vals: state.updateVals, ids });
-          return Promise.resolve({ data: null, error: null });
+          state.updateIds = ids;
+          return chain;
         },
         maybeSingle() {
           return Promise.resolve({ data: opts.profile ?? null, error: null });
         },
         then(onFulfilled: (v: { data: unknown[]; error: null }) => unknown) {
+          if (state.updating) {
+            opts.onUpdate?.({ vals: state.updateVals, ids: state.updateIds });
+            const rows = opts.pending
+              .filter((row: any) =>
+                state.updateIds.includes(String(row?.id ?? "")) &&
+                String(row?.status ?? "") === "pending"
+              )
+              .map((row: any) => ({
+                id: row.id,
+                scheduled_for: row.scheduled_for,
+              }));
+            return Promise.resolve({ data: rows, error: null }).then(
+              onFulfilled,
+            );
+          }
           return Promise.resolve({ data: opts.pending, error: null }).then(
             onFulfilled,
           );
@@ -1242,7 +1262,7 @@ function makeFakeSupabaseForCancel(opts: {
   } as any;
 }
 
-Deno.test("G3: 'annule le rappel de 16h10' ne mute plus le checkin pending", async () => {
+Deno.test("G3: 'annule le rappel de 16h10' annule le checkin pending vise (F4)", async () => {
   let updatedIds: string[] = [];
   let updatedVals: any = null;
   const supabase = makeFakeSupabaseForCancel({
@@ -1271,12 +1291,14 @@ Deno.test("G3: 'annule le rappel de 16h10' ne mute plus le checkin pending", asy
     now: new Date("2026-05-29T08:00:00.000Z"),
   });
   assertEquals(outcome.detected, true);
-  if (!outcome.detected || outcome.status !== "failed") {
-    throw new Error(`expected failed, got ${JSON.stringify(outcome)}`);
+  // F4 (2026-07-03, paul-broadflow15 T14): la capacite cancel existe — le
+  // pending vise passe en cancelled, cible par son heure locale.
+  if (!outcome.detected || outcome.status !== "cancelled") {
+    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
   }
-  assertEquals(outcome.reason, "one_shot_reminder_cancel_unsupported");
-  assertEquals(updatedIds, []);
-  assertEquals(updatedVals, null);
+  assertEquals(outcome.cancelled_ids, ["checkin-1"]);
+  assertEquals(updatedIds, ["checkin-1"]);
+  assertEquals(updatedVals, { status: "cancelled" });
 });
 
 Deno.test("G3: annulation sans rappel pending -> dit clairement que rien n'est annulé", async () => {
@@ -1295,7 +1317,7 @@ Deno.test("G3: annulation sans rappel pending -> dit clairement que rien n'est a
   assertEquals(outcome.status, "no_reminder");
 });
 
-Deno.test("G3: une heure ciblée ne coupe plus aucun rappel", async () => {
+Deno.test("G3: une heure ciblée ne coupe QUE le rappel visé (F4)", async () => {
   let updatedIds: string[] = [];
   const supabase = makeFakeSupabaseForCancel({
     profile: { timezone: "Europe/Paris", locale: "fr-FR" },
@@ -1325,11 +1347,13 @@ Deno.test("G3: une heure ciblée ne coupe plus aucun rappel", async () => {
     message: "coupe le rappel de 16h10",
     now: new Date("2026-05-29T08:00:00.000Z"),
   });
-  if (!outcome.detected || outcome.status !== "failed") {
-    throw new Error(`expected failed, got ${JSON.stringify(outcome)}`);
+  // F4: seul le rappel dont l'heure locale correspond est annule — jamais
+  // les autres pendings.
+  if (!outcome.detected || outcome.status !== "cancelled") {
+    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
   }
-  assertEquals(outcome.reason, "one_shot_reminder_cancel_unsupported");
-  assertEquals(updatedIds, []);
+  assertEquals(outcome.cancelled_ids, ["checkin-a"]);
+  assertEquals(updatedIds, ["checkin-a"]);
 });
 
 Deno.test("G3: une heure ciblée sans match n'annule aucun rappel", async () => {
@@ -1807,4 +1831,96 @@ Deno.test("router: cardinality=recurring blocks the one-shot instead of committi
     turnFrame: frameWithStructuredCreate({ cardinality: "once" }),
   });
   assertEquals(once.status, "success");
+});
+
+Deno.test("cancel intent never touches the create path (F4, paul-broadflow15 T14)", async () => {
+  const upserts: any[] = [];
+  const makeSupabase = () =>
+    makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+    }) as any;
+  const cancelFrame = () =>
+    frameWithStructuredCreate({
+      intent: "cancel",
+      when_hint: "le rappel de 19h",
+    });
+
+  // Cible unique annulee: commit cancel, zero creation.
+  const cancelled = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeSupabase(),
+    userId: "u1",
+    message: "le rappel de 19h, finalement annule-le",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: cancelFrame(),
+    cancelReminder: async () => ({
+      detected: true,
+      status: "cancelled",
+      cancelled_count: 1,
+      cancelled_local_labels: ["19:00"],
+      cancelled_ids: ["ck-1"],
+      user_message: "annule-le",
+    }),
+  });
+  assertEquals(cancelled.status, "success");
+  assertEquals(cancelled.intent, "cancel");
+  assertEquals(
+    cancelled.committed_effects.map((effect: any) => effect.type),
+    ["cancel_one_shot_reminder"],
+  );
+  assertEquals(cancelled.reply?.includes("annulé"), true);
+  assertEquals(upserts.length, 0);
+
+  // Ambiguite: plusieurs pending, pas d'heure -> clarification, rien d'annule.
+  const ambiguous = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeSupabase(),
+    userId: "u1",
+    message: "annule mon rappel stp",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: cancelFrame(),
+    cancelReminder: async () => ({
+      detected: true,
+      status: "ambiguous_target",
+      pending_count: 3,
+      user_message: "annule mon rappel stp",
+    }),
+  });
+  assertEquals(ambiguous.status, "needs_clarify");
+  assertEquals(
+    ambiguous.blocked_effects.map((effect: any) => effect.reason_code),
+    ["cancel_target_ambiguous"],
+  );
+  assertEquals(ambiguous.committed_effects, []);
+  assertEquals(upserts.length, 0);
+
+  // Aucun pending: blocked honnete, jamais de creation inverse.
+  const none = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeSupabase(),
+    userId: "u1",
+    message: "annule le rappel",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: cancelFrame(),
+    cancelReminder: async () => ({
+      detected: true,
+      status: "no_reminder",
+      user_message: "annule le rappel",
+    }),
+  });
+  assertEquals(none.status, "blocked");
+  assertEquals(
+    none.blocked_effects.map((effect: any) => effect.reason_code),
+    ["no_pending_reminder"],
+  );
+  assertEquals(upserts.length, 0);
+
+  // Anti-faux-positif: intent absent -> chemin create intact.
+  const create = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeSupabase(),
+    userId: "u1",
+    message: "rappelle-moi demain a 9h. Texte exact : relire X",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate(),
+  });
+  assertEquals(create.status, "success");
+  assertEquals(upserts.length, 1);
 });

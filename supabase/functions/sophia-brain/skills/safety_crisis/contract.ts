@@ -180,6 +180,11 @@ export type SafetyCrisisWorkingState = {
   user_not_alone?: boolean | null;
   emergency_help_mentioned?: boolean;
   human_support_mentioned?: boolean;
+  // true une fois que les numeros d'urgence ont ete delivres dans cette crise.
+  // Sert a ne pas re-reciter la hotline a chaque tour (transition vers soutien
+  // emotionnel soutenu); remis a false lors d'une desescalade pour qu'une
+  // re-escalade re-delivre les numeros.
+  emergency_numbers_delivered?: boolean;
   consecutive_deescalated_turns?: number;
   last_user_safety_signal?: string | null;
   last_assistant_safety_step?: string | null;
@@ -250,6 +255,7 @@ export type SafetyCrisisStatePatch = {
   user_not_alone: boolean | null;
   emergency_help_mentioned: boolean;
   human_support_mentioned: boolean;
+  emergency_numbers_delivered: boolean;
   consecutive_deescalated_turns: number;
   last_user_safety_signal?: string | null;
   last_assistant_safety_step?: string | null;

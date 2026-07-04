@@ -255,11 +255,54 @@ async function cancelReminderFromEffect(args: {
   supabase: SupabaseClient;
   requestId?: string | null;
 }): Promise<OneShotReminderCommittedEffect | OneShotReminderFailedEffect> {
-  void args;
-  return {
-    type: "cancel_one_shot_reminder",
-    reason_code: "one_shot_reminder_cancel_unsupported",
-  };
+  // F4 (paul-broadflow15 T14): la capacite cancel existe desormais — le
+  // pending cible passe en "cancelled" (meme vocabulaire de statut que
+  // process-checkins). Cible uniquement des ids deja resolus par l'appelant.
+  const ids = (args.effect.target_reminder_ids ?? [])
+    .map((id) => String(id ?? "").trim())
+    .filter(Boolean);
+  if (ids.length === 0) {
+    return {
+      type: "cancel_one_shot_reminder",
+      reason_code: "missing_cancel_target",
+    };
+  }
+  try {
+    const writeClient = await getReminderWriteClient(args.supabase);
+    const { data, error } = await writeClient
+      .from("scheduled_checkins")
+      .update({ status: "cancelled" })
+      .in("id", ids)
+      .eq("status", "pending")
+      .select("id,scheduled_for");
+    if (error) throw error;
+    const cancelledIds = (data ?? []).map((row: any) => String(row.id));
+    if (cancelledIds.length === 0) {
+      return {
+        type: "cancel_one_shot_reminder",
+        reason_code: "cancel_target_not_pending",
+      };
+    }
+    return {
+      type: "cancel_one_shot_reminder",
+      id: cancelledIds[0],
+      ids: cancelledIds,
+      local_label: args.effect.target_local_labels?.[0] ?? undefined,
+      target_reminder_ids: cancelledIds,
+      target_local_labels: args.effect.target_local_labels ?? undefined,
+    };
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "one_shot_reminder_cancel_failed",
+      request_id: args.requestId ?? null,
+      error: compactText(errorText(error), 300) || "cancel_failed",
+    }));
+    return {
+      type: "cancel_one_shot_reminder",
+      reason_code: "cancel_failed",
+      error_message: compactText(errorText(error), 180) || "cancel_failed",
+    };
+  }
 }
 
 export type OneShotReminderExecutionEffectsResult = {
@@ -517,7 +560,18 @@ export async function maybeCancelOneShotReminder(params: {
     )
     : pendingRows.length === 1
     ? pendingRows
-    : pendingRows;
+    : [];
+
+  // Ambiguite: plusieurs pending et aucune heure cible identifiable — on ne
+  // devine JAMAIS quoi annuler (l'ancien code ciblait TOUS les pending).
+  if (targets.length === 0 && pendingRows.length > 1 && !textTargetHHMM) {
+    return {
+      detected: true,
+      status: "ambiguous_target",
+      pending_count: pendingRows.length,
+      user_message: compactText(params.message, 500),
+    };
+  }
 
   const ids = targets.map((row: any) => String(row?.id ?? "")).filter(Boolean);
   if (ids.length === 0) {
