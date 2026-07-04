@@ -1287,7 +1287,8 @@ export async function generatePlanV2ForTransformation(params: {
   const planRow = buildPlanRow({
     userId: params.userId,
     planId,
-    attemptNumber,
+    version: attemptNumber,
+    llmAttempts: generatedPlan.llmAttempts,
     plan,
     now,
     status: params.mode === "preview" ? "draft" : "generated",
@@ -1425,6 +1426,7 @@ async function generateAdjustedCurrentLevelPreview(args: {
     "gemini-3.1-pro-preview";
   let validationFeedback: string[] | null = null;
   let patch: ReturnType<typeof castAdjustCurrentLevelPatch> | null = null;
+  let llmAttempts = 0;
   let finalUserPrompt = "";
 
   for (let attempt = 1; attempt <= 3 && !patch; attempt += 1) {
@@ -1487,6 +1489,7 @@ async function generateAdjustedCurrentLevelPreview(args: {
     });
     if (validation.valid) {
       patch = castAdjustCurrentLevelPatch(parsed);
+      llmAttempts = attempt;
       break;
     }
     validationFeedback = validation.issues;
@@ -1523,7 +1526,8 @@ async function generateAdjustedCurrentLevelPreview(args: {
   const planRow = buildPlanRow({
     userId: args.userId,
     planId,
-    attemptNumber,
+    version: attemptNumber,
+    llmAttempts,
     plan,
     now: args.now,
     status: "draft",
@@ -3356,6 +3360,7 @@ async function generateValidatedPlanWithLlm(params: {
 }): Promise<{
   plan: PlanContentV3;
   finalLlmInput: Record<string, unknown>;
+  llmAttempts: number;
 }> {
   let validationFeedback: string[] | null = null;
 
@@ -3385,6 +3390,7 @@ async function generateValidatedPlanWithLlm(params: {
       return {
         plan,
         finalLlmInput: llmInput as unknown as Record<string, unknown>,
+        llmAttempts: attempt,
       };
     } catch (error) {
       const shouldRetry = attempt < 2 && shouldRetryPlanGeneration(error);
@@ -4124,10 +4130,11 @@ function applyPlanAdjustmentMetadata(
   };
 }
 
-function buildPlanRow(params: {
+export function buildPlanRow(params: {
   userId: string;
   planId: string;
-  attemptNumber: number;
+  version: number;
+  llmAttempts: number;
   plan: PlanContentV3;
   now: string;
   status?: UserPlanV2Row["status"];
@@ -4141,12 +4148,17 @@ function buildPlanRow(params: {
     cycle_id: params.plan.cycle_id,
     transformation_id: params.plan.transformation_id,
     status: params.status ?? "generated",
-    version: params.attemptNumber,
+    // version is the plan's unique, ever-growing ordering key (one per
+    // generation) — it legitimately climbs with each adjustment.
+    version: params.version,
     title: params.plan.title,
     content: params.plan as unknown as Record<string, unknown>,
-    generation_attempts: params.attemptNumber,
+    // generation_attempts is the retry count of THIS generation only (1-3), a
+    // small anti-loop counter — it must NOT track version, or it would blow the
+    // DB CHECK (<= 50) after enough adjustments. Clamped defensively.
+    generation_attempts: Math.min(Math.max(params.llmAttempts, 1), 50),
     last_generation_reason: params.generationReason ?? (
-      params.attemptNumber === 1 ? "initial_generation" : "regeneration"
+      params.version === 1 ? "initial_generation" : "regeneration"
     ),
     generation_feedback: params.generationFeedback,
     generation_input_snapshot: params.generationInputSnapshot,

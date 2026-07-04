@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { collectAdjustmentValidationIssues } from "./index.ts";
+import { buildPlanRow, collectAdjustmentValidationIssues } from "./index.ts";
 import {
   buildPlanContentWithAdjustedLevel,
   castAdjustCurrentLevelPatch,
@@ -320,4 +320,35 @@ Deno.test("collectAdjustmentValidationIssues accepts a level within the cap", ()
 Deno.test("collectAdjustmentValidationIssues ignores plans without a runtime", () => {
   assertEquals(collectAdjustmentValidationIssues({}, 4), []);
   assertEquals(collectAdjustmentValidationIssues(null, 4), []);
+});
+
+Deno.test("buildPlanRow decouples version from generation_attempts", () => {
+  const plan = { cycle_id: "cy", transformation_id: "tr", title: "T" } as never;
+  const args = {
+    userId: "u", planId: "p", plan, now: "2026-07-03T00:00:00Z",
+    status: "draft" as const, generationFeedback: null,
+    generationInputSnapshot: {}, generationReason: "plan_adjustment",
+  };
+  // High version (102nd generation) must NOT drag generation_attempts past the
+  // DB CHECK (<= 50); attempts stays the small real retry count.
+  const high = buildPlanRow({ ...args, version: 102, llmAttempts: 1 });
+  assertEquals(high.version, 102, "version keeps climbing (unique ordering)");
+  assertEquals(high.generation_attempts, 1, "attempts = real retry count, small");
+  assert(high.generation_attempts <= 50, "attempts respects the DB CHECK");
+
+  // A genuine 2-try generation records 2, still tiny.
+  assertEquals(buildPlanRow({ ...args, version: 7, llmAttempts: 2 })
+    .generation_attempts, 2);
+
+  // Defensive clamp: even an absurd attempt count is capped at 50 and floored at 1.
+  assertEquals(buildPlanRow({ ...args, version: 3, llmAttempts: 999 })
+    .generation_attempts, 50);
+  assertEquals(buildPlanRow({ ...args, version: 3, llmAttempts: 0 })
+    .generation_attempts, 1);
+
+  // last_generation_reason default keys off version, not attempts.
+  assertEquals(buildPlanRow({ ...args, version: 1, llmAttempts: 1,
+    generationReason: null }).last_generation_reason, "initial_generation");
+  assertEquals(buildPlanRow({ ...args, version: 2, llmAttempts: 1,
+    generationReason: null }).last_generation_reason, "regeneration");
 });
