@@ -64,6 +64,22 @@ export function effectTypeFromToolType(type: unknown): string {
   return EFFECT_TYPE_BY_TOOL_TYPE[key] ?? (key || "unknown_effect");
 }
 
+// Chaque entree du ledger porte le tool de SON effet, pas celui du premier
+// effet du tour (paul-r4 B01, BF-TEST-01: un tour track+reminder recopiait
+// tool_id=track_progress_plan_item sur les entrees one_shot_reminder.create).
+const TOOL_ID_BY_EFFECT_TYPE: Record<string, string> = {
+  "one_shot_reminder.create": "create_one_shot_reminder",
+  "one_shot_reminder.cancel": "cancel_one_shot_reminder",
+  "plan_item_progress.track": "track_progress_plan_item",
+};
+
+function toolIdForEffectType(
+  effectType: string,
+  fallback: string | null,
+): string | null {
+  return TOOL_ID_BY_EFFECT_TYPE[effectType] ?? fallback;
+}
+
 function operationTypeForEffectType(effectType: string): string | null {
   return OPERATION_TYPE_BY_EFFECT_TYPE[effectType] ?? null;
 }
@@ -148,7 +164,7 @@ export function recordToolSkillEffectsInLedger(args: {
         committed_id: key === "committed_effects"
           ? committedIdFromEffect(rawEffect)
           : null,
-        tool_id: selectedHandler,
+        tool_id: toolIdForEffectType(effectType, selectedHandler),
         source: key === "requested_effects" || key === "allowed_effects"
           ? "router"
           : "executor",
@@ -184,7 +200,7 @@ export function recordToolSkillEffectsInLedger(args: {
       operation_type: operationType,
       operation_id: operationId,
       committed_id: null,
-      tool_id: selectedHandler,
+      tool_id: toolIdForEffectType(effectType, selectedHandler),
       source: "executor",
       reason_code: String(rawEffect.reason_code ?? status ?? "") || null,
       payload_summary: effectPayloadSummary(rawEffect),

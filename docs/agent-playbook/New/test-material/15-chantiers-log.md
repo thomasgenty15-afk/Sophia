@@ -8080,3 +8080,70 @@ eva B01 doctrine + B02 fix_applied probe; paul B02 doctrine + B03
 fix_applied probe; rose B01/B02 fix_applied probes. Reste ouvert: chantier
 Z (memorizer: supersedence intra-batch, garde identite, plan-state,
 precision des faits confies) + observation beat safety a confirmer en run.
+
+---
+
+## 2026-07-06 — Chantier Z+P+FL : memorizer durci + petits fixes + fluidite
+
+Source: vague de 5 runs du 06/07 soir (nina-r2 GREEN — premier global
+entierement vert —, alex-r2, rose-r2, eva-r4, paul-r4 yellow, 0 red).
+Arbitrage produit prealable: PAS de reschedule de rappel en V1 (eva-r4 B03
+closed won't-fix, la reponse honnete + renvoi app est le comportement
+attendu).
+
+Z1 — Batch memorizer transactionnel (BF-EFFECT-04, vu sur 3 runs/5 — seul
+defaut qui PERDAIT des donnees). Source amont: memorizer_async marquait
+memory_message_processing=completed AVANT extraction/persist; un worker tue
+(timeout gateway) laissait run `running` + messages marques + 0 item, et le
+retry repondait no_unprocessed → memoire du jour perdue definitivement.
+Fix: (1) marquage deplace APRES persist reussi (mort en vol → messages
+reeligibles, run running reutilise par batch_hash, re-extraction idempotente
+par dedup); (2) recoverOrphanExtractionRuns au debut du job quotidien (runs
+running > 30 min → marqueurs liberes, run failed/orphan_running_recovered).
+Tests: mort en vol → 0 processing → reprise complete persiste; sweep libere
+l'orphelin sans toucher runs frais/termines. Validation REELLE: orphelin
+fabrique (run 2h + 3 messages marques) → trigger → recupere + retraites par
+un run completed.
+
+Z2-Z5 — Extraction v3 (identity_guard_intra_batch_supersede):
+- Supersedence intra-lot (alex-r1 B02/B03, alex-r2 B01): applyCorrections
+  voit desormais les items persistes du MEME lot comme cibles (avant:
+  resolution sur la DB seule → correction skipped, deux verites
+  contradictoires actives). Le canal structure corrections[] existant est
+  reutilise — le prompt marque, le pipeline reconcilie (zero regex). Test
+  contrat vert (3x8 + correction meme lot → cible intra-lot exposee).
+- Garde identite (politique, pas blocklist): self-label pathologisant/fige
+  jamais durable; symptome contextualise memorisable; etiquette recadree en
+  tour jamais persistee.
+- Exclusion plan-state resserree: un report d'action adresse a Sophia ne
+  devient ni event ni action_observation (suivi = user_plan_item_entries).
+- Precision des faits confies (R5-B03): formulation precise conservee,
+  supersede du generique par le precis.
+
+P — Petits fixes:
+- Recap ≠ create reminder (eva-r4 B01), avec ITERATION documentee: la regle
+  recap seule n'a pas suffi — la probe a revele que le dispatcher
+  re-extrayait la demande du tour PRECEDENT depuis l'historique (raw_text =
+  message T1 deja committe). Regle ajoutee: « l'effet se rapporte au MESSAGE
+  COURANT uniquement ». Probe: create committe puis « c'est quoi mon rappel
+  deja ? » → turn_effects=[].
+- Cadence-aware (alex-r2 B02): exemple negatif verbatim au bloc canonique
+  (« chaque soir a 22h30 » → aucun effet + feature_opportunity).
+- Anti-decalage (decision V1): deplacer un rappel deja cree n'est NI create
+  NI cancel — aucun effet, renvoi app honnete; anti-FP: nouvelle heure
+  pendant une creation encore en clarification = mise a jour normale.
+- tool_id ledger par effet (paul-r4 B01, BF-TEST-01): TOOL_ID_BY_EFFECT_TYPE
+  dans effect_ledger_adapter — chaque entree porte le tool de SON effet.
+
+FL — Fluidite coaching (rose-r2 B01, eva-r4 B02): la regle de progression
+couvre les TRAILING OFFERS (go-ahead « oui vas-y / cadre-moi / fais-le » ⇒
+LIVRER l'etape offerte, jamais une 3e re-proposition; garde-fou write
+intact) + regle visible anti-repetition d'accroche. Probe: offre → « Oui
+vas-y, cadre-moi ca » → cadrage livre applique au cas, zero re-offre.
+
+Probes: Eva (recap, 3 tours), Rose (go-ahead, 2 tours), batch reel avec
+orphelin fabrique. Cleanup verifie (0 pending, 0 memory_item, runs de probe
+purges, scopes vides). Tests: 230+ verts sur les suites touchees; 4 echecs
+tous preexistants a HEAD (2 user_facing_messages, 1 coaching UI grounding,
+1 write_policy — verifie par stash). Statuts feuilles mis a jour sur les 5
+runs de la vague.

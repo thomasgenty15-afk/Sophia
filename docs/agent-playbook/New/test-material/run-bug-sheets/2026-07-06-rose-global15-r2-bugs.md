@@ -30,8 +30,8 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
   personnalisée) ; conserver le garde-fou « pas d'écriture de carte depuis le chat »
   strictement sur l'action de write, pas sur l'aide à la formulation ; éviter de
   ré-émettre un trailing offer identique à l'étape précédente.
-- Statut: `open`
-- Fix reference: —
+- Statut: `fix_applied` — chantier FL (2026-07-06): la règle de progression couvre désormais explicitement les TRAILING OFFERS (« le go-ahead compte pour toute offre, y compris une offre de fin de message ») avec vocabulaire élargi (« oui vas-y », « cadre-moi », « fais-le », « donne ») ⇒ livrer l'étape offerte, jamais une 3e re-proposition ; garde-fou write intact (anti-FP « remplis-la dans le plan » documenté dans la règle) ; + règle visible anti-répétition d'accroche (jamais deux accroches/refus quasi identiques sur deux tours). **Probe live** (Rose, scénario T4→T5 rejoué): offre avec trailing offer → « Oui vas-y, cadre-moi ça » → cadrage LIVRÉ appliqué au cas (moment critique 21h30, piège, geste de retour, plan B), zéro re-proposition.
+- Fix reference: chantier FL (2026-07-06)
 - Tests requis:
   - positif: proposition de carte → « oui vas-y » → formulation courte livrée
     directement (pas de re-offre).

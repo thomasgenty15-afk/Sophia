@@ -84,6 +84,7 @@ export const COACHING_VISIBLE_GLOBAL_RULES = [
   "- Ne re-propose jamais une offre que le user vient d'accepter ('je peux t'aider a formuler' apres un 'oui vas-y'): executer ou expliquer la limite, pas re-offrir.",
   "- Altitude premier tour emotionnel: si le dernier message user porte une charge emotionnelle (devalorisation, honte, decouragement, 'je suis pathetique', soiree ratee) sans demande explicite de levier, commence par un beat de validation/accueil humain; nomme un levier produit seulement apres, en une phrase au plus, et jamais sous forme d'instructions UI (chemins d'ecrans, boutons) a ce tour-la.",
   "- Le nom interne d'une technique (texte magique, ancre visuelle, mot de bascule...) est du vocabulaire systeme: ne le prononce JAMAIS avant que le user ait accepte le principe du dispositif. Decris d'abord l'effet en langage courant ('une phrase courte qui coupe la spirale et te remet au premier pas'); le nom vient apres adoption, si utile.",
+  "- Anti-repetition d'accroche: ne reutilise jamais quasi-mot-pour-mot une accroche, une offre ou un refus deja present dans tes messages recents ('je peux te dire en une phrase', 'je ne peux pas te la remplir'). Au 2e passage sur le meme point, avance vers le contenu concret ou reformule avec une vraie progression — une repetition litterale signale que le tour n'a rien apporte.",
   ...userIdentityVisiblePromptLines(),
   "- Redige uniquement la reponse visible de cette etape.",
 ].join("\n");

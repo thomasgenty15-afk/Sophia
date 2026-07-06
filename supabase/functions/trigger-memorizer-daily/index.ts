@@ -144,6 +144,73 @@ export function readableErrorMessage(error: unknown): string {
   }
 }
 
+// Reprise des batchs interrompus (nina-r2/paul-r4/rose-r2, BF-EFFECT-04):
+// un worker tue en vol (timeout gateway) laissait un run `running` orphelin
+// avec des messages deja marques `completed` et 0 memory_item — le retry
+// repondait alors `no_unprocessed_messages` et la memoire du jour etait
+// perdue definitivement. Invariant retabli: aucun `memory_message_processing`
+// completed rattache a un run non termine au-dela du TTL. La re-extraction
+// est idempotente (dedupe contre les items deja persistes).
+export const ORPHAN_RUN_TTL_MINUTES = 30;
+
+export async function recoverOrphanExtractionRuns(args: {
+  admin: any;
+  user_id: string;
+  ttl_minutes?: number;
+  now?: Date;
+}): Promise<{
+  recovered_run_ids: string[];
+  released_message_count: number;
+}> {
+  const ttlMinutes = Math.max(1, args.ttl_minutes ?? ORPHAN_RUN_TTL_MINUTES);
+  const nowMs = (args.now ?? new Date()).getTime();
+  const cutoffIso = new Date(nowMs - ttlMinutes * 60_000).toISOString();
+  const { data: orphanRuns, error: orphanError } = await args.admin
+    .from("memory_extraction_runs")
+    .select("id,created_at,metadata")
+    .eq("user_id", args.user_id)
+    .eq("status", "running")
+    .lt("created_at", cutoffIso);
+  if (orphanError) throw orphanError;
+  const runs = Array.isArray(orphanRuns) ? orphanRuns : [];
+  if (runs.length === 0) {
+    return { recovered_run_ids: [], released_message_count: 0 };
+  }
+  let releasedMessageCount = 0;
+  const recoveredRunIds: string[] = [];
+  for (const run of runs) {
+    const runId = String((run as any).id);
+    const { data: released, error: releaseError } = await args.admin
+      .from("memory_message_processing")
+      .delete()
+      .eq("user_id", args.user_id)
+      .eq("extraction_run_id", runId)
+      .select("message_id");
+    if (releaseError) throw releaseError;
+    releasedMessageCount += Array.isArray(released) ? released.length : 0;
+    const { error: failError } = await args.admin
+      .from("memory_extraction_runs")
+      .update({
+        status: "failed",
+        finished_at: new Date(nowMs).toISOString(),
+        error_message: "orphan_running_recovered",
+        metadata: {
+          ...(((run as any).metadata ?? {}) as Record<string, unknown>),
+          orphan_recovered: true,
+          orphan_ttl_minutes: ttlMinutes,
+        },
+      })
+      .eq("id", runId)
+      .eq("status", "running");
+    if (failError) throw failError;
+    recoveredRunIds.push(runId);
+  }
+  return {
+    recovered_run_ids: recoveredRunIds,
+    released_message_count: releasedMessageCount,
+  };
+}
+
 // PostgREST encode `.in(...)` dans l'URL GET: au-dela de quelques centaines
 // d'ids, la requete depasse la limite d'URI et le batch entier echoue
 // ("URI too long") — aucun memory_item ecrit. On requete donc par paquets
@@ -551,6 +618,17 @@ async function handleRequest(req: Request): Promise<Response> {
         user_id: user.id,
         timezone: user.timezone ?? "Europe/Paris",
       });
+      const orphanRecovery = await recoverOrphanExtractionRuns({
+        admin,
+        user_id: user.id,
+      });
+      if (orphanRecovery.recovered_run_ids.length > 0) {
+        logDailyMemorizer("orphan_runs_recovered", {
+          request_id: requestId,
+          user_id: user.id,
+          ...orphanRecovery,
+        }, "warn");
+      }
       const messages = await loadUnprocessedMessages({
         admin,
         user_id: user.id,

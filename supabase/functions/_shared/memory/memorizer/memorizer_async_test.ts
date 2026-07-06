@@ -148,3 +148,142 @@ Deno.test("async memorizer skips extraction when daily user cost cap is reached"
     }
   }
 });
+
+Deno.test("async memorizer keeps messages re-eligible when extraction dies mid-flight, then recovers (BF-EFFECT-04)", async () => {
+  // Scenario nina-r2/paul-r4: le worker meurt pendant l'extraction (timeout
+  // gateway). AVANT le fix, les messages etaient deja marques `completed` →
+  // le retry repondait no_unprocessed et la memoire du jour etait perdue.
+  const repo = new InMemoryMemorizerRepository();
+  const message = {
+    id: "m1",
+    user_id: "u",
+    role: "user" as const,
+    content: "J'ai pas fait ma marche hier soir.",
+  };
+  const failingInput = {
+    user_id: "u",
+    messages: [message],
+    known_topics: [{ id: "t1", slug: "marche_soir", title: "Marche du soir" }],
+    active_topic: { id: "t1", slug: "marche_soir", title: "Marche du soir" },
+    plan_signals: [{
+      plan_item_id: "plan-walk",
+      title: "marche",
+      occurrence_ids: ["occ-1"],
+    }],
+    llm_provider: async (): Promise<string> => {
+      throw new Error("gateway timeout mid-extraction");
+    },
+  };
+  let thrown: unknown = null;
+  try {
+    await runMemorizerAsync(repo, failingInput);
+  } catch (error) {
+    thrown = error;
+  }
+  assertEquals(thrown instanceof Error, true);
+  // Invariant: AUCUN message marque traite tant que rien n'est persiste.
+  assertEquals(repo.processing.length, 0);
+  assertEquals(repo.memoryWrites.length, 0);
+
+  // Reprise avec un provider sain: le meme batch redevient traitable.
+  const retryInput = {
+    ...failingInput,
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [{
+          kind: "action_observation",
+          content_text: "J'ai pas fait ma marche hier soir.",
+          normalized_summary: "Le user n'a pas fait sa marche hier soir.",
+          domain_keys: ["habitudes.execution"],
+          confidence: 0.82,
+          importance_score: 0.68,
+          sensitivity_level: "normal",
+          sensitivity_categories: [],
+          source_message_ids: ["m1"],
+          evidence_quote: "J'ai pas fait ma marche hier soir.",
+          event_start_at: "2026-05-06T18:00:00.000+02:00",
+          time_precision: "day",
+          metadata: { observation_role: "single" },
+        }],
+        entities: [],
+        corrections: [],
+        rejected_observations: [],
+      }),
+  };
+  const retry = await runMemorizerAsync(repo, retryInput);
+  assertEquals(retry.status, "completed");
+  assertEquals(repo.memoryWrites.length, 1);
+  // Les messages ne sont marques qu'une fois le persist reussi.
+  assertEquals(repo.processing.length, 1);
+  assertEquals(repo.processing[0].processing_status, "completed");
+});
+
+Deno.test("intra-batch correction sees just-persisted items as supersede targets (alex-r2 B01)", async () => {
+  // Fait (3x8) persiste dans CE lot + correction dans le meme lot: la
+  // resolution de cible doit voir l'item tout juste persiste (avant le fix,
+  // known_memory_items ne contenait que la DB → correction skipped, les deux
+  // verites contradictoires restaient actives ensemble).
+  const repo = new InMemoryMemorizerRepository();
+  let capturedKnownItems: Array<{ id: string; content_text: string }> = [];
+  (repo as any).applyCorrections = (args: {
+    known_memory_items: Array<{ id: string; content_text: string }>;
+  }) => {
+    capturedKnownItems = args.known_memory_items;
+    return Promise.resolve([]);
+  };
+  const result = await runMemorizerAsync(repo, {
+    user_id: "u",
+    messages: [
+      {
+        id: "m-old",
+        user_id: "u",
+        role: "user" as const,
+        content:
+          "Retiens que je bosse en horaires decales 3x8 a l'usine, mes horaires changent toutes les semaines.",
+      },
+      {
+        id: "m-new",
+        user_id: "u",
+        role: "user" as const,
+        content: "En fait je suis plus en horaires de nuit, poste de jour fixe.",
+      },
+    ],
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [{
+          kind: "statement",
+          content_text:
+            "Je bosse en horaires decales 3x8, mes horaires changent toutes les semaines.",
+          normalized_summary: "Travail en horaires decales 3x8.",
+          domain_keys: ["travail.charge"],
+          confidence: 0.85,
+          importance_score: 0.6,
+          sensitivity_level: "normal",
+          sensitivity_categories: [],
+          source_message_ids: ["m-old"],
+          evidence_quote: "horaires decales 3x8",
+          metadata: { statement_role: "life_context" },
+        }],
+        entities: [],
+        corrections: [{
+          operation_type: "supersede",
+          target_hint: "horaires decales 3x8",
+          reason: "correction du rythme de travail dans le meme lot",
+          source_message_ids: ["m-new"],
+        }],
+        rejected_observations: [],
+      }),
+  } as never);
+  assertEquals(result.status, "completed");
+  assertEquals(result.persisted.length, 1);
+  const oldPersisted = result.persisted[0];
+  // La cible intra-lot est exposee a la resolution de correction avec l'id
+  // REEL de l'item persiste.
+  assertEquals(
+    capturedKnownItems.some((known) =>
+      known.id === oldPersisted.memory_item_id &&
+      known.content_text.includes("3x8")
+    ),
+    true,
+  );
+});

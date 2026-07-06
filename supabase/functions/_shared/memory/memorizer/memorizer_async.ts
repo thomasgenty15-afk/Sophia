@@ -173,12 +173,12 @@ export async function runMemorizerAsync(
     metadata: { memorizer_v2_async: true },
   });
   try {
-    await repo.insertMessageProcessing(buildMessageProcessingRows({
-      user_id: input.user_id,
-      extraction_run_id: run.id,
-      batch,
-    }));
     if (batch.primary_messages.length === 0) {
+      await repo.insertMessageProcessing(buildMessageProcessingRows({
+        user_id: input.user_id,
+        extraction_run_id: run.id,
+        batch,
+      }));
       await completeAsyncMemorizerExtraction(repo, {
         run_id: run.id,
         duration_ms: Date.now() - started,
@@ -274,15 +274,46 @@ export async function runMemorizerAsync(
         decisions,
       })
       : [];
+    // Supersedence intra-lot (alex-r1 B03 / alex-r2 B01): la resolution de
+    // cible des corrections ne voyait que les items deja en DB — un fait et
+    // sa correction arrivant dans le MEME batch restaient donc tous deux
+    // actifs. Les items tout juste persistes deviennent des cibles de
+    // correction comme les autres; les garde-fous existants (replacement
+    // choisi hors cible, mutatedItemIds) empechent une correction
+    // d'invalider sa propre nouvelle verite.
+    const intraBatchKnownItems = persisted.map((write) => ({
+      id: write.memory_item_id,
+      kind: write.candidate.item.kind,
+      content_text: write.candidate.item.content_text,
+      normalized_summary: write.candidate.item.normalized_summary ?? null,
+      canonical_key: write.candidate.item.canonical_key ?? null,
+      domain_keys: write.candidate.item.domain_keys ?? null,
+      source_message_id: write.candidate.item.source_message_ids?.[0] ?? null,
+      status: write.status,
+    }));
     const correctionResults = repo.applyCorrections
       ? await repo.applyCorrections({
         user_id: input.user_id,
         extraction_run_id: run.id,
         corrections: extraction.corrections,
-        known_memory_items: input.existing_memory_items ?? [],
+        known_memory_items: [
+          ...(input.existing_memory_items ?? []),
+          ...intraBatchKnownItems,
+        ],
         persisted,
       })
       : [];
+    // Invariant de transactionnalite (nina-r2/paul-r4/rose-r2, BF-EFFECT-04):
+    // les messages ne sont marques `completed` qu'APRES le persist reussi des
+    // items. Un worker tue pendant l'extraction (timeout gateway) laisse les
+    // messages re-eligibles au batch suivant, qui reutilise le run `running`
+    // via batch_hash. La re-execution est idempotente: dedupeMemoryItems
+    // rejette les items deja persistes en DB.
+    await repo.insertMessageProcessing(buildMessageProcessingRows({
+      user_id: input.user_id,
+      extraction_run_id: run.id,
+      batch,
+    }));
     await completeAsyncMemorizerExtraction(repo, {
       run_id: run.id,
       duration_ms: Date.now() - started,

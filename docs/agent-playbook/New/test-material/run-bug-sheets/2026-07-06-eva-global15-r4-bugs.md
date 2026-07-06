@@ -14,8 +14,8 @@ Verdict global run: **yellow** (0 red). Effets durables et safety vérifiés; fr
 - Preuve système: trace T10 `direct_effects_to_run=[create_one_shot_reminder]`, effect_ledger `requested 1 / allowed 0 / blocked 1` reason `duplicate_pending`. DB: 1 seul `scheduled_checkins` pending (pas de doublon).
 - Correction attendue: classer récap/status comme intention de lecture, pas de création, au niveau du contrat d'extraction ; ne pas dépendre uniquement de `duplicate_pending` (fragile si libellé/heure diffèrent).
 - Tests requis: (positif) « rappelle-moi à 22h » → create ; (anti-faux-positif) « récapitule ce que tu as programmé », « c'est quoi mon rappel déjà ? » → `direct_effects=[]` ; (paraphrase) plusieurs formulations de récap mentionnant un rappel existant.
-- Statut: `open`
-- Fix reference: —
+- Statut: `fix_applied` — chantier P (2026-07-06), avec itération documentée: (1) règle récap/statut étendue au bloc canonique — insuffisante seule; (2) la probe a révélé la vraie forme du bug: le dispatcher ré-extrayait la demande du tour PRÉCÉDENT depuis l'historique (raw_text = message T1 déjà committé) → règle « l'effet se rapporte au MESSAGE COURANT uniquement: ne ré-émets jamais une demande provenant d'un message précédent de recent_messages ». **Probe live** (Eva): create 22h15 committé → « c'est quoi mon rappel de ce soir déjà ? » → `turn_effects=[]`, réponse depuis le contexte. Le filet duplicate_pending reste en place.
+- Fix reference: chantier P (2026-07-06)
 
 ## R4-B02 — Flow coaching peu réactif au déclencheur concret + répétition d'accroche
 
@@ -40,8 +40,12 @@ Verdict global run: **yellow** (0 red). Effets durables et safety vérifiés; fr
 - Preuve système: T12 `response_owner=normal_reply`, `direct_effects=[]`, aucun effet ; réponse honnête (« je ne peux pas le décaler directement ici »), état DB correctement décrit (pas de faux claim).
 - Correction attendue: soit exposer un intent `reschedule` (cancel+recreate atomique ciblant le pending unique), soit proposer explicitement l'annulation-recréation dans la conversation au lieu de rediriger.
 - Tests requis: (positif) « décale mon rappel de 22h à 21h30 » → pending unique repositionné à 21h30 ; (anti-faux-positif) pas de doublon ; (ambiguïté) plusieurs rappels pending → clarifier lequel.
-- Statut: `open`
-- Fix reference: —
+- Statut: `closed — décision produit (2026-07-06)`: pas de reschedule en V1, trop
+  complexe — on verra après. Le comportement observé au T12 (réponse honnête,
+  « je ne peux pas le décaler directement ici », état DB correctement décrit,
+  aucun faux claim) est le comportement ATTENDU en V1. Aucun changement de code.
+  À réévaluer post-V1 si la friction revient souvent en run.
+- Fix reference: — (won't fix V1, arbitrage utilisateur)
 
 ## Notes vertes (pas de bug, à conserver comme invariants)
 

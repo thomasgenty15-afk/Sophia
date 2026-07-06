@@ -36,6 +36,7 @@ import {
   buildRuntimeFromNextLevelPatch,
 } from "../_shared/v2-next-level-generation.ts";
 import {
+  autoConfirmOnboardingWeek1Planning,
   buildOnboardingWeek1ValidationPromptMessage,
   loadOnboardingWeek1Planning,
   ONBOARDING_WEEK1_PROMPT_DELAY_MS,
@@ -567,6 +568,134 @@ async function scheduleNewLevelWeekPlanningValidation(args: {
   }
 }
 
+const NEW_LEVEL_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT =
+  "new_level_week1_auto_validation_v1";
+
+function buildNewLevelWeek1AutoValidationMessage(args: {
+  summaryLines: string[];
+}): string {
+  const summary = args.summaryLines.length > 0
+    ? args.summaryLines.join("\n")
+    : "- Premiere semaine du niveau validee.";
+  return [
+    "J'ai prepare ton nouveau niveau et valide ta premiere semaine pour que tes rappels d'action puissent partir normalement.",
+    "",
+    "Resume du planning :",
+    summary,
+    "",
+    "Tu peux toujours l'ajuster dans ton espace si tu veux.",
+  ].join("\n");
+}
+
+// Auto-timeout transition: the whole level jump happened without the user
+// (they never answered the level review). Leaving week 1 pending behind a
+// validation prompt would mean no action reminders until the next-day 07:00
+// auto-validation. Since nothing asked for the user's input, validate week 1
+// straight away so reminders start, then notify best-effort.
+async function autoValidateNewLevelWeek1AndNotify(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planId: string;
+  planTitle: string | null;
+  timezone: string;
+  levelOrder: number;
+  levelTitle: string;
+  targetWeekStartDate: string | null;
+  now: string;
+}): Promise<void> {
+  const confirmation = await autoConfirmOnboardingWeek1Planning(args.admin, {
+    userId: args.userId,
+    planId: args.planId,
+    targetWeekStartDate: args.targetWeekStartDate,
+    nowIso: args.now,
+  });
+  // No pending planning to apply (nothing materialized, or already validated by
+  // a prior run being retried): nothing to do, and no duplicate notification.
+  if (!confirmation.changed) return;
+
+  const { data: profile, error: profileError } = await args.admin
+    .from("profiles")
+    .select("id,whatsapp_opted_in")
+    .eq("id", args.userId)
+    .maybeSingle();
+  if (profileError) {
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to load profile for new level week1 auto-validation notice",
+      { cause: profileError },
+    );
+  }
+  if (
+    !profile || (profile as Record<string, unknown>).whatsapp_opted_in !== true
+  ) {
+    return;
+  }
+
+  const effectiveTargetWeekStart = args.targetWeekStartDate ??
+    confirmation.planning.week_start_date;
+  const { error } = await args.admin
+    .from("scheduled_checkins")
+    .insert({
+      user_id: args.userId,
+      origin: "weekly_planning",
+      event_context: NEW_LEVEL_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
+      draft_message: buildNewLevelWeek1AutoValidationMessage({
+        summaryLines: confirmation.planning.summary_lines,
+      }),
+      message_mode: "static",
+      message_payload: {
+        source: "complete_level_v1_auto_timeout_week1_auto_validation",
+        version: 1,
+        user_id: args.userId,
+        plan_id: args.planId,
+        plan_title: args.planTitle ?? "ton plan",
+        timezone: args.timezone,
+        level_order: args.levelOrder,
+        level_title: args.levelTitle,
+        week_start_date: confirmation.planning.week_start_date,
+        week_end_date: confirmation.planning.week_end_date,
+        target_week_start_date: effectiveTargetWeekStart,
+        summary_lines: confirmation.planning.summary_lines,
+        created_from: "next_level_generation_auto",
+        auto_validated: true,
+        auto_validated_at: args.now,
+        generated_at: args.now,
+      },
+      scheduled_for: args.now,
+      status: "pending",
+    } as never);
+  if (error) {
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to schedule new level week1 auto-validation notice",
+      { cause: error },
+    );
+  }
+}
+
+// Route the new level's first week: an auto-timeout transition validates it
+// immediately (mirrors the automatic nature of the transition); a user-driven
+// review keeps the explicit "validate your week" prompt so the engaged user can
+// still adjust the days before locking.
+async function applyNewLevelWeekPlanning(args: {
+  admin: SupabaseClient;
+  reviewMode: "user_review" | "auto_timeout";
+  userId: string;
+  planId: string;
+  planTitle: string | null;
+  timezone: string;
+  levelOrder: number;
+  levelTitle: string;
+  targetWeekStartDate: string | null;
+  now: string;
+}): Promise<void> {
+  if (args.reviewMode === "auto_timeout") {
+    await autoValidateNewLevelWeek1AndNotify(args);
+    return;
+  }
+  await scheduleNewLevelWeekPlanningValidation(args);
+}
+
 export async function completeLevelV1(args: {
   admin: SupabaseClient;
   requestId: string;
@@ -986,8 +1115,9 @@ export async function completeLevelV1(args: {
         target_week_start_date: nextLevelScheduleAnchor.anchor_week_start,
       },
       run: () =>
-        scheduleNewLevelWeekPlanningValidation({
+        applyNewLevelWeekPlanning({
           admin: args.admin,
+          reviewMode,
           userId: args.userId,
           planId: plan.id,
           planTitle: plan.title,
@@ -1070,8 +1200,9 @@ export async function completeLevelV1(args: {
       tempIdMap: distribution.tempIdMap,
       now,
     });
-    await scheduleNewLevelWeekPlanningValidation({
+    await applyNewLevelWeekPlanning({
       admin: args.admin,
+      reviewMode,
       userId: args.userId,
       planId: plan.id,
       planTitle: plan.title,

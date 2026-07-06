@@ -125,3 +125,120 @@ Deno.test("readableErrorMessage never yields [object Object]", () => {
     assert(!readableErrorMessage(value).includes("[object Object]"));
   }
 });
+
+// Fake admin pour recoverOrphanExtractionRuns: runs en memoire + chaines
+// PostgREST select/delete/update minimales.
+function makeOrphanFakeAdmin(state: {
+  runs: Array<
+    { id: string; status: string; created_at: string; metadata?: unknown }
+  >;
+  processing: Array<{ extraction_run_id: string; message_id: string }>;
+}) {
+  return {
+    from(table: string) {
+      if (table === "memory_extraction_runs") {
+        return {
+          select: () => ({
+            eq: (_c1: string, _v1: string) => ({
+              eq: (_c2: string, status: string) => ({
+                lt: (_c3: string, cutoff: string) =>
+                  Promise.resolve({
+                    data: state.runs.filter((run) =>
+                      run.status === status && run.created_at < cutoff
+                    ),
+                    error: null,
+                  }),
+              }),
+            }),
+          }),
+          update: (patch: Record<string, unknown>) => ({
+            eq: (_c1: string, id: string) => ({
+              eq: (_c2: string, status: string) => {
+                const run = state.runs.find((candidate) =>
+                  candidate.id === id && candidate.status === status
+                );
+                if (run) Object.assign(run, patch);
+                return Promise.resolve({ error: null });
+              },
+            }),
+          }),
+        };
+      }
+      // memory_message_processing
+      return {
+        delete: () => ({
+          eq: (_c1: string, _v1: string) => ({
+            eq: (_c2: string, runId: string) => ({
+              select: () => {
+                const released = state.processing.filter((row) =>
+                  row.extraction_run_id === runId
+                );
+                state.processing = state.processing.filter((row) =>
+                  row.extraction_run_id !== runId
+                );
+                return Promise.resolve({ data: released, error: null });
+              },
+            }),
+          }),
+        }),
+      };
+    },
+  };
+}
+
+Deno.test("recoverOrphanExtractionRuns releases messages of stale running runs only", async () => {
+  const now = new Date("2026-07-06T12:00:00.000Z");
+  const state = {
+    runs: [
+      // Orphelin: running depuis 2h (> TTL 30 min) — le cas nina-r2/paul-r4.
+      {
+        id: "run-orphan",
+        status: "running",
+        created_at: "2026-07-06T10:00:00.000Z",
+        metadata: {},
+      },
+      // Run running FRAIS (5 min): un batch legitime en cours, intouchable.
+      {
+        id: "run-fresh",
+        status: "running",
+        created_at: "2026-07-06T11:55:00.000Z",
+        metadata: {},
+      },
+      // Run termine: intouchable.
+      {
+        id: "run-done",
+        status: "completed",
+        created_at: "2026-07-06T09:00:00.000Z",
+        metadata: {},
+      },
+    ],
+    processing: [
+      { extraction_run_id: "run-orphan", message_id: "m1" },
+      { extraction_run_id: "run-orphan", message_id: "m2" },
+      { extraction_run_id: "run-fresh", message_id: "m3" },
+      { extraction_run_id: "run-done", message_id: "m4" },
+    ],
+  };
+  const { recoverOrphanExtractionRuns } = await import("./index.ts");
+  const result = await recoverOrphanExtractionRuns({
+    admin: makeOrphanFakeAdmin(state),
+    user_id: "u",
+    now,
+  });
+
+  assertEquals(result.recovered_run_ids, ["run-orphan"]);
+  assertEquals(result.released_message_count, 2);
+  // Les messages de l'orphelin sont liberes (re-eligibles), les autres restent.
+  assertEquals(
+    state.processing.map((row) => row.message_id).sort(),
+    ["m3", "m4"],
+  );
+  // L'orphelin est finalise `failed` avec trace de reprise; le frais reste running.
+  const orphan = state.runs.find((run) => run.id === "run-orphan");
+  assertEquals(orphan?.status, "failed");
+  assertEquals((orphan as any)?.error_message, "orphan_running_recovered");
+  assertEquals(
+    state.runs.find((run) => run.id === "run-fresh")?.status,
+    "running",
+  );
+});
