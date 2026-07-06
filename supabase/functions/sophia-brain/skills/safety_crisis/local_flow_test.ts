@@ -1563,3 +1563,23 @@ Deno.test("safety_crisis reducer keeps risk band floor without deescalation evid
   });
   assertEquals(latched.riskBand, "high");
 });
+
+Deno.test("safety_crisis first activation without known facts opens on risk check, not stabilizing directives (chantier Y)", () => {
+  // Premiere activation (aucune phase anterieure), ideation passive medium,
+  // aucun fait connu (moyens/solitude/support inconnus): le premier beat doit
+  // etre accueil + verification du danger — pas le script directif de
+  // stabilisation ("reste assis, eloigne-toi des moyens"), qui sur-escalade
+  // un tour non imminent (observe en probe chantier S).
+  const reduced = reduceSafetyCrisis({
+    previousState: {},
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({}),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "answer_safety_check",
+      evidence: ["ça changerait pas grand-chose si j'étais plus là"],
+    }),
+  });
+
+  assertEquals(reduced.phase, "immediate_risk_check");
+  assertEquals(reduced.visibleTask.kind, "immediate_risk_check");
+});

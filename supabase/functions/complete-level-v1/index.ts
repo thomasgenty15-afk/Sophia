@@ -672,14 +672,71 @@ export async function completeLevelV1(args: {
     );
   }
 
+  // Resume support: a review row without its generation event means a previous
+  // run crashed mid-transition (e.g. edge timeout during the LLM call). Reuse
+  // that review — its id, answers and mode — instead of inserting a duplicate,
+  // so retries are idempotent and user answers survive the retry.
+  const [existingReviewResult, existingEventResult] = await Promise.all([
+    args.admin
+      .from("user_plan_level_reviews")
+      .select("id,answers,review_mode")
+      .eq("plan_id", plan.id)
+      .eq("phase_id", currentPhase.phase_id)
+      .order("created_at", { ascending: false })
+      .limit(1),
+    args.admin
+      .from("user_plan_level_generation_events")
+      .select("id")
+      .eq("plan_id", plan.id)
+      .eq("from_phase_id", currentPhase.phase_id)
+      .limit(1),
+  ]);
+  if (existingReviewResult.error) {
+    throw new CompleteLevelV1Error(500, "Failed to load existing level review", {
+      cause: existingReviewResult.error,
+    });
+  }
+  if (existingEventResult.error) {
+    throw new CompleteLevelV1Error(
+      500,
+      "Failed to load existing level generation event",
+      { cause: existingEventResult.error },
+    );
+  }
+  if ((existingEventResult.data ?? []).length > 0) {
+    throw new CompleteLevelV1Error(
+      409,
+      "La transition de ce niveau est déjà terminée.",
+    );
+  }
+  const existingReview = ((existingReviewResult.data ?? []) as Array<{
+    id: string;
+    answers?: Record<string, unknown> | null;
+    review_mode?: string | null;
+  }>)[0] ?? null;
+  if (existingReview) {
+    logCompleteLevelStep(args.requestId, "resume_orphan_level_review", {
+      plan_id: plan.id,
+      phase_id: currentPhase.phase_id,
+      review_id: existingReview.id,
+      review_mode: existingReview.review_mode ?? null,
+    });
+  }
+
   const schema = buildLevelReviewSchema({
     currentLevel: currentLevelRuntime,
     items: planItems.filter((item) => item.phase_id === currentPhase.phase_id),
     weeks: currentLevelRuntime.weeks,
     primaryMetricLabel: planContent.primary_metric?.label ?? null,
   });
-  const reviewMode = args.reviewMode ?? "user_review";
-  const rawAnswers = reviewMode === "auto_timeout"
+  const reviewMode = existingReview
+    ? (existingReview.review_mode === "auto_timeout"
+      ? "auto_timeout"
+      : "user_review")
+    : args.reviewMode ?? "user_review";
+  const rawAnswers = existingReview
+    ? (existingReview.answers ?? {}) as Record<string, unknown>
+    : reviewMode === "auto_timeout"
     ? {
       global_metric_state: "unclear",
       next_plan_coherence: "not_sure",
@@ -710,50 +767,52 @@ export async function completeLevelV1(args: {
     currentPhase,
   });
 
-  const reviewId = crypto.randomUUID();
+  const reviewId = existingReview?.id ?? crypto.randomUUID();
   const generationEventId = crypto.randomUUID();
 
-  const { error: reviewInsertError } = await args.admin
-    .from("user_plan_level_reviews")
-    .insert({
-      id: reviewId,
-      user_id: args.userId,
-      cycle_id: cycle.id,
-      transformation_id: transformation.id,
-      plan_id: plan.id,
-      phase_id: currentPhase.phase_id,
-      level_order: currentPhase.phase_order,
-      level_title: currentLevelRuntime.title,
-      duration_weeks: currentLevelRuntime.duration_weeks,
-      questionnaire_schema: schema,
-      answers,
-      review_summary: summary as unknown as Record<string, unknown>,
-      notes: summary.free_text,
-      review_mode: reviewMode,
-      auto_reason: args.autoReason ?? null,
-      created_at: now,
-    } as never);
-
-  if (reviewInsertError) {
-    logCompleteLevelFailure(
-      args.requestId,
-      "persist_level_review",
-      reviewInsertError,
-      {
+  if (!existingReview) {
+    const { error: reviewInsertError } = await args.admin
+      .from("user_plan_level_reviews")
+      .insert({
+        id: reviewId,
+        user_id: args.userId,
+        cycle_id: cycle.id,
+        transformation_id: transformation.id,
         plan_id: plan.id,
         phase_id: currentPhase.phase_id,
-        review_id: reviewId,
-      },
-    );
-    throw new CompleteLevelV1Error(500, "Failed to persist level review", {
-      cause: reviewInsertError,
+        level_order: currentPhase.phase_order,
+        level_title: currentLevelRuntime.title,
+        duration_weeks: currentLevelRuntime.duration_weeks,
+        questionnaire_schema: schema,
+        answers,
+        review_summary: summary as unknown as Record<string, unknown>,
+        notes: summary.free_text,
+        review_mode: reviewMode,
+        auto_reason: args.autoReason ?? null,
+        created_at: now,
+      } as never);
+
+    if (reviewInsertError) {
+      logCompleteLevelFailure(
+        args.requestId,
+        "persist_level_review",
+        reviewInsertError,
+        {
+          plan_id: plan.id,
+          phase_id: currentPhase.phase_id,
+          review_id: reviewId,
+        },
+      );
+      throw new CompleteLevelV1Error(500, "Failed to persist level review", {
+        cause: reviewInsertError,
+      });
+    }
+    logCompleteLevelStep(args.requestId, "persist_level_review.succeeded", {
+      plan_id: plan.id,
+      phase_id: currentPhase.phase_id,
+      review_id: reviewId,
     });
   }
-  logCompleteLevelStep(args.requestId, "persist_level_review.succeeded", {
-    plan_id: plan.id,
-    phase_id: currentPhase.phase_id,
-    review_id: reviewId,
-  });
 
   const nextBlueprintLevel = findNextBlueprintLevel(planContent, currentPhase);
   const shouldGenerateNextLevel = Boolean(nextBlueprintLevel);

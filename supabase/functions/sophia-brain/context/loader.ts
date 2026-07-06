@@ -2089,6 +2089,8 @@ export function formatCurrentWeekPlanContextBlock(
     "Usage: source factuelle pour répondre aux questions sur actions, jours, validation et exécution. Ne cite pas les ids; distingue prévu, validé et fait.\n";
   block +=
     "Pour un point/recap de la semaine (« où j'en suis »), executions_semaine ci-dessous EST la liste des exécutions enregistrées (fait/raté/partiel par action, y compris celles de cette session): appuie-toi dessus, ne dis jamais que la liste des séances faites te manque quand ce bloc est présent.\n";
+  block +=
+    "Le crochet [dimension/kind] de chaque item fait foi: « mes habitudes » = seulement [habits/*]; un item [clarifications/framework] ou [missions/*] n'est JAMAIS une habitude, même si son titre décrit un comportement. Pour une question ciblant une dimension, filtre strictement par ce crochet; pour une liste globale, groupe par dimension.\n";
 
   for (const item of relevantItems) {
     const id = String(item.id);

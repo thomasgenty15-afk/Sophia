@@ -201,9 +201,11 @@ function buildSurfaceVariationPromptBlock(params: {
     : isMorningLightGreeting
     ? [
       "Surface specifique: presence legere du matin sans action prevue aujourd'hui.",
-      "Angle attendu: souhaiter une journee respirable et garder un point d'appui doux, sans suivi ni accountability.",
+      "Angle attendu: souhaiter simplement une bonne journee, court et sobre, sans suivi ni accountability.",
+      "Registre: pas de tendresse ni de soutien emotionnel ('je pense a toi', 'prends soin de toi', 'je suis la si') sans signal recent explicite qui le justifie.",
+      "Tu peux assumer qu'il n'y a rien de prevu aujourd'hui et que c'est juste un message de bonne journee.",
       "Le message ne doit pas relancer un sujet exact de l'historique ni demander un bilan.",
-      "Preference: une phrase de presence suffit; question seulement si elle est tres legere.",
+      "Preference: une phrase suffit; pas de question si possible.",
     ]
     : isMomentumMorningNudge
     ? [

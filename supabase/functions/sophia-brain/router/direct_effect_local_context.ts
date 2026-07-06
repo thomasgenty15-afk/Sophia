@@ -241,7 +241,7 @@ export function withDirectEffectLocalContext<T extends Record<string, unknown>>(
     ],
     direct_effect_tool_policy: {
       track_progress_plan_item:
-        "Use only when the user reports already-done/current progress. target_item_id must be copied from active_action_candidates_for_direct_effects.plan_item_id. Never invent ids; ambiguity or absent target means no direct effect.",
+        "Use only when the user reports already-done/current progress. target_item_id must be copied from active_action_candidates_for_direct_effects.plan_item_id. Never invent ids; ambiguity or absent target means no direct effect. payload_hint.target_evidence is REQUIRED: the exact words from the user's message that NAME the action (e.g. 'ma nuit sans ecran') — never a paraphrase. The runtime verifies the quote exists verbatim; a request without it is blocked. If no user words name a precise action, do not request the effect.",
       create_one_shot_reminder:
         "Use for one-time reminder requests only. A duration/time is not enough: it must clearly refer to a wanted reminder/notification/programming request, not conversational pacing like 'talk for two minutes'. Use direct_effect_time_context.now_utc and direct_effect_time_context.user_timezone to compute payload_hint.UTC_time; never ask timezone when user_timezone is present. The owner validates date, time and instruction; do not treat recurring reminders as one-shot.",
     },
@@ -255,6 +255,7 @@ export function directEffectLocalDispatcherPromptLines(): string[] {
     "- Le contexte temporel canonique est dans platform_context.direct_effect_time_context. Ne calcule jamais UTC_time depuis l'horloge implicite du modele.",
     "- track_progress_plan_item: si le user rapporte un progres deja fait ou en cours sur une action active.",
     "- Pour track_progress_plan_item, target_item_id doit venir uniquement de platform_context.active_action_candidates_for_direct_effects[].plan_item_id ou du contexte direct equivalent. Ne jamais inventer un id.",
+    "- Pour track_progress_plan_item, payload_hint.target_evidence est OBLIGATOIRE: la citation exacte, copiee mot pour mot, des mots du user qui NOMMENT l'action visee (user dit 'j'ai pas tenu ma nuit sans ecran' → target_evidence='ma nuit sans ecran'). Jamais une reformulation. Le runtime verifie que la citation existe telle quelle: sans elle la demande est bloquee. Si aucun mot du user ne nomme une action precise, ne demande pas l'effet.",
     "- Si plusieurs actions peuvent correspondre, si l'action est absente des candidates, si le user parle d'une intention future, ou si le statut n'est pas clair, ne cree pas de direct effect durable; demande/route une clarification.",
   ];
 }
@@ -663,19 +664,43 @@ export function activePlanSnapshotPromptBlock(
     .filter((item): item is NonNullable<typeof item> => item !== null);
   if (items.length === 0) return null;
   const shown = items.slice(0, 16);
+  // Groupement par dimension: une liste plate laissait le modele requalifier
+  // un framework au titre comportemental ("Cibler le joint reflexe") en
+  // "habitude" malgre l'etiquette (paul-r3 B03, probe chantier Y). La
+  // structure porte la frontiere a la place d'une consigne.
+  const DIMENSION_SECTIONS: Array<{ key: string; label: string }> = [
+    { key: "habits", label: "HABITUDES (les seules \"habitudes\" du plan)" },
+    { key: "missions", label: "MISSIONS (taches ponctuelles — pas des habitudes)" },
+    {
+      key: "clarifications",
+      label: "CLARIFICATIONS / frameworks (travail de fond — pas des habitudes)",
+    },
+  ];
+  const itemLine = (item: (typeof shown)[number]) =>
+    `- ${item.title} — statut: ${item.status}${
+      item.tracking ? ` (${item.tracking})` : ""
+    }${
+      item.checks.length > 0
+        ? ` — coches recentes: ${item.checks.join(", ")}`
+        : ""
+    }`;
   const lines = [
     "=== SNAPSHOT COURT PLAN / ACTIONS ACTIVES (SOURCE DB) ===",
     `Actions du plan actif (${items.length} au total) — liste exhaustive, source de verite pour "mon plan", "mes actions", "où j'en suis":`,
-    ...shown.map((item) =>
-      `- ${item.title}${item.dimension ? ` [${item.dimension}]` : ""} — statut: ${item.status}${
-        item.tracking ? ` (${item.tracking})` : ""
-      }${
-        item.checks.length > 0
-          ? ` — coches recentes: ${item.checks.join(", ")}`
-          : ""
-      }`
-    ),
   ];
+  const sectioned = new Set<unknown>();
+  for (const section of DIMENSION_SECTIONS) {
+    const sectionItems = shown.filter((item) => item.dimension === section.key);
+    if (sectionItems.length === 0) continue;
+    sectionItems.forEach((item) => sectioned.add(item));
+    lines.push(`${section.label}:`);
+    lines.push(...sectionItems.map(itemLine));
+  }
+  const others = shown.filter((item) => !sectioned.has(item));
+  if (others.length > 0) {
+    lines.push("AUTRES:");
+    lines.push(...others.map(itemLine));
+  }
   if (items.length > shown.length) {
     lines.push(
       `- … et ${items.length - shown.length} autre(s) — ne presente jamais cette liste comme complete sans les mentionner.`,
@@ -684,6 +709,7 @@ export function activePlanSnapshotPromptBlock(
   lines.push(
     "Un item absent de cette liste n'est pas une action du plan: n'invente ni action ni rappel dans un recap, et ne demande jamais au user de fournir sa propre liste.",
     'Le statut d\'un item ne dit PAS ce qui a ete coche: une habitude reste "active" meme deja cochee aujourd\'hui. Pour "qu\'est-ce que j\'ai coche/fait", reponds depuis les coches recentes (entries DB, format outcome@date) ci-dessus, jamais depuis le statut seul, et ne nie jamais une coche listee.',
+    'Les sections ci-dessus font foi: "mes habitudes" = la section HABITUDES uniquement, meme si le titre d\'un framework decrit un comportement.',
   );
   return lines.join("\n");
 }

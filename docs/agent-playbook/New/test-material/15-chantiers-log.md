@@ -7942,3 +7942,141 @@ Tests. 4 nouveaux memorizer verts, 11 direct_effect_local_context verts
 (dont 2 nouveaux), sweep router+track+companion 153 verts / 3 echecs
 preexistants a HEAD (user_facing_messages_architecture, verifies par stash).
 Cleanup probes: 3 entries supprimees, scopes purges, items = baseline exacte.
+
+---
+
+## 2026-07-06 — Chantier S : preemption detresse (le red safety de paul-r3)
+
+Source: paul-r3 T12 (BF-SAFETY-01, racine BF-ROUTE-04) — sur « au fond du
+trou / pas servir a grand-chose », le dispatcher classait medium +
+worthlessness_thoughts mais la reco coaching capturait le tour et pitchait
+une potion. Recurrence aggravee de nina-r2 B04 / paul-r2 B04: la detection
+safety existait, elle ne gouvernait rien en dessous de high/critical.
+
+Design (meme pattern que target_evidence: le prompt decide, la garde agit
+sur le fait):
+- Dispatcher regle 1d — vocabulaire CANONIQUE du cluster detresse:
+  worthlessness_thoughts (devalorisation), hopelessness (desespoir
+  generalise), suicidal_ideation_passive (idee de disparaitre sans
+  intention), band medium minimum, synonymes libres interdits. Garde-fou
+  anti-sur-declenchement dans la meme regle: decouragement lie a une action
+  ratee reste low/none (emotional_distress/demoralization), coaching
+  disponible. Version prompt: distress_canonical_codes_v1.
+- runConversationRouters — deux branches placees APRES high/critical et
+  flow safety actif, AVANT toute capture de flow actif: medium+ideation →
+  owner safety (distress_ideation_safety_priority, meme contrat de blocage
+  que high/critical); medium+devalorisation/desespoir →
+  distress_support_priority (owner normal_reply, les 4 lanes de reco
+  bloquees, direct effects legitimes conserves — pas de chemin muet).
+  Les codes pregate equivalents (passive_disappear_ideation, etc.) sont
+  inclus pour couvrir la frame neutre des flows locaux.
+- Doctrine locale coaching — regle prioritaire detresse: devalorisation /
+  desespoir / idee de disparaitre dans le message ⇒ AUCUN dispositif ce
+  tour, exit coaching_intent=safety (couvre le chemin ou le dispatcher
+  global est saute sous flow actif et ou le pregate est vide).
+
+Validation. 7 tests contrat verts (scenario T12 sous flow actif, ideation →
+safety, low inchange, medium substance_use_urge inchange — doctrine 1c
+protegee, direct effects conserves, high/critical et flow safety actif
+prioritaires). Probe live Paul (scope dedie, purge): T2 devalorisation sous
+flow coaching → distress_support_priority, 0 reco, soutien pur; T3 ideation
+passive → owner safety; T4-T5 desescalade sans hotline repetee, arc
+stabilise. 0 effet durable, baseline restauree.
+
+Observation ouverte (nouvelle, hors scope routing): le beat d'OUVERTURE du
+flow safety_crisis sur ideation passive medium est trop directif (« Reste
+assis. Eloigne-toi des moyens. » sans accueil ni question) — calibrage de
+contenu du flow safety a traiter separement.
+
+Fichiers. dispatcher.prompts.ts (regle 1d + version), routers/routers.ts
+(distressCluster + 2 branches), coaching local_flow.ts (regle prioritaire
+detresse), router/run_distress_preemption.test.ts (nouveau).
+
+Tests. 7 nouveaux verts; sweep router+routers+dispatcher+coaching: 233
+passed / 11 failed tous preexistants a HEAD (3 user_facing_messages_
+architecture + 8 coaching local_flow_test, verifies par stash).
+
+---
+
+## 2026-07-06 — Chantier Y : les jaunes de la vague du 06/07 (stickiness, altitude, quick wins)
+
+Source: 5 runs 2026-07-06 (nina-r1, alex-r1, eva-multiflow-r1, paul-r3,
+rose-r1). Arbitrages produit actes avant chantier: (1) seuls
+create_one_shot_reminder et track_progress_plan_item s'ecrivent depuis le
+chat, tout artefact coaching est de l'accompagnement (option « materialiser
+la carte » ecartee definitivement); (2) rappel recurrent reste user-owned
+(initiative), pas de nouveau tool skill; (3) exit local UNIQUEMENT vers le
+dispatcher global (rappel utilisateur — jamais de handoff local dirige).
+
+Y1 — Stickiness (cmd 9 de la charte, motif #1 des jaunes). Doctrine d'exit
+dans les prompts locaux: FO « sortie obligatoire sur REJET de la piste »
+(rejet explicite / demande d'un levier concret → exit avec note: propose,
+decline, nouvelle demande avec les mots du user; anti-FP: question sur la
+meme opportunite != rejet); coaching « sortie obligatoire sur MODIFICATION
+DURABLE du plan » (coaching_intent=plan_misaligned; anti-FP: adapter la
+maniere de faire = coaching) + « sortie sur REJET de la recommandation ».
+Probe: adjust durable sous flow coaching actif → exit → plan_realignment
+(nina R1-B03 mort, regression r2 reparee).
+
+Y2 — Defense avant initiative (dispatcher global): « pattern recurrent
+SUBI = carte de defense (risk_moment), jamais feature_opportunity;
+l'initiative n'est une reponse a la recurrence que si le user demande un
+cadre/rituel A METTRE EN PLACE ». Probe: « le meme moment me piege tous les
+dimanches » → coaching/defense (nina R1-B01 mort, recurrence r2-T3).
+
+Y3 — Altitude emotionnelle: exception dispatcher « aveu d'echec durable +
+affect global qui deborde l'action → emotional_state_coaching » (anti-FP:
+blocage pratique sans affect reste plan_action); doctrine coaching
+anti-repetition (une reco deja posee ne se re-pitche JAMAIS: avancer,
+version minimale ou alternative); regle visible « nom interne de technique
+= vocabulaire systeme, jamais avant adoption ». Probe (alex R1-B01):
+« j'y arriverai jamais, des annees que je galere » sous flow avec reco →
+hopelessness medium (1d) + distress_support_priority → soutien pur, offre
+de version minimale, zero re-pitch. S et Y se composent.
+
+Y4 — Quick wins:
+- 3e renforcee: anti-instruction explicite (« ne les re-coche pas »)
+  absolue, exemple verbatim paul-r3 T15 (doctrine, filet idempotence
+  conserve).
+- Snapshot par SECTIONS de dimension (HABITUDES / MISSIONS /
+  CLARIFICATIONS-frameworks). Iteration documentee: la ligne d'usage seule
+  ne suffisait pas (probe: frameworks a titre comportemental toujours
+  requalifies en habitudes) → la structure porte la frontiere. Ligne miroir
+  dans le bloc SEMAINE COURANTE. Probe: « mes habitudes actives ? » →
+  seulement les 2 habits (paul-r3 B03 mort).
+- Safety opening beat: reducer — premiere activation reelle (previous.phase
+  absent) sans fait connu → immediate_risk_check (accueil + question de
+  danger) au lieu de stabilizing (script directif); tolerance legacy
+  preservee (phase inconnue → stabilizing). + accueil d'une phrase dans le
+  stage immediate_risk_check. Test unitaire (probe S rejouee en reduction).
+- Eva B02-B: politique visible « claim d'EXISTENCE d'artefact = meme regime
+  default-deny qu'un claim d'ecriture » — langage de creation uniquement.
+  Probe: « je la retrouve ou cette carte ? » → « pour la preparer, ouvre
+  l'action », zero claim d'existence.
+- Rose B01: doctrine FO rappel recurrent accompagnant (destination + offre
+  d'aide, jamais « cree » ni « impossible »). Probe: outcome
+  recurring_not_supported honnete + reponse accompagnante.
+- Rose B02: verite produit etablie dans le frontend (RemindersSection lit
+  scheduled_checkins dans l'onglet Dashboard « Initiatives ») → entree de
+  connaissance one_shot_reminder dediee + alias rappel/rappels retires de
+  l'entree initiatives. Probe: « je le vois ou ? » → « Dashboard >
+  Initiatives, section des rappels ».
+
+Decouverte en probe, corrigee dans le chantier: la lane track issue d'un
+direct_effect_request de flow LOCAL ne portait pas target_evidence → garde
+G systematiquement bloquante sur ce chemin (sur-friction: « ma nuit sans
+ecran » nommee et pourtant bloquee). Fix source amont: le contrat de
+citation (3d-ter) est etendu a la doctrine locale
+(directEffectLocalDispatcherPromptLines + tool_policy) — meme pattern, le
+payload_hint transite tel quel jusqu'a la garde.
+
+Probes: 4 personas (nina, alex, eva, rose), scopes dedies, force_full_ai,
+cleanup verifie (0 entry residuelle, 0 checkin pending, scopes purges).
+Tests: safety_crisis 33 verts (dont 1 nouveau), direct_effect_local_context
+11 verts, sweep FO+product_help+dispatcher+router+routers 205+ verts /
+3 echecs preexistants (user_facing_messages_architecture). Statuts feuilles:
+nina B01/B03 fix_applied probes + B02 doctrine; alex B01 fix_applied probe;
+eva B01 doctrine + B02 fix_applied probe; paul B02 doctrine + B03
+fix_applied probe; rose B01/B02 fix_applied probes. Reste ouvert: chantier
+Z (memorizer: supersedence intra-batch, garde identite, plan-state,
+precision des faits confies) + observation beat safety a confirmer en run.

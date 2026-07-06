@@ -99,7 +99,8 @@ export function safetyCrisisDeterministicVisibleMessage(
 const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
   immediate_risk_check: [
     "Stage immediate_risk_check.",
-    "Verifier la securite immediate avec une formulation courte et directe.",
+    "Commence par UNE phrase d'accueil qui reconnait ce que le user vient de confier (chaleureuse, sans dramatiser, sans consigne) — surtout au premier tour du flow.",
+    "Puis verifier la securite immediate avec une formulation courte et directe.",
     "Utilise seulement conversation_context. Termine par la question la plus utile pour savoir si le user est en danger maintenant ou seul.",
   ].join("\n"),
   acute_grounding: [

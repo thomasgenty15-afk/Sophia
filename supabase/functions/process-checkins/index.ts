@@ -4460,16 +4460,10 @@ Deno.serve(async (req) => {
           },
           { done: 0, partial: 0, missed: 0, planned: 0 },
         );
-        if (summary.planned === 0) {
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "cancelled",
-            errorMessage: "weekly_progress_review_no_confirmed_occurrences",
-            requestId,
-          });
-          continue;
-        }
+        // planned === 0 (week never validated, no recorded activity) is a real
+        // weekly scenario, not a cancellation: the review opens on "no action
+        // tracked this week" and pivots to framing next week. Sending it also
+        // unlocks the planning validation prompt chain afterwards.
         let momentumSnapshot: MomentumSnapshotV2 | null = null;
         try {
           const loadedMomentum = await loadMomentumSnapshotV2(

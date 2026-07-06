@@ -282,24 +282,66 @@ function entryLocalDate(entry: EntryRow): string {
   return String(entry.effective_at ?? "").slice(0, 10);
 }
 
-function entryOutcomeForOccurrence(
-  occurrence: OccurrenceRow,
+type EntryOutcome = "completed" | "partial" | "missed";
+
+function isEntryOutcome(value: unknown): value is EntryOutcome {
+  return value === "completed" || value === "partial" || value === "missed";
+}
+
+function buildEntryOutcomeByOccurrenceId(
+  unsortedOccurrences: OccurrenceRow[],
   entries: EntryRow[],
-): "completed" | "partial" | "missed" | null {
-  const targetDate = occurrenceLocalDate(
-    occurrence.week_start_date,
-    occurrence.actual_day ?? occurrence.planned_day,
+): Map<string, EntryOutcome> {
+  const occurrences = unsortedOccurrences.slice().sort((left, right) =>
+    dayOffset(left.actual_day ?? left.planned_day) -
+        dayOffset(right.actual_day ?? right.planned_day) ||
+    left.ordinal - right.ordinal
   );
-  const match = entries.find((entry) =>
-    entry.plan_item_id === occurrence.plan_item_id &&
-    entryLocalDate(entry) === targetDate &&
-    ["completed", "partial", "missed"].includes(String(entry.outcome ?? ""))
+  const usableEntries = entries.filter((entry) =>
+    cleanText(entry.plan_item_id) && isEntryOutcome(entry.outcome)
   );
-  if (!match) return null;
-  return match.outcome === "completed" || match.outcome === "partial" ||
-      match.outcome === "missed"
-    ? match.outcome
-    : null;
+  const usedEntryIds = new Set<string>();
+  const outcomeByOccurrenceId = new Map<string, EntryOutcome>();
+
+  // Pass 1: exact planned-day match. Each entry counts for one occurrence only.
+  for (const occurrence of occurrences) {
+    const targetDate = occurrenceLocalDate(
+      occurrence.week_start_date,
+      occurrence.actual_day ?? occurrence.planned_day,
+    );
+    const match = usableEntries.find((entry) =>
+      !usedEntryIds.has(entry.id) &&
+      entry.plan_item_id === occurrence.plan_item_id &&
+      entryLocalDate(entry) === targetDate
+    );
+    if (match && isEntryOutcome(match.outcome)) {
+      usedEntryIds.add(match.id);
+      outcomeByOccurrenceId.set(occurrence.id, match.outcome);
+    }
+  }
+
+  // Pass 2: same-week fallback for completions. An action done on another day
+  // than planned (WhatsApp check-in or dashboard) still proves the action
+  // happened this week; assign it to one open occurrence of the same item.
+  // Missed entries stay exact-day only: a miss reported for another day must
+  // not mark a different occurrence as missed.
+  for (const occurrence of occurrences) {
+    if (outcomeByOccurrenceId.has(occurrence.id)) continue;
+    if (occurrence.status === "done" || occurrence.status === "partial") {
+      continue;
+    }
+    const match = usableEntries.find((entry) =>
+      !usedEntryIds.has(entry.id) &&
+      entry.plan_item_id === occurrence.plan_item_id &&
+      (entry.outcome === "completed" || entry.outcome === "partial")
+    );
+    if (match && isEntryOutcome(match.outcome)) {
+      usedEntryIds.add(match.id);
+      outcomeByOccurrenceId.set(occurrence.id, match.outcome);
+    }
+  }
+
+  return outcomeByOccurrenceId;
 }
 
 function asEntryMetadata(entry: EntryRow): Record<string, unknown> {
@@ -467,15 +509,40 @@ export function buildWeeklyProgressReviewFromRows(params: {
       )
       .map((row) => row.plan_item_id),
   );
+  // A pending (never validated) week must not hide real activity: the user can
+  // still check actions off (WhatsApp check-in or dashboard) without validating
+  // the planning. Items with a done/partial occurrence or a completed/partial
+  // entry stay visible; pending items with zero activity stay out so the weekly
+  // never reproaches a default plan the user never accepted.
+  const activityItemIds = new Set<string>();
+  for (const occurrence of params.occurrences) {
+    if (occurrence.status === "done" || occurrence.status === "partial") {
+      activityItemIds.add(occurrence.plan_item_id);
+    }
+  }
+  for (const entry of params.entries) {
+    if (
+      cleanText(entry.plan_item_id) &&
+      (entry.outcome === "completed" || entry.outcome === "partial")
+    ) {
+      activityItemIds.add(entry.plan_item_id);
+    }
+  }
+  const visibleItemIds = new Set([...confirmedItemIds, ...activityItemIds]);
   const grouped = new Map<string, OccurrenceRow[]>();
 
   for (const occurrence of params.occurrences) {
-    if (!confirmedItemIds.has(occurrence.plan_item_id)) continue;
+    if (!visibleItemIds.has(occurrence.plan_item_id)) continue;
     const key = `${occurrence.transformation_id}:${occurrence.plan_id}`;
     const list = grouped.get(key) ?? [];
     list.push(occurrence);
     grouped.set(key, list);
   }
+
+  const entryOutcomeByOccurrenceId = buildEntryOutcomeByOccurrenceId(
+    [...grouped.values()].flat(),
+    params.entries,
+  );
 
   const transformations = [...grouped.entries()].flatMap(
     ([key, occurrences]) => {
@@ -490,10 +557,8 @@ export function buildWeeklyProgressReviewFromRows(params: {
         .flatMap((occurrence) => {
           const item = itemById.get(occurrence.plan_item_id);
           if (!item) return [];
-          const entryOutcome = entryOutcomeForOccurrence(
-            occurrence,
-            params.entries,
-          );
+          const entryOutcome = entryOutcomeByOccurrenceId.get(occurrence.id) ??
+            null;
           const deviation = deviationFor(occurrence, entryOutcome);
           const dailyEvidence = dailyEvidenceForOccurrence(
             occurrence,
@@ -801,7 +866,7 @@ export function buildWeeklyProgressReviewFallbackMessage(args: {
   planned: number;
 }): string {
   if (args.planned === 0) {
-    return "Petit point de fin de semaine: je n'ai pas assez de planning confirme pour faire une vraie lecture.";
+    return "Petit point de fin de semaine: aucune action n'a ete suivie cette semaine. On fait le point ensemble et on cale la semaine qui vient ?";
   }
   if (args.missed === 0 && args.partial === 0) {
     return `Petit point de fin de semaine: ${args.done}/${args.planned} action(s) faites. C'est propre, on garde ce qui marche.`;

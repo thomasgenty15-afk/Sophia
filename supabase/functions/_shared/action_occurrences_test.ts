@@ -110,3 +110,14 @@ Deno.test("buildLightMorningInstruction stays separate from action followups", (
   assertStringIncludes(instruction, "pas follow-up");
   assertStringIncludes(instruction, "Ne demande pas un bilan");
 });
+
+Deno.test("buildLightMorningInstruction bans ungrounded tenderness", () => {
+  const instruction = buildLightMorningInstruction();
+
+  // No emotional-support register without an explicit recent signal.
+  assertStringIncludes(instruction, "Interdit sans signal recent");
+  assertStringIncludes(instruction, "'je pense a toi'");
+  assertStringIncludes(instruction, "'prends soin de toi'");
+  // The greeting may plainly state that nothing is planned today.
+  assertStringIncludes(instruction, "rien de prevu aujourd'hui");
+});

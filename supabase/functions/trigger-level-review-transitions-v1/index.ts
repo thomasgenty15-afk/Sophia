@@ -86,17 +86,29 @@ function currentPhaseFor(
   ) ?? null;
 }
 
-async function hasExistingLevelReviewOrGeneration(params: {
+const LEVEL_REVIEW_IN_FLIGHT_GRACE_MS = 30 * 60 * 1000;
+
+async function hasCompletedOrInFlightLevelTransition(params: {
   admin: ReturnType<typeof createClient>;
   planId: string;
   phaseId: string;
+  now: Date;
 }): Promise<boolean> {
+  // The generation event is the LAST write of completeLevelV1 in every branch
+  // (AI generation, keep-runtime, final level): its presence means the
+  // transition completed. A review row alone means a previous run crashed
+  // mid-transition (e.g. edge timeout during the LLM call) and must NOT be
+  // treated as handled — the catch-up window below resumes it, and
+  // completeLevelV1 reuses the orphan review instead of duplicating it. A very
+  // recent review (< 30 min) is treated as in-flight to avoid racing a run
+  // still in progress.
   const [review, event] = await Promise.all([
     params.admin
       .from("user_plan_level_reviews")
-      .select("id")
+      .select("id,created_at")
       .eq("plan_id", params.planId)
       .eq("phase_id", params.phaseId)
+      .order("created_at", { ascending: false })
       .limit(1),
     params.admin
       .from("user_plan_level_generation_events")
@@ -107,7 +119,16 @@ async function hasExistingLevelReviewOrGeneration(params: {
   ]);
   if (review.error) throw review.error;
   if (event.error) throw event.error;
-  return (review.data ?? []).length > 0 || (event.data ?? []).length > 0;
+  if ((event.data ?? []).length > 0) return true;
+
+  const latestReview = (review.data ?? [])[0] as
+    | { created_at?: string | null }
+    | undefined;
+  if (!latestReview) return false;
+  const reviewAgeMs = params.now.getTime() -
+    new Date(String(latestReview.created_at ?? "")).getTime();
+  return Number.isFinite(reviewAgeMs) &&
+    reviewAgeMs < LEVEL_REVIEW_IN_FLIGHT_GRACE_MS;
 }
 
 async function cancelPendingReminderCheckins(params: {
@@ -344,10 +365,11 @@ Deno.serve(async (req) => {
         skipped++;
         continue;
       }
-      const alreadyHandled = await hasExistingLevelReviewOrGeneration({
+      const alreadyHandled = await hasCompletedOrInFlightLevelTransition({
         admin,
         planId: row.id,
         phaseId: currentPhase.phase_id,
+        now: effectiveNow,
       });
       if (alreadyHandled) {
         skipped++;

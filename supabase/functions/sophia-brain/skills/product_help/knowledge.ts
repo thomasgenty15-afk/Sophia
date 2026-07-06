@@ -661,8 +661,6 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "initiatives",
       "rendez-vous",
       "rendez vous",
-      "rappel",
-      "rappels",
       "rappel recurrent",
       "initiative recurrente",
       "initiative récurrente",
@@ -719,6 +717,50 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       ],
       requires_confirmation: true,
     },
+  },
+  {
+    id: "one_shot_reminder",
+    label: "Rappel ponctuel",
+    aliases: [
+      "rappel",
+      "rappels",
+      "rappel ponctuel",
+      "rappel unique",
+      "rappelle-moi",
+      "mon rappel",
+      "rappel de ce soir",
+      "rappel prevu",
+    ],
+    explain:
+      "Un rappel ponctuel est un message unique que j'envoie a l'heure convenue (par exemple « rappelle-moi ce soir a 21h de couper les ecrans »). Il se cree directement en conversation avec moi et part une seule fois, contrairement a une initiative qui est recurrente.",
+    how_to:
+      "Demande-le moi simplement en conversation avec le moment et l'objet (« rappelle-moi demain a 8h30 d'appeler ma soeur »). Une fois cree, il apparait dans Dashboard > Initiatives, dans la section des rappels, ou tu peux le voir, le modifier, le mettre en pause ou le supprimer.",
+    benefits: [
+      "Zero configuration: il se cree en une phrase dans la conversation.",
+      "Visible et gerable ensuite dans Dashboard > Initiatives.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Initiatives",
+        when_visible:
+          "Quand un rappel ponctuel a ete cree et n'est pas encore envoye.",
+        user_can_do: [
+          "consulter les rappels a venir",
+          "modifier",
+          "mettre en pause",
+          "supprimer",
+        ],
+      },
+    ],
+    limits: [
+      "Un rappel ponctuel part une seule fois: pour une recurrence (« tous les jours a 18h »), c'est une initiative.",
+      "L'annulation et la creation passent aussi par la conversation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'un rappel est programme sans commit prouve.",
+      "Ne pas dire que les rappels ponctuels ne sont pas visibles dans l'app: ils apparaissent dans Dashboard > Initiatives.",
+      "Ne pas confondre rappel ponctuel (unique) et initiative (recurrente).",
+    ],
   },
   {
     id: "coach_preferences",

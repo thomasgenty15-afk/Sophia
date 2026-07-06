@@ -194,8 +194,12 @@ export function buildWeeklyAdaptiveReviewMessage(
 export function buildWeeklyAdaptiveReviewInstruction(
   adaptiveReview: WeeklyAdaptiveReview,
 ): string {
+  const emptyWeek = adaptiveReview.daily_evidence_summary.action_count === 0;
   return [
     "Weekly adaptive review.",
+    emptyWeek
+      ? "Cas particulier: aucune action n'a ete suivie cette semaine (planning jamais valide ou aucune activite enregistree). Ouvre quand meme le point de fin de semaine: dis simplement qu'aucune action n'a ete suivie, sans culpabiliser et sans inventer de bilan chiffre, demande comment la semaine s'est passee reellement, puis oriente la discussion vers le cadrage concret de la semaine prochaine."
+      : "",
     "Objectif: ouvrir un vrai point weekly: observation courte de l'etat de la semaine, check clair des actions, puis discussion sur l'organisation de la semaine prochaine.",
     "L'ouverture doit etre un message proactif envoye par Sophia, comme le daily: ce n'est pas le user qui doit ouvrir le point.",
     "L'ouverture doit toujours dire clairement que c'est le moment du bilan de la semaine ou du point de fin de semaine, pas commencer par une question nue.",
@@ -228,7 +232,7 @@ export function buildWeeklyAdaptiveReviewInstruction(
     adaptiveReview.question
       ? `Question supplementaire si elle bloque la decision: ${adaptiveReview.question.text}`
       : "Demande une confirmation courte de la proposition.",
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
 export function buildWeeklyAdaptiveReviewGrounding(

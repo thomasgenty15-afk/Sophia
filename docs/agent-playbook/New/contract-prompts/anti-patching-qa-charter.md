@@ -119,7 +119,7 @@ EffectLedger. Ils ne doivent pas inventer une intention.
     extensibles sans toucher au prompt. Toute affirmation d'écriture
     (« c'est fait / noté / enregistré / programmé ») exige un outcome
     `committed` — default-deny, pas allow-list.
-
+17. Tout exit doit être un exit vers le global dispacther, il ne peut f-pas y avoir directement d'exit vers d'autres flow. 
 ## Test Mental
 
 Avant de coder, l'agent doit pouvoir répondre :

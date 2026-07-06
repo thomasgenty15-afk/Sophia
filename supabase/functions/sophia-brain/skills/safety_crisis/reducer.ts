@@ -685,6 +685,13 @@ export function reduceSafetyCrisis(args: {
     phase = "support_contact";
   } else if (previousPhase === "exit_check") {
     phase = "exit_check";
+  } else if (previousPhase === "entry" && previous.phase == null) {
+    // Premiere activation reelle (aucune phase anterieure, pas un etat legacy
+    // a phase inconnue) sans aucun fait connu (ideation passive medium): on
+    // accueille et on verifie le danger AVANT toute consigne de stabilisation
+    // — ouvrir sur un script directif ("reste assis, eloigne les moyens")
+    // sur-escalade un tour non imminent (probe chantier S).
+    phase = "immediate_risk_check";
   } else {
     phase = "stabilizing";
   }

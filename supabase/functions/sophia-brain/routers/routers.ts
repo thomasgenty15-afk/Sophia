@@ -1,5 +1,6 @@
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
+import { isAtLeast } from "../safety/safety_thresholds.ts";
 
 type FlowInterventionContext = {
   last_flow_target?: string | null;
@@ -8,6 +9,48 @@ type FlowInterventionContext = {
 
 function safetyBlocksGlobalRoute(riskBand: RiskBand): boolean {
   return riskBand === "high" || riskBand === "critical";
+}
+
+// Preemption detresse (paul-r3 T12, BF-SAFETY-01 / BF-ROUTE-04): en dessous
+// de high/critical, un tour porteur d'ideation passive ou de devalorisation
+// (band >= medium) ne doit JAMAIS etre capture par une lane de recommandation
+// produit/coaching — on ne vend pas un dispositif a quelqu'un en detresse.
+// Le vocabulaire est canonique (contrat dispatcher regle 1d): le prompt
+// decide du code, la route agit sur le fait. Les codes pregate equivalents
+// sont inclus pour couvrir la frame neutre des flows locaux.
+const DISTRESS_IDEATION_REASON_CODES = new Set([
+  "suicidal_ideation_passive",
+  "suicidal_ideation",
+  "explicit_suicidal_thoughts",
+  "passive_disappear_ideation",
+  "passive_absence_ideation",
+  "self_harm_thoughts",
+  "self_harm_intent",
+]);
+
+const DISTRESS_SUPPORT_REASON_CODES = new Set([
+  "worthlessness_thoughts",
+  "hopelessness",
+]);
+
+function distressCluster(args: {
+  turn_frame: TurnFrame;
+  safety_context_risk_band: RiskBand;
+}): "ideation" | "support" | null {
+  const bandAtLeastMedium =
+    isAtLeast(args.turn_frame.safety.risk_band, "medium") ||
+    isAtLeast(args.safety_context_risk_band, "medium");
+  if (!bandAtLeastMedium) return null;
+  const codes = (args.turn_frame.safety.reason_codes ?? []).map((code) =>
+    String(code)
+  );
+  if (codes.some((code) => DISTRESS_IDEATION_REASON_CODES.has(code))) {
+    return "ideation";
+  }
+  if (codes.some((code) => DISTRESS_SUPPORT_REASON_CODES.has(code))) {
+    return "support";
+  }
+  return null;
 }
 
 function buildRouteDecision(args: {
@@ -213,6 +256,72 @@ export function runConversationRouters(input: {
       reason_code: safetyAllowedDirectEffects.length > 0
         ? "active_safety_crisis_with_direct_effects"
         : "active_safety_crisis",
+    });
+  }
+
+  const distress = distressCluster(input);
+  if (distress === "ideation") {
+    // Ideation passive a band medium: le chemin safety possede le tour
+    // (meme contrat que high/critical), avec desescalade geree par le flow.
+    const safetyAllowedDirectEffects = directEffectsToRun.filter((effect) =>
+      effect === "create_one_shot_reminder"
+    );
+    return buildRouteDecision({
+      response_owner: "safety",
+      selected_handler: "safety_crisis",
+      direct_effects_to_run: safetyAllowedDirectEffects,
+      reason_code: "distress_ideation_safety_priority",
+      blocked_paths: [
+        ...blockedPaths,
+        ...directEffectsToRun
+          .filter((effect) => effect !== "create_one_shot_reminder")
+          .map((effect) => ({
+            path: `direct_effects.${effect}`,
+            reason_code: "distress_ideation_safety_priority",
+          })),
+        { path: "product_help", reason_code: "distress_ideation_safety_priority" },
+        {
+          path: "coaching_recommendation",
+          reason_code: "distress_ideation_safety_priority",
+        },
+        {
+          path: "plan_realignment",
+          reason_code: "distress_ideation_safety_priority",
+        },
+        {
+          path: "feature_opportunity",
+          reason_code: "distress_ideation_safety_priority",
+        },
+        { path: "normal_reply", reason_code: "distress_ideation_safety_priority" },
+      ],
+    });
+  }
+  if (distress === "support") {
+    // Devalorisation/desespoir sans ideation: tour de SOUTIEN (companion),
+    // pas de crise (pas de hotline), et surtout aucune lane de recommandation
+    // — ni flow actif ni signal du tour ne peut pitcher un dispositif ici.
+    // Les direct effects legitimes (report de progres, rappel) restent
+    // executables: bloquer une ecriture demandee recreerait un chemin muet.
+    return buildRouteDecision({
+      response_owner: "normal_reply",
+      direct_effects_to_run: directEffectsToRun,
+      reason_code: "distress_support_priority",
+      blocked_paths: [
+        ...blockedPaths,
+        { path: "product_help", reason_code: "distress_support_priority" },
+        {
+          path: "coaching_recommendation",
+          reason_code: "distress_support_priority",
+        },
+        {
+          path: "plan_realignment",
+          reason_code: "distress_support_priority",
+        },
+        {
+          path: "feature_opportunity",
+          reason_code: "distress_support_priority",
+        },
+      ],
     });
   }
 
