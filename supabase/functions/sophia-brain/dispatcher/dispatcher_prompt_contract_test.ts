@@ -505,15 +505,23 @@ Deno.test("dispatcher prompt routes recurring reminder requests to initiatives",
 });
 
 Deno.test("dispatcher prompt treats reminder verification questions as non-creation", () => {
+  // Chantier P (2026-07-06): la regle couvre desormais verification, statut
+  // ET recap, plus la re-emission depuis l'historique (message courant only).
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Une question de verification sur un rappel deja programme",
+      "Une question de verification, de statut ou de RECAP sur les rappels",
     ),
     true,
   );
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "n'est pas une demande de creation: n'emets pas create_one_shot_reminder",
+      "n'est jamais une demande de creation: n'emets pas create_one_shot_reminder",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "L'effet se rapporte au MESSAGE COURANT uniquement",
     ),
     true,
   );

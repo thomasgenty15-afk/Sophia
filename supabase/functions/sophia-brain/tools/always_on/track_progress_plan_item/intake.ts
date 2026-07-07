@@ -309,5 +309,6 @@ export function requestedEffectFromIntake(args: {
     date_hint: args.intake.date_hint,
     source_message_id: args.source_message_id,
     retarget_from_item_id: args.intake.retarget_from_item_id,
+    correction: args.intake.is_correction,
   };
 }

@@ -3003,6 +3003,12 @@ export async function loadDurableEffectsSummary(
 
     const lines: string[] = [];
     lines.push("=== ÉTAT DURABLE ACTUEL (DB, source de vérité) ===");
+    // paul-r5 B01: au T14 le modèle a nié un rappel pourtant listé ici, parce
+    // qu'un tour PRÉCÉDENT de la conversation affirmait « pas créé ». La
+    // priorité doit être explicite: la DB actuelle bat l'historique.
+    lines.push(
+      "Cette liste PRIME sur tout ce que la conversation a pu dire avant (y compris un ancien tour niant une création): un rappel listé ici EXISTE — ne nie jamais son existence; un élément absent d'ici n'existe pas.",
+    );
 
     if (attack) {
       const title = extractCardTitleFromContent(attack?.content) ||

@@ -381,9 +381,12 @@ export async function runTrackProgressPlanItemDirectEffect(
       date_hint: requested.date_hint ?? null,
     });
     if (conflicting) {
+      // Blocked, pas clarify (paul-r5 B02): la confirmation qu'un clarify
+      // inviterait est inexecutable (pas d'override same-day en chat, V1) —
+      // l'offrir creait une boucle morte T14→T15.
       return blockedResult({
-        intent: "clarify",
-        status: "needs_clarify",
+        intent: "ignore",
+        status: "blocked",
         reason_code: "contradicts_same_day_evidence",
         reply: renderTrackProgressContradictionClarification({
           target_title: item.title,

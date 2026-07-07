@@ -75,6 +75,8 @@ export const CONVERSATION_PULSE_SYSTEM_PROMPT =
 
 Tu analyses les messages récents entre l'utilisateur et Sophia (7 derniers jours) pour produire un **résumé structuré et actionnable** de l'état conversationnel.
 
+Le pulse décrit **l'état de l'utilisateur**. Ancre-le d'abord sur ce que dit l'utilisateur : ses mots, son ton, ce qu'il rapporte et ce qu'il ne dit pas. Les messages de Sophia sont du **contexte** — ils t'aident à comprendre à quoi l'utilisateur réagit (ce qu'elle a proposé, demandé ou reflété), mais ils ne sont jamais en eux-mêmes une preuve de l'état de l'utilisateur. Ne confonds pas le ton de Sophia avec le ton de l'utilisateur.
+
 Ce résumé (le "pulse") est utilisé en interne par :
 - Le bilan quotidien (pour ajuster le ton et le ciblage)
 - Le bilan hebdomadaire (pour contextualiser les décisions de recalibrage)
@@ -86,6 +88,7 @@ Le pulse n'est JAMAIS montré directement à l'utilisateur.
 
 ### Messages (messages[])
 Messages user + assistant des 7 derniers jours, en ordre chronologique.
+Le **signal primaire, ce sont les messages user** : c'est là que se lisent le ton, la trajectoire et les besoins. Les messages assistant (Sophia) servent à contextualiser les réactions de l'utilisateur, pas à établir le pulse.
 Tu sais combien de messages datent des dernières 72h (messages_last_72h_count) — donne-leur plus de poids dans ton analyse.
 
 ### Bilans récents (recent_bilans[], max 3)
@@ -153,7 +156,7 @@ Utilise-le comme **contexte de continuité**, pas comme substitut aux messages r
   - "low" si l'utilisateur est ouvert et engagé
 
 ### evidence_refs
-- **message_ids** : les IDs des 3 à 5 messages les plus informatifs pour le pulse
+- **message_ids** : les IDs des 3 à 5 messages les plus informatifs pour le pulse, en privilégiant les messages de l'utilisateur
 - **event_ids** : les IDs des event memories référencés (0 à 3)
 
 ## Règles strictes
@@ -166,6 +169,7 @@ Utilise-le comme **contexte de continuité**, pas comme substitut aux messages r
 6. **Un seul likely_need** : même si plusieurs besoins coexistent, choisis le plus urgent.
 7. **Formulations courtes** : chaque win/friction_point/support/tension en 1 phrase max (15 mots max).
 8. **Primauté du présent** : le handoff récent sert à garder la continuité entre transformations, mais il ne doit jamais écraser les signaux des 7 derniers jours.
+9. **Ancrage utilisateur** : le pulse se lit d'abord dans les messages de l'utilisateur. Les messages de Sophia sont du contexte pour interpréter ses réactions, jamais la source du diagnostic. En cas de doute, fais confiance à ce que l'utilisateur exprime.
 
 ## Format de sortie
 

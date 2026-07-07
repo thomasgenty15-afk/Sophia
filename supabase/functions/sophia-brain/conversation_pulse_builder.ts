@@ -30,12 +30,9 @@ export const WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE =
   "watcher_conversation_pulse_v2";
 export const DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE =
   "daily_conversation_pulse_v2";
-export const WEEKLY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE =
-  "weekly_conversation_pulse_v2";
 export const CONVERSATION_PULSE_V2_SNAPSHOT_TYPES = [
   DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
   WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
-  WEEKLY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE,
 ] as const;
 
 type RuntimeRefs = {
@@ -109,7 +106,6 @@ function compactText(value: unknown, maxLen = 160): string {
 
 function snapshotTypeForPulseKind(kind: ConversationPulseKind): string {
   if (kind === "daily") return DAILY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE;
-  if (kind === "weekly") return WEEKLY_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE;
   return WATCHER_CONVERSATION_PULSE_V2_SNAPSHOT_TYPE;
 }
 

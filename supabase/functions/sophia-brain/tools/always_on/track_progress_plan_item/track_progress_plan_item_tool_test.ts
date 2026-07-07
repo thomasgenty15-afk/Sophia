@@ -690,7 +690,7 @@ Deno.test("track_progress same-day contradiction guard (BF-EFFECT-01 R2-B01)", a
   });
 
   await t.step(
-    "contradiction: outcome oppose deja committe le meme jour -> needs_clarify, aucun write",
+    "contradiction: outcome oppose deja committe le meme jour -> blocked honnete sans offre, aucun write",
     async () => {
       const { writes, base } = makeBase();
       const result = await runTrackProgressPlanItemDirectEffect({
@@ -702,7 +702,7 @@ Deno.test("track_progress same-day contradiction guard (BF-EFFECT-01 R2-B01)", a
           source: "daily_action_review_v1",
         }),
       });
-      assertEquals(result.status, "needs_clarify");
+      assertEquals(result.status, "blocked");
       assertEquals(
         result.debug.reason_code,
         "contradicts_same_day_evidence",
@@ -710,6 +710,10 @@ Deno.test("track_progress same-day contradiction guard (BF-EFFECT-01 R2-B01)", a
       assertEquals(result.committed_effects.length, 0);
       assertEquals(writes.length, 0);
       assert(String(result.reply ?? "").includes("marche"));
+      // Pas d'offre de bascule inexecutable (paul-r5 B02): la reply dit ou
+      // ca se corrige, sans question de confirmation.
+      assert(!String(result.reply ?? "").includes("Tu veux que je corrige"));
+      assert(String(result.reply ?? "").includes("Dashboard > Plan"));
       assert(
         result.blocked_effects.some((effect) =>
           effect.reason_code === "contradicts_same_day_evidence"

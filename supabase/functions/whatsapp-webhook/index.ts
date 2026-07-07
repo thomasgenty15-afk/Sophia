@@ -61,7 +61,8 @@ const LINK_BLOCK_NOTICE_COOLDOWN_MS = Number.parseInt(
 const SUPPORT_EMAIL =
   (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim();
 const SITE_URL =
-  (Deno.env.get("WHATSAPP_SITE_URL") ?? "https://sophia-coach.ai").trim();
+  (Deno.env.get("APP_BASE_URL") ?? Deno.env.get("WHATSAPP_SITE_URL") ??
+    "https://sophia-coach.ai").trim();
 const DEFAULT_WHATSAPP_NUMBER = "33674637278" // fallback if WHATSAPP_PHONE_NUMBER is missing (no '+')
 ;
 const PAYWALL_NOTICE_COOLDOWN_MS = Number.parseInt(

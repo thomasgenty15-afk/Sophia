@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { verifyStripeWebhookSignature } from "../_shared/stripe.ts";
@@ -8,12 +8,21 @@ import {
   intervalFromStripePriceId,
   tierFromStripePriceId,
 } from "../_shared/billing-tier.ts";
+import {
+  decideSubscriptionNotification,
+  notificationDedupKey,
+  type NotificationKind,
+  type SubInterval,
+  subscriptionConfirmedText,
+  subscriptionModifiedText,
+  type SubscriptionSnapshot,
+  type SubTier,
+} from "../_shared/subscription-notification.ts";
 
 const SUBSCRIPTION_CONFIRMED_PURPOSE = "subscription_confirmed";
+const SUBSCRIPTION_MODIFIED_PURPOSE = "subscription_modified";
 const SUBSCRIPTION_CONFIRMED_TEMPLATE_NAME = "subscription_confirmed_v1";
 const SUBSCRIPTION_CONFIRMED_TEMPLATE_LANG = "fr";
-const SUBSCRIPTION_CONFIRMED_TEXT =
-  "C’est confirmé ✅\nTon abonnement Sophia est bien activé.\n\nJe suis contente de te retrouver ici.";
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name)?.trim();
@@ -80,31 +89,17 @@ async function callWhatsappSend(payload: unknown) {
   return data;
 }
 
-async function maybeSendSubscriptionConfirmedWhatsapp(args: {
-  admin: ReturnType<typeof createClient>;
+async function sendSubscriptionWhatsapp(args: {
+  admin: SupabaseClient;
   userId: string;
   stripeSubscriptionId: string;
   tier: string | null;
   interval: string | null;
+  kind: "new" | "modified";
   requestId: string;
 }) {
+  // WhatsApp is only available on Alliance + Architecte.
   if (args.tier !== "alliance" && args.tier !== "architecte") return;
-
-  const { data: existing, error: existingErr } = await args.admin
-    .from("chat_messages")
-    .select("id")
-    .eq("user_id", args.userId)
-    .eq("scope", "whatsapp")
-    .eq("role", "assistant")
-    .filter("metadata->>purpose", "eq", SUBSCRIPTION_CONFIRMED_PURPOSE)
-    .filter(
-      "metadata->>stripe_subscription_id",
-      "eq",
-      args.stripeSubscriptionId,
-    )
-    .limit(1);
-  if (existingErr) throw existingErr;
-  if ((existing ?? []).length > 0) return;
 
   const { data: profile, error: profileErr } = await args.admin
     .from("profiles")
@@ -122,28 +117,99 @@ async function maybeSendSubscriptionConfirmedWhatsapp(args: {
   const in24hWindow = isOpenWhatsappWindow(
     (profile as any).whatsapp_last_inbound_at,
   );
-  const message = in24hWindow
-    ? { type: "text" as const, body: SUBSCRIPTION_CONFIRMED_TEXT }
-    : {
-      type: "template" as const,
-      name: SUBSCRIPTION_CONFIRMED_TEMPLATE_NAME,
-      language: SUBSCRIPTION_CONFIRMED_TEMPLATE_LANG,
-    };
 
-  await callWhatsappSend({
-    user_id: args.userId,
-    message,
-    purpose: SUBSCRIPTION_CONFIRMED_PURPOSE,
-    require_opted_in: true,
-    force_template: !in24hWindow,
-    metadata_extra: {
-      source: "stripe_webhook",
-      stripe_subscription_id: args.stripeSubscriptionId,
-      subscription_tier: args.tier,
-      subscription_interval: args.interval,
-      in_24h_window_at_decision: in24hWindow,
-    },
-  });
+  // Modification notices are free text carrying the new tier, so they can only
+  // go out inside the open 24h window (no approved template holds a dynamic
+  // tier). Outside the window we skip rather than send a misleading template.
+  if (args.kind === "modified" && !in24hWindow) return;
+
+  // Preserve "confirm a given subscription at most once, ever" for first
+  // activations sent through the legacy path (pre-claim rows have no claim).
+  if (args.kind === "new") {
+    const { data: existing, error: existingErr } = await args.admin
+      .from("chat_messages")
+      .select("id")
+      .eq("user_id", args.userId)
+      .eq("scope", "whatsapp")
+      .eq("role", "assistant")
+      .filter("metadata->>purpose", "eq", SUBSCRIPTION_CONFIRMED_PURPOSE)
+      .filter(
+        "metadata->>stripe_subscription_id",
+        "eq",
+        args.stripeSubscriptionId,
+      )
+      .limit(1);
+    if (existingErr) throw existingErr;
+    if ((existing ?? []).length > 0) return;
+  }
+
+  // Atomic idempotency claim: a single Stripe change fans out into several
+  // events; the first to insert this key wins, the rest skip. This closes the
+  // check-then-send race that caused duplicate confirmations.
+  const dedupKey = notificationDedupKey(
+    args.stripeSubscriptionId,
+    args.kind,
+    args.tier as SubTier,
+    args.interval as SubInterval,
+  );
+  const { data: claimRow, error: claimErr } = await args.admin
+    .from("subscription_notifications")
+    .upsert(
+      {
+        dedup_key: dedupKey,
+        user_id: args.userId,
+        stripe_subscription_id: args.stripeSubscriptionId,
+        kind: args.kind,
+      },
+      { onConflict: "dedup_key", ignoreDuplicates: true },
+    )
+    .select("dedup_key")
+    .maybeSingle();
+  if (claimErr) throw claimErr;
+  // ignoreDuplicates returns null data on a no-op: another event already claimed.
+  if (!claimRow) return;
+
+  try {
+    const purpose = args.kind === "new"
+      ? SUBSCRIPTION_CONFIRMED_PURPOSE
+      : SUBSCRIPTION_MODIFIED_PURPOSE;
+    const message = args.kind === "new"
+      ? (in24hWindow
+        ? { type: "text" as const, body: subscriptionConfirmedText() }
+        : {
+          type: "template" as const,
+          name: SUBSCRIPTION_CONFIRMED_TEMPLATE_NAME,
+          language: SUBSCRIPTION_CONFIRMED_TEMPLATE_LANG,
+        })
+      : {
+        type: "text" as const,
+        body: subscriptionModifiedText(args.tier as SubTier),
+      };
+
+    await callWhatsappSend({
+      user_id: args.userId,
+      message,
+      purpose,
+      require_opted_in: true,
+      force_template: args.kind === "new" ? !in24hWindow : false,
+      metadata_extra: {
+        source: "stripe_webhook",
+        notification_kind: args.kind,
+        stripe_subscription_id: args.stripeSubscriptionId,
+        subscription_tier: args.tier,
+        subscription_interval: args.interval,
+        in_24h_window_at_decision: in24hWindow,
+      },
+    });
+  } catch (sendErr) {
+    // Release the claim so a Stripe re-delivery can retry the notification.
+    await args.admin
+      .from("subscription_notifications")
+      .delete()
+      .eq("dedup_key", dedupKey)
+      .then(() => {}, () => {});
+    throw sendErr;
+  }
 }
 
 Deno.serve(async (req) => {
@@ -256,6 +322,14 @@ Deno.serve(async (req) => {
       }
 
       if (userId) {
+        // Snapshot the subscription BEFORE the upsert so we can tell a first
+        // activation apart from a tier/interval change on an existing one.
+        const { data: prevSub } = await admin
+          .from("subscriptions")
+          .select("status,tier,interval,current_period_end")
+          .eq("user_id", userId)
+          .maybeSingle();
+
         const { error: upsertErr } = await admin.from("subscriptions").upsert(
           {
             user_id: userId,
@@ -286,26 +360,54 @@ Deno.serve(async (req) => {
           }).eq("id", userId);
         }
 
-        if (status === "active") {
+        const prevRow = prevSub as
+          | {
+            status?: string | null;
+            tier?: string | null;
+            interval?: string | null;
+            current_period_end?: string | null;
+          }
+          | null;
+        const prevSnapshot: SubscriptionSnapshot | null = prevRow
+          ? {
+            status: prevRow.status ?? null,
+            tier: (prevRow.tier ?? null) as SubTier,
+            interval: (prevRow.interval ?? null) as SubInterval,
+            currentPeriodEnd: prevRow.current_period_end ?? null,
+          }
+          : null;
+        const notifKind: NotificationKind = decideSubscriptionNotification(
+          prevSnapshot,
+          {
+            status,
+            tier: tier as SubTier,
+            interval: interval as SubInterval,
+            currentPeriodEnd,
+          },
+          Date.now(),
+        );
+
+        if (notifKind) {
           try {
-            await maybeSendSubscriptionConfirmedWhatsapp({
+            await sendSubscriptionWhatsapp({
               admin,
               userId,
               stripeSubscriptionId,
               tier,
               interval,
+              kind: notifKind,
               requestId,
             });
           } catch (sendErr) {
             console.warn(
-              "[stripe-webhook] subscription confirmation WhatsApp failed",
+              "[stripe-webhook] subscription notification WhatsApp failed",
               sendErr,
             );
             await logEdgeFunctionError({
               functionName: "stripe-webhook",
               error: sendErr,
               severity: "warn",
-              title: "subscription_confirmation_whatsapp_failed",
+              title: "subscription_notification_whatsapp_failed",
               requestId,
               userId,
               source: "stripe",
@@ -313,6 +415,7 @@ Deno.serve(async (req) => {
                 stripe_subscription_id: stripeSubscriptionId,
                 tier,
                 interval,
+                notification_kind: notifKind,
               },
             });
           }

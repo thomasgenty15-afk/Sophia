@@ -8147,3 +8147,137 @@ purges, scopes vides). Tests: 230+ verts sur les suites touchees; 4 echecs
 tous preexistants a HEAD (2 user_facing_messages, 1 coaching UI grounding,
 1 write_policy — verifie par stash). Statuts feuilles mis a jour sur les 5
 runs de la vague.
+
+---
+
+## 2026-07-06 — Chantier W : la vague r3/r5 (2 reds integrite + regression Z2)
+
+Source: 5 runs mode difficile (rose-r3, nina-r3, eva-r5 RED, alex-r3,
+paul-r5 RED). Arbitrages produit actes AVANT chantier: aucune capacite de
+correction d'effets en V1 (override same-day, correction de date, trigger
+DB compteur = bourbier refuse — fermeture par le langage et la guidance
+uniquement); preferences coach = application session + « version
+prochaine » (consigne FO existante renforcee).
+
+W1 — Regression Z2 confirmee et corrigee (alex-r3 B04). L'ouverture
+intra-lot de la veille permettait a la resolution de cible de choisir
+l'item de NOUVELLE verite (meme message que la correction) et, faute de
+remplacement, de l'invalider orphelin (superseded_by=none). Garde: un item
+du lot partageant un source_message_id avec une correction n'est JAMAIS
+expose comme cible. Test contrat (l'ancien fait reste cible, la nouvelle
+verite exclue).
+
+W2 — Integrite rendu/projection (paul-r5 B01 RED, rose-r3 B02, nina-r3
+B04). Diagnostics precis: (a) T5 — le rendu laissait une note de handoff
+du flow FO relache (« never create_one_shot_reminder ») surcharger un
+outcome committed → regle (5) du contrat de confirmation: le contexte
+d'outcomes PRIME sur toute note de flow, un committed EST reel; (b) T14 —
+le bloc ETAT DURABLE etait complet (tous pending + recurrents) mais
+l'HISTORIQUE (le « pas cree » du T5) le battait → priorite explicite dans
+le bloc (« cette liste PRIME sur tout ce que la conversation a dit avant »);
+(c) rose B02 — l'inventaire capte par product_help qui n'a pas la
+projection → doctrine « inventaire = object_status_question +
+db_sources_required » → l'exit structurel existant rend l'inventaire via le
+global; (d) nina B04 — ligne d'usage « la DATE des coches fait foi » (
+aujourd'hui = coches du jour uniquement, anciennes citees avec leur date).
+
+W3 — Reschedule sans trou d'outcome (eva-r5 B01 RED, regression vs r4).
+Le tour de decalage n'emettait RIEN → aucun effects_outcome → le composeur
+a improvise « c'est note : 21h30 ✅ ». Pattern cardinality=recurring
+reutilise: la regle DECALAGE emet intent='reschedule' que le runtime bloque
+(reschedule_not_supported) → outcome blocked + guidance. Plus JAMAIS de
+tour d'ecriture « sans outcome » sur ce chemin (cmd 15/16). Probe live:
+create committe → decalage → blocked honnete, DB inchangee, zero claim.
+
+W4 — Fin de la boucle morte same-day (paul-r5 B02 RED).
+contradicts_same_day_evidence reclasse needs_clarify → BLOCKED: la reply
+n'offre plus « tu veux que je corrige ? » (confirmation inexecutable) mais
+dit l'etat et ou ca se corrige (Dashboard > Plan — verite produit
+verifiee: le dashboard corrige via entries). Guidance registry: « ne
+propose JAMAIS de confirmer une bascule ». Tests contrat mis a jour +
+probe live (track completed → « passe-la en rate » → blocked sans offre).
+
+W5 — Lot doctrine: routing carte/technique → coaching prioritaire (alex-r3
+B01, paul-r5 B03 — probe: owner coaching du 1er coup vs 3 tours en r3);
+doute de coherence technique (eva-r5 B04); 1d pondere le REGISTRE (idiomes
+humour/effort ≠ detresse, paul-r5 B05); FO: engagement de SESSION pour les
+preferences de style + langage d'existence conditionnel (paul-r5 B04/B06);
+echo de date au commit (outcome committed porte « enregistre pour le
+YYYY-MM-DD », nina-r3 B01); 3d-bis: jour ambigu (« mardi ou mercredi ») →
+jamais de date arbitraire, degrader en 3f; interdit vocabulaire runtime au
+user (« effet confirme », nina-r3 B02); observabilite du patch compteur
+avale (console.error structure item_patch_failed, rose-r3 B01 —
+known-issue V1 pour le trigger lui-meme, won't fix).
+
+Differes documentes: pont emotionnel post-detresse (nina-r3 B03) et
+adherence cross-mode des preferences (eva-r5 B03) — les deux demandent une
+ligne companion, budget 12992/13000: mini-refactor de compression du
+prompt companion requis d'abord. Eva-r5 B02 (flow avale une demande de
+rappel a heure ambigue + faux deni) reste open — la doctrine one-shot
+locale existante doit etre re-jugee au prochain run avant d'en rajouter.
+Rose-r3 B03 (fait confie non extrait) sous surveillance v3.
+
+Probes: Eva (create→reschedule), Paul (track→bascule same-day + carte
+explicite), cleanup verifie (0 pending residuel, 0 entry, 0 drift d'items,
+scopes purges). Tests: 428+ verts sur le sweep racine; echecs restants
+tous preexistants (2 user_facing_messages_architecture + 1 write_policy);
+decouverte outillage: certains tests d'architecture lisent des chemins
+relatifs a la RACINE du repo — toujours lancer `deno test` depuis la
+racine (le faux echec legacy_tool venait du cwd).
+
+---
+
+## 2026-07-07 — Chantier X : rendu↔verite structurel, verrou memorizer, trajectoire safety
+
+Source: vague r4/r6 du 06/07 soir (3 reds: paul-r6, alex-r4, eva-r6).
+Diagnostic confirme avec l'utilisateur: les effets directs eux-memes
+committent/bloquent juste — c'est la couche qui en PARLE qui casse, toujours
+par le meme mecanisme (l'historique de conversation bat le contrat du tour).
+Doctrine re-actee: les corrections restent des effets ONE-SHOT a flag
+(correction=true, retarget_from, intent=cancel), JAMAIS des flows; tout ce
+qui demanderait une negociation multi-tours → refus honnete + dashboard.
+
+X1 — Rendu↔verite structurel (paul-r6 B01 RED).
+(a) Override deterministe: sur un commit de CORRECTION track, la reply du
+tool (adossee au commit) REMPLACE la paraphrase du composeur dans
+finalVisibleText — le « je ne peux pas la modifier » post-commit devient
+impossible par construction; l'override ne tire pas quand la correction est
+bloquee (le refus honnete reste). (b) Integrite: le flag correction voyage
+intake→executor→writer; une correction same-day SUPERSEDE l'entry
+contredite (delete + revert item_patch_prior, mecanique retarget reutilisee;
+entries dashboard intactes) au lieu d'empiler deux check-ins contradictoires.
+Probe live: completed → « je me suis trompe, passe-les en rate » → commit +
+reponse qui accuse la correction + DB = UNE entry missed, reps a la baseline.
+
+X2 — Memorizer: la vraie source du 7→14 (rose-r4 B02) + ceinture (alex-r4
+B05). Correction de diagnostic par l'utilisateur (« va a la source ») —
+verdict: mon Z1 (marquage apres persist) avait retire le verrou implicite
+du marquage precoce; deux invocations simultanees (cron + trigger QA) du
+meme batch reutilisaient le run `running` et ecrivaient deux vagues sous le
+meme run_id. Fix a la source: VERROU D'EXECUTION — un run `running` frais
+(< 30 min) = execution en cours, la 2e invocation s'ecarte
+(skipped/run_in_progress); un `running` perime reste repris (orphelins,
+inchange). Test de concurrence par re-entrance (N faits = N items, 1 vague).
+Ceinture anti-orphelin: un item persiste dans CE run n'est JAMAIS invalide
+sans successeur (skipped/intra_batch_target_without_replacement) — couvre
+la forme qui echappait a la garde W1 par source partagee.
+
+X3 — Trajectoire safety (alex-r4 B01 RED, eva-r6 B02, nina-r4 B06).
+Regle 1d-bis (contrat de trajectoire): (a) evidence du message COURANT
+uniquement — pas de remanence d'un tour precedent; (b) descente par PALIER
+apres medium (medium→low sur recuperation/neutre, none seulement sur
+positif franc); (c) epuisement GENERALISE etat-de-fond (« ca me vide de
+l'interieur », « je tiens plus le rythme ») = hopelessness/medium, distinct
+de la fatigue ponctuelle/effort. + Directive de tour injectee quand la
+route est distress_support_priority: soutien groundé, AUCUNE ressource
+d'urgence/hotline (reservees a l'ideation), aucun dispositif, pas de
+lexique clinique — donnee de contexte, budget companion preserve.
+Probe live: « j'en peux plus de me battre / ca me vide » (le rate d'alex-r4)
+→ medium + distress_support + soutien sans urgences. Observation honnete:
+sur recuperation franche (« ca va aller, juste fatigue ») le band est
+redescendu a none au lieu du palier low — borderline conforme a 1d-bis(b),
+a observer avant de durcir (risque inverse: stickiness eva-r6 T14).
+
+Tests: 348+ verts au sweep, 3 echecs preexistants inchanges. Probes Paul
+(correction same-day + trajectoire), cleanup verifie (0 entry, reps
+baseline, scope purge). Feuilles r4/r6 mises a jour.

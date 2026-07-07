@@ -287,3 +287,146 @@ Deno.test("intra-batch correction sees just-persisted items as supersede targets
     true,
   );
 });
+
+Deno.test("correction never targets its own new-truth item from the same batch (alex-r3 B04 regression)", async () => {
+  // Regression observee apres l'ouverture intra-lot: la resolution de cible
+  // pouvait choisir l'item de NOUVELLE verite (meme message que la
+  // correction) et, faute de remplacement, l'invalider orphelin
+  // (`superseded_by=none`). L'item du lot partageant un source_message_id
+  // avec une correction ne doit jamais etre expose comme cible.
+  const repo = new InMemoryMemorizerRepository();
+  let capturedKnownItems: Array<{ id: string; content_text: string }> = [];
+  (repo as any).applyCorrections = (args: {
+    known_memory_items: Array<{ id: string; content_text: string }>;
+  }) => {
+    capturedKnownItems = args.known_memory_items;
+    return Promise.resolve([]);
+  };
+  const statement = (id: string, text: string) => ({
+    kind: "statement",
+    content_text: text,
+    normalized_summary: text,
+    domain_keys: ["travail.charge"],
+    confidence: 0.85,
+    importance_score: 0.6,
+    sensitivity_level: "normal",
+    sensitivity_categories: [],
+    source_message_ids: [id],
+    evidence_quote: text,
+    metadata: { statement_role: "life_context" },
+  });
+  const result = await runMemorizerAsync(repo, {
+    user_id: "u",
+    messages: [
+      {
+        id: "m-old",
+        user_id: "u",
+        role: "user" as const,
+        content:
+          "Retiens que je bosse en horaires decales 3x8 a l'usine toutes les semaines.",
+      },
+      {
+        id: "m-new",
+        user_id: "u",
+        role: "user" as const,
+        content:
+          "En fait retiens plutot que je passe en poste de jour fixe des maintenant.",
+      },
+    ],
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [
+          statement(
+            "m-old",
+            "Je bosse en horaires decales 3x8 a l'usine toutes les semaines.",
+          ),
+          statement(
+            "m-new",
+            "Je passe en poste de jour fixe des maintenant.",
+          ),
+        ],
+        entities: [],
+        corrections: [{
+          operation_type: "supersede",
+          target_hint: "horaires decales 3x8",
+          reason: "correction du rythme de travail",
+          source_message_ids: ["m-new"],
+        }],
+        rejected_observations: [],
+      }),
+  } as never);
+  assertEquals(result.status, "completed");
+  assertEquals(result.persisted.length, 2);
+  const oldItem = result.persisted.find((write) =>
+    write.candidate.item.content_text.includes("3x8")
+  );
+  const newTruthItem = result.persisted.find((write) =>
+    write.candidate.item.content_text.includes("jour fixe")
+  );
+  // L'ancien fait reste une cible legitime...
+  assertEquals(
+    capturedKnownItems.some((known) => known.id === oldItem?.memory_item_id),
+    true,
+  );
+  // ...mais la nouvelle verite (meme source que la correction) n'est JAMAIS
+  // exposee comme cible.
+  assertEquals(
+    capturedKnownItems.some((known) =>
+      known.id === newTruthItem?.memory_item_id
+    ),
+    false,
+  );
+});
+
+Deno.test("concurrent trigger on a fresh running run skips instead of double-writing (rose-r4 B02)", async () => {
+  // Simule cron + trigger QA simultanes: pendant que l'extraction du premier
+  // run est en vol (llm_provider), un second declenchement arrive avec le
+  // MEME batch. Avant le verrou, il reutilisait le run `running` et
+  // persistait une deuxieme vague (7 annonces / 14 ecrits). Attendu: le
+  // second s'ecarte (skipped/run_in_progress), une seule vague ecrite.
+  const repo = new InMemoryMemorizerRepository();
+  const payload = JSON.stringify({
+    memory_items: [{
+      kind: "statement",
+      content_text: "Retiens que je cours tous les matins avant le boulot.",
+      normalized_summary: "Court tous les matins avant le travail.",
+      domain_keys: ["sante.activite_physique"],
+      confidence: 0.85,
+      importance_score: 0.6,
+      sensitivity_level: "normal",
+      sensitivity_categories: [],
+      source_message_ids: ["m1"],
+      evidence_quote: "je cours tous les matins",
+      metadata: { statement_role: "life_context" },
+    }],
+    entities: [],
+    corrections: [],
+    rejected_observations: [],
+  });
+  const baseInput = {
+    user_id: "u",
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user" as const,
+      content: "Retiens que je cours tous les matins avant le boulot.",
+    }],
+  };
+  let innerResult: Awaited<ReturnType<typeof runMemorizerAsync>> | null = null;
+  const outer = await runMemorizerAsync(repo, {
+    ...baseInput,
+    llm_provider: async () => {
+      // Second declenchement pendant l'extraction du premier.
+      innerResult = await runMemorizerAsync(repo, {
+        ...baseInput,
+        llm_provider: async () => payload,
+      });
+      return payload;
+    },
+  } as never);
+  assertEquals(outer.status, "completed");
+  assertEquals(innerResult?.status, "skipped");
+  assertEquals(innerResult?.skip_reason, "run_in_progress");
+  // Une seule vague ecrite: N faits acceptes = N memory_items, pas 2N.
+  assertEquals(repo.memoryWrites.length, 1);
+});

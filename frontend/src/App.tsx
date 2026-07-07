@@ -32,6 +32,7 @@ import {
   RequirePrelaunchGate,
 } from "./security/RouteGuards";
 import { OnboardingAmbientAudioProvider } from "./context/OnboardingAmbientAudioContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
       <Router>
         <OnboardingAmbientAudioProvider>
           <div className="min-h-screen bg-white text-black font-sans">
+            <ErrorBoundary>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/tdah" element={<LandingTDAH />} />
@@ -167,6 +169,7 @@ function App() {
                 }
               />
             </Routes>
+            </ErrorBoundary>
           </div>
         </OnboardingAmbientAudioProvider>
       </Router>

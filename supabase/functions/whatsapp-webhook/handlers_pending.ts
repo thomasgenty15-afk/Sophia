@@ -323,8 +323,11 @@ function cleanText(value: unknown): string {
 }
 
 function publicSiteUrl(): string {
+  // Prefer APP_BASE_URL (the canonical frontend URL, always set per-project via
+  // the Stripe functions) so links never silently fall back to prod on staging.
   return cleanText(
-    Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL"),
+    Deno.env.get("APP_BASE_URL") ?? Deno.env.get("SITE_URL") ??
+      Deno.env.get("PUBLIC_SITE_URL"),
   ) || "https://app.sophia.app";
 }
 

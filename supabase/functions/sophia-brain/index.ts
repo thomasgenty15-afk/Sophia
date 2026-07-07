@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
+import { filterFreshMessages } from "../_shared/message_freshness.ts";
 import { processMessage } from "./router.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
@@ -204,12 +205,21 @@ Deno.serve(async (req) => {
       history = sanitizeHistory(clientHistory);
     }
 
+    const historyLengthBeforeFreshness = history.length;
+    // Ancre la fenêtre de fraîcheur sur l'horloge client quand elle est
+    // fournie (QA runs à horloge simulée), sinon sur l'horloge serveur.
+    const freshnessNowMs = Date.parse(String(clientNowIso ?? ""));
+    history = filterFreshMessages(history, {
+      nowMs: Number.isFinite(freshnessNowMs) ? freshnessNowMs : undefined,
+    });
+
     console.log(JSON.stringify({
       tag: "sophia_brain_before_process",
       request_id: requestId,
       user_id: user.id,
       message_length: message.length,
       history_length: history.length,
+      history_stale_dropped: historyLengthBeforeFreshness - history.length,
       scope: scope ?? null,
       channel,
       force_mode: forceMode ?? null,

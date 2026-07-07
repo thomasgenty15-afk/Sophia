@@ -483,3 +483,33 @@ Deno.test("legacy_tool_not_used_by_prod_runtime", async () => {
     assert(!text.includes("one_shot_reminder_tool.ts"), file);
   }
 });
+
+Deno.test("reschedule_intent_blocks_honestly_with_outcome (eva-r5 B01)", async () => {
+  // Un decalage de rappel existant n'est pas supporte en chat (decision V1).
+  // Le dispatcher emet intent='reschedule' et le runtime bloque: le tour
+  // porte un outcome (plus jamais un tour "sans effet" ou le composeur
+  // improvise un faux "c'est note : 21h30").
+  const message = "mets-le à 21h30 au lieu de 22h";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase(),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-06T18:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: message,
+      when_hint: "21h30",
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "reschedule_not_supported");
+  assertEquals(result.committed_effects.length, 0);
+  assertEquals(
+    result.blocked_effects.some((effect) =>
+      effect.reason_code === "reschedule_not_supported"
+    ),
+    true,
+  );
+  // La reply est honnete: rien de change, destination plateforme.
+  assertEquals(String(result.reply ?? "").includes("Rien n'a été changé"), true);
+});

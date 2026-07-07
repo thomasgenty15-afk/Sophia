@@ -47,6 +47,11 @@ import {
 } from "../_shared/v2-adjust-level-generation.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 import { archivePendingWeekPlansForPlans } from "../_shared/week_plan_lifecycle.ts";
+import { autoApplyWeeklyPlanning } from "../_shared/weekly_planning_lifecycle.ts";
+import {
+  ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
+  ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT,
+} from "../_shared/onboarding_week1_validation.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
   badRequest,
@@ -83,6 +88,78 @@ const REQUEST_SCHEMA = z.object({
     assistant_message: z.string().trim().min(1).max(3000).optional(),
   }),
 });
+
+const PLAN_ADJUSTMENT_CONFIRMED_PURPOSE = "plan_adjustment_confirmed";
+const PLAN_ADJUSTMENT_CONFIRMED_TEXT =
+  "C’est fait ✅\nTon plan est bien ajusté.";
+
+function internalSecret(): string {
+  return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() ||
+    Deno.env.get("SECRET_KEY")?.trim() || "");
+}
+
+function functionsBaseUrl(): string {
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  if (!supabaseUrl) return "http://kong:8000";
+  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000";
+  return supabaseUrl.replace(/\/+$/, "");
+}
+
+async function callWhatsappSend(payload: unknown) {
+  const secret = internalSecret();
+  if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
+  const res = await fetch(`${functionsBaseUrl()}/functions/v1/whatsapp-send`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Secret": secret,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(
+      `whatsapp-send failed (${res.status}): ${JSON.stringify(data)}`,
+    );
+    (err as any).status = res.status;
+    (err as any).data = data;
+    throw err;
+  }
+  return data;
+}
+
+// Confirm a plan adjustment in Sophia's WhatsApp voice. whatsapp-send owns the
+// gating: opt-in, paywall (Alliance/Architecte), and the 24h window — free text
+// inside the window, else it falls back to the re-engagement template. Sent at
+// most once per activated plan version (guards a confirm retry after a gateway
+// timeout re-activated the same plan).
+async function maybeSendPlanAdjustmentConfirmation(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planId: string;
+}) {
+  const { data: existing, error: existingErr } = await args.admin
+    .from("chat_messages")
+    .select("id")
+    .eq("user_id", args.userId)
+    .eq("role", "assistant")
+    .filter("metadata->>purpose", "eq", PLAN_ADJUSTMENT_CONFIRMED_PURPOSE)
+    .filter("metadata->>plan_id", "eq", args.planId)
+    .limit(1);
+  if (existingErr) throw existingErr;
+  if ((existing ?? []).length > 0) return;
+
+  await callWhatsappSend({
+    user_id: args.userId,
+    message: { type: "text", body: PLAN_ADJUSTMENT_CONFIRMED_TEXT },
+    purpose: PLAN_ADJUSTMENT_CONFIRMED_PURPOSE,
+    require_opted_in: true,
+    metadata_extra: {
+      source: "adjust_plan_confirm",
+      plan_id: args.planId,
+    },
+  });
+}
 
 const ADJUSTED_LEVEL_MAX_WEEKS = 4;
 
@@ -674,6 +751,35 @@ async function handleRequest(req: Request): Promise<Response> {
       plan_status: result.planRow.status,
       distributed_items_count: result.distribution.items.length,
     });
+
+    // On a confirmed adjustment (the change is now live), let Sophia confirm it
+    // on WhatsApp. Best-effort: never fail the request on a notification error.
+    if (
+      parsedBody.data.mode === "confirm" && result.planRow.status === "active"
+    ) {
+      try {
+        await maybeSendPlanAdjustmentConfirmation({
+          admin,
+          userId,
+          planId: result.planRow.id,
+        });
+      } catch (notifyErr) {
+        console.warn(
+          "[adjust-plan-v1][plan_adjustment_confirmation_whatsapp_failed]",
+          notifyErr,
+        );
+        await logEdgeFunctionError({
+          functionName: "adjust-plan-v1",
+          error: notifyErr,
+          severity: "warn",
+          title: "plan_adjustment_confirmation_whatsapp_failed",
+          requestId,
+          userId,
+          source: "edge",
+          metadata: { plan_id: result.planRow.id },
+        });
+      }
+    }
 
     return jsonResponse(req, {
       request_id: requestId,
@@ -1441,8 +1547,8 @@ async function generateAdjustedCurrentLevelPreview(args: {
       effectiveStartDate: args.adjustmentContext.effectiveStartDate,
       maxWeeks: ADJUSTED_LEVEL_MAX_WEEKS,
       userLocalHuman: userTimeContext.user_local_human ?? null,
-      daysRemainingInAnchorWeek:
-        scheduleAnchor.days_remaining_in_anchor_week ?? null,
+      daysRemainingInAnchorWeek: scheduleAnchor.days_remaining_in_anchor_week ??
+        null,
       isPartialAnchorWeek: scheduleAnchor.is_partial_anchor_week === true,
       systemValidationFeedback: validationFeedback,
     });
@@ -2507,6 +2613,49 @@ function scheduleActivationEnrichment(args: {
   void task;
 }
 
+// Auto-validate the effective week of a confirmed adjustment and suppress the
+// now-redundant "validate your week" prompt.
+//
+// autoApplyWeeklyPlanning only flips pending -> auto_applied (and occurrences
+// default_generated -> weekly_confirmed): it does NOT reapply recommended days,
+// so the days the user just chose in the adjustment are preserved as-is.
+//
+// The plan->active update already fired trg_request_onboarding_week1_validation_schedule
+// before the week was materialized here. Once the week is auto_applied the
+// scheduler edge function sees already_confirmed and skips; the explicit cancel
+// below closes the race where it enqueued a prompt in the meantime.
+async function autoValidateAdjustedWeek(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planId: string;
+  weekStartDate: string;
+  nowIso: string;
+}): Promise<void> {
+  const result = await autoApplyWeeklyPlanning(args.admin, {
+    userId: args.userId,
+    weekStartDate: args.weekStartDate,
+    nowIso: args.nowIso,
+  });
+  if (!result.changed) return;
+
+  const { error } = await args.admin
+    .from("scheduled_checkins")
+    .update({
+      status: "cancelled",
+      processed_at: args.nowIso,
+      delivery_last_error: "superseded_by_adjustment_auto_validation",
+      delivery_last_error_at: args.nowIso,
+    } as any)
+    .eq("user_id", args.userId)
+    .in("event_context", [
+      ONBOARDING_WEEK1_VALIDATION_PROMPT_EVENT_CONTEXT,
+      ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
+    ])
+    .in("status", ["pending", "retrying", "awaiting_user"])
+    .filter("message_payload->>plan_id", "eq", args.planId);
+  if (error) throw error;
+}
+
 async function activatePersistedPlan(args: {
   admin: SupabaseClient;
   userId: string;
@@ -2623,6 +2772,21 @@ async function activatePersistedPlan(args: {
     tempIdMap: distribution.tempIdMap,
     now: args.now,
   });
+
+  // A plan adjustment is user-initiated and user-approved (they saw the preview
+  // and confirmed): the effective week IS what they just decided, so validate it
+  // straight away instead of re-asking them to validate it. Only the effective
+  // week is auto-applied; future weeks of the level keep the normal weekly
+  // validation cadence.
+  if (adjustmentRevision) {
+    await autoValidateAdjustedWeek({
+      admin: args.admin,
+      userId: args.userId,
+      planId: args.planRow.id,
+      weekStartDate: refreshedScheduleAnchor.anchor_week_start,
+      nowIso: args.now,
+    });
+  }
 
   const splitTransformationId = await ensureSplitTransformation({
     admin: args.admin,

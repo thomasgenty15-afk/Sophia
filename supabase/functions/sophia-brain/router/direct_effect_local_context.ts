@@ -293,6 +293,10 @@ function hasEffect(effects: unknown[], type: string): boolean {
  * constat de blocage. Vocabulaire ferme issu des gardes structurelles
  * (direct_effect_gate, intake track, executor reminder) — pas de semantique.
  */
+// contradicts_same_day_evidence n'est PAS un clarify (paul-r5 B02): la
+// confirmation qu'un clarify inviterait est inexecutable en chat (pas
+// d'override same-day, decision V1) — l'offrir cree une boucle morte. C'est
+// un blocked honnete avec guidance vers la surface qui corrige.
 const CLARIFY_REASON_CODES = new Set([
   "target_ambiguous",
   "target_missing",
@@ -303,7 +307,6 @@ const CLARIFY_REASON_CODES = new Set([
   "unsupported_time",
   "intent_implied_weak",
   "ambiguity_present",
-  "contradicts_same_day_evidence",
   "target_not_evidenced",
   "cancel_target_ambiguous",
 ]);
@@ -322,7 +325,7 @@ function outcomeGuidance(
   reasonCode: string | null,
 ): string {
   if (status === "committed") {
-    return "Confirme sobrement, une seule fois, comme venant d'etre fait.";
+    return "Confirme sobrement, une seule fois, comme venant d'etre fait. Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation.";
   }
   if (status === "needs_clarify") {
     return "Pose la question de clarification au user. N'accuse aucune ecriture: rien n'a ete enregistre.";
@@ -342,6 +345,10 @@ function outcomeGuidance(
       return "Rien n'a ete cree: l'heure demandee est deja passee aujourd'hui. Propose un autre horaire ou demain.";
     case "recurring_not_supported":
       return "Rien n'a ete cree en ponctuel: un rappel recurrent se configure dans les Initiatives.";
+    case "reschedule_not_supported":
+      return "Rien n'a ete modifie: un rappel existant ne se decale pas depuis le chat, il se modifie dans Dashboard > Initiatives (section rappels). N'affirme JAMAIS que le rappel a ete decale ou note a la nouvelle heure.";
+    case "contradicts_same_day_evidence":
+      return "Un etat oppose est deja enregistre aujourd'hui pour cette action: rien n'a ete change et ca ne peut PAS se corriger depuis le chat. Ne propose JAMAIS de confirmer une bascule ici; indique que la correction se fait depuis l'action dans Dashboard > Plan.";
     case "no_mutation_requested":
     case "global_no_mutation_context":
       return "Aucune ecriture n'etait autorisee sur ce tour: n'affirme aucun enregistrement.";
@@ -412,12 +419,22 @@ function deriveEffectsOutcome(args: {
   return [...types].map((effectType): DirectEffectOutcome => {
     const committedEffect = findByType(committed, effectType);
     if (committedEffect) {
+      // Echo de date (nina-r3 B01): un report date commite sans que la date
+      // retenue soit enoncee laisse l'user decouvrir un mauvais jour plus
+      // tard. La date voyage dans la cible — le composeur l'enonce.
+      const datedSource = findByType(requested, effectType) ??
+        findByType(allowed, effectType);
+      const dateHint = stringValue(committedEffect.date_hint) ||
+        stringValue(datedSource?.date_hint);
+      const baseTarget = outcomeTargetFromEffect(committedEffect);
       return {
         effect_type: effectType,
         status: "committed",
         reason_code: null,
         clarify_question: null,
-        target: outcomeTargetFromEffect(committedEffect),
+        target: dateHint && baseTarget
+          ? `${baseTarget} (enregistre pour le ${dateHint})`
+          : baseTarget,
         guidance: outcomeGuidance("committed", null),
       };
     }
@@ -709,9 +726,43 @@ export function activePlanSnapshotPromptBlock(
   lines.push(
     "Un item absent de cette liste n'est pas une action du plan: n'invente ni action ni rappel dans un recap, et ne demande jamais au user de fournir sa propre liste.",
     'Le statut d\'un item ne dit PAS ce qui a ete coche: une habitude reste "active" meme deja cochee aujourd\'hui. Pour "qu\'est-ce que j\'ai coche/fait", reponds depuis les coches recentes (entries DB, format outcome@date) ci-dessus, jamais depuis le statut seul, et ne nie jamais une coche listee.',
+    'La DATE des coches fait foi: pour "aujourd\'hui", ne compte QUE les coches datees du jour; une completion plus ancienne (coche a une autre date, ou mission completee avant) se cite avec sa date ("deja fait le 05/07"), jamais rangee sous aujourd\'hui. En confirmant un report date, enonce le jour retenu.',
     'Les sections ci-dessus font foi: "mes habitudes" = la section HABITUDES uniquement, meme si le titre d\'un framework decrit un comportement.',
   );
   return lines.join("\n");
+}
+
+/**
+ * Override de reponse sur commit de CORRECTION track (paul-r6 B01).
+ *
+ * Quand une correction vient de committer alors que le tour precedent
+ * contenait un refus legitime, le composeur repete le refus au lieu
+ * d'accuser le succes — l'historique bat le contrat du tour. Sur ce chemin
+ * precis (commit + payload correction=true), la reply deterministe du tool
+ * (toujours vraie, adossee au commit) REMPLACE la paraphrase du composeur:
+ * mentir y devient impossible par construction (charte cmd 7).
+ */
+export function committedCorrectionReplyOverride(
+  turnFrame: unknown,
+): string | null {
+  const root = isRecord(turnFrame) ? turnFrame : {};
+  const lane = directEffectLaneRecord(turnFrame);
+  const hasCommittedTrack = effectsArray(lane, "committed_effects").some(
+    (effect) =>
+      isRecord(effect) &&
+      stringValue(effect.type) === "track_progress_plan_item",
+  );
+  if (!hasCommittedTrack) return null;
+  const effects = Array.isArray(root.direct_effects) ? root.direct_effects : [];
+  const isCorrection = effects.some((effect) =>
+    isRecord(effect) &&
+    stringValue(effect.effect_type) === "track_progress_plan_item" &&
+    isRecord(effect.payload_hint) &&
+    effect.payload_hint.correction === true
+  );
+  if (!isCorrection) return null;
+  const hint = stringValue(lane.visible_confirmation_hint);
+  return hint || null;
 }
 
 export function directEffectConfirmationContextPrompt(
@@ -725,7 +776,7 @@ export function directEffectConfirmationContextPrompt(
     // Politique universelle (default-deny). Les postures par raison sont des
     // DONNEES (effects_outcome[].guidance), pas des regles a enumerer ici:
     // chaque nouvelle garde est honnete par construction.
-    "Rules: effects_outcome is the complete and only truth about every write requested this turn. Policy: (1) status=committed → confirm it naturally, exactly once, as just done (for a reminder: use one_shot_reminder.local_label for the time and one_shot_reminder.reminder_instruction for the object, never present it as pre-existing, never repeat the object twice). (2) status=blocked or failed or not_attempted → follow that outcome's guidance; NEVER present the write as done, noted or recorded. (3) status=needs_clarify → ask clarify_question (or ask per guidance); never acknowledge any write. (4) Default-deny: for anything not marked committed in effects_outcome — and for any write the user mentions that has no outcome here — never say or imply 'c'est noté / c'est fait / enregistré / programmé / corrigé'. Answer the remaining user need in the same response.",
+    "Rules: effects_outcome is the complete and only truth about every write requested this turn. Policy: (1) status=committed → confirm it naturally, exactly once, as just done (for a reminder: use one_shot_reminder.local_label for the time and one_shot_reminder.reminder_instruction for the object, never present it as pre-existing, never repeat the object twice). (2) status=blocked or failed or not_attempted → follow that outcome's guidance; NEVER present the write as done, noted or recorded. (3) status=needs_clarify → ask clarify_question (or ask per guidance); never acknowledge any write. (4) Default-deny: for anything not marked committed in effects_outcome — and for any write the user mentions that has no outcome here — never say or imply 'c'est noté / c'est fait / enregistré / programmé / corrigé'. (5) This context OVERRIDES every other note in the conversation context: a flow/handoff note saying an effect 'is not created here' or 'never creates X' describes that FLOW's scope, never this turn's outcomes — a committed outcome here IS real and MUST be confirmed, whatever any other note says. Never expose runtime vocabulary to the user ('effet confirmé', 'commit', 'ledger', 'lane'): phrase blocks in plain language. Answer the remaining user need in the same response.",
   ].join("\n");
 }
 

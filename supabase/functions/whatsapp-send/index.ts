@@ -351,7 +351,8 @@ Deno.serve(async (req) => {
       : false;
     const isLifecycleAccessMessage = purpose === "end_trial" ||
       purpose === "end_subscription" ||
-      purpose === "subscription_confirmed";
+      purpose === "subscription_confirmed" ||
+      purpose === "subscription_modified";
 
     // Plan gating: WhatsApp is available only on Alliance + Architecte.
     // This prevents "System" users from receiving proactive WhatsApp messages.
@@ -401,7 +402,9 @@ Deno.serve(async (req) => {
     // Throttle only when proactive (per spec)
     if (
       !webSimulationEnabled && isProactive &&
-      purpose !== "subscription_confirmed"
+      purpose !== "subscription_confirmed" &&
+      purpose !== "subscription_modified" &&
+      purpose !== "plan_adjustment_confirmed"
     ) {
       const sent = await countProactiveLast10h(admin, body.user_id);
       if (sent >= 2) {

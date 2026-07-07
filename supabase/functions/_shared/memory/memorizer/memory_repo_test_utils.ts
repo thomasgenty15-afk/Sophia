@@ -44,6 +44,7 @@ export class InMemoryMemorizerRepository implements MemorizerPersistRepository {
       status: "running",
       input_message_ids: args.input_message_ids,
       metadata: args.metadata,
+      created_at: new Date().toISOString(),
     };
     this.runs.push(run);
     return run;

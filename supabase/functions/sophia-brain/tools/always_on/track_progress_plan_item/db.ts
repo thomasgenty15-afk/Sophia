@@ -191,6 +191,7 @@ export async function logPlanItemProgressV2(args: {
   sourceMessageId?: string | null;
   runtime?: ActiveTransformationRuntime | null;
   retargetFromItemId?: string | null;
+  correction?: boolean;
 }): Promise<V2TrackingResult> {
   const {
     supabase,
@@ -203,6 +204,7 @@ export async function logPlanItemProgressV2(args: {
     sourceMessageId,
     runtime,
     retargetFromItemId,
+    correction,
   } = args;
 
   const resolvedRuntime = await resolveActiveTransformationRuntime({
@@ -272,6 +274,33 @@ export async function logPlanItemProgressV2(args: {
         "[TrackProgress] retarget invalidation failed (non-blocking):",
         error,
       );
+    }
+  }
+
+  // Correction de STATUT same-day sur le MEME item (paul-r6 B01): la
+  // correction REMPLACE l'ecriture contredite au lieu de s'empiler — sinon
+  // deux check-ins contradictoires coexistent le meme jour. On reutilise le
+  // revert deterministe du retarget (delete + item_patch_prior), applique a
+  // chaque outcome OPPOSE du jour ecrit par le chat (les entries dashboard/
+  // daily-review ne sont pas touchees: filtre source router_parallel_tracking_v2).
+  if (correction === true) {
+    const oppositeOutcomes = (["completed", "missed", "partial"] as const)
+      .filter((outcome) => outcome !== status);
+    for (const opposite of oppositeOutcomes) {
+      try {
+        await invalidateChatEntryForRetarget({
+          supabase,
+          userId,
+          planItemId,
+          outcome: opposite,
+          effectiveDay,
+        });
+      } catch (error) {
+        console.warn(
+          "[TrackProgress] same-day correction supersede failed (non-blocking):",
+          error,
+        );
+      }
     }
   }
 
@@ -392,9 +421,19 @@ export async function logPlanItemProgressV2(args: {
         .update(patch)
         .eq("id", item.id);
       if (patchResult.error) {
-        console.warn(
-          "[TrackProgress] current_reps/status patch failed (non-blocking):",
-          patchResult.error,
+        // rose-r3 B01: ce patch peut etre rejete par un trigger DB
+        // (guard_unlocked_principles_update, reserve service_role) — le
+        // dashboard fige alors le compteur alors que l'entry est committee.
+        // Decision V1: on ne touche pas au trigger; l'echec doit au moins
+        // etre VISIBLE et requetable, jamais un warn avale.
+        console.error(
+          "[TrackProgress] item_patch_failed (entry committed, counter/status NOT updated)",
+          JSON.stringify({
+            plan_item_id: item.id,
+            patch,
+            error: patchResult.error?.message ?? String(patchResult.error),
+            code: (patchResult.error as { code?: string })?.code ?? null,
+          }),
         );
       }
     }
@@ -486,6 +525,7 @@ export function createTrackProgressPlanItemWrite(args: {
       sourceMessageId: input.source_message_id || args.sourceMessageId,
       runtime: args.runtime,
       retargetFromItemId: input.retarget_from_item_id ?? null,
+      correction: input.correction === true,
     });
     if (written.mode === "already_logged" && written.logged_progress_id) {
       return {

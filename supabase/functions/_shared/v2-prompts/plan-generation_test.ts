@@ -4,7 +4,59 @@ import {
   buildPlanGenerationV3UserPrompt,
   PLAN_GENERATION_V3_SYSTEM_PROMPT,
   type PlanGenerationInput,
+  validatePlanV3Output,
 } from "./plan-generation.ts";
+
+function makeItem(
+  tempId: string,
+  dimension: string,
+  kind: string,
+  dependsOn?: string,
+): Record<string, unknown> {
+  return {
+    temp_id: tempId,
+    dimension,
+    kind,
+    tracking_type: "boolean",
+    title: `Item ${tempId}`,
+    description: `Description ${tempId}`,
+    payload: {},
+    support_mode: null,
+    support_function: null,
+    activation_condition: dependsOn
+      ? { type: "after_item_completion", depends_on: dependsOn }
+      : null,
+  };
+}
+
+function makePhase(
+  phaseOrder: number,
+  phaseId: string,
+  items: Array<Record<string, unknown>>,
+): Record<string, unknown> {
+  return {
+    phase_id: phaseId,
+    phase_order: phaseOrder,
+    title: `Phase ${phaseOrder}`,
+    rationale: "rationale",
+    phase_objective: "objective",
+    duration_guidance: "guidance",
+    duration_weeks: 3,
+    what_this_phase_targets: "targets",
+    why_this_now: "why now",
+    how_this_phase_works: "how",
+    phase_metric_target: "metric",
+    maintained_foundation: [],
+    heartbeat: {
+      title: "Heartbeat",
+      unit: "sessions",
+      current: 0,
+      target: 3,
+      tracking_mode: "cumulative",
+    },
+    items,
+  };
+}
 
 function makePlanGenerationInput(
   overrides: Partial<PlanGenerationInput> = {},
@@ -91,5 +143,94 @@ Deno.test("buildPlanGenerationV3UserPrompt exposes local time and same-day feasi
       "si une action de démarrage serait impossible aujourd'hui parce que son bon créneau est passé, fais commencer cette action demain",
     ),
     "Missing explicit tomorrow-start rule when today's action window has passed",
+  );
+});
+
+Deno.test("validatePlanV3Output accepts phases with more than five items", () => {
+  const phase1 = makePhase(1, "phase-1", [
+    makeItem("gen-p1-habits-001", "habits", "habit"),
+    makeItem("gen-p1-missions-002", "missions", "task"),
+    makeItem("gen-p1-missions-003", "missions", "task"),
+    makeItem("gen-p1-missions-004", "missions", "task"),
+    makeItem("gen-p1-missions-005", "missions", "task"),
+    makeItem("gen-p1-missions-006", "missions", "task"),
+  ]);
+  const plan = {
+    version: 3,
+    cycle_id: "cycle-1",
+    transformation_id: "transformation-1",
+    duration_months: 2,
+    title: "Plan",
+    user_summary: "summary",
+    internal_summary: "summary",
+    phases: [phase1],
+  };
+
+  const { issues } = validatePlanV3Output(plan);
+  assert(
+    !issues.some((issue) => issue.includes("items (got 6)")),
+    `Unexpected item-count rejection: ${issues.join(" | ")}`,
+  );
+});
+
+Deno.test("validatePlanV3Output never emits phantom depends_on errors when other checks fail", () => {
+  // phase-1 exceeds the old 5-item cap AND references three deps: one valid
+  // in-phase, one genuinely unknown, one genuinely cross-phase. The pre-pass
+  // must resolve the valid in-phase dep regardless, while still catching the
+  // two real violations.
+  const phase1 = makePhase(1, "phase-1", [
+    makeItem("gen-p1-habits-001", "habits", "habit"),
+    makeItem("gen-p1-missions-002", "missions", "task"),
+    makeItem("gen-p1-missions-003", "missions", "task"),
+    makeItem("gen-p1-missions-004", "missions", "task", "gen-p1-ghost-999"),
+    makeItem("gen-p1-missions-005", "missions", "task", "gen-p2-habits-001"),
+    makeItem("gen-p1-missions-006", "missions", "task", "gen-p1-habits-001"),
+  ]);
+  const phase2 = makePhase(2, "phase-2", [
+    makeItem("gen-p2-habits-001", "habits", "habit"),
+  ]);
+  const plan = {
+    version: 3,
+    cycle_id: "cycle-1",
+    transformation_id: "transformation-1",
+    duration_months: 2,
+    title: "Plan",
+    user_summary: "summary",
+    internal_summary: "summary",
+    phases: [phase1, phase2],
+  };
+
+  const { issues } = validatePlanV3Output(plan);
+
+  // No phantom errors for the valid same-phase dependency.
+  assert(
+    !issues.some((issue) =>
+      issue.includes("gen-p1-missions-006 depends_on unknown temp_id")
+    ),
+    `Phantom unknown-temp_id error: ${issues.join(" | ")}`,
+  );
+  assert(
+    !issues.some((issue) =>
+      issue.includes('gen-p1-missions-006 depends_on "gen-p1-habits-001"')
+    ),
+    `Phantom cross-phase error: ${issues.join(" | ")}`,
+  );
+
+  // Real violations are still reported.
+  assert(
+    issues.some((issue) =>
+      issue.includes(
+        "gen-p1-missions-004 depends_on unknown temp_id: gen-p1-ghost-999",
+      )
+    ),
+    `Missing genuine unknown-temp_id error: ${issues.join(" | ")}`,
+  );
+  assert(
+    issues.some((issue) =>
+      issue.includes(
+        'gen-p1-missions-005 depends_on "gen-p2-habits-001" is in a different phase',
+      )
+    ),
+    `Missing genuine cross-phase error: ${issues.join(" | ")}`,
   );
 });

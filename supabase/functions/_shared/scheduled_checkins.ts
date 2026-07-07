@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { generateWithGemini } from "./gemini.ts";
+import { filterFreshMessages } from "./message_freshness.ts";
 import {
   buildWatcherScopePromptBlock,
   fetchCheckinExclusionSnapshot,
@@ -409,9 +410,9 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     recentOpenings,
   });
 
-  const transcript = (msgs ?? [])
-    .slice()
-    .reverse()
+  // Fraîcheur: seul le contexte injecté dans le prompt est filtré;
+  // recentOpenings garde l'historique complet (anti-répétition multi-jours).
+  const transcript = filterFreshMessages((msgs ?? []).slice().reverse())
     .map((m: any) =>
       `${m.created_at} ${m.role.toUpperCase()}: ${String(m.content ?? "")}`
     )

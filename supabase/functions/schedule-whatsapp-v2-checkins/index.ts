@@ -165,8 +165,12 @@ function isWhatsappSchedulingTierEligible(
 }
 
 function getSiteUrl(): string {
+  // APP_BASE_URL is the canonical frontend URL (required by the Stripe
+  // functions, so it is always set per-project). Prefer it so WhatsApp links
+  // never silently fall back to the hardcoded prod domain on staging.
   return cleanText(
-    Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL"),
+    Deno.env.get("APP_BASE_URL") ?? Deno.env.get("SITE_URL") ??
+      Deno.env.get("PUBLIC_SITE_URL"),
     "https://app.sophia.app",
   );
 }

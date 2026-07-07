@@ -38,6 +38,7 @@ export async function executeTrackProgressWrite(args: {
       idempotency_key: args.idempotency_key,
       retarget_from_item_id: args.requested_effect.retarget_from_item_id ??
         null,
+      correction: args.requested_effect.correction === true,
     });
     const loggedProgressId = String(written.logged_progress_id ?? "").trim();
     if (!loggedProgressId) {

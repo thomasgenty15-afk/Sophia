@@ -266,6 +266,10 @@ export interface MemoryExtractionRunRow {
   status: "running" | "completed" | "failed" | "skipped";
   input_message_ids: string[];
   metadata?: Record<string, unknown>;
+  // Timestamps DB (memory_extraction_runs) — utilises par le verrou
+  // d'execution (run `running` frais = execution en cours, on s'ecarte).
+  started_at?: string | null;
+  created_at?: string | null;
 }
 
 export interface MessageProcessingRow {

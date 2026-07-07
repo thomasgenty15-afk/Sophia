@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
+import { filterFreshMessages } from "../_shared/message_freshness.ts";
 import { processMessage } from "../sophia-brain/router.ts";
 
 type TestSendMessageBody = {
@@ -301,9 +302,17 @@ Deno.serve({
         Number.isFinite(body.debounce_wait_ms)
       ? Math.max(0, Math.min(10_000, Math.trunc(body.debounce_wait_ms)))
       : undefined;
-    const history = Array.isArray(body.history)
-      ? sanitizeHistory(body.history)
-      : await loadRecentDbHistory({ supabase, userId: user.id, scope });
+    // Ancre la fenêtre de fraîcheur sur l'horloge simulée des QA runs quand
+    // elle est fournie, sinon sur l'horloge serveur.
+    const freshnessNowMs = Date.parse(
+      String(body.client_now_iso ?? body.clientNowIso ?? ""),
+    );
+    const history = filterFreshMessages(
+      Array.isArray(body.history)
+        ? sanitizeHistory(body.history)
+        : await loadRecentDbHistory({ supabase, userId: user.id, scope }),
+      { nowMs: Number.isFinite(freshnessNowMs) ? freshnessNowMs : undefined },
+    );
     const response = await processMessage(
       supabase,
       user.id,

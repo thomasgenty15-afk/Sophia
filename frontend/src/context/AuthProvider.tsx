@@ -149,11 +149,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // Fetch profile for trial_end + access_tier (DB computed)
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('trial_end,access_tier')
         .eq('id', u.id)
         .single();
+
+      // Transient read error (network hiccup, cold start): don't downgrade a
+      // possibly-good tier to "none". Leave access as-is and let the next auth
+      // event retry, rather than wrongly showing the "no subscription" panel.
+      if (profileError) {
+        console.warn('Profile access read error', profileError);
+        return;
+      }
 
       const profile = profileData as ProfileAccessRow | null;
       const accessTierNormalized = normalizeAccessTier(profile?.access_tier);
@@ -233,8 +241,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser((currentUser) =>
           currentUser?.id === nextUser?.id ? currentUser : nextUser
         );
-        refreshAdmin(nextUser);
-        refreshSubscription(nextUser);
+        // Await both before clearing loading: otherwise `loading` flips false
+        // while accessTier is still its initial "none", flashing the
+        // "no subscription" panel (or a blank guard) before the real tier
+        // resolves — the intermittent bug this fixes.
+        await Promise.all([
+          refreshAdmin(nextUser),
+          refreshSubscription(nextUser),
+        ]);
         setLoading(false);
       }
     );

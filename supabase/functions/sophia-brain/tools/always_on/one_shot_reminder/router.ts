@@ -287,6 +287,28 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       }],
     };
   }
+  // Intention reschedule (eva-r5 B01): un decalage de rappel existant n'est
+  // pas supporte en chat (decision V1). Comme pour cardinality=recurring, le
+  // dispatcher emet l'intent et on bloque ICI pour que le tour porte un
+  // outcome honnete — un tour "sans effet" laissait le composeur improviser
+  // un faux "c'est note : 21h30" sans aucun outcome a suivre.
+  if (payloadText(createEffect, "intent") === "reschedule") {
+    return {
+      ...baseDirectEffectResult({
+        detected: true,
+        intent: "create",
+        status: "blocked",
+        reason_code: "reschedule_not_supported",
+        reply:
+          "Je ne peux pas décaler un rappel existant depuis le chat : il se modifie dans Dashboard > Initiatives (section rappels). Rien n'a été changé.",
+      }),
+      requested_effects: [{ type: effectType, reason_code: "reschedule" }],
+      blocked_effects: [{
+        type: effectType,
+        reason_code: "reschedule_not_supported",
+      }],
+    };
+  }
   // Intention cancel (F4, paul-broadflow15 T14): une demande d'annulation ne
   // touche JAMAIS le chemin create — garde structurelle meme si le LLM se
   // trompe ailleurs. Le payload porte intent="cancel" (contrat dispatcher);

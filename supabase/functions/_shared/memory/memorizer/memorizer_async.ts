@@ -121,6 +121,28 @@ export async function runMemorizerAsync(
       persisted: [],
     };
   }
+  // Verrou d'execution (rose-r4 B02, 7 annonces / 14 ecrits): un run = UN
+  // executeur. Un run `running` FRAIS appartient a une execution en cours
+  // (cron + trigger QA simultanes: les deux chargeaient les memes messages
+  // avant que l'un ne persiste → double write sous le meme run_id). Seul un
+  // `running` PERIME (> TTL) est un crash a reprendre — c'est le territoire
+  // du balayage d'orphelins et de la reprise Z1, inchanges.
+  if (existingRun?.status === "running") {
+    const startedMs = Date.parse(
+      String(existingRun.started_at ?? existingRun.created_at ?? ""),
+    );
+    const freshMs = 30 * 60_000;
+    if (Number.isFinite(startedMs) && Date.now() - startedMs < freshMs) {
+      return {
+        status: "skipped",
+        skip_reason: "run_in_progress",
+        extraction_run_id: existingRun.id,
+        batch_hash: batch.batch_hash,
+        write_decisions: [],
+        persisted: [],
+      };
+    }
+  }
   const costCap = memorizerCostCapUserDayEur();
   if (costCap && repo.estimateMemoryCostForUserDay) {
     const since = new Date(Date.now() - 86_400_000).toISOString();
@@ -281,16 +303,31 @@ export async function runMemorizerAsync(
     // correction comme les autres; les garde-fous existants (replacement
     // choisi hors cible, mutatedItemIds) empechent une correction
     // d'invalider sa propre nouvelle verite.
-    const intraBatchKnownItems = persisted.map((write) => ({
-      id: write.memory_item_id,
-      kind: write.candidate.item.kind,
-      content_text: write.candidate.item.content_text,
-      normalized_summary: write.candidate.item.normalized_summary ?? null,
-      canonical_key: write.candidate.item.canonical_key ?? null,
-      domain_keys: write.candidate.item.domain_keys ?? null,
-      source_message_id: write.candidate.item.source_message_ids?.[0] ?? null,
-      status: write.status,
-    }));
+    // Garde anti-auto-invalidation (alex-r3 B04): un item du lot issu du MEME
+    // message qu'une correction EST la nouvelle verite de cette correction —
+    // il ne doit jamais devenir sa cible (sinon la resolution peut le choisir
+    // et, faute de remplacement, l'invalider orphelin `superseded_by=none`).
+    const correctionSourceIds = new Set(
+      (extraction.corrections ?? []).flatMap((correction) =>
+        correction.source_message_ids ?? []
+      ),
+    );
+    const intraBatchKnownItems = persisted
+      .filter((write) =>
+        !(write.candidate.item.source_message_ids ?? []).some((id) =>
+          correctionSourceIds.has(id)
+        )
+      )
+      .map((write) => ({
+        id: write.memory_item_id,
+        kind: write.candidate.item.kind,
+        content_text: write.candidate.item.content_text,
+        normalized_summary: write.candidate.item.normalized_summary ?? null,
+        canonical_key: write.candidate.item.canonical_key ?? null,
+        domain_keys: write.candidate.item.domain_keys ?? null,
+        source_message_id: write.candidate.item.source_message_ids?.[0] ?? null,
+        status: write.status,
+      }));
     const correctionResults = repo.applyCorrections
       ? await repo.applyCorrections({
         user_id: input.user_id,

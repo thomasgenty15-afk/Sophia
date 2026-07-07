@@ -1518,7 +1518,7 @@ export type PlanContentV3 = {
   metadata: Record<string, unknown>;
 };
 
-export type ConversationPulseKind = "watcher_4h" | "daily" | "weekly";
+export type ConversationPulseKind = "watcher_4h" | "daily";
 
 export type ConversationPulseEmotionalAnchor = {
   topic_summary: string;

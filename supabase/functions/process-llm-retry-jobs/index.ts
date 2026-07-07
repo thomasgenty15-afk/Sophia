@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
+import { filterFreshMessages } from "../_shared/message_freshness.ts"
 import { processMessage } from "../sophia-brain/router.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { sendWhatsAppTextTracked } from "../whatsapp-webhook/wa_whatsapp_api.ts"
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
           .limit(40)
         if (msgsErr) throw msgsErr
 
-        const history = toHistoryRows(msgs ?? [])
+        const history = filterFreshMessages(toHistoryRows(msgs ?? []))
 
         const resp = await processMessage(
           admin,

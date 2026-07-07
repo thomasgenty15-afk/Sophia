@@ -13,8 +13,8 @@ Verdict global: **red** (2 red, 4 yellow, 9 green)
 - Symptome visible: Sophia affirme le rappel décalé à 21h30; au tour suivant elle dit 22h00 — contradiction non réparée. La DB reste `pending` à `2026-07-06T20:00:00Z`.
 - Preuve système: `direct_effects=[]`, `effect_ledger requested/allowed/committed = 0/0/0`; `scheduled_checkins` id `06c34b6f…` inchangé à 22:00 (vérifié en DB); `response_intent=update_existing_one_shot_reminder_time_request`.
 - Correction attendue: guard de réponse finale interdisant toute formule « c'est noté/fait/programmé/décalé » quand aucun effet n'est commité, en forçant le wording honnête « modification hors chat / dans la plateforme » pour un reschedule. Optionnellement, exposer un intent `reschedule` (cancel+recreate atomique sur le pending unique) pour offrir réellement la capacité. Régression par rapport à r4 (T12 honnête).
-- Statut: `open`
-- Fix reference: —
+- Statut: `fix_applied` — chantier W3 (2026-07-06). Le trou structurel était un tour « sans outcome » (le dispatcher n'émettait rien sur un décalage → le composeur improvisait). Pattern cardinality=recurring réutilisé : la règle DÉCALAGE émet `intent='reschedule'` que le runtime BLOQUE (`reschedule_not_supported`) → le tour porte un outcome blocked avec guidance (« jamais de claim de décalage, modification dans la plateforme »). Test contrat vert. **Probe live** (Eva) : create demain 22h committé → « décale-le à 21h30 au lieu de 22h » → blocked, réponse honnête sans « c'est noté 21h30 », DB inchangée (1 pending à 22h).
+- Fix reference: chantier W (2026-07-06)
 - Tests requis:
   - positif: `update_reminder_time` avec `committed=0` → réponse honnête « hors chat », jamais « ✅ 21h30 ».
   - paraphrase: « décale-le », « plutôt 21h30 », « mets-le plus tôt » → même comportement.
@@ -47,8 +47,8 @@ Verdict global: **red** (2 red, 4 yellow, 9 green)
 - Symptome visible: réapparition d'emojis souriants malgré la demande explicite, y compris en contexte neutre (T15, safety none).
 - Preuve système: réponses T13-T15 contiennent des emojis; item mémoire actif « Elle préfère qu'on lui parle de façon directe, sans petits emojis souriants à chaque phrase ».
 - Correction attendue: appliquer la préférence de style de façon persistante en-session à travers tous les modes (support inclus), indépendamment du basculement safety.
-- Statut: `open`
-- Fix reference: —
+- Statut: `fix_applied` (partiel) — chantier W5 (2026-07-06) + arbitrage produit : la persistance conversationnelle des préférences arrivera dans une version prochaine (consigne existante FO renforcée) ; doctrine FO bornée : appliquer immédiatement en session, engagement de SESSION explicite (« je le fais sur cette conversation »), jamais « à partir de maintenant » ; réglage durable = Preferences coach. **Reste ouvert** : l'adhérence cross-mode en session (support inclus) demande une ligne companion — différée (budget prompt companion à 12992/13000), documentée au chantiers-log.
+- Fix reference: chantier W (2026-07-06)
 - Tests requis:
   - positif: préférence emoji posée → aucun emoji sur les tours suivants, y compris support/safety.
   - paraphrase: « arrête les emojis », « pas de smileys » → adhérence maintenue.
@@ -63,8 +63,8 @@ Verdict global: **red** (2 red, 4 yellow, 9 green)
 - Symptome visible: Sophia propose directement une carte d'attaque « technique mantra de force » sans signaler qu'un réflexe automatique s'attrape mieux par une carte de défense, ni proposer l'alternative.
 - Preuve système: `skill_signals.coaching_recommendation` (free_action_coaching, conf 0.86); réponse T2 = carte d'attaque mantra, aucun doute exprimé.
 - Correction attendue: garder un doute quand le wording force une technique potentiellement incohérente avec la nature de l'action; expliquer simplement la différence et proposer les options les plus proches (mot de bascule vs carte de défense de repérage), laisser le user choisir.
-- Statut: `open`
-- Fix reference: —
+- Statut: `fix_applied` (doctrine) — chantier W5 (2026-07-06): règle visible coaching « doute de cohérence technique » (wording force une technique ≠ nature du besoin → signaler le doute, proposer les deux options ; vraie fenêtre de rupture servie sans doute superflu). Rendue atteignable par le routing carte/technique → coaching (voir paul-r5 B03). À confirmer au prochain run.
+- Fix reference: chantier W (2026-07-06)
 - Tests requis:
   - positif: réflexe automatique sur déclencheur précis + wording « mantra » → Sophia propose l'option mais signale la carte de défense comme alternative adaptée.
   - anti-faux-positif: vraie fenêtre de rupture (« je vais craquer ») + « mot de bascule » → mot de bascule sans doute superflu.

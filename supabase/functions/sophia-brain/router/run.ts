@@ -85,6 +85,7 @@ import {
 } from "../tools/always_on/track_progress_plan_item/router.ts";
 import {
   activePlanSnapshotPromptBlock,
+  committedCorrectionReplyOverride,
   directEffectConfirmationContextPrompt,
   withDirectEffectConfirmationContext,
 } from "./direct_effect_local_context.ts";
@@ -704,8 +705,19 @@ export function effectLedgerTraceForTest(args: {
   );
 }
 
-function finalVisibleText(text: unknown, routeDecision: RouteDecision | null) {
-  let out = stripHiddenHtmlComments(text);
+function finalVisibleText(
+  text: unknown,
+  routeDecision: RouteDecision | null,
+  turnFrame?: TurnFrame | null,
+) {
+  // paul-r6 B01: sur un commit de CORRECTION track, la reply deterministe du
+  // tool remplace la paraphrase du composeur — l'historique (refus du tour
+  // precedent) ne peut plus battre le contrat du tour. Meme famille que le
+  // reply override safety: verite contractuelle > eloquence.
+  const correctionOverride = committedCorrectionReplyOverride(
+    turnFrame ?? null,
+  );
+  let out = stripHiddenHtmlComments(correctionOverride ?? text);
   out = stripDeprecatedProductVocabulary(out);
   if (!isSafetyRoute(routeDecision)) out = ensureVisibleSophiaEmoji(out);
   return out.trim();
@@ -1248,6 +1260,7 @@ export async function processMessage(
         const responseContent = finalVisibleText(
           weeklyRuntimeContent,
           routeDecision,
+          turnFrame,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -1391,6 +1404,7 @@ export async function processMessage(
       const responseContent = finalVisibleText(
         mergeVisibleTextForTest(operationRuntime, skillReply),
         routeDecision,
+        turnFrame,
       );
       const effectLedger = effectLedgerForOperationRuntime(
         turnFrame.turn_id,
@@ -1707,6 +1721,7 @@ export async function processMessage(
         const responseContent = finalVisibleText(
           mergeVisibleTextForTest(operationRuntime, skillReply),
           routeDecision,
+          turnFrame,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -1834,6 +1849,17 @@ export async function processMessage(
     // des recaps de plan — construite a chaque tour, inconditionnelle.
     activePlanSnapshotPromptBlock(planItemSnapshot),
     productHelpInjectedContext(routeDecision),
+    // eva-r6 B02: directive de tour pour la preemption detresse SANS ideation
+    // — le companion sortait un cadrage urgences disproportionne. Donnee de
+    // tour (budget companion preserve), pas une regle de prompt.
+    routeDecision.reason_code === "distress_support_priority"
+      ? [
+        "=== TOUR DE SOUTIEN (detresse non imminente) ===",
+        "Soutien groundé sur ce que la personne vient de dire: valide, reste present, une question douce au plus.",
+        "AUCUNE ressource d'urgence, hotline ou consigne de securite ('te faire du mal', 'urgences'): ces cadrages sont reserves a l'ideation, absente ici — les employer sur-escalade et inquiete.",
+        "Aucun dispositif, carte, potion ou feature ce tour. Pas de lexique clinique ('stabilise').",
+      ].join("\n")
+      : null,
   ].filter(Boolean).join("\n\n") || undefined;
   const contextLoadResult = await loadContextForMode({
     supabase,
@@ -1945,6 +1971,7 @@ export async function processMessage(
   const responseContent = finalVisibleText(
     mergeVisibleTextForTest(operationRuntime, agentOut.responseContent),
     routeDecision,
+    turnFrame,
   );
 
   const agentToolExecution = String(agentOut.toolExecution ?? "none") as

@@ -286,7 +286,7 @@ Deno.test("effects_outcome is TOTAL: safety-muted lane yields a visible not_atte
   assertEquals(empty, null);
 });
 
-Deno.test("effects_outcome maps blocked reasons to needs_clarify with the lane question (eva-r2 B01)", () => {
+Deno.test("effects_outcome maps same-day contradiction to an honest BLOCKED outcome, no confirmation offer (paul-r5 B02)", () => {
   const context = buildDirectEffectConfirmationContext({
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
     direct_effects: [{
@@ -315,14 +315,18 @@ Deno.test("effects_outcome maps blocked reasons to needs_clarify with the lane q
   const outcome = context?.effects_outcome.find((o) =>
     o.effect_type === "track_progress_plan_item"
   );
-  assertEquals(outcome?.status, "needs_clarify");
+  // paul-r5 B02: la confirmation qu'un clarify inviterait est inexecutable
+  // (pas d'override same-day en chat, V1) — l'outcome est un blocked honnete
+  // dont la guidance interdit toute offre de bascule.
+  assertEquals(outcome?.status, "blocked");
   assertEquals(outcome?.reason_code, "contradicts_same_day_evidence");
+  assertEquals(outcome?.clarify_question, null);
+  assertEquals(outcome?.target, "Coupure ecran");
   assertEquals(
-    outcome?.clarify_question?.includes("quelle nuit"),
+    outcome?.guidance.includes("Ne propose JAMAIS de confirmer une bascule"),
     true,
   );
-  assertEquals(outcome?.target, "Coupure ecran");
-  assertEquals(outcome?.guidance.includes("N'accuse aucune ecriture"), true);
+  assertEquals(outcome?.guidance.includes("Dashboard > Plan"), true);
 
   // Un commit reste committed avec sa guidance de confirmation unique.
   const committed = buildDirectEffectConfirmationContext({
@@ -441,4 +445,35 @@ Deno.test("needs_clarify outcome NEVER ships without a question (rose-r6 B02 inv
     outcome?.clarify_question?.includes("quelle action de ton plan"),
     true,
   );
+});
+
+Deno.test("committed correction reply override fires only on correction commits (paul-r6 B01)", async () => {
+  const { committedCorrectionReplyOverride } = await import(
+    "./direct_effect_local_context.ts"
+  );
+  const frame = (correction: boolean, committed: boolean) => ({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      payload_hint: { target_item_id: "i1", status_hint: "missed", correction },
+    }],
+    direct_effect_lane: {
+      committed_effects: committed
+        ? [{ type: "track_progress_plan_item", target_title: "10 min" }]
+        : [],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
+      visible_confirmation_hint: "C'est corrigé : 10 min repassée en non fait.",
+    },
+  });
+  // Commit de correction → la reply deterministe du tool prime.
+  assertEquals(
+    committedCorrectionReplyOverride(frame(true, true)),
+    "C'est corrigé : 10 min repassée en non fait.",
+  );
+  // Correction demandee mais NON committee (blocked) → pas d'override, le
+  // refus honnete du composeur reste legitime.
+  assertEquals(committedCorrectionReplyOverride(frame(true, false)), null);
+  // Commit normal sans correction → pas d'override (le composeur garde la main).
+  assertEquals(committedCorrectionReplyOverride(frame(false, true)), null);
 });

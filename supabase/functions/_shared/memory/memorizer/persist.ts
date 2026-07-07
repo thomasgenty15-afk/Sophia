@@ -386,6 +386,23 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
           persisted: args.persisted,
         });
         if (!replacement) {
+          // Ceinture anti-orphelin (alex-r3 B04 / alex-r4 B05): un item
+          // persiste dans CE run ne peut JAMAIS etre invalide sans
+          // successeur, quel que soit le chemin de resolution qui l'a
+          // choisi — c'est une verite du lot courant, pas une croyance
+          // perimee. Skip avec raison au lieu de tuer un item frais.
+          const isIntraBatchTarget = args.persisted.some((write) =>
+            write.memory_item_id === targetItemId
+          );
+          if (isIntraBatchTarget) {
+            results.push({
+              operation_type: correction.operation_type,
+              status: "skipped",
+              reason: "intra_batch_target_without_replacement",
+              target_hint: correction.target_hint,
+            });
+            continue;
+          }
           results.push(await invalidateMemoryItem(repo, {
             user_id: args.user_id,
             item_id: targetItemId,

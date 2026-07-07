@@ -2543,14 +2543,6 @@ function looksLikeSetupMission(item: Record<string, unknown>): boolean {
     );
 }
 
-function getPhaseMaxItems(phase: Record<string, unknown>): number {
-  const weeks = Array.isArray(phase.weeks) ? phase.weeks.length : 0;
-  if (weeks > 1) {
-    return Math.max(5, weeks * 2);
-  }
-  return 5;
-}
-
 function validatePlanBlueprint(
   blueprint: unknown,
 ): string[] {
@@ -3089,6 +3081,33 @@ export function validatePlanV3Output(
   const allTempIds = new Set<string>();
   const tempIdsByPhase = new Map<string, Set<string>>();
 
+  // Stable per-phase key used by every pass below so the pre-pass, the item
+  // loop and the cross-reference pass always agree on how a phase is indexed
+  // (even when phase_id is missing/duplicated).
+  const phaseKeyAt = (phase: Record<string, unknown>, index: number): string =>
+    isNonEmptyString(phase.phase_id) ? phase.phase_id : `index-${index}`;
+
+  // Pre-pass: collect the complete temp_id universe BEFORE any validation runs.
+  // The depends_on cross-reference below must never depend on whether a phase
+  // passed its own checks — otherwise a single unrelated failure that `continue`s
+  // out of the item loop would make every in-phase dependency look like an
+  // "unknown temp_id" (and every valid one like a phantom cross-phase dep).
+  const knownTempIds = new Set<string>();
+  for (let i = 0; i < phases.length; i++) {
+    const phase = phases[i];
+    if (!isPlainObject(phase)) continue;
+    const phaseKey = phaseKeyAt(phase, i);
+    const bucket = tempIdsByPhase.get(phaseKey) ?? new Set<string>();
+    const items = Array.isArray(phase.items) ? phase.items : [];
+    for (const item of items) {
+      if (isPlainObject(item) && isNonEmptyString(item.temp_id)) {
+        knownTempIds.add(item.temp_id);
+        bucket.add(item.temp_id);
+      }
+    }
+    tempIdsByPhase.set(phaseKey, bucket);
+  }
+
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i] as Record<string, unknown>;
     const phaseId = phase.phase_id as string;
@@ -3211,21 +3230,21 @@ export function validatePlanV3Output(
       }));
     }
 
-    // Items
+    // Items — no upper bound on count (a phase may hold as many items as it
+    // needs); only require a non-empty array so downstream item checks and the
+    // "at least 1 habit / 1 active item" invariants have something to inspect.
     const items = phase.items;
-    const phaseMaxItems = getPhaseMaxItems(phase);
-    if (
-      !Array.isArray(items) || items.length < 1 || items.length > phaseMaxItems
-    ) {
+    if (!Array.isArray(items) || items.length < 1) {
       issues.push(
-        `phase ${phaseLabel} must have 1-${phaseMaxItems} items (got ${
+        `phase ${phaseLabel} must have at least 1 item (got ${
           Array.isArray(items) ? items.length : typeof items
         })`,
       );
       continue;
     }
 
-    const phaseTempIds = new Set<string>();
+    // tempIdsByPhase is populated up-front in the pre-pass; the loop below only
+    // needs allTempIds (incremental, for duplicate detection).
     let hasHabit = false;
     let hasActiveItem = false;
 
@@ -3260,7 +3279,6 @@ export function validatePlanV3Output(
         issues.push(`duplicate temp_id: ${tempId}`);
       }
       allTempIds.add(tempId);
-      phaseTempIds.add(tempId);
 
       // dimension
       if (!VALID_V3_DIMENSIONS.has(item.dimension as PlanDimension)) {
@@ -3360,8 +3378,6 @@ export function validatePlanV3Output(
         `phase ${phaseLabel} must have at least 1 item active from start`,
       );
     }
-
-    tempIdsByPhase.set(phaseId, phaseTempIds);
   }
 
   const adjustmentContext = isPlainObject(plan.metadata)
@@ -3392,12 +3408,18 @@ export function validatePlanV3Output(
     }
   }
 
-  // Cross-reference: depends_on must be within the same phase
+  // Cross-reference: depends_on must be within the same phase. Both the
+  // in-phase set (tempIdsByPhase) and the global universe (knownTempIds) come
+  // from the pre-pass, so these checks stay accurate regardless of any earlier
+  // validation failure — no phantom "unknown temp_id"/"cross-phase" errors.
   for (let i = 0; i < phases.length; i++) {
-    const phase = phases[i] as Record<string, unknown>;
-    const phaseId = phase.phase_id as string;
-    const phaseTempIds = tempIdsByPhase.get(phaseId) ?? new Set<string>();
-    const items = (phase.items ?? []) as Array<Record<string, unknown>>;
+    const phase = phases[i];
+    if (!isPlainObject(phase)) continue;
+    const phaseTempIds = tempIdsByPhase.get(phaseKeyAt(phase, i)) ??
+      new Set<string>();
+    const items = Array.isArray(phase.items)
+      ? phase.items as Array<Record<string, unknown>>
+      : [];
 
     for (const item of items) {
       const cond = item.activation_condition as
@@ -3412,7 +3434,7 @@ export function validatePlanV3Output(
         } else {
           for (const dep of deps) {
             if (!phaseTempIds.has(dep)) {
-              if (allTempIds.has(dep)) {
+              if (knownTempIds.has(dep)) {
                 issues.push(
                   `item ${item.temp_id} depends_on "${dep}" is in a different phase (cross-phase deps not allowed)`,
                 );

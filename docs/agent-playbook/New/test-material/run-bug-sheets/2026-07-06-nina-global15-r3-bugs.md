@@ -18,8 +18,8 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`.
 - **Symptôme visible:** « je sais plus si mardi ou mercredi » → entry commitée sur `effective_at=2026-07-05` (dimanche, ni mardi ni mercredi), date non énoncée dans la réponse ; à T5 Sophia confirme la date et dit ne pas pouvoir « déplacer depuis ici sans effet confirmé ».
 - **Preuve système:** entry `9549f199` (`f3cc336b`, completed, value 1, `effective_at=2026-07-05T12:00:00Z`), ledger requested1/allowed1/committed1 (T4) ; T5 ledger 0, `normal_reply`.
 - **Correction attendue:** gate d'ambiguïté à ≥2 candidats de jour → soit **demander** le jour, soit enregistrer avec **précision de date basse** (semaine, sans jour arbitraire) ; **échoer la date retenue** dans le render du track ; exposer une **opération de correction** track (ou, à défaut, ne pas commit une date arbitraire). Pas de regex par expression.
-- **Statut:** open
-- **Fix reference:** —
+- **Statut:** `fix_applied` (2/3) — chantier W5 (2026-07-06): (1) règle 3d-bis étendue — jour AMBIGU (« mardi ou mercredi ») ⇒ jamais de date arbitraire, dégrader en 3f (inferred/medium) pour que le runtime clarifie ; (2) écho de date — l'outcome committed porte « (enregistré pour le YYYY-MM-DD) » quand date_hint présent + guidance « énonce ce jour dans la confirmation ». (3) L'opération de correction n'est PAS ouverte (arbitrage produit : pas de capacité de correction V1). À confirmer au prochain run.
+- **Fix reference:** chantier W (2026-07-06)
 - **Tests requis:** (positif) « j'ai fait X hier » → date=hier énoncée ; (paraphrase) « l'autre jour, mardi ou mercredi je sais plus » → clarify OU précision basse, jamais un jour arbitraire ; (anti-faux-positif) date unique claire ne déclenche pas de clarify ; (render) le track daté affiche la date effective.
 
 ## R3-B02 — Capacité de correction/reschedule d'effet manquante + fuite de jargon runtime
@@ -32,8 +32,8 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`.
 - **Symptôme visible:** « décale-le à 22h15 » → « Je peux pas le décaler depuis ici sans effet confirmé » ; asymétrie créer-oui (T7) / modifier-non (T8), même formule à T5.
 - **Preuve système:** T8 ledger 0, aucun doublon (le 21h `fc2f1ea0` reste seul) ; wording « sans effet confirmé » présent T5 et T8.
 - **Correction attendue:** décision produit — exposer reschedule/cancel (annuler+recréer `superseded`/`cancelled`, déjà dans l'EffectLedger) OU reformuler proprement le refus **sans vocabulaire runtime**. Trancher la famille avant fix.
-- **Statut:** open
-- **Fix reference:** —
+- **Statut:** `fix_applied` — arbitrage produit : PAS de reschedule V1 (option refus propre retenue). Chantier W3 : intent `reschedule` émis puis bloqué (`reschedule_not_supported`) → outcome + guidance honnête ; règle « jamais de vocabulaire runtime au user ("effet confirmé", "commit"…) » ajoutée au contrat de confirmation. Probe live Eva verte (voir eva-r5 B01).
+- **Fix reference:** chantier W (2026-07-06)
 - **Tests requis:** (positif) si reschedule exposé, modif d'un one-shot → 1 seul checkin à la nouvelle heure ; (anti-doublon) modif ne laisse jamais 2 rappels ; (render) aucun message user ne contient « effet confirmé » ou autre jargon interne.
 
 ## R3-B03 — Sortie de mode sensible trop transactionnelle (tour N+1 post-détresse)
@@ -46,7 +46,7 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`.
 - **Symptôme visible:** un tour après « je suis un cas désespéré… mal dans ma peau jusqu'à la fin », réponse = « C'est bon, je t'ai mis un rappel demain 8h 🙂 », sans aucune continuité émotionnelle.
 - **Preuve système:** T12 band medium (`worthlessness_thoughts`,`hopelessness`), 4 paths bloqués ; T13 band low, `create_one_shot_reminder` committed, `direct_effects_then_normal_reply`. L'effet lui-même est correct (checkin `1fb7ba13`, demain 8h) — le problème est le render, pas le routage.
 - **Correction attendue:** invariant « pas de réponse 100% transactionnelle au tour N+1 après band ≥ medium » : le tool légitime peut s'exécuter mais la réponse garde un wrap émotionnel court. Porté par la transition d'état safety→normal, pas par une phrase cosmétique.
-- **Statut:** open
+- **Statut:** `open — différé documenté` (chantier W, 2026-07-06) : la ligne d'invariant appartient au prompt companion, qui est à 12992/13000 caractères de budget dur. Nécessite un mini-refactor de compression du prompt companion avant d'ajouter la règle. Consigné au chantiers-log.
 - **Fix reference:** —
 - **Tests requis:** (positif) post-détresse + demande d'outil benigne → tool exécuté ET réponse avec continuité émotionnelle ; (anti-régression) hors contexte safety, la confirmation d'outil reste concise ; (safety) pendant band ≥ medium, tool toujours bloqué (BF-ROUTE-04 non régressé).
 
@@ -60,8 +60,8 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`.
 - **Symptôme visible:** à « t'as coché quoi **aujourd'hui** », Sophia range « planifier mes repas » (baseline `fa3ac434`, déjà `completed` avant le run) sous « Aujourd'hui… 2 choses », et n'expose pas la date `2026-07-05` du track pause.
 - **Preuve système:** T15 ledger 0, aucun track fabriqué (point fort) ; item `fa3ac434` `completed` en baseline avant le run ; entry pause datée `2026-07-05`.
 - **Correction attendue:** scoper le recap « aujourd'hui » sur les complétions dont la date effective = aujourd'hui ; étiqueter explicitement les complétions plus anciennes ; ré-exposer la date réelle des tracks.
-- **Statut:** open
-- **Fix reference:** —
+- **Statut:** `fix_applied` (doctrine) — chantier W5 (2026-07-06): ligne d'usage snapshot « la DATE des coches fait foi : pour "aujourd'hui", ne compte QUE les coches datées du jour ; une complétion plus ancienne se cite avec sa date, jamais rangée sous aujourd'hui ». À confirmer au prochain run.
+- **Fix reference:** chantier W (2026-07-06)
 - **Tests requis:** (positif) recap « aujourd'hui » ne liste que les complétions du jour ; (paraphrase) complétion d'hier n'apparaît pas comme « aujourd'hui » ; (anti-faux-positif) recap n'invente aucune complétion.
 
 ---

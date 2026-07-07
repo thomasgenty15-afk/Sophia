@@ -42,9 +42,12 @@ export function renderTrackProgressContradictionClarification(input: {
 }): string {
   const existing = trackProgressOutcomeLabels[input.existing_outcome] ??
     input.existing_outcome;
-  const requested = trackProgressOutcomeLabels[input.requested_status] ??
-    input.requested_status;
-  return `Aujourd'hui, ${input.target_title} est deja note comme ${existing}. Tu veux que je corrige en ${requested} ?`;
+  // Pas d'offre de bascule: l'override same-day n'existe pas en chat
+  // (paul-r5 B02, decision V1) — « tu veux que je corrige ? » promettait une
+  // confirmation inexecutable (boucle morte). On dit l'etat et ou ca se
+  // corrige, sans question.
+  void input.requested_status;
+  return `Aujourd'hui, ${input.target_title} est deja note comme ${existing} — je ne peux pas changer ca depuis le chat. Si c'est une erreur, tu peux le corriger directement sur cette action dans Dashboard > Plan.`;
 }
 
 export function enforceTrackProgressReplyInvariant(
