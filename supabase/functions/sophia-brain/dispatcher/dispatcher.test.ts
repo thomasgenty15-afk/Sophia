@@ -182,6 +182,32 @@ Deno.test("dispatcher keeps coaching recommendation signal", async () => {
   assertNoLegacyRouteFields(frame);
 });
 
+Deno.test("dispatcher keeps plan_too_light drift direction through runtime sanitizer (nina-r4 B03)", async () => {
+  const frame = await dispatch("Mon plan est trop mou, corse-le", {
+    skill_signals: {
+      plan_realignment: {
+        detected: true,
+        confidence_band: "high",
+        reason: "plan_too_light_realignment",
+        context: {
+          drift_type: "plan_too_light",
+          scope: "whole_plan",
+          explicit_adjust_request: true,
+          product_execution_allowed: false,
+          reason: "User says the plan is too easy and asks to raise the level.",
+        },
+      },
+    },
+  });
+
+  // Regression: le sanitizer runtime rabattait toute valeur hors liste sur
+  // "ambiguous" — la direction UP doit survivre jusqu'au turn frame.
+  assertEquals(
+    frame.skill_signals.plan_realignment?.context?.drift_type,
+    "plan_too_light",
+  );
+});
+
 Deno.test("dispatcher normalizes coaching recommendation activation context", async () => {
   const frame = await dispatch("J'oublie mon action du soir du plan", {
     skill_signals: {

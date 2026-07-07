@@ -9,7 +9,7 @@ import type {
 } from "../types.v1.ts";
 
 export const MEMORY_EXTRACTION_PROMPT_VERSION =
-  "memory.memorizer.extraction.v3_identity_guard_intra_batch_supersede";
+  "memory.memorizer.extraction.v4_future_dated_facts_contested_claims";
 export const MEMORY_EXTRACTION_MODEL_DEFAULT = "gemini-3-flash-preview";
 
 export interface MemorizerMessage {

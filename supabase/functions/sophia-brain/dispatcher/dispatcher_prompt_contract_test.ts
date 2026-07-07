@@ -194,6 +194,29 @@ Deno.test("dispatcher prompt defines plan realignment and boundaries", () => {
   const product = parsed.doctrine_examples.find((item) =>
     item.user_message.includes("C'est quoi une carte de defense")
   );
+  const tooLight = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("trop mou, corse-le")
+  );
+  const tooHeavy = parsed.doctrine_examples.find((item) =>
+    item.user_message.includes("Le plan est trop lourd cette semaine")
+  );
+
+  // nina-r4 B03 / paul-r6 B03: la doctrine de direction est ancree et les deux
+  // exemples opposes ne collapsent jamais l'un sur l'autre.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "drift_type suit la DIRECTION reelle exprimee",
+    ),
+    true,
+  );
+  assertEquals(
+    tooLight?.expected.skill_signals?.plan_realignment?.context?.drift_type,
+    "plan_too_light",
+  );
+  assertEquals(
+    tooHeavy?.expected.skill_signals?.plan_realignment?.context?.drift_type,
+    "plan_too_heavy",
+  );
 
   assertEquals(drift?.expected.skill_signals?.plan_realignment?.context
     ?.drift_type, "lost_rhythm");

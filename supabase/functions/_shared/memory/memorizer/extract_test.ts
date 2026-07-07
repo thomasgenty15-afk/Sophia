@@ -169,3 +169,31 @@ Deno.test("extract normalizes sensitivity category aliases", () => {
 
   assertEquals(parsed.memory_items[0].sensitivity_categories, ["addiction"]);
 });
+
+Deno.test("extraction prompt anchors future dated confided facts and contested claims (alex-r4 B04/B06)", () => {
+  const prompt = buildExtractionPrompt({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content: "Garde en tete: le 20 juillet je pars 4 jours chez ma mere.",
+    }],
+  });
+  assertEquals(
+    prompt.system_prompt.includes("FAIT FUTUR DATE CONFIE"),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes("persistance OBLIGATOIRE"),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes("CROYANCE CONTESTEE DANS L'ECHANGE"),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes("jamais comme fait actif non qualifie") ||
+      prompt.system_prompt.includes("ne la persiste JAMAIS comme fait actif"),
+    true,
+  );
+});

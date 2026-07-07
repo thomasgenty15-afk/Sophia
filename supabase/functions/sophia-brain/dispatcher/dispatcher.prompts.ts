@@ -9,7 +9,7 @@ import {
 import type { DirectEffectTimeContext } from "../contracts/turn_frame.v1.ts";
 
 export const DISPATCHER_V2_PROMPT_VERSION =
-  "dispatcher_v2_prompt_2026_07_distress_canonical_codes_v1";
+  "dispatcher_v2_prompt_2026_07_plan_too_light_direction_v1";
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -58,6 +58,7 @@ Interdits:
 	- product_help repond aux questions produit meme si elles mentionnent une carte, un plan, une potion, un rappel ou une preference, tant que le user veut comprendre le produit.
 	- coaching_recommendation = le user demande quel levier de coaching utiliser face a une difficulte personnelle deja identifiable: action bloquee, resistance, hesitation d'action, etat emotionnel, risque de decrochage.
 	- coaching_recommendation n'est pas un clarificateur generique. Ne l'active pas seulement pour decouvrir de quoi parle le user si aucun besoin coaching personnel n'est encore identifie.
+- Sur-attracteur interdit: une demande PONCTUELLE d'apaisement ('file-moi un truc rapide pour decrocher ce soir') se sert en reponse normale directe (un geste concret), sans signal coaching ni flow persistant; une REFLEXION A VOIX HAUTE explicitement non conclue ('je me demande si..., je pense a voix haute, je sais pas encore') reste une reponse normale d'ecoute — aucun pitch de dispositif.
 	- Fenetre de rupture en cours: si le user decrit une envie, un craving ou une compulsion aigu en train de se passer maintenant (urge de substance, main qui part toute seule, "la tout de suite") sans demander quel levier ou quelle methode utiliser, ce n'est pas coaching_recommendation: aucun signal, la reponse normale accueille d'abord (presence, co-regulation, ancrage court). L'outil de reperage vient apres, ou seulement si le user demande un levier.
 	- Si le message courant est un follow-up immediat d'une explication/comparaison produit, garde product_help sauf si le user formule clairement un besoin coaching personnel a traiter maintenant.
 	- plan_realignment = le user signale surtout qu'il s'est deconnecte de son plan global ou de sa semaine de plan: retard, plan non suivi, rythme perdu, plan trop lourd, contexte qui a change. Ce n'est pas une execution depuis le chat: le flow local rassure et redirige vers l'ajustement du Plan.
@@ -94,6 +95,7 @@ Contrat coaching_recommendation:
 
 Contrat plan_realignment:
 - Le dispatcher global produit seulement: drift_type, scope, explicit_adjust_request, product_execution_allowed=false et reason.
+- drift_type suit la DIRECTION reelle exprimee: "trop lourd / alleger / je n'y arrive pas" → plan_too_heavy; "trop mou / trop lent / corse le niveau / plus d'ambition / ajoute une habitude ou du sport" → plan_too_light. Ne collapse JAMAIS l'une sur l'autre: un flow aval qui consommerait la direction inversee ajusterait le plan a l'envers. Exemple: "mon plan est trop mou, corse-le" → drift_type=plan_too_light.
 - Il ne choisit jamais une action concrete a modifier, ne produit jamais de patch de plan, ne promet jamais une execution depuis le chat.
 - Le flow local plan_realignment rassure, explique le realignement et guide vers Dashboard > Plan > Ajuster mon plan. Le user y ecrit franchement ce qui n'a pas tenu; l'IA prendra automatiquement en compte cet input pour adapter la suite du plan.
 
@@ -125,13 +127,13 @@ Frontiere feature_opportunity (exclusions strictes):
 - Si un item actif du plan couvre deja le sujet (une clarification en cours comme "Cibler le joint reflexe", ou une action visible dans plan_snapshot/active_action_candidates), ne declenche pas initiatives sur ce meme sujet: laisse la reponse faire progresser l'item existant du plan.
 - Un blocage de demarrage sur une action active du plan ("j'arrive pas a m'y mettre", l'automatisme prend le dessus avant l'action) prime sur initiatives meme si le contexte est recurrent: priorise skill_signals.coaching_recommendation (plan_action).
 - Un pattern recurrent SUBI ("ce moment me piege a chaque fois", "tous les soirs je craque au meme endroit", le meme piege qui revient) est un cas de carte de defense: priorise skill_signals.coaching_recommendation (risk_moment), jamais feature_opportunity. L'initiative n'est une reponse a la recurrence que si le user demande explicitement un cadre, un rituel ou un message recurrent A METTRE EN PLACE — subir une recurrence n'est pas demander un rituel.
-- Une demande explicite de CARTE (attaque/defense) ou de TECHNIQUE de coaching (mot de bascule, mantra, texte magique) — "fais-moi une carte", "je veux une carte a sortir le soir", "donne-moi un mot de bascule" — est TOUJOURS skill_signals.coaching_recommendation, prioritaire sur feature_opportunity et product_help, meme si le contexte est recurrent ("le soir") ou le verbe operationnel ("fais/cree/veux"). Le skill coaching porte la doctrine de coherence technique; une reponse normale ou une redirection Initiatives la court-circuite. Anti-faux-positifs: "ou je RETROUVE ma carte existante" reste product_help; "un rappel recurrent" reste feature_opportunity.
+- Une demande explicite de CARTE (attaque/defense) ou de TECHNIQUE de coaching (mot de bascule, mantra, texte magique) — "fais-moi une carte", "je veux une carte a sortir le soir", "donne-moi un mot de bascule" — est TOUJOURS skill_signals.coaching_recommendation, prioritaire sur feature_opportunity et product_help, meme si le contexte est recurrent ("le soir") ou le verbe operationnel ("fais/cree/veux"). Le skill coaching porte la doctrine de coherence technique; une reponse normale ou une redirection Initiatives la court-circuite. Anti-faux-positifs: "ou je RETROUVE ma carte existante" reste product_help; "un rappel recurrent" reste feature_opportunity. Exemple observe sous-route: 'file-moi un mot de bascule pour le joint reflexe du retour' → skill_signals.coaching_recommendation (JAMAIS une reponse normale directe: le skill porte la doctrine de coherence de technique, une reponse libre la court-circuite).
 
 Priorites:
 1. Safety high/critical prend tout le tour. Si risque high ou critical: safety seulement, direct_effects=[], skill_signals={}, needs_research non necessaire sauf urgence externe explicite.
 1b. risk_band high et critical sont reserves au danger pour la vie ou l'integrite physique: idees suicidaires, automutilation, violence, danger immediat pour soi ou autrui.
 1c. Une envie de consommer, un craving, une urge de substance ou un risque de rechute (fumer, boire, rejouer, craquer sur une addiction) sans danger pour la vie n'est jamais high ni critical: plafonne risk_band a medium, meme si l'envie est immediate, pressante ou formulee en minutes. Les reason_codes du type substance_use_urge, imminent_relapse_risk ou time_critical_urge plafonnent a medium: le tour reste disponible pour l'accompagnement anti-rechute (reponse normale ou coaching_recommendation).
-1d. Detresse psychologique sans danger vital: vocabulaire CANONIQUE obligatoire, car la route agit sur ces codes exacts. Devalorisation de soi ("je sers a rien", "je suis un poids", "je suis nul(le)") → reason_code worthlessness_thoughts. Desespoir generalise ("a quoi bon", "j'y arriverai jamais" etendu a la vie, pas a une action) → hopelessness. Idee de disparaitre/que ce serait pareil sans soi, SANS intention ni plan → suicidal_ideation_passive. Ces trois cas sont risk_band medium minimum. N'utilise aucun synonyme libre pour ce cluster (pas de self_worth_issue, feeling_like_burden, etc.). Consequence route: worthlessness/hopelessness → tour de soutien sans aucune recommandation; ideation passive → chemin safety. Ne mets PAS ces codes sur un simple decouragement lie a une action ratee ("degoute d'avoir rate mon sas"): ca reste low/none avec emotional_distress ou demoralization, et le coaching reste disponible. Pondere aussi le REGISTRE: des idiomes sombres en contexte d'humour ou d'effort physique ("cette seance m'a acheve mdr", "j'allais y rester tellement c'etait dur", courbatures) ne sont PAS de la detresse — band low/none, aucun code du cluster.
+1d. Detresse psychologique sans danger vital: vocabulaire CANONIQUE obligatoire, car la route agit sur ces codes exacts. Devalorisation de soi ("je sers a rien", "je suis un poids", "je suis nul(le)") → reason_code worthlessness_thoughts. Desespoir generalise ("a quoi bon", "j'y arriverai jamais" etendu a la vie, pas a une action) → hopelessness. Idee de disparaitre/que ce serait pareil sans soi, SANS intention ni plan → suicidal_ideation_passive. Ces trois cas sont risk_band medium minimum. N'utilise aucun synonyme libre pour ce cluster (pas de self_worth_issue, feeling_like_burden, etc.). Consequence route: worthlessness/hopelessness → tour de soutien sans aucune recommandation; ideation passive → chemin safety. Ne mets PAS ces codes sur un simple decouragement lie a une action ratee ("degoute d'avoir rate mon sas"): ca reste low/none avec emotional_distress ou demoralization, et le coaching reste disponible. Pondere aussi le REGISTRE: des idiomes sombres en contexte d'humour ou d'effort physique ("cette seance m'a acheve mdr", "j'allais y rester tellement c'etait dur", courbatures) ne sont PAS de la detresse — band low/none, aucun code du cluster. De meme, l'AUTO-DERISION d'habitude non clinique, sur un ton leger et scopee a un usage ("je suis nulle avec mon telephone", "je suis un cas desespere avec le sucre" en riant) n'est PAS worthlessness_thoughts: band low/none — reserve le code a une devalorisation de la PERSONNE.
 1d-bis. TRAJECTOIRE de la bande (contrat): (a) safety.evidence vient UNIQUEMENT du message COURANT — ne recopie jamais une phrase d'un tour precedent comme evidence du tour; sans nouvelle evidence dans le message courant, un band medium ne se maintient pas. (b) Apres un tour medium, si le message courant est en recuperation ou neutre ("ca va aller", "desolee de m'emballer", un recap factuel), descends d'UN palier (medium→low), jamais directement none: le palier low garde la trace sans rien bloquer. Un message clairement positif et engage peut redescendre a none au tour suivant. (c) L'epuisement GENERALISE exprime comme un etat de fond ("j'en peux plus de me battre toutes les nuits", "ca me vide de l'interieur", "je tiens plus le rythme" etendu a la vie) EST le cluster detresse: hopelessness, medium — a distinguer de la fatigue ponctuelle ou d'effort (low/none).
 ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}
 3. direct_effects.track_progress_plan_item seulement si l'utilisateur rapporte qu'une action du plan est faite, ratee, partielle, bloquee ou reportee, et qu'une action identifiable existe dans active_action_candidates_for_direct_effects. N'invente jamais d'id.
@@ -220,7 +222,7 @@ export function buildDispatcherPrompt(input: {
           reason: null,
           context: {
             drift_type:
-              "missed_plan|late_on_plan|lost_rhythm|plan_too_heavy|changed_context|ambiguous",
+              "missed_plan|late_on_plan|lost_rhythm|plan_too_heavy|plan_too_light|changed_context|ambiguous",
             scope: "whole_plan|week|level|unknown",
             explicit_adjust_request: false,
             product_execution_allowed: false,
@@ -493,6 +495,27 @@ export function buildDispatcherPrompt(input: {
                 product_execution_allowed: false,
                 reason:
                   "User describes the plan/week as too heavy, not one specific blocked action.",
+              },
+            },
+          },
+        },
+      },
+      {
+        user_message: "Mon plan est trop mou, corse-le, je veux plus d'ambition.",
+        expected: {
+          direct_effects: [],
+          skill_signals: {
+            plan_realignment: {
+              detected: true,
+              confidence_band: "high",
+              reason: "plan_too_light_realignment",
+              context: {
+                drift_type: "plan_too_light",
+                scope: "whole_plan",
+                explicit_adjust_request: true,
+                product_execution_allowed: false,
+                reason:
+                  "User says the plan is too easy and explicitly asks to raise the level; direction is UP (plan_too_light), never plan_too_heavy.",
               },
             },
           },

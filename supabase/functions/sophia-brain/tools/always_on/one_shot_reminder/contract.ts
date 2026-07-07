@@ -173,6 +173,10 @@ export type CancelOneShotReminderOutcome =
     detected: true;
     status: "no_reminder";
     user_message: string;
+    /** eva-r6 B03: distinguer « jamais existé » de « déjà envoyé/annulé ». */
+    absence_reason?: "never_existed" | "already_delivered" | "already_cancelled";
+    /** Label local du rappel retrouvé hors pending (ex: « 22h30 »). */
+    non_pending_local_label?: string | null;
   }
   | {
     detected: true;

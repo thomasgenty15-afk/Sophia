@@ -356,6 +356,10 @@ function outcomeGuidance(
     case "cancel_target_not_pending":
     case "missing_cancel_target":
       return "Aucun rappel en attente ne correspond a la demande d'annulation: dis-le sobrement, rien n'a ete annule.";
+    case "cancel_already_delivered":
+      return "Le rappel vise a DEJA ete envoye: dis-le honnetement (il a bien existe, il n'est simplement plus en attente) — ne dis JAMAIS qu'aucun rappel n'etait enregistre.";
+    case "cancel_already_cancelled":
+      return "Ce rappel etait deja annule: confirme sobrement cet etat, sans nouvelle annulation.";
     default:
       return "Rien n'a ete ecrit pour cette demande ce tour. Ne le presente jamais comme fait; dis ce qui bloque si utile et propose la suite.";
   }

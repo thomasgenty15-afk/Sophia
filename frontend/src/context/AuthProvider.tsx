@@ -217,14 +217,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initializeAuth();
 
     const { data } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, nextSession: Session | null) => {
+      // IMPORTANT: this callback must stay synchronous and must never `await`
+      // other supabase.* calls directly. It runs while supabase-js holds the
+      // auth lock (Web Locks API); any awaited supabase call inside needs the
+      // same lock and deadlocks — `loading` then never clears and every
+      // authenticated route renders blank (the white-screen-after-login bug).
+      // Defer all supabase work with setTimeout(0) so it runs off the lock.
+      (event: AuthChangeEvent, nextSession: Session | null) => {
         const eventName = event as unknown as string;
         // If refresh fails (often due to backend offline), clear local tokens to stop retry spam.
         // Note: some supabase-js versions don't include TOKEN_REFRESH_FAILED in AuthChangeEvent typing.
         // We still handle it defensively if it occurs at runtime.
         if (eventName === 'TOKEN_REFRESH_FAILED') {
-          await clearLocalSession();
-          setLoading(false);
+          setTimeout(() => {
+            void (async () => {
+              await clearLocalSession();
+              setLoading(false);
+            })();
+          }, 0);
           return;
         }
         setSession(nextSession);
@@ -241,15 +251,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser((currentUser) =>
           currentUser?.id === nextUser?.id ? currentUser : nextUser
         );
-        // Await both before clearing loading: otherwise `loading` flips false
-        // while accessTier is still its initial "none", flashing the
-        // "no subscription" panel (or a blank guard) before the real tier
-        // resolves — the intermittent bug this fixes.
-        await Promise.all([
-          refreshAdmin(nextUser),
-          refreshSubscription(nextUser),
-        ]);
-        setLoading(false);
+        // Resolve tier/admin before clearing loading (otherwise `loading` flips
+        // false while accessTier is still its initial "none", flashing the
+        // "no subscription" panel before the real tier resolves). Deferred so
+        // the awaited supabase reads run off the auth lock — see note above.
+        setTimeout(() => {
+          void (async () => {
+            await Promise.all([
+              refreshAdmin(nextUser),
+              refreshSubscription(nextUser),
+            ]);
+            setLoading(false);
+          })();
+        }, 0);
       }
     );
 

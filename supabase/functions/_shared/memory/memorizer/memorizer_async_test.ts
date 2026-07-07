@@ -430,3 +430,44 @@ Deno.test("concurrent trigger on a fresh running run skips instead of double-wri
   // Une seule vague ecrite: N faits acceptes = N memory_items, pas 2N.
   assertEquals(repo.memoryWrites.length, 1);
 });
+
+Deno.test("future dated confided event survives the pipeline with its dates (alex-r4 B04)", async () => {
+  const repo = new InMemoryMemorizerRepository();
+  const result = await runMemorizerAsync(repo, {
+    user_id: "u",
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user" as const,
+      content: "Garde en tete: le 20 juillet je pars 4 jours chez ma mere.",
+    }],
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [{
+          kind: "event",
+          content_text: "Part 4 jours chez sa mere a partir du 20 juillet.",
+          normalized_summary: "Sejour de 4 jours chez sa mere du 20 au 24 juillet 2026.",
+          domain_keys: ["relations.famille"],
+          confidence: 0.85,
+          importance_score: 0.7,
+          sensitivity_level: "normal",
+          sensitivity_categories: [],
+          source_message_ids: ["m1"],
+          evidence_quote: "le 20 juillet je pars 4 jours chez ma mere",
+          event_start_at: "2026-07-20T00:00:00.000+02:00",
+          event_end_at: "2026-07-24T00:00:00.000+02:00",
+          time_precision: "day",
+        }],
+        entities: [],
+        corrections: [],
+        rejected_observations: [],
+      }),
+  });
+  assertEquals(result.status, "completed");
+  assertEquals(result.persisted.length, 1);
+  assertEquals(result.persisted[0].status, "active");
+  const written = repo.memoryWrites[0].candidate.item;
+  assertEquals(written.kind, "event");
+  assertEquals(String(written.event_start_at).startsWith("2026-07-20"), true);
+  assertEquals(String(written.event_end_at).startsWith("2026-07-24"), true);
+});

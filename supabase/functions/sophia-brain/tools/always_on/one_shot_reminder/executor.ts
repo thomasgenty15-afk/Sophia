@@ -25,7 +25,10 @@ import {
   isDegenerateReminderInstruction,
   slugify,
 } from "./instruction_parser.ts";
-import { readPendingOneShotReminderRows } from "./persistence.ts";
+import {
+  readPendingOneShotReminderRows,
+  readRecentOneShotReminderRows,
+} from "./persistence.ts";
 import {
   extractStrictAbsoluteParts,
   extractTargetHHMMFromMessage,
@@ -543,10 +546,48 @@ export async function maybeCancelOneShotReminder(params: {
     };
   }
   if (pendingRows.length === 0) {
+    // eva-r6 B03: distinguer « jamais existe » de « deja envoye/annule ».
+    // Un rappel qui vient d'etre fire (pending → awaiting_user) existe bel
+    // et bien: le nier serait un faux statut. Fenetre 48h sur scheduled_for.
+    let absenceReason: "never_existed" | "already_delivered" | "already_cancelled" =
+      "never_existed";
+    let nonPendingLocalLabel: string | null = null;
+    try {
+      const sinceIso = new Date(
+        (params.now ?? new Date()).getTime() - 48 * 3_600_000,
+      ).toISOString();
+      const recentRows = await readRecentOneShotReminderRows({
+        supabase: params.supabase,
+        userId: params.userId,
+        sinceIso,
+      });
+      const delivered = recentRows.find((row: any) =>
+        ["awaiting_user", "delivered", "sent", "completed"].includes(
+          String(row?.status ?? ""),
+        )
+      );
+      const cancelled = recentRows.find((row: any) =>
+        String(row?.status ?? "") === "cancelled"
+      );
+      const nonPending = delivered ?? cancelled;
+      if (delivered) absenceReason = "already_delivered";
+      else if (cancelled) absenceReason = "already_cancelled";
+      if (nonPending) {
+        nonPendingLocalLabel = localHHMMForScheduledFor(
+          String((nonPending as any)?.scheduled_for ?? ""),
+          tctx.user_timezone,
+        ) || null;
+      }
+    } catch (_error) {
+      // Lecture best-effort: en cas d'echec on garde never_existed (honnete
+      // par defaut: « rien a annuler »).
+    }
     return {
       detected: true,
       status: "no_reminder",
       user_message: compactText(params.message, 500),
+      absence_reason: absenceReason,
+      non_pending_local_label: nonPendingLocalLabel,
     };
   }
 

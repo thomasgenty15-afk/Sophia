@@ -75,6 +75,9 @@ export type PlanRealignmentDriftType =
   | "late_on_plan"
   | "lost_rhythm"
   | "plan_too_heavy"
+  // nina-r4 B03 / paul-r6 B03: « trop mou / corse / plus d'ambition » etait
+  // collapse sur plan_too_heavy (direction OPPOSEE) faute de bucket dedie.
+  | "plan_too_light"
   | "changed_context"
   | "ambiguous";
 

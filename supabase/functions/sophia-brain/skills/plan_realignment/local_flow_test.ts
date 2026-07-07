@@ -133,3 +133,42 @@ Deno.test("plan_realignment reducer exits with global note only on explicit exit
   assertEquals(reduced.note_information?.source_flow_id, "plan_realignment");
   assertEquals(reduced.note_information?.target_dispatcher, "global");
 });
+
+Deno.test("plan_too_light drift type is accepted and keeps its direction (nina-r4 B03)", () => {
+  const output = normalizePlanRealignmentLocalDispatcherOutput({
+    flow_action: "platform_guidance",
+    confidence: "high",
+    risk_score: 0,
+    drift_type: "plan_too_light",
+    scope: "whole_plan",
+    explicit_adjust_request: true,
+    user_need_summary: "veut un plan plus ambitieux avec du sport",
+    next_step: "ouvrir Dashboard > Plan > Ajuster mon plan",
+    state_updates: {
+      status: "active",
+      turn_count_increment: 1,
+      close_after_visible: false,
+    },
+    visible_task: {
+      kind: "plan_realignment_platform_guidance",
+      instruction: "guider vers l'ajustement pour corser",
+      conversation_context: {
+        drift_type: "plan_too_light",
+        scope: "whole_plan",
+        explicit_adjust_request: true,
+        product_execution_allowed: false,
+        recommended_surface: "Dashboard > Plan",
+        next_step: "ouvrir Dashboard > Plan > Ajuster mon plan",
+      },
+    },
+    evidence: ["mon plan est trop mou, corse-le"],
+  });
+
+  // La direction « corser » n'est pas retombee sur ambiguous ni inversee en
+  // plan_too_heavy (nina-r4 B03: l'enum collapsait les deux directions).
+  assertEquals(output.drift_type, "plan_too_light");
+  assertEquals(
+    output.visible_task.conversation_context.drift_type,
+    "plan_too_light",
+  );
+});

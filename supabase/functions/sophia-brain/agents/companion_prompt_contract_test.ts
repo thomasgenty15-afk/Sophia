@@ -130,6 +130,12 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
   assert(prompt.includes("Sexe/genre"));
   assert(prompt.includes("Mémoire"));
   assert(prompt.includes("Questions sur fonctionnalités"));
+  // nina-r3 B03: pont émotionnel au tour qui suit une détresse.
+  assert(prompt.includes("Pont post-détresse"));
+  assert(prompt.includes("jamais de réponse 100% transactionnelle"));
+  // eva-r5 B03 / paul-r5 B04: adhérence des préférences de session à tous les tours.
+  assert(prompt.includes("Une préférence de style exprimée en session"));
+  assert(prompt.includes("y compris en mode soutien"));
   assertEquals(prompt.includes("préparer une nouvelle version"), false);
   assertEquals(prompt.includes("POLYVALENCE ET ASSISTANCE"), false);
   assertEquals(prompt.includes("STYLE ET RYTHME"), false);

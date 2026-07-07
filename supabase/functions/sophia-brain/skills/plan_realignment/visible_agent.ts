@@ -63,6 +63,12 @@ function fallbackMessage(
   if (context.product_execution_allowed) {
     return "Le bon mouvement est de reprendre ton Plan depuis la plateforme, pas depuis le chat.";
   }
+  // nina-r4 B03: la direction « corser » a sa branche — reutiliser le message
+  // « ne pas rattraper d'un coup » sur une demande d'ambition serait a
+  // contresens.
+  if (context.drift_type === "plan_too_light") {
+    return "Ok, tu veux monter le niveau — bonne nouvelle. Le bon endroit est Dashboard > Plan > Ajuster mon plan : écris ce qui est trop facile, ce que tu veux ajouter (une habitude, du sport, plus de volume), et l'IA corsera la suite du plan en gardant ce qui marche.";
+  }
   if (context.scope === "week" || context.drift_type === "plan_too_heavy") {
     return "Ok, là le sujet n'est pas de rattraper toute la semaine d'un coup. Le plus utile est d'aller dans Dashboard > Plan > Ajuster mon plan, puis d'expliquer franchement ce qui n'a pas tenu, pourquoi, et ce que tu aimerais avoir à la place.";
   }

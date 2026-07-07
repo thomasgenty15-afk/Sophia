@@ -513,3 +513,111 @@ Deno.test("reschedule_intent_blocks_honestly_with_outcome (eva-r5 B01)", async (
   // La reply est honnete: rien de change, destination plateforme.
   assertEquals(String(result.reply ?? "").includes("Rien n'a été changé"), true);
 });
+
+// Fake flexible pour le cancel: distingue la requete pending (.eq status)
+// de la lecture recente tous-statuts (.gte scheduled_for).
+function fakeCancelSupabase(rows: Array<{
+  id: string;
+  scheduled_for: string;
+  status: string;
+  event_context: string;
+}>) {
+  function chain(filters: { pendingOnly: boolean }) {
+    const self: any = {
+      select: () => self,
+      like: () => self,
+      order: () => self,
+      in: () => self,
+      gte: () => self,
+      eq: (column: string, value: string) => {
+        if (column === "status" && value === "pending") {
+          return chain({ pendingOnly: true });
+        }
+        return self;
+      },
+      limit: async () => ({
+        data: filters.pendingOnly
+          ? rows.filter((row) => row.status === "pending")
+          : rows,
+        error: null,
+      }),
+      maybeSingle: async () => ({
+        data: { timezone: "Europe/Paris", locale: "fr-FR" },
+      }),
+    };
+    return self;
+  }
+  return {
+    from(table: string) {
+      if (table === "profiles") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { timezone: "Europe/Paris", locale: "fr-FR" },
+              }),
+            }),
+          }),
+        };
+      }
+      return chain({ pendingOnly: false });
+    },
+  };
+}
+
+Deno.test("cancel of an already-delivered reminder says delivered, never 'nothing recorded' (eva-r6 B03)", async () => {
+  // Le rappel a fire (pending → awaiting_user) juste avant la demande
+  // d'annulation: il EXISTE. Avant le fix, la lecture pending-only le
+  // rendait invisible et la reply niait son existence.
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase([{
+      id: "chk-1",
+      scheduled_for: "2026-07-07T20:30:00.000Z",
+      status: "awaiting_user",
+      event_context: "one_shot_reminder:couper_le_tel",
+    }]) as never,
+    userId: "user-1",
+    message: "finalement annule mon rappel de 22h30",
+    now: new Date("2026-07-07T20:45:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "cancel",
+      raw_text: "finalement annule mon rappel de 22h30",
+      when_hint: "22h30",
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "cancel_already_delivered");
+  assertEquals(
+    String(result.reply ?? "").includes("déjà été envoyé"),
+    true,
+  );
+  assertEquals(
+    String(result.reply ?? "").includes("aucun rappel"),
+    false,
+  );
+  assertEquals(
+    result.blocked_effects.some((effect) =>
+      effect.reason_code === "cancel_already_delivered"
+    ),
+    true,
+  );
+});
+
+Deno.test("cancel with truly no reminder still says nothing to cancel", async () => {
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase([]) as never,
+    userId: "user-1",
+    message: "annule mon rappel",
+    now: new Date("2026-07-07T20:45:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "cancel",
+      raw_text: "annule mon rappel",
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "no_pending_reminder");
+  assertEquals(
+    String(result.reply ?? "").includes("rien à annuler"),
+    true,
+  );
+});

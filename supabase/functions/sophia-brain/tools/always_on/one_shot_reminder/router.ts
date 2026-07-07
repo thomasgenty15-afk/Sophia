@@ -372,14 +372,30 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       };
     }
     if (cancelOutcome.detected && cancelOutcome.status === "no_reminder") {
+      // eva-r6 B03: la reponse distingue « jamais existe » de « deja
+      // envoye/annule » — nier l'existence d'un rappel reel (fire il y a
+      // 5 min) etait un faux statut.
+      const absence = cancelOutcome.absence_reason ?? "never_existed";
+      const label = String(cancelOutcome.non_pending_local_label ?? "").trim();
+      const reasonCode = absence === "already_delivered"
+        ? "cancel_already_delivered"
+        : absence === "already_cancelled"
+        ? "cancel_already_cancelled"
+        : "no_pending_reminder";
+      const reply = absence === "already_delivered"
+        ? `Ton rappel${
+          label ? ` de ${label}` : ""
+        } a déjà été envoyé — il n'est plus en attente, donc rien à annuler.`
+        : absence === "already_cancelled"
+        ? `Ce rappel${label ? ` de ${label}` : ""} était déjà annulé.`
+        : "Je ne trouve aucun rappel en attente qui corresponde — rien à annuler.";
       return {
         ...baseDirectEffectResult({
           detected: true,
           intent: "cancel",
           status: "blocked",
-          reason_code: "no_pending_reminder",
-          reply:
-            "Je ne trouve aucun rappel en attente qui corresponde — rien à annuler.",
+          reason_code: reasonCode,
+          reply,
         }),
         requested_effects: [{
           type: "cancel_one_shot_reminder",
@@ -387,7 +403,7 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         }],
         blocked_effects: [{
           type: "cancel_one_shot_reminder",
-          reason_code: "no_pending_reminder",
+          reason_code: reasonCode,
         }],
       };
     }

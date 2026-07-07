@@ -33,6 +33,7 @@ const DRIFT_TYPES = new Set<PlanRealignmentDriftType>([
   "late_on_plan",
   "lost_rhythm",
   "plan_too_heavy",
+  "plan_too_light",
   "changed_context",
   "ambiguous",
 ]);
